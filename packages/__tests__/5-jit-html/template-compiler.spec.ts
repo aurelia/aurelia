@@ -5,6 +5,11 @@ import {
   IContainer,
   kebabCase,
   PLATFORM,
+  ISink,
+  ILogEvent,
+  LoggerConfiguration,
+  DefaultLogger,
+  LogLevel,
 } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
@@ -1233,9 +1238,16 @@ describe(`TemplateCompiler - combinations`, function () {
 });
 
 describe('TemplateCompiler - local templates', function () {
+  class EventLog implements ISink {
+    public readonly log: ILogEvent[] = [];
+    public handleEvent(event: ILogEvent): void {
+      this.log.push(event);
+    }
+  }
   function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
+    container.register(LoggerConfiguration.create({ sinks: [EventLog] }));
     const sut = ctx.templateCompiler;
     return { ctx, container, sut };
   }
@@ -1443,6 +1455,21 @@ describe('TemplateCompiler - local templates', function () {
     ctx.doc.body.removeChild(host);
   });
 
+  it('throws error if a root template is a local template', function () {
+    const template = `<template as-custom-element="foo-bar">I have local root!</template>`;
+    const { container, sut } = createFixture();
+    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'The root cannot be a local template itself.');
+  });
+
+  it('throws error if the custom element has only local templates', function () {
+    const template = `
+    <template as-custom-element="foo-bar">Does this work?</template>
+    <template as-custom-element="fiz-baz">Of course not!</template>
+    `;
+    const { container, sut } = createFixture();
+    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'The custom element does not have any content other than local template(s).');
+  });
+
   it('throws error if a local template is not under root', function () {
     const template = `<div><template as-custom-element="foo-bar">Can I hide here?</template></div>`;
     const { container, sut } = createFixture();
@@ -1480,4 +1507,24 @@ describe('TemplateCompiler - local templates', function () {
     const { container, sut } = createFixture();
     assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'The attribute \'property\' is missing in <bindable attribute="prop"></bindable>');
   });
+
+  it('warns if bindable element has more attributes other than the allowed', function () {
+    const template = `<template as-custom-element="foo-bar">
+      <bindable property="prop" unknown-attr who-cares="no one"></bindable>
+    </template>
+    <div></div>`;
+    const { container, sut } = createFixture();
+
+    sut.compile({ name: 'lorem-ipsum', template }, container);
+    const sinks = container.get(DefaultLogger)['warnSinks'] as ISink[];
+    const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
+    assert.strictEqual(eventLog.log.length, 1, `eventLog.log.length`);
+    const event = eventLog.log[0];
+    assert.strictEqual(event.severity, LogLevel.warn);
+    assert.includes(
+      event.toString(),
+      'The attribute(s) unknown-attr, who-cares will be ignored for <bindable property="prop" unknown-attr="" who-cares="no one"></bindable>. Only property, attribute, mode are processed.'
+    );
+  });
+
 });

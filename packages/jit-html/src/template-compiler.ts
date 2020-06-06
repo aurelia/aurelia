@@ -12,6 +12,7 @@ import {
   mergeArrays,
   toArray,
   Key,
+  ILogger,
 } from '@aurelia/kernel';
 import {
   HydrateAttributeInstruction,
@@ -70,7 +71,7 @@ class CustomElementCompilationUnit {
     public readonly partialDefinition: PartialCustomElementDefinition,
     public readonly surrogate: PlainElementSymbol,
     public readonly template: unknown,
-  ) {}
+  ) { }
 
   public toDefinition(): CustomElementDefinition {
     const def = this.partialDefinition;
@@ -87,6 +88,17 @@ class CustomElementCompilationUnit {
   }
 }
 
+const enum LocalTemplateBindableAttributes {
+  property = "property",
+  attribute = "attribute",
+  mode = "mode",
+}
+const allowedLocalTemplateBindableAttributes: readonly string[] = Object.freeze([
+  LocalTemplateBindableAttributes.property,
+  LocalTemplateBindableAttributes.attribute,
+  LocalTemplateBindableAttributes.mode
+]);
+const localTemplateIdentifier = 'as-custom-element';
 /**
  * Default (runtime-agnostic) implementation for `ITemplateCompiler`.
  *
@@ -95,6 +107,7 @@ class CustomElementCompilationUnit {
 export class TemplateCompiler implements ITemplateCompiler {
 
   private compilation!: CustomElementCompilationUnit;
+  private readonly logger: ILogger;
 
   public get name(): string {
     return 'default';
@@ -104,8 +117,11 @@ export class TemplateCompiler implements ITemplateCompiler {
     @ITemplateElementFactory private readonly factory: ITemplateElementFactory,
     @IAttributeParser private readonly attrParser: IAttributeParser,
     @IExpressionParser private readonly exprParser: IExpressionParser,
-    @IAttrSyntaxTransformer private readonly attrSyntaxModifier: IAttrSyntaxTransformer
-  ) {}
+    @IAttrSyntaxTransformer private readonly attrSyntaxModifier: IAttrSyntaxTransformer,
+    @ILogger logger: ILogger,
+  ) {
+    this.logger = logger.scopeTo('TemplateCompiler');
+  }
 
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
     return Registration.singleton(ITemplateCompiler, this).register(container);
@@ -159,13 +175,26 @@ export class TemplateCompiler implements ITemplateCompiler {
     context: IContainer,
     dom: IDOM
   ) {
-    const root = template.nodeName === 'TEMPLATE' ? (template as HTMLTemplateElement).content : template;
+    let root: HTMLElement | DocumentFragment;
+
+    if (template.nodeName === 'TEMPLATE') {
+      if (template.hasAttribute(localTemplateIdentifier)) {
+        throw new Error('The root cannot be a local template itself.'); /* TODO: use reporter */
+      }
+      root = (template as HTMLTemplateElement).content;
+    } else {
+      root = template;
+    }
     const localTemplates = toArray(root.querySelectorAll('template[as-custom-element]')) as HTMLTemplateElement[];
-    if (localTemplates.length === 0) { return; }
+    const numLocalTemplates = localTemplates.length;
+    if (numLocalTemplates === 0) { return; }
+    if(numLocalTemplates === root.childElementCount) {
+      throw new Error('The custom element does not have any content other than local template(s).');
+    }
     const localTemplateNames: Set<string> = new Set();
 
     function getTemplateName(localTemplate: HTMLTemplateElement): string {
-      const name = localTemplate.getAttribute('as-custom-element');
+      const name = localTemplate.getAttribute(localTemplateIdentifier);
       if (name === null || name === '') {
         throw new Error('The value of "as-custom-element" attribute cannot be empty for local template'); /* TODO: use reporter/logger */
       }
@@ -177,7 +206,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       return name;
     }
     function getBindingMode(bindable: Element): BindingMode {
-      switch (bindable.getAttribute('mode')) {
+      switch (bindable.getAttribute(LocalTemplateBindableAttributes.mode)) {
         case 'oneTime':
           return BindingMode.oneTime;
         case 'toView':
@@ -194,27 +223,32 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     for (const localTemplate of localTemplates) {
       if (localTemplate.parentNode !== root) {
-        throw new Error('Local templates needs to be defined directly under root.'); /* TODO: use reporter/logger */
+        throw new Error('Local templates needs to be defined directly under root.'); /* TODO: use reporter */
       }
       const name = getTemplateName(localTemplate);
 
       // eslint-disable-next-line @typescript-eslint/class-name-casing
       const localTemplateType = class { };
       const content = localTemplate.content;
-      const bindables = toArray(content.querySelectorAll('bindable'));
+      const bindableEls = toArray(content.querySelectorAll('bindable'));
       const bindableInstructions = Bindable.for(localTemplateType);
-      for (const bindable of bindables) {
-        if (bindable.parentNode !== content) {
-          throw new Error('Bindable properties of local templates needs to be defined directly under root.'); /* TODO: use reporter/logger */
+      for (const bindableEl of bindableEls) {
+        if (bindableEl.parentNode !== content) {
+          throw new Error('Bindable properties of local templates needs to be defined directly under root.'); /* TODO: use reporter */
         }
-        const property = bindable.getAttribute('property');
-        if (property === null) { throw new Error(`The attribute 'property' is missing in ${bindable.outerHTML}`); /* TODO: use reporter/logger */ }
+        const property = bindableEl.getAttribute(LocalTemplateBindableAttributes.property);
+        if (property === null) { throw new Error(`The attribute 'property' is missing in ${bindableEl.outerHTML}`); /* TODO: use reporter */ }
         bindableInstructions.add({
           property,
-          attribute: bindable.getAttribute('attribute') ?? void 0,
-          mode: getBindingMode(bindable),
+          attribute: bindableEl.getAttribute(LocalTemplateBindableAttributes.attribute) ?? void 0,
+          mode: getBindingMode(bindableEl),
         });
-        content.removeChild(bindable);
+        const ignoredAttributes = bindableEl.getAttributeNames().filter((attrName) => !allowedLocalTemplateBindableAttributes.includes(attrName));
+        if (ignoredAttributes.length > 0) {
+          this.logger.warn(`The attribute(s) ${ignoredAttributes.join(', ')} will be ignored for ${bindableEl.outerHTML}. Only ${allowedLocalTemplateBindableAttributes.join(', ')} are processed.`);
+        }
+
+        content.removeChild(bindableEl);
       }
 
       const div = dom.createElement('div') as HTMLDivElement;

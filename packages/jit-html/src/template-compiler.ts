@@ -188,7 +188,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     const localTemplates = toArray(root.querySelectorAll('template[as-custom-element]')) as HTMLTemplateElement[];
     const numLocalTemplates = localTemplates.length;
     if (numLocalTemplates === 0) { return; }
-    if(numLocalTemplates === root.childElementCount) {
+    if (numLocalTemplates === root.childElementCount) {
       throw new Error('The custom element does not have any content other than local template(s).');
     }
     const localTemplateNames: Set<string> = new Set();
@@ -232,15 +232,26 @@ export class TemplateCompiler implements ITemplateCompiler {
       const content = localTemplate.content;
       const bindableEls = toArray(content.querySelectorAll('bindable'));
       const bindableInstructions = Bindable.for(localTemplateType);
+      const properties: Set<string> = new Set();
+      const attributes: Set<string> = new Set();
       for (const bindableEl of bindableEls) {
         if (bindableEl.parentNode !== content) {
           throw new Error('Bindable properties of local templates needs to be defined directly under root.'); /* TODO: use reporter */
         }
         const property = bindableEl.getAttribute(LocalTemplateBindableAttributes.property);
         if (property === null) { throw new Error(`The attribute 'property' is missing in ${bindableEl.outerHTML}`); /* TODO: use reporter */ }
+        const attribute = bindableEl.getAttribute(LocalTemplateBindableAttributes.attribute) ?? void 0;
+        if (attributes.has(attribute!) || properties.has(property)) {
+          throw new Error(`Bindable property and attribute needs to be unique; found property: ${property}, attribute: ${attribute}`);
+        } else {
+          if (attribute !== void 0) {
+            attributes.add(attribute);
+          }
+          properties.add(property);
+        }
         bindableInstructions.add({
           property,
-          attribute: bindableEl.getAttribute(LocalTemplateBindableAttributes.attribute) ?? void 0,
+          attribute: attribute,
           mode: getBindingMode(bindableEl),
         });
         const ignoredAttributes = bindableEl.getAttributeNames().filter((attrName) => !allowedLocalTemplateBindableAttributes.includes(attrName));

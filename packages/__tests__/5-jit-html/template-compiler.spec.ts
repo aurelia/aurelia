@@ -1543,6 +1543,32 @@ describe('TemplateCompiler - local templates', function () {
     assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'The attribute \'property\' is missing in <bindable attribute="prop"></bindable>');
   });
 
+  it('throws error if duplicate bindable properties are found', function () {
+    const template = `<template as-custom-element="foo-bar">
+      <bindable property="prop" attribute="bar"></bindable>
+      <bindable property="prop" attribute="baz"></bindable>
+    </template>
+    <div></div>`;
+    const { container, sut } = createFixture();
+    assert.throws(
+      () => sut.compile({ name: 'lorem-ipsum', template }, container),
+      'Bindable property and attribute needs to be unique; found property: prop, attribute: '
+    );
+  });
+
+  it('throws error if duplicate bindable attributes are found', function () {
+    const template = `<template as-custom-element="foo-bar">
+      <bindable property="prop1" attribute="bar"></bindable>
+      <bindable property="prop2" attribute="bar"></bindable>
+    </template>
+    <div></div>`;
+    const { container, sut } = createFixture();
+    assert.throws(
+      () => sut.compile({ name: 'lorem-ipsum', template }, container),
+      'Bindable property and attribute needs to be unique; found property: prop2, attribute: bar'
+    );
+  });
+
   it('warns if bindable element has more attributes other than the allowed', function () {
     const template = `<template as-custom-element="foo-bar">
       <bindable property="prop" unknown-attr who-cares="no one"></bindable>

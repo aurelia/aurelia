@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/runtime-html-jsdom",
-  "version": "0.8.0-dev.202006080423",
+  "version": "0.8.0-dev.202006080450",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -34,12 +34,12 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.8.0-dev.202006080423",
-    "@aurelia/metadata": "0.8.0-dev.202006080423",
-    "@aurelia/runtime-html": "0.8.0-dev.202006080423",
-    "@aurelia/runtime": "0.8.0-dev.202006080423",
-    "@aurelia/scheduler-dom": "0.8.0-dev.202006080423",
-    "@aurelia/scheduler": "0.8.0-dev.202006080423",
+    "@aurelia/kernel": "0.8.0-dev.202006080450",
+    "@aurelia/metadata": "0.8.0-dev.202006080450",
+    "@aurelia/runtime-html": "0.8.0-dev.202006080450",
+    "@aurelia/runtime": "0.8.0-dev.202006080450",
+    "@aurelia/scheduler-dom": "0.8.0-dev.202006080450",
+    "@aurelia/scheduler": "0.8.0-dev.202006080450",
     "jsdom": "^15.2.1"
   },
   "devDependencies": {

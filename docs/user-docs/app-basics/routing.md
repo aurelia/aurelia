@@ -218,11 +218,19 @@ Router lifecycle hook methods are all completely optional. You only have to impl
 
 #### canEnter
 
-The `canEnter` method is called upon attempting to load the component. If your route has any parameters supplied, they will be provided to the `enter` method as an object with one or more parameters as the first argument. If you were loading data from an API based on values provided in the URL, you would most likely do that here if the view is dependent on the data successfully loading.
+The `canEnter` method is called upon attempting to load the component. If your route has any parameters supplied, they will be provided to the `enter` method as an object with one or more parameters as the first argument.
+
+{% hint style="info" %}
+If you were loading data from an API based on values provided in the URL, you would most likely do that inside of `canEnter` if the view is dependent on the data successfully loading.
+{% endhint %}
 
 #### enter
 
-The `enter` method is called when your component is navigated to. If your route has any parameters supplied, they will be provided to the `enter` method as an object with one or more parameters as the first argument. If you are loading data from an API based on values provided in the URL and the rendering of this view is not dependent on the data being successfully returned, you can do that in here.
+The `enter` method is called when your component is navigated to. If your route has any parameters supplied, they will be provided to the `enter` method as an object with one or more parameters as the first argument.
+
+{% hint style="info" %}
+If you are loading data from an API based on values provided in the URL and the rendering of this view is not dependent on the data being successfully returned, you can do that inside of `enter`.
+{% endhint %}
 
 #### canLeave
 
@@ -231,6 +239,8 @@ The `canLeave` method is called when a user attempts to leave a routed view. The
 #### leave
 
 The `leave` method is called if the user is allowed to leave and in the process of leaving. The first argument of this callback is a `INavigatorInstruction` which provides information about the next route.
+
+If you are working with components you are rendering, implementing `IRouteableComponent` will ensure that your code editor provides you with intellisense to make working with these lifecycle hooks in the appropriate way a lot easier.
 
 ```typescript
 export class MyComponent implements IRouteableComponent {
@@ -296,6 +306,74 @@ export class App implements IViewModel {
 ```
 
 In this example, we are telling the router we only want to apply the hook to a component called admin, all other routed components will be ignored when this hook is run. It is recommended that you use the whitelist approach using `include` where only a few components need to use a hook and `exclude` when mostly all components need to be run through the book.
+
+#### Authentication Example using Route Hooks
+
+One of the most common scenarios you will use router hooks for is adding in authentication to your applications.  Whether you use a third-party service such as Auth0 or Firebase Auth, the process is mostly the same. In this example, we will create a service class which will contain our methods for logging in and out.
+
+In a real application, your login and logout methods would obtain a token and authentication data, and check. For the purposes of this example, we have an if statement which checks for a specific username and password being supplied.
+
+{% tabs %}
+{% tab title="src/services/auth-service.ts" %}
+```typescript
+import { IRouter } from 'aurelia';
+
+export class AuthService {
+    public isLoggedIn = false;
+    private _user = null;
+
+    constructor(@IRouter private router: IRouter) {
+
+    }
+
+    public async login(username: string, password: string): Promise<void> {
+        if (username === 'user' && password === 'password') {
+            this.isLoggedIn = true;
+            
+            this._user = {
+                username: 'user',
+                email: 'user@domain.com'
+            };   
+        } else {
+            this.router.goto('/login');
+        }
+    }
+
+    public logout(redirect = null): void {
+        this.isLoggedIn = false;
+        this._user = null;
+
+		    if (redirect) {
+			    this.router.goto(redirect);
+		    }
+    }
+    
+    public getCurrentUser() {
+        return this._user;
+    }
+}
+```
+{% endtab %}
+
+{% tab title="my-app.ts" %}
+```
+import { IRouter, IViewModel } from 'aurelia';
+import { AuthService } from './services/auth-service'; 
+
+export class MyApp implements IViewModel {
+    constructor(@IRouter private router: IRouter, private auth: AuthService) {
+
+    }
+
+    afterBind() {
+        this.router.addHook(async (instructions) => {
+            return this.auth.isLoggedIn;
+        });
+    }
+}
+```
+{% endtab %}
+{% endtabs %}
 
 ### Differences from v1
 

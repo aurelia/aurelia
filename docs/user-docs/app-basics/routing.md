@@ -220,6 +220,10 @@ export class TestComponent implements IRouteableComponent {
 {% endtab %}
 {% endtabs %}
 
+## Component Configured Routing
+
+## Configured Routing
+
 ## Router Hooks
 
 As the name implies, route hooks  allow you to guard specific routes and redirect the user or cancel navigation entirely. In most cases, you will be wanting to use route hooks to protect certain areas of your application from people who do not have the required permission.
@@ -251,6 +255,30 @@ A router hook allows you to run middleware in the routing process, which you can
 Returning `true` will allow the instruction to be processed and returning `false` will disallow it. This will apply to every processed component, which for many purposes is a little heavy-handed and not what you want to do. You'll want to be specific when using a router hook so you know when it runs and what it will apply to.
 
 Running the above code will allow all route instructions to proceed, so nothing will change.
+
+### Whitelist/Blacklist Using `exclude` and `include`
+
+As we mentioned previously, our hook will apply to every component in our application. You might only have a couple of areas of your app you want to protect behind hook checks. There are two properties `include` which is a whitelist property and `exclude` which is a blacklist property.
+
+```typescript
+import { IRouter, IViewModel } from 'aurelia';
+
+export class App implements IViewModel {
+    constructor(@IRouter private router: IRouter) {
+
+    }
+
+    afterBind() {
+    	this.router.addHook(async (instructions) => {
+
+    	}, {
+    		include: ['admin']
+    	});
+    }
+}
+```
+
+In this example, we are telling the router we only want to apply the hook to a component called admin.
 
 ## Differences from v1
 

@@ -99,7 +99,7 @@ To access parameters from the URL, we can get those from the router lifecycle ho
 <import from="./test-component"></import>
 
 <ul>
-    <li><a goto="test-component('hello')">Test Component</a></li>
+    <li><a goto="test-component(hello)">Test Component</a></li>
 </ul>
 
 <au-viewport></au-viewport>
@@ -187,7 +187,7 @@ While you can name them inline, specifying them inside of your component makes i
 <import from="./test-component"></import>
 
 <ul>
-    <li><a goto="test-component('hello')">Test Component</a></li>
+    <li><a goto="test-component(hello)">Test Component</a></li>
 </ul>
 
 <au-viewport></au-viewport>

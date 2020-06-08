@@ -13,7 +13,7 @@ This document explains how to add in routing to your application using the Aurel
 * How to work with direct routing
 * How to use with parameterized routes
 * How to use with child routes
-* How to use Route Guards to prevent access to certain parts of your app
+* How to use router hooks to prevent access to certain parts of your app
 * How to use configuration-based routing
 * How to customize the router to support push state and hash change routing
 * Styling links with active CSS classes
@@ -33,7 +33,7 @@ We import the `RouterConfiguration` class from the `aurelia` package, which allo
 import Aurelia, { RouterConfiguration } from 'aurelia';
 
 Aurelia
-  .register(RouterConfiguration.customize({ useUrlFragmentHash: true }))
+  .register(RouterConfiguration)
   .app(component)
   .start();
  ```
@@ -143,7 +143,7 @@ You can name your route parameters inline by specifying the name inside of the `
 <import from="./test-component"></import>
 
 <ul>
-    <li><a goto="test-component(named='hello')">Test Component</a></li>
+    <li><a goto="test-component(named=hello)">Test Component</a></li>
 </ul>
 
 <au-viewport></au-viewport>
@@ -176,7 +176,9 @@ export class TestComponent implements IRouteableComponent {
 
 ### Named Route Parameters
 
-It is recommended that unless you do not know the names of the parameters, that you supply the names inside of your routed component using the static class property `parameters` which accepts an array of strings corresponding to parameters in your URL. While you can name them inline, specifying them inside of your component makes it easier for other people working in your codebase to determine how the component works.
+It is recommended that unless you do not know the names of the parameters, that you supply the names inside of your routed component using the static class property `parameters` which accepts an array of strings corresponding to parameters in your URL. 
+
+While you can name them inline, specifying them inside of your component makes it easier for other people working in your codebase to determine how the component work.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -218,9 +220,37 @@ export class TestComponent implements IRouteableComponent {
 {% endtab %}
 {% endtabs %}
 
-## Route Guards
+## Router Hooks
 
-As the name implies, route guards allow you to guard specific routes and redirect the user or cancel navigation entirely. In most cases, you will be wanting to use route guards to protect certain areas of your application from people who do not have the required permission.
+As the name implies, route hooks  allow you to guard specific routes and redirect the user or cancel navigation entirely. In most cases, you will be wanting to use route hooks to protect certain areas of your application from people who do not have the required permission.
+
+{% hint style="success" %}
+If you want to protect certain routes in your application behind authentication checks, this is the section for you.
+{% endhint %}
+
+We are going to inject the router into the root of our application and then register a hook.
+
+```typescript
+import { IRouter, IViewModel } from 'aurelia';
+
+export class MyApp implements IViewModel {
+    constructor(@IRouter private router: IRouter) {
+
+    }
+
+    afterBind() {
+    	this.router.addHook(async (instructions) => {
+        return true;
+    	});
+    }
+}
+```
+
+A router hook allows you to run middleware in the routing process, which you can then use to redirect a user, perform additional checks (token, permission calls) and other applicable scenarios.
+
+Returning `true` will allow the instruction to be processed and returning `false` will disallow it. This will apply to every processed component, which for many purposes is a little heavy-handed and not what you want to do. You'll want to be specific when using a router hook so you know when it runs and what it will apply to.
+
+Running the above code will allow all route instructions to proceed, so nothing will change.
 
 ## Differences from v1
 

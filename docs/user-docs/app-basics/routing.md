@@ -58,7 +58,7 @@ Components which have been globally registered inside the `register` method, or 
 
 ### A Simple Example
 
-As you will see, the direct routing approach requires no configuration. We import our component, and then reference it by name inside of the `goto` attribute.
+As you will see, the direct routing approach requires no configuration. We import our component and then reference it by name inside of the `goto` attribute.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -88,7 +88,7 @@ The `goto` attribute on our link denotes that this link is to navigate to a comp
 
 ### Routes With Parameters
 
-The simple example above shows you how to render a component using the router and now we are going to introduce support for parameters. A parameter is a dynamic value in your URL which can be accessed inside of the routed component. For example, this might be a product ID or a category name.
+The simple example above shows you how to render a component using the router, and now we are going to introduce support for parameters. A parameter is a dynamic value in your URL which can be accessed inside of the routed component. For example, this might be a product ID or a category name.
 
 To access parameters from the URL, we can get those from the router lifecycle hook called `enter` which also supports promises and can be asynchronous.
 
@@ -130,7 +130,7 @@ export class TestComponent implements IRouteableComponent {
 {% endtab %}
 {% endtabs %}
 
-In this example, we are not telling the router the name of our parameters. By default, the router will pass an object keyed by index (starting at 0) for unnamed parameters. To access the value being passed to our test component, we would reference it using `parameters['0']` which would contain `1` as the value.
+In this example, we are not telling the router the name of our parameters. By default, the router will pass an object keyed by index (starting at 0) for unnamed parameters. To access the value being given to our test component, we would reference it using `parameters['0']` which would contain `1` as the value.
 
 ### Inline Named Route Parameters
 
@@ -226,10 +226,10 @@ export class TestComponent implements IRouteableComponent {
 
 ## Router Hooks
 
-As the name implies, route hooks  allow you to guard specific routes and redirect the user or cancel navigation entirely. In most cases, you will be wanting to use route hooks to protect certain areas of your application from people who do not have the required permission.
+As the name implies, route hooks allow you to guard specific routes and redirect the user or cancel navigation entirely. In most cases, you will want to use route hooks to protect certain areas of your application from people who do not have the required permission.
 
 {% hint style="success" %}
-If you want to protect certain routes in your application behind authentication checks, this is the section for you.
+If you want to protect specific routes in your application behind authentication checks, this is the section for you.
 {% endhint %}
 
 We are going to inject the router into the root of our application and then register a hook.
@@ -243,22 +243,22 @@ export class MyApp implements IViewModel {
     }
 
     afterBind() {
-    	this.router.addHook(async (instructions) => {
+        this.router.addHook(async (instructions) => {
         return true;
-    	});
+        });
     }
 }
 ```
 
-A router hook allows you to run middleware in the routing process, which you can then use to redirect a user, perform additional checks (token, permission calls) and other applicable scenarios.
+A router hook allows you to run middleware in the routing process. Which you can then use to redirect a user, perform additional checks (token, permission calls) and other application scenarios.
 
-Returning `true` will allow the instruction to be processed and returning `false` will disallow it. This will apply to every processed component, which for many purposes is a little heavy-handed and not what you want to do. You'll want to be specific when using a router hook so you know when it runs and what it will apply to.
+Returning `true` will allow the instruction to be processed, and returning `false` will disallow it. This will apply to every processed component, which for many purposes, is a little heavy-handed and not what you want to do. You'll want to be specific when using a router hook so you know when it runs and what it will apply to.
 
 Running the above code will allow all route instructions to proceed, so nothing will change.
 
 ### Whitelist/Blacklist Using `exclude` and `include`
 
-As we mentioned previously, our hook will apply to every component in our application. You might only have a couple of areas of your app you want to protect behind hook checks. There are two properties `include` which is a whitelist property and `exclude` which is a blacklist property.
+As we mentioned previously, our hook will apply to every component in our application. You might only have a couple of areas of your app you want to protect behind hook checks. There is two properties `include` which is a whitelist property and `exclude` which is a blacklist property.
 
 ```typescript
 import { IRouter, IViewModel } from 'aurelia';
@@ -269,11 +269,11 @@ export class App implements IViewModel {
     }
 
     afterBind() {
-    	this.router.addHook(async (instructions) => {
+        this.router.addHook(async (instructions) => {
 
-    	}, {
-    		include: ['admin']
-    	});
+        }, {
+            include: ['admin']
+        });
     }
 }
 ```

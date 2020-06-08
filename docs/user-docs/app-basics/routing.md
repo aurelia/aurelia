@@ -114,7 +114,7 @@ import { IRouteableComponent } from '@aurelia/router';
 
 export class TestComponent implements IRouteableComponent {
     public enter(parameters) {
-        console.log(parameters); // Should display {0: "1"} in the browser developer tools console
+        console.log(parameters); // Should display {0: "hello"} in the browser developer tools console
     }
 }
 ```
@@ -132,9 +132,51 @@ export class TestComponent implements IRouteableComponent {
 
 In this example, we are not telling the router the name of our parameters. By default, the router will pass an object keyed by index (starting at 0) for unnamed parameters. To access the value being passed to our test component, we would reference it using `parameters['0']` which would contain `1` as the value.
 
+### Inline Named Route Parameters
+
+You can name your route parameters inline by specifying the name inside of the `goto` attribute on the component.
+
+{% tabs %}
+{% tab title="my-app.html" %}
+
+```html
+<import from="./test-component"></import>
+
+<ul>
+    <li><a goto="test-component(named='hello')">Test Component</a></li>
+</ul>
+
+<au-viewport></au-viewport>
+```
+
+{% endtab %}
+
+{% tab title="test-component.ts" %}
+
+```typescript
+import { IRouteableComponent } from '@aurelia/router';
+
+export class TestComponent implements IRouteableComponent {
+    public enter(parameters) {
+        console.log(parameters); // Should display {named: "hello"} in the browser developer tools console
+    }
+}
+```
+
+{% endtab %}
+
+{% tab title="test-component.html" %}
+
+```html
+<h1>Hello world, I'm a test component.</h1>
+```
+
+{% endtab %}
+{% endtabs %}
+
 ### Named Route Parameters
 
-It is recommended that unless you do not know the names of the parameters, that you supply the names inside of your routed component using the static class property `parameters` which accepts an array of strings corresponding to parameters in your URL.
+It is recommended that unless you do not know the names of the parameters, that you supply the names inside of your routed component using the static class property `parameters` which accepts an array of strings corresponding to parameters in your URL. While you can name them inline, specifying them inside of your component makes it easier for other people working in your codebase to determine how the component works.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -160,7 +202,7 @@ export class TestComponent implements IRouteableComponent {
     public static parameters = ['id'];
     
     public enter(parameters) {
-        console.log(parameters); // Should display {id: "1"} in the browser developer tools console
+        console.log(parameters); // Should display {id: "hello"} in the browser developer tools console
     }
 }
 ```
@@ -175,6 +217,10 @@ export class TestComponent implements IRouteableComponent {
 
 {% endtab %}
 {% endtabs %}
+
+## Route Guards
+
+As the name implies, route guards allow you to guard specific routes and redirect the user or cancel navigation entirely. In most cases, you will be wanting to use route guards to protect certain areas of your application from people who do not have the required permission.
 
 ## Differences from v1
 

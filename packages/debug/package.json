@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/debug",
-  "version": "0.8.0-dev.202006080456",
+  "version": "0.8.0-dev.202006080706",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -34,10 +34,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.8.0-dev.202006080456",
-    "@aurelia/metadata": "0.8.0-dev.202006080456",
-    "@aurelia/runtime": "0.8.0-dev.202006080456",
-    "@aurelia/scheduler": "0.8.0-dev.202006080456"
+    "@aurelia/kernel": "0.8.0-dev.202006080706",
+    "@aurelia/metadata": "0.8.0-dev.202006080706",
+    "@aurelia/runtime": "0.8.0-dev.202006080706",
+    "@aurelia/scheduler": "0.8.0-dev.202006080706"
   },
   "devDependencies": {
     "typescript": "^3.8.3"

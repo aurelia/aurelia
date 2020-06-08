@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/metadata",
-  "version": "0.8.0-dev.202006080456",
+  "version": "0.8.0-dev.202006080706",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",

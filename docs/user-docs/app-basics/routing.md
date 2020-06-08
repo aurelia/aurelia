@@ -1,14 +1,93 @@
+---
+description: The ins and outs of routing in an Aurelia application
+---
+
 # Routing
 
-Placeholder...
+This document explains how to add in routing to your application using the Aurelia Router. The Aurelia Router provides numerous ways of routing in your apps, including convention-based routing known as direct routing.
 
-## Basic Example
+{% hint style="success" %}
+**Here's what you'll learn...**
 
-To add a router to your application, just add a viewport to your application.
+* How to register and configure the router
+* How to work with direct routing
+* How to use with parameterized routes
+* How to use with child routes
+* How to use Route Guards to prevent access to certain parts of your app
+* How to use configuration-based routing
+* How to customize the router to support push state and hash change routing
+* Styling links with active CSS classes
+{% endhint %}
 
-```text
-<template>
-  <au-viewport></au-viewport>
-</template>
+> Note if you have worked with the Aurelia v1 router, direct routing is an entirely new feature and way of working with routes. Please see the [differences to v1](#differences-from-v1) section for further details.
+
+## Getting Started
+
+The Router comes with the default installation of Aurelia and does not require the installation of any additional packages. The only requirement for the router is that you have an Aurelia application already created.
+
+To register the plugin in your application, you can pass in the router object to the `register` method inside of the file containing your Aurelia initialization code. 
+
+We import the `RouterConfiguration` class from the `aurelia` package, which allows us to register our router and change configuration settings.
+
+ ```typescript
+import Aurelia, { RouterConfiguration } from 'aurelia';
+
+Aurelia
+  .register(RouterConfiguration.customize({ useUrlFragmentHash: true }))
+  .app(component)
+  .start();
+ ```
+
+You might notice we are supplying a configuration object to the `customize` method. Inside of it, we are providing `useUrlFragmentHash: true` -- this tells the router by default to use URL fragments for routing. Setting this to `false` will give you cleaner URL's, but require a server that can support push state routing.
+
+Inside of your root application view, you'll then want to add the `<au-viewport>` element where routed components will be displayed inside of. If you followed the recommended way of creating an Aurelia application, your root view is called `my-app.html`.
+
+**A simple example of direct routing (zero-configuration routing)**
+
+{% tabs %}
+{% tab title="my-app.html" %}
+
+```html
+<import from="./test-component.html"></import>
+
+<ul>
+    <li><a goto="test-component">Test Component</a></li>
+</ul>
+
+<au-viewport></au-viewport>
 ```
 
+{% endtab %}
+
+{% tab title="test-component.html" %}
+
+```html
+<h1>Hello world, I'm a test component.</h1>
+```
+
+{% endtab %}
+{% endtabs %}
+
+The `goto` attribute on our link denotes that this link is to navigate to a component using the router. Inside of the `goto` attribute, we pass in the name of the component (without any file extension).
+
+## Direct Routing
+
+Aurelia is known for its conventions-based approach to building applications. It provides you with a set of sane defaults and ways of doing certain things in your app, which help save time and make your life easier. The router in Aurelia 2 is no exception.
+
+### What Is Direct Routing?
+
+To put it in simple terms, direct routing is routing without configuration. Unlike other routers you might be familiar with, you do not need to specify your routes upfront in code. The direct routing functionality works for all kinds of routing from standard routes to routes with parameters, child routing and more.
+
+### How It Works
+
+You start off by registering the plugin in your app, you add in an `<au-viewport>` element where your routes will be displayed. Then using the `goto` attribute on your links, you can tell the router to render a specific component.
+
+Components which have been globally registered inside the `register` method, or imported inside of the view can be rendered through the router.
+
+The example in the Getting Started section highlights a straightforward scenario of direct routing in action. However, it does not show you how to pass parameters or specify a specific viewport to render inside of.
+
+## Differences from v1
+
+If you worked with Aurelia before version two, then you will already know just from reading the getting started in this documentation, Aurelia 2 routing is a little different.
+
+This section is only relevant and applicable to developers who are either migrating from the Aurelia 1 router or more familiar with Aurelia 1 routing and want to understand the differences.

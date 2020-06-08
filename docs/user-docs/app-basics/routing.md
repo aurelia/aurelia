@@ -42,7 +42,23 @@ You might notice we are supplying a configuration object to the `customize` meth
 
 Inside of your root application view, you'll then want to add the `<au-viewport>` element where routed components will be displayed inside of. If you followed the recommended way of creating an Aurelia application, your root view is called `my-app.html`.
 
-**A simple example of direct routing (zero-configuration routing)**
+## Direct Routing
+
+Aurelia is known for its conventions-based approach to building applications. It provides you with a set of sane defaults and ways of doing certain things in your app, which help save time and make your life easier. The router in Aurelia 2 is no exception.
+
+### What Is Direct Routing?
+
+To put it in simple terms, direct routing is routing without configuration. Unlike other routers you might be familiar with, you do not need to specify your routes upfront in code. The direct routing functionality works for all kinds of routing from standard routes to routes with parameters, child routing and more.
+
+### How It Works
+
+You start off by registering the plugin in your app, you add in an `<au-viewport>` element where your routes will be displayed. Then using the `goto` attribute on your links, you can tell the router to render a specific component.
+
+Components which have been globally registered inside the `register` method, or imported inside of the view can be rendered through the router.
+
+### A Simple Example
+
+As you will see, the direct routing approach requires no configuration. We import our component, and then reference it by name inside of the `goto` attribute.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -69,22 +85,6 @@ Inside of your root application view, you'll then want to add the `<au-viewport>
 {% endtabs %}
 
 The `goto` attribute on our link denotes that this link is to navigate to a component using the router. Inside of the `goto` attribute, we pass in the name of the component (without any file extension).
-
-## Direct Routing
-
-Aurelia is known for its conventions-based approach to building applications. It provides you with a set of sane defaults and ways of doing certain things in your app, which help save time and make your life easier. The router in Aurelia 2 is no exception.
-
-### What Is Direct Routing?
-
-To put it in simple terms, direct routing is routing without configuration. Unlike other routers you might be familiar with, you do not need to specify your routes upfront in code. The direct routing functionality works for all kinds of routing from standard routes to routes with parameters, child routing and more.
-
-### How It Works
-
-You start off by registering the plugin in your app, you add in an `<au-viewport>` element where your routes will be displayed. Then using the `goto` attribute on your links, you can tell the router to render a specific component.
-
-Components which have been globally registered inside the `register` method, or imported inside of the view can be rendered through the router.
-
-The example in the Getting Started section highlights a straightforward scenario of direct routing in action. However, it does not show you how to pass parameters or specify a specific viewport to render inside of.
 
 ## Differences from v1
 

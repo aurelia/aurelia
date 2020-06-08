@@ -86,6 +86,96 @@ As you will see, the direct routing approach requires no configuration. We impor
 
 The `goto` attribute on our link denotes that this link is to navigate to a component using the router. Inside of the `goto` attribute, we pass in the name of the component (without any file extension).
 
+### Routes With Parameters
+
+The simple example above shows you how to render a component using the router and now we are going to introduce support for parameters. A parameter is a dynamic value in your URL which can be accessed inside of the routed component. For example, this might be a product ID or a category name.
+
+To access parameters from the URL, we can get those from the router lifecycle hook called `enter` which also supports promises and can be asynchronous.
+
+{% tabs %}
+{% tab title="my-app.html" %}
+
+```html
+<import from="./test-component"></import>
+
+<ul>
+    <li><a goto="test-component('hello')">Test Component</a></li>
+</ul>
+
+<au-viewport></au-viewport>
+```
+
+{% endtab %}
+
+{% tab title="test-component.ts" %}
+
+```typescript
+import { IRouteableComponent } from '@aurelia/router';
+
+export class TestComponent implements IRouteableComponent {
+    public enter(parameters) {
+        console.log(parameters); // Should display {0: "1"} in the browser developer tools console
+    }
+}
+```
+
+{% endtab %}
+
+{% tab title="test-component.html" %}
+
+```html
+<h1>Hello world, I'm a test component.</h1>
+```
+
+{% endtab %}
+{% endtabs %}
+
+In this example, we are not telling the router the name of our parameters. By default, the router will pass an object keyed by index (starting at 0) for unnamed parameters. To access the value being passed to our test component, we would reference it using `parameters['0']` which would contain `1` as the value.
+
+### Named Route Parameters
+
+It is recommended that unless you do not know the names of the parameters, that you supply the names inside of your routed component using the static class property `parameters` which accepts an array of strings corresponding to parameters in your URL.
+
+{% tabs %}
+{% tab title="my-app.html" %}
+
+```html
+<import from="./test-component"></import>
+
+<ul>
+    <li><a goto="test-component('hello')">Test Component</a></li>
+</ul>
+
+<au-viewport></au-viewport>
+```
+
+{% endtab %}
+
+{% tab title="test-component.ts" %}
+
+```typescript
+import { IRouteableComponent } from '@aurelia/router';
+
+export class TestComponent implements IRouteableComponent {
+    public static parameters = ['id'];
+    
+    public enter(parameters) {
+        console.log(parameters); // Should display {id: "1"} in the browser developer tools console
+    }
+}
+```
+
+{% endtab %}
+
+{% tab title="test-component.html" %}
+
+```html
+<h1>Hello world, I'm a test component.</h1>
+```
+
+{% endtab %}
+{% endtabs %}
+
 ## Differences from v1
 
 If you worked with Aurelia before version two, then you will already know just from reading the getting started in this documentation, Aurelia 2 routing is a little different.

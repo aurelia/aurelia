@@ -50,7 +50,7 @@ Aurelia is known for its conventions-based approach to building applications. It
 
 #### What Is Direct Routing?
 
-To put it in simple terms, direct routing is routing without configuration. Unlike other routers you might be familiar with, you do not need to specify your routes upfront in code. The direct routing functionality works for all kinds of routing from standard routes to routes with parameters, child routing and more.
+To put it in simple terms, direct routing is routing without route configuration. Unlike other routers you might be familiar with, you do not need to specify your routes upfront in code. The direct routing functionality works for all kinds of routing from standard routes to routes with parameters, child routing and more.
 
 #### How It Works
 
@@ -82,7 +82,7 @@ As you will see, the direct routing approach requires no configuration. We impor
 {% endtab %}
 {% endtabs %}
 
-The `goto` attribute on our link denotes that this link is to navigate to a component using the router. Inside of the `goto` attribute, we pass in the name of the component \(without any file extension\).
+The `goto` attribute on our link denotes that this link is to navigate to a component using the router. Inside of the `goto` attribute, we pass in the name of the component \(without any file extension\). As you can see, HTML only components are supported by the router.
 
 #### Routes With Parameters
 
@@ -208,6 +208,61 @@ If direct routing isn't verbose enough for you and configured routing is too ver
 
 If you prefer a more traditional approach to routing where you specify the routes through configuration and things work similarly to other routers you might have worked with \(including the Aurelia 1 router\), then configured routing might appeal to you.
 
+### Viewport Configuration
+
+The `<au-viewport>` element is where all of the routing magic happens, the outlet. It supports a few different custom attributes which allow you to configure how the router acts \(from defaults, to which components are allowed to be rendered\).
+
+#### Named Viewports
+
+The router allows you to add in multiple viewports into your application and render components into each of those viewport elements by their name. The `<au-viewport>` element supports a name attribute, which you'll want to use if you have more than one of them.
+
+```markup
+<main>
+    <au-viewport name="main"></au-viewport>
+</main>
+<aside>
+    <au-viewport name="sidebar"></au-viewport>
+</aside>
+```
+
+In this example, we have a main viewport for our main content and then another viewport called `sidebar` for our sidebar content which is dynamically rendered.
+
+#### Default Route/Component
+
+In a real application, you will most likely want to display a default route which gets loaded when the user visits your application. The `default` attribute allows us to specify a default component to load.
+
+In our example, we are telling the router we want to have home display as our default component for our homepage, the first thing the visitor sees when they come to our application.
+
+```markup
+<au-viewport default="home"></au-viewport>
+```
+
+#### Default Route/Component With Parameters
+
+Sometimes your default component might support parameter values. If you were showing a category page as your default page, you might want to pass through a default category value. The syntax is basically the same as above, except we pass a value.
+
+```markup
+<au-viewport default="category(name=electronics)"></au-viewport>
+```
+
+#### Fallback Rendering
+
+Not everything goes to plan. If a user attempts to route to an area of your application and for whatever reason, that component cannot be rendered, you can specify a fallback component which will be routed in its place. You might use this to create a 404 page or something else.
+
+```markup
+<au-viewport fallback="404"></au-viewport>
+```
+
+#### Specifying Which Components A Viewport Can Render
+
+The `<au-viewport>` element supports a `used-by` attribute which allows you to restrict which components a viewport is allowed to render. This becomes even more useful in instances where you have more than one viewport and want to scope what each viewport supports.
+
+```markup
+<au-viewport default="home" used-by="home, login, register"></au-viewport>
+```
+
+Here we are restricting our main viewport to only allow `home`, `login` and `register` components to be rendered inside of it.
+
 ### Lifecycle Hooks
 
 Inside of your routeable components which implement the `IRouteableComponent` interface, there are certain methods which are called at different points of the routing lifecycle. These lifecycle hooks allow you to run code inside of your components such as fetch data or change the UI itself.
@@ -218,7 +273,7 @@ Router lifecycle hook methods are all completely optional. You only have to impl
 
 #### canEnter
 
-The `canEnter` method is called upon attempting to load the component. If your route has any parameters supplied, they will be provided to the `enter` method as an object with one or more parameters as the first argument.
+The `canEnter` method is called upon attempting to load the component. If your route has any parameters supplied, they will be provided to the `canEnter` method as an object with one or more parameters as the first argument.
 
 {% hint style="info" %}
 If you were loading data from an API based on values provided in the URL, you would most likely do that inside of `canEnter` if the view is dependent on the data successfully loading.
@@ -270,7 +325,7 @@ export class MyApp implements IViewModel {
     }
 
     afterBind() {
-        this.router.addHook(async (instructions) => {
+        this.router.addHook((instructions: ViewportInstruction[]) => {
             return true;
         });
     }
@@ -296,7 +351,7 @@ export class App implements IViewModel {
     }
 
     afterBind() {
-        this.router.addHook(async (instructions) => {
+        this.router.addHook((instructions: ViewportInstruction[]) => {
 
         }, {
             include: ['admin']
@@ -305,11 +360,11 @@ export class App implements IViewModel {
 }
 ```
 
-In this example, we are telling the router we only want to apply the hook to a component called admin, all other routed components will be ignored when this hook is run. It is recommended that you use the whitelist approach using `include` where only a few components need to use a hook and `exclude` when mostly all components need to be run through the book.
+In this example, we are telling the router we only want to apply the hook to a component called admin, all other routed components will be ignored when this hook is run. It is recommended that you use the whitelist approach using `include` where only a few components need to use a hook and `exclude` when mostly all components need to be run through the hook.
 
-#### Authentication Example using Route Hooks
+#### Authentication Example using Router Hooks
 
-One of the most common scenarios you will use router hooks for is adding in authentication to your applications.  Whether you use a third-party service such as Auth0 or Firebase Auth, the process is mostly the same. In this example, we will create a service class which will contain our methods for logging in and out.
+One of the most common scenarios you will use router hooks for is adding in authentication to your applications.  Whether you use a third-party service such as Auth0 or Firebase Auth or your own authentication implementation, the process is mostly the same. In this example, we will create a service class which will contain our methods for logging in and out.
 
 In a real application, your login and logout methods would obtain a token and authentication data, and check. For the purposes of this example, we have an if statement which checks for a specific username and password being supplied.
 
@@ -357,7 +412,7 @@ export class AuthService {
 
 {% tab title="my-app.ts" %}
 ```
-import { IRouter, IViewModel } from 'aurelia';
+import { IRouter, IViewModel, ViewportInstruction } from 'aurelia';
 import { AuthService } from './services/auth-service'; 
 
 export class MyApp implements IViewModel {
@@ -366,7 +421,7 @@ export class MyApp implements IViewModel {
     }
 
     afterBind() {
-        this.router.addHook(async (instructions) => {
+        this.router.addHook((instructions: ViewportInstruction[]) => {
             return this.auth.isLoggedIn;
         });
     }
@@ -374,6 +429,40 @@ export class MyApp implements IViewModel {
 ```
 {% endtab %}
 {% endtabs %}
+
+This code will run for all routed components and if the `isLoggedIn` property is not truthy, then the route will not be allowed to load. However, this is probably not the expected outcome. In a real application, you would probably redirect the user to a different route.
+
+#### Redirecting From Within Router Hooks
+
+More often than not, you will probably want to redirect users who do not have permission to access a particular area to a permission denied screen or a login screen. We do can do this by return an array containing a viewport instruction to tell the router what to do.
+
+{% tabs %}
+{% tab title="my-app.ts" %}
+```typescript
+import { IRouter, IViewModel, ViewportInstruction } from 'aurelia';
+import { AuthService } from './services/auth-service'; 
+
+export class MyApp implements IViewModel {
+    constructor(@IRouter private router: IRouter, private auth: AuthService) {
+
+    }
+
+    afterBind() {
+        this.router.addHook((instructions: ViewportInstruction[]) => {
+            if (this.auth.isLoggedIn) {
+                return true;
+            }
+
+            // User is not logged in, so redirect them back to login page
+            return [this.router.createViewportInstruction('login', instructions[0].viewport)];
+        });
+    }
+}
+```
+{% endtab %}
+{% endtabs %}
+
+In our code, we return true if our `isLoggedIn` property is truthy. Otherwise, we return an array containing a viewport instruction. The first argument is the component and the second is the viewport. We reference the first instruction and its viewport here. If you have multiple viewports, your code will look a bit different.
 
 ### Differences from v1
 

@@ -18,7 +18,7 @@ Aurelia is known for its conventions-based approach to building applications. It
 * How to name parameters
 {% endhint %}
 
-### What Is Direct Routing?
+## What Is Direct Routing?
 
 To put it in simple terms, direct routing is routing without route configuration. Unlike other routers you might be familiar with, you do not need to specify your routes upfront in code. The direct routing functionality works for all kinds of routing from standard routes to routes with parameters, child routing and more.
 
@@ -28,7 +28,7 @@ You start off by registering the plugin in your app, you add in an `<au-viewport
 
 Components which have been globally registered inside the `register` method, or imported inside of the view can be rendered through the router.
 
-### Direct Routing Example
+## Direct Routing Example
 
 As you will see, the direct routing approach requires no configuration. We import our component and then reference it by name inside of the `goto` attribute.
 
@@ -54,7 +54,7 @@ As you will see, the direct routing approach requires no configuration. We impor
 
 The `goto` attribute on our link denotes that this link is to navigate to a component using the router. Inside of the `goto` attribute, we pass in the name of the component \(without any file extension\). As you can see, HTML only components are supported by the router.
 
-### Routes With Parameters
+## Routes With Parameters
 
 The simple example above shows you how to render a component using the router, and now we are going to introduce support for parameters. A parameter is a dynamic value in your URL which can be accessed inside of the routed component. For example, this might be a product ID or a category name.
 

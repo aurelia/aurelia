@@ -6,7 +6,7 @@ description: >-
 
 # Navigating With Goto
 
-### Router Instance
+## Router Instance
 
 To use the `goto` method, you have to first inject the router into your component. This can be done easily by using the `IRouter` decorator on your component constructor method. The following code will add a property to your component called `router` which we can reference.
 
@@ -20,7 +20,7 @@ export class MyComponent implements IRouteableComponent {
 }
 ```
 
-#### Navigating Without Options
+### Navigating Without Options
 
 The `goto` method can accept a simple string value allowing you to navigate to another component without needing to supply any configuration options.
 
@@ -38,7 +38,7 @@ export class MyComponent implements IRouteableComponent {
 }
 ```
 
-#### Navigating With Parameters
+### Navigating With Parameters
 
 In this example, we are navigating to a component called `product` and passing a parameter value of `12` which is the product ID we will check for from within the product component.
 
@@ -56,7 +56,7 @@ export class MyComponent implements IRouteableComponent {
 }
 ```
 
-#### Configuration Options: Passing Parameters
+### Configuration Options: Passing Parameters
 
 The `goto` method can accept an object which contains the component we want to render \(either the instance or the string name\` as well as an object called parameters.
 
@@ -74,7 +74,7 @@ export class MyComponent implements IRouteableComponent {
 }
 ```
 
-#### Configuration Options: Specifying The Viewport
+### Configuration Options: Specifying The Viewport
 
 In instances where you have more than one viewport in your application, you can specify the viewport on the `goto` configuration object. In this example, we are specifying we want to render our product component inside of the viewport named `main`.
 
@@ -92,7 +92,7 @@ export class MyComponent implements IRouteableComponent {
 }
 ```
 
-### HTML goto Attribute
+## HTML goto Attribute
 
 The router also allows you to decorate links and buttons in your application using a `goto` attribute which works the same way as the router instance `goto` method.
 

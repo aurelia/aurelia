@@ -51,6 +51,7 @@
 * [Component Configured Routing](routing/component-configured-routing.md)
 * [Configured Routing](routing/configured-routing.md)
 * [Configuring The Viewport](routing/configuring-the-viewport.md)
+* [Navigation Menus](routing/navigation-menus.md)
 * [Navigating With Goto](routing/navigating-with-goto.md)
 * [Lifecycle Hooks](routing/lifecycle-hooks.md)
 * [Router Hooks](routing/router-hooks.md)

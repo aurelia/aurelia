@@ -21,7 +21,7 @@ As the name implies, route hooks allow you to guard specific routes and redirect
 If you want to protect specific routes in your application behind authentication checks such as "Only allow user to view this part of my app if they are logged in and have permission", this is the section for you.
 {% endhint %}
 
-### A Basic Example
+## A Basic Example
 
 ```typescript
 import { IRouter, IViewModel } from 'aurelia';
@@ -45,7 +45,7 @@ Returning `true` will allow the instruction to be processed, and returning `fals
 
 Running the above code will allow all route instructions to proceed, so nothing will change.
 
-### Whitelist/Blacklist Using `exclude` and `include`
+## Whitelist/Blacklist Using `exclude` and `include`
 
 As we mentioned previously, our hook will apply to every component in our application. You might only have a couple of areas of your app you want to protect behind hook checks. There is two properties `include` which is a whitelist property and `exclude` which is a blacklist property.
 
@@ -69,11 +69,15 @@ export class App implements IViewModel {
 
 In this example, we are telling the router we only want to apply the hook to a component called admin, all other routed components will be ignored when this hook is run. It is recommended that you use the whitelist approach using `include` where only a few components need to use a hook and `exclude` when mostly all components need to be run through the hook.
 
-### Authentication Example using Router Hooks
+## Authentication
 
 One of the most common scenarios you will use router hooks for is adding in authentication to your applications. Whether you use a third-party service such as Auth0 or Firebase Auth or your own authentication implementation, the process is mostly the same. In this example, we will create a service class which will contain our methods for logging in and out.
 
 In a real application, your login and logout methods would obtain a token and authentication data, and check. For the purposes of this example, we have an if statement which checks for a specific username and password being supplied.
+
+{% hint style="warning" %}
+This is only an example. It is by no means any officially recommended way in how you should handle authentication using router hooks. Please use this code as a guide for creating your own solutions.
+{% endhint %}
 
 {% tabs %}
 {% tab title="src/services/auth-service.ts" %}
@@ -139,7 +143,7 @@ export class MyApp implements IViewModel {
 
 This code will run for all routed components and if the `isLoggedIn` property is not truthy, then the route will not be allowed to load. However, this is probably not the expected outcome. In a real application, you would probably redirect the user to a different route.
 
-### Redirecting From Within Router Hooks
+## Redirecting
 
 More often than not, you will probably want to redirect users who do not have permission to access a particular area to a permission denied screen or a login screen. We do can do this by return an array containing a viewport instruction to tell the router what to do.
 
@@ -171,7 +175,7 @@ export class MyApp implements IViewModel {
 
 In our code, we return true if our `isLoggedIn` property is truthy. Otherwise, we return an array containing a viewport instruction. The first argument is the component and the second is the viewport. We reference the first instruction and its viewport here. If you have multiple viewports, your code will look a bit different.
 
-### Setting The Title From Within Router Hooks
+## Setting The Title From Within Router Hooks
 
 You can specify a router hook is to change the title of your application that gets called every time a route is triggered. By specifying the type of hook in our router hook configuration, passing in `HookTypes.SetTitleHookFunction` denotes this hook is for setting titles.
 

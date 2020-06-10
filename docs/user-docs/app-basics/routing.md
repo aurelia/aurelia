@@ -16,7 +16,7 @@ The three different types of routing and how to leverage them can be found in th
 
 {% page-ref page="../routing/configured-routing.md" %}
 
-### Getting Started
+## Getting Started
 
 We will not get into the technical specifics of routing here. We simply import the `RouterConfiguration` instance from the Aurelia package and then register it via the `register` method. 
 
@@ -45,7 +45,7 @@ By default, the router will use the hash style routing instead of pushState. To 
 
 That's all you need to do to add in support for routing to your application. It really is that simple.
 
-### Create A Routable Component
+## Create A Routable Component
 
 Now, let's use direct routing to create a component and add in a link to route to it. Let's create a new file inside of the `src` directory called `my-component.html`.
 

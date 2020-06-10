@@ -16,7 +16,7 @@ The `<au-viewport>` element is where all of the routing magic happens, the outle
 * How to restrict what components a viewport is allowed to display
 {% endhint %}
 
-### Named Viewports
+## Named Viewports
 
 The router allows you to add in multiple viewports into your application and render components into each of those viewport elements by their name. The `<au-viewport>` element supports a name attribute, which you'll want to use if you have more than one of them.
 
@@ -31,7 +31,7 @@ The router allows you to add in multiple viewports into your application and ren
 
 In this example, we have a main viewport for our main content and then another viewport called `sidebar` for our sidebar content which is dynamically rendered.
 
-### Default Route/Component
+## Default Routes
 
 In a real application, you will most likely want to display a default route which gets loaded when the user visits your application. The `default` attribute allows us to specify a default component to load.
 
@@ -49,7 +49,7 @@ Sometimes your default component might support parameter values. If you were sho
 <au-viewport default="category(name=electronics)"></au-viewport>
 ```
 
-### Fallback Rendering
+## Fallback Rendering
 
 Not everything goes to plan. If a user attempts to route to an area of your application and for whatever reason, that component cannot be rendered, you can specify a fallback component which will be routed in its place. You might use this to create a 404 page or something else.
 
@@ -57,7 +57,7 @@ Not everything goes to plan. If a user attempts to route to an area of your appl
 <au-viewport fallback="404"></au-viewport>
 ```
 
-### Specifying Which Components A Viewport Can Render
+## Specifying Which Components A Viewport Can Render
 
 The `<au-viewport>` element supports a `used-by` attribute which allows you to restrict which components a viewport is allowed to render. This becomes even more useful in instances where you have more than one viewport and want to scope what each viewport supports.
 

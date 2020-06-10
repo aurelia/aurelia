@@ -27,7 +27,7 @@ Aurelia
   .start();
 ```
 
-### Changing The Router Mode \(hash and pushState routing\)
+## Changing The Router Mode \(hash and pushState routing\)
 
 If you do not provide any configuration value, the default as we saw above is hash style routing. In most cases, you will probably prefer to use pushState style routing which uses cleaner URL's for routing instead of the hashes added into your URL.
 
@@ -46,13 +46,15 @@ By calling the `customize` method, you can supply a configuration object contain
 Enabling pushState routing setting `useUrlFragmentHash` to false will require a server that can handle pushState style routing.
 {% endhint %}
 
-### Styling Active Router Links
+## Styling Active Router Links
 
 A common scenario is styling an active router link with styling to signify that the link is active, such as making the text bold. By default, any link with a `goto` attribute that is routed to, will receive the class `goto-active` if it is currently active.
 
-### Setting The Title
+## Setting The Title
 
 The router supports setting the application title a few different ways. You can set a default title on the router when you configure it like above via the `register` method.
+
+### Via Configuration
 
 ```typescript
 import Aurelia, { RouterConfiguration } from 'aurelia';
@@ -65,7 +67,7 @@ Aurelia
 
 If you are working with direct routing, then supplying a `title` property on your component will allow you to set the title. This can either be a string or a function.
 
-#### Passing a String To Title
+### Passing a String To Title
 
 ```typescript
 import { IRouteableComponent } from '@aurelia/router';
@@ -75,7 +77,7 @@ export class Product implements IRouteableComponent {
 }
 ```
 
-#### Using a Function
+### Using a Function
 
 When passing a function into the `title` property, the first argument is the view-model of the component itself. This allows you to get information from the view-model such as loaded details like a product name or username. the function must return a string.
 

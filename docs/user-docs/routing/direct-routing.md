@@ -8,6 +8,16 @@ description: >-
 
 Aurelia is known for its conventions-based approach to building applications. It provides you with a set of sane defaults and ways of doing certain things in your app, which help save time and make your life easier. The router in Aurelia 2 is no exception.
 
+{% hint style="success" %}
+**What you will learn in this section**
+
+* What direct routing is
+* How to create parameter-less routes
+* How to create routes with parameters
+* How to pass data through routes
+* How to name parameters
+{% endhint %}
+
 ### What Is Direct Routing?
 
 To put it in simple terms, direct routing is routing without route configuration. Unlike other routers you might be familiar with, you do not need to specify your routes upfront in code. The direct routing functionality works for all kinds of routing from standard routes to routes with parameters, child routing and more.

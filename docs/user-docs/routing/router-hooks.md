@@ -71,7 +71,9 @@ In this example, we are telling the router we only want to apply the hook to a c
 
 ## Authentication
 
-One of the most common scenarios you will use router hooks for is adding in authentication to your applications. Whether you use a third-party service such as Auth0 or Firebase Auth or your own authentication implementation, the process is mostly the same. In this example, we will create a service class which will contain our methods for logging in and out.
+One of the most common scenarios you will use router hooks for is adding in authentication to your applications. Whether you use a third-party service such as Auth0 or Firebase Auth or your own authentication implementation, the process is mostly the same. 
+
+In this example, we will create a service class which will contain our methods for logging in and out.
 
 In a real application, your login and logout methods would obtain a token and authentication data, and check. For the purposes of this example, we have an if statement which checks for a specific username and password being supplied.
 

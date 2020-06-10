@@ -8,6 +8,13 @@ description: >-
 
 Inside of your routeable components which implement the `IRouteableComponent` interface, there are certain methods which are called at different points of the routing lifecycle. These lifecycle hooks allow you to run code inside of your components such as fetch data or change the UI itself.
 
+{% hint style="success" %}
+**What you will learn in this section**
+
+* What router lifecycle hooks are available
+* Which hooks you should use to load data and perform other actions
+{% endhint %}
+
 {% hint style="info" %}
 Router lifecycle hook methods are all completely optional. You only have to implement the methods you require. The router will only call a method if it has been specified inside of your routeable component. All lifecycle hook methods also support returning a promise and can be asynchronous.
 {% endhint %}

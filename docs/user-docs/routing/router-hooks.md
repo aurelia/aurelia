@@ -8,6 +8,15 @@ description: >-
 
 As the name implies, route hooks allow you to guard specific routes and redirect the user or cancel navigation entirely. In most cases, you will want to use route hooks to protect certain areas of your application from people who do not have the required permission.
 
+{% hint style="success" %}
+**What you will learn in this section**
+
+* How to create router hooks
+* How to whitelist and blacklist certain routable components from within hooks
+* How to implement authentication using route hooks
+* How to redirect from within a route hook
+{% endhint %}
+
 {% hint style="info" %}
 If you want to protect specific routes in your application behind authentication checks such as "Only allow user to view this part of my app if they are logged in and have permission", this is the section for you.
 {% endhint %}
@@ -161,4 +170,33 @@ export class MyApp implements IViewModel {
 {% endtabs %}
 
 In our code, we return true if our `isLoggedIn` property is truthy. Otherwise, we return an array containing a viewport instruction. The first argument is the component and the second is the viewport. We reference the first instruction and its viewport here. If you have multiple viewports, your code will look a bit different.
+
+### Setting The Title From Within Router Hooks
+
+You can specify a router hook is to change the title of your application that gets called every time a route is triggered. By specifying the type of hook in our router hook configuration, passing in `HookTypes.SetTitleHookFunction` denotes this hook is for setting titles.
+
+{% tabs %}
+{% tab title="my-app.ts" %}
+```typescript
+import { IRouter, IViewModel, ViewportInstruction } from 'aurelia';
+import { HookTypes, INavigatorInstruction } from '@aurelia/router';
+
+export class MyApp implements IViewModel {
+    constructor(@IRouter private router: IRouter) {
+
+    }
+
+    afterBind() {
+        this.router.addHook((title: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction) => {
+            return 'My Title';
+        }, {
+            type: HookTypes.SetTitleHookFunction
+        });
+    }
+}
+```
+{% endtab %}
+{% endtabs %}
+
+In this example we return a string, but in a real application you will probably want to check the component being rendered and then selectively set the title based on what is being rendered.
 

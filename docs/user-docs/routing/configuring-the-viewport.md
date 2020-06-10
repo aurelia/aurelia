@@ -6,6 +6,16 @@ description: How to work with and configure the viewport for the Aurelia Router.
 
 The `<au-viewport>` element is where all of the routing magic happens, the outlet. It supports a few different custom attributes which allow you to configure how the router acts \(from defaults, to which components are allowed to be rendered\).
 
+{% hint style="success" %}
+**What you will learn in this section**
+
+* How to name viewports
+* How to leverage multiple viewports
+* How to specify default routes
+* How to specify a fallback route
+* How to restrict what components a viewport is allowed to display
+{% endhint %}
+
 ### Named Viewports
 
 The router allows you to add in multiple viewports into your application and render components into each of those viewport elements by their name. The `<au-viewport>` element supports a name attribute, which you'll want to use if you have more than one of them.

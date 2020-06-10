@@ -8,6 +8,14 @@ description: >-
 
 The Router comes with the default installation of Aurelia and does not require the installation of any additional packages. The only requirement for the router is that you have an Aurelia application already created.
 
+{% hint style="success" %}
+**What you will learn in this section**
+
+* How to configure the router
+* How to use hash-style routing as well as pushState routing
+* How to style active router links
+{% endhint %}
+
 To register the plugin in your application, you can pass in the router object to the `register` method inside of the file containing your Aurelia initialization code. We import the `RouterConfiguration` class from the `aurelia` package, which allows us to register our router and change configuration settings.
 
 ```typescript
@@ -41,4 +49,35 @@ Enabling pushState routing setting `useUrlFragmentHash` to false will require a 
 ### Styling Active Router Links
 
 A common scenario is styling an active router link with styling to signify that the link is active, such as making the text bold. By default, any link with a `goto` attribute that is routed to, will receive the class `goto-active` if it is currently active.
+
+### Setting The Title
+
+The router supports setting the application title a few different ways. You can set a default title on the router when you configure it like above via the `register` method.
+
+
+
+```typescript
+import Aurelia, { RouterConfiguration } from 'aurelia';
+
+Aurelia
+  .register(RouterConfiguration.customize({ useUrlFragmentHash: false, title: 'My Application' }))
+  .app(component)
+  .start();
+```
+
+If you are working with direct routing, then supplying a `title` property on your component will allow you to set the title.
+
+```typescript
+import { IRouteableComponent } from '@aurelia/router';
+
+export class Product implements IRouteableComponent {
+    public static title = 'My Product';
+}
+```
+
+For configured routing, you can specify the title on the route itself. But, you can also dynamically set the title from within a router hook or within the routable component itself. For dynamic use cases, you will want to create a router hook to set the title, which can be found in the section on Router Hooks linked below.
+
+{% page-ref page="router-hooks.md" %}
+
+
 

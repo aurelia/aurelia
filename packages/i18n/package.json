@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/i18n",
-  "version": "0.8.0-dev.202006090655",
+  "version": "0.8.0-dev.202006100441",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "jsnext:main": "dist/esnext/index.js",
@@ -36,12 +36,12 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/jit": "0.8.0-dev.202006090655",
-    "@aurelia/kernel": "0.8.0-dev.202006090655",
-    "@aurelia/metadata": "0.8.0-dev.202006090655",
-    "@aurelia/runtime-html": "0.8.0-dev.202006090655",
-    "@aurelia/runtime": "0.8.0-dev.202006090655",
-    "@aurelia/scheduler": "0.8.0-dev.202006090655",
+    "@aurelia/jit": "0.8.0-dev.202006100441",
+    "@aurelia/kernel": "0.8.0-dev.202006100441",
+    "@aurelia/metadata": "0.8.0-dev.202006100441",
+    "@aurelia/runtime-html": "0.8.0-dev.202006100441",
+    "@aurelia/runtime": "0.8.0-dev.202006100441",
+    "@aurelia/scheduler": "0.8.0-dev.202006100441",
     "i18next": "^17.0.0"
   },
   "devDependencies": {

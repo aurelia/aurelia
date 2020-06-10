@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/babel-jest",
-  "version": "0.8.0-dev.202006100441",
+  "version": "0.8.0-dev.202006100444",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -34,11 +34,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.8.0-dev.202006100441",
-    "@aurelia/metadata": "0.8.0-dev.202006100441",
-    "@aurelia/plugin-conventions": "0.8.0-dev.202006100441",
-    "@aurelia/runtime": "0.8.0-dev.202006100441",
-    "@aurelia/scheduler": "0.8.0-dev.202006100441",
+    "@aurelia/kernel": "0.8.0-dev.202006100444",
+    "@aurelia/metadata": "0.8.0-dev.202006100444",
+    "@aurelia/plugin-conventions": "0.8.0-dev.202006100444",
+    "@aurelia/runtime": "0.8.0-dev.202006100444",
+    "@aurelia/scheduler": "0.8.0-dev.202006100444",
     "babel-jest": "^26.0.1"
   },
   "devDependencies": {

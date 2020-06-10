@@ -1,6 +1,6 @@
 {
   "name": "aurelia",
-  "version": "0.8.0-dev.202006100648",
+  "version": "0.8.0-dev.202006101004",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -33,20 +33,20 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/debug": "0.8.0-dev.202006100648",
-    "@aurelia/fetch-client": "0.8.0-dev.202006100648",
-    "@aurelia/jit-html-browser": "0.8.0-dev.202006100648",
-    "@aurelia/jit-html": "0.8.0-dev.202006100648",
-    "@aurelia/jit": "0.8.0-dev.202006100648",
-    "@aurelia/kernel": "0.8.0-dev.202006100648",
-    "@aurelia/metadata": "0.8.0-dev.202006100648",
-    "@aurelia/route-recognizer": "0.8.0-dev.202006100648",
-    "@aurelia/router": "0.8.0-dev.202006100648",
-    "@aurelia/runtime-html-browser": "0.8.0-dev.202006100648",
-    "@aurelia/runtime-html": "0.8.0-dev.202006100648",
-    "@aurelia/runtime": "0.8.0-dev.202006100648",
-    "@aurelia/scheduler-dom": "0.8.0-dev.202006100648",
-    "@aurelia/scheduler": "0.8.0-dev.202006100648"
+    "@aurelia/debug": "0.8.0-dev.202006101004",
+    "@aurelia/fetch-client": "0.8.0-dev.202006101004",
+    "@aurelia/jit-html-browser": "0.8.0-dev.202006101004",
+    "@aurelia/jit-html": "0.8.0-dev.202006101004",
+    "@aurelia/jit": "0.8.0-dev.202006101004",
+    "@aurelia/kernel": "0.8.0-dev.202006101004",
+    "@aurelia/metadata": "0.8.0-dev.202006101004",
+    "@aurelia/route-recognizer": "0.8.0-dev.202006101004",
+    "@aurelia/router": "0.8.0-dev.202006101004",
+    "@aurelia/runtime-html-browser": "0.8.0-dev.202006101004",
+    "@aurelia/runtime-html": "0.8.0-dev.202006101004",
+    "@aurelia/runtime": "0.8.0-dev.202006101004",
+    "@aurelia/scheduler-dom": "0.8.0-dev.202006101004",
+    "@aurelia/scheduler": "0.8.0-dev.202006101004"
   },
   "devDependencies": {
     "typescript": "^3.8.3"

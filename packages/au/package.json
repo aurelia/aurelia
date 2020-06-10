@@ -1,6 +1,6 @@
 {
   "name": "au",
-  "version": "0.8.0-dev.202006100648",
+  "version": "0.8.0-dev.202006101004",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -40,9 +40,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/debug": "0.8.0-dev.202006100648",
-    "@aurelia/kernel": "0.8.0-dev.202006100648",
-    "@aurelia/http-server": "0.8.0-dev.202006100648"
+    "@aurelia/debug": "0.8.0-dev.202006101004",
+    "@aurelia/kernel": "0.8.0-dev.202006101004",
+    "@aurelia/http-server": "0.8.0-dev.202006101004"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",

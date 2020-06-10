@@ -54,8 +54,6 @@ A common scenario is styling an active router link with styling to signify that 
 
 The router supports setting the application title a few different ways. You can set a default title on the router when you configure it like above via the `register` method.
 
-
-
 ```typescript
 import Aurelia, { RouterConfiguration } from 'aurelia';
 
@@ -65,7 +63,9 @@ Aurelia
   .start();
 ```
 
-If you are working with direct routing, then supplying a `title` property on your component will allow you to set the title.
+If you are working with direct routing, then supplying a `title` property on your component will allow you to set the title. This can either be a string or a function.
+
+#### Passing a String To Title
 
 ```typescript
 import { IRouteableComponent } from '@aurelia/router';
@@ -75,9 +75,17 @@ export class Product implements IRouteableComponent {
 }
 ```
 
-For configured routing, you can specify the title on the route itself. But, you can also dynamically set the title from within a router hook or within the routable component itself. For dynamic use cases, you will want to create a router hook to set the title, which can be found in the section on Router Hooks linked below.
+#### Using a Function
 
-{% page-ref page="router-hooks.md" %}
+When passing a function into the `title` property, the first argument is the view-model of the component itself. This allows you to get information from the view-model such as loaded details like a product name or username. the function must return a string.
 
+```typescript
+import { IRouteableComponent } from '@aurelia/router';
 
+export class Product implements IRouteableComponent {
+    public static title = (viewModel: Product) => `${viewModel.productName}`;
+}
+```
+
+For configured routing, you can specify the title on the route itself. But, you can also dynamically set the title from within a router hook or within the routable component itself.
 

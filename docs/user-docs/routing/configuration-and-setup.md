@@ -38,3 +38,7 @@ By calling the `customize` method, you can supply a configuration object contain
 Enabling pushState routing setting `useUrlFragmentHash` to false will require a server that can handle pushState style routing.
 {% endhint %}
 
+### Styling Active Router Links
+
+A common scenario is styling an active router link with styling to signify that the link is active, such as making the text bold. By default, any link with a `goto` attribute that is routed to, will receive the class `goto-active` if it is currently active.
+

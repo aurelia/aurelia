@@ -316,6 +316,8 @@ export {
 // These exports are temporary until we have a proper way to unit test them
 export {
   Controller,
+  isCustomElementController,
+  isCustomElementViewModel,
 } from './templating/controller';
 export {
   ViewFactory,

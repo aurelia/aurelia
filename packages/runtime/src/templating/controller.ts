@@ -7,6 +7,7 @@ import {
   Writable,
   Constructable,
   IDisposable,
+  isObject,
 } from '@aurelia/kernel';
 import {
   PropertyBinding,
@@ -81,6 +82,7 @@ import {
 import {
   ChildrenObserver,
 } from './children';
+import { IStartTaskManager } from '../lifecycle-task';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -335,6 +337,9 @@ export class Controller<
     if (hooks.hasAfterCompile) {
       instance.afterCompile(this as unknown as ICompiledCustomElementController<T, typeof instance>);
     }
+
+    const taskmgr = parentContainer.get(IStartTaskManager);
+    taskmgr.runBeforeCompileChildren(parentContainer);
 
     const targets = nodes.findTargets();
     compiledContext.render(
@@ -1233,4 +1238,17 @@ function clearLinks<T extends INode>(initiator: Controller<T>): void {
     cur.next = null;
     cur = next;
   }
+}
+
+export function isCustomElementController<
+  T extends INode = INode,
+  C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>,
+>(value: unknown): value is ICustomElementController<T, C> {
+  return value instanceof Controller && value.vmKind === ViewModelKind.customElement;
+}
+
+export function isCustomElementViewModel<
+  T extends INode = INode,
+>(value: unknown): value is ICustomElementViewModel<T> {
+  return isObject(value) && CustomElement.isType(value.constructor);
 }

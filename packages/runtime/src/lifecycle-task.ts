@@ -20,10 +20,11 @@ export const LifecycleTask = {
 };
 
 export const enum TaskSlot {
-  beforeCreate = 0,
-  beforeRender = 1,
-  beforeBind   = 2,
-  afterAttach = 3,
+  beforeCreate          = 0,
+  beforeRender          = 1,
+  beforeCompileChildren = 2,
+  beforeBind            = 3,
+  afterAttach           = 4,
 }
 
 export const IStartTask = DI.createInterface<IStartTask>('IStartTask').noDefault();
@@ -37,6 +38,7 @@ export interface IStartTask {
 export interface ISlotChooser {
   beforeCreate(): IStartTask;
   beforeRender(): IStartTask;
+  beforeCompileChildren(): IStartTask;
   beforeBind(): IStartTask;
   afterAttach(): IStartTask;
   at(slot: TaskSlot): IStartTask;
@@ -45,6 +47,7 @@ export interface ISlotChooser {
 export interface ICallbackSlotChooser<K extends Key> {
   beforeCreate(): ICallbackChooser<K>;
   beforeRender(): ICallbackChooser<K>;
+  beforeCompileChildren(): ICallbackChooser<K>;
   beforeBind(): ICallbackChooser<K>;
   afterAttach(): ICallbackChooser<K>;
   at(slot: TaskSlot): ICallbackChooser<K>;
@@ -131,6 +134,10 @@ export const StartTask = class $StartTask implements IStartTask {
     return this.at(TaskSlot.beforeRender);
   }
 
+  public beforeCompileChildren(): $StartTask {
+    return this.at(TaskSlot.beforeCompileChildren);
+  }
+
   public beforeBind(): $StartTask {
     return this.at(TaskSlot.beforeBind);
   }
@@ -176,14 +183,21 @@ export const StartTask = class $StartTask implements IStartTask {
 export const IStartTaskManager = DI.createInterface<IStartTaskManager>('IStartTaskManager').noDefault();
 
 export interface IStartTaskManager {
+  /**
+   * This is internal API and will be moved to an inaccessible place in the near future.
+   */
+  enqueueBeforeCompileChildren(): void;
   runBeforeCreate(container?: IContainer): ILifecycleTask;
   runBeforeRender(container?: IContainer): ILifecycleTask;
+  runBeforeCompileChildren(container?: IContainer): ILifecycleTask;
   runBeforeBind(container?: IContainer): ILifecycleTask;
   runAfterAttach(container?: IContainer): ILifecycleTask;
   run(slot: TaskSlot, container?: IContainer): ILifecycleTask;
 }
 
 export class StartTaskManager implements IStartTaskManager {
+  private beforeCompileChildrenQueued: boolean = false;
+
   public constructor(
     @IServiceLocator private readonly locator: IServiceLocator,
   ) {}
@@ -192,12 +206,27 @@ export class StartTaskManager implements IStartTaskManager {
     return Registration.singleton(IStartTaskManager, this).register(container);
   }
 
+  public enqueueBeforeCompileChildren(): void {
+    if (this.beforeCompileChildrenQueued) {
+      throw new Error(`BeforeCompileChildren already queued`);
+    }
+    this.beforeCompileChildrenQueued = true;
+  }
+
   public runBeforeCreate(locator: IServiceLocator = this.locator): ILifecycleTask {
     return this.run(TaskSlot.beforeCreate, locator);
   }
 
   public runBeforeRender(locator: IServiceLocator = this.locator): ILifecycleTask {
     return this.run(TaskSlot.beforeRender, locator);
+  }
+
+  public runBeforeCompileChildren(locator: IServiceLocator = this.locator): ILifecycleTask {
+    if (this.beforeCompileChildrenQueued) {
+      this.beforeCompileChildrenQueued = false;
+      return this.run(TaskSlot.beforeCompileChildren, locator);
+    }
+    return LifecycleTask.done;
   }
 
   public runBeforeBind(locator: IServiceLocator = this.locator): ILifecycleTask {

@@ -37,6 +37,7 @@ import {
 import { BindingStrategy } from '../flags';
 import { Bindable, PartialBindableDefinition, BindableDefinition } from '../templating/bindable';
 import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children';
+import { Controller } from '../templating/controller';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
@@ -71,6 +72,7 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
    * @param node - The node relative to which to get the closest controller.
    * @param searchParents - Also search the parent nodes (including containerless).
    * @returns The closest controller relative to the provided node.
+   * @throws - If neither the node or any of its effective parent nodes host a custom element, an error will be thrown.
    */
   for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, searchParents: true): ICustomElementController<T, C>;
   /**
@@ -78,6 +80,7 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
    *
    * @param node - The node to retrieve the controller for, if it is a custom element with the provided name.
    * @returns The controller associated with the provided node, if it is a custom element with the provided name, or otherwise `undefined`.
+   * @throws - If the node does not host a custom element, an error will be thrown.
    */
   for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, name: string): ICustomElementController<T, C> | undefined;
   /**
@@ -87,13 +90,15 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
    * @param node - The node relative to which to get the closest controller of a custom element with the provided name.
    * @param searchParents - Also search the parent nodes (including containerless).
    * @returns The closest controller of a custom element with the provided name, relative to the provided node, if one can be found, or otherwise `undefined`.
+   * @throws - If neither the node or any of its effective parent nodes host a custom element, an error will be thrown.
    */
   for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, name: string, searchParents: true): ICustomElementController<T, C> | undefined;
   /**
    * Returns the controller that is associated with this node, if it is a custom element.
    *
    * @param node - The node to retrieve the controller for, if it is a custom element.
-   * @returns The controller associated with the provided node, if it is a custom element, or otherwise `undefined`.
+   * @returns The controller associated with the provided node, if it is a custom element
+   * @throws - If the node does not host a custom element, an error will be thrown.
    */
   for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T): ICustomElementController<T, C> | undefined;
   isType<T extends INode, C>(value: C): value is (C extends Constructable ? CustomElementType<C, T> : never);
@@ -393,33 +398,45 @@ export const CustomElement: CustomElementKind = {
   },
   for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, nameOrSearchParents?: string | boolean, searchParents?: boolean): ICustomElementController<T, C> {
     if (nameOrSearchParents === void 0) {
-      return Metadata.getOwn(CustomElement.name, node)!;
+      const controller = Metadata.getOwn(CustomElement.name, node) as Controller<T, C> | undefined;
+      if (controller === void 0) {
+        throw new Error(`The provided node is not a custom element or containerless host.`);
+      }
+      return controller as unknown as ICustomElementController<T, C>;
     }
     if (typeof nameOrSearchParents === 'string') {
       if (searchParents !== true) {
-        const controller = Metadata.getOwn(CustomElement.name, node);
+        const controller = Metadata.getOwn(CustomElement.name, node) as Controller<T, C> | undefined;
         if (controller === void 0) {
-          return (void 0)!;
+          throw new Error(`The provided node is not a custom element or containerless host.`);
         }
 
         if (controller.is(nameOrSearchParents)) {
-          return controller;
+          return controller as unknown as ICustomElementController<T, C>;
         }
 
         return (void 0)!;
       }
 
       let cur = node as INode | null;
+      let foundAController = false;
       while (cur !== null) {
-        const controller = Metadata.getOwn(CustomElement.name, cur);
-        if (controller !== void 0 && controller.is(nameOrSearchParents)) {
-          return controller;
+        const controller = Metadata.getOwn(CustomElement.name, cur) as Controller<T, C> | undefined;
+        if (controller !== void 0) {
+          foundAController = true;
+          if (controller.is(nameOrSearchParents)) {
+            return controller as unknown as ICustomElementController<T, C>;
+          }
         }
 
         cur = DOM.getEffectiveParentNode(cur);
       }
 
-      return (void 0)!;
+      if (foundAController) {
+        return (void 0)!;
+      }
+
+      throw new Error(`The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
     }
 
     let cur = node as INode | null;
@@ -432,7 +449,7 @@ export const CustomElement: CustomElementKind = {
       cur = DOM.getEffectiveParentNode(cur);
     }
 
-    return (void 0)!;
+    throw new Error(`The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
   },
   define<T extends INode, C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: C | null): CustomElementType<C, T> {
     const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);

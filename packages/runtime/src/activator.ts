@@ -96,7 +96,6 @@ export class Activator implements IActivator {
     flags: LifecycleFlags,
   ): void {
     const lifecycle = container.get(ILifecycle);
-    this.taskManager.enqueueBeforeCompileChildren();
     Controller.forCustomElement(component, lifecycle, host, container, void 0, flags);
   }
 

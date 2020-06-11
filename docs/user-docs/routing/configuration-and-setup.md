@@ -6,6 +6,8 @@ description: >-
 
 # Configuration & Setup
 
+## Getting Started
+
 The Router comes with the default installation of Aurelia and does not require the installation of any additional packages. The only requirement for the router is that you have an Aurelia application already created.
 
 {% hint style="success" %}
@@ -89,5 +91,5 @@ export class Product implements IRouteableComponent {
 }
 ```
 
-For configured routing, you can specify the title on the route itself. But, you can also dynamically set the title from within a router hook or within the routable component itself.
+For configured routing, you can specify the title on the route itself. But, you can also dynamically set the title from within a router hook or within the routable component itself. Please see the [Router Hooks](router-hooks.md#setting-the-title-from-within-router-hooks) section for specifics around using a hook to change the title.
 

@@ -56,8 +56,10 @@ export class CompositionRoot<T extends INode = INode> {
   public constructor(
     config: ISinglePageApp<T>,
     container: IContainer,
+    rootProvider: InstanceProvider<CompositionRoot<T>>,
   ) {
     this.config = config;
+    rootProvider.prepare(this);
     if (config.host != void 0) {
       if (container.has(INode, false)) {
         this.container = container.createChild();
@@ -157,7 +159,12 @@ export class CompositionRoot<T extends INode = INode> {
 
     const container = this.container;
     const lifecycle = container.get(ILifecycle);
-    this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy as number);
+    const taskManager = container.get(IStartTaskManager);
+    taskManager.enqueueBeforeCompileChildren();
+    // This hack with delayed hydration is to make the controller instance accessible to the `beforeCompileChildren` hook via the composition root.
+    this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy as number, false);
+    const definition = CustomElement.getDefinition(instance.constructor as Constructable);
+    (this.controller as unknown as Controller)['hydrateCustomElement'](definition, container, void 0);
   }
 }
 
@@ -213,7 +220,7 @@ export class Aurelia<TNode extends INode = INode> {
   }
 
   public app(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app'> {
-    this.next = new CompositionRoot(config, this.container);
+    this.next = new CompositionRoot(config, this.container, this.rootProvider);
 
     if (this.isRunning) {
       this.start();

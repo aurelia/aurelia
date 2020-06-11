@@ -8,6 +8,8 @@ import {
   Constructable,
   IDisposable,
   isObject,
+  ILogger,
+  LogLevel,
 } from '@aurelia/kernel';
 import {
   PropertyBinding,
@@ -143,6 +145,9 @@ export class Controller<
 
   private promise: Promise<void> | undefined = void 0;
   private resolve: (() => void) | undefined = void 0;
+  private logger: ILogger | null = null;
+  private debug: boolean = false;
+  private fullyNamed: boolean = false;
 
   public constructor(
     public readonly vmKind: ViewModelKind,
@@ -195,6 +200,7 @@ export class Controller<
     parentContainer: IContainer,
     parts: PartialCustomElementDefinitionParts | undefined,
     flags: LifecycleFlags = LifecycleFlags.none,
+    hydrate: boolean = true,
   ): ICustomElementController<T, C> {
     if (controllerLookup.has(viewModel)) {
       return controllerLookup.get(viewModel) as unknown as ICustomElementController<T, C>;
@@ -216,7 +222,9 @@ export class Controller<
 
     controllerLookup.set(viewModel, controller as Controller);
 
-    controller.hydrateCustomElement(definition, parentContainer, parts);
+    if (hydrate) {
+      controller.hydrateCustomElement(definition, parentContainer, parts);
+    }
 
     return controller as unknown as ICustomElementController<T, C>;
   }
@@ -284,6 +292,12 @@ export class Controller<
     parentContainer: IContainer,
     parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
+    this.logger = parentContainer.get(ILogger).root;
+    this.debug = this.logger.config.level <= LogLevel.debug;
+    if (this.debug) {
+      this.logger = this.logger.scopeTo(this.name);
+    }
+
     const flags = this.flags |= definition.strategy;
     const instance = this.viewModel as BindingContext<T, C>;
     createObservers(this.lifecycle, definition, flags, instance);
@@ -293,6 +307,9 @@ export class Controller<
 
     const hooks = this.hooks;
     if (hooks.hasCreate) {
+      if (this.debug) {
+        this.logger.trace(`invoking create() hook`);
+      }
       const result = instance.create(
         /* controller      */this as unknown as IDryCustomElementController<T, typeof instance>,
         /* parentContainer */parentContainer,
@@ -313,6 +330,9 @@ export class Controller<
     }
 
     if (hooks.hasBeforeCompile) {
+      if (this.debug) {
+        this.logger.trace(`invoking hasBeforeCompile() hook`);
+      }
       instance.beforeCompile(this as unknown as IContextualCustomElementController<T, typeof instance>);
     }
 
@@ -335,6 +355,9 @@ export class Controller<
     const nodes = this.nodes = compiledContext.createNodes();
 
     if (hooks.hasAfterCompile) {
+      if (this.debug) {
+        this.logger.trace(`invoking hasAfterCompile() hook`);
+      }
       instance.afterCompile(this as unknown as ICompiledCustomElementController<T, typeof instance>);
     }
 
@@ -352,6 +375,9 @@ export class Controller<
     );
 
     if (hooks.hasAfterCompileChildren) {
+      if (this.debug) {
+        this.logger.trace(`invoking afterCompileChildren() hook`);
+      }
       instance.afterCompileChildren(this as unknown as ICustomElementController<T, ICompileHooks<T>>);
     }
   }
@@ -439,6 +465,11 @@ export class Controller<
     }
 
     this.parent = parent;
+    if (this.debug && !this.fullyNamed) {
+      this.fullyNamed = true;
+      this.logger = this.context!.get(ILogger).root.scopeTo(this.name);
+      this.logger!.trace(`activate()`);
+    }
     this.part = part;
     flags |= LifecycleFlags.fromBind;
 
@@ -476,6 +507,10 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    if (this.debug) {
+      this.logger!.trace(`beforeBind()`);
+    }
+
     if (this.hooks.hasBeforeBind) {
       const ret = this.bindingContext!.beforeBind(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags);
       if (ret instanceof Promise) {
@@ -494,6 +529,10 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    if (this.debug) {
+      this.logger!.trace(`bind()`);
+    }
+
     this.state |= State.beforeBindCalled;
     if ((this.state & State.deactivating) === State.deactivating) {
       return this.afterUnbind(initiator, parent, flags);
@@ -514,6 +553,10 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    if (this.debug) {
+      this.logger!.trace(`afterBind()`);
+    }
+
     if (this.hooks.hasAfterBind) {
       const ret = this.bindingContext!.afterBind(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags);
       if (ret instanceof Promise) {
@@ -532,6 +575,10 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    if (this.debug) {
+      this.logger!.trace(`attach()`);
+    }
+
     if ((this.state & State.deactivating) === State.deactivating) {
       return this.beforeUnbind(initiator, parent, flags);
     }
@@ -560,6 +607,10 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    if (this.debug) {
+      this.logger!.trace(`afterAttach()`);
+    }
+
     if (this.hooks.hasAfterAttach) {
       const ret = this.bindingContext!.afterAttach(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags);
       if (ret instanceof Promise) {
@@ -578,6 +629,10 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    if (this.debug) {
+      this.logger!.trace(`activateChildren()`);
+    }
+
     this.state |= State.activateChildrenCalled;
 
     const ret = this.$activateChildren(initiator, parent, flags);
@@ -619,6 +674,10 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    if (this.debug) {
+      this.logger!.trace(`afterAttachChildren()`);
+    }
+
     this.state ^= State.activateChildrenCalled;
     if ((this.state & State.deactivating) === State.deactivating) {
       clearLinks(initiator);
@@ -743,6 +802,10 @@ export class Controller<
         }
     }
 
+    if (this.debug) {
+      this.logger!.trace(`deactivate()`);
+    }
+
     return this.beforeDetach(initiator, parent, flags);
   }
 
@@ -751,6 +814,10 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    if (this.debug) {
+      this.logger!.trace(`beforeDetach()`);
+    }
+
     if (this.hooks.hasBeforeDetach) {
       const ret = this.bindingContext!.beforeDetach(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags);
       if (ret instanceof Promise) {
@@ -769,6 +836,10 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    if (this.debug) {
+      this.logger!.trace(`detach()`);
+    }
+
     this.state |= State.beforeDetachCalled;
     if ((this.state & State.activating) === State.activating) {
       return this.afterAttach(initiator, parent, flags);
@@ -792,6 +863,10 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    if (this.debug) {
+      this.logger!.trace(`beforeUnbind()`);
+    }
+
     if (this.hooks.hasBeforeUnbind) {
       const ret = this.bindingContext!.beforeUnbind(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags);
       if (ret instanceof Promise) {
@@ -810,6 +885,10 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    if (this.debug) {
+      this.logger!.trace(`unbind()`);
+    }
+
     if ((this.state & State.activating) === State.activating) {
       return this.afterBind(initiator, parent, flags);
     }
@@ -831,6 +910,10 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    if (this.debug) {
+      this.logger!.trace(`afterUnbind()`);
+    }
+
     if (this.hooks.hasAfterUnbind) {
       const ret = this.bindingContext!.afterUnbind(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags);
       if (ret instanceof Promise) {
@@ -849,6 +932,10 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    if (this.debug) {
+      this.logger!.trace(`deactivateChildren()`);
+    }
+
     this.state |= State.deactivateChildrenCalled;
 
     const ret = this.$deactivateChildren(initiator, parent, flags);
@@ -890,6 +977,10 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    if (this.debug) {
+      this.logger!.trace(`afterUnbindChildren()`);
+    }
+
     this.state ^= State.deactivateChildrenCalled;
     if ((this.state & State.activating) === State.activating) {
       // In a short-circuit it's possible that descendants have already started building the links for afterUnbindChildren hooks.
@@ -1042,6 +1133,10 @@ export class Controller<
   }
 
   public dispose(): void {
+    if (this.debug) {
+      this.logger!.trace(`dispose()`);
+    }
+
     if ((this.state & State.disposed) === State.disposed) {
       return;
     }

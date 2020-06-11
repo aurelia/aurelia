@@ -1,9 +1,4 @@
 export {
-  RouteExpression,
-  AST,
-} from './ast';
-
-export {
   RouterConfiguration,
   RouterRegistration,
   DefaultComponents,
@@ -17,85 +12,89 @@ export {
 } from './configuration';
 
 export {
-  HookManager,
-  HookTypes,
-  IHookDefinition,
-} from './hook-manager';
-
+  IRouteViewModel,
+  ComponentAgent,
+} from './component-agent';
 export {
-  InstructionResolver,
-} from './instruction-resolver';
-
-export {
-  NavigatorEntry,
-  NavigatorInstruction,
-  IRouteableComponent,
-  RouteableComponentType,
-  IViewportInstruction,
-  NavigationInstruction,
-  ReentryBehavior,
-  IRoute,
   IWindow,
   IHistory,
   ILocation,
 } from './interfaces';
-
 export {
-  ILinkHandlerOptions,
-  AnchorEventInfo,
-
-  LinkHandler,
+  ILinkHandler,
 } from './link-handler';
-
 export {
-  RouteRecognizer,
-  IConfigurableRoute,
-  ConfigurableRoute,
-  RecognizedRoute,
+  ILocationManager,
+  IBaseHrefProvider,
+} from './location-manager';
+export {
+  Routeable,
+  RouteableComponent,
+  IRouteConfig,
+  IChildRouteConfig,
+  RouteConfig,
+  ChildRouteConfig,
+  Route,
+  RouteType,
+  route,
+} from './route';
+export {
+  IRouteContext,
+  RouteContext,
+} from './route-context';
+export {
+  RouteDefinition,
+} from './route-definition';
+export {
+  AST,
+  RouteExpression,
+  CompositeSegmentExpression,
+  ScopedSegmentExpression,
+  SegmentGroupExpression,
+  SegmentExpression,
+  ComponentExpression,
+  ActionExpression,
+  ViewportExpression,
+  ParameterListExpression,
+  ParameterExpression,
+} from './route-expression';
+export {
   Endpoint,
+  RecognizedRoute,
+  RouteRecognizer,
 } from './route-recognizer';
-
 export {
-  IRouterEvents,
-} from './router-events';
-
+  NavigationInstruction,
+  IViewportInstruction,
+  RouteNode,
+  RouteTree,
+} from './route-tree';
 export {
-  IRouterOptions,
+  AuNavId,
+  ManagedState,
+  isManagedState,
+  toManagedState,
   IRouter,
   Router,
-  INavigatorFlags,
-  INavigatorState,
-  INavigatorStore,
-  INavigatorViewer,
-  INavigatorViewerEvent,
-  NavigatorViewerState,
+  IRouterOptions,
+  INavigationOptions,
+  RouterOptions,
+  NavigationOptions,
+  Transition,
+  Navigation,
 } from './router';
-
+export {
+  IRouterEvents,
+  RouterEvent,
+  LocationChangeEvent,
+  NavigationStartEvent,
+  NavigationEndEvent,
+  NavigationCancelEvent,
+  NavigationErrorEvent,
+} from './router-events';
 export {
   IStateManager,
-  ScrollStateManager,
 } from './state-manager';
-
 export {
-  NavigationInstructionResolver,
-  ComponentAppellationResolver,
-} from './type-resolvers';
-
-export {
-  ContentStatus,
-  ViewportContent,
-} from './viewport-content';
-
-export {
-  ViewportInstruction,
-} from './viewport-instruction';
-
-export {
-  IViewportScopeOptions,
-  ViewportScope,
-} from './viewport-scope';
-
-export {
-  IViewportOptions,
-  Viewport,
-} from './viewport';
+  ViewportAgent,
+} from './viewport-agent';

@@ -1,24 +1,12 @@
-import { IRoute } from './interfaces';
-
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+import { IIndexable } from '@aurelia/kernel';
 
-export interface IConfigurableRoute {
-  readonly path: string;
-  readonly caseSensitive?: boolean;
-  readonly handler: IRoute;
-}
-
-export class ConfigurableRoute implements IConfigurableRoute {
-  public constructor(
-    public readonly path: string,
-    public readonly caseSensitive: boolean,
-    public readonly handler: IRoute,
-  ) {}
-}
+import { RouteDefinition } from './route-definition';
 
 export class Endpoint {
   public constructor(
-    public readonly route: ConfigurableRoute,
+    public readonly collectsResidue: boolean,
+    public readonly route: RouteDefinition,
     public readonly paramNames: readonly string[],
   ) {}
 }
@@ -26,12 +14,12 @@ export class Endpoint {
 export class RecognizedRoute {
   public constructor(
     public readonly endpoint: Endpoint,
-    public readonly params: Readonly<Record<string, string | undefined>>,
-    public readonly searchParams: URLSearchParams,
-    public readonly isDynamic: boolean,
-    public readonly queryString: string,
+    public readonly params: IIndexable,
+    public readonly residue: string | null,
   ) {}
 }
+
+const RESIDUE = 'au$residue' as const;
 
 class Candidate {
   public head: AnyState;
@@ -270,14 +258,6 @@ class Candidate {
   }
 }
 
-function hasEndpoint(candidate: Candidate): boolean {
-  return candidate.head.endpoint !== null;
-}
-
-function compareChains(a: Candidate, b: Candidate): -1 | 1 | 0 {
-  return a.compareTo(b);
-}
-
 class RecognizeResult {
   private readonly candidates: Candidate[] = [];
 
@@ -292,7 +272,9 @@ class RecognizeResult {
   }
 
   public getSolution(): Candidate | null {
-    const candidates = this.candidates.filter(hasEndpoint);
+    const candidates = this.candidates.filter(function (candidate) {
+      return candidate.head.endpoint !== null;
+    });
     if (candidates.length === 0) {
       return null;
     }
@@ -301,7 +283,9 @@ class RecognizeResult {
       candidate.finalize();
     }
 
-    candidates.sort(compareChains);
+    candidates.sort(function (a, b) {
+      return a.compareTo(b);
+    });
 
     return candidates[0];
   }
@@ -326,19 +310,28 @@ class RecognizeResult {
 export class RouteRecognizer {
   private readonly rootState: SeparatorState = new State(null, null, '') as SeparatorState;
 
-  public add(
-    routeOrRoutes: IConfigurableRoute | readonly IConfigurableRoute[],
-  ): void {
-    if (routeOrRoutes instanceof Array) {
-      for (const route of routeOrRoutes) {
-        this.add(route);
-      }
-      return;
+  public constructor(
+    private readonly config: readonly RouteDefinition[],
+  ) {
+    for (const route of config) {
+      this.add(route, true);
     }
+  }
 
-    const route = routeOrRoutes as IConfigurableRoute;
-    const $route = new ConfigurableRoute(route.path, route.caseSensitive === true, route.handler);
-    const parts = parsePath($route.path);
+  public add(route: RouteDefinition, collectResidue: boolean): void {
+    this.$add(route, false);
+    if (collectResidue) {
+      this.$add(route, true);
+    }
+  }
+
+  private $add(route: RouteDefinition, collectResidue: boolean): void {
+    const path = collectResidue ? `${route.path}/*${RESIDUE}` : route.path;
+
+    // Normalize leading, trailing and double slashes by ignoring empty segments
+    const parts = path.split('/').filter(function (part) {
+      return part.length > 0;
+    });
     const paramNames: string[] = [];
 
     let state = this.rootState as AnyState;
@@ -362,30 +355,18 @@ export class RouteRecognizer {
           break;
         }
         default: { // standard path route
-          state = new StaticSegment(part, $route.caseSensitive).appendTo(state);
+          state = new StaticSegment(part, route.caseSensitive).appendTo(state);
           break;
         }
       }
     }
 
-    const endpoint = new Endpoint($route, paramNames);
+    const endpoint = new Endpoint(collectResidue, route, paramNames);
 
     state.setEndpoint(endpoint);
   }
 
   public recognize(path: string): RecognizedRoute | null {
-    let searchParams: URLSearchParams;
-    let queryString = '';
-
-    const queryStart = path.indexOf('?');
-    if (queryStart >= 0) {
-      queryString = path.slice(queryStart + 1);
-      path = path.slice(0, queryStart);
-      searchParams = new URLSearchParams(queryString);
-    } else {
-      searchParams = new URLSearchParams();
-    }
-
     path = decodeURI(path);
 
     if (!path.startsWith('/')) {
@@ -413,14 +394,18 @@ export class RouteRecognizer {
 
     const { endpoint } = candidate;
     const params = candidate.getParams();
-    const isDynamic = candidate.endpoint.paramNames.length > 0;
+    let residue: string | null;
+    if (Reflect.has(params, RESIDUE)) {
+      residue = params[RESIDUE] ?? null;
+      Reflect.deleteProperty(params, RESIDUE);
+    } else {
+      residue = null;
+    }
 
     return new RecognizedRoute(
       endpoint,
       params,
-      searchParams,
-      isDynamic,
-      queryString,
+      residue,
     );
   }
 }
@@ -571,16 +556,6 @@ class State {
         return this.value.includes(ch);
     }
   }
-}
-
-function isNotEmpty(segment: string): boolean {
-  return segment.length > 0;
-}
-
-type Segments = readonly string[];
-function parsePath(path: string): Segments {
-  // Normalize leading, trailing and double slashes by ignoring empty segments
-  return path.split('/').filter(isNotEmpty);
 }
 
 type AnySegment = (

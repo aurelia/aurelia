@@ -1,27 +1,36 @@
-import { IContainer } from '@aurelia/kernel';
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   bindable,
-  INode,
-  LifecycleFlags,
   customElement,
-  CustomElement,
   ICompiledCustomElementController,
-  ICustomElementViewModel,
   ICustomElementController,
+  ICustomElementViewModel,
   IHydratedController,
   IHydratedParentController,
-  ControllerVisitor,
+  LifecycleFlags,
 } from '@aurelia/runtime';
-import { IRouter } from '../router';
-import { Viewport, IViewportOptions } from '../viewport';
 
-export const ParentViewport = CustomElement.createInjectable();
+import {
+  ViewportAgent,
+} from '../viewport-agent';
+import {
+  IRouteContext,
+} from '../route-context';
+import { ILogger } from '@aurelia/kernel';
 
-@customElement({
-  name: 'au-viewport',
-  injectable: ParentViewport
-})
-export class ViewportCustomElement implements ICustomElementViewModel<Node> {
+export interface IViewport {
+  readonly name: string;
+  readonly usedBy: string;
+  readonly default: string;
+  readonly fallback: string;
+  readonly noScope: boolean;
+  readonly noLink: boolean;
+  readonly noHistory: boolean;
+  readonly stateful: boolean;
+}
+
+@customElement({ name: 'au-viewport' })
+export class ViewportCustomElement implements ICustomElementViewModel<HTMLElement>, IViewport {
   @bindable public name: string = 'default';
   @bindable public usedBy: string = '';
   @bindable public default: string = '';
@@ -31,72 +40,67 @@ export class ViewportCustomElement implements ICustomElementViewModel<Node> {
   @bindable public noHistory: boolean = false;
   @bindable public stateful: boolean = false;
 
-  public viewport: Viewport | null = null;
-
-  public readonly $controller!: ICustomElementController<Element, this>;
-
-  private readonly element: Element;
+  private agent: ViewportAgent = (void 0)!;
+  private controller: ICustomElementController<HTMLElement> = (void 0)!;
 
   public constructor(
-    @IRouter private readonly router: IRouter,
-    @INode element: INode,
-    @IContainer private container: IContainer,
-    @ParentViewport private readonly parentViewport: ViewportCustomElement,
+    @ILogger private readonly logger: ILogger,
+    @IRouteContext private readonly ctx: IRouteContext,
   ) {
-    this.element = element as Element;
+    this.logger = logger.scopeTo(`au-viewport<${ctx.friendlyPath}>`);
+
+    this.logger.trace('constructor()');
   }
 
-  public afterCompile(controller: ICompiledCustomElementController) {
-    this.container = controller.context.get(IContainer);
-    // console.log('Viewport creating', this.getAttribute('name', this.name), this.container, this.parentViewport, controller, this);
-    // this.connect();
+  protected nameChanged(newName: string, oldName: string): void {
+    this.logger.trace(`nameChanged(newName:'${newName}',oldName:'${oldName}')`);
+
+    this.ctx.renameViewportAgent(newName, oldName, this.agent);
   }
 
-  public async afterAttach(
-    initiator: IHydratedController<Element>,
-    parent: IHydratedParentController<Element> | null,
+  public afterCompile(
+    controller: ICompiledCustomElementController<HTMLElement>,
+  ): void {
+    this.logger.trace('afterCompile()');
+
+    this.controller = controller as ICustomElementController<HTMLElement>;
+  }
+
+  public beforeBind(
+    initiator: IHydratedController<HTMLElement>,
+    parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
-  ): Promise<void> {
-    if (this.router.rootScope === null) {
-      return;
+  ): void | Promise<void> {
+    this.logger.trace('beforeBind()');
+
+    if (this.agent === void 0) {
+      this.ctx.addViewportAgent(this.name, this.agent = ViewportAgent.for(this, this.controller));
     }
-    const name: string = this.getAttribute('name', this.name) as string;
-    const options: IViewportOptions = {
-      scope: !this.noScope,
-      usedBy: this.usedBy,
-      default: this.default,
-      fallback: this.fallback,
-      noLink: this.element.hasAttribute('no-link'),
-      noHistory: this.element.hasAttribute('no-history'),
-      stateful: this.element.hasAttribute('stateful'),
-    };
-    this.viewport = this.router.connectViewport(this.viewport, this.$controller, name, options);
-    await this.viewport.activate(initiator, this.$controller, flags);
   }
 
-  public async afterUnbind(
-    initiator: IHydratedController<Element>,
-    parent: IHydratedParentController<Element> | null,
+  public afterAttach(
+    initiator: IHydratedController<HTMLElement>,
+    parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
-  ): Promise<void> {
-    const { viewport } = this;
-    if (viewport !== null) {
-      this.router.disconnectViewport(viewport, this.$controller);
-      this.viewport = null;
-      await viewport.deactivate(initiator, this.$controller, flags);
-    }
+  ): void | Promise<void> {
+    this.logger.trace('afterAttach()');
+
+    return this.agent.activate(initiator, this.controller, flags);
   }
 
-  private getAttribute(key: string, value: string | boolean, checkExists: boolean = false): string | boolean | undefined {
-    if (checkExists) {
-      return this.element.hasAttribute(key);
-    }
-    return value;
+  public afterUnbind(
+    initiator: IHydratedController<HTMLElement>,
+    parent: IHydratedParentController<HTMLElement>,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
+    this.logger.trace('afterUnbind()');
+
+    return this.agent.deactivate(initiator, this.controller, flags);
   }
 
-  public accept(visitor: ControllerVisitor<Element>): void | true {
-    if (this.viewport?.content?.content?.componentInstance?.accept?.(visitor) === true) {
-      return true;
-    }
+  public dispose(): void {
+    this.logger.trace('dispose()');
+
+    this.ctx.removeViewportAgent(this.name, this.agent);
   }
 }

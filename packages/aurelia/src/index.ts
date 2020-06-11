@@ -357,10 +357,13 @@ export {
   // ContentStatus,
   // ViewportContent,
 
-  ViewportInstruction,
+  // IViewportInstruction,
 
   RouterConfiguration,
   RouterRegistration,
+
+  route,
+  Route,
   // DefaultComponents as RouterDefaultComponents,
   // DefaultResources as RouterDefaultResources,
   // ViewportCustomElement,

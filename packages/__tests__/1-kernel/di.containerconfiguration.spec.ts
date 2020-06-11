@@ -1,4 +1,4 @@
-import { DefaultContainerConfiguration, DefaultResolver, DI, IContainer, Registration } from '@aurelia/kernel';
+import { ContainerConfiguration, DefaultResolver, DI, IContainer, Registration } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('IContainerConfiguration', function () {
@@ -11,7 +11,7 @@ describe('IContainerConfiguration', function () {
         // eslint-disable-next-line mocha/no-hooks
         beforeEach(function () {
           container0 = DI.createContainer({
-            ...DefaultContainerConfiguration,
+            ...ContainerConfiguration.DEFAULT,
             defaultResolver: DefaultResolver.transient
           });
 
@@ -41,7 +41,7 @@ describe('IContainerConfiguration', function () {
           container0 = DI.createContainer();
 
           container1 = container0.createChild({
-            ...DefaultContainerConfiguration,
+            ...ContainerConfiguration.DEFAULT,
             defaultResolver: DefaultResolver.transient
           });
           container2 = container0.createChild();
@@ -69,7 +69,7 @@ describe('IContainerConfiguration', function () {
       describe('root container', function () {
         // eslint-disable-next-line mocha/no-hooks
         beforeEach(function () {
-          container0 = DI.createContainer({...DefaultContainerConfiguration, jitRegisterInRoot: false});
+          container0 = DI.createContainer({...ContainerConfiguration.DEFAULT, jitRegisterInRoot: false});
           container1 = container0.createChild();
           container2 = container0.createChild();
         });
@@ -96,7 +96,7 @@ describe('IContainerConfiguration', function () {
         beforeEach(function () {
           container0 = DI.createContainer();
 
-          container1 = container0.createChild({...DefaultContainerConfiguration, jitRegisterInRoot: false});
+          container1 = container0.createChild({...ContainerConfiguration.DEFAULT, jitRegisterInRoot: false});
           container2 = container0.createChild();
         });
 
@@ -122,8 +122,8 @@ describe('IContainerConfiguration', function () {
         beforeEach(function () {
           container0 = DI.createContainer();
 
-          container1 = container0.createChild({...DefaultContainerConfiguration, jitRegisterInRoot: false});
-          container2 = container0.createChild({...DefaultContainerConfiguration, jitRegisterInRoot: false});
+          container1 = container0.createChild({...ContainerConfiguration.DEFAULT, jitRegisterInRoot: false});
+          container2 = container0.createChild({...ContainerConfiguration.DEFAULT, jitRegisterInRoot: false});
         });
 
         it('class', function () {
@@ -148,7 +148,7 @@ describe('IContainerConfiguration', function () {
       // eslint-disable-next-line mocha/no-hooks
       beforeEach(function () {
         container0 = DI.createContainer({
-          ...DefaultContainerConfiguration,
+          ...ContainerConfiguration.DEFAULT,
           jitRegisterInRoot: false,
         });
         container1 = container0.createChild({

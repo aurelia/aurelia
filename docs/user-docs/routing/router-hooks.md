@@ -32,7 +32,7 @@ export class MyApp implements IViewModel {
     }
 
     afterBind() {
-        this.router.addHook((instructions: ViewportInstruction[]) => {
+        this.router.addHook(async (instructions: ViewportInstruction[]) => {
             return true;
         });
     }
@@ -58,7 +58,7 @@ export class App implements IViewModel {
     }
 
     afterBind() {
-        this.router.addHook((instructions: ViewportInstruction[]) => {
+        this.router.addHook(async (instructions: ViewportInstruction[]) => {
 
         }, {
             include: ['admin']
@@ -161,7 +161,7 @@ export class MyApp implements IViewModel {
     }
 
     afterBind() {
-        this.router.addHook((instructions: ViewportInstruction[]) => {
+        this.router.addHook(async (instructions: ViewportInstruction[]) => {
             if (this.auth.isLoggedIn) {
                 return true;
             }
@@ -193,7 +193,7 @@ export class MyApp implements IViewModel {
     }
 
     afterBind() {
-        this.router.addHook((title: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction) => {
+        this.router.addHook(async (title: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction) => {
             return 'My Title';
         }, {
             type: HookTypes.SetTitleHookFunction

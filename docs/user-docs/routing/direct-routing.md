@@ -56,9 +56,9 @@ The `goto` attribute on our link denotes that this link is to navigate to a comp
 
 ## Routes With Parameters
 
-The simple example above shows you how to render a component using the router, and now we are going to introduce support for parameters. A parameter is a dynamic value in your URL which can be accessed inside of the routed component. For example, this might be a product ID or a category name.
+The simple example above shows you how to render a component using the router, and now we are going to introduce support for parameters. A parameter is a dynamic value in your route which can be accessed inside of the routed component. For example, this might be a product ID or a category name.
 
-To access parameters from the URL, we can get those from the router lifecycle hook called `enter` which also supports promises and can be asynchronous.
+To access parameters from the route, we can get those from the router lifecycle hook called `enter` which also supports promises and can be asynchronous.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -132,7 +132,7 @@ export class TestComponent implements IRouteableComponent {
 
 ### **Named Route Parameters**
 
-It is recommended that unless you do not know the names of the parameters, that you supply the names inside of your routed component using the static class property `parameters` which accepts an array of strings corresponding to parameters in your URL.
+It is recommended that unless you do not know the names of the parameters, that you supply the names inside of your routed component using the static class property `parameters` which accepts an array of strings corresponding to parameters in your route.
 
 While you can name them inline, specifying them inside of your component makes it easier for other people working in your codebase to determine how the component work.
 

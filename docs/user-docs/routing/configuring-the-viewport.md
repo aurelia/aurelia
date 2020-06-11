@@ -67,3 +67,12 @@ The `<au-viewport>` element supports a `used-by` attribute which allows you to r
 
 Here we are restricting our main viewport to only allow `home`, `login` and `register` components to be rendered inside of it.
 
+## Other Viewport Attributes
+
+While the most common attributes for a viewport have been covered, there are also a few other attributes you might find useful when creating viewports.
+
+* `no-link` -- the viewport content isn't added to the browser's location url
+* `no-title` -- the viewport content title isn't added to the browser's title
+* `no-history` --  navigation isn't added to browser history
+* `no-scope` --  the viewport doesn't define its own viewport scope, children become part of parent scope
+

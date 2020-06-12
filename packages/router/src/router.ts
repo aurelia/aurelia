@@ -782,14 +782,21 @@ export class Router {
   ): Promise<void> {
     this.logger.trace(`updateNode(transition:${transition},node:${node})`);
 
-    const ctx = node.context!;
-    if (!ctx.node.shallowEquals(node)) {
-      // TODO:
-      // Temporarily treating all nodes as if they're updated, but this is where
-      // we'd need to check that and diff appropriately.
+    const ctx = node.context;
+    if (ctx === null) {
+      throw new Error(`Unexpected null context at ${node}`);
     }
 
-    await ctx.viewportAgent?.update(transition, node);
+    // The root is simply a marker context for the component holding the top-level viewports.
+    // It itself does not needed to be loaded.
+    if (ctx !== ctx.root) {
+      const viewport = ctx.viewportAgent;
+      if (viewport === null) {
+        throw new Error(`Unexpected null viewportAgent at ${ctx}`);
+      }
+
+      await viewport.update(transition, node);
+    }
 
     while (node.residue.length > 0) {
       const instruction = node.residue.shift()!;

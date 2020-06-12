@@ -407,7 +407,7 @@ export class RouteContext implements IContainer {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const routeDefinition = RouteDefinition.resolve(routeNode.component!, this);
     const componentInstance = this.container.get<IRouteViewModel>(routeDefinition.component.key);
-    const componentAgent = ComponentAgent.for(componentInstance, hostController, routeNode);
+    const componentAgent = ComponentAgent.for(componentInstance, hostController, routeNode, this);
 
     this.hostControllerProvider.dispose();
 

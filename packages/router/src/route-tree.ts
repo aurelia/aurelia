@@ -238,7 +238,8 @@ export class RouteNode {
   public toString(): string {
     const route = this.matchedSegments.map(x => x.toString()).join('/');
     const path = this.context?.definition.config.path ?? '';
-    return `RouteNode(route:'${route}',path:'${path}',viewport:'${this.viewport}',children.length:'${this.children.length}',residue.length:'${this.residue.length}')`;
+    const component = this.context?.definition.component.name ?? '';
+    return `RouteNode(route:'${route}',path:'${path}',component:'${component}',viewport:'${this.viewport}',children.length:${this.children.length},residue.length:${this.residue.length})`;
   }
 }
 

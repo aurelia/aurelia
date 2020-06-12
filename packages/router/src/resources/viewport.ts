@@ -74,7 +74,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<HTMLElemen
     this.logger.trace('beforeBind()');
 
     if (this.agent === void 0) {
-      this.ctx.addViewportAgent(this.name, this.agent = ViewportAgent.for(this, this.controller));
+      this.ctx.addViewportAgent(this.name, this.agent = ViewportAgent.for(this, this.controller, this.ctx));
     }
   }
 

@@ -100,3 +100,12 @@ export interface IHistory extends History {
    */
   replaceState(state: {} | null, title: string, url?: string | null): void;
 }
+
+// These interfaces exclusively exist to prevent TS decorator metadata emission from having the runtime
+// side-effect of causing a ReferenceError in node, because these are not defined as globals there.
+// We will have a cleaner solution for this once AOT is done, as we can do arbitrary transforms then.
+export interface IPopStateEvent extends PopStateEvent {}
+export interface IHashChangeEvent extends HashChangeEvent {}
+export interface IMouseEvent extends MouseEvent {}
+export interface IElement extends Element {}
+export interface IHTMLElement extends HTMLElement {}

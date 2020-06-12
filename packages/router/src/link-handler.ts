@@ -10,6 +10,8 @@ import {
 } from './resources/goto';
 import {
   IWindow,
+  IMouseEvent,
+  IElement,
 } from './interfaces';
 import {
   IRouter,
@@ -54,7 +56,7 @@ export class LinkHandler {
    *
    * @param event - The Event to inspect for target anchor and href.
    */
-  private getEventInfo(event: MouseEvent): AnchorEventInfo {
+  private getEventInfo(event: IMouseEvent): AnchorEventInfo {
     const info: AnchorEventInfo = {
       shouldHandleEvent: false,
       instruction: null,
@@ -98,7 +100,7 @@ export class LinkHandler {
    * @param target - The anchor element whose target should be inspected.
    * @returns True if the target of the link element is this window; false otherwise.
    */
-  private targetIsThisWindow(target: Element): boolean {
+  private targetIsThisWindow(target: IElement): boolean {
     const targetWindow = target.getAttribute('target');
 
     return (
@@ -109,7 +111,7 @@ export class LinkHandler {
   }
 
   @bound
-  public onClick(e: MouseEvent): void {
+  public onClick(e: IMouseEvent): void {
     const info = this.getEventInfo(e);
 
     if (info.shouldHandleEvent) {

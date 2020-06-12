@@ -12,6 +12,8 @@ import {
   IHistory,
   ILocation,
   IWindow,
+  IPopStateEvent,
+  IHashChangeEvent,
 } from './interfaces';
 
 export const IBaseHrefProvider = DI.createInterface<IBaseHrefProvider>('IBaseHrefProvider').withDefault(x => x.singleton(BrowserBaseHrefProvider));
@@ -89,7 +91,7 @@ export class BrowserLocationManager {
   }
 
   @bound
-  private onPopState(event: PopStateEvent): void {
+  private onPopState(event: IPopStateEvent): void {
     this.logger.trace(`onPopState()`);
 
     this.events.publish(new LocationChangeEvent(
@@ -101,7 +103,7 @@ export class BrowserLocationManager {
   }
 
   @bound
-  private onHashChange(_event: HashChangeEvent): void {
+  private onHashChange(_event: IHashChangeEvent): void {
     this.logger.trace(`onHashChange()`);
 
     this.events.publish(new LocationChangeEvent(

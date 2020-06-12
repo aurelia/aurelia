@@ -20,6 +20,7 @@ import { ILinkHandler } from '../link-handler';
 import { IRouterEvents } from '../router-events';
 import { IRouteContext } from '../route-context';
 import { NavigationInstruction } from '../route-tree';
+import { IElement } from '../interfaces';
 
 @customAttribute('goto')
 export class GotoCustomAttribute implements ICustomAttributeViewModel<Element> {
@@ -30,20 +31,16 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel<Element> {
   private navigationEndListener: IDisposable | null = null;
   private hasHref: boolean | null = null;
 
-  private readonly element: Element;
-
   private readonly activeClass: string = 'goto-active';
   public constructor(
     @IDOM private readonly dom: IDOM,
-    @INode element: INode,
+    @INode private readonly element: IElement,
     @IRouter private readonly router: IRouter,
     @ILinkHandler private readonly linkHandler: ILinkHandler,
     @IRouterEvents private readonly routerEvents: IRouterEvents,
     @IEventManager private readonly eventManager: IEventManager,
     @IRouteContext private readonly context: IRouteContext,
-  ) {
-    this.element = element as Element;
-  }
+  ) {}
 
   public beforeBind(): void {
     this.eventListener = this.eventManager.addEventListener(

@@ -45,7 +45,7 @@ Returning `true` will allow the instruction to be processed, and returning `fals
 
 Running the above code will allow all route instructions to proceed, so nothing will change.
 
-## Whitelist/Blacklist Using `exclude` and `include`
+## Using The Include and Exclude Properties
 
 As we mentioned previously, our hook will apply to every component in our application. You might only have a couple of areas of your app you want to protect behind hook checks. There is two properties `include` which is a whitelist property and `exclude` which is a blacklist property.
 

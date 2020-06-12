@@ -31,7 +31,7 @@ Aurelia
 
 ## Changing The Router Mode \(hash and pushState routing\)
 
-If you do not provide any configuration value, the default as we saw above is hash style routing. In most cases, you will probably prefer to use pushState style routing which uses cleaner URL's for routing instead of the hashes added into your URL.
+If you do not provide any configuration value, the default as we saw above is hash style routing. In most cases, you will probably prefer to use pushState style routing which uses cleaner URL's for routing instead of the hashes added into your route.
 
 ```typescript
 import Aurelia, { RouterConfiguration } from 'aurelia';

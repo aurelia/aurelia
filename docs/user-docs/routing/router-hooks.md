@@ -32,7 +32,7 @@ export class MyApp implements IViewModel {
     }
 
     afterBind() {
-        this.router.addHook((instructions: ViewportInstruction[]) => {
+        this.router.addHook(async (instructions: ViewportInstruction[]) => {
             return true;
         });
     }
@@ -45,7 +45,7 @@ Returning `true` will allow the instruction to be processed, and returning `fals
 
 Running the above code will allow all route instructions to proceed, so nothing will change.
 
-## Whitelist/Blacklist Using `exclude` and `include`
+## Using The Include and Exclude Properties
 
 As we mentioned previously, our hook will apply to every component in our application. You might only have a couple of areas of your app you want to protect behind hook checks. There is two properties `include` which is a whitelist property and `exclude` which is a blacklist property.
 
@@ -58,7 +58,7 @@ export class App implements IViewModel {
     }
 
     afterBind() {
-        this.router.addHook((instructions: ViewportInstruction[]) => {
+        this.router.addHook(async (instructions: ViewportInstruction[]) => {
 
         }, {
             include: ['admin']
@@ -161,7 +161,7 @@ export class MyApp implements IViewModel {
     }
 
     afterBind() {
-        this.router.addHook((instructions: ViewportInstruction[]) => {
+        this.router.addHook(async (instructions: ViewportInstruction[]) => {
             if (this.auth.isLoggedIn) {
                 return true;
             }
@@ -193,7 +193,7 @@ export class MyApp implements IViewModel {
     }
 
     afterBind() {
-        this.router.addHook((title: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction) => {
+        this.router.addHook(async (title: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction) => {
             return 'My Title';
         }, {
             type: HookTypes.SetTitleHookFunction

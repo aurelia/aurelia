@@ -595,7 +595,7 @@ export class RouteContext implements IContainer {
     index: number,
     append: boolean,
   ): RouteNode {
-    const node = expr.evaluate(ctx, transition, parent, index, append, false);
+    const node = expr.getNode(ctx, transition, parent, index, append, false);
 
     this.logger.trace(`resolveDirect(expr:'${expr}') -> ${node}`);
 

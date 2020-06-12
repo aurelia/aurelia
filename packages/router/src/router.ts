@@ -738,7 +738,7 @@ export class Router {
       //
       // ---
 
-      const targetTree = transition.finalRoute.evaluate(ctx, transition);
+      const targetTree = transition.finalRoute.getTree(ctx, transition);
       transition.routeTree = targetTree;
       (this as Writable<this>).routeTree = targetTree;
       this.currentRoute = transition.finalRoute;
@@ -795,7 +795,7 @@ export class Router {
       const instruction = node.residue.shift()!;
       this.logger.trace(`updateNode(transition:${transition},node:${node}) - processing residue '${instruction}'`);
       const expr = this.createRouteExpression(instruction, transition.options);
-      const child = expr.root.evaluate(ctx, transition, node, ctx.path.length - 1, false, true);
+      const child = expr.getNode(ctx, transition, node);
       node.children.push(child);
     }
 

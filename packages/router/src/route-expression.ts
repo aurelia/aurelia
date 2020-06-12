@@ -213,7 +213,18 @@ export class RouteExpression {
     return false;
   }
 
-  public evaluate(
+  /**
+   * Returns a stateful `RouteTree` based on the provided context and transition.
+   *
+   * This expression will always start from the root context and build a new complete tree, up until (and including)
+   * the context that was passed-in.
+   *
+   * If there are any additional child navigations to be resolved lazily, those will be added to the leaf
+   * `RouteNode`s `residue` property which is then resolved by the router after the leaf node is loaded.
+   *
+   * This means that a `RouteTree` can (and often will) be built incrementally during the loading process.
+   */
+  public getTree(
     ctx: IRouteContext,
     transition: Transition,
   ): RouteTree {
@@ -235,9 +246,17 @@ export class RouteExpression {
       /*    instructions */[],
     );
 
-    this.root.evaluate(ctx, transition, root, 0, false, true);
+    this.root.getNode(ctx, transition, root, 0, false, true);
 
     return new RouteTree(this.raw, root);
+  }
+
+  public getNode(
+    ctx: IRouteContext,
+    transition: Transition,
+    parent: RouteNode,
+  ): RouteNode {
+    return this.root.getNode(ctx, transition, parent, ctx.path.length - 1, false, true);
   }
 
   public toString(): string {
@@ -328,7 +347,7 @@ export class CompositeSegmentExpression {
     );
   }
 
-  public evaluate(
+  public getNode(
     ctx: IRouteContext,
     transition: Transition,
     parent: RouteNode,
@@ -337,7 +356,7 @@ export class CompositeSegmentExpression {
     resolve: boolean,
   ): RouteNode {
     for (const sibling of this.siblings) {
-      sibling.evaluate(ctx, transition, parent, index, this.append, resolve);
+      sibling.getNode(ctx, transition, parent, index, this.append, resolve);
     }
     // No new scope needs to be passed up to the owner, so just return parent
     return parent;
@@ -413,7 +432,7 @@ export class ScopedSegmentExpression {
     );
   }
 
-  public evaluate(
+  public getNode(
     ctx: IRouteContext,
     transition: Transition,
     parent: RouteNode,
@@ -427,7 +446,7 @@ export class ScopedSegmentExpression {
     }
 
     // Scope goes one level deeper after a ScopedSegment so retrieve it and pass it down
-    let child = this.left.evaluate(ctx, transition, parent, index, append, false);
+    let child = this.left.getNode(ctx, transition, parent, index, append, false);
     if (child.component === '..') {
       // Unless it's a double dot, in which case we reverse it and go one level up instead
       const grandParent = parent.getParent();
@@ -447,7 +466,7 @@ export class ScopedSegmentExpression {
       return child;
     }
 
-    const grandChild = this.right.evaluate(ctx, transition, child, index + 1, false, false);
+    const grandChild = this.right.getNode(ctx, transition, child, index + 1, false, false);
     child.appendChild(grandChild);
 
     return grandChild;
@@ -535,7 +554,7 @@ export class SegmentGroupExpression {
     );
   }
 
-  public evaluate(
+  public getNode(
     ctx: IRouteContext,
     transition: Transition,
     parent: RouteNode,
@@ -543,7 +562,7 @@ export class SegmentGroupExpression {
     append: boolean,
     resolve: boolean,
   ): RouteNode {
-    return this.expression.evaluate(ctx, transition, parent, index, append, resolve);
+    return this.expression.getNode(ctx, transition, parent, index, append, resolve);
   }
 
   public toString(): string {
@@ -607,7 +626,7 @@ export class SegmentExpression {
     );
   }
 
-  public evaluate(
+  public getNode(
     ctx: IRouteContext,
     transition: Transition,
     parent: RouteNode,
@@ -617,7 +636,7 @@ export class SegmentExpression {
   ): RouteNode {
     const current = ctx.path[index];
     if (resolve) {
-      // If the context decides to use direct routing, it will call `evaluate` again with resolve=false
+      // If the context decides to use direct routing, it will call `getNode` again with resolve=false
       return current.resolveNode(this, ctx, transition, parent, index, append);
     }
 

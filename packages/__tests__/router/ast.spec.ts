@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { assert } from '@aurelia/testing';
 import { RouteExpression, AST } from '@aurelia/router';
+import { PLATFORM } from '@aurelia/kernel';
 
 const {
   CompositeSegmentExpression,
@@ -75,6 +76,9 @@ describe('route-expression', function () {
           specs[`/${raw}`] = new RouteExpression(
             `/${raw}`,
             new SegmentExpression(raw, component, action, viewport, scoped),
+            PLATFORM.emptyObject,
+            null,
+            false,
           );
           specs[`/(${raw})`] = new RouteExpression(
             `/(${raw})`,
@@ -82,6 +86,9 @@ describe('route-expression', function () {
               `(${raw})`,
               new SegmentExpression(raw, component, action, viewport, scoped),
             ),
+            PLATFORM.emptyObject,
+            null,
+            false,
           );
 
           specs[`/${raw}/${raw}`] = new RouteExpression(
@@ -91,6 +98,9 @@ describe('route-expression', function () {
               new SegmentExpression(raw, component, action, viewport, scoped),
               new SegmentExpression(raw, component, action, viewport, scoped),
             ),
+            PLATFORM.emptyObject,
+            null,
+            false,
           );
 
           specs[`/${raw}+${raw}`] = new RouteExpression(
@@ -103,6 +113,9 @@ describe('route-expression', function () {
               ],
               false,
             ),
+            PLATFORM.emptyObject,
+            null,
+            false,
           );
         }
       }
@@ -359,14 +372,33 @@ describe('route-expression', function () {
 
   for (const path in x) {
     const route = x[path];
-    specs[`/${route.raw}`] = new RouteExpression(`/${route.raw}`, route);
+    specs[`/${route.raw}`] = new RouteExpression(`/${route.raw}`, route, PLATFORM.emptyObject, null, false);
+  }
+
+  function unparent(obj: any, seen: Set<any> = new Set()): void {
+    if (seen.has(obj)) {
+      return obj;
+    }
+    seen.add(obj);
+    for (const key in obj) {
+      if (key === 'route' || key === 'parent') {
+        obj[key] = void 0;
+      } else {
+        const value = obj[key];
+        if (typeof value === 'object' && value !== null) {
+          unparent(value, seen);
+        }
+      }
+    }
+
+    return obj;
   }
 
   for (const path in specs) {
     const expected = specs[path];
     it(path, function () {
-      const actual = RouteExpression.parse(path);
-      assert.deepStrictEqual(actual, expected);
+      const actual = RouteExpression.parse(path, false);
+      assert.deepStrictEqual(unparent(actual), unparent(expected));
     });
   }
 
@@ -374,7 +406,7 @@ describe('route-expression', function () {
     it(`throws on empty component name '${path}'`, function () {
       assert.throws(
         function () {
-          RouteExpression.parse(path);
+          RouteExpression.parse(path, false);
         },
         regex(`Expected component name`),
       );
@@ -385,7 +417,7 @@ describe('route-expression', function () {
     it(`throws on empty method name '${path}'`, function () {
       assert.throws(
         function () {
-          RouteExpression.parse(path);
+          RouteExpression.parse(path, false);
         },
         regex(`Expected method name`),
       );
@@ -396,7 +428,7 @@ describe('route-expression', function () {
     it(`throws on empty viewport name '${path}'`, function () {
       assert.throws(
         function () {
-          RouteExpression.parse(path);
+          RouteExpression.parse(path, false);
         },
         regex(`Expected viewport name`),
       );
@@ -407,7 +439,7 @@ describe('route-expression', function () {
     it(`throws on empty parameter key '${path}'`, function () {
       assert.throws(
         function () {
-          RouteExpression.parse(path);
+          RouteExpression.parse(path, false);
         },
         regex(`Expected parameter key`),
       );
@@ -418,7 +450,7 @@ describe('route-expression', function () {
     it(`throws on empty parameter value '${path}'`, function () {
       assert.throws(
         function () {
-          RouteExpression.parse(path);
+          RouteExpression.parse(path, false);
         },
         regex(`Expected parameter value`),
       );
@@ -483,7 +515,7 @@ describe('route-expression', function () {
     it(`throws on missing closing paren '${path}'`, function () {
       assert.throws(
         function () {
-          RouteExpression.parse(path);
+          RouteExpression.parse(path, false);
         },
         regex(`Expected ')'`),
       );
@@ -491,23 +523,23 @@ describe('route-expression', function () {
   }
 
   for (const path of [
-    '/a?',
-    '/a#',
+    // '/a?',
+    // '/a#',
     '/a)',
     '/a=',
     '/a,',
     '/a&',
 
-    '/a.b?',
-    '/a.b#',
+    // '/a.b?',
+    // '/a.b#',
     '/a.b)',
     '/a.b=',
     '/a.b,',
     '/a.b&',
     '/a.b.',
 
-    '/a@c?',
-    '/a@c#',
+    // '/a@c?',
+    // '/a@c#',
     '/a@c)',
     '/a@c=',
     '/a@c,',
@@ -516,8 +548,8 @@ describe('route-expression', function () {
     '/a@c(',
     '/a@c@',
 
-    '/a!?',
-    '/a!#',
+    // '/a!?',
+    // '/a!#',
     '/a!)',
     '/a!=',
     '/a!,',
@@ -530,7 +562,7 @@ describe('route-expression', function () {
     it(`throws on unexpected '${path}'`, function () {
       assert.throws(
         function () {
-          RouteExpression.parse(path);
+          RouteExpression.parse(path, false);
         },
         regex(`Unexpected '${path.slice(-1)}'`),
       );

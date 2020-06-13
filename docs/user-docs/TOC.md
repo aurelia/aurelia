@@ -44,6 +44,19 @@
 * [Overlays, Modals, and Toast](app-basics/overlays-modals-toast.md)
 * [Testing Apps and Components](app-basics/testing-apps-and-components.md)
 
+## Routing
+
+* [Configuration & Setup](routing/configuration-and-setup.md)
+* [Direct Routing](routing/direct-routing.md)
+* [Component Configured Routing](routing/component-configured-routing.md)
+* [Configured Routing](routing/configured-routing.md)
+* [Configuring The Viewport](routing/configuring-the-viewport.md)
+* [Navigation Menus](routing/navigation-menus.md)
+* [Navigating With Goto](routing/navigating-with-goto.md)
+* [Lifecycle Hooks](routing/lifecycle-hooks.md)
+* [Router Hooks](routing/router-hooks.md)
+* [Differences From V1](routing/differences-from-v1.md)
+
 ## Advanced Scenarios
 
 * [One Thousand Components](advanced-scenarios/one-thousand-components.md)

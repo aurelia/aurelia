@@ -4,7 +4,7 @@ description: Find out where our community hangs out and how to get connected.
 
 # Joining the Community
 
-**Welcome to the Aurelia community!** 🎊 
+**Welcome to the Aurelia community!** 🎊
 
 If you are looking to ask basic questions, [please visit our Discourse forum](https://discourse.aurelia.io/). For a more chat-like experience, our Aurelia 2 community also [hangs out on Discord](https://discord.gg/RBtyM6u).
 

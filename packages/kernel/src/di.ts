@@ -355,6 +355,10 @@ export const DI = {
       return Interface;
     };
 
+    Interface.toString = function toString(): string {
+      return `InterfaceSymbol<${Interface.friendlyName}>`;
+    };
+
     return Interface;
   },
   inject(...dependencies: Key[]): (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number) => void {

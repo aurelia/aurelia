@@ -6,11 +6,6 @@
 // const paramTerminal = ['=', ',', ')'];
 
 import { IIndexable, Writable } from '@aurelia/kernel';
-import { CustomElement, CustomElementDefinition } from '@aurelia/runtime';
-
-import { IRouteContext, RouteContext } from './route-context';
-import { RouteTree, RouteNode } from './route-tree';
-import { Transition } from './router';
 
 // These are the currently used terminal symbols.
 // We're deliberately having every "special" (including the not-in-use '&', ''', '~', ';') as a terminal symbol,
@@ -213,52 +208,6 @@ export class RouteExpression {
     return false;
   }
 
-  /**
-   * Returns a stateful `RouteTree` based on the provided context and transition.
-   *
-   * This expression will always start from the root context and build a new complete tree, up until (and including)
-   * the context that was passed-in.
-   *
-   * If there are any additional child navigations to be resolved lazily, those will be added to the leaf
-   * `RouteNode`s `residue` property which is then resolved by the router after the leaf node is loaded.
-   *
-   * This means that a `RouteTree` can (and often will) be built incrementally during the loading process.
-   */
-  public getTree(
-    ctx: IRouteContext,
-    transition: Transition,
-  ): RouteTree {
-    // The root of the routing tree is always the CompositionRoot of the Aurelia app.
-    // From a routing perspective it's simply a "marker": it does not need to be loaded,
-    // nor put in a viewport, have its hooks invoked, or any of that. The router does not touch it,
-    // other than by reading (deps, optional route config, owned viewports) from it.
-    const root = new RouteNode(
-      /*         context */ctx.root,
-      /* matchedSegments */this.segments,
-      /*          params */{},
-      /*     queryParams */{ ...this.queryParams },
-      /*        fragment */this.fragment,
-      /*            data */{},
-      /*        viewport */'', // The root does not live in a viewport
-      /*       component */ctx.root.definition,
-      /*          append */false,
-      /*        children */[],
-      /*    instructions */[],
-    );
-
-    this.root.getNode(ctx, transition, root, 0, false, true);
-
-    return new RouteTree(this.raw, root);
-  }
-
-  public getNode(
-    ctx: IRouteContext,
-    transition: Transition,
-    parent: RouteNode,
-  ): RouteNode {
-    return this.root.getNode(ctx, transition, parent, ctx.path.length - 1, false, true);
-  }
-
   public toString(): string {
     return this.raw;
   }
@@ -347,21 +296,6 @@ export class CompositeSegmentExpression {
     );
   }
 
-  public getNode(
-    ctx: IRouteContext,
-    transition: Transition,
-    parent: RouteNode,
-    index: number,
-    _append: boolean,
-    resolve: boolean,
-  ): RouteNode {
-    for (const sibling of this.siblings) {
-      sibling.getNode(ctx, transition, parent, index, this.append, resolve);
-    }
-    // No new scope needs to be passed up to the owner, so just return parent
-    return parent;
-  }
-
   public toString(): string {
     return this.raw;
   }
@@ -430,46 +364,6 @@ export class ScopedSegmentExpression {
       this.left.equals(other.left) &&
       this.right.equals(other.right)
     );
-  }
-
-  public getNode(
-    ctx: IRouteContext,
-    transition: Transition,
-    parent: RouteNode,
-    index: number,
-    append: boolean,
-    resolve: boolean,
-  ): RouteNode {
-    const current = ctx.path[index];
-    if (resolve) {
-      return current.resolveNode(this, ctx, transition, parent, index, append);
-    }
-
-    // Scope goes one level deeper after a ScopedSegment so retrieve it and pass it down
-    let child = this.left.getNode(ctx, transition, parent, index, append, false);
-    if (child.component === '..') {
-      // Unless it's a double dot, in which case we reverse it and go one level up instead
-      const grandParent = parent.getParent();
-      if (grandParent === null) {
-        throw new Error(`Invalid path ${this.toString()}, cannot go up further in scope`);
-      }
-      child = grandParent;
-    } else {
-      parent.appendChild(child);
-    }
-
-    if (ctx.path.length === index + 1) {
-      // We've reached the leaf context and can't resolve any further.
-      // Add the rest as a residue and let the router deal with it after loading `left` (which should create the context
-      // that `right` can use)
-      child.residue.push(this.right.raw);
-      return child;
-    }
-
-    const grandChild = this.right.getNode(ctx, transition, child, index + 1, false, false);
-    child.appendChild(grandChild);
-
-    return grandChild;
   }
 
   public toString(): string {
@@ -554,17 +448,6 @@ export class SegmentGroupExpression {
     );
   }
 
-  public getNode(
-    ctx: IRouteContext,
-    transition: Transition,
-    parent: RouteNode,
-    index: number,
-    append: boolean,
-    resolve: boolean,
-  ): RouteNode {
-    return this.expression.getNode(ctx, transition, parent, index, append, resolve);
-  }
-
   public toString(): string {
     return this.raw;
   }
@@ -624,56 +507,6 @@ export class SegmentExpression {
       this.action.equals(other.action) &&
       this.viewport.equals(other.viewport)
     );
-  }
-
-  public getNode(
-    ctx: IRouteContext,
-    transition: Transition,
-    parent: RouteNode,
-    index: number,
-    append: boolean,
-    resolve: boolean,
-  ): RouteNode {
-    const current = ctx.path[index];
-    if (resolve) {
-      // If the context decides to use direct routing, it will call `getNode` again with resolve=false
-      return current.resolveNode(this, ctx, transition, parent, index, append);
-    }
-
-    const component: CustomElementDefinition | null = current.findResource(CustomElement, this.component.name);
-
-    if (component === null) {
-      // TODO: maybe return some null node thing with an empty viewport, to allow the viewport
-      // to load a fallback?
-      throw new Error(`No component named '${this.component.name}' could be found`);
-    }
-
-    // TODO: add ActionExpression state representation to RouteNode
-    const node = new RouteNode(
-      null, // temp
-      this.segments,
-      {}, // TODO: get params & do params inheritance
-      this.route.queryParams, // TODO: queryParamsStrategy
-      this.route.fragment, // TODO: fragmentStrategy
-      {}, // TODO: pass in data from instruction
-      this.viewport.name,
-      component,
-      append,
-      [],
-      [],
-    );
-
-    const viewportAgent = current.resolveViewportAgent(node);
-    const newContext = RouteContext.getOrCreate(
-      node,
-      viewportAgent,
-      component,
-      viewportAgent.hostController.context,
-    );
-    node.context = newContext;
-
-    parent.appendChild(node);
-    return node;
   }
 
   public toString(): string {

@@ -7,7 +7,6 @@ import {
   isObject,
   DI,
   IDisposable,
-  Writable,
 } from '@aurelia/kernel';
 import {
   IScheduler,
@@ -41,6 +40,7 @@ import {
   IViewportInstruction,
   NavigationInstruction,
   RouteNode,
+  RouteTreeCompiler,
 } from './route-tree';
 
 export const AuNavId = 'au-nav-id' as const;
@@ -61,12 +61,12 @@ export function toManagedState(state: {} | null, navId: number): ManagedState {
   };
 }
 
-type RoutingMode = 'direct-only' | 'configured-only' | 'direct-first' | 'configured-first';
-type QueryParamsStrategy = 'overwrite' | 'preserve' | 'merge';
-type FragmentStrategy = 'overwrite' | 'preserve';
-type HistoryStrategy = 'none' | 'replace' | 'push';
-type SameUrlStrategy = 'ignore' | 'reload';
-type ValueOrFunc<T extends string> = T | ((path: string) => T);
+export type RoutingMode = 'direct-only' | 'configured-only' | 'direct-first' | 'configured-first';
+export type QueryParamsStrategy = 'overwrite' | 'preserve' | 'merge';
+export type FragmentStrategy = 'overwrite' | 'preserve';
+export type HistoryStrategy = 'none' | 'replace' | 'push';
+export type SameUrlStrategy = 'ignore' | 'reload';
+export type ValueOrFunc<T extends string> = T | ((path: string) => T);
 function valueOrFuncToValue<T extends string>(path: string, valueOrFunc: ValueOrFunc<T>): T {
   if (typeof valueOrFunc === 'function') {
     return valueOrFunc(path);
@@ -74,7 +74,7 @@ function valueOrFuncToValue<T extends string>(path: string, valueOrFunc: ValueOr
   return valueOrFunc;
 }
 
-export interface IRouterOptions extends Partial<RouterOptions> {}
+export interface IRouterOptions extends Partial<RouterOptions> { }
 export class RouterOptions {
   public static get DEFAULT(): RouterOptions {
     return RouterOptions.create({});
@@ -138,7 +138,7 @@ export class RouterOptions {
      * Default: `ignore`
      */
     public readonly sameUrlStrategy: ValueOrFunc<SameUrlStrategy>,
-  ) {}
+  ) { }
 
   public static create(
     input: IRouterOptions,
@@ -192,7 +192,7 @@ export class RouterOptions {
   }
 }
 
-export interface INavigationOptions extends Partial<NavigationOptions> {}
+export interface INavigationOptions extends Partial<NavigationOptions> { }
 export class NavigationOptions extends RouterOptions {
   public static get DEFAULT(): NavigationOptions {
     return NavigationOptions.create({});
@@ -265,7 +265,7 @@ export class Navigation {
     public readonly prevNavigation: Navigation | null,
     // Set on next navigation, this is the route after all redirects etc have been processed.
     public finalRoute: RouteExpression | undefined,
-  ) {}
+  ) { }
 
   public static create(input: Navigation): Navigation {
     return new Navigation(
@@ -297,7 +297,7 @@ export class Transition {
     public readonly promise: Promise<boolean> | null,
     public readonly resolve: ((success: boolean) => void) | null,
     public readonly reject: ((err: unknown) => void) | null,
-  ) {}
+  ) { }
 
   public static create(
     input: Transition,
@@ -323,7 +323,7 @@ export class Transition {
   }
 }
 
-export interface IRouter extends Router {}
+export interface IRouter extends Router { }
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
 export class Router {
   private _ctx: RouteContext | null = null;
@@ -338,8 +338,52 @@ export class Router {
     return ctx;
   }
 
+  private _routeTree: RouteTree | null = null;
+  public get routeTree(): RouteTree {
+    let routeTree = this._routeTree;
+    if (routeTree === null) {
+      // Lazy instantiation for only the very first (synthetic) tree.
+      // Doing it here instead of in the constructor to delay it until we have the context.
+      const ctx = this.ctx;
+      routeTree = this._routeTree = new RouteTree(
+        '',
+        RouteNode.create({
+          context: ctx,
+          matchedSegments: [],
+          component: ctx.definition,
+          append: false,
+        }),
+      );
+    }
+    return routeTree;
+  }
+
+  private _currentTransition: Transition | null = null;
+  private get currentTransition(): Transition {
+    let currentTransition = this._currentTransition;
+    if (currentTransition === null) {
+      currentTransition = this._currentTransition = Transition.create({
+        id: 0,
+        previousRoute: this.currentRoute,
+        route: this.currentRoute,
+        finalRoute: this.currentRoute,
+        trigger: 'api',
+        options: NavigationOptions.DEFAULT,
+        managedState: null,
+        previousRouteTree: this.routeTree.clone(),
+        routeTree: null,
+        resolve: null,
+        reject: null,
+        promise: null,
+      });
+    }
+    return currentTransition;
+  }
+  private set currentTransition(value: Transition) {
+    this._currentTransition = value;
+  }
+
   public options: RouterOptions = RouterOptions.DEFAULT;
-  public readonly routeTree: RouteTree;
 
   private navigated: boolean = false;
   private navigationId: number = 0;
@@ -347,9 +391,8 @@ export class Router {
   private lastSuccessfulNavigation: Navigation | null = null;
   private activeNavigation: Navigation | null = null;
 
-  private currentRoute: RouteExpression;
+  private currentRoute: RouteExpression = RouteExpression.parse('', false);
 
-  private currentTransition: Transition;
   private nextTransition: Transition | null = null;
   private locationChangeSubscription: IDisposable | null = null;
 
@@ -361,24 +404,6 @@ export class Router {
     @ILocationManager private readonly locationMgr: ILocationManager,
   ) {
     this.logger = logger.root.scopeTo('Router');
-
-    this.currentRoute = RouteExpression.parse('', false);
-
-    this.routeTree = RouteTree.createEmpty();
-    this.currentTransition = Transition.create({
-      id: 0,
-      previousRoute: this.currentRoute,
-      route: this.currentRoute,
-      finalRoute: this.currentRoute,
-      trigger: 'api',
-      options: NavigationOptions.DEFAULT,
-      managedState: null,
-      previousRouteTree: this.routeTree.clone(),
-      routeTree: null,
-      resolve: null,
-      reject: null,
-      promise: null,
-    });
   }
 
   /**
@@ -738,13 +763,11 @@ export class Router {
       //
       // ---
 
-      const targetTree = transition.finalRoute.getTree(ctx, transition);
-      transition.routeTree = targetTree;
-      (this as Writable<this>).routeTree = targetTree;
+      this._routeTree = transition.routeTree = RouteTreeCompiler.compileRoot(transition.finalRoute, ctx, transition);
       this.currentRoute = transition.finalRoute;
 
       // Load components
-      await this.updateNode(transition, targetTree.root);
+      await this.updateNode(transition, transition.routeTree.root);
     }
 
     this.navigated = true;
@@ -798,13 +821,7 @@ export class Router {
       await viewport.update(transition, node);
     }
 
-    while (node.residue.length > 0) {
-      const instruction = node.residue.shift()!;
-      this.logger.trace(`updateNode(transition:${transition},node:${node}) - processing residue '${instruction}'`);
-      const expr = this.createRouteExpression(instruction, transition.options);
-      const child = expr.getNode(ctx, transition, node);
-      node.children.push(child);
-    }
+    RouteTreeCompiler.compileResidue(transition.finalRoute, ctx, transition);
 
     await Promise.all(node.children.map(async child => {
       await this.updateNode(transition, child);

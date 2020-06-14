@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/prefer-immediate-return */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
   Constructable,
@@ -43,18 +42,14 @@ import {
   IRouteViewModel,
 } from './component-agent';
 import {
-  CompositeSegmentExpressionOrHigher,
-} from './route-expression';
-import {
-  NavigationInstruction,
   RouteNode,
 } from './route-tree';
 import {
   RouteRecognizer,
+  RecognizedRoute,
 } from './route-recognizer';
 import {
-  Transition,
-  IRouter,
+  IRouter, Transition,
 } from './router';
 
 type RenderContextLookup = WeakMap<IRenderContext, RouteDefinitionLookup>;
@@ -114,13 +109,27 @@ export class RouteContext implements IContainer {
    */
   public readonly childRoutes: readonly RouteDefinition[];
 
+  private prevNode: RouteNode | null = null;
+  private _node: RouteNode | null = null;
+  public get node(): RouteNode {
+    const node = this._node;
+    if (node === null) {
+      throw new Error(`Invariant violation: RouteNode should be set immediately after the RouteContext is created. Context: ${this}`);
+    }
+    return node;
+  }
+  public set node(value: RouteNode) {
+    this.prevNode = this._node;
+    this._node = value;
+    this.logger.trace(`Node changed from ${this.prevNode} to ${value}`);
+  }
+
   private readonly logger: ILogger;
   private readonly container: IContainer;
   private readonly hostControllerProvider: InstanceProvider<ICustomElementController<HTMLElement>>;
   private readonly recognizer: RouteRecognizer;
 
   private constructor(
-    public node: RouteNode,
     public viewportAgent: ViewportAgent | null,
     public readonly parent: IRouteContext | null,
     public readonly component: CustomElementDefinition,
@@ -184,7 +193,6 @@ export class RouteContext implements IContainer {
    *
    */
   public static getOrCreate(
-    node: RouteNode,
     viewportAgent: ViewportAgent | null,
     component: CustomElementDefinition,
     renderContext: ICompiledRenderContext<HTMLElement>,
@@ -205,7 +213,6 @@ export class RouteContext implements IContainer {
       routeDefinitionLookup.set(
         routeDefinition,
         routeContext = new RouteContext(
-          node,
           viewportAgent,
           parent,
           component,
@@ -243,14 +250,13 @@ export class RouteContext implements IContainer {
       logAndThrow(new Error(`The provided CompositionRoot does not (yet) have a controller. A possible cause is calling this API manually before Aurelia.start() is called`), logger);
     }
 
-    const tree = container.get(IRouter).routeTree;
     const routeContext = RouteContext.getOrCreate(
-      tree.root,
       null,
       controller.context.definition,
       controller.context,
     );
     container.register(Registration.instance(IRouteContext, routeContext));
+    routeContext.node = container.get(IRouter).routeTree.root;
   }
 
   public static resolve(
@@ -376,19 +382,31 @@ export class RouteContext implements IContainer {
   }
   // #endregion
 
-  public resolveViewportAgent(node: RouteNode): ViewportAgent {
-    this.logger.trace(`resolveViewportAgent(node.viewport:'${node.viewport}')`);
+  public resolveViewportAgent(name: string, append: boolean, transition: Transition): ViewportAgent {
+    this.logger.trace(`resolveViewportAgent(name:'${name}')`);
 
     // TODO: port various bits of viewport resolution
-    const viewports = this.getViewportAgents(node.viewport === '' ? '*' : node.viewport);
-    if (viewports === void 0) {
-      // Or create on-the-fly?
-      throw new Error(`No viewport(s) named '${node.viewport}' could be found`);
+    const agents = this.getViewportAgents(name === '' ? '*' : name);
+    if (agents === void 0 || agents.length === 0) {
+      // TODO: viewport-scope related stuff might make sense to put somewhere around here (create viewports on-the-fly etc)
+      throw new Error(`No ViewportAgent(s) with viewport named '${name}' could be found at:\n${this.printTree()}`);
     }
 
-    // TODO: some heuristics for dealing with viewport naming conflicts.
-    // Ofc we could also just *not* support that, but it could be beneficial to support some basic scenarios.
-    return viewports[0];
+    const agent = agents.find(function (v) {
+      if (append) {
+        // If we're appending, we really need an empty viewport
+        return v.isEmpty;
+      }
+      // Otherwise, grab the first one that hasn't been used yet in *this* transition
+      return v.isStale(transition);
+    });
+
+    if (agent === void 0) {
+      // Or create on-the-fly?
+      throw new Error(`No ViewportAgent(s) with viewport named '${name}' is currently empty at:\n${this.printTree()}`);
+    }
+
+    return agent;
   }
 
   /**
@@ -476,134 +494,26 @@ export class RouteContext implements IContainer {
     }
   }
 
-  /** @internal */
-  public resolveNode(
-    expr: CompositeSegmentExpressionOrHigher,
-    ctx: IRouteContext,
-    transition: Transition,
-    parent: RouteNode,
-    index: number,
-    append: boolean,
-  ): RouteNode {
-    const mode = transition.options.getRoutingMode(expr.raw);
-
-    this.logger.trace(`resolveRouteNode(expr:'${expr}',mode:'${mode}')`);
-
-    switch (mode) {
-      case 'configured-first': {
-        const configuredNode = this.resolveConfigured(expr, transition);
-        if (configuredNode.component !== null) {
-          parent.appendChild(configuredNode);
-          return configuredNode;
-        }
-
-        const directNode = this.resolveDirect(expr, ctx, transition, parent, index, append);
-        if (directNode.component !== null) {
-          return directNode;
-        }
-
-        parent.appendChild(configuredNode);
-        return configuredNode;
-      }
-      case 'configured-only':
-        return this.resolveConfigured(expr, transition);
-      case 'direct-first': {
-        const directNode = this.resolveDirect(expr, ctx, transition, parent, index, append);
-        if (directNode.component !== null) {
-          return directNode;
-        }
-
-        const configuredNode = this.resolveConfigured(expr, transition);
-        if (configuredNode.component !== null) {
-          parent.appendChild(configuredNode);
-          return configuredNode;
-        }
-
-        return directNode;
-      }
-      case 'direct-only':
-        return this.resolveDirect(expr, ctx, transition, parent, index, append);
-    }
-  }
-
-  private resolveConfigured(
-    expr: CompositeSegmentExpressionOrHigher,
-    transition: Transition,
-  ): RouteNode {
-    const result = this.recognizer.recognize(expr.raw);
-    if (result === null) {
-      this.logger.trace(`resolveConfigured(expr:'${expr}') -> null`);
-
-      // Return a node where `component` is null, so that consumers know there was no match
-      const node = new RouteNode(
-        null,
-        expr.segments,
-        {},
-        expr.route.queryParams, // TODO: queryParamsStrategy
-        expr.route.fragment, // TODO: fragmentStrategy
-        {},
-        '',
-        null,
-        transition.options.append,
-        [],
-        [],
-      );
-      return node;
-    }
-
-    const children: RouteNode[] = [];
-    const instructions: NavigationInstruction[] = [];
-    if (result.residue !== null) {
-      // The router needs to deal with this later via `processResidue()`
-      instructions.push(result.residue);
-    }
-
-    this.logger.trace(`resolveConfigured(expr:'${expr}') -> '${result.endpoint.route.component}'`);
-
-    const { data, viewport, component } = result.endpoint.route;
-    const node = new RouteNode(
-      null, // temp
-      expr.segments,
-      result.params, // TODO: params inheritance
-      expr.route.queryParams, // TODO: queryParamsStrategy
-      expr.route.fragment, // TODO: fragmentStrategy
-      data,
-      viewport,
-      component,
-      transition.options.append,
-      children,
-      instructions,
-    );
-
-    const viewportAgent = this.resolveViewportAgent(node);
-    const newContext = RouteContext.getOrCreate(
-      node,
-      viewportAgent,
-      component,
-      viewportAgent.hostController.context,
-    );
-    node.context = newContext;
-
-    return node;
-  }
-
-  private resolveDirect(
-    expr: CompositeSegmentExpressionOrHigher,
-    ctx: IRouteContext,
-    transition: Transition,
-    parent: RouteNode,
-    index: number,
-    append: boolean,
-  ): RouteNode {
-    const node = expr.getNode(ctx, transition, parent, index, append, false);
-
-    this.logger.trace(`resolveDirect(expr:'${expr}') -> ${node}`);
-
-    return node;
+  public recognize(path: string): RecognizedRoute | null {
+    return this.recognizer.recognize(path);
   }
 
   public toString(): string {
-    return `RouteContext(friendlyPath:'${this.friendlyPath}')`;
+    const vpAgents: ViewportAgent[] = [];
+    for (const [, agents] of this.viewportAgentsMap.entries()) {
+      vpAgents.push(...agents);
+    }
+    const viewports = vpAgents.length > 0 ? vpAgents.map(String).join(',') : '<empty>';
+    return `RouteContext(friendlyPath:'${this.friendlyPath}',viewports:${viewports})`;
+  }
+
+  private printTree(): string {
+    const tree: string[] = [];
+    const path = this.path;
+    for (let i = 0, ii = path.length; i < ii; ++i) {
+      tree.push(`${' '.repeat(i)}${path[i]}`);
+    }
+    return tree.join('\n');
   }
 }
 

@@ -122,4 +122,8 @@ export class ViewportAgent {
   ): boolean {
     return this.lastTransitionId !== transition.id;
   }
+
+  public toString(): string {
+    return `ViewportAgent(viewport:${this.viewport},component:${this.componentAgent})`;
+  }
 }

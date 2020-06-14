@@ -58,12 +58,11 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     let componentAgent = componentAgentLookup.get(componentInstance);
     if (componentAgent === void 0) {
       const definition = RouteDefinition.resolve(componentInstance.constructor as Constructable);
-      const context = hostController.context;
       const controller = Controller.forCustomElement(
         componentInstance,
-        context.get(ILifecycle),
+        ctx.get(ILifecycle),
         hostController.host,
-        context,
+        ctx,
         void 0,
         void 0,
       );

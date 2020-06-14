@@ -204,7 +204,7 @@ export class RouteContext implements IContainer {
 
     let routeContext = routeDefinitionLookup.get(routeDefinition);
     if (routeContext === void 0) {
-      logger.trace(`creating new RouteContext for ${routeDefinition}`);
+      logger.trace(() => `creating new RouteContext for ${routeDefinition}`);
 
       const parent = renderContext.has(IRouteContext, true)
         ? renderContext.get(IRouteContext)
@@ -221,7 +221,7 @@ export class RouteContext implements IContainer {
         ),
       );
     } else {
-      logger.trace(`returning existing RouteContext for ${routeDefinition}`);
+      logger.trace(() => `returning existing RouteContext for ${routeDefinition}`);
     }
 
     return routeContext;
@@ -271,7 +271,7 @@ export class RouteContext implements IContainer {
     }
 
     if (isRouteContext(context)) {
-      logger.trace(`resolve(context:${context.toString()}) - returning provided RouteContext`);
+      logger.trace(() => `resolve(context:${context.toString()}) - returning provided RouteContext`);
       return context;
     }
 
@@ -419,7 +419,7 @@ export class RouteContext implements IContainer {
     hostController: ICustomElementController<HTMLElement>,
     routeNode: RouteNode,
   ): ComponentAgent {
-    this.logger.trace(`createComponentAgent(hostController:${hostController},routeNode:${routeNode})`);
+    this.logger.trace(() => `createComponentAgent(hostController:${hostController},routeNode:${routeNode})`);
 
     this.hostControllerProvider.prepare(hostController);
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
@@ -433,7 +433,7 @@ export class RouteContext implements IContainer {
   }
 
   public addViewportAgent(name: string, viewportAgent: ViewportAgent): void {
-    this.logger.trace(`addViewportAgent(name:'${name}',viewportAgent:${viewportAgent})`);
+    this.logger.trace(() => `addViewportAgent(name:'${name}',viewportAgent:${viewportAgent})`);
 
     const viewportAgents = this.getViewportAgents(name);
     const index = viewportAgents.indexOf(viewportAgent);
@@ -444,7 +444,7 @@ export class RouteContext implements IContainer {
   }
 
   public removeViewportAgent(name: string, viewportAgent: ViewportAgent): void {
-    this.logger.trace(`removeViewportAgent(name:'${name}',viewportAgent:${viewportAgent})`);
+    this.logger.trace(() => `removeViewportAgent(name:'${name}',viewportAgent:${viewportAgent})`);
 
     const viewportAgents = this.getViewportAgents(name);
     const index = viewportAgents.indexOf(viewportAgent);
@@ -455,7 +455,7 @@ export class RouteContext implements IContainer {
   }
 
   public renameViewportAgent(newName: string, oldName: string, viewportAgent: ViewportAgent): void {
-    this.logger.trace(`renameViewportAgent(newName:'${newName}',oldName:'${oldName}',viewportAgent:${viewportAgent})`);
+    this.logger.trace(() => `renameViewportAgent(newName:'${newName}',oldName:'${oldName}',viewportAgent:${viewportAgent})`);
 
     this.removeViewportAgent(oldName, viewportAgent);
     this.addViewportAgent(newName, viewportAgent);

@@ -103,14 +103,14 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     const currentComponent = this.routeNode.component;
     const nextComponent = node.component;
     if (currentComponent === nextComponent) {
-      this.logger.trace(`isSameComponent(transition:${transition},node:${node}) -> true`);
+      this.logger.trace(() => `isSameComponent(transition:${transition},node:${node}) -> true`);
 
       return true;
     }
 
     // TODO: may need specific heuristics for component instances and/or uncompiled definitions / identical definitions under different contexts, etc.
 
-    this.logger.trace(`isSameComponent(transition:${transition},node:${node}) -> false`);
+    this.logger.trace(() => `isSameComponent(transition:${transition},node:${node}) -> false`);
 
     return false;
   }

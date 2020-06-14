@@ -703,7 +703,7 @@ export class Router {
   private async dequeue(
     transition: Transition,
   ): Promise<void> {
-    this.logger.trace(`dequeue(transition:${transition})`);
+    this.logger.trace(() => `dequeue(transition:${transition})`);
 
     this.currentTransition = transition;
     this.nextTransition = null;
@@ -728,7 +728,7 @@ export class Router {
     const shouldProcessRoute = routeChanged || transition.options.getSameUrlStrategy(this.currentRoute.raw) === 'reload';
 
     if (shouldProcessRoute) {
-      this.logger.trace(`dequeue(transition:${transition}) - processing route`);
+      this.logger.trace(() => `dequeue(transition:${transition}) - processing route`);
 
       this.events.publish(new NavigationStartEvent(
         transition.id,
@@ -740,7 +740,7 @@ export class Router {
       // If user triggered a new transition in response to the NavigationStartEvent
       // (in which case `this.nextTransition` will NOT be null), we short-circuit here and go straight to processing the next one.
       if (this.nextTransition !== null) {
-        this.logger.debug(`dequeue(transition:${transition}) - aborting because a new transition was queued in response to the NavigationStartEvent`);
+        this.logger.debug(() => `dequeue(transition:${transition}) - aborting because a new transition was queued in response to the NavigationStartEvent`);
         return this.dequeue(this.nextTransition);
       }
 
@@ -783,7 +783,7 @@ export class Router {
     transition.resolve!(true);
 
     if (this.nextTransition !== null) {
-      this.logger.trace(`onTransitionCompleted(transition:${transition}) -> scheduling nextTransition: ${this.nextTransition}`);
+      this.logger.trace(() => `dequeue(transition:${transition}) -> scheduling nextTransition: ${this.nextTransition}`);
       this.scheduler.queueMacroTask(
         () => {
           // nextTransition is allowed to change up until the point when it's actually time to process it,
@@ -803,7 +803,7 @@ export class Router {
     transition: Transition,
     node: RouteNode,
   ): Promise<void> {
-    this.logger.trace(`updateNode(transition:${transition},node:${node})`);
+    this.logger.trace(() => `updateNode(transition:${transition},node:${node})`);
 
     const ctx = node.context;
     if (ctx === null) {

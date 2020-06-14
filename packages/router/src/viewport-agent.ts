@@ -77,16 +77,16 @@ export class ViewportAgent {
     const ctx = node.context!;
 
     if (component === null) {
-      this.logger.trace(`update(transition:${transition},node:${node}) - no componentAgent yet, so creating a new one`);
+      this.logger.trace(() => `update(transition:${transition},node:${node}) - no componentAgent yet, so creating a new one`);
 
       component = this.componentAgent = ctx.createComponentAgent(controller, node);
       await component.activate(null, controller, flags);
     } else if (component.isSameComponent(transition, node)) {
-      this.logger.trace(`update(transition:${transition},node:${node}) - componentAgent already exists and has same component as new node, so updating existing`);
+      this.logger.trace(() => `update(transition:${transition},node:${node}) - componentAgent already exists and has same component as new node, so updating existing`);
 
       await component.update(transition, node);
     } else {
-      this.logger.trace(`update(transition:${transition},node:${node}) - componentAgent already exists but component is different, so deactivating old and creating+activating new`);
+      this.logger.trace(() => `update(transition:${transition},node:${node}) - componentAgent already exists but component is different, so deactivating old and creating+activating new`);
 
       await component.deactivate(null, controller, flags);
       component = this.componentAgent = ctx.createComponentAgent(controller, node);

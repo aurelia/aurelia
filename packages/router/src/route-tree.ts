@@ -437,7 +437,7 @@ export class RouteTreeCompiler {
     depth: number,
     append: boolean,
   ): void {
-    this.logger.trace(`compile(expr:'${expr}',depth:${depth},append:${append})`);
+    this.logger.trace(() => `compile(expr:'${expr}',depth:${depth},append:${append})`);
 
     switch (expr.kind) {
       case ExpressionKind.SegmentGroup: {
@@ -499,7 +499,7 @@ export class RouteTreeCompiler {
     depth: number,
     append: boolean,
   ): RouteNode[] {
-    this.logger.trace(`resolve(expr:'${expr}',depth:${depth},append:${append}) in '${this.mode}' mode at ${this.ctx.path[depth]}`);
+    this.logger.trace(() => `resolve(expr:'${expr}',depth:${depth},append:${append}) in '${this.mode}' mode at ${this.ctx.path[depth]}`);
 
     switch (this.mode) {
       case 'configured-first': {
@@ -554,7 +554,7 @@ export class RouteTreeCompiler {
 
     const result = ctx.recognize(expr.raw);
     if (result === null) {
-      this.logger.trace(`resolveConfigured(expr:'${expr}',depth:${depth},append:${append}) -> null`);
+      this.logger.trace(() => `resolveConfigured(expr:'${expr}',depth:${depth},append:${append}) -> null`);
 
       return null;
     }
@@ -580,7 +580,7 @@ export class RouteTreeCompiler {
       residue: result.residue === null ? [] : [result.residue],
     });
 
-    this.logger.trace(`resolveConfigured(expr:'${expr}',depth:${depth},append:${append}) -> ${childCtx.node}`);
+    this.logger.trace(() => `resolveConfigured(expr:'${expr}',depth:${depth},append:${append}) -> ${childCtx.node}`);
 
     return childCtx.node;
   }
@@ -594,13 +594,13 @@ export class RouteTreeCompiler {
 
     switch (expr.kind) {
       case ExpressionKind.SegmentGroup: {
-        this.logger.trace(`resolveDirect(expr:'${expr}',depth:${depth},append:${append}) - SegmentGroup`);
+        this.logger.trace(() => `resolveDirect(expr:'${expr}',depth:${depth},append:${append}) - SegmentGroup`);
 
         // No special processing at the moment, just drill down. May need to look into this again if we want to do something with scoping with parens.
         return this.resolveDirect(expr.expression, depth, append);
       }
       case ExpressionKind.CompositeSegment: {
-        this.logger.trace(`resolveDirect(expr:'${expr}',depth:${depth},append:${append}) - CompositeSegment`);
+        this.logger.trace(() => `resolveDirect(expr:'${expr}',depth:${depth},append:${append}) - CompositeSegment`);
 
         const siblings: RouteNode[] = [];
         for (const sibling of expr.siblings) {
@@ -612,7 +612,7 @@ export class RouteTreeCompiler {
       case ExpressionKind.Segment: {
         const component: CustomElementDefinition | null = ctx.findResource(CustomElement, expr.component.name);
         if (component === null) {
-          this.logger.trace(`resolveDirect(expr:'${expr}',depth:${depth},append:${append}) - Segment -> null`);
+          this.logger.trace(() => `resolveDirect(expr:'${expr}',depth:${depth},append:${append}) - Segment -> null`);
 
           return null;
         }
@@ -637,7 +637,7 @@ export class RouteTreeCompiler {
           append: append,
         });
 
-        this.logger.trace(`resolveDirect(expr:'${expr}',depth:${depth},append:${append}) - Segment -> ${childCtx.node}`);
+        this.logger.trace(() => `resolveDirect(expr:'${expr}',depth:${depth},append:${append}) - Segment -> ${childCtx.node}`);
 
         return [childCtx.node];
       }
@@ -645,7 +645,7 @@ export class RouteTreeCompiler {
         // Stay in "direct" resolution mode for a single segment
         const nodes = this.resolveDirect(expr.left, depth, append);
         if (nodes === null) {
-          this.logger.trace(`resolveDirect(expr:'${expr}',depth:${depth},append:${append}) - ScopedSegment -> null`);
+          this.logger.trace(() => `resolveDirect(expr:'${expr}',depth:${depth},append:${append}) - ScopedSegment -> null`);
 
           return null;
         }
@@ -657,7 +657,7 @@ export class RouteTreeCompiler {
 
         const scope = nodes[0];
 
-        this.logger.trace(`resolveDirect(expr:'${expr}',depth:${depth},append:${append}) - ScopedSegment -> ${scope}`);
+        this.logger.trace(() => `resolveDirect(expr:'${expr}',depth:${depth},append:${append}) - ScopedSegment -> ${scope}`);
 
         if (ctx === this.ctx) {
           // We've reached the leaf context and can't deterministically resolve any further, so add it to `residue` to let the router try again after loading `left`.

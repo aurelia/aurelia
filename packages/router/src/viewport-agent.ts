@@ -32,6 +32,12 @@ export class ViewportAgent {
   private readonly logger: ILogger;
 
   public componentAgent: ComponentAgent | null = null;
+  private lastTransitionId: number = 0;
+
+  public get isEmpty(): boolean {
+    const ca = this.componentAgent;
+    return ca === null || ca.routeNode.component === null;
+  }
 
   public constructor(
     public readonly viewport: IViewport,
@@ -63,6 +69,8 @@ export class ViewportAgent {
     transition: Transition,
     node: RouteNode,
   ): Promise<void> {
+    this.lastTransitionId = transition.id;
+
     let component = this.componentAgent;
     const controller = this.hostController as ICustomElementController<HTMLElement>;
     const flags = LifecycleFlags.none;
@@ -104,5 +112,14 @@ export class ViewportAgent {
     this.logger.trace(`deactivate()`);
 
     return this.componentAgent?.deactivate(initiator, parent, flags);
+  }
+
+  /**
+   * Returns `true` if this this agent has not been updated by the provided transition.
+   */
+  public isStale(
+    transition: Transition,
+  ): boolean {
+    return this.lastTransitionId !== transition.id;
   }
 }

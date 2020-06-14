@@ -103,4 +103,40 @@ export class ViewportCustomElement implements ICustomElementViewModel<HTMLElemen
 
     this.ctx.removeViewportAgent(this.name, this.agent);
   }
+
+  public toString(): string {
+    const propStrings: string[] = [];
+    for (const prop of props) {
+      const value = this[prop];
+      // Only report props that don't have default values (but always report name)
+      // This is a bit naive and dirty right now, but it's mostly for debugging purposes anyway. Can clean up later. Maybe put it in a serializer
+      switch (typeof value) {
+        case 'string':
+          if (value !== '') {
+            propStrings.push(`${prop}:'${value}'`);
+          }
+          break;
+        case 'boolean':
+          if (value) {
+            propStrings.push(`${prop}:${value}`);
+          }
+          break;
+        default: {
+          propStrings.push(`${prop}:${String(value)}`);
+        }
+      }
+    }
+    return `Viewport(${propStrings.join(',')})`;
+  }
 }
+
+const props = [
+  'name',
+  'usedBy',
+  'default',
+  'fallback',
+  'noScope',
+  'noLink',
+  'noHistory',
+  'stateful',
+] as const;

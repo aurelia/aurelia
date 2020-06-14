@@ -48,7 +48,7 @@ export class RouterEvents implements IRouterEvents {
   }
 
   public publish(event: RouterEvent): void {
-    this.logger.debug(`publishing ${event.toString()}`);
+    this.logger.trace(`publishing ${event.toString()}`);
 
     this.ea.publish(event.name, event);
   }
@@ -58,7 +58,7 @@ export class RouterEvents implements IRouterEvents {
       this,
       ++this.subscriptionSerial,
       this.ea.subscribe(event, (message: NameToEvent[T]) => {
-        this.logger.debug(`handling ${event.toString()} for subscription #${subscription.serial}`);
+        this.logger.trace(`handling ${event.toString()} for subscription #${subscription.serial}`);
         callback(message);
       })
     );

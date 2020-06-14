@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import {
   LogLevel,
   Constructable,
@@ -34,7 +35,7 @@ function assertComponentsVisible(host: HTMLElement, components: Constructable[])
 async function createFixture<T extends Constructable>(
   Component: T,
   deps: Constructable[],
-  level: LogLevel = LogLevel.trace,
+  level: LogLevel = LogLevel.info,
 ) {
   const ctx = TestContext.createHTMLTestContext();
   const { container, scheduler } = ctx;
@@ -79,28 +80,23 @@ describe('router (smoke tests)', function () {
     class A01 {}
     @customElement({ name: name(A02), template: `${name(A02)}${vp(0)}` })
     class A02 {}
-    @customElement({ name: name(A03), template: `${name(A03)}${vp(0)}` })
-    class A03 {}
-    const A0 = [A01, A02, A03];
+    const A0 = [A01, A02];
 
     @customElement({ name: name(A11), template: `${name(A11)}${vp(1)}` })
     class A11 {}
     @customElement({ name: name(A12), template: `${name(A12)}${vp(1)}` })
     class A12 {}
-    @customElement({ name: name(A13), template: `${name(A13)}${vp(1)}` })
-    class A13 {}
-    const A1 = [A11, A12, A13];
+    const A1 = [A11, A12];
 
     @customElement({ name: name(A21), template: `${name(A21)}${vp(2)}` })
     class A21 {}
     @customElement({ name: name(A22), template: `${name(A22)}${vp(2)}` })
     class A22 {}
-    @customElement({ name: name(A23), template: `${name(A23)}${vp(2)}` })
-    class A23 {}
-    const A2 = [A21, A22, A23];
+    const A2 = [A21, A22];
 
     const A = [...A0, ...A1, ...A2];
 
+    // Start with a broad sample of non-generated tests that are easy to debug and mess around with.
     it(`${name(A11)} can load ${name(A01)}`, async function () {
       const { router, host, tearDown } = await createFixture(A11, A);
 
@@ -122,28 +118,151 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(A11)} can load ${name(A01)},${name(A02)},${name(A03)} in order`, async function () {
+    it(`${name(A11)} can load ${name(A11)}/${name(A01)}`, async function () {
       const { router, host, tearDown } = await createFixture(A11, A);
 
-      await router.load(name(A01));
-      assertComponentsVisible(host, [A11, A01]);
-
-      await router.load(name(A02));
-      assertComponentsVisible(host, [A11, A02]);
-
-      await router.load(name(A03));
-      assertComponentsVisible(host, [A11, A03]);
+      await router.load(`${name(A11)}/${name(A01)}`);
+      assertComponentsVisible(host, [A11, A11, A01]);
 
       await tearDown();
     });
 
-    it(`${name(A11)} can load ${name(A11)}`, async function () {
+    it(`${name(A11)} can load ${name(A11)}/${name(A01)},${name(A11)}/${name(A02)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(A11, A);
 
-      await router.load(name(A11));
-      assertComponentsVisible(host, [A11, A11]);
+      await router.load(`${name(A11)}/${name(A01)}`);
+      assertComponentsVisible(host, [A11, A11, A01]);
+
+      await router.load(`${name(A11)}/${name(A02)}`);
+      assertComponentsVisible(host, [A11, A11, A02]);
 
       await tearDown();
     });
+
+    // Now generate stuff
+    type C = Constructable;
+
+    // [x]
+    const x1: Record<string, [C]> = {
+      [`${name(A01)}`]: [A01],
+      [`${name(A02)}`]: [A02],
+    };
+
+    // [x/x]
+    const x2: Record<string, [C, C]> = {};
+    for (const key in x1) {
+      const value = x1[key];
+
+      x2[`${name(A11)}/${key}`] = [A11, ...value];
+      x2[`${name(A12)}/${key}`] = [A12, ...value];
+    }
+
+    // [x/x/x]
+    const x3: Record<string, [C, C, C]> = {};
+    for (const key in x2) {
+      const value = x2[key];
+
+      x3[`${name(A11)}/${key}`] = [A11, ...value];
+      x3[`${name(A12)}/${key}`] = [A12, ...value];
+    }
+
+    // [x+x]
+    const x1_1: Record<string, [C, C]> = {};
+    for (const key11 in x1) {
+      const value11 = x1[key11];
+      for (const key12 in x1) {
+        const value12 = x1[key12];
+        x1_1[`${key11}+${key12}`] = [...value11, ...value12];
+      }
+    }
+
+    // [x/x+x]
+    const x2_1: Record<string, [C, C, C]> = {};
+    for (const key21 in x2) {
+      const value21 = x2[key21];
+      for (const key12 in x1) {
+        const value12 = x1[key12];
+        x2_1[`${key21}+${key12}`] = [...value21, ...value12];
+      }
+    }
+
+    // [x+x/x]
+    const x1_2: Record<string, [C, C, C]> = {};
+    for (const key11 in x1) {
+      const value11 = x1[key11];
+      for (const key22 in x2) {
+        const value22 = x2[key22];
+        x1_2[`${key11}+${key22}`] = [...value11, ...value22];
+      }
+    }
+
+    // [x/x+x/x]
+    const x2_2: Record<string, [C, C, C, C]> = {};
+    for (const key21 in x2) {
+      const value21 = x2[key21];
+      for (const key22 in x2) {
+        const value22 = x2[key22];
+        x2_2[`${key21}+${key22}`] = [...value21, ...value22];
+      }
+    }
+
+    const vp1: Record<string, C[]> = {};
+    for (const key in x1) {
+      vp1[key] = x1[key];
+    }
+    for (const key in x2) {
+      vp1[key] = x2[key];
+    }
+    for (const key in x3) {
+      vp1[key] = x3[key];
+    }
+
+    const vp2: Record<string, C[]> = {};
+    for (const key in x1_1) {
+      vp2[key] = x1_1[key];
+    }
+    for (const key in x1_2) {
+      vp2[key] = x1_2[key];
+    }
+    for (const key in x2_1) {
+      vp2[key] = x2_1[key];
+    }
+    for (const key in x2_2) {
+      vp2[key] = x2_2[key];
+    }
+
+    interface InstructionSpec {
+      path: string;
+      components: C[];
+    }
+    interface SequenceSpec {
+      instructions: InstructionSpec[];
+    }
+
+    for (const key11 in vp1) {
+      const value11 = vp1[key11];
+
+      it(`${name(A11)} can load ${key11}`, async function () {
+        const { router, host, tearDown } = await createFixture(A11, A);
+
+        await router.load(key11);
+        assertComponentsVisible(host, [A11, ...value11]);
+
+        await tearDown();
+      });
+    }
+
+    for (const key21 in vp2) {
+      const value21 = vp2[key21];
+
+      it(`${name(A21)} can load ${key21}`, async function () {
+        const { router, host, tearDown } = await createFixture(A11, A);
+
+        await router.load(key21);
+        assertComponentsVisible(host, [A11, ...value21]);
+
+        await tearDown();
+      });
+    }
   });
 });

@@ -126,4 +126,8 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
     await Promise.resolve();
   }
+
+  public toString(): string {
+    return `ComponentAgent(ctx.friendlyPath:'${this.ctx.friendlyPath}',definition.component.name:'${this.definition.component.name}')`;
+  }
 }

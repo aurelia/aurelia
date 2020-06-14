@@ -275,10 +275,37 @@ export class RouteNode implements IRouteNode {
   }
 
   public toString(): string {
+    const props: string[] = [];
+
     const route = this.matchedSegments.map(x => x.toString()).join('/');
+    if (route.length > 0) {
+      props.push(`route:'${route}'`);
+    }
+
     const path = this.context?.definition.config.path ?? '';
+    if (path.length > 0) {
+      props.push(`path:'${path}'`);
+    }
+
     const component = this.context?.definition.component.name ?? '';
-    return `RouteNode(route:'${route}',path:'${path}',component:'${component}',viewport:'${this.viewport}',children.length:${this.children.length},residue.length:${this.residue.length})`;
+    if (component.length > 0) {
+      props.push(`component:'${component}'`);
+    }
+
+    if (this.children.length > 0) {
+      props.push(`children:${this.children.map(String).join(',')}`);
+    }
+
+    if (this.residue.length > 0) {
+      props.push(`residue:${this.residue.map(function (r) {
+        if (typeof r === 'string') {
+          return `'${r}'`;
+        }
+        return String(r);
+      }).join(',')}`);
+    }
+
+    return `RouteNode(${props.join(',')})`;
   }
 }
 

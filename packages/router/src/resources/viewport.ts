@@ -126,7 +126,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<HTMLElemen
         }
       }
     }
-    return `Viewport(${propStrings.join(',')})`;
+    return `Viewport(ctx.friendlyPath:'${this.ctx.friendlyPath}',${propStrings.join(',')})`;
   }
 }
 

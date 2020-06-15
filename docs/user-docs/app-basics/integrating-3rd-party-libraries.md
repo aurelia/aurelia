@@ -2,7 +2,7 @@
 
 One of Aurelia's biggest strengths is that it plays nicely with most pre-existing third-party libraries in the ecosystem. Because of Aurelia's unique reactive based binding system that does not require a virtual DOM, it means any third-party library that touches the dom can be used in Aurelia easily.
 
-# jQuery
+## jQuery
 
 First, make sure you install jQuery, as well as the types:
 
@@ -23,7 +23,7 @@ export class MyComponent {
 }
 ```
 
-## Injecting The Component Element
+### Injecting The Component Element
 
 You can obtain a reference to the HTML element for our custom element. This will allow you to query the contents of the custom element and call jQuery on the HTML.
 
@@ -45,7 +45,7 @@ export class MyComponent {
 
 The above code will add a new class to our HTML element using jQuery. You could replace this with a plugin call or anything else.
 
-# Bootstrap
+## Bootstrap
 
 The popular CSS and Javascript UI library ships with both CSS styling as well as Javascript for various features. Integrating Bootstrap is super easy in Aurelia.
 

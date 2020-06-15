@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import {
   LogLevel,
   Constructable,
@@ -28,8 +27,18 @@ function name(type: Constructable): string {
   return kebabCase(type.name);
 }
 
-function assertComponentsVisible(host: HTMLElement, components: Constructable[]): void {
-  assert.strictEqual(host.textContent, components.map(name).join(''));
+type C = Constructable;
+type CSpec = (C | CSpec)[];
+function getText(spec: CSpec): string {
+  return spec.map(function (x) {
+    if (x instanceof Array) {
+      return getText(x);
+    }
+    return name(x);
+  }).join('');
+}
+function assertComponentsVisible(host: HTMLElement, spec: CSpec): void {
+  assert.strictEqual(host.textContent, getText(spec));
 }
 
 async function createFixture<T extends Constructable>(
@@ -161,129 +170,129 @@ describe('router (smoke tests)', function () {
     });
 
     // Now generate stuff
-    type C = Constructable;
-
-    // [x]
-    const x1: Record<string, [C]> = {
+    const $1vp: Record<string, CSpec> = {
+      // [x]
       [`${name(A01)}`]: [A01],
       [`${name(A02)}`]: [A02],
+      // [x/x]
+      [`${name(A11)}/${name(A01)}`]: [A11, [A01]],
+      [`${name(A11)}/${name(A02)}`]: [A11, [A02]],
+      [`${name(A12)}/${name(A01)}`]: [A12, [A01]],
+      [`${name(A12)}/${name(A02)}`]: [A12, [A02]],
+      // [x/x/x]
+      [`${name(A11)}/${name(A12)}/${name(A01)}`]: [A11, [A12, [A01]]],
+      [`${name(A11)}/${name(A12)}/${name(A02)}`]: [A11, [A12, [A02]]],
+      [`${name(A12)}/${name(A11)}/${name(A01)}`]: [A12, [A11, [A01]]],
+      [`${name(A12)}/${name(A11)}/${name(A02)}`]: [A12, [A11, [A02]]],
     };
 
-    // [x/x]
-    const x2: Record<string, [C, C]> = {};
-    for (const key in x1) {
-      const value = x1[key];
+    const $2vps: Record<string, CSpec> = {
+      // [x+x]
+      [`${name(A01)}+${name(A02)}`]: [[A01], [A02]],
+      [`${name(A02)}+${name(A01)}`]: [[A02], [A01]],
+      // [x/x+x]
+      [`${name(A11)}/${name(A01)}+${name(A02)}`]: [[A11, [A01]], [A02]],
+      [`${name(A11)}/${name(A02)}+${name(A01)}`]: [[A11, [A02]], [A01]],
+      [`${name(A12)}/${name(A01)}+${name(A02)}`]: [[A12, [A01]], [A02]],
+      [`${name(A12)}/${name(A02)}+${name(A01)}`]: [[A12, [A02]], [A01]],
+      // [x+x/x]
+      [`${name(A01)}+${name(A11)}/${name(A02)}`]: [[A01], [A11, [A02]]],
+      [`${name(A02)}+${name(A11)}/${name(A01)}`]: [[A02], [A11, [A01]]],
+      [`${name(A01)}+${name(A12)}/${name(A02)}`]: [[A01], [A12, [A02]]],
+      [`${name(A02)}+${name(A12)}/${name(A01)}`]: [[A02], [A12, [A01]]],
+      // [x/x+x/x]
+      [`${name(A11)}/${name(A01)}+${name(A12)}/${name(A02)}`]: [[A11, [A01]], [A12, [A02]]],
+      [`${name(A11)}/${name(A02)}+${name(A12)}/${name(A01)}`]: [[A11, [A02]], [A12, [A01]]],
+      [`${name(A12)}/${name(A01)}+${name(A11)}/${name(A02)}`]: [[A12, [A01]], [A11, [A02]]],
+      [`${name(A12)}/${name(A02)}+${name(A11)}/${name(A01)}`]: [[A12, [A02]], [A11, [A01]]],
+    };
 
-      x2[`${name(A11)}/${key}`] = [A11, ...value];
-      x2[`${name(A12)}/${key}`] = [A12, ...value];
-    }
-
-    // [x/x/x]
-    const x3: Record<string, [C, C, C]> = {};
-    for (const key in x2) {
-      const value = x2[key];
-
-      x3[`${name(A11)}/${key}`] = [A11, ...value];
-      x3[`${name(A12)}/${key}`] = [A12, ...value];
-    }
-
-    // [x+x]
-    const x1_1: Record<string, [C, C]> = {};
-    for (const key11 in x1) {
-      const value11 = x1[key11];
-      for (const key12 in x1) {
-        const value12 = x1[key12];
-        x1_1[`${key11}+${key12}`] = [...value11, ...value12];
-      }
-    }
-
-    // [x/x+x]
-    const x2_1: Record<string, [C, C, C]> = {};
-    for (const key21 in x2) {
-      const value21 = x2[key21];
-      for (const key12 in x1) {
-        const value12 = x1[key12];
-        x2_1[`${key21}+${key12}`] = [...value21, ...value12];
-      }
-    }
-
-    // [x+x/x]
-    const x1_2: Record<string, [C, C, C]> = {};
-    for (const key11 in x1) {
-      const value11 = x1[key11];
-      for (const key22 in x2) {
-        const value22 = x2[key22];
-        x1_2[`${key11}+${key22}`] = [...value11, ...value22];
-      }
-    }
-
-    // [x/x+x/x]
-    const x2_2: Record<string, [C, C, C, C]> = {};
-    for (const key21 in x2) {
-      const value21 = x2[key21];
-      for (const key22 in x2) {
-        const value22 = x2[key22];
-        x2_2[`${key21}+${key22}`] = [...value21, ...value22];
-      }
-    }
-
-    const vp1: Record<string, C[]> = {};
-    for (const key in x1) {
-      vp1[key] = x1[key];
-    }
-    for (const key in x2) {
-      vp1[key] = x2[key];
-    }
-    for (const key in x3) {
-      vp1[key] = x3[key];
-    }
-
-    const vp2: Record<string, C[]> = {};
-    for (const key in x1_1) {
-      vp2[key] = x1_1[key];
-    }
-    for (const key in x1_2) {
-      vp2[key] = x1_2[key];
-    }
-    for (const key in x2_1) {
-      vp2[key] = x2_1[key];
-    }
-    for (const key in x2_2) {
-      vp2[key] = x2_2[key];
-    }
-
-    interface InstructionSpec {
-      path: string;
-      components: C[];
-    }
-    interface SequenceSpec {
-      instructions: InstructionSpec[];
-    }
-
-    for (const key11 of Object.keys(vp1)) {
-      const value11 = vp1[key11];
+    const $1vpKeys = Object.keys($1vp);
+    for (let i = 0, ii = $1vpKeys.length; i < ii; ++i) {
+      const key11 = $1vpKeys[i];
+      const value11 = $1vp[key11];
 
       it(`${name(A11)} can load ${key11}`, async function () {
         const { router, host, tearDown } = await createFixture(A11, A);
 
         await router.load(key11);
-        assertComponentsVisible(host, [A11, ...value11]);
+        assertComponentsVisible(host, [A11, value11]);
 
         await tearDown();
       });
+
+      if (i >= 1) {
+        const key11prev = $1vpKeys[i - 1];
+        const value11prev = $1vp[key11prev];
+
+        it(`${name(A11)} can load ${key11prev},${key11} in order`, async function () {
+          const { router, host, tearDown } = await createFixture(A11, A);
+
+          await router.load(key11prev);
+          assertComponentsVisible(host, [A11, value11prev]);
+
+          await router.load(key11);
+          assertComponentsVisible(host, [A11, value11]);
+
+          await tearDown();
+        });
+
+        it(`${name(A11)} can load ${key11},${key11prev} in order`, async function () {
+          const { router, host, tearDown } = await createFixture(A11, A);
+
+          await router.load(key11);
+          assertComponentsVisible(host, [A11, value11]);
+
+          await router.load(key11prev);
+          assertComponentsVisible(host, [A11, value11prev]);
+
+          await tearDown();
+        });
+      }
     }
 
-    for (const key21 of Object.keys(vp2)) {
-      const value21 = vp2[key21];
+    const $2vpsKeys = Object.keys($2vps);
+    for (let i = 0, ii = $2vpsKeys.length; i < ii; ++i) {
+      const key21 = $2vpsKeys[i];
+      const value21 = $2vps[key21];
 
       it(`${name(A21)} can load ${key21}`, async function () {
         const { router, host, tearDown } = await createFixture(A21, A);
 
         await router.load(key21);
-        assertComponentsVisible(host, [A21, ...value21]);
+        assertComponentsVisible(host, [A21, value21]);
 
         await tearDown();
       });
+
+      if (i >= 1) {
+        const key21prev = $2vpsKeys[i - 1];
+        const value21prev = $2vps[key21prev];
+
+        it(`${name(A21)} can load ${key21prev},${key21} in order`, async function () {
+          const { router, host, tearDown } = await createFixture(A21, A);
+
+          await router.load(key21prev);
+          assertComponentsVisible(host, [A21, value21prev]);
+
+          await router.load(key21);
+          assertComponentsVisible(host, [A21, value21]);
+
+          await tearDown();
+        });
+
+        it(`${name(A21)} can load ${key21},${key21prev} in order`, async function () {
+          const { router, host, tearDown } = await createFixture(A21, A);
+
+          await router.load(key21);
+          assertComponentsVisible(host, [A21, value21]);
+
+          await router.load(key21prev);
+          assertComponentsVisible(host, [A21, value21prev]);
+
+          await tearDown();
+        });
+      }
     }
   });
 });

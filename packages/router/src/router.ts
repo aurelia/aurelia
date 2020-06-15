@@ -16,7 +16,6 @@ import {
 import {
   IRouteContext,
   RouteContext,
-  RouteContextLike,
 } from './route-context';
 import {
   RouteExpression,
@@ -37,11 +36,14 @@ import {
 } from './component-agent';
 import {
   RouteTree,
-  IViewportInstruction,
-  NavigationInstruction,
   RouteNode,
   RouteTreeCompiler,
 } from './route-tree';
+import {
+  IViewportInstruction,
+  NavigationInstruction,
+  RouteContextLike,
+} from './navigation-instruction';
 
 export const AuNavId = 'au-nav-id' as const;
 export type AuNavId = typeof AuNavId;

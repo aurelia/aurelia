@@ -1,19 +1,21 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
   IIndexable,
-  isObject,
   Metadata,
 } from '@aurelia/kernel';
 import {
   CustomElementDefinition,
   CustomElement,
-  isCustomElementViewModel,
 } from '@aurelia/runtime';
 
 import {
+  RouteableComponent,
+  TypedNavigationInstruction,
+  NavigationInstructionType,
+} from './navigation-instruction';
+import {
   RouteConfig,
   IChildRouteConfig,
-  RouteableComponent,
   Routeable,
   RouteType,
   Route,
@@ -23,8 +25,6 @@ import {
 } from './route-context';
 import {
   isPartialChildRouteConfig,
-  expectType,
-  isPartialCustomElementDefinition,
 } from './validation';
 
 export class RouteDefinition {
@@ -55,28 +55,19 @@ export class RouteDefinition {
       return RouteDefinition.resolve(routeable.component, context);
     }
 
+    const typedInstruction = TypedNavigationInstruction.create(routeable);
     let ceDefinition: CustomElementDefinition;
-    if (typeof routeable === 'string') {
-      ceDefinition = resolveComponentByName(routeable, context);
-    } else if (!isObject(routeable)) {
-      // Typings prevent this from happening, but guard it anyway due to `as any` and the sorts being a thing in userland code and tests.
-      expectType('function/class or object', '', routeable);
-    } else if (typeof routeable === 'function') {
-      // This is the class itself
-      // CustomElement.getDefinition will throw if the type is not a custom element
-      ceDefinition = CustomElement.getDefinition(routeable);
-    } else if (isCustomElementViewModel(routeable)) {
-      // Get the class from the constructor property. There might be static properties on it.
-      ceDefinition = CustomElement.getDefinition(routeable.constructor as RouteType);
-    } else if (routeable instanceof CustomElementDefinition) {
-      // We might have gotten a complete definition. In that case use it as-is.
-      ceDefinition = routeable;
-    } else if (isPartialCustomElementDefinition(routeable)) {
-      // If we just got a partial definition, define a new anonymous class
-      const Type = CustomElement.define(routeable);
-      ceDefinition = CustomElement.getDefinition(Type);
-    } else {
-      throw new Error(`Invalid component ${String(routeable)}: must be either a class, a custom element ViewModel, or a (partial) custom element definition`);
+    switch (typedInstruction.type) {
+      case NavigationInstructionType.string:
+        ceDefinition = resolveComponentByName(typedInstruction.value, context);
+        break;
+      case NavigationInstructionType.CustomElementDefinition:
+        ceDefinition = typedInstruction.value;
+        break;
+      case NavigationInstructionType.IRouteViewModel:
+        // Get the class from the constructor property. There might be static properties on it.
+        ceDefinition = CustomElement.getDefinition(typedInstruction.value.constructor as RouteType);
+        break;
     }
 
     // Check if this component already has a `RouteDefinition` associated with it, where the `config` matches the `RouteConfig` that is currently associated with the type.

@@ -23,7 +23,6 @@ import {
   ICustomElementController,
   IController,
   CompositionRoot,
-  ICustomElementViewModel,
   isCustomElementViewModel,
   isCustomElementController,
 } from '@aurelia/runtime';
@@ -76,13 +75,6 @@ function getRouteDefinitionLookup(
 
 export interface IRouteContext extends RouteContext {}
 export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext').noDefault();
-
-export type RouteContextLike = (
-  IRouteContext |
-  ICustomElementViewModel<HTMLElement> |
-  ICustomElementController<HTMLElement> |
-  HTMLElement
-);
 
 /**
  * Holds the information of a component in the context of a specific container. May or may not have statically configured routes.

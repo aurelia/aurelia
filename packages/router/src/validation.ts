@@ -10,11 +10,11 @@ import {
 import {
   IChildRouteConfig,
   Routeable,
-  RouteableComponent,
 } from './route';
 import {
   IViewportInstruction,
-} from './route-tree';
+  RouteableComponent,
+} from './navigation-instruction';
 
 export function isNotNullishOrTypeOrViewModel(value: RouteableComponent | null | undefined): value is PartialCustomElementDefinition | IChildRouteConfig {
   return (

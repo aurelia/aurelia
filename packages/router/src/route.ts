@@ -6,17 +6,14 @@ import {
   PLATFORM,
   IIndexable,
 } from '@aurelia/kernel';
-import {
-  PartialCustomElementDefinition,
-} from '@aurelia/runtime';
 
-import {
-  IRouteViewModel,
-} from './component-agent';
 import {
   validateRouteConfig,
   expectType,
 } from './validation';
+import {
+  RouteableComponent,
+} from './navigation-instruction';
 
 const noChildren = PLATFORM.emptyArray as RouteConfig['children'];
 
@@ -33,17 +30,6 @@ export type Routeable = (
   string |
   IChildRouteConfig |
   RouteableComponent
-);
-/**
- * A component type, instance of definition that can be navigated to:
- * - `RouteType`: a custom element class with optional static properties that specify routing-specific attributes.
- * - `PartialCustomElementDefinition`: either a complete `CustomElementDefinition` or a partial definition (e.g. an object literal with at least the `name` property)
- * - `IRouteViewModel`: an existing component instance.
- */
-export type RouteableComponent = (
-  RouteType |
-  PartialCustomElementDefinition |
-  IRouteViewModel
 );
 
 export interface IRouteConfig extends Partial<RouteConfig> { }

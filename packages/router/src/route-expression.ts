@@ -5,7 +5,10 @@
 // const componentTerminal = [...actionTerminal, '.'];
 // const paramTerminal = ['=', ',', ')'];
 
-import { IIndexable, Writable } from '@aurelia/kernel';
+import {
+  IIndexable,
+  Writable,
+} from '@aurelia/kernel';
 
 // These are the currently used terminal symbols.
 // We're deliberately having every "special" (including the not-in-use '&', ''', '~', ';') as a terminal symbol,
@@ -125,14 +128,7 @@ export class RouteExpression {
     root.setParent(this);
   }
 
-  public static parse(path: string, fragmentIsRoute: boolean): RouteExpression;
-  public static parse(path: null, fragmentIsRoute: boolean): null;
-  public static parse(path: string | null, fragmentIsRoute: boolean): RouteExpression | null;
-  public static parse(path: string | null, fragmentIsRoute: boolean): RouteExpression | null {
-    if (path === null) {
-      return null;
-    }
-
+  public static parse(path: string, fragmentIsRoute: boolean): RouteExpression {
     // First strip off the fragment (and if fragment should be used as route, set it as the path)
     let fragment: string | null;
     const fragmentStart = path.indexOf('#');

@@ -24,12 +24,16 @@ export {
   ILinkHandler,
 } from './link-handler';
 export {
+  RouteableComponent,
+  NavigationInstruction,
+  IViewportInstruction,
+} from './navigation-instruction';
+export {
   ILocationManager,
   IBaseHrefProvider,
 } from './location-manager';
 export {
   Routeable,
-  RouteableComponent,
   IRouteConfig,
   IChildRouteConfig,
   RouteConfig,
@@ -64,8 +68,6 @@ export {
   RouteRecognizer,
 } from './route-recognizer';
 export {
-  NavigationInstruction,
-  IViewportInstruction,
   RouteNode,
   RouteTree,
 } from './route-tree';

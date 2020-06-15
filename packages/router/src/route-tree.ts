@@ -2,7 +2,6 @@
 import {
   PLATFORM,
   IIndexable,
-  DI,
   ILogger,
 } from '@aurelia/kernel';
 import {
@@ -18,7 +17,6 @@ import {
 } from './route-expression';
 import {
   Routeable,
-  RouteableComponent,
 } from './route';
 import {
   IRouteContext,
@@ -31,69 +29,9 @@ import {
   RoutingMode,
   Transition,
 } from './router';
-
-/**
- * Either a `RouteableComponent`, a string (name) that can be resolved to one or a ViewportInstruction:
- * - `string`: a string representing the component name. Must be resolveable via DI from the context of the component relative to which the navigation occurs (specified in the `dependencies` array, `<import>`ed in the view, declared as an inline template, or registered globally)
- * - `IViewportInstruction`: a viewport instruction object.
- * - `RouteableComponent`: see `RouteableComponent`.
- *
- * NOTE: differs from `Routeable` only in having `IViewportIntruction` instead of `IChildRouteConfig`
- * (which in turn are quite similar, but do have a few minor but important differences that make them non-interchangeable)
- */
-export type NavigationInstruction = (
-  string |
-  IViewportInstruction |
-  RouteableComponent
-);
-
-export const IViewportInstruction = DI.createInterface<IViewportInstruction>('IViewportInstruction').noDefault();
-// All properties except `component` are optional.
-export interface IViewportInstruction extends
-  Omit<Partial<ViewportInstruction>, 'component'>,
-  Pick<ViewportInstruction, 'component'> { }
-
-export class ViewportInstruction {
-  public constructor(
-    /**
-     * The component to load.
-     *
-     * - `string`: a string representing the component name. Must be resolveable via DI from the context of the component relative to which the navigation occurs (specified in the `dependencies` array, `<import>`ed in the view, declared as an inline template, or registered globally)
-     * - `RouteType`: a custom element class with optional static properties that specify routing-specific attributes.
-     * - `PartialCustomElementDefinition`: either a complete `CustomElementDefinition` or a partial definition (e.g. an object literal with at least the `name` property)
-     * - `IRouteViewModel`: an existing component instance.
-     */
-    public readonly component: string | RouteableComponent,
-    /**
-     * The name of the viewport this component should be loaded into.
-     */
-    public readonly viewport: string | null,
-    /**
-     * The parameters to pass into the component.
-     */
-    public readonly params: Readonly<IIndexable>,
-    /**
-     * The child routes to load underneath the context of this instruction's component.
-     */
-    public readonly children: readonly NavigationInstruction[],
-  ) { }
-
-  public static create(
-    input: IViewportInstruction,
-  ): ViewportInstruction {
-    return new ViewportInstruction(
-      input.component,
-      input.viewport ?? null,
-      input.params ?? {},
-      input.children ?? [],
-    );
-  }
-
-  public toString(): string {
-    // TODO: write some shared serialization logic and use it in this toString() method
-    return `ViewportInstruction(component:${this.component},viewport:${this.viewport},children.length:${this.children.length})`;
-  }
-}
+import {
+  NavigationInstruction,
+} from './navigation-instruction';
 
 export interface IRouteNode {
   context: IRouteContext;

@@ -810,16 +810,7 @@ export class Router {
       throw new Error(`Unexpected null context at ${node}`);
     }
 
-    // The root is simply a marker context for the component holding the top-level viewports.
-    // It itself does not needed to be loaded.
-    if (ctx !== ctx.root) {
-      const viewport = ctx.viewportAgent;
-      if (viewport === null) {
-        throw new Error(`Unexpected null viewportAgent at ${ctx}`);
-      }
-
-      await viewport.update(transition, node);
-    }
+    await ctx.update();
 
     RouteTreeCompiler.compileResidue(transition.finalRoute, ctx, transition);
 

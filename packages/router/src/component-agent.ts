@@ -20,9 +20,6 @@ import {
   RouteNode,
 } from './route-tree';
 import {
-  Transition,
-} from './router';
-import {
   IRouteContext,
 } from './route-context';
 
@@ -96,29 +93,23 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     return this.controller.deactivate(initiator ?? this.controller, parent, flags);
   }
 
-  public isSameComponent(
-    transition: Transition,
-    node: RouteNode,
-  ): boolean {
+  public isSameComponent(node: RouteNode): boolean {
     const currentComponent = this.routeNode.component;
     const nextComponent = node.component;
     if (currentComponent === nextComponent) {
-      this.logger.trace(() => `isSameComponent(transition:${transition},node:${node}) -> true`);
+      this.logger.trace(() => `isSameComponent(node:${node}) -> true`);
 
       return true;
     }
 
     // TODO: may need specific heuristics for component instances and/or uncompiled definitions / identical definitions under different contexts, etc.
 
-    this.logger.trace(() => `isSameComponent(transition:${transition},node:${node}) -> false`);
+    this.logger.trace(() => `isSameComponent(node:${node}) -> false`);
 
     return false;
   }
 
-  public async update(
-    transition: Transition,
-    node: RouteNode,
-  ): Promise<void> {
+  public async update(node: RouteNode): Promise<void> {
     if (!this.routeNode.shallowEquals(node)) {
       // TODO
     }

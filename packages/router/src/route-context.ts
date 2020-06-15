@@ -49,8 +49,11 @@ import {
   RecognizedRoute,
 } from './route-recognizer';
 import {
-  IRouter, Transition,
+  IRouter,
 } from './router';
+import {
+  IViewport,
+} from './resources/viewport';
 
 type RenderContextLookup = WeakMap<IRenderContext, RouteDefinitionLookup>;
 type RouteDefinitionLookup = WeakMap<RouteDefinition, IRouteContext>;
@@ -91,7 +94,7 @@ export type RouteContextLike = (
  * - Different components (with different `RenderContext`s) reference the same component via a child route config
  */
 export class RouteContext implements IContainer {
-  private readonly viewportAgentsMap: Map<string, ViewportAgent[]> = new Map();
+  private readonly childViewportAgents: ViewportAgent[] = [];
   public readonly root: IRouteContext;
   /**
    * The path from the root RouteContext up to this one.
@@ -119,9 +122,12 @@ export class RouteContext implements IContainer {
     return node;
   }
   public set node(value: RouteNode) {
-    this.prevNode = this._node;
-    this._node = value;
-    this.logger.trace(`Node changed from ${this.prevNode} to ${value}`);
+    const prev = this.prevNode = this._node;
+    if (prev !== value) {
+      this._node = value;
+      this.logger.trace(`Node changed from ${this.prevNode} to ${value}`);
+    }
+    this.viewportAgent?.scheduleUpdate(value);
   }
 
   private readonly logger: ILogger;
@@ -130,7 +136,7 @@ export class RouteContext implements IContainer {
   private readonly recognizer: RouteRecognizer;
 
   private constructor(
-    public viewportAgent: ViewportAgent | null,
+    public readonly viewportAgent: ViewportAgent | null,
     public readonly parent: IRouteContext | null,
     public readonly component: CustomElementDefinition,
     public readonly definition: RouteDefinition,
@@ -382,28 +388,20 @@ export class RouteContext implements IContainer {
   }
   // #endregion
 
-  public resolveViewportAgent(name: string, append: boolean, transition: Transition): ViewportAgent {
-    this.logger.trace(`resolveViewportAgent(name:'${name}')`);
+  public resolveViewportAgent(
+    viewportName: string,
+    componentName: string,
+    append: boolean,
+  ): ViewportAgent {
+    this.logger.trace(`resolveViewportAgent(viewportName:'${viewportName}',componentName:'${componentName}',append:${append})`);
 
-    // TODO: port various bits of viewport resolution
-    const agents = this.getViewportAgents(name === '' ? '*' : name);
-    if (agents === void 0 || agents.length === 0) {
-      // TODO: viewport-scope related stuff might make sense to put somewhere around here (create viewports on-the-fly etc)
-      throw new Error(`No ViewportAgent(s) with viewport named '${name}' could be found at:\n${this.printTree()}`);
-    }
-
-    const agent = agents.find(function (v) {
-      if (append) {
-        // If we're appending, we really need an empty viewport
-        return v.isEmpty;
-      }
-      // Otherwise, grab the first one that hasn't been used yet in *this* transition
-      return v.isStale(transition);
+    const agent = this.childViewportAgents.find(function (x) {
+      return x.canAccept(viewportName, componentName, append);
     });
 
     if (agent === void 0) {
       // Or create on-the-fly?
-      throw new Error(`No ViewportAgent(s) with viewport named '${name}' is currently empty at:\n${this.printTree()}`);
+      throw new Error(`Failed to resolve viewport named '${viewportName}' for '${componentName}' with append=${append} at:\n${this.printTree()}`);
     }
 
     return agent;
@@ -432,77 +430,40 @@ export class RouteContext implements IContainer {
     return componentAgent;
   }
 
-  public addViewportAgent(name: string, viewportAgent: ViewportAgent): void {
-    this.logger.trace(() => `addViewportAgent(name:'${name}',viewportAgent:${viewportAgent})`);
-
-    const viewportAgents = this.getViewportAgents(name);
-    const index = viewportAgents.indexOf(viewportAgent);
-    if (index >= 0) {
-      throw new Error(`Unexpected invariant violation: ViewportAgent "${name}" already present`);
-    }
-    viewportAgents.push(viewportAgent);
-  }
-
-  public removeViewportAgent(name: string, viewportAgent: ViewportAgent): void {
-    this.logger.trace(() => `removeViewportAgent(name:'${name}',viewportAgent:${viewportAgent})`);
-
-    const viewportAgents = this.getViewportAgents(name);
-    const index = viewportAgents.indexOf(viewportAgent);
-    if (index === -1) {
-      throw new Error(`Unexpected invariant violation: ViewportAgent "${name}" not found`);
-    }
-    viewportAgents.splice(index, 1);
-  }
-
-  public renameViewportAgent(newName: string, oldName: string, viewportAgent: ViewportAgent): void {
-    this.logger.trace(() => `renameViewportAgent(newName:'${newName}',oldName:'${oldName}',viewportAgent:${viewportAgent})`);
-
-    this.removeViewportAgent(oldName, viewportAgent);
-    this.addViewportAgent(newName, viewportAgent);
-  }
-
-  /**
-   * Get all available viewports from this context.
-   */
-  public getViewportAgents(name: '*'): ViewportAgent[];
-  /**
-   * Get the available viewports from this context with the specified name.
-   */
-  public getViewportAgents(name: string): ViewportAgent[];
-  public getViewportAgents(name: '*' | string): ViewportAgent[] {
-    if (name === '*') {
-      const viewportAgents: ViewportAgent[] = [];
-      for (const values of this.viewportAgentsMap.values()) {
-        viewportAgents.push(...values);
-      }
-
-      this.logger.trace(`getViewportAgents(name:'${name}') -> ${viewportAgents.length} viewport(s)`);
-
-      return viewportAgents;
+  public registerViewport(viewport: IViewport): ViewportAgent {
+    const agent = ViewportAgent.for(viewport, this);
+    if (this.childViewportAgents.includes(agent)) {
+      this.logger.trace(() => `registerViewport(agent:${agent}) -> already registered, so skipping`);
     } else {
-      let viewportAgents = this.viewportAgentsMap.get(name);
-      if (viewportAgents === void 0) {
-        this.viewportAgentsMap.set(
-          name,
-          viewportAgents = [],
-        );
-      }
-
-      this.logger.trace(`getViewportAgents(name:'${name}') -> ${viewportAgents.length} viewport(s)`);
-
-      return viewportAgents;
+      this.logger.trace(() => `registerViewport(agent:${agent}) -> adding`);
+      this.childViewportAgents.push(agent);
     }
+
+    return agent;
+  }
+
+  public unregisterViewport(viewport: IViewport): void {
+    const agent = ViewportAgent.for(viewport, this);
+    if (this.childViewportAgents.includes(agent)) {
+      this.logger.trace(() => `unregisterViewport(agent:${agent}) -> unregistering`);
+      this.childViewportAgents.splice(this.childViewportAgents.indexOf(agent), 1);
+    } else {
+      this.logger.trace(() => `unregisterViewport(agent:${agent}) -> not registered, so skipping`);
+    }
+  }
+
+  public async update(): Promise<void> {
+    this.logger.trace(`update()`);
+    return this.viewportAgent?.update();
   }
 
   public recognize(path: string): RecognizedRoute | null {
+    this.logger.trace(`recognize(path:'${path}')`);
     return this.recognizer.recognize(path);
   }
 
   public toString(): string {
-    const vpAgents: ViewportAgent[] = [];
-    for (const [, agents] of this.viewportAgentsMap.entries()) {
-      vpAgents.push(...agents);
-    }
+    const vpAgents = this.childViewportAgents;
     const viewports = vpAgents.length > 0 ? vpAgents.map(String).join(',') : '<empty>';
     return `RouteContext(friendlyPath:'${this.friendlyPath}',viewports:${viewports})`;
   }

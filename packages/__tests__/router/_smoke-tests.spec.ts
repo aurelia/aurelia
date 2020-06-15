@@ -35,7 +35,7 @@ function assertComponentsVisible(host: HTMLElement, components: Constructable[])
 async function createFixture<T extends Constructable>(
   Component: T,
   deps: Constructable[],
-  level: LogLevel = LogLevel.info,
+  level: LogLevel = LogLevel.debug,
 ) {
   const ctx = TestContext.createHTMLTestContext();
   const { container, scheduler } = ctx;
@@ -135,6 +135,27 @@ describe('router (smoke tests)', function () {
 
       await router.load(`${name(A11)}/${name(A02)}`);
       assertComponentsVisible(host, [A11, A11, A02]);
+
+      await tearDown();
+    });
+
+    it(`${name(A21)} can load ${name(A01)}+${name(A02)}`, async function () {
+      const { router, host, tearDown } = await createFixture(A21, A);
+
+      await router.load(`${name(A01)}+${name(A02)}`);
+      assertComponentsVisible(host, [A21, A01, A02]);
+
+      await tearDown();
+    });
+
+    it(`${name(A21)} can load ${name(A01)}+${name(A02)},${name(A02)}+${name(A01)} in order`, async function () {
+      const { router, host, tearDown } = await createFixture(A21, A);
+
+      await router.load(`${name(A01)}+${name(A02)}`);
+      assertComponentsVisible(host, [A21, A01, A02]);
+
+      await router.load(`${name(A02)}+${name(A01)}`);
+      assertComponentsVisible(host, [A21, A02, A01]);
 
       await tearDown();
     });
@@ -239,7 +260,7 @@ describe('router (smoke tests)', function () {
       instructions: InstructionSpec[];
     }
 
-    for (const key11 in vp1) {
+    for (const key11 of Object.keys(vp1)) {
       const value11 = vp1[key11];
 
       it(`${name(A11)} can load ${key11}`, async function () {
@@ -252,14 +273,14 @@ describe('router (smoke tests)', function () {
       });
     }
 
-    for (const key21 in vp2) {
+    for (const key21 of Object.keys(vp2)) {
       const value21 = vp2[key21];
 
       it(`${name(A21)} can load ${key21}`, async function () {
-        const { router, host, tearDown } = await createFixture(A11, A);
+        const { router, host, tearDown } = await createFixture(A21, A);
 
         await router.load(key21);
-        assertComponentsVisible(host, [A11, ...value21]);
+        assertComponentsVisible(host, [A21, ...value21]);
 
         await tearDown();
       });

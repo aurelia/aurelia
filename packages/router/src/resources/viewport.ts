@@ -1,13 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
+  ILogger,
+} from '@aurelia/kernel';
+import {
   bindable,
   customElement,
-  ICompiledCustomElementController,
-  ICustomElementController,
   ICustomElementViewModel,
   IHydratedController,
   IHydratedParentController,
   LifecycleFlags,
+  ICustomElementController,
+  ICompiledCustomElementController,
 } from '@aurelia/runtime';
 
 import {
@@ -16,7 +19,6 @@ import {
 import {
   IRouteContext,
 } from '../route-context';
-import { ILogger } from '@aurelia/kernel';
 
 export interface IViewport {
   readonly name: string;
@@ -52,12 +54,6 @@ export class ViewportCustomElement implements ICustomElementViewModel<HTMLElemen
     this.logger.trace('constructor()');
   }
 
-  protected nameChanged(newName: string, oldName: string): void {
-    this.logger.trace(`nameChanged(newName:'${newName}',oldName:'${oldName}')`);
-
-    this.ctx.renameViewportAgent(newName, oldName, this.agent);
-  }
-
   public afterCompile(
     controller: ICompiledCustomElementController<HTMLElement>,
   ): void {
@@ -74,7 +70,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<HTMLElemen
     this.logger.trace('beforeBind()');
 
     if (this.agent === void 0) {
-      this.ctx.addViewportAgent(this.name, this.agent = ViewportAgent.for(this, this.controller, this.ctx));
+      this.agent = this.ctx.registerViewport(this);
     }
   }
 
@@ -101,7 +97,8 @@ export class ViewportCustomElement implements ICustomElementViewModel<HTMLElemen
   public dispose(): void {
     this.logger.trace('dispose()');
 
-    this.ctx.removeViewportAgent(this.name, this.agent);
+    this.ctx.unregisterViewport(this);
+    this.agent = (void 0)!;
   }
 
   public toString(): string {

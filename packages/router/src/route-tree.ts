@@ -154,7 +154,7 @@ export class RouteNode implements IRouteNode {
      * "fully resolved" when it has `residue.length === 0` and `children.length >= 0`
      */
     public readonly residue: NavigationInstruction[],
-  ) { }
+  ) {}
 
   public static create(
     input: IRouteNode,
@@ -560,7 +560,11 @@ export class RouteTreeCompiler {
     }
 
     const endpoint = result.endpoint;
-    const viewportAgent = ctx.resolveViewportAgent(endpoint.route.viewport, append, this.transition);
+    const viewportAgent = ctx.resolveViewportAgent(
+      endpoint.route.viewport,
+      endpoint.route.component.name,
+      append,
+    );
     const childCtx = RouteContext.getOrCreate(
       viewportAgent,
       endpoint.route.component,
@@ -617,7 +621,11 @@ export class RouteTreeCompiler {
           return null;
         }
 
-        const viewportAgent = ctx.resolveViewportAgent(expr.viewport.name, append, this.transition);
+        const viewportAgent = ctx.resolveViewportAgent(
+          expr.viewport.name,
+          expr.component.name,
+          append,
+        );
         const childCtx = RouteContext.getOrCreate(
           viewportAgent,
           component,

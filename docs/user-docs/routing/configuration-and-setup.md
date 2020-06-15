@@ -52,6 +52,18 @@ Enabling pushState routing setting `useUrlFragmentHash` to false will require a 
 
 A common scenario is styling an active router link with styling to signify that the link is active, such as making the text bold. By default, any link with a `goto` attribute that is routed to, will receive the class `goto-active` if it is currently active.
 
+{% hint style="info" %}
+A future update to the router package will allow this class to be user-configurable. For now, the class name cannot be changed.
+{% endhint %}
+
+If you were to make all of your active route links bold, all you would need to do is write the following CSS and put it somewhere global in your application.
+
+```css
+.goto-active {
+    font-weight: bold;
+}
+```
+
 ## Setting The Title
 
 The router supports setting the application title a few different ways. You can set a default title on the router when you configure it like above via the `register` method.

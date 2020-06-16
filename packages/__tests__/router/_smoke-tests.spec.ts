@@ -14,6 +14,7 @@ import {
 import {
   Aurelia,
   customElement,
+  CustomElement,
 } from '@aurelia/runtime';
 
 import {
@@ -110,10 +111,37 @@ describe('router (smoke tests)', function () {
     const A = [...A0, ...A1, ...A2];
 
     // Start with a broad sample of non-generated tests that are easy to debug and mess around with.
-    it(`${name(Root1)} can load ${name(A01)}`, async function () {
+    it(`${name(Root1)} can load ${name(A01)} as a string`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, A);
 
       await router.load(name(A01));
+      assertComponentsVisible(host, [Root1, A01]);
+
+      await tearDown();
+    });
+
+    it(`${name(Root1)} can load ${name(A01)} as a type`, async function () {
+      const { router, host, tearDown } = await createFixture(Root1, A);
+
+      await router.load(A01);
+      assertComponentsVisible(host, [Root1, A01]);
+
+      await tearDown();
+    });
+
+    it(`${name(Root1)} can load ${name(A01)} as a ViewportInstruction`, async function () {
+      const { router, host, tearDown } = await createFixture(Root1, A);
+
+      await router.load({ component: A01 });
+      assertComponentsVisible(host, [Root1, A01]);
+
+      await tearDown();
+    });
+
+    it(`${name(Root1)} can load ${name(A01)} as a CustomElementDefinition`, async function () {
+      const { router, host, tearDown } = await createFixture(Root1, A);
+
+      await router.load(CustomElement.getDefinition(A01));
       assertComponentsVisible(host, [Root1, A01]);
 
       await tearDown();
@@ -131,10 +159,19 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root1)} can load ${name(A11)}/${name(A01)}`, async function () {
+    it(`${name(Root1)} can load ${name(A11)}/${name(A01)} as a string`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, A);
 
       await router.load(`${name(A11)}/${name(A01)}`);
+      assertComponentsVisible(host, [Root1, A11, A01]);
+
+      await tearDown();
+    });
+
+    it(`${name(Root1)} can load ${name(A11)}/${name(A01)} as a ViewportInstruction`, async function () {
+      const { router, host, tearDown } = await createFixture(Root1, A);
+
+      await router.load({ component: A11, children: [A01] });
       assertComponentsVisible(host, [Root1, A11, A01]);
 
       await tearDown();
@@ -152,10 +189,37 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root2)} can load ${name(A01)}+${name(A02)}`, async function () {
+    it(`${name(Root2)} can load ${name(A01)}+${name(A02)} as a string`, async function () {
       const { router, host, tearDown } = await createFixture(Root2, A);
 
       await router.load(`${name(A01)}+${name(A02)}`);
+      assertComponentsVisible(host, [Root2, A01, A02]);
+
+      await tearDown();
+    });
+
+    it(`${name(Root2)} can load ${name(A01)}+${name(A02)} as an array of strins`, async function () {
+      const { router, host, tearDown } = await createFixture(Root2, A);
+
+      await router.load([name(A01), name(A02)]);
+      assertComponentsVisible(host, [Root2, A01, A02]);
+
+      await tearDown();
+    });
+
+    it(`${name(Root2)} can load ${name(A01)}+${name(A02)} as an array of types`, async function () {
+      const { router, host, tearDown } = await createFixture(Root2, A);
+
+      await router.load([A01, A02]);
+      assertComponentsVisible(host, [Root2, A01, A02]);
+
+      await tearDown();
+    });
+
+    it(`${name(Root2)} can load ${name(A01)}+${name(A02)} as a mixed array type and string`, async function () {
+      const { router, host, tearDown } = await createFixture(Root2, A);
+
+      await router.load([A01, name(A02)]);
       assertComponentsVisible(host, [Root2, A01, A02]);
 
       await tearDown();

@@ -12,7 +12,7 @@ As the name implies, route hooks allow you to guard specific routes and redirect
 **What you will learn in this section**
 
 * How to create router hooks
-* How to whitelist and blacklist certain routable components from within hooks
+* How to allow and deny certain routable components from within hooks
 * How to implement authentication using route hooks
 * How to redirect from within a route hook
 {% endhint %}
@@ -47,7 +47,7 @@ Running the above code will allow all route instructions to proceed, so nothing 
 
 ## Using The Include and Exclude Properties
 
-As we mentioned previously, our hook will apply to every component in our application. You might only have a couple of areas of your app you want to protect behind hook checks. There is two properties `include` which is a whitelist property and `exclude` which is a blacklist property.
+As we mentioned previously, our hook will apply to every component in our application. You might only have a couple of areas of your app you want to protect behind hook checks. There is two properties `include` which is a allow list property and `exclude` which is a deny list property.
 
 ```typescript
 import { IRouter, IViewModel } from 'aurelia';
@@ -67,11 +67,11 @@ export class App implements IViewModel {
 }
 ```
 
-In this example, we are telling the router we only want to apply the hook to a component called admin, all other routed components will be ignored when this hook is run. It is recommended that you use the whitelist approach using `include` where only a few components need to use a hook and `exclude` when mostly all components need to be run through the hook.
+In this example, we are telling the router we only want to apply the hook to a component called admin, all other routed components will be ignored when this hook is run. It is recommended that you use the allow list approach using `include` where only a few components need to use a hook and `exclude` when mostly all components need to be run through the hook.
 
 ## Authentication
 
-One of the most common scenarios you will use router hooks for is adding in authentication to your applications. Whether you use a third-party service such as Auth0 or Firebase Auth or your own authentication implementation, the process is mostly the same. 
+One of the most common scenarios you will use router hooks for is adding in authentication to your applications. Whether you use a third-party service such as Auth0 or Firebase Auth or your own authentication implementation, the process is mostly the same.
 
 In this example, we will create a service class which will contain our methods for logging in and out.
 
@@ -101,7 +101,7 @@ export class AuthService {
             this._user = {
                 username: 'user',
                 email: 'user@domain.com'
-            };   
+            };
         } else {
             this.router.goto('/login');
         }
@@ -126,7 +126,7 @@ export class AuthService {
 {% tab title="my-app.ts" %}
 ```text
 import { IRouter, IViewModel, ViewportInstruction } from 'aurelia';
-import { AuthService } from './services/auth-service'; 
+import { AuthService } from './services/auth-service';
 
 export class MyApp implements IViewModel {
     constructor(@IRouter private router: IRouter, private auth: AuthService) {
@@ -153,7 +153,7 @@ More often than not, you will probably want to redirect users who do not have pe
 {% tab title="my-app.ts" %}
 ```typescript
 import { IRouter, IViewModel, ViewportInstruction } from 'aurelia';
-import { AuthService } from './services/auth-service'; 
+import { AuthService } from './services/auth-service';
 
 export class MyApp implements IViewModel {
     constructor(@IRouter private router: IRouter, private auth: AuthService) {

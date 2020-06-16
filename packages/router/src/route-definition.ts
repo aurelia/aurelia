@@ -12,7 +12,7 @@ import {
   RouteableComponent,
   TypedNavigationInstruction,
   NavigationInstructionType,
-} from './navigation-instruction';
+} from './instructions';
 import {
   RouteConfig,
   IChildRouteConfig,

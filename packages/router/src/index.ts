@@ -27,7 +27,7 @@ export {
   RouteableComponent,
   NavigationInstruction,
   IViewportInstruction,
-} from './navigation-instruction';
+} from './instructions';
 export {
   ILocationManager,
   IBaseHrefProvider,

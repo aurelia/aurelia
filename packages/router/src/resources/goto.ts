@@ -19,7 +19,7 @@ import { IRouter } from '../router';
 import { ILinkHandler } from '../link-handler';
 import { IRouterEvents } from '../router-events';
 import { IRouteContext } from '../route-context';
-import { NavigationInstruction } from '../navigation-instruction';
+import { NavigationInstruction } from '../instructions';
 import { IElement } from '../interfaces';
 
 @customAttribute('goto')

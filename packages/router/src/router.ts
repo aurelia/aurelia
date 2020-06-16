@@ -18,9 +18,6 @@ import {
   RouteContext,
 } from './route-context';
 import {
-  RouteExpression,
-} from './route-expression';
-import {
   IRouterEvents,
   NavigationStartEvent,
   NavigationEndEvent,
@@ -43,7 +40,8 @@ import {
   IViewportInstruction,
   NavigationInstruction,
   RouteContextLike,
-} from './navigation-instruction';
+  ViewportInstructionTree,
+} from './instructions';
 
 export const AuNavId = 'au-nav-id' as const;
 export type AuNavId = typeof AuNavId;
@@ -68,10 +66,10 @@ export type QueryParamsStrategy = 'overwrite' | 'preserve' | 'merge';
 export type FragmentStrategy = 'overwrite' | 'preserve';
 export type HistoryStrategy = 'none' | 'replace' | 'push';
 export type SameUrlStrategy = 'ignore' | 'reload';
-export type ValueOrFunc<T extends string> = T | ((path: string) => T);
-function valueOrFuncToValue<T extends string>(path: string, valueOrFunc: ValueOrFunc<T>): T {
+export type ValueOrFunc<T extends string> = T | ((instructions: ViewportInstructionTree) => T);
+function valueOrFuncToValue<T extends string>(instructions: ViewportInstructionTree, valueOrFunc: ValueOrFunc<T>): T {
   if (typeof valueOrFunc === 'function') {
-    return valueOrFunc(path);
+    return valueOrFunc(instructions);
   }
   return valueOrFunc;
 }
@@ -157,24 +155,24 @@ export class RouterOptions {
     );
   }
   /** @internal */
-  public getRoutingMode(path: string): RoutingMode {
-    return valueOrFuncToValue(path, this.routingMode);
+  public getRoutingMode(instructions: ViewportInstructionTree): RoutingMode {
+    return valueOrFuncToValue(instructions, this.routingMode);
   }
   /** @internal */
-  public getQueryParamsStrategy(path: string): QueryParamsStrategy {
-    return valueOrFuncToValue(path, this.queryParamsStrategy);
+  public getQueryParamsStrategy(instructions: ViewportInstructionTree): QueryParamsStrategy {
+    return valueOrFuncToValue(instructions, this.queryParamsStrategy);
   }
   /** @internal */
-  public getFragmentStrategy(path: string): FragmentStrategy {
-    return valueOrFuncToValue(path, this.fragmentStrategy);
+  public getFragmentStrategy(instructions: ViewportInstructionTree): FragmentStrategy {
+    return valueOrFuncToValue(instructions, this.fragmentStrategy);
   }
   /** @internal */
-  public getHistoryStrategy(path: string): HistoryStrategy {
-    return valueOrFuncToValue(path, this.historyStrategy);
+  public getHistoryStrategy(instructions: ViewportInstructionTree): HistoryStrategy {
+    return valueOrFuncToValue(instructions, this.historyStrategy);
   }
   /** @internal */
-  public getSameUrlStrategy(path: string): SameUrlStrategy {
-    return valueOrFuncToValue(path, this.sameUrlStrategy);
+  public getSameUrlStrategy(instructions: ViewportInstructionTree): SameUrlStrategy {
+    return valueOrFuncToValue(instructions, this.sameUrlStrategy);
   }
 
   protected stringifyProperties(): string {
@@ -261,36 +259,36 @@ export class NavigationOptions extends RouterOptions {
 export class Navigation {
   private constructor(
     public readonly id: number,
-    public readonly route: RouteExpression,
+    public readonly instructions: ViewportInstructionTree,
     public readonly trigger: 'popstate' | 'hashchange' | 'api',
     public readonly options: NavigationOptions,
     public readonly prevNavigation: Navigation | null,
     // Set on next navigation, this is the route after all redirects etc have been processed.
-    public finalRoute: RouteExpression | undefined,
+    public finalInstructions: ViewportInstructionTree | undefined,
   ) { }
 
   public static create(input: Navigation): Navigation {
     return new Navigation(
       input.id,
-      input.route,
+      input.instructions,
       input.trigger,
       input.options,
       input.prevNavigation,
-      input.finalRoute,
+      input.finalInstructions,
     );
   }
 
   public toString(): string {
-    return `Navigation(id:${this.id},route:'${this.route}',trigger:'${this.trigger}')`;
+    return `Navigation(id:${this.id},route:'${this.instructions}',trigger:'${this.trigger}')`;
   }
 }
 
 export class Transition {
   private constructor(
     public readonly id: number,
-    public readonly previousRoute: RouteExpression,
-    public readonly route: RouteExpression,
-    public finalRoute: RouteExpression,
+    public readonly prevInstructions: ViewportInstructionTree,
+    public readonly instructions: ViewportInstructionTree,
+    public finalInstructions: ViewportInstructionTree,
     public readonly trigger: 'popstate' | 'hashchange' | 'api',
     public readonly options: NavigationOptions,
     public readonly managedState: ManagedState | null,
@@ -306,9 +304,9 @@ export class Transition {
   ): Transition {
     return new Transition(
       input.id,
-      input.previousRoute,
-      input.route,
-      input.finalRoute,
+      input.prevInstructions,
+      input.instructions,
+      input.finalInstructions,
       input.trigger,
       input.options,
       input.managedState,
@@ -321,7 +319,7 @@ export class Transition {
   }
 
   public toString(): string {
-    return `Transition(id:${this.id},prevRoute:'${this.previousRoute}',route:'${this.route}',trigger:'${this.trigger}')`;
+    return `Transition(id:${this.id},trigger:'${this.trigger}',instructions:'${this.instructions}')`;
   }
 }
 
@@ -348,10 +346,10 @@ export class Router {
       // Doing it here instead of in the constructor to delay it until we have the context.
       const ctx = this.ctx;
       routeTree = this._routeTree = new RouteTree(
-        '',
+        ViewportInstructionTree.create(''),
         RouteNode.create({
           context: ctx,
-          matchedSegments: [],
+          instruction: null,
           component: ctx.definition,
           append: false,
         }),
@@ -366,9 +364,9 @@ export class Router {
     if (currentTransition === null) {
       currentTransition = this._currentTransition = Transition.create({
         id: 0,
-        previousRoute: this.currentRoute,
-        route: this.currentRoute,
-        finalRoute: this.currentRoute,
+        prevInstructions: this.instructions,
+        instructions: this.instructions,
+        finalInstructions: this.instructions,
         trigger: 'api',
         options: NavigationOptions.DEFAULT,
         managedState: null,
@@ -393,7 +391,7 @@ export class Router {
   private lastSuccessfulNavigation: Navigation | null = null;
   private activeNavigation: Navigation | null = null;
 
-  private currentRoute: RouteExpression = RouteExpression.parse('', false);
+  private instructions: ViewportInstructionTree = ViewportInstructionTree.create('');
 
   private nextTransition: Transition | null = null;
   private locationChangeSubscription: IDisposable | null = null;
@@ -440,17 +438,17 @@ export class Router {
         () => {
           // Don't try to restore state that might not have anything to do with the Aurelia app
           const state = isManagedState(e.state) ? e.state : null;
-          const route = RouteExpression.parse(e.url, this.options.useUrlFragmentHash);
           const options = NavigationOptions.create({
             ...this.options,
             historyStrategy: 'replace',
           });
+          const instructions = ViewportInstructionTree.create(e.url, options);
           // The promise will be stored in the transition. However, unlike `load()`, `start()` does not return this promise in any way.
           // The router merely guarantees that it will be awaited (or canceled) before the next transition, so a race condition is impossible either way.
           // However, it is possible to get floating promises lingering during non-awaited unit tests, which could have unpredictable side-effects.
           // So we do want to solve this at some point.
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          this.enqueue(route, e.trigger, state, options, null);
+          this.enqueue(instructions, e.trigger, state, null);
         },
       );
     });
@@ -588,57 +586,47 @@ export class Router {
     instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
     options?: INavigationOptions,
   ): Promise<boolean> {
-    this.logger.trace(`load(instructionOrInstructions:${instructionOrInstructions})`);
+    const instructions = this.createViewportInstructions(instructionOrInstructions, options);
 
-    const $options = this.getNavigationOptions(options);
-    const route = this.createRouteExpression(instructionOrInstructions, $options);
+    this.logger.trace(`load(instructions:${instructions})`);
 
-    this.logger.trace(`load(route:'${route}')`);
-
-    return this.enqueue(route, 'api', null, $options, null);
+    return this.enqueue(instructions, 'api', null, null);
   }
 
   public isActive(
     instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
     options?: INavigationOptions,
   ): boolean {
-    this.logger.trace(`isActive(instructionOrInstructions:${instructionOrInstructions})`);
+    const instructions = this.createViewportInstructions(instructionOrInstructions, options);
 
-    const $options = this.getNavigationOptions(options);
-    const route = this.createRouteExpression(instructionOrInstructions, $options);
+    this.logger.trace(`isActive(instructions:${instructions})`);
 
-    this.logger.trace(`isActive(route:'${route}')`);
-
-    return this.currentRoute.contains(route);
+    return this.instructions.contains(instructions);
   }
 
-  private createRouteExpression(
+  private createViewportInstructions(
     instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
-    options: NavigationOptions,
-  ): RouteExpression {
-    if (typeof instructionOrInstructions === 'string') {
-      return RouteExpression.parse(instructionOrInstructions, options.useUrlFragmentHash);
-    }
-
-    // TODO(fkleuver): extend the Route AST to be parseable from NavigationInstructions and not just strings
-    this.logger.error(`Not yet implemented instruction type: ${instructionOrInstructions}`);
-    return null!;
+    options?: INavigationOptions,
+  ): ViewportInstructionTree {
+    return ViewportInstructionTree.create(
+      instructionOrInstructions,
+      this.getNavigationOptions(options),
+    );
   }
 
   private async enqueue(
-    route: RouteExpression,
+    instructions: ViewportInstructionTree,
     trigger: 'popstate' | 'hashchange' | 'api',
     managedState: ManagedState | null,
-    options: NavigationOptions,
     failedTransition: Transition | null,
   ): Promise<boolean> {
     const lastTransition = this.currentTransition;
-    lastTransition.finalRoute = this.currentRoute;
+    lastTransition.finalInstructions = this.instructions;
 
     if (
       trigger !== 'api' &&
       lastTransition.trigger === 'api' &&
-      lastTransition.route.equals(route)
+      lastTransition.instructions.equals(instructions)
     ) {
       // User-triggered navigation that results in `replaceState` with the same URL. The API call already triggered the navigation; event is ignored.
       this.logger.debug(`Ignoring navigation triggered by '${trigger}' because it is the same URL as the previous navigation which was triggered by 'api'.`);
@@ -672,10 +660,10 @@ export class Router {
       id: ++this.navigationId,
       trigger,
       managedState,
-      previousRoute: lastTransition.finalRoute,
-      finalRoute: route,
-      route,
-      options,
+      prevInstructions: lastTransition.finalInstructions,
+      finalInstructions: instructions,
+      instructions,
+      options: instructions.options,
       promise,
       resolve,
       reject,
@@ -687,8 +675,11 @@ export class Router {
 
     if (this.activeNavigation === null) {
       // The promise for nextTransition is awaited a few lines down below: `const result = await promise;`
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.dequeue(nextTransition);
+      this.dequeue(nextTransition).catch(function (err) {
+        // Catch any errors that might be thrown by `dequeue` and reject the original promise which is awaited down below
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        nextTransition.reject!(err);
+      });
     }
 
     try {
@@ -705,8 +696,6 @@ export class Router {
   private async dequeue(
     transition: Transition,
   ): Promise<void> {
-    this.logger.trace(() => `dequeue(transition:${transition})`);
-
     this.currentTransition = transition;
     this.nextTransition = null;
 
@@ -719,22 +708,22 @@ export class Router {
 
     this.activeNavigation = Navigation.create({
       id: transition.id,
-      route: transition.route,
+      instructions: transition.instructions,
       trigger: transition.trigger,
       options: transition.options,
       prevNavigation,
-      finalRoute: transition.finalRoute,
+      finalInstructions: transition.finalInstructions,
     });
 
-    const routeChanged = !transition.route.equals(this.currentRoute);
-    const shouldProcessRoute = routeChanged || transition.options.getSameUrlStrategy(this.currentRoute.raw) === 'reload';
+    const routeChanged = !transition.instructions.equals(this.instructions);
+    const shouldProcessRoute = routeChanged || transition.options.getSameUrlStrategy(this.instructions) === 'reload';
 
     if (shouldProcessRoute) {
       this.logger.trace(() => `dequeue(transition:${transition}) - processing route`);
 
       this.events.publish(new NavigationStartEvent(
         transition.id,
-        transition.route,
+        transition.instructions,
         transition.trigger,
         transition.managedState,
       ));
@@ -757,7 +746,7 @@ export class Router {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         ...this.activeNavigation!,
         // After redirects are applied, this could be a different route
-        finalRoute: transition.finalRoute,
+        finalInstructions: transition.finalInstructions,
       });
 
       // TODO: run global guards
@@ -765,18 +754,20 @@ export class Router {
       //
       // ---
 
-      this._routeTree = transition.routeTree = RouteTreeCompiler.compileRoot(transition.finalRoute, ctx, transition);
-      this.currentRoute = transition.finalRoute;
+      this._routeTree = transition.routeTree = RouteTreeCompiler.compileRoot(transition.finalInstructions, ctx);
+      this.instructions = transition.finalInstructions;
 
       // Load components
       await this.updateNode(transition, transition.routeTree.root);
+    } else {
+      this.logger.trace(() => `dequeue(transition:${transition}) - NOT processing route`);
     }
 
     this.navigated = true;
     this.events.publish(new NavigationEndEvent(
       transition.id,
-      transition.route,
-      this.currentRoute,
+      transition.instructions,
+      this.instructions,
     ));
     this.lastSuccessfulNavigation = this.activeNavigation;
     this.activeNavigation = null;
@@ -790,10 +781,11 @@ export class Router {
         () => {
           // nextTransition is allowed to change up until the point when it's actually time to process it,
           // so we need to check it for null again when the scheduled task runs.
-          if (this.nextTransition !== null) {
-            this.dequeue(this.nextTransition).catch(function (reason) {
-              // TODO: handle this properly
-              return Promise.reject(reason);
+          const $nextTransition = this.nextTransition;
+          if ($nextTransition !== null) {
+            this.dequeue($nextTransition).catch(function (reason) {
+              // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+              $nextTransition.reject!(reason);
             });
           }
         },
@@ -805,7 +797,7 @@ export class Router {
     transition: Transition,
     node: RouteNode,
   ): Promise<void> {
-    this.logger.trace(() => `updateNode(transition:${transition},node:${node})`);
+    this.logger.trace(() => `updateNode(node:${node},transition:${transition})`);
 
     const ctx = node.context;
     if (ctx === null) {
@@ -814,7 +806,7 @@ export class Router {
 
     await ctx.update();
 
-    RouteTreeCompiler.compileResidue(transition.finalRoute, ctx, transition);
+    RouteTreeCompiler.compileResidue(transition.finalInstructions, ctx);
 
     await Promise.all(node.children.map(async child => {
       await this.updateNode(transition, child);
@@ -824,7 +816,7 @@ export class Router {
   private applyHistoryState(
     transition: Transition,
   ): void {
-    switch (transition.options.getHistoryStrategy(this.currentRoute.raw)) {
+    switch (transition.options.getHistoryStrategy(this.instructions)) {
       case 'none':
         // do nothing
         break;
@@ -832,14 +824,14 @@ export class Router {
         this.locationMgr.pushState(
           toManagedState(transition.options.state, transition.id),
           transition.options.title ?? '',
-          transition.finalRoute.raw,
+          transition.finalInstructions.toUrl(),
         );
         break;
       case 'replace':
         this.locationMgr.replaceState(
           toManagedState(transition.options.state, transition.id),
           transition.options.title ?? '',
-          transition.finalRoute.raw,
+          transition.finalInstructions.toUrl(),
         );
         break;
     }

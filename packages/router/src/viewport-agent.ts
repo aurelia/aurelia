@@ -152,6 +152,6 @@ export class ViewportAgent {
   }
 
   public toString(): string {
-    return `ViewportAgent(viewport:${this.viewport},component:${this.componentAgent})`;
+    return `ViewportAgent(component:${this.componentAgent},viewport:${this.viewport})`;
   }
 }

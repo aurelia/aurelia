@@ -1,11 +1,17 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
   DI,
   IEventAggregator,
   IDisposable,
   ILogger,
 } from '@aurelia/kernel';
-import { RouteExpression } from './route-expression';
-import { ManagedState } from './router';
+
+import {
+  ManagedState,
+} from './router';
+import {
+  ViewportInstructionTree,
+} from './instructions';
 
 class Subscription implements IDisposable {
   private disposed: boolean = false;
@@ -88,13 +94,13 @@ export class NavigationStartEvent {
 
   public constructor(
     public readonly id: number,
-    public readonly route: RouteExpression,
+    public readonly instructions: ViewportInstructionTree,
     public readonly trigger: 'popstate' | 'hashchange' | 'api',
     public readonly managedState: ManagedState | null,
   ) {}
 
   public toString(): string {
-    return `NavigationStartEvent(id:${this.id},route:'${this.route.toString()}',trigger:'${this.trigger}')`;
+    return `NavigationStartEvent(id:${this.id},instructions:'${this.instructions}',trigger:'${this.trigger}')`;
   }
 }
 
@@ -103,12 +109,12 @@ export class NavigationEndEvent {
 
   public constructor(
     public readonly id: number,
-    public readonly route: RouteExpression,
-    public readonly finalRoute: RouteExpression,
+    public readonly instructions: ViewportInstructionTree,
+    public readonly finalInstructions: ViewportInstructionTree,
   ) {}
 
   public toString(): string {
-    return `NavigationEndEvent(id:${this.id},route:'${this.route.toString()}',finalRoute:'${this.finalRoute.toString()}')`;
+    return `NavigationEndEvent(id:${this.id},instructions:'${this.instructions}',finalInstructions:'${this.finalInstructions}')`;
   }
 }
 
@@ -117,12 +123,12 @@ export class NavigationCancelEvent {
 
   public constructor(
     public readonly id: number,
-    public readonly route: RouteExpression,
+    public readonly instructions: ViewportInstructionTree,
     public readonly reason: unknown,
   ) {}
 
   public toString(): string {
-    return `NavigationCancelEvent(id:${this.id},route:'${this.route.toString()}',reason:${String(this.reason)})`;
+    return `NavigationCancelEvent(id:${this.id},instructions:'${this.instructions}',reason:${String(this.reason)})`;
   }
 }
 
@@ -131,12 +137,12 @@ export class NavigationErrorEvent {
 
   public constructor(
     public readonly id: number,
-    public readonly route: RouteExpression,
+    public readonly instructions: ViewportInstructionTree,
     public readonly error: unknown,
   ) {}
 
   public toString(): string {
-    return `NavigationErrorEvent(id:${this.id},route:'${this.route.toString()}',error:${String(this.error)})`;
+    return `NavigationErrorEvent(id:${this.id},instructions:'${this.instructions}',error:${String(this.error)})`;
   }
 }
 

@@ -10,6 +10,14 @@ import {
   Writable,
 } from '@aurelia/kernel';
 
+import {
+  ViewportInstructionTree,
+  ViewportInstruction,
+} from './instructions';
+import {
+  NavigationOptions,
+} from './router';
+
 // These are the currently used terminal symbols.
 // We're deliberately having every "special" (including the not-in-use '&', ''', '~', ';') as a terminal symbol,
 // so as to make the syntax maximally restrictive for consistency and to minimize the risk of us having to introduce breaking changes in the future.
@@ -199,9 +207,15 @@ export class RouteExpression {
     return this.root.equals(other.root);
   }
 
-  public contains(other: RouteExpression): boolean {
-    // TODO
-    return false;
+  public toInstructionTree(
+    options: NavigationOptions,
+  ): ViewportInstructionTree {
+    return new ViewportInstructionTree(
+      options,
+      this.root.toInstructions(options.append),
+      this.queryParams,
+      this.fragment,
+    );
   }
 
   public toString(): string {
@@ -292,6 +306,12 @@ export class CompositeSegmentExpression {
     );
   }
 
+  public toInstructions(append: boolean): ViewportInstruction[] {
+    return this.siblings.flatMap(function (x) {
+      return x.toInstructions(append);
+    });
+  }
+
   public toString(): string {
     return this.raw;
   }
@@ -360,6 +380,13 @@ export class ScopedSegmentExpression {
       this.left.equals(other.left) &&
       this.right.equals(other.right)
     );
+  }
+
+  public toInstructions(append: boolean): ViewportInstruction[] {
+    const leftInstructions = this.left.toInstructions(append);
+    const rightInstructions = this.right.toInstructions(false);
+    leftInstructions[leftInstructions.length - 1].children.unshift(...rightInstructions);
+    return leftInstructions;
   }
 
   public toString(): string {
@@ -444,6 +471,12 @@ export class SegmentGroupExpression {
     );
   }
 
+  public toInstructions(append: boolean): ViewportInstruction[] {
+    return this.segments.flatMap(function (x) {
+      return x.toInstructions(append);
+    });
+  }
+
   public toString(): string {
     return this.raw;
   }
@@ -503,6 +536,16 @@ export class SegmentExpression {
       this.action.equals(other.action) &&
       this.viewport.equals(other.viewport)
     );
+  }
+
+  public toInstructions(append: boolean): ViewportInstruction[] {
+    return [
+      ViewportInstruction.create({
+        component: this.component.name,
+        params: this.component.parameterList.toObject(),
+        append,
+      }),
+    ];
   }
 
   public toString(): string {
@@ -754,6 +797,10 @@ export class ParameterListExpression {
         return x.equals(other.expressions[i]);
       })
     );
+  }
+
+  public toObject(): IIndexable {
+    return {}; // TODO
   }
 
   public toString(): string {

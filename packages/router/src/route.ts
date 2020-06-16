@@ -13,7 +13,7 @@ import {
 } from './validation';
 import {
   RouteableComponent,
-} from './navigation-instruction';
+} from './instructions';
 
 const noChildren = PLATFORM.emptyArray as RouteConfig['children'];
 

@@ -14,13 +14,12 @@ import {
 import {
   IViewportInstruction,
   RouteableComponent,
-} from './navigation-instruction';
+} from './instructions';
 
 export function isNotNullishOrTypeOrViewModel(value: RouteableComponent | null | undefined): value is PartialCustomElementDefinition | IChildRouteConfig {
   return (
+    typeof value === 'object' &&
     value !== null &&
-    value !== void 0 &&
-    typeof value !== 'function' &&
     !isCustomElementViewModel(value)
   );
 }
@@ -130,9 +129,17 @@ export function validateComponent(
   }
 }
 
-export function shallowEquals<T extends object>(a: T, b: T): boolean {
+export function shallowEquals<T>(a: T, b: T): boolean {
   if (a === b) {
     return true;
+  }
+
+  if (typeof a !== typeof b) {
+    return false;
+  }
+
+  if (a === null || b === null) {
+    return false;
   }
 
   if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) {

@@ -144,6 +144,7 @@ export class RouteContext implements IContainer {
       this.friendlyPath = `${parent.friendlyPath}/${component.name}`;
     }
     this.logger = parentContainer.get(ILogger).scopeTo(`RouteContext<${this.friendlyPath}>`);
+    this.logger.trace('constructor()');
     const container = this.container = parentContainer.createChild({ inheritParentResources: true });
 
     container.registerResolver(
@@ -456,7 +457,7 @@ export class RouteContext implements IContainer {
 
   public toString(): string {
     const vpAgents = this.childViewportAgents;
-    const viewports = vpAgents.length > 0 ? vpAgents.map(String).join(',') : '<empty>';
+    const viewports = `[${vpAgents.map(String).join(',')}]`;
     return `RouteContext(friendlyPath:'${this.friendlyPath}',viewports:${viewports})`;
   }
 

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
-  IIndexable,
   Metadata,
 } from '@aurelia/kernel';
 import {
@@ -12,6 +11,7 @@ import {
   RouteableComponent,
   TypedNavigationInstruction,
   NavigationInstructionType,
+  Params,
 } from './instructions';
 import {
   RouteConfig,
@@ -33,7 +33,7 @@ export class RouteDefinition {
   public readonly path: string;
   public readonly viewport: string;
   public readonly id: string;
-  public readonly data: IIndexable;
+  public readonly data: Params;
 
   public constructor(
     public readonly config: RouteConfig,

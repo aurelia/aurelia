@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-import { IIndexable } from '@aurelia/kernel';
-
 import { RouteDefinition } from './route-definition';
+import { Params } from './instructions';
 
 export class Endpoint {
   public constructor(
@@ -14,7 +13,7 @@ export class Endpoint {
 export class RecognizedRoute {
   public constructor(
     public readonly endpoint: Endpoint,
-    public readonly params: IIndexable,
+    public readonly params: Params,
     public readonly residue: string | null,
   ) {}
 }

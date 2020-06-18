@@ -6,13 +6,13 @@
 // const paramTerminal = ['=', ',', ')'];
 
 import {
-  IIndexable,
   Writable,
 } from '@aurelia/kernel';
 
 import {
   ViewportInstructionTree,
   ViewportInstruction,
+  Params,
 } from './instructions';
 import {
   NavigationOptions,
@@ -127,7 +127,7 @@ export class RouteExpression {
   public constructor(
     public readonly raw: string,
     public readonly root: CompositeSegmentExpressionOrHigher,
-    public readonly queryParams: IIndexable,
+    public readonly queryParams: Params,
     public readonly fragment: string | null,
     public readonly fragmentIsRoute: boolean,
   ) {
@@ -156,7 +156,7 @@ export class RouteExpression {
     }
 
     // Strip off and parse the query string using built-in URLSearchParams.
-    const queryParams: IIndexable = {};
+    const queryParams: Params = {};
     const queryStart = path.indexOf('?');
     if (queryStart >= 0) {
       const queryString = path.slice(queryStart + 1);
@@ -799,7 +799,7 @@ export class ParameterListExpression {
     );
   }
 
-  public toObject(): IIndexable {
+  public toObject(): Params {
     return {}; // TODO
   }
 

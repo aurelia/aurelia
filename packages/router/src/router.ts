@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/promise-function-async */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
-  IIndexable,
   IContainer,
   ILogger,
   isObject,
@@ -41,6 +40,7 @@ import {
   NavigationInstruction,
   RouteContextLike,
   ViewportInstructionTree,
+  Params,
 } from './instructions';
 
 export const AuNavId = 'au-nav-id' as const;
@@ -215,7 +215,7 @@ export class NavigationOptions extends RouterOptions {
     /**
      * Specify an object to be serialized to a query string, and then set to the query string of the new URL.
      */
-    public readonly queryParams: Readonly<IIndexable> | null,
+    public readonly queryParams: Params | null,
     /**
      * Specify the hash fragment for the new URL.
      */
@@ -223,7 +223,7 @@ export class NavigationOptions extends RouterOptions {
     /**
      * Specify any kind of state to be stored together with the history entry for this navigation.
      */
-    public readonly state: Readonly<IIndexable> | null,
+    public readonly state: Params | null,
   ) {
     super(
       routerOptions.useUrlFragmentHash,

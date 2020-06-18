@@ -4,7 +4,6 @@ import {
   Protocol,
   ResourceType,
   PLATFORM,
-  IIndexable,
 } from '@aurelia/kernel';
 
 import {
@@ -13,6 +12,7 @@ import {
 } from './validation';
 import {
   RouteableComponent,
+  Params,
 } from './instructions';
 
 const noChildren = PLATFORM.emptyArray as RouteConfig['children'];
@@ -62,7 +62,7 @@ export class RouteConfig {
     /**
      * Any custom data that should be accessible to matched components or hooks.
      */
-    public readonly data: IIndexable,
+    public readonly data: Params,
     /**
      * The child routes that can be navigated to from this route. See `Routeable` for more information.
      */
@@ -137,7 +137,7 @@ export class ChildRouteConfig extends RouteConfig {
     path: string | null,
     caseSensitive: boolean,
     viewport: string | null,
-    data: IIndexable,
+    data: Params,
     children: readonly Routeable[],
     /**
      * The component to load when this route is matched.

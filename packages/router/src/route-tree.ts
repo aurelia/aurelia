@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
   PLATFORM,
-  IIndexable,
   ILogger,
 } from '@aurelia/kernel';
 import {
@@ -24,6 +23,7 @@ import {
   ViewportInstructionTree,
   ViewportInstruction,
   NavigationInstructionType,
+  Params,
 } from './instructions';
 import {
   RecognizedRoute,
@@ -35,10 +35,10 @@ import {
 export interface IRouteNode {
   context: IRouteContext;
   instruction: ViewportInstruction | null;
-  params?: IIndexable;
-  queryParams?: IIndexable;
+  params?: Params;
+  queryParams?: Params;
   fragment?: string | null;
-  data?: IIndexable;
+  data?: Params;
   viewport?: string | null;
   component: CustomElementDefinition | null;
   append: boolean;
@@ -67,10 +67,10 @@ export class RouteNode implements IRouteNode {
      */
     public readonly context: IRouteContext,
     public readonly instruction: ViewportInstruction | null,
-    public params: IIndexable,
-    public queryParams: IIndexable,
+    public params: Params,
+    public queryParams: Params,
     public fragment: string | null,
-    public data: IIndexable,
+    public data: Params,
     /**
      * The viewport is always `null` for the root `RouteNode`.
      *

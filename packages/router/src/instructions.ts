@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
-  IIndexable,
   DI,
   isObject,
   Constructable,
@@ -73,6 +72,10 @@ export type RouteableComponent = (
   IRouteViewModel
 );
 
+export type Params = {
+  [key: string]: unknown;
+};
+
 export const IViewportInstruction = DI.createInterface<IViewportInstruction>('IViewportInstruction').noDefault();
 
 export interface IViewportInstruction {
@@ -94,7 +97,7 @@ export interface IViewportInstruction {
   /**
    * The parameters to pass into the component.
    */
-  readonly params?: Readonly<IIndexable> | null;
+  readonly params?: Params | null;
   /**
    * The child routes to load underneath the context of this instruction's component.
    */
@@ -111,7 +114,7 @@ export class ViewportInstruction implements IViewportInstruction {
       ITypedNavigationInstruction_IRouteViewModel
     ),
     public readonly viewport: string | null,
-    public readonly params: Readonly<IIndexable> | null,
+    public readonly params: Params | null,
     public readonly children: ViewportInstruction[],
   ) { }
 
@@ -216,7 +219,7 @@ export class ViewportInstructionTree {
   public constructor(
     public readonly options: NavigationOptions,
     public readonly children: readonly ViewportInstruction[],
-    public readonly queryParams: IIndexable,
+    public readonly queryParams: Params,
     public readonly fragment: string | null,
   ) { }
 

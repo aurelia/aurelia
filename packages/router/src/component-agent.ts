@@ -22,12 +22,16 @@ import {
 import {
   IRouteContext,
 } from './route-context';
+import {
+  Params,
+  NavigationInstruction,
+} from './instructions';
 
 export interface IRouteViewModel extends ICustomElementViewModel<HTMLElement> {
-  canEnter?(...args: readonly unknown[]): unknown;
-  enter?(...args: readonly unknown[]): unknown;
-  canLeave?(...args: readonly unknown[]): unknown;
-  leave?(...args: readonly unknown[]): unknown;
+  canEnter?(params: Params, next: RouteNode, current: RouteNode | null): boolean | NavigationInstruction | Promise<boolean | NavigationInstruction>;
+  enter?(params: Params, next: RouteNode, current: RouteNode | null): void | Promise<void>;
+  canLeave?(next: RouteNode | null, current: RouteNode): boolean | Promise<boolean>;
+  leave?(next: RouteNode | null, current: RouteNode): void | Promise<void>;
 }
 
 const componentAgentLookup: WeakMap<object, ComponentAgent> = new WeakMap();

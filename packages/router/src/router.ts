@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/promise-function-async */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
@@ -20,6 +21,7 @@ import {
   IRouterEvents,
   NavigationStartEvent,
   NavigationEndEvent,
+  NavigationCancelEvent,
 } from './router-events';
 import {
   ILocationManager,
@@ -759,6 +761,18 @@ export class Router {
       RouteTreeCompiler.compileRoot(this.routeTree, transition.finalInstructions, ctx);
       this.instructions = transition.finalInstructions;
 
+      const canLeave = await this.runCanLeave(transition);
+      if (canLeave === false) {
+        this.logger.trace(() => `dequeue(transition:${transition}) - canLeave returned false, canceling navigation`);
+
+        this.cancelNavigation(transition, 'canLeave returned false');
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        transition.resolve!(false);
+        this.runNextTransition(transition);
+
+        return;
+      }
+
       // Load components
       await this.updateNode(transition, transition.routeTree.root);
     } else {
@@ -777,22 +791,47 @@ export class Router {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     transition.resolve!(true);
 
-    if (this.nextTransition !== null) {
-      this.logger.trace(() => `dequeue(transition:${transition}) -> scheduling nextTransition: ${this.nextTransition}`);
-      this.scheduler.queueMacroTask(
-        () => {
-          // nextTransition is allowed to change up until the point when it's actually time to process it,
-          // so we need to check it for null again when the scheduled task runs.
-          const $nextTransition = this.nextTransition;
-          if ($nextTransition !== null) {
-            this.dequeue($nextTransition).catch(function (reason) {
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-              $nextTransition.reject!(reason);
-            });
+    this.runNextTransition(transition);
+  }
+
+  private async runCanLeave(
+    transition: Transition,
+  ): Promise<boolean> {
+    let currentNodes = transition.previousRouteTree.root.children;
+    let nextNodes = transition.routeTree.root.children;
+
+    while (currentNodes.length > 0) {
+      this.logger.trace(() => `runCanLeave(nodes:${currentNodes.map(String).join(',')},transition:${transition})`);
+
+      const results = await Promise.all(
+        currentNodes.map(async current => {
+          // TODO: put viewports in a map beforehand?
+          const next = nextNodes.find(x => x.context.viewportAgent === current.context.viewportAgent);
+
+          if (next?.component === current.component) {
+            this.logger.trace(() => `runCanLeave() - skipping canLeave invocation because component did not change for ${current}`);
+            // TODO: add "activationStrategy"-like config to invoke lifecycle even if everything is identical, or if only params changed, etc
+            return true;
+          } else {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+            const result = await current.context.viewportAgent!.componentAgent!.canLeave(next ?? null);
+            this.logger.trace(() => `runCanLeave() - ${current} returned ${result}`);
+            return result;
           }
-        },
+        })
       );
+
+      if (results.some(x => x !== true)) {
+        return false;
+      }
+
+      // Drill down one 'layer' at a time, this allows parent `canEnter` to deterministically prevent children from ever starting to load
+      // eslint-disable-next-line require-atomic-updates
+      currentNodes = currentNodes.flatMap(x => x.children);
+      nextNodes = nextNodes.flatMap(x => x.children);
     }
+
+    return true;
   }
 
   private async updateNode(
@@ -836,6 +875,49 @@ export class Router {
           transition.finalInstructions.toUrl(),
         );
         break;
+    }
+  }
+
+  private cancelNavigation(
+    transition: Transition,
+    reason: unknown,
+  ): void {
+    this.cancelUpdates(transition.routeTree.root);
+    this.activeNavigation = null;
+    this.events.publish(new NavigationCancelEvent(
+      transition.id,
+      transition.instructions,
+      reason,
+    ));
+  }
+
+  private cancelUpdates(
+    node: RouteNode,
+  ): void {
+    node.context.viewportAgent?.cancelUpdate();
+    for (const child of node.children) {
+      this.cancelUpdates(child);
+    }
+  }
+
+  private runNextTransition(
+    transition: Transition,
+  ): void {
+    if (this.nextTransition !== null) {
+      this.logger.trace(() => `runNextTransition(transition:${transition}) -> scheduling nextTransition: ${this.nextTransition}`);
+      this.scheduler.queueMacroTask(
+        () => {
+          // nextTransition is allowed to change up until the point when it's actually time to process it,
+          // so we need to check it for null again when the scheduled task runs.
+          const $nextTransition = this.nextTransition;
+          if ($nextTransition !== null) {
+            this.dequeue($nextTransition).catch(function (reason) {
+              // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+              $nextTransition.reject!(reason);
+            });
+          }
+        },
+      );
     }
   }
 

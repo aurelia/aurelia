@@ -87,6 +87,12 @@ export class ViewportAgent {
     this.nextNode = node;
   }
 
+  public cancelUpdate(): void {
+    this.logger.trace(`cancelUpdate(nextNode:${this.nextNode})`);
+
+    this.nextNode = null;
+  }
+
   public async update(): Promise<void> {
     this.prevNode = this.currentNode;
     const node = this.currentNode = this.nextNode;

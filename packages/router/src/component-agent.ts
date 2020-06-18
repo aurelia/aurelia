@@ -39,7 +39,13 @@ const componentAgentLookup: WeakMap<object, ComponentAgent> = new WeakMap();
 export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   private readonly logger: ILogger;
 
+  public readonly hasCanEnter: boolean;
+  public readonly hasEnter: boolean;
+  public readonly hasCanLeave: boolean;
+  public readonly hasLeave: boolean;
+
   public constructor(
+    public readonly instance: T,
     public readonly controller: ICustomElementController<HTMLElement, T>,
     public readonly definition: RouteDefinition,
     public readonly routeNode: RouteNode,
@@ -48,6 +54,11 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     this.logger = ctx.get(ILogger).scopeTo(`ComponentAgent<${ctx.friendlyPath}>`);
 
     this.logger.trace(`constructor()`);
+
+    this.hasCanEnter = 'canEnter' in instance;
+    this.hasEnter = 'enter' in instance;
+    this.hasCanLeave = 'canLeave' in instance;
+    this.hasLeave = 'leave' in instance;
   }
 
   public static for<T extends IRouteViewModel>(
@@ -70,7 +81,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
       componentAgentLookup.set(
         componentInstance,
-        componentAgent = new ComponentAgent(controller, definition, routeNode, ctx)
+        componentAgent = new ComponentAgent(componentInstance, controller, definition, routeNode, ctx)
       );
     }
 
@@ -95,6 +106,13 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     this.logger.trace(`deactivate()`);
 
     return this.controller.deactivate(initiator ?? this.controller, parent, flags);
+  }
+
+  public async canLeave(next: RouteNode | null): Promise<boolean> {
+    if (this.hasCanLeave) {
+      return this.instance.canLeave!(next, this.routeNode);
+    }
+    return true;
   }
 
   public isSameComponent(node: RouteNode): boolean {

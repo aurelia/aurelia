@@ -12,6 +12,7 @@ import {
   IRouter,
   NavigationInstruction,
   IRouteContext,
+  RouteNode,
 } from '@aurelia/router';
 import {
   Aurelia,
@@ -122,9 +123,57 @@ describe('router (smoke tests)', function () {
 
     const A = [...A0, ...A1, ...A2];
 
+    @customElement({ name: name(B01), template: `${name(B01)}${vp(0)}` })
+    class B01 {
+      public async canLeave(
+        next: RouteNode | null,
+        current: RouteNode,
+      ): Promise<true> {
+        await new Promise(function (resolve) { setTimeout(resolve, 0); });
+        return true;
+      }
+    }
+    @customElement({ name: name(B02), template: `${name(B02)}${vp(0)}` })
+    class B02 {
+      public async canLeave(
+        next: RouteNode | null,
+        current: RouteNode,
+      ): Promise<false> {
+        await new Promise(function (resolve) { setTimeout(resolve, 0); });
+        return false;
+      }
+    }
+    const B0 = [B01, B02];
+
+    @customElement({ name: name(B11), template: `${name(B11)}${vp(1)}` })
+    class B11 {
+      public async canLeave(
+        next: RouteNode | null,
+        current: RouteNode,
+      ): Promise<true> {
+        await new Promise(function (resolve) { setTimeout(resolve, 0); });
+        return true;
+      }
+    }
+    @customElement({ name: name(B12), template: `${name(B12)}${vp(1)}` })
+    class B12 {
+      public async canLeave(
+        next: RouteNode | null,
+        current: RouteNode,
+      ): Promise<false> {
+        await new Promise(function (resolve) { setTimeout(resolve, 0); });
+        return false;
+      }
+    }
+    const B1 = [B11, B12];
+
+    const B = [...B0, ...B1];
+
+    const Z = [...A, ...B];
+
     // Start with a broad sample of non-generated tests that are easy to debug and mess around with.
     it(`${name(Root1)} can goto ${name(A01)} as a string and can determine if it's active`, async function () {
-      const { router, host, tearDown } = await createFixture(Root1, A);
+      const { router, host, tearDown } = await createFixture(Root1, Z);
 
       await router.goto(name(A01));
       assertComponentsVisible(host, [Root1, A01]);
@@ -134,7 +183,7 @@ describe('router (smoke tests)', function () {
     });
 
     it(`${name(Root1)} can goto ${name(A01)} as a type and can determine if it's active`, async function () {
-      const { router, host, tearDown } = await createFixture(Root1, A);
+      const { router, host, tearDown } = await createFixture(Root1, Z);
 
       await router.goto(A01);
       assertComponentsVisible(host, [Root1, A01]);
@@ -144,7 +193,7 @@ describe('router (smoke tests)', function () {
     });
 
     it(`${name(Root1)} can goto ${name(A01)} as a ViewportInstruction and can determine if it's active`, async function () {
-      const { router, host, tearDown } = await createFixture(Root1, A);
+      const { router, host, tearDown } = await createFixture(Root1, Z);
 
       await router.goto({ component: A01 });
       assertComponentsVisible(host, [Root1, A01]);
@@ -154,7 +203,7 @@ describe('router (smoke tests)', function () {
     });
 
     it(`${name(Root1)} can goto ${name(A01)} as a CustomElementDefinition and can determine if it's active`, async function () {
-      const { router, host, tearDown } = await createFixture(Root1, A);
+      const { router, host, tearDown } = await createFixture(Root1, Z);
 
       await router.goto(CustomElement.getDefinition(A01));
       assertComponentsVisible(host, [Root1, A01]);
@@ -164,7 +213,7 @@ describe('router (smoke tests)', function () {
     });
 
     it(`${name(Root1)} can goto ${name(A01)},${name(A02)} in order and can determine if it's active`, async function () {
-      const { router, host, tearDown } = await createFixture(Root1, A);
+      const { router, host, tearDown } = await createFixture(Root1, Z);
 
       await router.goto(name(A01));
       assertComponentsVisible(host, [Root1, A01]);
@@ -178,7 +227,7 @@ describe('router (smoke tests)', function () {
     });
 
     it(`${name(Root1)} can goto ${name(A11)},${name(A11)}/${name(A02)} in order with context and can determine if it's active`, async function () {
-      const { router, host, tearDown } = await createFixture(Root1, A);
+      const { router, host, tearDown } = await createFixture(Root1, Z);
 
       await router.goto(A11);
       assertComponentsVisible(host, [Root1, A11]);
@@ -196,7 +245,7 @@ describe('router (smoke tests)', function () {
     });
 
     it(`${name(Root1)} can goto ${name(A11)}/${name(A01)},${name(A11)}/${name(A02)} in order with context`, async function () {
-      const { router, host, tearDown } = await createFixture(Root1, A);
+      const { router, host, tearDown } = await createFixture(Root1, Z);
 
       await router.goto({ component: A11, children: [A01] });
       assertComponentsVisible(host, [Root1, A11, A01]);
@@ -209,8 +258,96 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
+    it(`${name(Root1)} correctly handles canLeave with goto ${name(B01)},${name(A01)} in order`, async function () {
+      const { router, host, tearDown } = await createFixture(Root1, Z);
+
+      let result = await router.goto(B01);
+      assertComponentsVisible(host, [Root1, B01]);
+      assert.strictEqual(result, true, '#1 result===true');
+
+      result = await router.goto(A01);
+      assertComponentsVisible(host, [Root1, A01]);
+      assert.strictEqual(result, true, '#2 result===true');
+
+      await tearDown();
+    });
+
+    it(`${name(Root1)} correctly handles canLeave with goto ${name(B02)},${name(A01)} in order`, async function () {
+      const { router, host, tearDown } = await createFixture(Root1, Z);
+
+      let result = await router.goto(B02);
+      assertComponentsVisible(host, [Root1, B02]);
+      assert.strictEqual(result, true, '#1 result===true');
+
+      result = await router.goto(A01);
+      assertComponentsVisible(host, [Root1, B02]);
+      assert.strictEqual(result, false, '#2 result===false');
+
+      await tearDown();
+    });
+
+    it(`${name(Root1)} correctly handles canLeave with goto ${name(B02)},${name(A01)},${name(A02)} in order`, async function () {
+      const { router, host, tearDown } = await createFixture(Root1, Z);
+
+      let result = await router.goto(B02);
+      assertComponentsVisible(host, [Root1, B02]);
+      assert.strictEqual(result, true, '#1 result===true');
+
+      result = await router.goto(A01);
+      assertComponentsVisible(host, [Root1, B02]);
+      assert.strictEqual(result, false, '#2 result===false');
+
+      result = await router.goto(A02);
+      assertComponentsVisible(host, [Root1, B02]);
+      assert.strictEqual(result, false, '#3 result===false');
+
+      await tearDown();
+    });
+
+    it(`${name(Root1)} correctly handles canLeave with goto ${name(B11)}/${name(B02)},${name(B11)}/${name(A02)} in order`, async function () {
+      const { router, host, tearDown } = await createFixture(Root1, Z);
+
+      let result = await router.goto(`${name(B11)}/${name(B02)}`);
+      assertComponentsVisible(host, [Root1, B11, [B02]]);
+      assert.strictEqual(result, true, '#1 result===true');
+
+      result = await router.goto(`${name(B11)}/${name(A02)}`);
+      assertComponentsVisible(host, [Root1, B11, [B02]]);
+      assert.strictEqual(result, false, '#2 result===false');
+
+      await tearDown();
+    });
+
+    it(`${name(Root1)} correctly handles canLeave with goto ${name(B12)}/${name(B01)},${name(B11)}/${name(B01)} in order`, async function () {
+      const { router, host, tearDown } = await createFixture(Root1, Z);
+
+      let result = await router.goto(`${name(B12)}/${name(B01)}`);
+      assertComponentsVisible(host, [Root1, B12, [B01]]);
+      assert.strictEqual(result, true, '#1 result===true');
+
+      result = await router.goto(`${name(B11)}/${name(B01)}`);
+      assertComponentsVisible(host, [Root1, B12, [B01]]);
+      assert.strictEqual(result, false, '#2 result===false');
+
+      await tearDown();
+    });
+
+    it(`${name(Root1)} correctly handles canLeave with goto ${name(B12)}/${name(B01)},${name(B12)}/${name(A01)} in order`, async function () {
+      const { router, host, tearDown } = await createFixture(Root1, Z);
+
+      let result = await router.goto(`${name(B12)}/${name(B01)}`);
+      assertComponentsVisible(host, [Root1, B12, [B01]]);
+      assert.strictEqual(result, true, '#1 result===true');
+
+      result = await router.goto(`${name(B12)}/${name(A01)}`);
+      assertComponentsVisible(host, [Root1, B12, [A01]]);
+      assert.strictEqual(result, true, '#2 result===true');
+
+      await tearDown();
+    });
+
     it(`${name(Root1)} can goto ${name(A11)}/${name(A01)} as a string`, async function () {
-      const { router, host, tearDown } = await createFixture(Root1, A);
+      const { router, host, tearDown } = await createFixture(Root1, Z);
 
       await router.goto(`${name(A11)}/${name(A01)}`);
       assertComponentsVisible(host, [Root1, A11, A01]);
@@ -219,7 +356,7 @@ describe('router (smoke tests)', function () {
     });
 
     it(`${name(Root1)} can goto ${name(A11)}/${name(A01)} as a ViewportInstruction`, async function () {
-      const { router, host, tearDown } = await createFixture(Root1, A);
+      const { router, host, tearDown } = await createFixture(Root1, Z);
 
       await router.goto({ component: A11, children: [A01] });
       assertComponentsVisible(host, [Root1, A11, A01]);
@@ -228,7 +365,7 @@ describe('router (smoke tests)', function () {
     });
 
     it(`${name(Root1)} can goto ${name(A11)}/${name(A01)},${name(A11)}/${name(A02)} in order`, async function () {
-      const { router, host, tearDown } = await createFixture(Root1, A);
+      const { router, host, tearDown } = await createFixture(Root1, Z);
 
       await router.goto(`${name(A11)}/${name(A01)}`);
       assertComponentsVisible(host, [Root1, A11, A01]);
@@ -240,7 +377,7 @@ describe('router (smoke tests)', function () {
     });
 
     it(`${name(Root2)} can goto ${name(A01)}+${name(A02)} as a string`, async function () {
-      const { router, host, tearDown } = await createFixture(Root2, A);
+      const { router, host, tearDown } = await createFixture(Root2, Z);
 
       await router.goto(`${name(A01)}+${name(A02)}`);
       assertComponentsVisible(host, [Root2, A01, A02]);
@@ -249,7 +386,7 @@ describe('router (smoke tests)', function () {
     });
 
     it(`${name(Root2)} can goto ${name(A01)}+${name(A02)} as an array of strings`, async function () {
-      const { router, host, tearDown } = await createFixture(Root2, A);
+      const { router, host, tearDown } = await createFixture(Root2, Z);
 
       await router.goto([name(A01), name(A02)]);
       assertComponentsVisible(host, [Root2, A01, A02]);
@@ -258,7 +395,7 @@ describe('router (smoke tests)', function () {
     });
 
     it(`${name(Root2)} can goto ${name(A01)}+${name(A02)} as an array of types`, async function () {
-      const { router, host, tearDown } = await createFixture(Root2, A);
+      const { router, host, tearDown } = await createFixture(Root2, Z);
 
       await router.goto([A01, A02]);
       assertComponentsVisible(host, [Root2, A01, A02]);
@@ -267,7 +404,7 @@ describe('router (smoke tests)', function () {
     });
 
     it(`${name(Root2)} can goto ${name(A01)}+${name(A02)} as a mixed array type and string`, async function () {
-      const { router, host, tearDown } = await createFixture(Root2, A);
+      const { router, host, tearDown } = await createFixture(Root2, Z);
 
       await router.goto([A01, name(A02)]);
       assertComponentsVisible(host, [Root2, A01, A02]);
@@ -276,7 +413,7 @@ describe('router (smoke tests)', function () {
     });
 
     it(`${name(Root2)} can goto ${name(A01)}+${name(A02)},${name(A02)}+${name(A01)} in order`, async function () {
-      const { router, host, tearDown } = await createFixture(Root2, A);
+      const { router, host, tearDown } = await createFixture(Root2, Z);
 
       await router.goto(`${name(A01)}+${name(A02)}`);
       assertComponentsVisible(host, [Root2, A01, A02]);
@@ -288,7 +425,7 @@ describe('router (smoke tests)', function () {
     });
 
     it(`${name(Root2)} can goto ${name(A11)}/${name(A12)}/${name(A01)}+${name(A12)}/${name(A01)},${name(A11)}/${name(A12)}/${name(A01)}+${name(A12)}/${name(A11)}/${name(A01)},${name(A11)}/${name(A12)}/${name(A02)}+${name(A12)}/${name(A11)}/${name(A01)} in order with context`, async function () {
-      const { router, host, tearDown } = await createFixture(Root2, A);
+      const { router, host, tearDown } = await createFixture(Root2, Z);
 
       await router.goto(`${name(A11)}/${name(A12)}/${name(A01)}+${name(A12)}/${name(A01)}`);
       assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A01]]]);
@@ -350,7 +487,7 @@ describe('router (smoke tests)', function () {
       const value11 = $1vp[key11];
 
       it(`${name(Root1)} can goto ${key11}`, async function () {
-        const { router, host, tearDown } = await createFixture(Root1, A);
+        const { router, host, tearDown } = await createFixture(Root1, Z);
 
         await router.goto(key11);
         assertComponentsVisible(host, [Root1, value11]);
@@ -363,7 +500,7 @@ describe('router (smoke tests)', function () {
         const value11prev = $1vp[key11prev];
 
         it(`${name(Root1)} can goto ${key11prev},${key11} in order`, async function () {
-          const { router, host, tearDown } = await createFixture(Root1, A);
+          const { router, host, tearDown } = await createFixture(Root1, Z);
 
           await router.goto(key11prev);
           assertComponentsVisible(host, [Root1, value11prev]);
@@ -375,7 +512,7 @@ describe('router (smoke tests)', function () {
         });
 
         it(`${name(Root1)} can goto ${key11},${key11prev} in order`, async function () {
-          const { router, host, tearDown } = await createFixture(Root1, A);
+          const { router, host, tearDown } = await createFixture(Root1, Z);
 
           await router.goto(key11);
           assertComponentsVisible(host, [Root1, value11]);
@@ -394,7 +531,7 @@ describe('router (smoke tests)', function () {
       const value21 = $2vps[key21];
 
       it(`${name(Root2)} can goto ${key21}`, async function () {
-        const { router, host, tearDown } = await createFixture(Root2, A);
+        const { router, host, tearDown } = await createFixture(Root2, Z);
 
         await router.goto(key21);
         assertComponentsVisible(host, [Root2, value21]);
@@ -407,7 +544,7 @@ describe('router (smoke tests)', function () {
         const value21prev = $2vps[key21prev];
 
         it(`${name(Root2)} can goto ${key21prev},${key21} in order`, async function () {
-          const { router, host, tearDown } = await createFixture(Root2, A);
+          const { router, host, tearDown } = await createFixture(Root2, Z);
 
           await router.goto(key21prev);
           assertComponentsVisible(host, [Root2, value21prev]);
@@ -419,7 +556,7 @@ describe('router (smoke tests)', function () {
         });
 
         it(`${name(Root2)} can goto ${key21},${key21prev} in order`, async function () {
-          const { router, host, tearDown } = await createFixture(Root2, A);
+          const { router, host, tearDown } = await createFixture(Root2, Z);
 
           await router.goto(key21);
           assertComponentsVisible(host, [Root2, value21]);

@@ -11,9 +11,6 @@ import {
 } from '@aurelia/runtime';
 
 import {
-  Routeable,
-} from './route';
-import {
   IRouteContext,
   RouteContext,
 } from './route-context';
@@ -43,7 +40,7 @@ export interface IRouteNode {
   fragment?: string | null;
   data?: IIndexable;
   viewport?: string | null;
-  component: Routeable | null;
+  component: CustomElementDefinition | null;
   append: boolean;
   children?: RouteNode[];
   residue?: ViewportInstruction[];
@@ -82,7 +79,7 @@ export class RouteNode implements IRouteNode {
      * if we decide not to implement that.
      */
     public viewport: string | null,
-    public component: Routeable | null,
+    public component: CustomElementDefinition | null,
     public append: boolean,
     public readonly children: RouteNode[],
     /**
@@ -112,6 +109,28 @@ export class RouteNode implements IRouteNode {
       /*            children */input.children ?? [],
       /*             residue */input.residue ?? [],
     );
+  }
+
+  public contains(instructions: ViewportInstructionTree): boolean {
+    if (this.context === instructions.options.context) {
+      const nodeChildren = this.children;
+      const instructionChildren = instructions.children;
+      for (let i = 0, ii = nodeChildren.length; i < ii; ++i) {
+        for (let j = 0, jj = instructionChildren.length; j < jj; ++j) {
+          if (i + j < ii && nodeChildren[i + j].instruction?.equals(instructionChildren[j])) {
+            if (j + 1 === jj) {
+              return true;
+            }
+          } else {
+            break;
+          }
+        }
+      }
+    }
+
+    return this.children.some(function (x) {
+      return x.contains(instructions);
+    });
   }
 
   public appendChild(child: RouteNode): void {
@@ -249,6 +268,10 @@ export class RouteTree {
     public instructions: ViewportInstructionTree,
     public root: RouteNode,
   ) { }
+
+  public contains(instructions: ViewportInstructionTree): boolean {
+    return this.root.contains(instructions);
+  }
 
   public parent(value: RouteNode): RouteNode | null {
     if (value === this.root) {

@@ -55,7 +55,7 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel<Element> {
 
     this.navigationEndListener = this.routerEvents.subscribe('au:router:navigation-end', _e => {
       // TODO: Use router configuration for class name and update target
-      if (this.router.isActive(this.value as NavigationInstruction, { context: this.context })) {
+      if (this.router.isActive(this.value as NavigationInstruction, this.context)) {
         this.element.classList.add(this.activeClass);
       } else {
         this.element.classList.remove(this.activeClass);

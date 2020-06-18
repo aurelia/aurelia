@@ -350,7 +350,7 @@ export class Router {
         RouteNode.create({
           context: ctx,
           instruction: null,
-          component: ctx.definition,
+          component: ctx.definition.component,
           append: false,
         }),
       );
@@ -595,13 +595,15 @@ export class Router {
 
   public isActive(
     instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
-    options?: INavigationOptions,
+    context: RouteContextLike,
   ): boolean {
-    const instructions = this.createViewportInstructions(instructionOrInstructions, options);
+    const ctx = this.getContext(context);
+    const instructions = this.createViewportInstructions(instructionOrInstructions, { context: ctx });
 
-    this.logger.trace(`isActive(instructions:${instructions})`);
+    this.logger.trace(`isActive(instructions:${instructions},ctx:${ctx})`);
 
-    return this.instructions.contains(instructions);
+    // TODO: incorporate potential context offset by `../` etc in the instructions
+    return this.routeTree.contains(instructions);
   }
 
   private createViewportInstructions(

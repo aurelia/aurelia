@@ -250,11 +250,6 @@ export class ViewportInstructionTree {
     );
   }
 
-  public contains(other: ViewportInstructionTree): boolean {
-    // TODO: implement
-    return false;
-  }
-
   public equals(other: ViewportInstructionTree): boolean {
     const thisChildren = this.children;
     const otherChildren = other.children;

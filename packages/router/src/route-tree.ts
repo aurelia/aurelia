@@ -286,6 +286,7 @@ export class RouteTreeCompiler {
   private readonly mode: RoutingMode;
 
   public constructor(
+    private readonly routeTree: RouteTree,
     private readonly instructions: ViewportInstructionTree,
     private readonly ctx: IRouteContext,
   ) {
@@ -305,26 +306,30 @@ export class RouteTreeCompiler {
    * This means that a `RouteTree` can (and often will) be built incrementally during the loading process.
    */
   public static compileRoot(
-    instructions: ViewportInstructionTree,
-    ctx: IRouteContext,
-  ): RouteTree {
-    const compiler = new RouteTreeCompiler(instructions, ctx);
-    return compiler.compileRoot();
-  }
-
-  public static compileResidue(
+    routeTree: RouteTree,
     instructions: ViewportInstructionTree,
     ctx: IRouteContext,
   ): void {
-    const compiler = new RouteTreeCompiler(instructions, ctx);
-    compiler.compileResidue(ctx.node, ctx.path.indexOf(ctx));
+    const compiler = new RouteTreeCompiler(routeTree, instructions, ctx);
+    compiler.compileRoot();
   }
 
-  private compileRoot(): RouteTree {
-    const instructions = this.instructions;
-    const ctx = this.ctx.root;
+  public static compileResidue(
+    routeTree: RouteTree,
+    instructions: ViewportInstructionTree,
+    ctx: IRouteContext,
+  ): void {
+    const compiler = new RouteTreeCompiler(routeTree, instructions, ctx);
+    compiler.compileResidue(ctx.node, ctx.depth);
+  }
 
-    this.logger.trace(`compileRoot(ctx:${ctx},instructions:${instructions})`);
+  private compileRoot(): void {
+    const instructions = this.instructions;
+    const ctx = this.ctx;
+    const rootCtx = ctx.root;
+    const routeTree = this.routeTree;
+
+    this.logger.trace(`compileRoot(rootCtx:${rootCtx},routeTree:${routeTree},instructions:${instructions})`);
 
     // The root of the routing tree is always the CompositionRoot of the Aurelia app.
     // From a routing perspective it's simply a "marker": it does not need to be loaded,
@@ -333,18 +338,11 @@ export class RouteTreeCompiler {
 
     // Update the node of the root context before doing anything else, to make it accessible to children
     // as they are compiled
-    ctx.node = RouteNode.create({
-      context: ctx,
-      instruction: null,
-      queryParams: { ...instructions.queryParams },
-      fragment: instructions.fragment,
-      component: ctx.definition,
-      append: false,
-    });
+    rootCtx.node.queryParams = instructions.queryParams;
+    rootCtx.node.fragment = instructions.fragment;
+    routeTree.instructions = instructions;
 
-    this.compileChildren(instructions, 0, this.instructions.options.append);
-
-    return new RouteTree(instructions, ctx.node);
+    this.updateOrCompile(rootCtx.node, instructions);
   }
 
   private compileResidue(
@@ -411,6 +409,26 @@ export class RouteTreeCompiler {
   ): void {
     for (const child of parent.children) {
       this.compile(child, depth, append || child.append);
+    }
+  }
+
+  private updateOrCompile(
+    node: RouteNode,
+    instructions: ViewportInstructionTree,
+  ): void {
+    this.logger.trace(() => `updateOrCompile(node:${node})`);
+
+    node.context.viewportAgent?.scheduleUpdate(node);
+    node.queryParams = instructions.queryParams;
+    node.fragment = instructions.fragment;
+
+    if (node.context === this.ctx) {
+      node.children.length = 0;
+      this.compileChildren(instructions, node.context.depth, instructions.options.append);
+    } else {
+      for (const child of node.children) {
+        this.updateOrCompile(child, instructions);
+      }
     }
   }
 
@@ -495,6 +513,7 @@ export class RouteTreeCompiler {
       append: append,
       residue: result.residue === null ? [] : [ViewportInstruction.create(result.residue)],
     });
+    viewportAgent.scheduleUpdate(childCtx.node);
 
     this.logger.trace(() => `resolveConfigured(instruction:${instruction},depth:${depth},append:${append}) -> ${childCtx.node}`);
 
@@ -558,6 +577,7 @@ export class RouteTreeCompiler {
       append,
       residue: [...instruction.children], // Children must be cloned, because residue will be mutated by the compiler
     });
+    viewportAgent.scheduleUpdate(childCtx.node);
 
     return childCtx.node;
   }

@@ -293,7 +293,7 @@ export class Transition {
     public readonly options: NavigationOptions,
     public readonly managedState: ManagedState | null,
     public readonly previousRouteTree: RouteTree,
-    public routeTree: RouteTree | null,
+    public routeTree: RouteTree,
     public readonly promise: Promise<boolean> | null,
     public readonly resolve: ((success: boolean) => void) | null,
     public readonly reject: ((err: unknown) => void) | null,
@@ -371,7 +371,7 @@ export class Router {
         options: NavigationOptions.DEFAULT,
         managedState: null,
         previousRouteTree: this.routeTree.clone(),
-        routeTree: null,
+        routeTree: this.routeTree,
         resolve: null,
         reject: null,
         promise: null,
@@ -668,7 +668,7 @@ export class Router {
       resolve,
       reject,
       previousRouteTree: this.routeTree.clone(),
-      routeTree: null,
+      routeTree: this.routeTree,
     });
 
     this.logger.debug(`Scheduling transition: ${nextTransition}`);
@@ -754,7 +754,7 @@ export class Router {
       //
       // ---
 
-      this._routeTree = transition.routeTree = RouteTreeCompiler.compileRoot(transition.finalInstructions, ctx);
+      RouteTreeCompiler.compileRoot(this.routeTree, transition.finalInstructions, ctx);
       this.instructions = transition.finalInstructions;
 
       // Load components
@@ -806,7 +806,7 @@ export class Router {
 
     await ctx.update();
 
-    RouteTreeCompiler.compileResidue(transition.finalInstructions, ctx);
+    RouteTreeCompiler.compileResidue(this.routeTree, transition.finalInstructions, ctx);
 
     await Promise.all(node.children.map(async child => {
       await this.updateNode(transition, child);

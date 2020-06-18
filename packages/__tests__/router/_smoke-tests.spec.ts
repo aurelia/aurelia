@@ -159,6 +159,34 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
+    it(`${name(Root1)} can load ${name(A11)},${name(A11)}/${name(A02)} in order with context`, async function () {
+      const { router, host, tearDown } = await createFixture(Root1, A);
+
+      await router.load(A11);
+      assertComponentsVisible(host, [Root1, A11]);
+
+      const context = router.routeTree.root.children[0].context;
+
+      await router.load(A02, { context });
+      assertComponentsVisible(host, [Root1, A11, A02]);
+
+      await tearDown();
+    });
+
+    it(`${name(Root1)} can load ${name(A11)}/${name(A01)},${name(A11)}/${name(A02)} in order with context`, async function () {
+      const { router, host, tearDown } = await createFixture(Root1, A);
+
+      await router.load({ component: A11, children: [A01] });
+      assertComponentsVisible(host, [Root1, A11, A01]);
+
+      const context = router.routeTree.root.children[0].context;
+
+      await router.load(A02, { context });
+      assertComponentsVisible(host, [Root1, A11, A02]);
+
+      await tearDown();
+    });
+
     it(`${name(Root1)} can load ${name(A11)}/${name(A01)} as a string`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, A);
 
@@ -198,7 +226,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root2)} can load ${name(A01)}+${name(A02)} as an array of strins`, async function () {
+    it(`${name(Root2)} can load ${name(A01)}+${name(A02)} as an array of strings`, async function () {
       const { router, host, tearDown } = await createFixture(Root2, A);
 
       await router.load([name(A01), name(A02)]);
@@ -233,6 +261,25 @@ describe('router (smoke tests)', function () {
 
       await router.load(`${name(A02)}+${name(A01)}`);
       assertComponentsVisible(host, [Root2, A02, A01]);
+
+      await tearDown();
+    });
+
+    it(`${name(Root2)} can load ${name(A11)}/${name(A12)}/${name(A01)}+${name(A12)}/${name(A01)},${name(A11)}/${name(A12)}/${name(A01)}+${name(A12)}/${name(A11)}/${name(A01)},${name(A11)}/${name(A12)}/${name(A02)}+${name(A12)}/${name(A11)}/${name(A01)} in order with context`, async function () {
+      const { router, host, tearDown } = await createFixture(Root2, A);
+
+      await router.load(`${name(A11)}/${name(A12)}/${name(A01)}+${name(A12)}/${name(A01)}`);
+      assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A01]]]);
+
+      let context = router.routeTree.root.children[1].context;
+
+      await router.load(`${name(A11)}/${name(A01)}`, { context });
+      assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A11, [A01]]]]);
+
+      context = router.routeTree.root.children[0].children[0].context;
+
+      await router.load(`${name(A02)}`, { context });
+      assertComponentsVisible(host, [Root2, [A11, [A12, [A02]]], [A12, [A11, [A01]]]]);
 
       await tearDown();
     });

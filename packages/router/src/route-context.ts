@@ -92,6 +92,9 @@ export class RouteContext implements IContainer {
    * The path from the root RouteContext up to this one.
    */
   public readonly path: readonly IRouteContext[];
+  public get depth(): number {
+    return this.path.length - 1;
+  }
   /**
    * The stringified path from the root RouteContext up to this one, consisting of the component names they're associated with, separated by slashes.
    *
@@ -119,7 +122,6 @@ export class RouteContext implements IContainer {
       this._node = value;
       this.logger.trace(`Node changed from ${this.prevNode} to ${value}`);
     }
-    this.viewportAgent?.scheduleUpdate(value);
   }
 
   private readonly logger: ILogger;

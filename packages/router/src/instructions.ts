@@ -117,6 +117,7 @@ export class ViewportInstruction implements IViewportInstruction {
 
   public static create(
     instruction: NavigationInstruction,
+    context?: RouteContextLike | null,
   ): ViewportInstruction {
     if (instruction instanceof ViewportInstruction) {
       return instruction;
@@ -127,7 +128,7 @@ export class ViewportInstruction implements IViewportInstruction {
       const children = instruction.children?.map(ViewportInstruction.create) ?? [];
 
       return new ViewportInstruction(
-        instruction.context ?? null,
+        instruction.context ?? context ?? null,
         instruction.append ?? false,
         component,
         instruction.viewport ?? null,
@@ -138,7 +139,7 @@ export class ViewportInstruction implements IViewportInstruction {
 
     const typedInstruction = TypedNavigationInstruction.create(instruction);
     return new ViewportInstruction(
-      null,
+      context ?? null,
       false,
       typedInstruction,
       null,
@@ -228,7 +229,9 @@ export class ViewportInstructionTree {
     if (instructionOrInstructions instanceof Array) {
       return new ViewportInstructionTree(
         $options,
-        instructionOrInstructions.map(ViewportInstruction.create),
+        instructionOrInstructions.map(function (x) {
+          return ViewportInstruction.create(x, $options.context);
+        }),
         {},
         null,
       );
@@ -241,7 +244,7 @@ export class ViewportInstructionTree {
 
     return new ViewportInstructionTree(
       $options,
-      [ViewportInstruction.create(instructionOrInstructions)],
+      [ViewportInstruction.create(instructionOrInstructions, $options.context)],
       {},
       null,
     );

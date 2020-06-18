@@ -123,70 +123,70 @@ describe('router (smoke tests)', function () {
     const A = [...A0, ...A1, ...A2];
 
     // Start with a broad sample of non-generated tests that are easy to debug and mess around with.
-    it(`${name(Root1)} can load ${name(A01)} as a string and can determine if it's active`, async function () {
+    it(`${name(Root1)} can goto ${name(A01)} as a string and can determine if it's active`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, A);
 
-      await router.load(name(A01));
+      await router.goto(name(A01));
       assertComponentsVisible(host, [Root1, A01]);
       assertIsActive(router, name(A01), router.routeTree.root.context, true, 1);
 
       await tearDown();
     });
 
-    it(`${name(Root1)} can load ${name(A01)} as a type and can determine if it's active`, async function () {
+    it(`${name(Root1)} can goto ${name(A01)} as a type and can determine if it's active`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, A);
 
-      await router.load(A01);
+      await router.goto(A01);
       assertComponentsVisible(host, [Root1, A01]);
       assertIsActive(router, A01, router.routeTree.root.context, true, 1);
 
       await tearDown();
     });
 
-    it(`${name(Root1)} can load ${name(A01)} as a ViewportInstruction and can determine if it's active`, async function () {
+    it(`${name(Root1)} can goto ${name(A01)} as a ViewportInstruction and can determine if it's active`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, A);
 
-      await router.load({ component: A01 });
+      await router.goto({ component: A01 });
       assertComponentsVisible(host, [Root1, A01]);
       assertIsActive(router, { component: A01 }, router.routeTree.root.context, true, 1);
 
       await tearDown();
     });
 
-    it(`${name(Root1)} can load ${name(A01)} as a CustomElementDefinition and can determine if it's active`, async function () {
+    it(`${name(Root1)} can goto ${name(A01)} as a CustomElementDefinition and can determine if it's active`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, A);
 
-      await router.load(CustomElement.getDefinition(A01));
+      await router.goto(CustomElement.getDefinition(A01));
       assertComponentsVisible(host, [Root1, A01]);
       assertIsActive(router, CustomElement.getDefinition(A01), router.routeTree.root.context, true, 1);
 
       await tearDown();
     });
 
-    it(`${name(Root1)} can load ${name(A01)},${name(A02)} in order and can determine if it's active`, async function () {
+    it(`${name(Root1)} can goto ${name(A01)},${name(A02)} in order and can determine if it's active`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, A);
 
-      await router.load(name(A01));
+      await router.goto(name(A01));
       assertComponentsVisible(host, [Root1, A01]);
       assertIsActive(router, name(A01), router.routeTree.root.context, true, 1);
 
-      await router.load(name(A02));
+      await router.goto(name(A02));
       assertComponentsVisible(host, [Root1, A02]);
       assertIsActive(router, name(A02), router.routeTree.root.context, true, 2);
 
       await tearDown();
     });
 
-    it(`${name(Root1)} can load ${name(A11)},${name(A11)}/${name(A02)} in order with context and can determine if it's active`, async function () {
+    it(`${name(Root1)} can goto ${name(A11)},${name(A11)}/${name(A02)} in order with context and can determine if it's active`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, A);
 
-      await router.load(A11);
+      await router.goto(A11);
       assertComponentsVisible(host, [Root1, A11]);
       assertIsActive(router, A11, router.routeTree.root.context, true, 1);
 
       const context = router.routeTree.root.children[0].context;
 
-      await router.load(A02, { context });
+      await router.goto(A02, { context });
       assertComponentsVisible(host, [Root1, A11, A02]);
       assertIsActive(router, A02, context, true, 2);
       assertIsActive(router, A02, router.routeTree.root.context, false, 3);
@@ -195,112 +195,112 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root1)} can load ${name(A11)}/${name(A01)},${name(A11)}/${name(A02)} in order with context`, async function () {
+    it(`${name(Root1)} can goto ${name(A11)}/${name(A01)},${name(A11)}/${name(A02)} in order with context`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, A);
 
-      await router.load({ component: A11, children: [A01] });
+      await router.goto({ component: A11, children: [A01] });
       assertComponentsVisible(host, [Root1, A11, A01]);
 
       const context = router.routeTree.root.children[0].context;
 
-      await router.load(A02, { context });
+      await router.goto(A02, { context });
       assertComponentsVisible(host, [Root1, A11, A02]);
 
       await tearDown();
     });
 
-    it(`${name(Root1)} can load ${name(A11)}/${name(A01)} as a string`, async function () {
+    it(`${name(Root1)} can goto ${name(A11)}/${name(A01)} as a string`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, A);
 
-      await router.load(`${name(A11)}/${name(A01)}`);
+      await router.goto(`${name(A11)}/${name(A01)}`);
       assertComponentsVisible(host, [Root1, A11, A01]);
 
       await tearDown();
     });
 
-    it(`${name(Root1)} can load ${name(A11)}/${name(A01)} as a ViewportInstruction`, async function () {
+    it(`${name(Root1)} can goto ${name(A11)}/${name(A01)} as a ViewportInstruction`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, A);
 
-      await router.load({ component: A11, children: [A01] });
+      await router.goto({ component: A11, children: [A01] });
       assertComponentsVisible(host, [Root1, A11, A01]);
 
       await tearDown();
     });
 
-    it(`${name(Root1)} can load ${name(A11)}/${name(A01)},${name(A11)}/${name(A02)} in order`, async function () {
+    it(`${name(Root1)} can goto ${name(A11)}/${name(A01)},${name(A11)}/${name(A02)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, A);
 
-      await router.load(`${name(A11)}/${name(A01)}`);
+      await router.goto(`${name(A11)}/${name(A01)}`);
       assertComponentsVisible(host, [Root1, A11, A01]);
 
-      await router.load(`${name(A11)}/${name(A02)}`);
+      await router.goto(`${name(A11)}/${name(A02)}`);
       assertComponentsVisible(host, [Root1, A11, A02]);
 
       await tearDown();
     });
 
-    it(`${name(Root2)} can load ${name(A01)}+${name(A02)} as a string`, async function () {
+    it(`${name(Root2)} can goto ${name(A01)}+${name(A02)} as a string`, async function () {
       const { router, host, tearDown } = await createFixture(Root2, A);
 
-      await router.load(`${name(A01)}+${name(A02)}`);
+      await router.goto(`${name(A01)}+${name(A02)}`);
       assertComponentsVisible(host, [Root2, A01, A02]);
 
       await tearDown();
     });
 
-    it(`${name(Root2)} can load ${name(A01)}+${name(A02)} as an array of strings`, async function () {
+    it(`${name(Root2)} can goto ${name(A01)}+${name(A02)} as an array of strings`, async function () {
       const { router, host, tearDown } = await createFixture(Root2, A);
 
-      await router.load([name(A01), name(A02)]);
+      await router.goto([name(A01), name(A02)]);
       assertComponentsVisible(host, [Root2, A01, A02]);
 
       await tearDown();
     });
 
-    it(`${name(Root2)} can load ${name(A01)}+${name(A02)} as an array of types`, async function () {
+    it(`${name(Root2)} can goto ${name(A01)}+${name(A02)} as an array of types`, async function () {
       const { router, host, tearDown } = await createFixture(Root2, A);
 
-      await router.load([A01, A02]);
+      await router.goto([A01, A02]);
       assertComponentsVisible(host, [Root2, A01, A02]);
 
       await tearDown();
     });
 
-    it(`${name(Root2)} can load ${name(A01)}+${name(A02)} as a mixed array type and string`, async function () {
+    it(`${name(Root2)} can goto ${name(A01)}+${name(A02)} as a mixed array type and string`, async function () {
       const { router, host, tearDown } = await createFixture(Root2, A);
 
-      await router.load([A01, name(A02)]);
+      await router.goto([A01, name(A02)]);
       assertComponentsVisible(host, [Root2, A01, A02]);
 
       await tearDown();
     });
 
-    it(`${name(Root2)} can load ${name(A01)}+${name(A02)},${name(A02)}+${name(A01)} in order`, async function () {
+    it(`${name(Root2)} can goto ${name(A01)}+${name(A02)},${name(A02)}+${name(A01)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root2, A);
 
-      await router.load(`${name(A01)}+${name(A02)}`);
+      await router.goto(`${name(A01)}+${name(A02)}`);
       assertComponentsVisible(host, [Root2, A01, A02]);
 
-      await router.load(`${name(A02)}+${name(A01)}`);
+      await router.goto(`${name(A02)}+${name(A01)}`);
       assertComponentsVisible(host, [Root2, A02, A01]);
 
       await tearDown();
     });
 
-    it(`${name(Root2)} can load ${name(A11)}/${name(A12)}/${name(A01)}+${name(A12)}/${name(A01)},${name(A11)}/${name(A12)}/${name(A01)}+${name(A12)}/${name(A11)}/${name(A01)},${name(A11)}/${name(A12)}/${name(A02)}+${name(A12)}/${name(A11)}/${name(A01)} in order with context`, async function () {
+    it(`${name(Root2)} can goto ${name(A11)}/${name(A12)}/${name(A01)}+${name(A12)}/${name(A01)},${name(A11)}/${name(A12)}/${name(A01)}+${name(A12)}/${name(A11)}/${name(A01)},${name(A11)}/${name(A12)}/${name(A02)}+${name(A12)}/${name(A11)}/${name(A01)} in order with context`, async function () {
       const { router, host, tearDown } = await createFixture(Root2, A);
 
-      await router.load(`${name(A11)}/${name(A12)}/${name(A01)}+${name(A12)}/${name(A01)}`);
+      await router.goto(`${name(A11)}/${name(A12)}/${name(A01)}+${name(A12)}/${name(A01)}`);
       assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A01]]]);
 
       let context = router.routeTree.root.children[1].context;
 
-      await router.load(`${name(A11)}/${name(A01)}`, { context });
+      await router.goto(`${name(A11)}/${name(A01)}`, { context });
       assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A11, [A01]]]]);
 
       context = router.routeTree.root.children[0].children[0].context;
 
-      await router.load(`${name(A02)}`, { context });
+      await router.goto(`${name(A02)}`, { context });
       assertComponentsVisible(host, [Root2, [A11, [A12, [A02]]], [A12, [A11, [A01]]]]);
 
       await tearDown();
@@ -349,10 +349,10 @@ describe('router (smoke tests)', function () {
       const key11 = $1vpKeys[i];
       const value11 = $1vp[key11];
 
-      it(`${name(Root1)} can load ${key11}`, async function () {
+      it(`${name(Root1)} can goto ${key11}`, async function () {
         const { router, host, tearDown } = await createFixture(Root1, A);
 
-        await router.load(key11);
+        await router.goto(key11);
         assertComponentsVisible(host, [Root1, value11]);
 
         await tearDown();
@@ -362,25 +362,25 @@ describe('router (smoke tests)', function () {
         const key11prev = $1vpKeys[i - 1];
         const value11prev = $1vp[key11prev];
 
-        it(`${name(Root1)} can load ${key11prev},${key11} in order`, async function () {
+        it(`${name(Root1)} can goto ${key11prev},${key11} in order`, async function () {
           const { router, host, tearDown } = await createFixture(Root1, A);
 
-          await router.load(key11prev);
+          await router.goto(key11prev);
           assertComponentsVisible(host, [Root1, value11prev]);
 
-          await router.load(key11);
+          await router.goto(key11);
           assertComponentsVisible(host, [Root1, value11]);
 
           await tearDown();
         });
 
-        it(`${name(Root1)} can load ${key11},${key11prev} in order`, async function () {
+        it(`${name(Root1)} can goto ${key11},${key11prev} in order`, async function () {
           const { router, host, tearDown } = await createFixture(Root1, A);
 
-          await router.load(key11);
+          await router.goto(key11);
           assertComponentsVisible(host, [Root1, value11]);
 
-          await router.load(key11prev);
+          await router.goto(key11prev);
           assertComponentsVisible(host, [Root1, value11prev]);
 
           await tearDown();
@@ -393,10 +393,10 @@ describe('router (smoke tests)', function () {
       const key21 = $2vpsKeys[i];
       const value21 = $2vps[key21];
 
-      it(`${name(Root2)} can load ${key21}`, async function () {
+      it(`${name(Root2)} can goto ${key21}`, async function () {
         const { router, host, tearDown } = await createFixture(Root2, A);
 
-        await router.load(key21);
+        await router.goto(key21);
         assertComponentsVisible(host, [Root2, value21]);
 
         await tearDown();
@@ -406,25 +406,25 @@ describe('router (smoke tests)', function () {
         const key21prev = $2vpsKeys[i - 1];
         const value21prev = $2vps[key21prev];
 
-        it(`${name(Root2)} can load ${key21prev},${key21} in order`, async function () {
+        it(`${name(Root2)} can goto ${key21prev},${key21} in order`, async function () {
           const { router, host, tearDown } = await createFixture(Root2, A);
 
-          await router.load(key21prev);
+          await router.goto(key21prev);
           assertComponentsVisible(host, [Root2, value21prev]);
 
-          await router.load(key21);
+          await router.goto(key21);
           assertComponentsVisible(host, [Root2, value21]);
 
           await tearDown();
         });
 
-        it(`${name(Root2)} can load ${key21},${key21prev} in order`, async function () {
+        it(`${name(Root2)} can goto ${key21},${key21prev} in order`, async function () {
           const { router, host, tearDown } = await createFixture(Root2, A);
 
-          await router.load(key21);
+          await router.goto(key21);
           assertComponentsVisible(host, [Root2, value21]);
 
-          await router.load(key21prev);
+          await router.goto(key21prev);
           assertComponentsVisible(host, [Root2, value21prev]);
 
           await tearDown();

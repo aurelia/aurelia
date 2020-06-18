@@ -117,7 +117,7 @@ export class LinkHandler {
     if (info.shouldHandleEvent) {
       e.preventDefault();
       // eslint-disable-next-line @typescript-eslint/promise-function-async
-      this.router.load(info.instruction ?? '', { context: info.anchor }).catch(err => Promise.reject(err));
+      this.router.goto(info.instruction ?? '', { context: info.anchor }).catch(err => Promise.reject(err));
     }
   }
 }

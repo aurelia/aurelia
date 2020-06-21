@@ -174,7 +174,7 @@ export interface IHydrateElementInstruction extends IHydrateInstruction {
   type: TargetedInstructionType.hydrateElement;
   res: string;
   instructions: ITargetedInstruction[];
-  parts?: Record<string, PartialCustomElementDefinition>;
+  projections?: Record<string, PartialCustomElementDefinition>;
 }
 
 export interface IHydrateAttributeInstruction extends IHydrateInstruction {

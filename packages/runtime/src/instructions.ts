@@ -123,7 +123,8 @@ export class HydrateElementInstruction implements IHydrateElementInstruction {
   public constructor(
     public res: string,
     public instructions: ITargetedInstruction[],
-    public parts?: PartialCustomElementDefinitionParts,
+    public parts?: PartialCustomElementDefinitionParts, // TODO: remove
+    public projections?: PartialCustomElementDefinitionParts,
   ) {}
 }
 

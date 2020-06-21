@@ -99,7 +99,8 @@ export class TemplateCompiler implements ITemplateCompiler {
     @ITemplateElementFactory private readonly factory: ITemplateElementFactory,
     @IAttributeParser private readonly attrParser: IAttributeParser,
     @IExpressionParser private readonly exprParser: IExpressionParser,
-    @IAttrSyntaxTransformer private readonly attrSyntaxModifier: IAttrSyntaxTransformer
+    @IAttrSyntaxTransformer private readonly attrSyntaxModifier: IAttrSyntaxTransformer,
+    @IDOM private readonly dom: IDOM,
   ) {}
 
   public static register(container: IContainer): IResolver<ITemplateCompiler> {
@@ -187,6 +188,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       symbol.res,
       this.compileBindings(symbol),
       this.compileParts(symbol, scopeParts),
+      this.compileProjections(symbol),
     );
 
     instructionRows.push(instructionRow);
@@ -405,6 +407,35 @@ export class TemplateCompiler implements ITemplateCompiler {
           needsCompile: false,
         });
       }
+    }
+    return parts;
+  }
+
+  private compileProjections(symbol: CustomElementSymbol): Record<string, PartialCustomElementDefinition> | undefined {
+
+    if ((symbol.flags & SymbolFlags.hasProjections) === 0) { return; }
+
+    const parts: Record<string, PartialCustomElementDefinition> = {};
+    const projections = symbol.projections;
+    const len = projections.length;
+
+    for (let i = 0; i < len; ++i) {
+      const projection = projections[i];
+      const name = projection.name;
+
+      const instructions: ITargetedInstruction[][] = [];
+
+      this.compileParentNode(projection.template!, instructions, []);
+
+      let definition = parts[name];
+      if (definition === void 0) {
+        definition = CustomElementDefinition.create({ name, template: projection.physicalNode, instructions, needsCompile: false });
+      } else {
+        // consolidate the projections to same slot
+        this.dom.appendChild((definition.template as HTMLTemplateElement).content, (projection.physicalNode! as HTMLTemplateElement).content);
+        (definition.instructions as ITargetedInstruction[][]).push(...instructions);
+      }
+      parts[name] = definition;
     }
     return parts;
   }

@@ -15,6 +15,7 @@ import {
     ITargetedInstruction,
     mergeParts,
     PartialCustomElementDefinitionParts,
+    IHydrateElementInstruction,
 } from '../definitions';
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { LifecycleFlags } from '../flags';
@@ -29,6 +30,7 @@ import {
 import { IRenderer, ITemplateCompiler } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { ViewFactory } from './view';
+import { IProjections } from '../resources/custom-elements/au-slot';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const definitionContainerPartsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<PartialCustomElementDefinitionParts, RenderContext>>>();
@@ -248,6 +250,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   private readonly instructionProvider: InstanceProvider<ITargetedInstruction>;
   private readonly factoryProvider: ViewFactoryProvider<T>;
   private readonly renderLocationProvider: InstanceProvider<IRenderLocation<T>>;
+  private readonly projectionProvider: InstanceProvider<IProjections>;
 
   private viewModelProvider: InstanceProvider<ICustomElementViewModel<T>> | undefined = void 0;
   private fragment: T | null = null;
@@ -285,6 +288,11 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     container.registerResolver(
       IRenderLocation,
       this.renderLocationProvider = new InstanceProvider<IRenderLocation>(),
+      true,
+    );
+    container.registerResolver(
+      IProjections,
+      this.projectionProvider = new InstanceProvider<IProjections>(),
       true,
     );
 
@@ -433,6 +441,10 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     }
     if (instruction !== void 0) {
       this.instructionProvider.prepare(instruction);
+      const projections = (instruction as IHydrateElementInstruction).projections;
+      if(projections !== void 0){
+        this.projectionProvider.prepare(projections);
+      }
     }
     if (location !== void 0) {
       this.renderLocationProvider.prepare(location as IRenderLocation<T>);

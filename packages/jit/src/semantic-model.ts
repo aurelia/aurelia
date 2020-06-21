@@ -6,7 +6,8 @@ import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';
 export const enum SymbolFlags {
   type                 = 0b000000_111111111,
   isTemplateController = 0b000000_000000001,
-  isReplacePart        = 0b000000_000000010,
+  isReplacePart        = 0b000000_000000010, // TODO: remove
+  isProjection         = 0b000000_000000010,
   isCustomAttribute    = 0b000000_000000100,
   isPlainAttribute     = 0b000000_000001000,
   isCustomElement      = 0b000000_000010000,
@@ -19,7 +20,8 @@ export const enum SymbolFlags {
   hasAttributes        = 0b000100_000000000,
   hasBindings          = 0b001000_000000000,
   hasChildNodes        = 0b010000_000000000,
-  hasParts             = 0b100000_000000000,
+  hasParts             = 0b100000_000000000, // TODO: remove
+  hasProjections       = 0b100000_000000000,
 }
 
 function createMarker<N extends INode = INode>(dom: IDOM): N {
@@ -146,6 +148,17 @@ export class ReplacePartSymbol<TText extends INode = INode, TElement extends INo
   ) {}
 }
 
+export class ProjectionSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> {
+  public flags: SymbolFlags = SymbolFlags.isProjection;
+
+  public constructor(
+    public name: string,
+    public physicalNode: TElement | null = null,
+    public parent: ParentNodeSymbol<TText, TElement, TMarker> | null = null,
+    public template: ParentNodeSymbol<TText, TElement, TMarker> | null = null,
+  ) {}
+}
+
 /**
  * A html attribute that is associated with a registered resource, but not a template controller.
  */
@@ -257,6 +270,15 @@ export class CustomElementSymbol<TText extends INode = INode, TElement extends I
       this.flags |= SymbolFlags.hasParts;
     }
     return this._parts;
+  }
+
+  private _projections: ProjectionSymbol<TText, TElement, TMarker>[] | null = null;
+  public get projections(): ReplacePartSymbol<TText, TElement, TMarker>[] {
+    if (this._projections === null) {
+      this._projections = [];
+      this.flags |= SymbolFlags.hasProjections;
+    }
+    return this._projections;
   }
 
   public constructor(

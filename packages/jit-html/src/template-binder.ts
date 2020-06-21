@@ -410,25 +410,36 @@ export class TemplateBinder {
     if (replace === '' || (replace === null && manifestRoot !== null && manifestRoot.isContainerless && ((parentManifest.flags & SymbolFlags.isCustomElement) > 0))) {
       replace = 'default';
     }
+    let projection = node.getAttribute('au-slot');
+    if (projection === '' || (projection === null && manifestRoot !== null && manifestRoot.isContainerless && ((parentManifest.flags & SymbolFlags.isCustomElement) > 0))) {
+      projection = 'default';
+    }
 
     const partOwner: CustomElementSymbol | null = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
 
-    if (replace === null || partOwner === null) {
+    if (replace === null && projection === null || partOwner === null) {
       // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
       parentManifest.childNodes.push(manifestProxy);
     } else {
-      // there is a replace attribute on this node, so add it to the parts collection of the manifestRoot
-      // instead of to the childNodes
-      const replacePart = new ReplacePartSymbol(replace);
-      replacePart.parent = parentManifest;
-      replacePart.template = manifestProxy;
-      partOwner!.parts.push(replacePart);
+      if (replace !== null) {
+        // there is a replace attribute on this node, so add it to the parts collection of the manifestRoot
+        // instead of to the childNodes
+        const replacePart = new ReplacePartSymbol(replace);
+        replacePart.parent = parentManifest;
+        replacePart.template = manifestProxy;
+        partOwner!.parts.push(replacePart);
 
-      if (parentManifest.templateController != null) {
-        parentManifest.templateController.parts.push(replacePart);
+        if (parentManifest.templateController != null) {
+          parentManifest.templateController.parts.push(replacePart);
+        }
+
+        processReplacePart(this.dom, replacePart, manifestProxy);
+      } else if (projection !== null) {
+        const projectionPart = new ReplacePartSymbol(projection);
+        projectionPart.parent = parentManifest;
+        projectionPart.template = manifestProxy;
+        partOwner!.projections.push(projectionPart);
       }
-
-      processReplacePart(this.dom, replacePart, manifestProxy);
     }
   }
 

@@ -1,3 +1,6 @@
+import { applyMetadataPolyfill } from '@aurelia/metadata';
+applyMetadataPolyfill(Reflect, false, true, false, false);
+
 import {
   HTMLTestContext,
   TestContext,

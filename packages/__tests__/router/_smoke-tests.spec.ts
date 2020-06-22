@@ -22,7 +22,7 @@ import {
 
 import {
   TestRouterConfiguration,
-} from './configuration';
+} from './_shared/configuration';
 
 function vp(count: number): string {
   return '<au-viewport></au-viewport>'.repeat(count);

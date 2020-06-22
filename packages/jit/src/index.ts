@@ -99,4 +99,5 @@ export {
   SymbolWithTemplate,
   TemplateControllerSymbol,
   TextSymbol,
+  ProjectionSymbol,
 } from './semantic-model';

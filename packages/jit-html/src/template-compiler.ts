@@ -221,6 +221,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   ): void {
     switch (symbol.flags & SymbolFlags.type) {
       case SymbolFlags.isCustomElement:
+      case SymbolFlags.isAuSlot:
         this.compileCustomElement(symbol as CustomElementSymbol, instructionRows, scopeParts);
         break;
       case SymbolFlags.isPlainElement:
@@ -443,5 +444,11 @@ export class TemplateCompiler implements ITemplateCompiler {
       parts[name] = definition;
     }
     return parts;
+  }
+
+  private compileProjectionFallback(symbol: CustomElementSymbol): PartialCustomElementDefinition {
+    const instructions: ITargetedInstruction[][] = [];
+    this.compileChildNodes(symbol, instructions, []);
+    return CustomElementDefinition.create({ name: CustomElement.generateName(), template: symbol.physicalNode, instructions, needsCompile: false });
   }
 }

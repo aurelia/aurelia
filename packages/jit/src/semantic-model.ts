@@ -274,7 +274,7 @@ export class CustomElementSymbol<TText extends INode = INode, TElement extends I
   }
 
   private _projections: ProjectionSymbol<TText, TElement, TMarker>[] | null = null;
-  public get projections(): ReplacePartSymbol<TText, TElement, TMarker>[] {
+  public get projections(): ProjectionSymbol<TText, TElement, TMarker>[] {
     if (this._projections === null) {
       this._projections = [];
       this.flags |= SymbolFlags.hasProjections;

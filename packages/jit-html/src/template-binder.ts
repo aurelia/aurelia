@@ -38,6 +38,7 @@ import {
   SymbolWithMarker,
   TemplateControllerSymbol,
   TextSymbol,
+  ProjectionSymbol,
 } from './semantic-model';
 
 const invalidSurrogateAttribute = Object.assign(Object.create(null), {
@@ -224,7 +225,7 @@ export class TemplateBinder {
     parentManifestRoot: CustomElementSymbol | null,
     partName: string | null,
   ): void {
-    let auSlotFlag = 0b0;
+    let isAuSlot = false;
     switch (node.nodeName) {
       case 'LET':
         // let cannot have children and has some different processing rules, so return early
@@ -237,7 +238,7 @@ export class TemplateBinder {
         surrogate.hasSlots = true;
         break;
       case 'AU-SLOT':
-        auSlotFlag = SymbolFlags.isAuSlot;
+        isAuSlot = true;
         break;
     }
 
@@ -260,7 +261,9 @@ export class TemplateBinder {
       // it's a custom element so we set the manifestRoot as well (for storing replaces)
       parentManifestRoot = manifestRoot;
       manifestRoot = manifest = new CustomElementSymbol(this.dom, node, elementInfo);
-      manifest.flags |= auSlotFlag;
+      if (isAuSlot) {
+        manifest.flags = SymbolFlags.isAuSlot;
+      }
     }
 
     // lifting operations done by template controllers and replaces effectively unlink the nodes, so start at the bottom
@@ -441,7 +444,7 @@ export class TemplateBinder {
 
         processReplacePart(this.dom, replacePart, manifestProxy);
       } else if (projection !== null) {
-        const projectionPart = new ReplacePartSymbol(projection);
+        const projectionPart = new ProjectionSymbol(projection);
         projectionPart.parent = parentManifest;
         projectionPart.template = manifestProxy;
         partOwner!.projections.push(projectionPart);

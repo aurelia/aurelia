@@ -251,6 +251,10 @@ export {
 } from './resources/custom-attributes/with';
 
 export {
+  AuSlot,
+} from './resources/custom-elements/au-slot';
+
+export {
   containerless,
   customElement,
   CustomElementHost,

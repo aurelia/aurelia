@@ -27,7 +27,8 @@ import {
   LetElementInstruction,
   SetPropertyInstruction,
   CustomElementDefinition,
-  IDOM
+  IDOM,
+  CustomElement
 } from '@aurelia/runtime';
 import {
   HTMLAttributeInstruction,
@@ -182,6 +183,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     instructionRows: ITargetedInstruction[][],
     scopeParts: string[],
   ): void {
+    const isAuSlot = (symbol.flags & SymbolFlags.isAuSlot) > 0;
     // offset 1 to leave a spot for the hydrate instruction so we don't need to create 2 arrays with a spread etc
     const instructionRow = this.compileAttributes(symbol, 1) as HTMLInstructionRow;
     instructionRow[0] = new HydrateElementInstruction(
@@ -189,11 +191,14 @@ export class TemplateCompiler implements ITemplateCompiler {
       this.compileBindings(symbol),
       this.compileParts(symbol, scopeParts),
       this.compileProjections(symbol),
+      isAuSlot ? this.compileProjectionFallback(symbol) : void 0
     );
 
     instructionRows.push(instructionRow);
 
-    this.compileChildNodes(symbol, instructionRows, scopeParts);
+    if (!isAuSlot) {
+      this.compileChildNodes(symbol, instructionRows, scopeParts);
+    }
   }
 
   private compilePlainElement(

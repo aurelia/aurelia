@@ -224,6 +224,7 @@ export class TemplateBinder {
     parentManifestRoot: CustomElementSymbol | null,
     partName: string | null,
   ): void {
+    let auSlotFlag = 0b0;
     switch (node.nodeName) {
       case 'LET':
         // let cannot have children and has some different processing rules, so return early
@@ -234,6 +235,10 @@ export class TemplateBinder {
         return;
       case 'SLOT':
         surrogate.hasSlots = true;
+        break;
+      case 'AU-SLOT':
+        auSlotFlag = SymbolFlags.isAuSlot;
+        break;
     }
 
     // get the part name to override the name of the compiled definition
@@ -255,6 +260,7 @@ export class TemplateBinder {
       // it's a custom element so we set the manifestRoot as well (for storing replaces)
       parentManifestRoot = manifestRoot;
       manifestRoot = manifest = new CustomElementSymbol(this.dom, node, elementInfo);
+      manifest.flags |= auSlotFlag;
     }
 
     // lifting operations done by template controllers and replaces effectively unlink the nodes, so start at the bottom

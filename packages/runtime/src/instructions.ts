@@ -125,6 +125,7 @@ export class HydrateElementInstruction implements IHydrateElementInstruction {
     public instructions: ITargetedInstruction[],
     public parts?: PartialCustomElementDefinitionParts, // TODO: remove
     public projections?: PartialCustomElementDefinitionParts,
+    public projectionFallback?: PartialCustomElementDefinition,
   ) {}
 }
 

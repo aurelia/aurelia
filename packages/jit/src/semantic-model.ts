@@ -4,24 +4,25 @@ import { BindingCommandInstance } from './binding-command';
 import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';
 
 export const enum SymbolFlags {
-  type                 = 0b000000_111111111,
-  isTemplateController = 0b000000_000000001,
-  isReplacePart        = 0b000000_000000010, // TODO: remove
-  isProjection         = 0b000000_000000010,
-  isCustomAttribute    = 0b000000_000000100,
-  isPlainAttribute     = 0b000000_000001000,
-  isCustomElement      = 0b000000_000010000,
-  isLetElement         = 0b000000_000100000,
-  isPlainElement       = 0b000000_001000000,
-  isText               = 0b000000_010000000,
-  isBinding            = 0b000000_100000000,
-  hasMarker            = 0b000001_000000000,
-  hasTemplate          = 0b000010_000000000,
-  hasAttributes        = 0b000100_000000000,
-  hasBindings          = 0b001000_000000000,
-  hasChildNodes        = 0b010000_000000000,
-  hasParts             = 0b100000_000000000, // TODO: remove
-  hasProjections       = 0b100000_000000000,
+  type                 = 0b000000_1111111111,
+  isTemplateController = 0b000000_0000000001,
+  isReplacePart        = 0b000000_0000000010,
+  isProjection         = 0b000000_0000000010,
+  isCustomAttribute    = 0b000000_0000000100,
+  isPlainAttribute     = 0b000000_0000001000,
+  isCustomElement      = 0b000000_0000010000,
+  isLetElement         = 0b000000_0000100000,
+  isPlainElement       = 0b000000_0001000000,
+  isText               = 0b000000_0010000000,
+  isBinding            = 0b000000_0100000000,
+  isAuSlot             = 0b000000_1000000000,
+  hasMarker            = 0b000001_0000000000,
+  hasTemplate          = 0b000010_0000000000,
+  hasAttributes        = 0b000100_0000000000,
+  hasBindings          = 0b001000_0000000000,
+  hasChildNodes        = 0b010000_0000000000,
+  hasParts             = 0b100000_0000000000,
+  hasProjections       = 0b100000_0000000000,
 }
 
 function createMarker<N extends INode = INode>(dom: IDOM): N {

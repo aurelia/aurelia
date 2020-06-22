@@ -37,6 +37,7 @@ import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
 import { ViewLocator } from './templating/view';
 import { Now } from '@aurelia/scheduler';
+import { AuSlot } from './resources/custom-elements/au-slot';
 
 export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;
@@ -86,6 +87,7 @@ export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as unknow
  * - Template controllers (`if`/`else`, `repeat`, `replaceable`, `with`)
  * - Value Converters (`sanitize`)
  * - Binding Behaviors (`oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`)
+ * - Custom element: au-slot
  */
 export const DefaultResources = [
   FrequentMutationsRegistration,
@@ -104,7 +106,8 @@ export const DefaultResources = [
   FromViewBindingBehaviorRegistration,
   SignalBindingBehaviorRegistration,
   ThrottleBindingBehaviorRegistration,
-  TwoWayBindingBehaviorRegistration
+  TwoWayBindingBehaviorRegistration,
+  AuSlot,
 ];
 
 export const CallBindingRendererRegistration = CallBindingRenderer as unknown as IRegistry;

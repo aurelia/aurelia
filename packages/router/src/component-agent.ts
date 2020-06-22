@@ -25,13 +25,28 @@ import {
 import {
   Params,
   NavigationInstruction,
+  ViewportInstructionTree,
 } from './instructions';
 
 export interface IRouteViewModel extends ICustomElementViewModel<HTMLElement> {
-  canEnter?(params: Params, next: RouteNode, current: RouteNode | null): boolean | NavigationInstruction | Promise<boolean | NavigationInstruction>;
-  enter?(params: Params, next: RouteNode, current: RouteNode | null): void | Promise<void>;
-  canLeave?(next: RouteNode | null, current: RouteNode): boolean | Promise<boolean>;
-  leave?(next: RouteNode | null, current: RouteNode): void | Promise<void>;
+  canEnter?(
+    params: Params,
+    next: RouteNode,
+    current: RouteNode | null,
+  ): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
+  enter?(
+    params: Params,
+    next: RouteNode,
+    current: RouteNode | null,
+  ): void | Promise<void>;
+  canLeave?(
+    next: RouteNode | null,
+    current: RouteNode,
+  ): boolean | Promise<boolean>;
+  leave?(
+    next: RouteNode | null,
+    current: RouteNode,
+  ): void | Promise<void>;
 }
 
 const componentAgentLookup: WeakMap<object, ComponentAgent> = new WeakMap();
@@ -108,11 +123,63 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     return this.controller.deactivate(initiator ?? this.controller, parent, flags);
   }
 
+  public async canEnter(next: RouteNode): Promise<boolean | ViewportInstructionTree> {
+    if (this.hasCanEnter) {
+      this.logger.trace(`canEnter(next:${next}) - invoking hook on component`);
+
+      const result = await this.instance.canEnter!(next.params, next, this.routeNode);
+      if (typeof result === 'boolean') {
+        this.logger.trace(`canEnter(next:${next}) - component returned ${result}`);
+
+        return result;
+      }
+
+      const instructions = ViewportInstructionTree.create(result);
+
+      this.logger.trace(`canEnter(next:${next}) - component returned ${instructions}`);
+
+      return instructions;
+    } else {
+      this.logger.trace(`canEnter(next:${next}) - component does not implement this hook, so skipping`);
+
+      return true;
+    }
+  }
+
+  public async enter(next: RouteNode): Promise<void> {
+    if (this.hasEnter) {
+      this.logger.trace(`enter(next:${next}) - invoking hook on component`);
+
+      await this.instance.enter!(next.params, next, this.routeNode);
+    } else {
+      this.logger.trace(`enter(next:${next}) - component does not implement this hook, so skipping`);
+    }
+  }
+
   public async canLeave(next: RouteNode | null): Promise<boolean> {
     if (this.hasCanLeave) {
-      return this.instance.canLeave!(next, this.routeNode);
+      this.logger.trace(`canLeave(next:${next}) - invoking hook on component`);
+
+      const result = await this.instance.canLeave!(next, this.routeNode);
+
+      this.logger.trace(`canLeave(next:${next}) - component returned ${result}`);
+
+      return result;
+    } else {
+      this.logger.trace(`canLeave(next:${next}) - component does not implement this hook, so skipping`);
+
+      return true;
     }
-    return true;
+  }
+
+  public async leave(next: RouteNode | null): Promise<void> {
+    if (this.hasLeave) {
+      this.logger.trace(`leave(next:${next}) - invoking hook on component`);
+
+      await this.instance.leave!(next, this.routeNode);
+    } else {
+      this.logger.trace(`leave(next:${next}) - component does not implement this hook, so skipping`);
+    }
   }
 
   public isSameComponent(node: RouteNode): boolean {

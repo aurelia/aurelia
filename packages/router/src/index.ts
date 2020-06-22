@@ -1,4 +1,8 @@
 export {
+  IViewport,
+} from './resources/viewport';
+
+export {
   RouterConfiguration,
   RouterRegistration,
   DefaultComponents,
@@ -27,6 +31,7 @@ export {
   RouteableComponent,
   NavigationInstruction,
   IViewportInstruction,
+  Params,
 } from './instructions';
 export {
   ILocationManager,

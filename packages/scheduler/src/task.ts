@@ -20,8 +20,10 @@ let id: number = 0;
 
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'canceled';
 
+export type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
+
 export interface ITask<T = any> {
-  readonly result: Promise<T>;
+  readonly result: Promise<UnwrapPromise<T>>;
   readonly status: TaskStatus;
   readonly priority: TaskQueuePriority;
   run(): void;
@@ -33,11 +35,11 @@ export class Task<T = any> implements ITask {
   public next: Task<T> | undefined = void 0;
   public prev: Task<T> | undefined = void 0;
 
-  private resolve: PResolve<T> | undefined = void 0;
+  private resolve: PResolve<UnwrapPromise<T>> | undefined = void 0;
   private reject: PReject<TaskAbortError<T>> | undefined = void 0;
 
-  private _result: Promise<T> | undefined = void 0;
-  public get result(): Promise<T> {
+  private _result: Promise<UnwrapPromise<T>> | undefined = void 0;
+  public get result(): Promise<UnwrapPromise<T>> {
     const result = this._result;
     if (result === void 0) {
       switch (this._status) {
@@ -50,7 +52,7 @@ export class Task<T = any> implements ITask {
         case 'running':
           throw new Error('Trying to await task from within task will cause a deadlock.');
         case 'completed':
-          return this._result = Promise.resolve() as unknown as Promise<T>;
+          return this._result = Promise.resolve() as unknown as Promise<UnwrapPromise<T>>;
         case 'canceled':
           return this._result = Promise.reject(new TaskAbortError(this));
       }
@@ -73,7 +75,7 @@ export class Task<T = any> implements ITask {
     public persistent: boolean,
     public async: boolean | 'auto',
     public readonly reusable: boolean,
-    public callback: TaskCallback<T>
+    public callback: TaskCallback<T>,
   ) {
     this.priority = taskQueue.priority;
   }
@@ -111,7 +113,7 @@ export class Task<T = any> implements ITask {
       if (async === true || (async === 'auto' && ret instanceof Promise)) {
         isAsync = true;
         (ret as unknown as Promise<T>)
-          .then(() => {
+          .then($ret => {
             if (this.persistent) {
               taskQueue.resetPersistentTask(this);
             } else if (persistent) {
@@ -122,7 +124,7 @@ export class Task<T = any> implements ITask {
             }
 
             if (resolve !== void 0) {
-              resolve(ret);
+              resolve($ret as UnwrapPromise<T>);
             }
           })
           .catch(err => {
@@ -156,7 +158,7 @@ export class Task<T = any> implements ITask {
         }
 
         if (resolve !== void 0) {
-          resolve(ret);
+          resolve(ret as UnwrapPromise<T>);
         }
       }
     } catch (err) {

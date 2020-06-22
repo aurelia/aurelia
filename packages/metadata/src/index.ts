@@ -1022,7 +1022,7 @@ function $applyMetadataPolyfill(
   writable: boolean,
   configurable: boolean,
 ): void {
-  def(Metadata, '$Internal', metadataInternalSlot, writable, configurable);
+  def(reflect, internalSlotName, metadataInternalSlot, writable, configurable);
 
   def(reflect, 'metadata', metadata, writable, configurable);
   def(reflect, 'decorate', decorate, writable, configurable);

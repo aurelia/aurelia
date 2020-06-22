@@ -175,8 +175,9 @@ export interface IHydrateElementInstruction extends IHydrateInstruction {
   res: string;
   instructions: ITargetedInstruction[];
   parts?: Record<string, PartialCustomElementDefinition>;
-  projections?: Record<string, PartialCustomElementDefinition>;
-  projectionFallback?: PartialCustomElementDefinition;
+  projections?: Record<string, CustomElementDefinition>;
+  projectionFallback?: CustomElementDefinition;
+  slotName?: string;
 }
 
 export interface IHydrateAttributeInstruction extends IHydrateInstruction {

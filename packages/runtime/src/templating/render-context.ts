@@ -30,7 +30,7 @@ import {
 import { IRenderer, ITemplateCompiler } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { ViewFactory } from './view';
-import { IProjections, IProjectionFallback } from '../resources/custom-elements/au-slot';
+import { IProjections } from '../resources/custom-elements/au-slot';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const definitionContainerPartsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<PartialCustomElementDefinitionParts, RenderContext>>>();
@@ -251,7 +251,6 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   private readonly factoryProvider: ViewFactoryProvider<T>;
   private readonly renderLocationProvider: InstanceProvider<IRenderLocation<T>>;
   private projectionProvider: InstanceProvider<IProjections> | undefined;
-  private projectionFallbackProvider: InstanceProvider<IProjectionFallback> | undefined;
 
   private viewModelProvider: InstanceProvider<ICustomElementViewModel<T>> | undefined = void 0;
   private fragment: T | null = null;
@@ -446,16 +445,6 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
           true,
         );
         this.projectionProvider.prepare(projections);
-      }
-
-      const fallback = (instruction as IHydrateElementInstruction).projectionFallback;
-      if (fallback !== void 0) {
-        this.container.registerResolver(
-          IProjectionFallback,
-          this.projectionFallbackProvider = new InstanceProvider<IProjectionFallback>(),
-          true,
-        );
-        this.projectionFallbackProvider.prepare(fallback);
       }
     }
     if (location !== void 0) {

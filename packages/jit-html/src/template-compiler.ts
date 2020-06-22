@@ -186,12 +186,16 @@ export class TemplateCompiler implements ITemplateCompiler {
     const isAuSlot = (symbol.flags & SymbolFlags.isAuSlot) > 0;
     // offset 1 to leave a spot for the hydrate instruction so we don't need to create 2 arrays with a spread etc
     const instructionRow = this.compileAttributes(symbol, 1) as HTMLInstructionRow;
+    const slotInfo = isAuSlot
+      ? [this.compileProjectionFallback(symbol), symbol.slotName] as const
+      : [void 0, void 0] as const;
     instructionRow[0] = new HydrateElementInstruction(
       symbol.res,
       this.compileBindings(symbol),
-      this.compileParts(symbol, scopeParts),
+      this.compileParts(symbol, scopeParts),  // TODO remove
       this.compileProjections(symbol),
-      isAuSlot ? this.compileProjectionFallback(symbol) : void 0
+      slotInfo[0],
+      slotInfo[1],
     );
 
     instructionRows.push(instructionRow);
@@ -417,11 +421,11 @@ export class TemplateCompiler implements ITemplateCompiler {
     return parts;
   }
 
-  private compileProjections(symbol: CustomElementSymbol): Record<string, PartialCustomElementDefinition> | undefined {
+  private compileProjections(symbol: CustomElementSymbol): Record<string, CustomElementDefinition> | undefined {
 
     if ((symbol.flags & SymbolFlags.hasProjections) === 0) { return; }
 
-    const parts: Record<string, PartialCustomElementDefinition> = {};
+    const parts: Record<string, CustomElementDefinition> = {};
     const projections = symbol.projections;
     const len = projections.length;
 
@@ -446,7 +450,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     return parts;
   }
 
-  private compileProjectionFallback(symbol: CustomElementSymbol): PartialCustomElementDefinition {
+  private compileProjectionFallback(symbol: CustomElementSymbol): CustomElementDefinition {
     const instructions: ITargetedInstruction[][] = [];
     this.compileChildNodes(symbol, instructions, []);
     return CustomElementDefinition.create({ name: CustomElement.generateName(), template: symbol.physicalNode, instructions, needsCompile: false });

@@ -227,6 +227,7 @@ export class CustomElementSymbol<TText extends INode = INode, TElement extends I
   public templateController: TemplateControllerSymbol<TText, TElement, TMarker> | null = null;
   public isContainerless: boolean;
   public marker: TMarker;
+  public slotName: string | undefined;
 
   private _customAttributes: CustomAttributeSymbol[] | null = null;
   public get customAttributes(): CustomAttributeSymbol[] {

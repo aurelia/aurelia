@@ -1,21 +1,25 @@
-import {
-  DI,
-} from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 import {
   IHydrateElementInstruction,
-  ITargetedInstruction,
+  ITargetedInstruction
 } from '../../definitions';
 import {
   IDOM,
   INode,
-  IRenderLocation,
+  IRenderLocation
 } from '../../dom';
+import { LifecycleFlags } from '../../flags';
 import {
+  ICustomElementController,
   ICustomElementViewModel,
+  ISyntheticView,
+  IViewFactory,
+  MountStrategy
 } from '../../lifecycle';
+import { ILifecycleTask } from '../../lifecycle-task';
 import {
   customElement,
-  CustomElementDefinition,
+  CustomElementDefinition
 } from '../custom-element';
 
 export type IProjections = Record<string, CustomElementDefinition>;
@@ -23,24 +27,48 @@ export const IProjections = DI.createInterface<IProjections>("IProjections").noD
 
 @customElement({ name: 'au-slot', containerless: true })
 export class AuSlot<T extends INode = Node> implements ICustomElementViewModel<T> {
-  private readonly name: string;
-  private readonly definition: CustomElementDefinition;
+  public readonly view: ISyntheticView<T>;
+  public readonly $controller!: ICustomElementController<T, this>; // This is set by the controller after this instance is constructed
 
   public constructor(
-    @IDOM private readonly dom: IDOM<T>,
-    @ITargetedInstruction instruction: IHydrateElementInstruction,
-    @IRenderLocation private readonly location: IRenderLocation<T>,
-    @IProjections projections: IProjections,
+    @IViewFactory factory: IViewFactory<T>,
+    @IRenderLocation location: IRenderLocation<T>,
+    // @ITargetedInstruction instruction: IHydrateElementInstruction,
+    // @IProjections projections: IProjections,
   ) {
     // console.log('instruction',instruction);
-    const name = this.name = instruction.slotName!;
-    console.log('slot name', name);
-    console.log('fallback', instruction.projectionFallback);
-    console.log('projections', projections);
-    this.definition = projections[name] ?? instruction.projectionFallback;
-    // consume the slot
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-    delete projections[name];
-    // console.log(location);
+    // const name = this.name = instruction.slotName!;
+    // console.log('slot name', name);
+    // console.log('fallback', instruction.projectionFallback);
+    // console.log('projections', projections);
+    console.log('factory', factory);
+    // this.definition = projections[name] ?? instruction.projectionFallback;
+    // // consume the slot
+    // // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    // delete projections[name];
+    console.log('location', location);
+
+    this.view = factory.create();
+    this.view.hold(location, MountStrategy.insertBefore);
+  }
+
+  // the view is not working as expected
+  public beforeBind(flags: LifecycleFlags): ILifecycleTask {
+    this.view.parent = this.$controller;
+    return this.view.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope);
+  }
+
+  public beforeAttach(flags: LifecycleFlags): void {
+    this.view.attach(flags);
+  }
+
+  public beforeDetach(flags: LifecycleFlags): void {
+    this.view.detach(flags);
+  }
+
+  public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
+    const task = this.view.unbind(flags);
+    this.view.parent = void 0;
+    return task;
   }
 }

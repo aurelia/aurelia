@@ -43,6 +43,7 @@ import {
   IRenderableController,
   ICustomAttributeViewModel,
   ICustomElementViewModel,
+  IViewFactory,
 } from './lifecycle';
 import { IObserverLocator } from './observation/observer-locator';
 import {
@@ -56,6 +57,7 @@ import { ObserversLookup } from './observation';
 import { ICompiledRenderContext, getRenderContext } from './templating/render-context';
 import { BindingBehaviorExpression } from './binding/ast';
 import { BindingBehaviorFactory, BindingBehaviorInstance, IInterceptableBinding } from './resources/binding-behavior';
+import { IProjections } from './resources/custom-elements/au-slot';
 
 export interface ITemplateCompiler {
   compile(partialDefinition: PartialCustomElementDefinition, context: IContainer): CustomElementDefinition;
@@ -284,11 +286,25 @@ export class CustomElementRenderer implements IInstructionRenderer {
   ): void {
     parts = mergeParts(parts, instruction.parts);
 
+    let viewFactory: IViewFactory | undefined;
+
+    const slotName = instruction.slotName;
+    const projectionFallback = instruction.projectionFallback;
+    const isAuSlot = slotName !== void 0 && projectionFallback !== void 0;
+    if (isAuSlot) {
+      const projections = context.get(IProjections);
+      const definition = projections[slotName!] ?? projectionFallback;
+      viewFactory = getRenderContext(definition, context, parts).getViewFactory();
+      // consume the slot
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete projections[slotName!];
+    }
+
     const factory = context.getComponentFactory(
       /* parentController */controller,
       /* host             */target,
       /* instruction      */instruction,
-      /* viewFactory      */void 0,
+      /* viewFactory      */viewFactory,
       /* location         */target,
     );
 

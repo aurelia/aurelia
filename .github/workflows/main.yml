@@ -1,64 +1,20 @@
 name: Github Actions
-on: [push]
+on: [push, pull_request]
 jobs:
-  install:
-    timeout-minutes: 5
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
-      - uses: actions/cache@master
-        with:
-          path: |
-            node_modules
-            */*/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-      - run: npm ci
-
-  build:
-    needs: ["install"]
-    timeout-minutes: 5
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
-      - uses: actions/cache@master
-        with:
-          path: |
-            node_modules
-            */*/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-      - run: npm run build
-      - run: tar -cJf dist.tar.xz packages/*/dist
-      - uses: actions/upload-artifact@v1
-        with:
-          name: dist
-          path: dist.tar.xz
 
   lint:
-    needs: ["install"]
-    timeout-minutes: 5
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: 12
-      - uses: actions/cache@master
-        with:
-          path: |
-            node_modules
-            */*/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+      - run: npm ci
       - run: npm run lint
 
   node:
-    needs: ["build"]
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       matrix:
         suite: [
@@ -85,21 +41,13 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12
-      - uses: actions/cache@master
-        with:
-          path: |
-            node_modules
-            */*/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-      - uses: actions/download-artifact@v1
-        with:
-          name: dist
-      - run: tar -xf dist/dist.tar.xz
+      - run: npm ci
+      - run: npm run build
       - run: npm run test-node:${{matrix.suite}}
         working-directory: packages/__tests__
 
   browsers:
-    needs: ["build"]
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     container:
       image: "cypress/browsers:node12.13.0-chrome80-ff74"
@@ -109,37 +57,19 @@ jobs:
         browser: ["chrome", "firefox"]
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/cache@master
-        with:
-          path: |
-            node_modules
-            */*/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-      - uses: actions/download-artifact@v1
-        with:
-          name: dist
-      - run: tar -xf dist/dist.tar.xz
+      - run: npm ci
+      - run: npm run build
       - run: npm run test-${{matrix.browser}}:verbose
         working-directory: packages/__tests__
 
   cypress:
-    needs: ["build"]
     runs-on: ubuntu-latest
     container:
       image: "cypress/browsers:node12.13.0-chrome80-ff74"
       options: --user 1001
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/cache@master
-        with:
-          path: |
-            node_modules
-            */*/node_modules
-          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-      - uses: actions/download-artifact@v1
-        with:
-          name: dist
-      - run: tar -xf dist/dist.tar.xz
-      - run: npm rebuild
+      - run: npm ci
+      - run: npm run build
       - run: npm run e2e
         working-directory: packages/__e2e__

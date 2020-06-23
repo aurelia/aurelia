@@ -60,6 +60,7 @@ export declare class ResolverBuilder<K> {
 }
 export declare type RegisterSelf<T extends Constructable> = {
     register(container: IContainer): IResolver<InstanceType<T>>;
+    registerInRequester: boolean;
 };
 export declare type Key = PropertyKey | object | InterfaceSymbol | Constructable | IResolver;
 export declare type Resolved<K> = (K extends InterfaceSymbol<infer T> ? T : K extends Constructable ? InstanceType<K> : K extends IResolverLike<any, infer T1> ? T1 extends Constructable ? InstanceType<T1> : T1 : K);
@@ -67,7 +68,6 @@ export declare type Injectable<T = {}> = Constructable<T> & {
     inject?: Key[];
 };
 export interface IContainerConfiguration {
-    jitRegisterInRoot: boolean;
     defaultResolver(key: Key, handler: IContainer): IResolver;
 }
 export declare const DefaultResolver: {
@@ -163,7 +163,7 @@ export declare const DI: {
      * Foo.register(container);
      * ```
      */
-    singleton<T_1 extends Constructable<{}>>(target: T_1 & Partial<RegisterSelf<T_1>>): T_1 & RegisterSelf<T_1>;
+    singleton<T_1 extends Constructable<{}>>(target: T_1 & Partial<RegisterSelf<T_1>>, options?: SingletonOptions): T_1 & RegisterSelf<T_1>;
 };
 export declare const IContainer: InterfaceSymbol<IContainer>;
 export declare const IServiceLocator: InterfaceSymbol<IServiceLocator>;
@@ -191,6 +191,9 @@ export declare function transient<T extends Constructable>(): typeof transientDe
  * ```
  */
 export declare function transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
+declare type SingletonOptions = {
+    scoped: boolean;
+};
 declare function singletonDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 /**
  * Registers the decorated class as a singleton dependency; the class will only be created once. Each
@@ -202,6 +205,7 @@ declare function singletonDecorator<T extends Constructable>(target: T & Partial
  * ```
  */
 export declare function singleton<T extends Constructable>(): typeof singletonDecorator;
+export declare function singleton<T extends Constructable>(options?: SingletonOptions): typeof singletonDecorator;
 /**
  * Registers the `target` class as a singleton dependency; the class will only be created once. Each
  * consecutive time the dependency is resolved, the same instance will be returned.

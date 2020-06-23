@@ -64,7 +64,6 @@
         transient(key) { return new Resolver(key, 2 /* transient */, key); },
     };
     exports.DefaultContainerConfiguration = {
-        jitRegisterInRoot: true,
         defaultResolver: exports.DefaultResolver.singleton,
     };
     exports.DI = {
@@ -286,6 +285,7 @@
                 const registration = exports.Registration.transient(target, target);
                 return registration.register(container, target);
             };
+            target.registerInRequester = false;
             return target;
         },
         /**
@@ -305,11 +305,12 @@
          * Foo.register(container);
          * ```
          */
-        singleton(target) {
+        singleton(target, options = defaultSingletonOptions) {
             target.register = function register(container) {
                 const registration = exports.Registration.singleton(target, target);
                 return registration.register(container, target);
             };
+            target.registerInRequester = options.scoped;
             return target;
         },
     };
@@ -335,11 +336,17 @@
         return target == null ? transientDecorator : transientDecorator(target);
     }
     exports.transient = transient;
+    const defaultSingletonOptions = { scoped: false };
     function singletonDecorator(target) {
         return exports.DI.singleton(target);
     }
-    function singleton(target) {
-        return target == null ? singletonDecorator : singletonDecorator(target);
+    function singleton(targetOrOptions) {
+        if (typeof targetOrOptions === 'function') {
+            return exports.DI.singleton(targetOrOptions);
+        }
+        return function ($target) {
+            return exports.DI.singleton($target, targetOrOptions);
+        };
     }
     exports.singleton = singleton;
     exports.all = createResolver((key, handler, requestor) => requestor.getAll(key));
@@ -612,6 +619,12 @@
     function isRegistry(obj) {
         return typeof obj.register === 'function';
     }
+    function isSelfRegistry(obj) {
+        return isRegistry(obj) && typeof obj.registerInRequester === 'boolean';
+    }
+    function isRegisterInRequester(obj) {
+        return isSelfRegistry(obj) && obj.registerInRequester;
+    }
     function isClass(obj) {
         return obj.prototype !== void 0;
     }
@@ -782,7 +795,7 @@
                 resolver = current.resolvers.get(key);
                 if (resolver == null) {
                     if (current.parent == null) {
-                        const handler = this.config.jitRegisterInRoot ? current : this;
+                        const handler = (isRegisterInRequester(key)) ? this : current;
                         return autoRegister ? this.jitRegister(key, handler) : null;
                     }
                     current = current.parent;
@@ -811,7 +824,7 @@
                 resolver = current.resolvers.get(key);
                 if (resolver == null) {
                     if (current.parent == null) {
-                        const handler = this.config.jitRegisterInRoot ? current : this;
+                        const handler = (isRegisterInRequester(key)) ? this : current;
                         resolver = this.jitRegister(key, handler);
                         return resolver.resolve(current, this);
                     }

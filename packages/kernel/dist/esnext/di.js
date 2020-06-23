@@ -52,7 +52,6 @@ export const DefaultResolver = {
     transient(key) { return new Resolver(key, 2 /* transient */, key); },
 };
 export const DefaultContainerConfiguration = {
-    jitRegisterInRoot: true,
     defaultResolver: DefaultResolver.singleton,
 };
 export const DI = {
@@ -274,6 +273,7 @@ export const DI = {
             const registration = Registration.transient(target, target);
             return registration.register(container, target);
         };
+        target.registerInRequester = false;
         return target;
     },
     /**
@@ -293,11 +293,12 @@ export const DI = {
      * Foo.register(container);
      * ```
      */
-    singleton(target) {
+    singleton(target, options = defaultSingletonOptions) {
         target.register = function register(container) {
             const registration = Registration.singleton(target, target);
             return registration.register(container, target);
         };
+        target.registerInRequester = options.scoped;
         return target;
     },
 };
@@ -322,11 +323,17 @@ function transientDecorator(target) {
 export function transient(target) {
     return target == null ? transientDecorator : transientDecorator(target);
 }
+const defaultSingletonOptions = { scoped: false };
 function singletonDecorator(target) {
     return DI.singleton(target);
 }
-export function singleton(target) {
-    return target == null ? singletonDecorator : singletonDecorator(target);
+export function singleton(targetOrOptions) {
+    if (typeof targetOrOptions === 'function') {
+        return DI.singleton(targetOrOptions);
+    }
+    return function ($target) {
+        return DI.singleton($target, targetOrOptions);
+    };
 }
 export const all = createResolver((key, handler, requestor) => requestor.getAll(key));
 /**
@@ -595,6 +602,12 @@ const containerResolver = {
 function isRegistry(obj) {
     return typeof obj.register === 'function';
 }
+function isSelfRegistry(obj) {
+    return isRegistry(obj) && typeof obj.registerInRequester === 'boolean';
+}
+function isRegisterInRequester(obj) {
+    return isSelfRegistry(obj) && obj.registerInRequester;
+}
 function isClass(obj) {
     return obj.prototype !== void 0;
 }
@@ -765,7 +778,7 @@ export class Container {
             resolver = current.resolvers.get(key);
             if (resolver == null) {
                 if (current.parent == null) {
-                    const handler = this.config.jitRegisterInRoot ? current : this;
+                    const handler = (isRegisterInRequester(key)) ? this : current;
                     return autoRegister ? this.jitRegister(key, handler) : null;
                 }
                 current = current.parent;
@@ -794,7 +807,7 @@ export class Container {
             resolver = current.resolvers.get(key);
             if (resolver == null) {
                 if (current.parent == null) {
-                    const handler = this.config.jitRegisterInRoot ? current : this;
+                    const handler = (isRegisterInRequester(key)) ? this : current;
                     resolver = this.jitRegister(key, handler);
                     return resolver.resolve(current, this);
                 }

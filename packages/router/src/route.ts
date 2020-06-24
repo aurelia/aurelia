@@ -9,11 +9,15 @@ import {
 import {
   validateRouteConfig,
   expectType,
+  shallowEquals,
 } from './validation';
 import {
   RouteableComponent,
   Params,
 } from './instructions';
+import {
+ RouteNode,
+} from './route-tree';
 
 const noChildren = PLATFORM.emptyArray as RouteConfig['children'];
 
@@ -35,6 +39,16 @@ export type Routeable = (
 export interface IRouteConfig extends Partial<RouteConfig> { }
 export interface IChildRouteConfig extends IRouteConfig, Pick<ChildRouteConfig, 'component'> { }
 
+export type ReentryBehavior = 'none' | 'replace' | 'invoke-lifecycles';
+export type ReentryBehaviorOrFunc = ReentryBehavior | ((current: RouteNode, next: RouteNode) => ReentryBehavior);
+export function defaultReentryBehavior(current: RouteNode, next: RouteNode): ReentryBehavior {
+  if (!shallowEquals(current.params, next.params)) {
+    return 'invoke-lifecycles';
+  }
+
+  return 'none';
+}
+
 export class RouteConfig {
   protected constructor(
     /**
@@ -53,6 +67,16 @@ export class RouteConfig {
      * Whether the `path` should be case sensitive.
      */
     public readonly caseSensitive: boolean,
+    /**
+     * How to behave when this component scheduled to be loaded again in the same viewport:
+     *
+     * - `replace`: completely removes the current component and creates a new one, behaving as if the component changed.
+     * - `invoke-lifecycles`: calls `canLeave`, `canEnter`, `leave` and `enter` (default if only the parameters have changed)
+     * - `none`: does nothing (default if nothing has changed for the viewport)
+     *
+     * By default, calls the router lifecycle hooks only if the parameters have changed, otherwise does nothing.
+     */
+    public readonly reentryBehavior: ReentryBehaviorOrFunc,
     /**
      * The name of the viewport this component should be loaded into.
      *
@@ -79,11 +103,12 @@ export class RouteConfig {
 
         const caseSensitive = Type?.caseSensitive ?? false;
         const id = Type?.id ?? path;
+        const reentryBehavior = Type?.reentryBehavior ?? defaultReentryBehavior;
         const viewport = Type?.viewport ?? null;
         const data = Type?.data ?? {};
         const children = Type?.children ?? noChildren;
 
-        return new RouteConfig(id, path, caseSensitive, viewport, data, children);
+        return new RouteConfig(id, path, caseSensitive, reentryBehavior, viewport, data, children);
       }
       case 'object': {
         const config = configOrPath;
@@ -92,6 +117,7 @@ export class RouteConfig {
         const path = config.path ?? Type?.path ?? null;
         const caseSensitive = config.caseSensitive ?? Type?.caseSensitive ?? false;
         const id = config.id ?? Type?.id ?? path;
+        const reentryBehavior = config.reentryBehavior ?? Type?.reentryBehavior ?? defaultReentryBehavior;
         const viewport = config.viewport ?? Type?.viewport ?? null;
         const data = {
           ...Type?.data,
@@ -102,7 +128,7 @@ export class RouteConfig {
           ...(Type?.children ?? noChildren),
         ];
 
-        return new RouteConfig(id, path, caseSensitive, viewport, data, children);
+        return new RouteConfig(id, path, caseSensitive, reentryBehavior, viewport, data, children);
       }
       default:
         expectType('string, function/class or object', '', configOrPath);
@@ -136,6 +162,7 @@ export class ChildRouteConfig extends RouteConfig {
     id: string | null,
     path: string | null,
     caseSensitive: boolean,
+    reentryBehavior: ReentryBehaviorOrFunc,
     viewport: string | null,
     data: Params,
     children: readonly Routeable[],
@@ -148,6 +175,7 @@ export class ChildRouteConfig extends RouteConfig {
       id,
       path,
       caseSensitive,
+      reentryBehavior,
       viewport,
       data,
       children,

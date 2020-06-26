@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   ILogger,
 } from '@aurelia/kernel';
@@ -60,18 +59,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<HTMLElemen
     this.logger.trace('afterCompile()');
 
     this.controller = controller as ICustomElementController<HTMLElement>;
-  }
-
-  public beforeBind(
-    initiator: IHydratedController<HTMLElement>,
-    parent: IHydratedParentController<HTMLElement>,
-    flags: LifecycleFlags,
-  ): void | Promise<void> {
-    this.logger.trace('beforeBind()');
-
-    if (this.agent === void 0) {
-      this.agent = this.ctx.registerViewport(this);
-    }
+    this.agent = this.ctx.registerViewport(this);
   }
 
   public afterAttach(
@@ -81,7 +69,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<HTMLElemen
   ): void | Promise<void> {
     this.logger.trace('afterAttach()');
 
-    return this.agent.activate(initiator, this.controller, flags);
+    return this.agent.activateFromViewport(initiator, this.controller, flags);
   }
 
   public afterUnbind(
@@ -91,7 +79,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<HTMLElemen
   ): void | Promise<void> {
     this.logger.trace('afterUnbind()');
 
-    return this.agent.deactivate(initiator, this.controller, flags);
+    return this.agent.deactivateFromViewport(initiator, this.controller, flags);
   }
 
   public dispose(): void {
@@ -123,7 +111,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<HTMLElemen
         }
       }
     }
-    return `Viewport(ctx.friendlyPath:'${this.ctx.friendlyPath}',${propStrings.join(',')})`;
+    return `VP(ctx:'${this.ctx.friendlyPath}',${propStrings.join(',')})`;
   }
 }
 

@@ -90,7 +90,7 @@ export class RouteDefinition {
 
   public toString(): string {
     const path = this.config.path === null ? 'null' : `'${this.config.path}'`;
-    return `RouteDefinition(config.path:${path},component.name:'${this.component.name}')`;
+    return `RD(config.path:${path},c.name:'${this.component.name}')`;
   }
 }
 

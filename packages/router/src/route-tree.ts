@@ -14,9 +14,6 @@ import {
   RouteContext,
 } from './route-context';
 import {
-  shallowEquals,
-} from './validation';
-import {
   RoutingMode,
 } from './router';
 import {
@@ -40,7 +37,7 @@ export interface IRouteNode {
   fragment?: string | null;
   data?: Params;
   viewport?: string | null;
-  component: CustomElementDefinition | null;
+  component: CustomElementDefinition;
   append: boolean;
   children?: RouteNode[];
   residue?: ViewportInstruction[];
@@ -50,8 +47,6 @@ export class RouteNode implements IRouteNode {
   public tree!: RouteTree;
   /** @internal */
   public version: number = 1;
-  /** @internal */
-  public snapshot: RouteNode | null = null;
 
   public get root(): RouteNode {
     return this.tree.root;
@@ -63,7 +58,11 @@ export class RouteNode implements IRouteNode {
 
   private constructor(
     /**
-     * The `RouteContext` that this route is a child of.
+     * The `RouteContext` associated with this route.
+     *
+     * Child route components will be created by this context.
+     *
+     * Viewports that live underneath the component associated with this route, will be registered to this context.
      */
     public readonly context: IRouteContext,
     public readonly instruction: ViewportInstruction | null,
@@ -79,7 +78,7 @@ export class RouteNode implements IRouteNode {
      * if we decide not to implement that.
      */
     public viewport: string | null,
-    public component: CustomElementDefinition | null,
+    public component: CustomElementDefinition,
     public append: boolean,
     public readonly children: RouteNode[],
     /**
@@ -209,36 +208,12 @@ export class RouteNode implements IRouteNode {
     return clone;
   }
 
-  public makeSnapshot(): void {
-    this.snapshot = this.clone();
-  }
-
-  /**
-   * Performs a shallow equality check on `params`, `queryParams` and `data`,
-   * performs a value/reference equality on all other properties.
-   *
-   * Does not compare `children` or `rawInstructions`.
-   */
-  public shallowEquals(other: RouteNode): boolean {
-    return (
-      this.context === other.context &&
-      this.instruction === other.instruction &&
-      shallowEquals(this.params, other.params) &&
-      shallowEquals(this.queryParams, other.queryParams) &&
-      this.fragment === other.fragment &&
-      shallowEquals(this.data, other.data) &&
-      this.viewport === other.viewport &&
-      this.component === other.component &&
-      this.append === other.append
-    );
-  }
-
   public toString(): string {
     const props: string[] = [];
 
     const component = this.context?.definition.component.name ?? '';
     if (component.length > 0) {
-      props.push(`component:'${component}'`);
+      props.push(`c:'${component}'`);
     }
 
     const path = this.context?.definition.config.path ?? '';
@@ -247,7 +222,7 @@ export class RouteNode implements IRouteNode {
     }
 
     if (this.children.length > 0) {
-      props.push(`children:${this.children.map(String).join(',')}`);
+      props.push(`children:[${this.children.map(String).join(',')}]`);
     }
 
     if (this.residue.length > 0) {
@@ -259,7 +234,7 @@ export class RouteNode implements IRouteNode {
       }).join(',')}`);
     }
 
-    return `RouteNode(ctx.friendlyPath:'${this.context.friendlyPath}',${props.join(',')})`;
+    return `RN(ctx:'${this.context.friendlyPath}',${props.join(',')})`;
   }
 }
 
@@ -351,6 +326,7 @@ export class RouteTreeCompiler {
     const ctx = this.ctx;
     const rootCtx = ctx.root;
     const routeTree = this.routeTree;
+    routeTree.root.setTree(routeTree);
 
     this.logger.trace(`compileRoot(rootCtx:${rootCtx},routeTree:${routeTree},instructions:${instructions})`);
 
@@ -411,6 +387,7 @@ export class RouteTreeCompiler {
             const childNode = this.resolve(instruction, depth, append);
             this.compileResidue(childNode, depth + 1);
             ctx.node.appendChild(childNode);
+            childNode.context.viewportAgent!.scheduleUpdate(childNode);
           }
         }
         break;
@@ -420,6 +397,7 @@ export class RouteTreeCompiler {
         const childNode = this.resolve(instruction, depth, append);
         this.compileResidue(childNode, depth + 1);
         ctx.node.appendChild(childNode);
+        childNode.context.viewportAgent!.scheduleUpdate(childNode);
         break;
       }
     }
@@ -536,7 +514,6 @@ export class RouteTreeCompiler {
       append: append,
       residue: result.residue === null ? [] : [ViewportInstruction.create(result.residue)],
     });
-    viewportAgent.scheduleUpdate(childCtx.node);
 
     this.logger.trace(() => `resolveConfigured(instruction:${instruction},depth:${depth},append:${append}) -> ${childCtx.node}`);
 
@@ -600,7 +577,6 @@ export class RouteTreeCompiler {
       append,
       residue: [...instruction.children], // Children must be cloned, because residue will be mutated by the compiler
     });
-    viewportAgent.scheduleUpdate(childCtx.node);
 
     return childCtx.node;
   }

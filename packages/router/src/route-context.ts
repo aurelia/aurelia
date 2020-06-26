@@ -130,6 +130,10 @@ export class RouteContext implements IContainer {
   private readonly recognizer: RouteRecognizer;
 
   private constructor(
+    /**
+     * The viewport hosting the component associated with this RouteContext.
+     * This is only `null` for the root RouteContext.
+     */
     public readonly viewportAgent: ViewportAgent | null,
     public readonly parent: IRouteContext | null,
     public readonly component: CustomElementDefinition,
@@ -447,11 +451,6 @@ export class RouteContext implements IContainer {
     }
   }
 
-  public async update(): Promise<void> {
-    this.logger.trace(`update()`);
-    return this.viewportAgent?.update();
-  }
-
   public recognize(path: string): RecognizedRoute | null {
     this.logger.trace(`recognize(path:'${path}')`);
     return this.recognizer.recognize(path);
@@ -459,8 +458,8 @@ export class RouteContext implements IContainer {
 
   public toString(): string {
     const vpAgents = this.childViewportAgents;
-    const viewports = `[${vpAgents.map(String).join(',')}]`;
-    return `RouteContext(friendlyPath:'${this.friendlyPath}',viewports:${viewports})`;
+    const viewports = vpAgents.map(String).join(',');
+    return `RC(path:'${this.friendlyPath}',viewports:[${viewports}])`;
   }
 
   private printTree(): string {

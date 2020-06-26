@@ -2,6 +2,7 @@ import {
   LogLevel,
   Constructable,
   kebabCase,
+  ILogConfig,
 } from '@aurelia/kernel';
 import {
   assert,
@@ -41,8 +42,8 @@ function getText(spec: CSpec): string {
     return name(x);
   }).join('');
 }
-function assertComponentsVisible(host: HTMLElement, spec: CSpec): void {
-  assert.strictEqual(host.textContent, getText(spec));
+function assertComponentsVisible(host: HTMLElement, spec: CSpec, msg: string = ''): void {
+  assert.strictEqual(host.textContent, getText(spec), msg);
 }
 function assertIsActive(
   router: IRouter,
@@ -79,6 +80,8 @@ async function createFixture<T extends Constructable>(
 
   assertComponentsVisible(host, [Component]);
 
+  const logConfig = container.get(ILogConfig);
+
   return {
     ctx,
     au,
@@ -87,6 +90,12 @@ async function createFixture<T extends Constructable>(
     scheduler,
     container,
     router,
+    startTracing() {
+      logConfig.level = LogLevel.trace;
+    },
+    stopTracing() {
+      logConfig.level = level;
+    },
     async tearDown() {
       assert.isSchedulerEmpty();
 
@@ -290,15 +299,15 @@ describe('router (smoke tests)', function () {
       const { router, host, tearDown } = await createFixture(Root1, Z);
 
       let result = await router.goto(B02);
-      assertComponentsVisible(host, [Root1, B02]);
+      assertComponentsVisible(host, [Root1, B02], '#1');
       assert.strictEqual(result, true, '#1 result===true');
 
       result = await router.goto(A01);
-      assertComponentsVisible(host, [Root1, B02]);
+      assertComponentsVisible(host, [Root1, B02], '#2');
       assert.strictEqual(result, false, '#2 result===false');
 
       result = await router.goto(A02);
-      assertComponentsVisible(host, [Root1, B02]);
+      assertComponentsVisible(host, [Root1, B02], '#3');
       assert.strictEqual(result, false, '#3 result===false');
 
       await tearDown();
@@ -365,7 +374,7 @@ describe('router (smoke tests)', function () {
     });
 
     it(`${name(Root1)} can goto ${name(A11)}/${name(A01)},${name(A11)}/${name(A02)} in order`, async function () {
-      const { router, host, tearDown } = await createFixture(Root1, Z);
+      const { router, host, tearDown, startTracing, stopTracing } = await createFixture(Root1, Z);
 
       await router.goto(`${name(A11)}/${name(A01)}`);
       assertComponentsVisible(host, [Root1, A11, A01]);
@@ -428,17 +437,17 @@ describe('router (smoke tests)', function () {
       const { router, host, tearDown } = await createFixture(Root2, Z);
 
       await router.goto(`${name(A11)}/${name(A12)}/${name(A01)}+${name(A12)}/${name(A01)}`);
-      assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A01]]]);
+      assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A01]]], '#1');
 
       let context = router.routeTree.root.children[1].context;
 
       await router.goto(`${name(A11)}/${name(A01)}`, { context });
-      assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A11, [A01]]]]);
+      assertComponentsVisible(host, [Root2, [A11, [A12, [A01]]], [A12, [A11, [A01]]]], '#2');
 
       context = router.routeTree.root.children[0].children[0].context;
 
       await router.goto(`${name(A02)}`, { context });
-      assertComponentsVisible(host, [Root2, [A11, [A12, [A02]]], [A12, [A11, [A01]]]]);
+      assertComponentsVisible(host, [Root2, [A11, [A12, [A02]]], [A12, [A11, [A01]]]], '#3');
 
       await tearDown();
     });

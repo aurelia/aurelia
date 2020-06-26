@@ -188,11 +188,11 @@ export class ViewportInstruction implements IViewportInstruction {
   }
 
   public toString(): string {
-    const component = `component:${this.component}`;
+    const component = `c:${this.component}`;
     const viewport = this.viewport === null ? '' : `viewport:${this.viewport}`;
     const children = this.children.length === 0 ? '' : `children:[${this.children.map(String).join(',')}]`;
     const props = [component, viewport, children].filter(Boolean).join(',');
-    return `ViewportInstruction(${props})`;
+    return `VPI(${props})`;
   }
 }
 
@@ -388,9 +388,9 @@ export class TypedNavigationInstruction<
   public toString(this: ITypedNavigationInstruction_T): string {
     switch (this.type) {
       case NavigationInstructionType.CustomElementDefinition:
-        return `CustomElementDefinition(name:'${this.value.name}')`;
+        return `CEDef(name:'${this.value.name}')`;
       case NavigationInstructionType.IRouteViewModel:
-        return `ViewModel(name:'${CustomElement.getDefinition(this.value.constructor as Constructable).name}')`;
+        return `VM(name:'${CustomElement.getDefinition(this.value.constructor as Constructable).name}')`;
       case NavigationInstructionType.ViewportInstruction:
         return this.value.toString();
       case NavigationInstructionType.string:

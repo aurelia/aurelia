@@ -123,63 +123,51 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     return this.controller.deactivate(initiator ?? this.controller, parent, flags);
   }
 
-  public async canEnter(next: RouteNode): Promise<boolean | ViewportInstructionTree> {
+  public canEnter(next: RouteNode): boolean | ViewportInstructionTree | Promise<boolean | ViewportInstructionTree> {
     if (this.hasCanEnter) {
       this.logger.trace(`canEnter(next:${next}) - invoking hook on component`);
+      const result = this.instance.canEnter!(next.params, next, this.routeNode);
+      if (result instanceof Promise) {
+        return result.then(function (x) {
+          if (typeof result === 'boolean') {
+            return result;
+          }
 
-      const result = await this.instance.canEnter!(next.params, next, this.routeNode);
-      if (typeof result === 'boolean') {
-        this.logger.trace(`canEnter(next:${next}) - component returned ${result}`);
-
-        return result;
+          return ViewportInstructionTree.create(x);
+        });
       }
-
-      const instructions = ViewportInstructionTree.create(result);
-
-      this.logger.trace(`canEnter(next:${next}) - component returned ${instructions}`);
-
-      return instructions;
-    } else {
-      this.logger.trace(`canEnter(next:${next}) - component does not implement this hook, so skipping`);
-
-      return true;
     }
+
+    this.logger.trace(`canEnter(next:${next}) - component does not implement this hook, so skipping`);
+    return true;
   }
 
-  public async enter(next: RouteNode): Promise<void> {
+  public enter(next: RouteNode): void | Promise<void> {
     if (this.hasEnter) {
       this.logger.trace(`enter(next:${next}) - invoking hook on component`);
-
-      await this.instance.enter!(next.params, next, this.routeNode);
-    } else {
-      this.logger.trace(`enter(next:${next}) - component does not implement this hook, so skipping`);
+      return this.instance.enter!(next.params, next, this.routeNode);
     }
+
+    this.logger.trace(`enter(next:${next}) - component does not implement this hook, so skipping`);
   }
 
-  public async canLeave(next: RouteNode | null): Promise<boolean> {
+  public canLeave(next: RouteNode | null): boolean | Promise<boolean> {
     if (this.hasCanLeave) {
       this.logger.trace(`canLeave(next:${next}) - invoking hook on component`);
-
-      const result = await this.instance.canLeave!(next, this.routeNode);
-
-      this.logger.trace(`canLeave(next:${next}) - component returned ${result}`);
-
-      return result;
-    } else {
-      this.logger.trace(`canLeave(next:${next}) - component does not implement this hook, so skipping`);
-
-      return true;
+      return this.instance.canLeave!(next, this.routeNode);
     }
+
+    this.logger.trace(`canLeave(next:${next}) - component does not implement this hook, so skipping`);
+    return true;
   }
 
-  public async leave(next: RouteNode | null): Promise<void> {
+  public leave(next: RouteNode | null): void | Promise<void> {
     if (this.hasLeave) {
       this.logger.trace(`leave(next:${next}) - invoking hook on component`);
-
-      await this.instance.leave!(next, this.routeNode);
-    } else {
-      this.logger.trace(`leave(next:${next}) - component does not implement this hook, so skipping`);
+      return this.instance.leave!(next, this.routeNode);
     }
+
+    this.logger.trace(`leave(next:${next}) - component does not implement this hook, so skipping`);
   }
 
   public isSameComponent(node: RouteNode): boolean {
@@ -198,15 +186,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     return false;
   }
 
-  public async update(node: RouteNode): Promise<void> {
-    if (!this.routeNode.shallowEquals(node)) {
-      // TODO
-    }
-
-    await Promise.resolve();
-  }
-
   public toString(): string {
-    return `ComponentAgent(ctx.friendlyPath:'${this.ctx.friendlyPath}',definition.component.name:'${this.definition.component.name}')`;
+    return `CA(ctx:'${this.ctx.friendlyPath}',c:'${this.definition.component.name}')`;
   }
 }

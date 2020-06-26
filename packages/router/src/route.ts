@@ -39,9 +39,9 @@ export type Routeable = (
 export interface IRouteConfig extends Partial<RouteConfig> { }
 export interface IChildRouteConfig extends IRouteConfig, Pick<ChildRouteConfig, 'component'> { }
 
-export type ReentryBehavior = 'none' | 'replace' | 'invoke-lifecycles';
-export type ReentryBehaviorOrFunc = ReentryBehavior | ((current: RouteNode, next: RouteNode) => ReentryBehavior);
-export function defaultReentryBehavior(current: RouteNode, next: RouteNode): ReentryBehavior {
+export type TransitionPlan = 'none' | 'replace' | 'invoke-lifecycles';
+export type TransitionPlanOrFunc = TransitionPlan | ((current: RouteNode, next: RouteNode) => TransitionPlan);
+export function defaultReentryBehavior(current: RouteNode, next: RouteNode): TransitionPlan {
   if (!shallowEquals(current.params, next.params)) {
     return 'invoke-lifecycles';
   }
@@ -76,7 +76,7 @@ export class RouteConfig {
      *
      * By default, calls the router lifecycle hooks only if the parameters have changed, otherwise does nothing.
      */
-    public readonly reentryBehavior: ReentryBehaviorOrFunc,
+    public readonly transitionPlan: TransitionPlanOrFunc,
     /**
      * The name of the viewport this component should be loaded into.
      *
@@ -103,7 +103,7 @@ export class RouteConfig {
 
         const caseSensitive = Type?.caseSensitive ?? false;
         const id = Type?.id ?? path;
-        const reentryBehavior = Type?.reentryBehavior ?? defaultReentryBehavior;
+        const reentryBehavior = Type?.transitionPlan ?? defaultReentryBehavior;
         const viewport = Type?.viewport ?? null;
         const data = Type?.data ?? {};
         const children = Type?.children ?? noChildren;
@@ -117,7 +117,7 @@ export class RouteConfig {
         const path = config.path ?? Type?.path ?? null;
         const caseSensitive = config.caseSensitive ?? Type?.caseSensitive ?? false;
         const id = config.id ?? Type?.id ?? path;
-        const reentryBehavior = config.reentryBehavior ?? Type?.reentryBehavior ?? defaultReentryBehavior;
+        const reentryBehavior = config.transitionPlan ?? Type?.transitionPlan ?? defaultReentryBehavior;
         const viewport = config.viewport ?? Type?.viewport ?? null;
         const data = {
           ...Type?.data,
@@ -162,7 +162,7 @@ export class ChildRouteConfig extends RouteConfig {
     id: string | null,
     path: string | null,
     caseSensitive: boolean,
-    reentryBehavior: ReentryBehaviorOrFunc,
+    reentryBehavior: TransitionPlanOrFunc,
     viewport: string | null,
     data: Params,
     children: readonly Routeable[],

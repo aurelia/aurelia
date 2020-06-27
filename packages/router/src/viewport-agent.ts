@@ -40,6 +40,7 @@ export class ViewportAgent {
 
   private isViewportActive: boolean = false;
 
+  private prevCA: ComponentAgent | null = null;
   private curCA: ComponentAgent | null = null;
   private curState: CurrentState = 'empty';
   private nextCA: ComponentAgent | null = null;
@@ -417,8 +418,8 @@ export class ViewportAgent {
   }
 
   public swap(transition: Transition): void | Promise<void> {
-    return onResolve(this.runDeactivate(transition), () => {
-      return this.runActivate(transition);
+    return onResolve(this.runActivate(transition), () => {
+      return this.runDeactivate(transition);
     });
   }
 
@@ -437,13 +438,13 @@ export class ViewportAgent {
             case 'replace': {
               this.logger.trace(() => `runDeactivate(transition:${transition}) - starting [deactivate]`);
 
-              const ca = this.curCA!;
+              const ca = this.prevCA!;
               const controller = this.hostController as ICustomElementController<HTMLElement>;
               const flags = LifecycleFlags.none;
 
               return onResolve(ca.deactivate(null, controller, flags), () => {
                 this.logger.trace(() => `runDeactivate(transition:${transition}) - finished [deactivate]`);
-                this.curCA = null;
+                this.prevCA = null;
               });
             }
           }
@@ -479,6 +480,7 @@ export class ViewportAgent {
             case 'replace': {
               this.logger.trace(() => `runActivate(transition:${transition}) - starting [activate]`);
 
+              this.prevCA = this.curCA;
               const ca = this.curCA = this.nextCA!;
               this.nextCA = null;
               const controller = this.hostController as ICustomElementController<HTMLElement>;

@@ -92,11 +92,11 @@ describe('router hooks', function () {
 
       hia.setPhase('goto(child1)');
 
-      await router.goto(Child1);
+      await router.goto('child1');
 
       hia.setPhase('goto(child2)');
 
-      await router.goto(Child2);
+      await router.goto('child2');
 
       await tearDown();
 
@@ -172,11 +172,11 @@ describe('router hooks', function () {
 
       hia.setPhase('goto(child1+child2)');
 
-      await router.goto([Child1, Child2]);
+      await router.goto('child1+child2');
 
       hia.setPhase('goto(child3+child4)');
 
-      await router.goto([Child3, Child4]);
+      await router.goto('child3+child4');
 
       await tearDown();
 
@@ -274,11 +274,11 @@ describe('router hooks', function () {
 
       hia.setPhase('goto(parent1/child1)');
 
-      await router.goto({ component: Parent1, children: [Child1] });
+      await router.goto('parent1/child1');
 
       hia.setPhase('goto(parent2/child2)');
 
-      await router.goto({ component: Parent2, children: [Child2] });
+      await router.goto('parent2/child2');
 
       await tearDown();
 

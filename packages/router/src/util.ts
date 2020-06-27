@@ -52,15 +52,16 @@ export function resolveAll(
 export function walkViewportTree<R extends void | Promise<void>>(
   nodes: RouteNode[],
   callback: (viewportAgent: ViewportAgent) => R,
-  seen: Set<RouteNode> = new Set(),
+  seen: WeakSet<ViewportAgent> = new WeakSet(),
 ): R {
   return resolveAll(nodes.map(function (node) {
-    if (!seen.has(node)) {
-      seen.add(node);
-      return onResolve(callback(node.context.viewportAgent!), function () {
+    const viewportAgent = node.context.viewportAgent!;
+    if (!seen.has(viewportAgent)) {
+      seen.add(viewportAgent);
+      return onResolve(callback(viewportAgent), function () {
         return walkViewportTree(node.children, callback, seen);
       });
     }
-    return void 0;
+    return walkViewportTree(node.children, callback, seen);
   })) as R;
 }

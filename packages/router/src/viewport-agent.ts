@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
-  ILogger, transient,
+  ILogger,
 } from '@aurelia/kernel';
 import {
   IHydratedController,
@@ -18,7 +18,8 @@ import {
   ComponentAgent,
 } from './component-agent';
 import {
-  RouteNode, RouteTreeCompiler,
+  RouteNode,
+  RouteTreeCompiler,
 } from './route-tree';
 import {
   IRouteContext,
@@ -137,40 +138,25 @@ export class ViewportAgent {
       case 'empty': {
         this.nextNode = next;
         this.nextState = 'isScheduled';
-
-        switch (this.curState) {
-          case 'empty':
-          case 'isActive': {
-            break;
-          }
-          case 'canLeave':
-          case 'leave': {
-            throw new Error(`Unexpected currentState at ${this}.scheduleUpdate(next:${next})`);
-          }
-          case 'deactivate': {
-            // Correct the state that was left behind by the previous update
-            if (this.curCA === null) {
-              this.logger.trace(`scheduleUpdate(next:${next}) - setting curState from 'deactivate' to 'empty'`);
-              this.curState = 'empty';
-            } else {
-              this.logger.trace(`scheduleUpdate(next:${next}) - setting curState from 'deactivate' to 'isActive'`);
-              this.curState = 'isActive';
-            }
-          }
-        }
         break;
       }
       case 'isScheduled':
       case 'canEnter':
-      case 'enter': {
+      case 'enter':
+      case 'activate': {
         throw new Error(`Unexpected nextState at ${this}.scheduleUpdate(next:${next})`);
       }
-      case 'activate': {
-        this.nextNode = next;
-        this.nextState = 'isScheduled';
-        // Correct the state that was left behind by the previous update
-        this.curState = 'isActive';
+    }
+
+    switch (this.curState) {
+      case 'empty':
+      case 'isActive': {
         break;
+      }
+      case 'canLeave':
+      case 'leave':
+      case 'deactivate': {
+        throw new Error(`Unexpected curState at ${this}.scheduleUpdate(next:${next})`);
       }
     }
 
@@ -436,16 +422,22 @@ export class ViewportAgent {
               return;
             }
             case 'replace': {
-              this.logger.trace(() => `runDeactivate(transition:${transition}) - starting [deactivate]`);
+              const ca = this.prevCA;
+              if (ca === null) {
+                this.logger.trace(() => `runDeactivate(transition:${transition}) - skipping [deactivate] because no previous component`);
+                return;
+              } else {
+                this.logger.trace(() => `runDeactivate(transition:${transition}) - starting [deactivate]`);
 
-              const ca = this.prevCA!;
-              const controller = this.hostController as ICustomElementController<HTMLElement>;
-              const flags = LifecycleFlags.none;
+                const controller = this.hostController as ICustomElementController<HTMLElement>;
+                const flags = LifecycleFlags.none;
 
-              return onResolve(ca.deactivate(null, controller, flags), () => {
-                this.logger.trace(() => `runDeactivate(transition:${transition}) - finished [deactivate]`);
-                this.prevCA = null;
-              });
+                return onResolve(ca.deactivate(null, controller, flags), () => {
+                  this.logger.trace(() => `runDeactivate(transition:${transition}) - finished [deactivate]`);
+                  this.prevCA = null;
+                });
+
+              }
             }
           }
         }
@@ -504,6 +496,45 @@ export class ViewportAgent {
       case 'activate': {
         this.logger.trace(() => `runActivate(transition:${transition}) - skipping: ${this}`);
         return;
+      }
+    }
+  }
+
+  public finalize(transition: Transition): void {
+    switch (this.curState) {
+      case 'empty': {
+        break;
+      }
+      case 'isActive':
+      case 'canLeave':
+      case 'leave': {
+        throw new Error(`Unexpected curState at ${this}.finalize(transition:${transition})`);
+      }
+      case 'deactivate': {
+        if (this.curCA === null) {
+          this.logger.trace(`finalize(transition:${transition}) - setting curState from 'deactivate' to 'empty'`);
+          this.curState = 'empty';
+        } else {
+          this.logger.trace(`finalize(transition:${transition}) - setting curState from 'deactivate' to 'isActive'`);
+          this.curState = 'isActive';
+        }
+      }
+    }
+
+    switch (this.nextState) {
+      case 'empty': {
+        break;
+      }
+      case 'isScheduled':
+      case 'canEnter':
+      case 'enter': {
+        throw new Error(`Unexpected nextState at ${this}.finalize(transition:${transition})`);
+      }
+      case 'activate': {
+        this.logger.trace(`finalize(transition:${transition}) - setting curState 'isActive'`);
+        this.curState = 'isActive';
+        this.nextState = 'empty';
+        break;
       }
     }
   }

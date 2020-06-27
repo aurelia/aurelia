@@ -865,6 +865,21 @@ export class Router {
               return onResolve(resolveAll(transition.routeTree.root.children.map((child, i) => {
                 return this.processResidue(transition, child, i, 1);
               })), () => {
+                this.logger.trace(() => `dequeue(transition:${transition}) - finished processResidue on children of next, finalizing transition`);
+
+                /**
+                 * Step 6 - finalize the transition for all viewports that were involved in the transition
+                 */
+                walkViewportTree(
+                  [
+                    ...transition.previousRouteTree.root.children,
+                    ...transition.routeTree.root.children,
+                  ],
+                  function (viewport) {
+                    viewport.finalize(transition);
+                  }
+                );
+
                 this.navigated = true;
                 this.events.publish(new NavigationEndEvent(
                   transition.id,

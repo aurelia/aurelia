@@ -178,10 +178,18 @@ export class ViewportAgent {
     switch (this.plan) {
       case 'none':
       case 'invoke-lifecycles': {
+        // These plans can only occur if there is already a current component active in this viewport,
+        // and it is the same component as `next`.
+        // This means the RouteContext of `next` was created during a previous transition and might contain
+        // already-active children. If that is the case, we want to eagerly call the router hooks on them during the
+        // first pass of `Router.invokeLifecycles` instead of lazily in a later pass during `Router.processResidue`.
+        // By calling `compileResidue` here on the current context, we're ensuring that such nodes are created and
+        // their target viewports have the appropriate updates scheduled.
         RouteTreeCompiler.compileResidue(next.tree, next.tree.instructions, next.context);
         break;
       }
       case 'replace': {
+        // In the case of 'replace', always process this node and its subtree as if it's a new one (so in this case, do nothing special here)
         break;
       }
     }

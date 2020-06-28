@@ -27,6 +27,7 @@ import {
   NavigationInstruction,
   ViewportInstructionTree,
 } from './instructions';
+import { onResolve } from './util';
 
 export interface IRouteViewModel extends ICustomElementViewModel<HTMLElement> {
   canEnter?(
@@ -126,16 +127,13 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   public canEnter(next: RouteNode): boolean | ViewportInstructionTree | Promise<boolean | ViewportInstructionTree> {
     if (this.hasCanEnter) {
       this.logger.trace(`canEnter(next:${next}) - invoking hook on component`);
-      const result = this.instance.canEnter!(next.params, next, this.routeNode);
-      if (result instanceof Promise) {
-        return result.then(function (x) {
-          if (typeof result === 'boolean') {
-            return result;
-          }
+      return onResolve(this.instance.canEnter!(next.params, next, this.routeNode), result => {
+        if (typeof result === 'boolean') {
+          return result;
+        }
 
-          return ViewportInstructionTree.create(x);
-        });
-      }
+        return ViewportInstructionTree.create(result);
+      });
     }
 
     this.logger.trace(`canEnter(next:${next}) - component does not implement this hook, so skipping`);
@@ -168,22 +166,6 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     }
 
     this.logger.trace(`leave(next:${next}) - component does not implement this hook, so skipping`);
-  }
-
-  public isSameComponent(node: RouteNode): boolean {
-    const currentComponent = this.routeNode.component;
-    const nextComponent = node.component;
-    if (currentComponent === nextComponent) {
-      this.logger.trace(() => `isSameComponent(node:${node}) -> true`);
-
-      return true;
-    }
-
-    // TODO: may need specific heuristics for component instances and/or uncompiled definitions / identical definitions under different contexts, etc.
-
-    this.logger.trace(() => `isSameComponent(node:${node}) -> false`);
-
-    return false;
   }
 
   public toString(): string {

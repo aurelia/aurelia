@@ -784,126 +784,46 @@ export class Router {
     RouteTreeCompiler.compileRoot(this.routeTree, transition.finalInstructions, navigationContext);
     this.instructions = transition.finalInstructions;
 
-    /**
-     * Step 1 - run the canLeave hook on the previous routeTree
-     */
-    this.logger.trace(() => `dequeue(transition:${transition}) - starting [canLeave] on previous`);
-    return onResolve(walkViewportTree(
+    return onResolve(this.runLifecycles(
+      transition,
       transition.previousRouteTree.root.children,
-      function (viewport) {
-        return viewport.canLeave(transition);
-      }
+      transition.routeTree.root.children,
     ), () => {
-      /**
-       * Step 1.1 - if any of the canLeave hooks returned something other than `true`, we cancel the navigation
-       */
-      if (transition.guardsResult !== true) {
-        return this.cancelNavigation(transition);
-      }
+      return onResolve(resolveAll(transition.routeTree.root.children.map((child, i) => {
+        return this.processResidue(transition, child, i, 1);
+      })), () => {
+        this.logger.trace(() => `dequeue(transition:${transition}) - finished processResidue, finalizing transition`);
 
-      this.logger.trace(() => `dequeue(transition:${transition}) - finished [canLeave] on previous, starting [canEnter] on next`);
-
-      /**
-       * Step 2 - run the canEnter hook on the current top-level nodes
-       */
-      return onResolve(walkViewportTree(
-        transition.routeTree.root.children,
-        function (viewport) {
-          return viewport.canEnter(transition);
-        }
-      ), () => {
-        /**
-         * Step 2.1 - if any of the canEnter hooks returned something other than `true`, we cancel the navigation
-         */
-        if (transition.guardsResult !== true) {
-          return this.cancelNavigation(transition);
-        }
-
-        this.logger.trace(() => `dequeue(transition:${transition}) - finished [canEnter] on next, starting [leave] on previous`);
-
-        /**
-         * Step 3 - run the leave hook on the previous top-level nodes
-         */
-        return onResolve(walkViewportTree(
-          transition.previousRouteTree.root.children,
+        walkViewportTree(
+          [
+            ...transition.previousRouteTree.root.children,
+            ...transition.routeTree.root.children,
+          ],
           function (viewport) {
-            return viewport.leave(transition);
+            viewport.endTransition(transition);
           }
-        ), () => {
-          this.logger.trace(() => `dequeue(transition:${transition}) - finished [leave] on previous, starting [enter] on next`);
+        );
 
-          /**
-           * Step 4 - run the enter hook on the current top-level nodes
-           */
-          return onResolve(walkViewportTree(
-            transition.routeTree.root.children,
-            function (viewport) {
-              return viewport.enter(transition);
-            }
-          ), () => {
-            this.logger.trace(() => `dequeue(transition:${transition}) - finished [enter] on next, starting [swap] on previous&next simultaneously`);
+        this.navigated = true;
+        this.events.publish(new NavigationEndEvent(
+          transition.id,
+          transition.instructions,
+          this.
+          instructions,
+        ));
+        this.lastSuccessfulNavigation = this.activeNavigation;
+        this.activeNavigation = null;
+        this.applyHistoryState(transition);
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        transition.resolve!(true);
 
-            /**
-             * Step 5 - run the deactivate hooks on all "outgoing" components and the activate hooks on all "incoming" components for all known viewports
-             *
-             * Note: this will often result in at least two calls into the same viewports, but the second one is always guarded off by the internal state
-             */
-            return onResolve(walkViewportTree(
-              [
-                ...transition.previousRouteTree.root.children,
-                ...transition.routeTree.root.children,
-              ],
-              function (viewport) {
-                return viewport.swap(transition);
-              }
-            ), () => {
-              this.logger.trace(() => `dequeue(transition:${transition}) - finished [swap] on previous&next simultaneously, starting processResidue on children of next`);
-
-              /**
-               * Step 5.1 - see `processResidue`
-               */
-              return onResolve(resolveAll(transition.routeTree.root.children.map((child, i) => {
-                return this.processResidue(transition, child, i, 1);
-              })), () => {
-                this.logger.trace(() => `dequeue(transition:${transition}) - finished processResidue on children of next, finalizing transition`);
-
-                /**
-                 * Step 6 - finalize the transition for all viewports that were involved in the transition
-                 */
-                walkViewportTree(
-                  [
-                    ...transition.previousRouteTree.root.children,
-                    ...transition.routeTree.root.children,
-                  ],
-                  function (viewport) {
-                    viewport.finalize(transition);
-                  }
-                );
-
-                this.navigated = true;
-                this.events.publish(new NavigationEndEvent(
-                  transition.id,
-                  transition.instructions,
-                  this.
-                  instructions,
-                ));
-                this.lastSuccessfulNavigation = this.activeNavigation;
-                this.activeNavigation = null;
-                this.applyHistoryState(transition);
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-                transition.resolve!(true);
-
-                this.runNextTransition(transition);
-              });
-            });
-          });
-        });
+        this.runNextTransition(transition);
       });
     });
   }
 
   /**
-   * Step 5.1 - see if there is any residue, and recurse through them invoking canEnter -> enter -> Controller.activate, if applicable
+   * See if there is any residue, and recurse through them invoking canEnter -> enter -> Controller.activate, if applicable
    *
    * NOTE: there are two "modes" with important differences in semantics from this point onwards: "new" and "old" (the latter mimicking the way v1 worked).
    *
@@ -930,53 +850,92 @@ export class Router {
 
     RouteTreeCompiler.compileResidue(this.routeTree, transition.finalInstructions, ctx);
 
+    return onResolve(this.runLifecycles(transition, node.children, node.children), () => {
+      return resolveAll(node.children.map((child, i) => {
+        return this.processResidue(transition, child, i, depth + 1);
+      }));
+    });
+  }
+
+  private runLifecycles(
+    transition: Transition,
+    previous: RouteNode[],
+    next: RouteNode[],
+  ): void | Promise<void> {
     /**
-     * Step 5.1.1 - run the canEnter hook on the immediate children of the current node
+     * Step 1 - run the canLeave hook on the previous nodes
      */
-    this.logger.trace(() => `processResidue(index:${index},depth:${depth},node:${node}) - starting [canEnter]`);
+    this.logger.trace(() => `runLifecycles(transition:${transition}) - starting [canLeave] on previous`);
     return onResolve(walkViewportTree(
-      node.children,
+      previous,
       function (viewport) {
-        return viewport.canEnter(transition);
+        return viewport.canLeave(transition);
       }
     ), () => {
       /**
-       * Step 5.1.1.1 - if any of the canEnter hooks returned something other than `true`, we cancel the navigation
+       * Step 1.1 - if any of the canLeave hooks returned something other than `true`, we cancel the navigation
        */
       if (transition.guardsResult !== true) {
         return this.cancelNavigation(transition);
       }
 
-      this.logger.trace(() => `processResidue(index:${index},depth:${depth},node:${node}) - finished [canEnter], starting [enter]`);
+      this.logger.trace(() => `runLifecycles(transition:${transition}) - finished [canLeave] on previous, starting [canEnter] on next`);
 
       /**
-       * Step 5.1.2 - run the enter hook on the immediate children of the current node
+       * Step 2 - run the canEnter hook on the current nodes
        */
       return onResolve(walkViewportTree(
-        node.children,
+        next,
         function (viewport) {
-          return viewport.enter(transition);
+          return viewport.canEnter(transition);
         }
       ), () => {
-        this.logger.trace(() => `processResidue(index:${index},depth:${depth},node:${node}) - finished [enter], starting [activate]`);
+        /**
+         * Step 2.1 - if any of the canEnter hooks returned something other than `true`, we cancel the navigation
+         */
+        if (transition.guardsResult !== true) {
+          return this.cancelNavigation(transition);
+        }
+
+        this.logger.trace(() => `runLifecycles(transition:${transition}) - finished [canEnter] on next, starting [leave] on previous`);
 
         /**
-         * Step 5.1.3 - run the runtime activate hook on the immediate children of the current node
+         * Step 3 - run the leave hook on the previous nodes
          */
         return onResolve(walkViewportTree(
-          node.children,
+          previous,
           function (viewport) {
-            return viewport.swap(transition);
+            return viewport.leave(transition);
           }
         ), () => {
-          this.logger.trace(() => `processResidue(index:${index},depth:${depth},node:${node}) - finished [activate]`);
+          this.logger.trace(() => `runLifecycles(transition:${transition}) - finished [leave] on previous, starting [enter] on next`);
 
           /**
-           * Step 5.1.3.1 - recursive into processResidue until we're at the leaf nodes
+           * Step 4 - run the enter hook on the current nodes
            */
-          return resolveAll(node.children.map((child, i) => {
-            return this.processResidue(transition, child, i, depth + 1);
-          }));
+          return onResolve(walkViewportTree(
+            next,
+            function (viewport) {
+              return viewport.enter(transition);
+            }
+          ), () => {
+            this.logger.trace(() => `runLifecycles(transition:${transition}) - finished [enter] on next, starting [swap] on previous&next`);
+
+            /**
+             * Step 5 - run the deactivate hooks on all "outgoing" components and the activate hooks on all "incoming" components for all known viewports
+             */
+            return onResolve(walkViewportTree(
+              [
+                ...previous,
+                ...next,
+              ],
+              function (viewport) {
+                return viewport.swap(transition);
+              }
+            ), () => {
+              this.logger.trace(() => `runLifecycles(transition:${transition}) - finished [swap] on previous&next`);
+            });
+          });
         });
       });
     });
@@ -1011,12 +970,15 @@ export class Router {
   ): void | Promise<void> {
     this.logger.trace(() => `cancelNavigation(transition:${transition})`);
 
-    walkViewportTree(transition.previousRouteTree.root.children, function (viewport) {
-      viewport.cancelUpdate();
-    });
-    walkViewportTree(transition.routeTree.root.children, function (viewport) {
-      viewport.cancelUpdate();
-    });
+    walkViewportTree(
+      [
+        ...transition.previousRouteTree.root.children,
+        ...transition.routeTree.root.children,
+      ],
+      function (viewport) {
+        viewport.cancelUpdate();
+      },
+    );
 
     this.activeNavigation = null;
     this.instructions = transition.prevInstructions;

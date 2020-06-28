@@ -55,10 +55,10 @@ export function walkViewportTree<R extends void | Promise<void>>(
   seen: WeakSet<ViewportAgent> = new WeakSet(),
 ): R {
   return resolveAll(nodes.map(function (node) {
-    const viewportAgent = node.context.viewportAgent!;
-    if (!seen.has(viewportAgent)) {
-      seen.add(viewportAgent);
-      return onResolve(callback(viewportAgent), function () {
+    const vpa = node.context.vpa;
+    if (!seen.has(vpa)) {
+      seen.add(vpa);
+      return onResolve(callback(vpa), function () {
         return walkViewportTree(node.children, callback, seen);
       });
     }

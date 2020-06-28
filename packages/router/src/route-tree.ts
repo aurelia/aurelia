@@ -387,7 +387,7 @@ export class RouteTreeCompiler {
             const childNode = this.resolve(instruction, depth, append);
             this.compileResidue(childNode, depth + 1);
             ctx.node.appendChild(childNode);
-            childNode.context.viewportAgent!.scheduleUpdate(childNode);
+            childNode.context.vpa.scheduleUpdate(childNode);
           }
         }
         break;
@@ -397,7 +397,7 @@ export class RouteTreeCompiler {
         const childNode = this.resolve(instruction, depth, append);
         this.compileResidue(childNode, depth + 1);
         ctx.node.appendChild(childNode);
-        childNode.context.viewportAgent!.scheduleUpdate(childNode);
+        childNode.context.vpa.scheduleUpdate(childNode);
         break;
       }
     }
@@ -419,7 +419,9 @@ export class RouteTreeCompiler {
   ): void {
     this.logger.trace(() => `updateOrCompile(node:${node})`);
 
-    node.context.viewportAgent?.scheduleUpdate(node);
+    if (!node.context.isRoot) {
+      node.context.vpa.scheduleUpdate(node);
+    }
     node.queryParams = instructions.queryParams;
     node.fragment = instructions.fragment;
 

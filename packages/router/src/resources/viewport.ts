@@ -18,6 +18,9 @@ import {
 import {
   IRouteContext,
 } from '../route-context';
+import {
+  onResolve,
+} from '../util';
 
 export interface IViewport {
   readonly name: string;
@@ -62,6 +65,16 @@ export class ViewportCustomElement implements ICustomElementViewModel<HTMLElemen
     this.agent = this.ctx.registerViewport(this);
   }
 
+  public beforeBind(
+    initiator: IHydratedController<HTMLElement>,
+    parent: IHydratedParentController<HTMLElement>,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
+    this.logger.trace('beforeBind()');
+
+    this.agent = this.ctx.registerViewport(this);
+  }
+
   public afterAttach(
     initiator: IHydratedController<HTMLElement>,
     parent: IHydratedParentController<HTMLElement>,
@@ -79,7 +92,10 @@ export class ViewportCustomElement implements ICustomElementViewModel<HTMLElemen
   ): void | Promise<void> {
     this.logger.trace('afterUnbind()');
 
-    return this.agent.deactivateFromViewport(initiator, this.controller, flags);
+    return onResolve(this.agent.deactivateFromViewport(initiator, this.controller, flags), () => {
+      this.ctx.unregisterViewport(this);
+      this.agent = (void 0)!;
+    });
   }
 
   public dispose(): void {

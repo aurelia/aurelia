@@ -88,6 +88,10 @@ export const IRouteContext = DI.createInterface<IRouteContext>('IRouteContext').
 export class RouteContext implements IContainer {
   private readonly childViewportAgents: ViewportAgent[] = [];
   public readonly root: IRouteContext;
+  public get isRoot(): boolean {
+    return this.parent === null;
+  }
+
   /**
    * The path from the root RouteContext up to this one.
    */
@@ -124,22 +128,42 @@ export class RouteContext implements IContainer {
     }
   }
 
+  private _vpa: ViewportAgent | null = null;
+  /**
+   * The viewport hosting the component associated with this RouteContext.
+   * The root RouteContext has no ViewportAgent and will throw when attempting to access this property.
+   */
+  public get vpa(): ViewportAgent {
+    const vpa = this._vpa;
+    if (vpa === null) {
+      throw new Error(`RouteContext has no ViewportAgent: ${this}`);
+    }
+    return vpa;
+  }
+  public set vpa(value: ViewportAgent) {
+    if (value === null || value === void 0) {
+      throw new Error(`Cannot set ViewportAgent to ${value} for RouteContext: ${this}`);
+    }
+    const prev = this._vpa;
+    if (prev !== value) {
+      this._vpa = value;
+      this.logger.trace(`ViewportAgent changed from ${prev} to ${value}`);
+    }
+  }
+
   private readonly logger: ILogger;
   private readonly container: IContainer;
   private readonly hostControllerProvider: InstanceProvider<ICustomElementController<HTMLElement>>;
   private readonly recognizer: RouteRecognizer;
 
   private constructor(
-    /**
-     * The viewport hosting the component associated with this RouteContext.
-     * This is only `null` for the root RouteContext.
-     */
-    public readonly viewportAgent: ViewportAgent | null,
+    viewportAgent: ViewportAgent | null,
     public readonly parent: IRouteContext | null,
     public readonly component: CustomElementDefinition,
     public readonly definition: RouteDefinition,
     public readonly parentContainer: IContainer,
   ) {
+    this._vpa = viewportAgent;
     if (parent === null) {
       this.root = this;
       this.path = [this];
@@ -193,6 +217,7 @@ export class RouteContext implements IContainer {
    *
    * This API is also used for direct routing even when there is no configuration at all.
    *
+   * @param viewportAgent - The ViewportAgent hosting the component associated with this RouteContext. If the RouteContext for the component already exists, the ViewportAgent will be updated in case it changed.
    * @param component - The custom element definition.
    * @param renderContext - The `controller.context` of the component hosting the viewport that the route will be loaded into.
    *
@@ -227,6 +252,10 @@ export class RouteContext implements IContainer {
       );
     } else {
       logger.trace(() => `returning existing RouteContext for ${routeDefinition}`);
+
+      if (viewportAgent !== null) {
+        routeContext.vpa = viewportAgent;
+      }
     }
 
     return routeContext;

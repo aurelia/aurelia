@@ -73,367 +73,392 @@ function getDefaultHIAConfig(): IHIAConfig {
 
 describe('router hooks', function () {
   describe('simple cases', function () {
-    it('c1 -> c2 -> c1 -> c2', async function () {
-      @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
-      class Root extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
-      }
+    @customElement({ name: 'a01', template: null })
+    class A01 extends TestRouteViewModelBase {
+      public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
+    }
+    @customElement({ name: 'a02', template: null })
+    class A02 extends TestRouteViewModelBase {
+      public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
+    }
+    @customElement({ name: 'a03', template: null })
+    class A03 extends TestRouteViewModelBase {
+      public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
+    }
+    @customElement({ name: 'a04', template: null })
+    class A04 extends TestRouteViewModelBase {
+      public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
+    }
 
-      @customElement({ name: 'c1' })
-      class C1 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
-      }
+    const A0 = [A01, A02, A03, A04];
 
-      @customElement({ name: 'c2' })
-      class C2 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
-      }
+    @customElement({ name: 'root1', template: '<au-viewport></au-viewport>'.repeat(1) })
+    class Root1 extends TestRouteViewModelBase {
+      public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
+    }
+    @customElement({ name: 'a11', template: '<au-viewport></au-viewport>'.repeat(1) })
+    class A11 extends TestRouteViewModelBase {
+      public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
+    }
+    @customElement({ name: 'a12', template: '<au-viewport></au-viewport>'.repeat(1) })
+    class A12 extends TestRouteViewModelBase {
+      public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
+    }
 
-      const { router, hia, tearDown } = await createFixture(Root, [C1, C2], getDefaultHIAConfig);
+    const A1 = [A11, A12];
 
-      hia.setPhase('goto(c1)#1');
-      await router.goto('c1');
+    @customElement({ name: 'root2', template: '<au-viewport></au-viewport>'.repeat(2) })
+    class Root2 extends TestRouteViewModelBase {
+      public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
+    }
+    @customElement({ name: 'a21', template: '<au-viewport></au-viewport>'.repeat(2) })
+    class A21 extends TestRouteViewModelBase {
+      public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
+    }
+    @customElement({ name: 'a22', template: '<au-viewport></au-viewport>'.repeat(2) })
+    class A22 extends TestRouteViewModelBase {
+      public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
+    }
 
-      hia.setPhase('goto(c2)#1');
-      await router.goto('c2');
+    const A2 = [A21, A22];
 
-      hia.setPhase('goto(c1)#2');
-      await router.goto('c1');
+    const A = [...A0, ...A1, ...A2];
 
-      hia.setPhase('goto(c2)#2');
-      await router.goto('c2');
+    for (const [$1, $2, $3, $4] of [
+      ['a01', 'a02', 'a01', 'a02'],
+      ['a01', 'a02', 'a03', 'a01'],
+      ['a01', 'a02', 'a01', 'a04'],
+    ]) {
+      it(`${$1} -> ${$2} -> ${$3} -> ${$4}`, async function () {
+        const { router, hia, tearDown } = await createFixture(Root1, A, getDefaultHIAConfig);
 
-      await tearDown();
+        hia.setPhase(`goto(${$1})#1`);
+        await router.goto($1);
 
-      const goto_c2 = [
-        'goto(c2)#.c1.canLeave',
-        'goto(c2)#.c2.canEnter',
-        'goto(c2)#.c1.leave',
-        'goto(c2)#.c2.enter',
-        'goto(c2)#.c2.beforeBind',
-        'goto(c2)#.c2.afterBind',
-        'goto(c2)#.c2.afterAttach',
-        'goto(c2)#.c2.afterAttachChildren',
-        'goto(c2)#.c1.beforeDetach',
-        'goto(c2)#.c1.beforeUnbind',
-        'goto(c2)#.c1.afterUnbind',
-        'goto(c2)#.c1.afterUnbindChildren',
-      ];
+        hia.setPhase(`goto(${$2})#2`);
+        await router.goto($2);
 
-      assert.deepStrictEqual(
-        hia.notifyHistory,
-        [
-          'start.root.beforeBind',
-          'start.root.afterBind',
-          'start.root.afterAttach',
-          'start.root.afterAttachChildren',
+        hia.setPhase(`goto(${$3})#3`);
+        await router.goto($3);
 
-          'goto(c1)#1.c1.canEnter',
-          'goto(c1)#1.c1.enter',
-          'goto(c1)#1.c1.beforeBind',
-          'goto(c1)#1.c1.afterBind',
-          'goto(c1)#1.c1.afterAttach',
-          'goto(c1)#1.c1.afterAttachChildren',
+        hia.setPhase(`goto(${$4})#4`);
+        await router.goto($4);
 
-          ...setNumber(goto_c2, 1),
+        await tearDown();
 
-          'goto(c1)#2.c2.canLeave',
-          'goto(c1)#2.c1.canEnter',
-          'goto(c1)#2.c2.leave',
-          'goto(c1)#2.c1.enter',
-          'goto(c1)#2.c1.beforeBind',
-          'goto(c1)#2.c1.afterBind',
-          'goto(c1)#2.c1.afterAttach',
-          'goto(c1)#2.c1.afterAttachChildren',
-          'goto(c1)#2.c2.beforeDetach',
-          'goto(c1)#2.c2.beforeUnbind',
-          'goto(c1)#2.c2.afterUnbind',
-          'goto(c1)#2.c2.afterUnbindChildren',
+        function computeExpectedCalls(
+          path: string,
+          num: number,
+          _1: string,
+          _2: string,
+        ): string[] {
+          return [
+            `goto(${path})#${num}.${_1}.canLeave`,
+            `goto(${path})#${num}.${_2}.canEnter`,
+            `goto(${path})#${num}.${_1}.leave`,
+            `goto(${path})#${num}.${_2}.enter`,
+            `goto(${path})#${num}.${_2}.beforeBind`,
+            `goto(${path})#${num}.${_2}.afterBind`,
+            `goto(${path})#${num}.${_2}.afterAttach`,
+            `goto(${path})#${num}.${_2}.afterAttachChildren`,
+            `goto(${path})#${num}.${_1}.beforeDetach`,
+            `goto(${path})#${num}.${_1}.beforeUnbind`,
+            `goto(${path})#${num}.${_1}.afterUnbind`,
+            `goto(${path})#${num}.${_1}.afterUnbindChildren`,
+          ];
+        }
 
-          ...setNumber(goto_c2, 2),
+        assert.deepStrictEqual(
+          hia.notifyHistory,
+          [
+            `start.root1.beforeBind`,
+            `start.root1.afterBind`,
+            `start.root1.afterAttach`,
+            `start.root1.afterAttachChildren`,
 
-          'stop.root.beforeDetach',
-          'stop.root.beforeUnbind',
-          'stop.root.afterUnbind',
-          'stop.c2.beforeDetach',
-          'stop.c2.beforeUnbind',
-          'stop.c2.afterUnbind',
-          'stop.c2.afterUnbindChildren',
-          'stop.root.afterUnbindChildren',
-        ],
-      );
+            `goto(${$1})#1.${$1}.canEnter`,
+            `goto(${$1})#1.${$1}.enter`,
+            `goto(${$1})#1.${$1}.beforeBind`,
+            `goto(${$1})#1.${$1}.afterBind`,
+            `goto(${$1})#1.${$1}.afterAttach`,
+            `goto(${$1})#1.${$1}.afterAttachChildren`,
 
-      hia.dispose();
-    });
+            ...computeExpectedCalls($2, 2, $1, $2),
 
-    it('c1+c2 -> c3+c4 -> c1+c2 -> c3+c4', async function () {
-      @customElement({ name: 'root', template: '<au-viewport></au-viewport><au-viewport></au-viewport>' })
-      class Root extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
-      }
+            ...computeExpectedCalls($3, 3, $2, $3),
 
-      @customElement({ name: 'c1' })
-      class C1 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
-      }
+            ...computeExpectedCalls($4, 4, $3, $4),
 
-      @customElement({ name: 'c2' })
-      class C2 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
-      }
+            `stop.root1.beforeDetach`,
+            `stop.root1.beforeUnbind`,
+            `stop.root1.afterUnbind`,
+            `stop.${$4}.beforeDetach`,
+            `stop.${$4}.beforeUnbind`,
+            `stop.${$4}.afterUnbind`,
+            `stop.${$4}.afterUnbindChildren`,
+            `stop.root1.afterUnbindChildren`,
+          ],
+        );
 
-      @customElement({ name: 'c3' })
-      class C3 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
-      }
+        hia.dispose();
+      });
+    }
 
-      @customElement({ name: 'c4' })
-      class C4 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
-      }
+    for (const [[$1l, $1r], [$2l, $2r], [$3l, $3r], [$4l, $4r]] of [
+      // Both left and right change with every nav
+      [['a01','a02'], ['a03', 'a04'], ['a01', 'a02'], ['a03', 'a04']],
+      [['a01','a02'], ['a02', 'a01'], ['a01', 'a02'], ['a02', 'a01']],
+      [['a01','a02'], ['a04', 'a01'], ['a03', 'a04'], ['a04', 'a02']],
+      // Only left changes with every nav
+      [['a01','a02'], ['a03', 'a02'], ['a01', 'a02'], ['a03', 'a02']],
+      [['a01','a02'], ['a02', 'a02'], ['a01', 'a02'], ['a02', 'a02']],
+      // Only right changes with every nav
+      [['a01','a02'], ['a01', 'a03'], ['a01', 'a02'], ['a01', 'a03']],
+      [['a01','a02'], ['a01', 'a01'], ['a01', 'a02'], ['a01', 'a01']],
+    ]) {
+      const $1 = `${$1l}+${$1r}`;
+      const $2 = `${$2l}+${$2r}`;
+      const $3 = `${$3l}+${$3r}`;
+      const $4 = `${$4l}+${$4r}`;
+      it(`${$1} -> ${$2} -> ${$3} -> ${$4}`, async function () {
+        const { router, hia, tearDown } = await createFixture(Root2, A, getDefaultHIAConfig);
 
-      const { router, hia, tearDown } = await createFixture(Root, [C1, C2, C3, C4], getDefaultHIAConfig);
+        hia.setPhase(`goto(${$1})#1`);
+        await router.goto($1);
 
-      hia.setPhase('goto(c1+c2)#1');
-      await router.goto('c1+c2');
+        hia.setPhase(`goto(${$2})#2`);
+        await router.goto($2);
 
-      hia.setPhase('goto(c3+c4)#1');
-      await router.goto('c3+c4');
+        hia.setPhase(`goto(${$3})#3`);
+        await router.goto($3);
 
-      hia.setPhase('goto(c1+c2)#2');
-      await router.goto('c1+c2');
+        hia.setPhase(`goto(${$4})#4`);
+        await router.goto($4);
 
-      hia.setPhase('goto(c3+c4)#2');
-      await router.goto('c3+c4');
+        await tearDown();
 
-      await tearDown();
+        function computeExpectedCalls(
+          path: string,
+          num: number,
+          _1l: string,
+          _1r: string,
+          _2l: string,
+          _2r: string,
+        ): string[] {
+          if (_1l === _2l) {
+            return [
+              `goto(${path})#${num}.${_1r}.canLeave`,
+              `goto(${path})#${num}.${_2r}.canEnter`,
+              `goto(${path})#${num}.${_1r}.leave`,
+              `goto(${path})#${num}.${_2r}.enter`,
+              `goto(${path})#${num}.${_2r}.beforeBind`,
+              `goto(${path})#${num}.${_2r}.afterBind`,
+              `goto(${path})#${num}.${_2r}.afterAttach`,
+              `goto(${path})#${num}.${_2r}.afterAttachChildren`,
+              `goto(${path})#${num}.${_1r}.beforeDetach`,
+              `goto(${path})#${num}.${_1r}.beforeUnbind`,
+              `goto(${path})#${num}.${_1r}.afterUnbind`,
+              `goto(${path})#${num}.${_1r}.afterUnbindChildren`,
+            ];
+          }
 
-      const goto_c3_c4 = [
-        'goto(c3+c4)#.c1.canLeave',
-        'goto(c3+c4)#.c2.canLeave',
-        'goto(c3+c4)#.c3.canEnter',
-        'goto(c3+c4)#.c4.canEnter',
-        'goto(c3+c4)#.c1.leave',
-        'goto(c3+c4)#.c2.leave',
-        'goto(c3+c4)#.c3.enter',
-        'goto(c3+c4)#.c4.enter',
-        'goto(c3+c4)#.c3.beforeBind',
-        'goto(c3+c4)#.c3.afterBind',
-        'goto(c3+c4)#.c3.afterAttach',
-        'goto(c3+c4)#.c3.afterAttachChildren',
-        'goto(c3+c4)#.c1.beforeDetach',
-        'goto(c3+c4)#.c1.beforeUnbind',
-        'goto(c3+c4)#.c1.afterUnbind',
-        'goto(c3+c4)#.c1.afterUnbindChildren',
-        'goto(c3+c4)#.c4.beforeBind',
-        'goto(c3+c4)#.c4.afterBind',
-        'goto(c3+c4)#.c4.afterAttach',
-        'goto(c3+c4)#.c4.afterAttachChildren',
-        'goto(c3+c4)#.c2.beforeDetach',
-        'goto(c3+c4)#.c2.beforeUnbind',
-        'goto(c3+c4)#.c2.afterUnbind',
-        'goto(c3+c4)#.c2.afterUnbindChildren',
-      ];
+          if (_1r === _2r) {
+            return [
+              `goto(${path})#${num}.${_1l}.canLeave`,
+              `goto(${path})#${num}.${_2l}.canEnter`,
+              `goto(${path})#${num}.${_1l}.leave`,
+              `goto(${path})#${num}.${_2l}.enter`,
+              `goto(${path})#${num}.${_2l}.beforeBind`,
+              `goto(${path})#${num}.${_2l}.afterBind`,
+              `goto(${path})#${num}.${_2l}.afterAttach`,
+              `goto(${path})#${num}.${_2l}.afterAttachChildren`,
+              `goto(${path})#${num}.${_1l}.beforeDetach`,
+              `goto(${path})#${num}.${_1l}.beforeUnbind`,
+              `goto(${path})#${num}.${_1l}.afterUnbind`,
+              `goto(${path})#${num}.${_1l}.afterUnbindChildren`,
+            ];
+          }
 
-      assert.deepStrictEqual(
-        hia.notifyHistory,
-        [
-          'start.root.beforeBind',
-          'start.root.afterBind',
-          'start.root.afterAttach',
-          'start.root.afterAttachChildren',
+          return [
+            `goto(${path})#${num}.${_1l}.canLeave`,
+            `goto(${path})#${num}.${_1r}.canLeave`,
+            `goto(${path})#${num}.${_2l}.canEnter`,
+            `goto(${path})#${num}.${_2r}.canEnter`,
+            `goto(${path})#${num}.${_1l}.leave`,
+            `goto(${path})#${num}.${_1r}.leave`,
+            `goto(${path})#${num}.${_2l}.enter`,
+            `goto(${path})#${num}.${_2r}.enter`,
+            `goto(${path})#${num}.${_2l}.beforeBind`,
+            `goto(${path})#${num}.${_2l}.afterBind`,
+            `goto(${path})#${num}.${_2l}.afterAttach`,
+            `goto(${path})#${num}.${_2l}.afterAttachChildren`,
+            `goto(${path})#${num}.${_1l}.beforeDetach`,
+            `goto(${path})#${num}.${_1l}.beforeUnbind`,
+            `goto(${path})#${num}.${_1l}.afterUnbind`,
+            `goto(${path})#${num}.${_1l}.afterUnbindChildren`,
+            `goto(${path})#${num}.${_2r}.beforeBind`,
+            `goto(${path})#${num}.${_2r}.afterBind`,
+            `goto(${path})#${num}.${_2r}.afterAttach`,
+            `goto(${path})#${num}.${_2r}.afterAttachChildren`,
+            `goto(${path})#${num}.${_1r}.beforeDetach`,
+            `goto(${path})#${num}.${_1r}.beforeUnbind`,
+            `goto(${path})#${num}.${_1r}.afterUnbind`,
+            `goto(${path})#${num}.${_1r}.afterUnbindChildren`,
+          ];
+        }
 
-          'goto(c1+c2)#1.c1.canEnter',
-          'goto(c1+c2)#1.c2.canEnter',
-          'goto(c1+c2)#1.c1.enter',
-          'goto(c1+c2)#1.c2.enter',
-          'goto(c1+c2)#1.c1.beforeBind',
-          'goto(c1+c2)#1.c1.afterBind',
-          'goto(c1+c2)#1.c1.afterAttach',
-          'goto(c1+c2)#1.c1.afterAttachChildren',
-          'goto(c1+c2)#1.c2.beforeBind',
-          'goto(c1+c2)#1.c2.afterBind',
-          'goto(c1+c2)#1.c2.afterAttach',
-          'goto(c1+c2)#1.c2.afterAttachChildren',
+        assert.deepStrictEqual(
+          hia.notifyHistory,
+          [
+            `start.root2.beforeBind`,
+            `start.root2.afterBind`,
+            `start.root2.afterAttach`,
+            `start.root2.afterAttachChildren`,
 
-          ...setNumber(goto_c3_c4, 1),
+            `goto(${$1})#1.${$1l}.canEnter`,
+            `goto(${$1})#1.${$1r}.canEnter`,
+            `goto(${$1})#1.${$1l}.enter`,
+            `goto(${$1})#1.${$1r}.enter`,
+            `goto(${$1})#1.${$1l}.beforeBind`,
+            `goto(${$1})#1.${$1l}.afterBind`,
+            `goto(${$1})#1.${$1l}.afterAttach`,
+            `goto(${$1})#1.${$1l}.afterAttachChildren`,
+            `goto(${$1})#1.${$1r}.beforeBind`,
+            `goto(${$1})#1.${$1r}.afterBind`,
+            `goto(${$1})#1.${$1r}.afterAttach`,
+            `goto(${$1})#1.${$1r}.afterAttachChildren`,
 
-          'goto(c1+c2)#2.c3.canLeave',
-          'goto(c1+c2)#2.c4.canLeave',
-          'goto(c1+c2)#2.c1.canEnter',
-          'goto(c1+c2)#2.c2.canEnter',
-          'goto(c1+c2)#2.c3.leave',
-          'goto(c1+c2)#2.c4.leave',
-          'goto(c1+c2)#2.c1.enter',
-          'goto(c1+c2)#2.c2.enter',
-          'goto(c1+c2)#2.c1.beforeBind',
-          'goto(c1+c2)#2.c1.afterBind',
-          'goto(c1+c2)#2.c1.afterAttach',
-          'goto(c1+c2)#2.c1.afterAttachChildren',
-          'goto(c1+c2)#2.c3.beforeDetach',
-          'goto(c1+c2)#2.c3.beforeUnbind',
-          'goto(c1+c2)#2.c3.afterUnbind',
-          'goto(c1+c2)#2.c3.afterUnbindChildren',
-          'goto(c1+c2)#2.c2.beforeBind',
-          'goto(c1+c2)#2.c2.afterBind',
-          'goto(c1+c2)#2.c2.afterAttach',
-          'goto(c1+c2)#2.c2.afterAttachChildren',
-          'goto(c1+c2)#2.c4.beforeDetach',
-          'goto(c1+c2)#2.c4.beforeUnbind',
-          'goto(c1+c2)#2.c4.afterUnbind',
-          'goto(c1+c2)#2.c4.afterUnbindChildren',
+            ...computeExpectedCalls($2, 2, $1l, $1r, $2l, $2r),
 
-          ...setNumber(goto_c3_c4, 2),
+            ...computeExpectedCalls($3, 3, $2l, $2r, $3l, $3r),
 
-          'stop.root.beforeDetach',
-          'stop.root.beforeUnbind',
-          'stop.root.afterUnbind',
-          'stop.c3.beforeDetach',
-          'stop.c3.beforeUnbind',
-          'stop.c3.afterUnbind',
-          'stop.c4.beforeDetach',
-          'stop.c4.beforeUnbind',
-          'stop.c4.afterUnbind',
-          'stop.c3.afterUnbindChildren',
-          'stop.c4.afterUnbindChildren',
-          'stop.root.afterUnbindChildren',
-        ],
-      );
+            ...computeExpectedCalls($4, 4, $3l, $3r, $4l, $4r),
 
-      hia.dispose();
-    });
+            `stop.root2.beforeDetach`,
+            `stop.root2.beforeUnbind`,
+            `stop.root2.afterUnbind`,
+            `stop.${$4l}.beforeDetach`,
+            `stop.${$4l}.beforeUnbind`,
+            `stop.${$4l}.afterUnbind`,
+            `stop.${$4r}.beforeDetach`,
+            `stop.${$4r}.beforeUnbind`,
+            `stop.${$4r}.afterUnbind`,
+            `stop.${$4l}.afterUnbindChildren`,
+            `stop.${$4r}.afterUnbindChildren`,
+            `stop.root2.afterUnbindChildren`,
+          ],
+        );
 
-    it('p1/c1 -> p2/c2 -> p1/c1 -> p2/c2', async function () {
-      @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
-      class Root extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
-      }
+        hia.dispose();
+      });
+    }
 
-      @customElement({ name: 'p1', template: '<au-viewport></au-viewport>' })
-      class P1 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
-      }
+    it('a11/a01 -> a12/a02 -> a11/a01 -> a12/a02', async function () {
+      const { router, hia, tearDown } = await createFixture(Root1, A, getDefaultHIAConfig);
 
-      @customElement({ name: 'c1' })
-      class C1 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
-      }
+      hia.setPhase('goto(a11/a01)#1');
+      await router.goto('a11/a01');
 
-      @customElement({ name: 'p2', template: '<au-viewport></au-viewport>' })
-      class P2 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
-      }
+      hia.setPhase('goto(a12/a02)#1');
+      await router.goto('a12/a02');
 
-      @customElement({ name: 'c2' })
-      class C2 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia); }
-      }
+      hia.setPhase('goto(a11/a01)#2');
+      await router.goto('a11/a01');
 
-      const { router, hia, tearDown } = await createFixture(Root, [P1, C1, P2, C2], getDefaultHIAConfig);
-
-      hia.setPhase('goto(p1/c1)#1');
-      await router.goto('p1/c1');
-
-      hia.setPhase('goto(p2/c2)#1');
-      await router.goto('p2/c2');
-
-      hia.setPhase('goto(p1/c1)#2');
-      await router.goto('p1/c1');
-
-      hia.setPhase('goto(p2/c2)#2');
-      await router.goto('p2/c2');
+      hia.setPhase('goto(a12/a02)#2');
+      await router.goto('a12/a02');
 
       await tearDown();
 
       const goto_p2_c2 = [
-        'goto(p2/c2)#.p1.canLeave',
-        'goto(p2/c2)#.c1.canLeave',
-        'goto(p2/c2)#.p2.canEnter',
-        'goto(p2/c2)#.p1.leave',
-        'goto(p2/c2)#.c1.leave',
-        'goto(p2/c2)#.p2.enter',
-        'goto(p2/c2)#.p2.beforeBind',
-        'goto(p2/c2)#.p2.afterBind',
-        'goto(p2/c2)#.p2.afterAttach',
-        'goto(p2/c2)#.p2.afterAttachChildren',
-        'goto(p2/c2)#.p1.beforeDetach',
-        'goto(p2/c2)#.p1.beforeUnbind',
-        'goto(p2/c2)#.p1.afterUnbind',
-        'goto(p2/c2)#.c1.beforeDetach',
-        'goto(p2/c2)#.c1.beforeUnbind',
-        'goto(p2/c2)#.c1.afterUnbind',
-        'goto(p2/c2)#.c1.afterUnbindChildren',
-        'goto(p2/c2)#.p1.afterUnbindChildren',
-        'goto(p2/c2)#.c2.canEnter',
-        'goto(p2/c2)#.c2.enter',
-        'goto(p2/c2)#.c2.beforeBind',
-        'goto(p2/c2)#.c2.afterBind',
-        'goto(p2/c2)#.c2.afterAttach',
-        'goto(p2/c2)#.c2.afterAttachChildren',
+        'goto(a12/a02)#.a11.canLeave',
+        'goto(a12/a02)#.a01.canLeave',
+        'goto(a12/a02)#.a12.canEnter',
+        'goto(a12/a02)#.a11.leave',
+        'goto(a12/a02)#.a01.leave',
+        'goto(a12/a02)#.a12.enter',
+        'goto(a12/a02)#.a12.beforeBind',
+        'goto(a12/a02)#.a12.afterBind',
+        'goto(a12/a02)#.a12.afterAttach',
+        'goto(a12/a02)#.a12.afterAttachChildren',
+        'goto(a12/a02)#.a11.beforeDetach',
+        'goto(a12/a02)#.a11.beforeUnbind',
+        'goto(a12/a02)#.a11.afterUnbind',
+        'goto(a12/a02)#.a01.beforeDetach',
+        'goto(a12/a02)#.a01.beforeUnbind',
+        'goto(a12/a02)#.a01.afterUnbind',
+        'goto(a12/a02)#.a01.afterUnbindChildren',
+        'goto(a12/a02)#.a11.afterUnbindChildren',
+        'goto(a12/a02)#.a02.canEnter',
+        'goto(a12/a02)#.a02.enter',
+        'goto(a12/a02)#.a02.beforeBind',
+        'goto(a12/a02)#.a02.afterBind',
+        'goto(a12/a02)#.a02.afterAttach',
+        'goto(a12/a02)#.a02.afterAttachChildren',
       ];
 
       assert.deepStrictEqual(
         hia.notifyHistory,
         [
-          'start.root.beforeBind',
-          'start.root.afterBind',
-          'start.root.afterAttach',
-          'start.root.afterAttachChildren',
+          'start.root1.beforeBind',
+          'start.root1.afterBind',
+          'start.root1.afterAttach',
+          'start.root1.afterAttachChildren',
 
-          'goto(p1/c1)#1.p1.canEnter',
-          'goto(p1/c1)#1.p1.enter',
-          'goto(p1/c1)#1.p1.beforeBind',
-          'goto(p1/c1)#1.p1.afterBind',
-          'goto(p1/c1)#1.p1.afterAttach',
-          'goto(p1/c1)#1.p1.afterAttachChildren',
-          'goto(p1/c1)#1.c1.canEnter',
-          'goto(p1/c1)#1.c1.enter',
-          'goto(p1/c1)#1.c1.beforeBind',
-          'goto(p1/c1)#1.c1.afterBind',
-          'goto(p1/c1)#1.c1.afterAttach',
-          'goto(p1/c1)#1.c1.afterAttachChildren',
+          'goto(a11/a01)#1.a11.canEnter',
+          'goto(a11/a01)#1.a11.enter',
+          'goto(a11/a01)#1.a11.beforeBind',
+          'goto(a11/a01)#1.a11.afterBind',
+          'goto(a11/a01)#1.a11.afterAttach',
+          'goto(a11/a01)#1.a11.afterAttachChildren',
+          'goto(a11/a01)#1.a01.canEnter',
+          'goto(a11/a01)#1.a01.enter',
+          'goto(a11/a01)#1.a01.beforeBind',
+          'goto(a11/a01)#1.a01.afterBind',
+          'goto(a11/a01)#1.a01.afterAttach',
+          'goto(a11/a01)#1.a01.afterAttachChildren',
 
           ...setNumber(goto_p2_c2, 1),
 
-          'goto(p1/c1)#2.p2.canLeave',
-          'goto(p1/c1)#2.c2.canLeave',
-          'goto(p1/c1)#2.p1.canEnter',
-          'goto(p1/c1)#2.p2.leave',
-          'goto(p1/c1)#2.c2.leave',
-          'goto(p1/c1)#2.p1.enter',
-          'goto(p1/c1)#2.p1.beforeBind',
-          'goto(p1/c1)#2.p1.afterBind',
-          'goto(p1/c1)#2.p1.afterAttach',
-          'goto(p1/c1)#2.p1.afterAttachChildren',
-          'goto(p1/c1)#2.p2.beforeDetach',
-          'goto(p1/c1)#2.p2.beforeUnbind',
-          'goto(p1/c1)#2.p2.afterUnbind',
-          'goto(p1/c1)#2.c2.beforeDetach',
-          'goto(p1/c1)#2.c2.beforeUnbind',
-          'goto(p1/c1)#2.c2.afterUnbind',
-          'goto(p1/c1)#2.c2.afterUnbindChildren',
-          'goto(p1/c1)#2.p2.afterUnbindChildren',
-          'goto(p1/c1)#2.c1.canEnter',
-          'goto(p1/c1)#2.c1.enter',
-          'goto(p1/c1)#2.c1.beforeBind',
-          'goto(p1/c1)#2.c1.afterBind',
-          'goto(p1/c1)#2.c1.afterAttach',
-          'goto(p1/c1)#2.c1.afterAttachChildren',
+          'goto(a11/a01)#2.a12.canLeave',
+          'goto(a11/a01)#2.a02.canLeave',
+          'goto(a11/a01)#2.a11.canEnter',
+          'goto(a11/a01)#2.a12.leave',
+          'goto(a11/a01)#2.a02.leave',
+          'goto(a11/a01)#2.a11.enter',
+          'goto(a11/a01)#2.a11.beforeBind',
+          'goto(a11/a01)#2.a11.afterBind',
+          'goto(a11/a01)#2.a11.afterAttach',
+          'goto(a11/a01)#2.a11.afterAttachChildren',
+          'goto(a11/a01)#2.a12.beforeDetach',
+          'goto(a11/a01)#2.a12.beforeUnbind',
+          'goto(a11/a01)#2.a12.afterUnbind',
+          'goto(a11/a01)#2.a02.beforeDetach',
+          'goto(a11/a01)#2.a02.beforeUnbind',
+          'goto(a11/a01)#2.a02.afterUnbind',
+          'goto(a11/a01)#2.a02.afterUnbindChildren',
+          'goto(a11/a01)#2.a12.afterUnbindChildren',
+          'goto(a11/a01)#2.a01.canEnter',
+          'goto(a11/a01)#2.a01.enter',
+          'goto(a11/a01)#2.a01.beforeBind',
+          'goto(a11/a01)#2.a01.afterBind',
+          'goto(a11/a01)#2.a01.afterAttach',
+          'goto(a11/a01)#2.a01.afterAttachChildren',
 
           ...setNumber(goto_p2_c2, 2),
 
-          'stop.root.beforeDetach',
-          'stop.root.beforeUnbind',
-          'stop.root.afterUnbind',
-          'stop.p2.beforeDetach',
-          'stop.p2.beforeUnbind',
-          'stop.p2.afterUnbind',
-          'stop.c2.beforeDetach',
-          'stop.c2.beforeUnbind',
-          'stop.c2.afterUnbind',
-          'stop.c2.afterUnbindChildren',
-          'stop.p2.afterUnbindChildren',
-          'stop.root.afterUnbindChildren',
+          'stop.root1.beforeDetach',
+          'stop.root1.beforeUnbind',
+          'stop.root1.afterUnbind',
+          'stop.a12.beforeDetach',
+          'stop.a12.beforeUnbind',
+          'stop.a12.afterUnbind',
+          'stop.a02.beforeDetach',
+          'stop.a02.beforeUnbind',
+          'stop.a02.afterUnbind',
+          'stop.a02.afterUnbindChildren',
+          'stop.a12.afterUnbindChildren',
+          'stop.root1.afterUnbindChildren',
         ],
       );
 

@@ -10,6 +10,7 @@ import {
   PLATFORM,
   Registration,
   mergeArrays,
+  toArray,
 } from '@aurelia/kernel';
 import {
   HydrateAttributeInstruction,
@@ -439,10 +440,11 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       let definition = parts[name];
       if (definition === void 0) {
-        definition = CustomElementDefinition.create({ name, template: projection.physicalNode, instructions, needsCompile: false });
+        // TODO right now the projections are getting nested. We need to flatten those
+        definition = CustomElementDefinition.create({ name, template: projection.template?.physicalNode, instructions, needsCompile: false });
       } else {
         // consolidate the projections to same slot
-        this.dom.appendChild((definition.template as HTMLTemplateElement).content, (projection.physicalNode! as HTMLTemplateElement).content);
+        this.dom.appendChild((definition.template as HTMLElement), (projection.template?.physicalNode! as HTMLElement)); // TODO Provision for template
         (definition.instructions as ITargetedInstruction[][]).push(...instructions);
       }
       parts[name] = definition;
@@ -453,6 +455,8 @@ export class TemplateCompiler implements ITemplateCompiler {
   private compileProjectionFallback(symbol: CustomElementSymbol): CustomElementDefinition {
     const instructions: ITargetedInstruction[][] = [];
     this.compileChildNodes(symbol, instructions, []);
-    return CustomElementDefinition.create({ name: CustomElement.generateName(), template: symbol.physicalNode, instructions, needsCompile: false });
+    const template = this.dom.createTemplate() as HTMLTemplateElement;
+    template.content.append(...toArray(symbol.physicalNode.childNodes));
+    return CustomElementDefinition.create({ name: CustomElement.generateName(), template, instructions, needsCompile: false });
   }
 }

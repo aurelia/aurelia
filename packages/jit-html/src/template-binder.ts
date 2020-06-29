@@ -450,6 +450,8 @@ export class TemplateBinder {
         projectionPart.parent = parentManifest;
         projectionPart.template = manifestProxy;
         partOwner!.projections.push(projectionPart);
+        parentManifest.physicalNode.removeChild(node);
+        node.removeAttribute('au-slot');
       }
     }
   }

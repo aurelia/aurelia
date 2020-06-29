@@ -25,7 +25,7 @@ import {
 export type IProjections = Record<string, CustomElementDefinition>;
 export const IProjections = DI.createInterface<IProjections>("IProjections").noDefault();
 
-@customElement({ name: 'au-slot', containerless: true })
+@customElement({ name: 'au-slot', template: null, containerless: true })
 export class AuSlot<T extends INode = Node> implements ICustomElementViewModel<T> {
   public readonly view: ISyntheticView<T>;
   public readonly $controller!: ICustomElementController<T, this>; // This is set by the controller after this instance is constructed
@@ -41,12 +41,13 @@ export class AuSlot<T extends INode = Node> implements ICustomElementViewModel<T
     // console.log('slot name', name);
     // console.log('fallback', instruction.projectionFallback);
     // console.log('projections', projections);
-    console.log('factory', factory);
+    // console.log('factory', factory);
     // this.definition = projections[name] ?? instruction.projectionFallback;
     // // consume the slot
     // // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     // delete projections[name];
-    console.log('location', location);
+    // console.log('location', location);
+    // console.dir(location);
 
     this.view = factory.create();
     this.view.hold(location, MountStrategy.insertBefore);

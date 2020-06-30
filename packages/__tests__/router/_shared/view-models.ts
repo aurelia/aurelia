@@ -2,7 +2,7 @@ import { Writable } from '@aurelia/kernel';
 import { ICustomElementController, IHydratedController, IHydratedParentController, LifecycleFlags } from '@aurelia/runtime';
 import { Params, RouteNode, NavigationInstruction, IRouteViewModel } from '@aurelia/router';
 import { IHookInvocationAggregator } from './hook-invocation-tracker';
-import { IHookSpec, hookSpecs } from './hook-spec';
+import { IHookSpec } from './hook-spec';
 
 export interface ITestRouteViewModel extends IRouteViewModel {
   readonly $controller: ICustomElementController<HTMLElement, this>;
@@ -77,20 +77,20 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   public constructor(
     public readonly hia: IHookInvocationAggregator,
 
-    public readonly beforeBindSpec: IHookSpec<'beforeBind'> = hookSpecs.beforeBind.sync,
-    public readonly afterBindSpec: IHookSpec<'afterBind'> = hookSpecs.afterBind.sync,
-    public readonly afterAttachSpec: IHookSpec<'afterAttach'> = hookSpecs.afterAttach.sync,
-    public readonly afterAttachChildrenSpec: IHookSpec<'afterAttachChildren'> = hookSpecs.afterAttachChildren.sync,
+    public readonly beforeBindSpec: IHookSpec<'beforeBind'>,
+    public readonly afterBindSpec: IHookSpec<'afterBind'>,
+    public readonly afterAttachSpec: IHookSpec<'afterAttach'>,
+    public readonly afterAttachChildrenSpec: IHookSpec<'afterAttachChildren'>,
 
-    public readonly beforeDetachSpec: IHookSpec<'beforeDetach'> = hookSpecs.beforeDetach.sync,
-    public readonly beforeUnbindSpec: IHookSpec<'beforeUnbind'> = hookSpecs.beforeUnbind.sync,
-    public readonly afterUnbindSpec: IHookSpec<'afterUnbind'> = hookSpecs.afterUnbind.sync,
-    public readonly afterUnbindChildrenSpec: IHookSpec<'afterUnbindChildren'> = hookSpecs.afterUnbindChildren.sync,
+    public readonly beforeDetachSpec: IHookSpec<'beforeDetach'>,
+    public readonly beforeUnbindSpec: IHookSpec<'beforeUnbind'>,
+    public readonly afterUnbindSpec: IHookSpec<'afterUnbind'>,
+    public readonly afterUnbindChildrenSpec: IHookSpec<'afterUnbindChildren'>,
 
-    public readonly canEnterSpec: IHookSpec<'canEnter'> = hookSpecs.canEnter.sync,
-    public readonly enterSpec: IHookSpec<'enter'> = hookSpecs.enter.sync,
-    public readonly canLeaveSpec: IHookSpec<'canLeave'> = hookSpecs.canLeave.sync,
-    public readonly leaveSpec: IHookSpec<'leave'> = hookSpecs.leave.sync,
+    public readonly canEnterSpec: IHookSpec<'canEnter'>,
+    public readonly enterSpec: IHookSpec<'enter'>,
+    public readonly canLeaveSpec: IHookSpec<'canLeave'>,
+    public readonly leaveSpec: IHookSpec<'leave'>,
   ) {}
 
   public beforeBind(

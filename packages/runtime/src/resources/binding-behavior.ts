@@ -22,6 +22,7 @@ import { IBinding } from '../lifecycle';
 import { connectable, IConnectableBinding } from '../binding/connectable';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IBindingBehaviorExpression } from '../ast';
+import { CustomElementDefinition } from './custom-element';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
   strategy?: BindingBehaviorStrategy;
@@ -203,8 +204,8 @@ export class BindingInterceptor implements IInterceptableBinding {
     this.binding.handleChange!(newValue, previousValue, flags);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {
-    this.binding.$bind(flags, scope, part);
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined, projection?: CustomElementDefinition): void {
+    this.binding.$bind(flags, scope, part, projection);
   }
   public $unbind(flags: LifecycleFlags): void {
     this.binding.$unbind(flags);

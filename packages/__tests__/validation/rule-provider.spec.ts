@@ -691,7 +691,7 @@ describe('ValidationMessageProvider', function () {
       const message = 'FooBar';
       const $rule = getRule();
       sut.setMessage($rule, message);
-      const scope = { bindingContext: {}, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
+      const scope = { bindingContext: {}, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [], projections: [] };
       const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
       assert.equal(actual, message);
     });
@@ -699,7 +699,7 @@ describe('ValidationMessageProvider', function () {
     it(`rule.message returns the registered default message for a rule type when no message for the instance is registered - ${title}`, function () {
       const { sut, container } = setup();
       const $rule = getRule();
-      const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
+      const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [], projections: [] };
       const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
       assert.equal(actual, messages[i]);
     });
@@ -708,7 +708,7 @@ describe('ValidationMessageProvider', function () {
       const { sut, container } = setup();
       const $rule = getRule();
       $rule.messageKey = 'foobar';
-      const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
+      const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [], projections: [] };
       const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
       assert.equal(actual, 'FooBar is invalid.');
     });
@@ -763,7 +763,7 @@ describe('ValidationMessageProvider', function () {
     const { sut, container, originalMessages } = setup(customMessages);
     for (const { getRule } of rules) {
       const $rule = getRule();
-      const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
+      const scope = { bindingContext: { $displayName: 'FooBar', $rule }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [], projections: [] };
       const actual = sut.getMessage($rule).evaluate(LifecycleFlags.none, scope, container);
       const aliases = customMessages.find((item) => $rule instanceof item.rule).aliases;
       const template = aliases.length === 1 ? aliases[0].defaultMessage : aliases.find(({ name }) => name === $rule.messageKey)?.defaultMessage;
@@ -796,8 +796,8 @@ describe('ValidationMessageProvider', function () {
     const $rule2 = new RequiredRule();
     $rule2.messageKey = messageKey;
 
-    const scope1 = { bindingContext: { $displayName: displayName, $rule: $rule1 }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
-    const scope2 = { bindingContext: { $displayName: displayName, $rule: $rule2 }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [] };
+    const scope1 = { bindingContext: { $displayName: displayName, $rule: $rule1 }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [], projections: [] };
+    const scope2 = { bindingContext: { $displayName: displayName, $rule: $rule2 }, overrideContext: (void 0)!, parentScope: (void 0)!, scopeParts: [], projections: [] };
 
     const actual1 = sut.getMessage($rule1).evaluate(LifecycleFlags.none, scope1, container);
     const actual2 = sut.getMessage($rule2).evaluate(LifecycleFlags.none, scope2, container);

@@ -16,6 +16,7 @@ import {
   hasUnbind,
 } from './ast';
 import { IConnectableBinding } from './connectable';
+import { CustomElementDefinition } from '../resources/custom-element';
 
 export interface RefBinding extends IConnectableBinding {}
 export class RefBinding implements IBinding {
@@ -24,6 +25,7 @@ export class RefBinding implements IBinding {
   public $state: State = State.none;
   public $scope?: IScope = void 0;
   public part?: string;
+  public projection?: CustomElementDefinition;
 
   public constructor(
     public sourceExpression: IsBindingBehavior,
@@ -31,7 +33,7 @@ export class RefBinding implements IBinding {
     public locator: IServiceLocator,
   ) {}
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string, projection?: CustomElementDefinition): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -44,12 +46,13 @@ export class RefBinding implements IBinding {
 
     this.$scope = scope;
     this.part = part;
+    this.projection = projection;
 
     if (hasBind(this.sourceExpression)) {
       this.sourceExpression.bind(flags, scope, this);
     }
 
-    this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, this.target, part);
+    this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, this.target, part, projection);
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
@@ -64,8 +67,8 @@ export class RefBinding implements IBinding {
     this.$state |= State.isUnbinding;
 
     let sourceExpression = this.sourceExpression;
-    if (sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part) === this.target) {
-      sourceExpression.assign!(flags, this.$scope!, this.locator, null, this.part);
+    if (sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part, this.projection) === this.target) {
+      sourceExpression.assign!(flags, this.$scope!, this.locator, null, this.part, this.projection);
     }
 
     // source expression might have been modified durring assign, via a BB

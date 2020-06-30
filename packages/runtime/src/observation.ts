@@ -1,6 +1,7 @@
 import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from './flags';
 import { ILifecycle } from './lifecycle';
+import { CustomElementDefinition } from './resources/custom-element';
 
 /** @internal */
 export const enum SubscriberFlags {
@@ -341,6 +342,7 @@ export interface IOverrideContext {
 export interface IScope {
   readonly parentScope: IScope | null;
   readonly scopeParts: readonly string[];
+  readonly projections: readonly CustomElementDefinition[];
   readonly bindingContext: IBindingContext;
   readonly overrideContext: IOverrideContext;
 }

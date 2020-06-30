@@ -13,6 +13,7 @@ import {
   PropertyBinding,
   IBinding,
   BindingBehaviorExpression,
+  CustomElementDefinition,
 } from '@aurelia/runtime';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo, ValidationResultsSubscriber, ValidationEvent } from './validation-controller';
@@ -120,9 +121,9 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined) {
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined, projection?: CustomElementDefinition) {
     this.scope = scope;
-    this.binding.$bind(flags, scope, part);
+    this.binding.$bind(flags, scope, part, projection);
     this.setTarget();
     const delta = this.processBindingExpressionArgs(flags);
     this.processDelta(delta);

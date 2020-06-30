@@ -4,6 +4,7 @@ import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../b
 import { ITask, IScheduler, ITaskQueue, QueueTaskOptions, Now } from '@aurelia/scheduler';
 import { BindingBehaviorExpression } from '../../binding/ast';
 import { IsAssign } from '../../ast';
+import { CustomElementDefinition } from '../custom-element';
 
 @bindingBehavior('throttle')
 export class ThrottleBindingBehavior extends BindingInterceptor {
@@ -56,9 +57,9 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined, projection?: CustomElementDefinition): void {
     if (this.firstArg !== null) {
-      const delay = Number(this.firstArg.evaluate(flags, scope, this.locator, part));
+      const delay = Number(this.firstArg.evaluate(flags, scope, this.locator, part, projection));
       if (!isNaN(delay)) {
         this.opts.delay = delay;
       }

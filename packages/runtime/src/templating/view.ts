@@ -28,7 +28,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 
   public constructor(
     public name: string,
-    private readonly context: IRenderContext<T>,
+    public readonly context: IRenderContext<T>,
     private readonly lifecycle: ILifecycle,
     public readonly parts: PartialCustomElementDefinitionParts | undefined,
   ) {}

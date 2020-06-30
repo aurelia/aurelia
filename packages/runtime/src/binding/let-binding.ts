@@ -21,6 +21,7 @@ import {
   IConnectableBinding,
   IPartialConnectableBinding,
 } from './connectable';
+import { CustomElementDefinition } from '../resources/custom-element';
 
 export interface LetBinding extends IConnectableBinding {}
 
@@ -33,6 +34,7 @@ export class LetBinding implements IPartialConnectableBinding {
   public $lifecycle: ILifecycle;
   public $scope?: IScope = void 0;
   public part?: string;
+  public projection?: CustomElementDefinition;
 
   public target: (IObservable & IIndexable) | null = null;
 
@@ -55,7 +57,7 @@ export class LetBinding implements IPartialConnectableBinding {
     if (flags & LifecycleFlags.updateTargetInstance) {
       const { target, targetProperty } = this as {target: IIndexable; targetProperty: string};
       const previousValue: unknown = target[targetProperty];
-      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part);
+      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part, this.projection);
       if (newValue !== previousValue) {
         target[targetProperty] = newValue;
       }
@@ -65,7 +67,7 @@ export class LetBinding implements IPartialConnectableBinding {
     throw Reporter.error(15, flags);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string, projection?: CustomElementDefinition): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -77,6 +79,7 @@ export class LetBinding implements IPartialConnectableBinding {
 
     this.$scope = scope;
     this.part = part;
+    this.projection = projection;
     this.target = (this.toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
 
     const sourceExpression = this.sourceExpression;
@@ -84,8 +87,8 @@ export class LetBinding implements IPartialConnectableBinding {
       sourceExpression.bind(flags, scope, this.interceptor);
     }
     // sourceExpression might have been changed during bind
-    this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, this.locator, part);
-    this.sourceExpression.connect(flags, scope, this.interceptor, part);
+    this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, this.locator, part, projection);
+    this.sourceExpression.connect(flags, scope, this.interceptor, part, projection);
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;

@@ -153,10 +153,12 @@ export class Controller<
   public state: State = State.none;
 
   public scopeParts: string[] | undefined = void 0;
+  public projections: CustomElementDefinition[] = [];
   public isStrictBinding: boolean = false;
 
   public scope: IScope | undefined = void 0;
   public part: string | undefined = void 0;
+  public projection: CustomElementDefinition | undefined = void 0;
   public projector: IElementProjector | undefined = void 0;
 
   public nodes: INodeSequence<T> | undefined = void 0;
@@ -342,6 +344,7 @@ export class Controller<
     const compiledDefinition = compiledContext.compiledDefinition;
 
     this.scopeParts = compiledDefinition.scopeParts;
+    this.projections = compiledDefinition.projections;
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
     const projectorLocator = parentContainer.get(IProjectorLocator);
@@ -396,6 +399,7 @@ export class Controller<
     const compiledDefinition = compiledContext.compiledDefinition;
 
     this.scopeParts = compiledDefinition.scopeParts;
+    this.projections = compiledDefinition.projections;
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
     const nodes = this.nodes = compiledContext.createNodes();
@@ -462,8 +466,9 @@ export class Controller<
     return this.unmountSynthetic(flags);
   }
 
-  public bind(flags: LifecycleFlags, scope?: IScope, part?: string): ILifecycleTask {
+  public bind(flags: LifecycleFlags, scope?: IScope, part?: string, projection?: CustomElementDefinition): ILifecycleTask {
     this.part = part;
+    this.projection = projection;
     // TODO: benchmark which of these techniques is fastest:
     // - the current one (enum with switch)
     // - set the name of the method in the constructor, e.g. this.bindMethod = 'bindCustomElement'
@@ -601,6 +606,7 @@ export class Controller<
 
     $scope.parentScope = scope === void 0 ? null : scope;
     $scope.scopeParts = this.scopeParts!;
+    $scope.projections = this.projections;
 
     if ((this.state & State.isBound) > 0) {
       return LifecycleTask.done;
@@ -661,6 +667,7 @@ export class Controller<
     }
 
     (scope as Writable<IScope>).scopeParts = mergeDistinct(scope.scopeParts, this.scopeParts, false);
+    (scope as Writable<IScope>).projections = this.projections;
 
     if ((this.state & State.isBound) > 0) {
       if (this.scope === scope || (this.state & State.hasLockedScope) > 0) {
@@ -695,7 +702,7 @@ export class Controller<
         flags |= LifecycleFlags.isStrictBindingStrategy;
       }
       for (let i = 0; i < length; ++i) {
-        bindings[i].$bind(flags, scope, this.part);
+        bindings[i].$bind(flags, scope, this.part, this.projection);
       }
     }
 

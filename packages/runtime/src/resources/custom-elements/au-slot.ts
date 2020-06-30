@@ -31,7 +31,7 @@ export class AuSlot<T extends INode = Node> implements ICustomElementViewModel<T
   public readonly $controller!: ICustomElementController<T, this>; // This is set by the controller after this instance is constructed
 
   public constructor(
-    @IViewFactory factory: IViewFactory<T>,
+    @IViewFactory private readonly factory: IViewFactory<T>,
     @IRenderLocation location: IRenderLocation<T>,
     // @ITargetedInstruction instruction: IHydrateElementInstruction,
     // @IProjections projections: IProjections,
@@ -56,7 +56,7 @@ export class AuSlot<T extends INode = Node> implements ICustomElementViewModel<T
   // the view is not working as expected
   public beforeBind(flags: LifecycleFlags): ILifecycleTask {
     this.view.parent = this.$controller;
-    return this.view.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope);
+    return this.view.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope.parentScope!, undefined, this.factory.context.definition);
   }
 
   public beforeAttach(flags: LifecycleFlags): void {

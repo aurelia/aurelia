@@ -19,6 +19,7 @@ import {
   State,
   INode,
   IRenderableController,
+  CustomElementDefinition,
 } from '@aurelia/runtime';
 import i18next from 'i18next';
 import { I18N } from '../i18n';
@@ -108,23 +109,23 @@ export class TranslationBinding implements IPartialConnectableBinding {
     return binding;
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined, projection?: CustomElementDefinition): void {
     if (!this.expr) { throw new Error('key expression is missing'); } // TODO replace with error code
     this.scope = scope;
     this.isInterpolatedSourceExpr = this.expr instanceof Interpolation;
 
-    this.keyExpression = this.expr.evaluate(flags, scope, this.locator, part) as string;
+    this.keyExpression = this.expr.evaluate(flags, scope, this.locator, part, projection) as string;
     this.ensureKeyExpression();
     if (this.parametersExpr) {
       const parametersFlags = flags | LifecycleFlags.secondaryExpression;
-      this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, this.locator, part) as i18next.TOptions;
-      this.parametersExpr.connect(parametersFlags, scope, this as any, part);
+      this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, this.locator, part, projection) as i18next.TOptions;
+      this.parametersExpr.connect(parametersFlags, scope, this as any, part, projection);
     }
 
     const expressions = !(this.expr instanceof CustomExpression) ? this.isInterpolatedSourceExpr ? (this.expr as Interpolation).expressions : [this.expr] : [];
 
     for (const expr of expressions) {
-      expr.connect(flags, scope, this as any, part);
+      expr.connect(flags, scope, this as any, part, projection);
     }
 
     this.updateTranslations(flags);

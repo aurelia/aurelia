@@ -16,6 +16,7 @@ import {
   hasUnbind,
 } from './ast';
 import { IConnectableBinding } from './connectable';
+import { CustomElementDefinition } from '../resources/custom-element';
 
 export interface CallBinding extends IConnectableBinding {}
 export class CallBinding {
@@ -24,6 +25,7 @@ export class CallBinding {
   public $state: State = State.none;
   public $scope?: IScope;
   public part?: string;
+  public projection?: CustomElementDefinition;
 
   public targetObserver: IAccessor;
 
@@ -40,7 +42,7 @@ export class CallBinding {
   public callSource(args: object): unknown {
     const overrideContext = this.$scope!.overrideContext;
     Object.assign(overrideContext, args);
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope!, this.locator, this.part);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope!, this.locator, this.part, this.projection);
 
     for (const prop in args) {
       Reflect.deleteProperty(overrideContext, prop);
@@ -49,7 +51,7 @@ export class CallBinding {
     return result;
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string, projection?: CustomElementDefinition): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -62,6 +64,7 @@ export class CallBinding {
 
     this.$scope = scope;
     this.part = part;
+    this.projection = projection;
 
     if (hasBind(this.sourceExpression)) {
       this.sourceExpression.bind(flags, scope, this.interceptor);

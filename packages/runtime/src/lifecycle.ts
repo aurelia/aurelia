@@ -52,7 +52,7 @@ export interface IBinding {
    */
   readonly part?: string;
   readonly $state: State;
-  $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
+  $bind(flags: LifecycleFlags, scope: IScope, part?: string, projection?: CustomElementDefinition): void;
   $unbind(flags: LifecycleFlags): void;
 }
 
@@ -87,7 +87,7 @@ export interface IController<
 
   part: string | undefined;
 
-  bind(flags: LifecycleFlags, scope?: IScope, partName?: string): ILifecycleTask;
+  bind(flags: LifecycleFlags, scope?: IScope, partName?: string, projection?: CustomElementDefinition): ILifecycleTask;
   unbind(flags: LifecycleFlags): ILifecycleTask;
   attach(flags: LifecycleFlags): void;
   detach(flags: LifecycleFlags): void;
@@ -362,6 +362,7 @@ export interface IViewCache<T extends INode = INode> {
 export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   readonly name: string;
   readonly parts: PartialCustomElementDefinitionParts | undefined;
+  readonly context: IRenderContext<T>;
   create(flags?: LifecycleFlags): ISyntheticView<T>;
   resolve(requestor: IContainer, parts?: PartialCustomElementDefinitionParts): IViewFactory<T>;
 }

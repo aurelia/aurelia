@@ -11,6 +11,7 @@ import {
 } from '../observation';
 import { ProxyObserver } from './proxy-observer';
 import { SetterObserver } from './setter-observer';
+import { CustomElementDefinition } from '../resources/custom-element';
 
 const enum RuntimeError {
   NilScope = 250,
@@ -91,7 +92,7 @@ export class BindingContext implements IBindingContext {
     return bc;
   }
 
-  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, part?: string): IBindingContext | IOverrideContext | IBinding | undefined | null {
+  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, part?: string, projection?: CustomElementDefinition): IBindingContext | IOverrideContext | IBinding | undefined | null {
     if (scope == null) {
       throw Reporter.error(RuntimeError.NilScope);
     }
@@ -124,7 +125,10 @@ export class BindingContext implements IBindingContext {
     if ((flags & LifecycleFlags.allowParentScopeTraversal) > 0) {
       let parent = scope.parentScope;
       while (parent !== null) {
-        if (parent.scopeParts.includes(part!)) {
+        if (
+          parent.scopeParts.includes(part!) || // TODO remove
+          parent.projections.includes(projection!)
+        ) {
           const result = this.get(parent, name, ancestor, flags
             // unset the flag; only allow one level of scope boundary traversal
             & ~LifecycleFlags.allowParentScopeTraversal
@@ -165,6 +169,7 @@ export class BindingContext implements IBindingContext {
 export class Scope implements IScope {
   public parentScope: IScope | null;
   public scopeParts: readonly string[];
+  public projections: readonly CustomElementDefinition[];
   public bindingContext: IBindingContext;
   public overrideContext: IOverrideContext;
 
@@ -175,6 +180,7 @@ export class Scope implements IScope {
   ) {
     this.parentScope = parentScope;
     this.scopeParts = PLATFORM.emptyArray;
+    this.projections = PLATFORM.emptyArray;
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext;
   }

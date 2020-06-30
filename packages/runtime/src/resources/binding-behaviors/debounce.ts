@@ -4,6 +4,7 @@ import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../b
 import { ITask, IScheduler, ITaskQueue, QueueTaskOptions } from '@aurelia/scheduler';
 import { BindingBehaviorExpression } from '../../binding/ast';
 import { IsAssign } from '../../ast';
+import { CustomElementDefinition } from '../custom-element';
 
 @bindingBehavior('debounce')
 export class DebounceBindingBehavior extends BindingInterceptor {
@@ -39,9 +40,9 @@ export class DebounceBindingBehavior extends BindingInterceptor {
     this.task = this.taskQueue.queueTask(callback, this.opts);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined, projection?: CustomElementDefinition): void {
     if (this.firstArg !== null) {
-      const delay = Number(this.firstArg.evaluate(flags, scope, this.locator, part));
+      const delay = Number(this.firstArg.evaluate(flags, scope, this.locator, part, projection));
       if (!isNaN(delay)) {
         this.opts.delay = delay;
       }

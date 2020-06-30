@@ -543,6 +543,7 @@ export class SegmentExpression {
       ViewportInstruction.create({
         component: this.component.name,
         params: this.component.parameterList.toObject(),
+        viewport: this.viewport.name,
         append,
       }),
     ];

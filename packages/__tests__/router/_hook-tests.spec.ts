@@ -7,6 +7,7 @@ import { TestRouterConfiguration } from './_shared/configuration';
 import { IHIAConfig, IHookInvocationAggregator } from './_shared/hook-invocation-tracker';
 import { TestRouteViewModelBase, HookSpecs } from './_shared/view-models';
 import { hookSpecs } from './_shared/hook-spec';
+import { getHasInitializer } from '@aurelia/aot/dist/vm/ast/_shared';
 
 async function createFixture<T extends Constructable>(
   Component: T,
@@ -412,6 +413,123 @@ describe('router hooks', function () {
       });
     });
   }
+
+  describe('variations', function () {
+    it(`'a/b/c/d' -> 'a' (c.leave: setTimeout_0)`, async function () {
+      @customElement({ name: 'root', template: '<au-viewport>' })
+      class Root extends TestRouteViewModelBase {
+        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) {
+          super(hia);
+        }
+      }
+      @customElement({ name: 'a', template: '<au-viewport>' })
+      class A extends TestRouteViewModelBase {
+        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) {
+          super(hia);
+        }
+      }
+      @customElement({ name: 'b', template: '<au-viewport>' })
+      class B extends TestRouteViewModelBase {
+        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) {
+          super(hia);
+        }
+      }
+      @customElement({ name: 'c', template: '<au-viewport>' })
+      class C extends TestRouteViewModelBase {
+        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) {
+          super(hia, HookSpecs.create({ leave: hookSpecs.leave.setTimeout_0 }));
+        }
+      }
+      @customElement({ name: 'd', template: null })
+      class D extends TestRouteViewModelBase {
+        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) {
+          super(hia);
+        }
+      }
+
+      const { router, hia, tearDown } = await createFixture(Root, [A, B, C, D], getDefaultHIAConfig);
+
+      hia.setPhase(`('' -> 'a/b/c/d')`);
+      await router.goto('a/b/c/d');
+
+      hia.setPhase(`('a/b/c/d' -> 'a')`);
+      await router.goto('a');
+
+      await tearDown();
+
+      assert.deepStrictEqual(
+        hia.notifyHistory,
+        [
+          `start.root.beforeBind`,
+          `start.root.afterBind`,
+          `start.root.afterAttach`,
+          `start.root.afterAttachChildren`,
+
+          `('' -> 'a/b/c/d').a.canEnter`,
+          `('' -> 'a/b/c/d').a.enter`,
+          `('' -> 'a/b/c/d').a.beforeBind`,
+          `('' -> 'a/b/c/d').a.afterBind`,
+          `('' -> 'a/b/c/d').a.afterAttach`,
+          `('' -> 'a/b/c/d').a.afterAttachChildren`,
+
+          `('' -> 'a/b/c/d').b.canEnter`,
+          `('' -> 'a/b/c/d').b.enter`,
+          `('' -> 'a/b/c/d').b.beforeBind`,
+          `('' -> 'a/b/c/d').b.afterBind`,
+          `('' -> 'a/b/c/d').b.afterAttach`,
+          `('' -> 'a/b/c/d').b.afterAttachChildren`,
+
+          `('' -> 'a/b/c/d').c.canEnter`,
+          `('' -> 'a/b/c/d').c.enter`,
+          `('' -> 'a/b/c/d').c.beforeBind`,
+          `('' -> 'a/b/c/d').c.afterBind`,
+          `('' -> 'a/b/c/d').c.afterAttach`,
+          `('' -> 'a/b/c/d').c.afterAttachChildren`,
+
+          `('' -> 'a/b/c/d').d.canEnter`,
+          `('' -> 'a/b/c/d').d.enter`,
+          `('' -> 'a/b/c/d').d.beforeBind`,
+          `('' -> 'a/b/c/d').d.afterBind`,
+          `('' -> 'a/b/c/d').d.afterAttach`,
+          `('' -> 'a/b/c/d').d.afterAttachChildren`,
+
+          `('a/b/c/d' -> 'a').b.canLeave`,
+          `('a/b/c/d' -> 'a').c.canLeave`,
+          `('a/b/c/d' -> 'a').d.canLeave`,
+
+          `('a/b/c/d' -> 'a').b.leave`,
+          `('a/b/c/d' -> 'a').c.leave`,
+          `('a/b/c/d' -> 'a').d.leave`,
+
+          `('a/b/c/d' -> 'a').b.beforeDetach`,
+          `('a/b/c/d' -> 'a').b.beforeUnbind`,
+          `('a/b/c/d' -> 'a').b.afterUnbind`,
+          `('a/b/c/d' -> 'a').c.beforeDetach`,
+          `('a/b/c/d' -> 'a').c.beforeUnbind`,
+          `('a/b/c/d' -> 'a').c.afterUnbind`,
+          `('a/b/c/d' -> 'a').d.beforeDetach`,
+          `('a/b/c/d' -> 'a').d.beforeUnbind`,
+          `('a/b/c/d' -> 'a').d.afterUnbind`,
+          `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
+          `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
+          `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
+
+          `stop.root.beforeDetach`,
+          `stop.root.beforeUnbind`,
+          `stop.root.afterUnbind`,
+
+          `stop.a.beforeDetach`,
+          `stop.a.beforeUnbind`,
+          `stop.a.afterUnbind`,
+          `stop.a.afterUnbindChildren`,
+
+          `stop.root.afterUnbindChildren`,
+        ],
+      );
+
+      hia.dispose();
+    });
+  });
 });
 
 function addIf(

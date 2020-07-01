@@ -69,6 +69,10 @@ export interface ITestRouteViewModel extends IRouteViewModel {
 }
 
 export class HookSpecs {
+  public static get DEFAULT(): HookSpecs {
+    return HookSpecs.create({});
+  }
+
   private constructor(
     public readonly beforeBind: IHookSpec<'beforeBind'>,
     public readonly afterBind: IHookSpec<'afterBind'>,
@@ -137,7 +141,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   public constructor(
     public readonly hia: IHookInvocationAggregator,
 
-    public readonly specs: HookSpecs,
+    public readonly specs: HookSpecs = HookSpecs.DEFAULT,
   ) {}
 
   public beforeBind(

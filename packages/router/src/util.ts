@@ -45,23 +45,28 @@ export function resolveAll(
     case 1:
       return promises[0];
     default:
-      return Promise.all(promises).then(PLATFORM.noop);
+      return Promise.all(promises) as unknown as Promise<void>;
   }
 }
 
 export function walkViewportTree<R extends void | Promise<void>>(
   nodes: RouteNode[],
   callback: (viewportAgent: ViewportAgent) => R,
-  seen: WeakSet<ViewportAgent> = new WeakSet(),
+  seen: WeakMap<ViewportAgent, void | Promise<void>> = new WeakMap(),
 ): R {
   return resolveAll(nodes.map(function (node) {
     const vpa = node.context.vpa;
-    if (!seen.has(vpa)) {
-      seen.add(vpa);
-      return onResolve(callback(vpa), function () {
-        return walkViewportTree(node.children, callback, seen);
-      });
+    let result: void | Promise<void>;
+    if (seen.has(vpa)) {
+      result = seen.get(vpa);
+    } else {
+      seen.set(
+        vpa,
+        result = callback(vpa),
+      );
     }
-    return walkViewportTree(node.children, callback, seen);
+    return onResolve(result, function () {
+      return walkViewportTree(node.children, callback, seen);
+    });
   })) as R;
 }

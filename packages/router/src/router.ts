@@ -926,8 +926,8 @@ export class Router {
              */
             return onResolve(walkViewportTree(
               [
-                ...previous,
                 ...next,
+                ...previous,
               ],
               function (viewport) {
                 return viewport.swap(transition);

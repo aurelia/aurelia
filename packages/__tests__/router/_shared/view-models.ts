@@ -2,7 +2,7 @@ import { Writable } from '@aurelia/kernel';
 import { ICustomElementController, IHydratedController, IHydratedParentController, LifecycleFlags } from '@aurelia/runtime';
 import { Params, RouteNode, NavigationInstruction, IRouteViewModel } from '@aurelia/router';
 import { IHookInvocationAggregator } from './hook-invocation-tracker';
-import { IHookSpec } from './hook-spec';
+import { IHookSpec, hookSpecs } from './hook-spec';
 
 export interface ITestRouteViewModel extends IRouteViewModel {
   readonly $controller: ICustomElementController<HTMLElement, this>;
@@ -68,6 +68,66 @@ export interface ITestRouteViewModel extends IRouteViewModel {
   ): void | Promise<void>;
 }
 
+export class HookSpecs {
+  private constructor(
+    public readonly beforeBind: IHookSpec<'beforeBind'>,
+    public readonly afterBind: IHookSpec<'afterBind'>,
+    public readonly afterAttach: IHookSpec<'afterAttach'>,
+    public readonly afterAttachChildren: IHookSpec<'afterAttachChildren'>,
+
+    public readonly beforeDetach: IHookSpec<'beforeDetach'>,
+    public readonly beforeUnbind: IHookSpec<'beforeUnbind'>,
+    public readonly afterUnbind: IHookSpec<'afterUnbind'>,
+    public readonly afterUnbindChildren: IHookSpec<'afterUnbindChildren'>,
+
+    public readonly canEnter: IHookSpec<'canEnter'>,
+    public readonly enter: IHookSpec<'enter'>,
+    public readonly canLeave: IHookSpec<'canLeave'>,
+    public readonly leave: IHookSpec<'leave'>,
+  ) {}
+
+  public static create(
+    input: Partial<HookSpecs>,
+  ): HookSpecs {
+    return new HookSpecs(
+      // TODO: use '??' instead of '||' but gotta figure out first why ts-node doesn't understand ES2020 syntax
+      input.beforeBind || hookSpecs.beforeBind.sync,
+      input.afterBind || hookSpecs.afterBind.sync,
+      input.afterAttach || hookSpecs.afterAttach.sync,
+      input.afterAttachChildren || hookSpecs.afterAttachChildren.sync,
+
+      input.beforeDetach || hookSpecs.beforeDetach.sync,
+      input.beforeUnbind || hookSpecs.beforeUnbind.sync,
+      input.afterUnbind || hookSpecs.afterUnbind.sync,
+      input.afterUnbindChildren || hookSpecs.afterUnbindChildren.sync,
+
+      input.canEnter || hookSpecs.canEnter.sync,
+      input.enter || hookSpecs.enter.sync,
+      input.canLeave || hookSpecs.canLeave.sync,
+      input.leave || hookSpecs.leave.sync,
+    );
+  }
+
+  public dispose(): void {
+    const $this = this as Partial<Writable<this>>;
+
+    $this.beforeBind = void 0;
+    $this.afterBind = void 0;
+    $this.afterAttach = void 0;
+    $this.afterAttachChildren = void 0;
+
+    $this.beforeDetach = void 0;
+    $this.beforeUnbind = void 0;
+    $this.afterUnbind = void 0;
+    $this.afterUnbindChildren = void 0;
+
+    $this.canEnter = void 0;
+    $this.enter = void 0;
+    $this.canLeave = void 0;
+    $this.leave = void 0;
+  }
+}
+
 export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   public readonly $controller!: ICustomElementController<HTMLElement, this>;
   public get name(): string {
@@ -77,20 +137,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   public constructor(
     public readonly hia: IHookInvocationAggregator,
 
-    public readonly beforeBindSpec: IHookSpec<'beforeBind'>,
-    public readonly afterBindSpec: IHookSpec<'afterBind'>,
-    public readonly afterAttachSpec: IHookSpec<'afterAttach'>,
-    public readonly afterAttachChildrenSpec: IHookSpec<'afterAttachChildren'>,
-
-    public readonly beforeDetachSpec: IHookSpec<'beforeDetach'>,
-    public readonly beforeUnbindSpec: IHookSpec<'beforeUnbind'>,
-    public readonly afterUnbindSpec: IHookSpec<'afterUnbind'>,
-    public readonly afterUnbindChildrenSpec: IHookSpec<'afterUnbindChildren'>,
-
-    public readonly canEnterSpec: IHookSpec<'canEnter'>,
-    public readonly enterSpec: IHookSpec<'enter'>,
-    public readonly canLeaveSpec: IHookSpec<'canLeave'>,
-    public readonly leaveSpec: IHookSpec<'leave'>,
+    public readonly specs: HookSpecs,
   ) {}
 
   public beforeBind(
@@ -98,7 +145,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    return this.beforeBindSpec.invoke(
+    return this.specs.beforeBind.invoke(
       this,
       () => {
         this.hia.beforeBind.notify(this.name);
@@ -112,7 +159,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    return this.afterBindSpec.invoke(
+    return this.specs.afterBind.invoke(
       this,
       () => {
         this.hia.afterBind.notify(this.name);
@@ -126,7 +173,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    return this.afterAttachSpec.invoke(
+    return this.specs.afterAttach.invoke(
       this,
       () => {
         this.hia.afterAttach.notify(this.name);
@@ -139,7 +186,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     initiator: IHydratedController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    return this.afterAttachChildrenSpec.invoke(
+    return this.specs.afterAttachChildren.invoke(
       this,
       () => {
         this.hia.afterAttachChildren.notify(this.name);
@@ -153,7 +200,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    return this.beforeDetachSpec.invoke(
+    return this.specs.beforeDetach.invoke(
       this,
       () => {
         this.hia.beforeDetach.notify(this.name);
@@ -167,7 +214,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    return this.beforeUnbindSpec.invoke(
+    return this.specs.beforeUnbind.invoke(
       this,
       () => {
         this.hia.beforeUnbind.notify(this.name);
@@ -181,7 +228,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    return this.afterUnbindSpec.invoke(
+    return this.specs.afterUnbind.invoke(
       this,
       () => {
         this.hia.afterUnbind.notify(this.name);
@@ -194,7 +241,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     initiator: IHydratedController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    return this.afterUnbindChildrenSpec.invoke(
+    return this.specs.afterUnbindChildren.invoke(
       this,
       () => {
         this.hia.afterUnbindChildren.notify(this.name);
@@ -208,7 +255,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     next: RouteNode,
     current: RouteNode | null,
   ): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
-    return this.canEnterSpec.invoke(
+    return this.specs.canEnter.invoke(
       this,
       () => {
         this.hia.canEnter.notify(this.name);
@@ -222,7 +269,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     next: RouteNode,
     current: RouteNode | null,
   ): void | Promise<void> {
-    return this.enterSpec.invoke(
+    return this.specs.enter.invoke(
       this,
       () => {
         this.hia.enter.notify(this.name);
@@ -235,7 +282,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     next: RouteNode | null,
     current: RouteNode,
   ): boolean | Promise<boolean> {
-    return this.canLeaveSpec.invoke(
+    return this.specs.canLeave.invoke(
       this,
       () => {
         this.hia.canLeave.notify(this.name);
@@ -248,7 +295,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     next: RouteNode | null,
     current: RouteNode,
   ): void | Promise<void> {
-    return this.leaveSpec.invoke(
+    return this.specs.leave.invoke(
       this,
       () => {
         this.hia.leave.notify(this.name);
@@ -353,20 +400,6 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     const $this = this as Partial<Writable<this>>;
 
     $this.hia = void 0;
-
-    $this.beforeBindSpec = void 0;
-    $this.afterBindSpec = void 0;
-    $this.afterAttachSpec = void 0;
-    $this.afterAttachChildrenSpec = void 0;
-
-    $this.beforeDetachSpec = void 0;
-    $this.beforeUnbindSpec = void 0;
-    $this.afterUnbindSpec = void 0;
-    $this.afterUnbindChildrenSpec = void 0;
-
-    $this.canEnterSpec = void 0;
-    $this.enterSpec = void 0;
-    $this.canLeaveSpec = void 0;
-    $this.leaveSpec = void 0;
+    $this.specs = void 0;
   }
 }

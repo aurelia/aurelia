@@ -19,8 +19,15 @@ function getHookSpecs<T extends HookName>(name: T) {
         return getValue();
       },
     } as IHookSpec<T>,
-    async: {
+    async1: {
       async invoke(_vm, getValue) {
+        await Promise.resolve();
+        return getValue();
+      },
+    } as IHookSpec<T>,
+    async2: {
+      async invoke(_vm, getValue) {
+        await Promise.resolve();
         await Promise.resolve();
         return getValue();
       },

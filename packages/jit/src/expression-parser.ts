@@ -50,6 +50,7 @@ const $true = PrimitiveLiteralExpression.$true;
 const $null = PrimitiveLiteralExpression.$null;
 const $undefined = PrimitiveLiteralExpression.$undefined;
 const $this = AccessThisExpression.$this;
+const $host = AccessThisExpression.$host;
 const $parent = AccessThisExpression.$parent;
 
 /** @internal */
@@ -241,6 +242,12 @@ TPrec extends Precedence.Unary ? IsUnary :
         result = $this;
         access = Access.This;
         break;
+      case Token.HostScope: // $host
+        state.assignable = false;
+        nextToken(state);
+        result = $host;
+        access = Access.This;
+        break;
       case Token.OpenParen: // parenthesized expression
         nextToken(state);
         result = parse(state, Access.Reset, Precedence.Assign, bindingType);
@@ -344,7 +351,7 @@ TPrec extends Precedence.Unary ? IsUnary :
             continue;
           }
           if (access & Access.Scope) {
-            result = new AccessScopeExpression(name, (result as AccessScopeExpression | AccessThisExpression).ancestor);
+            result = new AccessScopeExpression(name, (result as AccessScopeExpression | AccessThisExpression).ancestor, result === $host);
           } else { // if it's not $Scope, it's $Member
             result = new AccessMemberExpression(result as IsLeftHandSide, name);
           }
@@ -903,6 +910,7 @@ KeywordLookup.null = Token.NullKeyword;
 KeywordLookup.false = Token.FalseKeyword;
 KeywordLookup.undefined = Token.UndefinedKeyword;
 KeywordLookup.$this = Token.ThisScope;
+KeywordLookup.$host = Token.HostScope;
 KeywordLookup.$parent = Token.ParentScope;
 KeywordLookup.in = Token.InKeyword;
 KeywordLookup.instanceof = Token.InstanceOfKeyword;

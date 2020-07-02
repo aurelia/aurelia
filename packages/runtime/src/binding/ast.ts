@@ -387,6 +387,8 @@ export class ConditionalExpression implements IConditionalExpression {
 
 export class AccessThisExpression implements IAccessThisExpression {
   public static readonly $this: AccessThisExpression = new AccessThisExpression(0);
+  // $host and $this are loosely the same thing. $host is used in the context of `au-slot` with the primary objective of determining the scope.
+  public static readonly $host: AccessThisExpression = new AccessThisExpression(0);
   public static readonly $parent: AccessThisExpression = new AccessThisExpression(1);
   public readonly $kind: ExpressionKind.AccessThis = ExpressionKind.AccessThis;
 
@@ -441,9 +443,13 @@ export class AccessScopeExpression implements IAccessScopeExpression {
   public constructor(
     public readonly name: string,
     public readonly ancestor: number = 0,
+    public readonly accessHostScope: boolean = false,
   ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string, projection?: CustomElementDefinition): IBindingContext | IBinding | IOverrideContext {
+    if (this.accessHostScope && (flags & LifecycleFlags.allowParentScopeTraversal) > 0) {
+      flags &= ~LifecycleFlags.allowParentScopeTraversal;
+    }
     const obj = BindingContext.get(scope, this.name, this.ancestor, flags, part, projection) as IBindingContext;
     const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (flags & LifecycleFlags.isStrictBindingStrategy) {

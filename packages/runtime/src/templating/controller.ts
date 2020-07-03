@@ -215,6 +215,7 @@ export class Controller<
     parentContainer: IContainer,
     parts: PartialCustomElementDefinitionParts | undefined,
     flags: LifecycleFlags = LifecycleFlags.none,
+    // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
     definition: CustomElementDefinition | undefined = void 0,
   ): ICustomElementController<T, C> {
     if (controllerLookup.has(viewModel)) {

@@ -255,4 +255,34 @@ describe('enhance', function () {
       'afterAttach',
     ]);
   });
+
+  it(`enhance is idempotent`, async function () {
+    const ctx = TestContext.createHTMLTestContext();
+
+    const host = ctx.dom.createElement('div');
+    host.innerHTML = `<span>\${foo}</span>`;
+    ctx.doc.body.appendChild(host);
+
+    const component = { foo: 'Bar' };
+    const container = ctx.container;
+    const au = new Aurelia(container);
+    au.enhance({ host, component });
+
+    // round #1
+    await au.start().wait();
+    assert.html.textContent('span', 'Bar', 'span.text', host);
+    await au.stop().wait();
+
+    // round #2
+    await au.start().wait();
+    assert.html.textContent('span', 'Bar', 'span.text', host);
+    await au.stop().wait();
+
+    // round #3
+    component.foo = 'Fiz';
+    await au.start().wait();
+    assert.html.textContent('span', 'Fiz', 'span.text', host);
+    await au.stop().wait();
+    ctx.doc.body.removeChild(host);
+  });
 });

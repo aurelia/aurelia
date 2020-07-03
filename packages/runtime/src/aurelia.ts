@@ -86,7 +86,6 @@ export class CompositionRoot<T extends INode = INode> {
     const beforeCreateTask = taskManager.runBeforeCreate();
 
     if (enhance) {
-      // this.setEnhanceDefinition(config);
       const component = config.component as Constructable | ICustomElementViewModel<T>;
       this.enhanceDefinition = CustomElement.getDefinition(
         CustomElement.isType(component)

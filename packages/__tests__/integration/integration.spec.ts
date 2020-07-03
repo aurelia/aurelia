@@ -12,7 +12,7 @@ import { ComponentMode } from './app/startup';
 describe('app', function () {
 
   eachCartesianJoin([
-    ['app', 'enhance'] as ('app' | 'enhance')[],
+    ['app', 'enhance'] as ['app' , 'enhance'],
     [ComponentMode.class, ComponentMode.instance,],
   ], function (method, componentMode) {
     $it(`has some readonly texts with different binding modes - ${method} - ${componentMode}`, function ({ host }) {

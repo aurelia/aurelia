@@ -35,6 +35,7 @@ import {
 } from './route-definition';
 import {
   ViewportAgent,
+  ViewportRequest,
 } from './viewport-agent';
 import {
   ComponentAgent,
@@ -416,20 +417,15 @@ export class RouteContext implements IContainer {
   }
   // #endregion
 
-  public resolveViewportAgent(
-    viewportName: string,
-    componentName: string,
-    append: boolean,
-  ): ViewportAgent {
-    this.logger.trace(`resolveViewportAgent(viewportName:'${viewportName}',componentName:'${componentName}',append:${append})`);
+  public resolveViewportAgent(req: ViewportRequest): ViewportAgent {
+    this.logger.trace(`resolveViewportAgent(req:${req})`);
 
     const agent = this.childViewportAgents.find(function (x) {
-      return x.canAccept(viewportName, componentName, append);
+      return x.handles(req);
     });
 
     if (agent === void 0) {
-      // Or create on-the-fly?
-      throw new Error(`Failed to resolve viewport named '${viewportName}' for '${componentName}' with append=${append} at:\n${this.printTree()}`);
+      throw new Error(`Failed to resolve ${req} at:\n${this.printTree()}`);
     }
 
     return agent;

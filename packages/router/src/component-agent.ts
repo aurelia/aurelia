@@ -124,6 +124,12 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     return this.controller.deactivate(initiator ?? this.controller, parent, flags);
   }
 
+  public dispose(): void {
+    this.logger.trace(`dispose()`);
+
+    this.controller.dispose();
+  }
+
   public canEnter(next: RouteNode): boolean | ViewportInstructionTree | Promise<boolean | ViewportInstructionTree> {
     if (this.hasCanEnter) {
       this.logger.trace(`canEnter(next:${next}) - invoking hook on component`);

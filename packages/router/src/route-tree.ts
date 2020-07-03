@@ -15,6 +15,7 @@ import {
 } from './route-context';
 import {
   RoutingMode,
+  ResolutionStrategy,
 } from './router';
 import {
   ViewportInstructionTree,
@@ -28,6 +29,9 @@ import {
 import {
   RouteDefinition,
 } from './route-definition';
+import {
+  ViewportRequest,
+} from './viewport-agent';
 
 export interface IRouteNode {
   context: IRouteContext;
@@ -96,17 +100,17 @@ export class RouteNode implements IRouteNode {
     input: IRouteNode,
   ): RouteNode {
     return new RouteNode(
-      /*             context */input.context,
+      /*     context */input.context,
       /* instruction */input.instruction,
-      /*              params */input.params ?? {},
-      /*         queryParams */input.queryParams ?? {},
-      /*            fragment */input.fragment ?? null,
-      /*                data */input.data ?? {},
-      /*            viewport */input.viewport ?? null,
-      /*           component */input.component,
-      /*              append */input.append,
-      /*            children */input.children ?? [],
-      /*             residue */input.residue ?? [],
+      /*      params */input.params ?? {},
+      /* queryParams */input.queryParams ?? {},
+      /*    fragment */input.fragment ?? null,
+      /*        data */input.data ?? {},
+      /*    viewport */input.viewport ?? null,
+      /*   component */input.component,
+      /*      append */input.append,
+      /*    children */input.children ?? [],
+      /*     residue */input.residue ?? [],
     );
   }
 
@@ -282,6 +286,7 @@ export class RouteTree {
 export class RouteTreeCompiler {
   private readonly logger: ILogger;
   private readonly mode: RoutingMode;
+  private readonly resolutionStrategy: ResolutionStrategy;
 
   public constructor(
     private readonly routeTree: RouteTree,
@@ -289,6 +294,7 @@ export class RouteTreeCompiler {
     private readonly ctx: IRouteContext,
   ) {
     this.mode = instructions.options.getRoutingMode(instructions);
+    this.resolutionStrategy = instructions.options.resolutionStrategy;
     this.logger = ctx.get(ILogger).scopeTo('RouteTreeBuilder');
   }
 
@@ -387,7 +393,7 @@ export class RouteTreeCompiler {
             const childNode = this.resolve(instruction, depth, append);
             this.compileResidue(childNode, depth + 1);
             ctx.node.appendChild(childNode);
-            childNode.context.vpa.scheduleUpdate(childNode);
+            childNode.context.vpa.scheduleUpdate(this.resolutionStrategy, childNode);
           }
         }
         break;
@@ -397,7 +403,7 @@ export class RouteTreeCompiler {
         const childNode = this.resolve(instruction, depth, append);
         this.compileResidue(childNode, depth + 1);
         ctx.node.appendChild(childNode);
-        childNode.context.vpa.scheduleUpdate(childNode);
+        childNode.context.vpa.scheduleUpdate(this.resolutionStrategy, childNode);
         break;
       }
     }
@@ -420,7 +426,7 @@ export class RouteTreeCompiler {
     this.logger.trace(() => `updateOrCompile(node:${node})`);
 
     if (!node.context.isRoot) {
-      node.context.vpa.scheduleUpdate(node);
+      node.context.vpa.scheduleUpdate(this.resolutionStrategy, node);
     }
     node.queryParams = instructions.queryParams;
     node.fragment = instructions.fragment;
@@ -493,11 +499,13 @@ export class RouteTreeCompiler {
     }
 
     const endpoint = result.endpoint;
-    const viewportAgent = ctx.resolveViewportAgent(
-      endpoint.route.viewport,
-      endpoint.route.component.name,
+    const viewportAgent = ctx.resolveViewportAgent(ViewportRequest.create({
+      viewportName: endpoint.route.viewport,
+      componentName: endpoint.route.component.name,
       append,
-    );
+      resolutionStrategy: this.resolutionStrategy,
+    }));
+
     const childCtx = RouteContext.getOrCreate(
       viewportAgent,
       endpoint.route.component,
@@ -555,11 +563,13 @@ export class RouteTreeCompiler {
 
     const viewportName = instruction.viewport ?? 'default';
 
-    const viewportAgent = ctx.resolveViewportAgent(
+    const viewportAgent = ctx.resolveViewportAgent(ViewportRequest.create({
       viewportName,
-      component.name,
+      componentName: component.name,
       append,
-    );
+      resolutionStrategy: this.resolutionStrategy,
+    }));
+
     const childCtx = RouteContext.getOrCreate(
       viewportAgent,
       component,

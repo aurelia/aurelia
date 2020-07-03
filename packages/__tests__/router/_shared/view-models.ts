@@ -84,6 +84,8 @@ export class HookSpecs {
     public readonly afterUnbind: IHookSpec<'afterUnbind'>,
     public readonly afterUnbindChildren: IHookSpec<'afterUnbindChildren'>,
 
+    public readonly $dispose: IHookSpec<'dispose'>,
+
     public readonly canEnter: IHookSpec<'canEnter'>,
     public readonly enter: IHookSpec<'enter'>,
     public readonly canLeave: IHookSpec<'canLeave'>,
@@ -104,6 +106,8 @@ export class HookSpecs {
       input.beforeUnbind || hookSpecs.beforeUnbind.sync,
       input.afterUnbind || hookSpecs.afterUnbind.sync,
       input.afterUnbindChildren || hookSpecs.afterUnbindChildren.sync,
+
+      hookSpecs.dispose,
 
       input.canEnter || hookSpecs.canEnter.sync,
       input.enter || hookSpecs.enter.sync,
@@ -254,6 +258,16 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     );
   }
 
+  public dispose(): void {
+    this.specs.$dispose.invoke(
+      this,
+      () => {
+        this.hia.$$dispose.notify(this.name);
+        this.$dispose();
+      },
+    );
+  }
+
   public canEnter(
     params: Params,
     next: RouteNode,
@@ -400,7 +414,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     // do nothing
   }
 
-  public dispose(): void {
+  protected $dispose(): void {
     const $this = this as Partial<Writable<this>>;
 
     $this.hia = void 0;

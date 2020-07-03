@@ -13,6 +13,8 @@ export type HookName = (
   'afterUnbind' |
   'afterUnbindChildren' |
 
+  'dispose' |
+
   'canEnter' |
   'enter' |
   'canLeave' |
@@ -109,6 +111,8 @@ export class HookInvocationAggregator {
   public readonly beforeUnbind: HookInvocationTracker = new HookInvocationTracker(this, 'beforeUnbind');
   public readonly afterUnbind: HookInvocationTracker = new HookInvocationTracker(this, 'afterUnbind');
   public readonly afterUnbindChildren: HookInvocationTracker = new HookInvocationTracker(this, 'afterUnbindChildren');
+
+  public readonly $$dispose: HookInvocationTracker = new HookInvocationTracker(this, 'dispose');
 
   public readonly canEnter: HookInvocationTracker = new HookInvocationTracker(this, 'canEnter');
   public readonly enter: HookInvocationTracker = new HookInvocationTracker(this, 'enter');

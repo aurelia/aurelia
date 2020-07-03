@@ -1,27 +1,28 @@
 import { Constructable, Registration, LogLevel, ILogConfig } from '@aurelia/kernel';
 import { Aurelia, customElement } from '@aurelia/runtime';
-import { RouterConfiguration, IRouter } from '@aurelia/router';
+import { RouterConfiguration, IRouter, IRouterOptions } from '@aurelia/router';
 import { TestContext, assert } from '@aurelia/testing';
 
-import { TestRouterConfiguration } from './_shared/configuration';
+import { TestRouterConfiguration, } from './_shared/configuration';
 import { IHIAConfig, IHookInvocationAggregator } from './_shared/hook-invocation-tracker';
 import { TestRouteViewModelBase, HookSpecs } from './_shared/view-models';
 import { hookSpecs } from './_shared/hook-spec';
-import { getHasInitializer } from '@aurelia/aot/dist/vm/ast/_shared';
 
 async function createFixture<T extends Constructable>(
   Component: T,
   deps: Constructable[],
-  createConfig: () => IHIAConfig,
+  createHIAConfig: () => IHIAConfig,
+  createRouterOptions: () => IRouterOptions,
   level: LogLevel = LogLevel.warn,
 ) {
-  const config = createConfig();
+  const hiaConfig = createHIAConfig();
+  const routerOptions = createRouterOptions();
   const ctx = TestContext.createHTMLTestContext();
   const { container, scheduler } = ctx;
 
-  container.register(Registration.instance(IHIAConfig, config));
+  container.register(Registration.instance(IHIAConfig, hiaConfig));
   container.register(TestRouterConfiguration.for(ctx, level));
-  container.register(RouterConfiguration);
+  container.register(RouterConfiguration.customize(routerOptions));
   container.register(...deps);
 
   const hia = container.get(IHookInvocationAggregator);
@@ -72,7 +73,14 @@ function getDefaultHIAConfig(): IHIAConfig {
   };
 }
 
+function getDefaultRouterOptions(): IRouterOptions {
+  return {};
+}
+
 function vp(count: number): string {
+  if (count === 1) {
+    return `<au-viewport></au-viewport>`;
+  }
   let template = '';
   for (let i = 0; i < count; ++i) {
     template = `${template}<au-viewport name="$${i}"></au-viewport>`;
@@ -81,6 +89,11 @@ function vp(count: number): string {
 }
 
 describe('router hooks', function () {
+  const strategies = [
+    'static',
+    'dynamic',
+  ] as const;
+
   const timings = [
     'sync',
     'async1',
@@ -168,246 +181,256 @@ describe('router hooks', function () {
 
         const A = [...A0, ...A1, ...A2];
 
-        for (const [$1, $2, $3, $4] of [
-          ['a01', 'a02', 'a01', 'a02'],
-          ['a01', 'a02', 'a03', 'a01'],
-          ['a01', 'a02', 'a01', 'a04'],
-        ]) {
-          it(`'${$1}' -> '${$2}' -> '${$3}' -> '${$4}'`, async function () {
-            const { router, hia, tearDown } = await createFixture(Root1, A, getDefaultHIAConfig);
+        for (const strategy of strategies) {
+          const getRouterOptions = (): IRouterOptions => {
+            return {
+              resolutionStrategy: strategy,
+            };
+          };
 
-            const t1 = `('' -> '${$1}')#1`;
-            const t2 = `('${$1}' -> '${$2}')#2`;
-            const t3 = `('${$2}' -> '${$3}')#3`;
-            const t4 = `('${$3}' -> '${$4}')#4`;
+          describe(`strategy: '${strategy}'`, function () {
+            for (const [$1, $2, $3, $4] of [
+              ['a01', 'a02', 'a01', 'a02'],
+              ['a01', 'a02', 'a03', 'a01'],
+              ['a01', 'a02', 'a01', 'a04'],
+            ]) {
+              it(`'${$1}' -> '${$2}' -> '${$3}' -> '${$4}'`, async function () {
+                const { router, hia, tearDown } = await createFixture(Root1, A, getDefaultHIAConfig, getRouterOptions);
 
-            hia.setPhase(t1);
-            await router.goto($1);
+                const t1 = `('' -> '${$1}')#1`;
+                const t2 = `('${$1}' -> '${$2}')#2`;
+                const t3 = `('${$2}' -> '${$3}')#3`;
+                const t4 = `('${$3}' -> '${$4}')#4`;
 
-            hia.setPhase(t2);
-            await router.goto($2);
+                hia.setPhase(t1);
+                await router.goto($1);
 
-            hia.setPhase(t3);
-            await router.goto($3);
+                hia.setPhase(t2);
+                await router.goto($2);
 
-            hia.setPhase(t4);
-            await router.goto($4);
+                hia.setPhase(t3);
+                await router.goto($3);
 
-            await tearDown();
+                hia.setPhase(t4);
+                await router.goto($4);
 
-            assert.deepStrictEqual(
-              hia.notifyHistory,
-              [
-                `start.root1.beforeBind`,
-                `start.root1.afterBind`,
-                `start.root1.afterAttach`,
-                `start.root1.afterAttachChildren`,
+                await tearDown();
 
-                ...getCalls[`'' -> $x`](t1, $1),
+                assert.deepStrictEqual(
+                  hia.notifyHistory,
+                  [
+                    `start.root1.beforeBind`,
+                    `start.root1.afterBind`,
+                    `start.root1.afterAttach`,
+                    `start.root1.afterAttachChildren`,
 
-                ...getCalls[`$1 -> $2`](t2, $1, $2),
+                    ...getCalls[`'' -> $x`](t1, $1),
 
-                ...getCalls[`$1 -> $2`](t3, $2, $3),
+                    ...getCalls[`$1 -> $2`](t2, $1, $2),
 
-                ...getCalls[`$1 -> $2`](t4, $3, $4),
+                    ...getCalls[`$1 -> $2`](t3, $2, $3),
 
-                `stop.root1.beforeDetach`,
-                `stop.root1.beforeUnbind`,
-                `stop.root1.afterUnbind`,
+                    ...getCalls[`$1 -> $2`](t4, $3, $4),
 
-                ...getCalls[`$x -> ''`](`stop`, $4, true),
+                    `stop.root1.beforeDetach`,
+                    `stop.root1.beforeUnbind`,
+                    `stop.root1.afterUnbind`,
 
-                `stop.root1.afterUnbindChildren`,
-              ],
-            );
+                    ...getCalls[`$x -> ''`](`stop`, $4, true),
 
-            hia.dispose();
-          });
-        }
+                    `stop.root1.afterUnbindChildren`,
+                  ],
+                );
 
-        for (const [[$1$0, $1$1], [$2$0, $2$1]] of [
-          // Only $0 changes with every nav
-          [['a01', 'a02'], ['a03', 'a02']],
-          [[''   , 'a02'], ['a03', 'a02']],
-          [['a01', 'a02'], [''   , 'a02']],
+                hia.dispose();
+              });
+            }
 
-          [['a01', 'a02'], ['a02', 'a02']],
-          [[''   , 'a02'], ['a02', 'a02']],
-          [['a01', 'a02'], [''   , 'a02']],
+            for (const [[$1$0, $1$1], [$2$0, $2$1]] of [
+              // Only $0 changes with every nav
+              [['a01', 'a02'], ['a03', 'a02']],
+              [[''   , 'a02'], ['a03', 'a02']],
+              [['a01', 'a02'], [''   , 'a02']],
 
-          [['a02', 'a02'], ['a01', 'a02']],
-          [[''   , 'a02'], ['a01', 'a02']],
-          [['a02', 'a02'], [''   , 'a02']],
-          // Only $1 changes with every nav
-          [['a01', 'a02'], ['a01', 'a03']],
-          [['a01', ''   ], ['a01', 'a03']],
-          [['a01', 'a02'], ['a01', ''   ]],
+              [['a01', 'a02'], ['a02', 'a02']],
+              [[''   , 'a02'], ['a02', 'a02']],
+              [['a01', 'a02'], [''   , 'a02']],
 
-          [['a01', 'a02'], ['a01', 'a01']],
-          [['a01', ''   ], ['a01', 'a01']],
-          [['a01', 'a02'], ['a01', ''   ]],
+              [['a02', 'a02'], ['a01', 'a02']],
+              [[''   , 'a02'], ['a01', 'a02']],
+              [['a02', 'a02'], [''   , 'a02']],
+              // Only $1 changes with every nav
+              [['a01', 'a02'], ['a01', 'a03']],
+              [['a01', ''   ], ['a01', 'a03']],
+              [['a01', 'a02'], ['a01', ''   ]],
 
-          [['a01', 'a01'], ['a01', 'a02']],
-          [['a01', ''   ], ['a01', 'a02']],
-          [['a01', 'a01'], ['a01', ''   ]],
-          // Both $0 and $1 change with every nav
-          [['a01', 'a02'], ['a03', 'a04']],
-          [[''   , 'a02'], ['a03', 'a04']],
-          [['a01', ''   ], ['a03', 'a04']],
-          [['a01', 'a02'], [''   , 'a04']],
-          [['a01', 'a02'], ['a03', ''   ]],
+              [['a01', 'a02'], ['a01', 'a01']],
+              [['a01', ''   ], ['a01', 'a01']],
+              [['a01', 'a02'], ['a01', ''   ]],
 
-          [['a01', 'a02'], ['a02', 'a01']],
-          [[''   , 'a02'], ['a02', 'a01']],
-          [['a01', ''   ], ['a02', 'a01']],
-          [['a01', 'a02'], [''   , 'a01']],
-          [['a01', 'a02'], ['a02', ''   ]],
+              [['a01', 'a01'], ['a01', 'a02']],
+              [['a01', ''   ], ['a01', 'a02']],
+              [['a01', 'a01'], ['a01', ''   ]],
+              // Both $0 and $1 change with every nav
+              [['a01', 'a02'], ['a03', 'a04']],
+              [[''   , 'a02'], ['a03', 'a04']],
+              [['a01', ''   ], ['a03', 'a04']],
+              [['a01', 'a02'], [''   , 'a04']],
+              [['a01', 'a02'], ['a03', ''   ]],
 
-          [['a01', 'a02'], ['a04', 'a01']],
-          [[''   , 'a02'], ['a04', 'a01']],
-          [['a01', ''   ], ['a04', 'a01']],
-          [['a01', 'a02'], [''   , 'a01']],
-          [['a01', 'a02'], ['a04', ''   ]],
-        ]) {
-          const $1 = join('+', `${$1$0}@$0`, `${$1$1}@$1`);
-          const $2 = join('+', `${$2$0}@$0`, `${$2$1}@$1`);
-          it(`${$1}' -> '${$2}' -> '${$1}' -> '${$2}'`, async function () {
-            const { router, hia, tearDown } = await createFixture(Root2, A, getDefaultHIAConfig);
+              [['a01', 'a02'], ['a02', 'a01']],
+              [[''   , 'a02'], ['a02', 'a01']],
+              [['a01', ''   ], ['a02', 'a01']],
+              [['a01', 'a02'], [''   , 'a01']],
+              [['a01', 'a02'], ['a02', ''   ]],
 
-            const t1 = `('' -> '${$1}')#1`;
-            const t2 = `('${$1}' -> '${$2}')#2`;
-            const t3 = `('${$2}' -> '${$1}')#3`;
-            const t4 = `('${$1}' -> '${$2}')#4`;
+              [['a01', 'a02'], ['a04', 'a01']],
+              [[''   , 'a02'], ['a04', 'a01']],
+              [['a01', ''   ], ['a04', 'a01']],
+              [['a01', 'a02'], [''   , 'a01']],
+              [['a01', 'a02'], ['a04', ''   ]],
+            ]) {
+              const $1 = join('+', `${$1$0}@$0`, `${$1$1}@$1`);
+              const $2 = join('+', `${$2$0}@$0`, `${$2$1}@$1`);
+              it(`${$1}' -> '${$2}' -> '${$1}' -> '${$2}'`, async function () {
+                const { router, hia, tearDown } = await createFixture(Root2, A, getDefaultHIAConfig, getRouterOptions);
 
-            hia.setPhase(t1);
-            await router.goto($1);
+                const t1 = `('' -> '${$1}')#1`;
+                const t2 = `('${$1}' -> '${$2}')#2`;
+                const t3 = `('${$2}' -> '${$1}')#3`;
+                const t4 = `('${$1}' -> '${$2}')#4`;
 
-            hia.setPhase(t2);
-            await router.goto($2);
+                hia.setPhase(t1);
+                await router.goto($1);
 
-            hia.setPhase(t3);
-            await router.goto($1);
+                hia.setPhase(t2);
+                await router.goto($2);
 
-            hia.setPhase(t4);
-            await router.goto($2);
+                hia.setPhase(t3);
+                await router.goto($1);
 
-            await tearDown();
+                hia.setPhase(t4);
+                await router.goto($2);
 
-            assert.deepStrictEqual(
-              hia.notifyHistory,
-              [
-                `start.root2.beforeBind`,
-                `start.root2.afterBind`,
-                `start.root2.afterAttach`,
-                `start.root2.afterAttachChildren`,
+                await tearDown();
 
-                ...getCalls[`'' -> $x$0+$x$1`](t1, $1$0, $1$1, async),
+                assert.deepStrictEqual(
+                  hia.notifyHistory,
+                  [
+                    `start.root2.beforeBind`,
+                    `start.root2.afterBind`,
+                    `start.root2.afterAttach`,
+                    `start.root2.afterAttachChildren`,
 
-                ...getCalls[`$1$0+$1$1 -> $2$0+$2$1`](t2, $1$0, $1$1, $2$0, $2$1, async),
+                    ...getCalls[`'' -> $x$0+$x$1`](t1, $1$0, $1$1, async),
 
-                ...getCalls[`$1$0+$1$1 -> $2$0+$2$1`](t3, $2$0, $2$1, $1$0, $1$1, async),
+                    ...getCalls[`$1$0+$1$1 -> $2$0+$2$1`](t2, $1$0, $1$1, $2$0, $2$1, async),
 
-                ...getCalls[`$1$0+$1$1 -> $2$0+$2$1`](t4, $1$0, $1$1, $2$0, $2$1, async),
+                    ...getCalls[`$1$0+$1$1 -> $2$0+$2$1`](t3, $2$0, $2$1, $1$0, $1$1, async),
 
-                `stop.root2.beforeDetach`,
-                `stop.root2.beforeUnbind`,
-                `stop.root2.afterUnbind`,
+                    ...getCalls[`$1$0+$1$1 -> $2$0+$2$1`](t4, $1$0, $1$1, $2$0, $2$1, async),
 
-                ...getCalls[`$x$0+$x$1 -> ''`](`stop`, $2$0, $2$1, true, async),
+                    `stop.root2.beforeDetach`,
+                    `stop.root2.beforeUnbind`,
+                    `stop.root2.afterUnbind`,
 
-                `stop.root2.afterUnbindChildren`,
-              ],
-            );
+                    ...getCalls[`$x$0+$x$1 -> ''`](`stop`, $2$0, $2$1, true, async),
 
-            hia.dispose();
-          });
-        }
+                    `stop.root2.afterUnbindChildren`,
+                  ],
+                );
 
-        for (const [[$1p, $1c], [$2p, $2c]] of [
-          // Only parent changes with every nav
-          [['a11', 'a12'], ['a13', 'a12']],
-          [['a11', 'a12'], ['a12', 'a12']],
-          [['a12', 'a12'], ['a11', 'a12']],
-          // Only child changes with every nav
-          [['a11', 'a01'], ['a11', 'a02']],
-          [['a11', ''   ], ['a11', 'a02']],
-          [['a11', 'a01'], ['a11', ''   ]],
+                hia.dispose();
+              });
+            }
 
-          [['a11', 'a11'], ['a11', 'a02']],
-          [['a11', 'a11'], ['a11', ''   ]],
+            for (const [[$1p, $1c], [$2p, $2c]] of [
+              // Only parent changes with every nav
+              [['a11', 'a12'], ['a13', 'a12']],
+              [['a11', 'a12'], ['a12', 'a12']],
+              [['a12', 'a12'], ['a11', 'a12']],
+              // Only child changes with every nav
+              [['a11', 'a01'], ['a11', 'a02']],
+              [['a11', ''   ], ['a11', 'a02']],
+              [['a11', 'a01'], ['a11', ''   ]],
 
-          [['a11', 'a01'], ['a11', 'a11']],
-          [['a11', ''   ], ['a11', 'a11']],
-          // Both parent and child change with every nav
-          [['a11', 'a01'], ['a12', 'a02']],
-          [['a11', ''   ], ['a12', 'a02']],
-          [['a11', 'a01'], ['a12', ''   ]],
+              [['a11', 'a11'], ['a11', 'a02']],
+              [['a11', 'a11'], ['a11', ''   ]],
 
-          [['a11', 'a11'], ['a12', 'a02']],
-          [['a11', 'a11'], ['a12', 'a12']],
-          [['a11', 'a11'], ['a12', ''   ]],
+              [['a11', 'a01'], ['a11', 'a11']],
+              [['a11', ''   ], ['a11', 'a11']],
+              // Both parent and child change with every nav
+              [['a11', 'a01'], ['a12', 'a02']],
+              [['a11', ''   ], ['a12', 'a02']],
+              [['a11', 'a01'], ['a12', ''   ]],
 
-          [['a12', 'a02'], ['a11', 'a11']],
-          [['a12', 'a12'], ['a11', 'a11']],
-          [['a12', ''   ], ['a11', 'a11']],
+              [['a11', 'a11'], ['a12', 'a02']],
+              [['a11', 'a11'], ['a12', 'a12']],
+              [['a11', 'a11'], ['a12', ''   ]],
 
-          [['a11', 'a12'], ['a13', 'a14']],
-          [['a11', 'a12'], ['a13', 'a11']],
+              [['a12', 'a02'], ['a11', 'a11']],
+              [['a12', 'a12'], ['a11', 'a11']],
+              [['a12', ''   ], ['a11', 'a11']],
 
-          [['a13', 'a14'], ['a11', 'a12']],
-          [['a13', 'a11'], ['a11', 'a12']],
-        ]) {
-          const $1 = join('/', $1p, $1c);
-          const $2 = join('/', $2p, $2c);
-          it(`'${$1}' -> '${$2}' -> '${$1}' -> '${$2}'`, async function () {
-            const { router, hia, tearDown } = await createFixture(Root1, A, getDefaultHIAConfig);
+              [['a11', 'a12'], ['a13', 'a14']],
+              [['a11', 'a12'], ['a13', 'a11']],
 
-            const t1 = `('' -> '${$1}')#1`;
-            const t2 = `('${$1}' -> '${$2}')#2`;
-            const t3 = `('${$2}' -> '${$1}')#3`;
-            const t4 = `('${$1}' -> '${$2}')#4`;
+              [['a13', 'a14'], ['a11', 'a12']],
+              [['a13', 'a11'], ['a11', 'a12']],
+            ]) {
+              const $1 = join('/', $1p, $1c);
+              const $2 = join('/', $2p, $2c);
+              it(`'${$1}' -> '${$2}' -> '${$1}' -> '${$2}'`, async function () {
+                const { router, hia, tearDown } = await createFixture(Root1, A, getDefaultHIAConfig, getRouterOptions);
 
-            hia.setPhase(t1);
-            await router.goto($1);
+                const t1 = `('' -> '${$1}')#1`;
+                const t2 = `('${$1}' -> '${$2}')#2`;
+                const t3 = `('${$2}' -> '${$1}')#3`;
+                const t4 = `('${$1}' -> '${$2}')#4`;
 
-            hia.setPhase(t2);
-            await router.goto($2);
+                hia.setPhase(t1);
+                await router.goto($1);
 
-            hia.setPhase(t3);
-            await router.goto($1);
+                hia.setPhase(t2);
+                await router.goto($2);
 
-            hia.setPhase(t4);
-            await router.goto($2);
+                hia.setPhase(t3);
+                await router.goto($1);
 
-            await tearDown();
+                hia.setPhase(t4);
+                await router.goto($2);
 
-            assert.deepStrictEqual(
-              hia.notifyHistory,
-              [
-                `start.root1.beforeBind`,
-                `start.root1.afterBind`,
-                `start.root1.afterAttach`,
-                `start.root1.afterAttachChildren`,
+                await tearDown();
 
-                ...getCalls[`'' -> $x$p/$x$c`](t1, $1p, $1c),
+                assert.deepStrictEqual(
+                  hia.notifyHistory,
+                  [
+                    `start.root1.beforeBind`,
+                    `start.root1.afterBind`,
+                    `start.root1.afterAttach`,
+                    `start.root1.afterAttachChildren`,
 
-                ...getCalls[`$1$p/$1$c -> $2$p/$2$c`](t2, $1p, $1c, $2p, $2c),
+                    ...getCalls[`'' -> $x$p/$x$c`](t1, $1p, $1c, strategy),
 
-                ...getCalls[`$1$p/$1$c -> $2$p/$2$c`](t3, $2p, $2c, $1p, $1c),
+                    ...getCalls[`$1$p/$1$c -> $2$p/$2$c`](t2, $1p, $1c, $2p, $2c, strategy),
 
-                ...getCalls[`$1$p/$1$c -> $2$p/$2$c`](t4, $1p, $1c, $2p, $2c),
+                    ...getCalls[`$1$p/$1$c -> $2$p/$2$c`](t3, $2p, $2c, $1p, $1c, strategy),
 
-                `stop.root1.beforeDetach`,
-                `stop.root1.beforeUnbind`,
-                `stop.root1.afterUnbind`,
+                    ...getCalls[`$1$p/$1$c -> $2$p/$2$c`](t4, $1p, $1c, $2p, $2c, strategy),
 
-                ...getCalls[`$x$p/$x$c -> ''`](`stop`, $2p, $2c, true),
+                    `stop.root1.beforeDetach`,
+                    `stop.root1.beforeUnbind`,
+                    `stop.root1.afterUnbind`,
 
-                `stop.root1.afterUnbindChildren`,
-              ],
-            );
+                    ...getCalls[`$x$p/$x$c -> ''`](`stop`, $2p, $2c, true),
 
-            hia.dispose();
+                    `stop.root1.afterUnbindChildren`,
+                  ],
+                );
+
+                hia.dispose();
+              });
+            }
           });
         }
       });
@@ -447,7 +470,7 @@ describe('router hooks', function () {
         }
       }
 
-      const { router, hia, tearDown } = await createFixture(Root, [A, B, C, D], getDefaultHIAConfig);
+      const { router, hia, tearDown } = await createFixture(Root, [A, B, C, D], getDefaultHIAConfig, getDefaultRouterOptions);
 
       hia.setPhase(`('' -> 'a/b/c/d')`);
       await router.goto('a/b/c/d');
@@ -513,6 +536,9 @@ describe('router hooks', function () {
           `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
           `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
           `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
+          `('a/b/c/d' -> 'a').b.dispose`,
+          `('a/b/c/d' -> 'a').c.dispose`,
+          `('a/b/c/d' -> 'a').d.dispose`,
 
           `stop.root.beforeDetach`,
           `stop.root.beforeUnbind`,
@@ -564,6 +590,12 @@ const getCalls = {
       `${prefix}.${$x}.beforeUnbind`,
       `${prefix}.${$x}.afterUnbind`,
       `${prefix}.${$x}.afterUnbindChildren`,
+      ...addIf(
+        !isStopPhase,
+        [
+          `${prefix}.${$x}.dispose`,
+        ],
+      ),
     ];
   },
   [`'' -> $x`](
@@ -607,6 +639,7 @@ const getCalls = {
       `${prefix}.${$1}.beforeUnbind`,
       `${prefix}.${$1}.afterUnbind`,
       `${prefix}.${$1}.afterUnbindChildren`,
+      `${prefix}.${$1}.dispose`,
     ];
   },
   [`'' -> $x$0+$x$1`](
@@ -687,7 +720,7 @@ const getCalls = {
       // because the controllers are linked to the parent controller in `deactivate` and so those hooks only
       // happen after everything else happened.
       // This linking does not occur in the same way when controllers are deactivated in isolation by the router.
-      return  [
+      return [
         `${prefix}.${$x$0}.beforeDetach`,
         `${prefix}.${$x$0}.beforeUnbind`,
         `${prefix}.${$x$0}.afterUnbind`,
@@ -716,16 +749,20 @@ const getCalls = {
           `${prefix}.${$x$1}.afterUnbind`,
           `${prefix}.${$x$0}.afterUnbindChildren`,
           `${prefix}.${$x$1}.afterUnbindChildren`,
+          `${prefix}.${$x$1}.dispose`,
+          `${prefix}.${$x$0}.dispose`,
         ],
         [
           `${prefix}.${$x$0}.beforeDetach`,
           `${prefix}.${$x$0}.beforeUnbind`,
           `${prefix}.${$x$0}.afterUnbind`,
           `${prefix}.${$x$0}.afterUnbindChildren`,
+          `${prefix}.${$x$0}.dispose`,
           `${prefix}.${$x$1}.beforeDetach`,
           `${prefix}.${$x$1}.beforeUnbind`,
           `${prefix}.${$x$1}.afterUnbind`,
           `${prefix}.${$x$1}.afterUnbindChildren`,
+          `${prefix}.${$x$1}.dispose`,
         ],
       ),
     ];
@@ -777,6 +814,7 @@ const getCalls = {
             `${prefix}.${$1$1}.beforeUnbind`,
             `${prefix}.${$1$1}.afterUnbind`,
             `${prefix}.${$1$1}.afterUnbindChildren`,
+            `${prefix}.${$1$1}.dispose`,
           ],
           [
             `${prefix}.${$2$0}.beforeBind`,
@@ -791,6 +829,7 @@ const getCalls = {
             `${prefix}.${$1$1}.beforeUnbind`,
             `${prefix}.${$1$1}.afterUnbind`,
             `${prefix}.${$1$1}.afterUnbindChildren`,
+            `${prefix}.${$1$1}.dispose`,
           ],
         ),
       ];
@@ -820,6 +859,7 @@ const getCalls = {
             `${prefix}.${$1$0}.beforeUnbind`,
             `${prefix}.${$1$0}.afterUnbind`,
             `${prefix}.${$1$0}.afterUnbindChildren`,
+            `${prefix}.${$1$0}.dispose`,
           ],
           [
             `${prefix}.${$2$0}.beforeBind`,
@@ -830,6 +870,7 @@ const getCalls = {
             `${prefix}.${$1$0}.beforeUnbind`,
             `${prefix}.${$1$0}.afterUnbind`,
             `${prefix}.${$1$0}.afterUnbindChildren`,
+            `${prefix}.${$1$0}.dispose`,
             `${prefix}.${$2$1}.beforeBind`,
             `${prefix}.${$2$1}.afterBind`,
             `${prefix}.${$2$1}.afterAttach`,
@@ -866,10 +907,12 @@ const getCalls = {
             `${prefix}.${$1$0}.afterUnbind`,
             `${prefix}.${$2$1}.afterAttachChildren`,
             `${prefix}.${$1$0}.afterUnbindChildren`,
+            `${prefix}.${$1$0}.dispose`,
             `${prefix}.${$1$1}.beforeDetach`,
             `${prefix}.${$1$1}.beforeUnbind`,
             `${prefix}.${$1$1}.afterUnbind`,
             `${prefix}.${$1$1}.afterUnbindChildren`,
+            `${prefix}.${$1$1}.dispose`,
           ],
           [
             `${prefix}.${$2$1}.beforeBind`,
@@ -880,10 +923,12 @@ const getCalls = {
             `${prefix}.${$1$1}.beforeUnbind`,
             `${prefix}.${$1$1}.afterUnbind`,
             `${prefix}.${$1$1}.afterUnbindChildren`,
+            `${prefix}.${$1$1}.dispose`,
             `${prefix}.${$1$0}.beforeDetach`,
             `${prefix}.${$1$0}.beforeUnbind`,
             `${prefix}.${$1$0}.afterUnbind`,
             `${prefix}.${$1$0}.afterUnbindChildren`,
+            `${prefix}.${$1$0}.dispose`,
           ],
         ),
       ];
@@ -909,10 +954,12 @@ const getCalls = {
             `${prefix}.${$1$1}.afterUnbind`,
             `${prefix}.${$2$0}.afterAttachChildren`,
             `${prefix}.${$1$1}.afterUnbindChildren`,
+            `${prefix}.${$1$1}.dispose`,
             `${prefix}.${$1$0}.beforeDetach`,
             `${prefix}.${$1$0}.beforeUnbind`,
             `${prefix}.${$1$0}.afterUnbind`,
             `${prefix}.${$1$0}.afterUnbindChildren`,
+            `${prefix}.${$1$0}.dispose`,
           ],
           [
             `${prefix}.${$2$0}.beforeBind`,
@@ -923,10 +970,12 @@ const getCalls = {
             `${prefix}.${$1$0}.beforeUnbind`,
             `${prefix}.${$1$0}.afterUnbind`,
             `${prefix}.${$1$0}.afterUnbindChildren`,
+            `${prefix}.${$1$0}.dispose`,
             `${prefix}.${$1$1}.beforeDetach`,
             `${prefix}.${$1$1}.beforeUnbind`,
             `${prefix}.${$1$1}.afterUnbind`,
             `${prefix}.${$1$1}.afterUnbindChildren`,
+            `${prefix}.${$1$1}.dispose`,
           ],
         ),
       ];
@@ -961,6 +1010,8 @@ const getCalls = {
           `${prefix}.${$1$1}.afterUnbind`,
           `${prefix}.${$1$0}.afterUnbindChildren`,
           `${prefix}.${$1$1}.afterUnbindChildren`,
+          `${prefix}.${$1$0}.dispose`,
+          `${prefix}.${$1$1}.dispose`,
         ],
         [
           `${prefix}.${$2$0}.beforeBind`,
@@ -971,6 +1022,7 @@ const getCalls = {
           `${prefix}.${$1$0}.beforeUnbind`,
           `${prefix}.${$1$0}.afterUnbind`,
           `${prefix}.${$1$0}.afterUnbindChildren`,
+          `${prefix}.${$1$0}.dispose`,
           `${prefix}.${$2$1}.beforeBind`,
           `${prefix}.${$2$1}.afterBind`,
           `${prefix}.${$2$1}.afterAttach`,
@@ -979,6 +1031,7 @@ const getCalls = {
           `${prefix}.${$1$1}.beforeUnbind`,
           `${prefix}.${$1$1}.afterUnbind`,
           `${prefix}.${$1$1}.afterUnbindChildren`,
+          `${prefix}.${$1$1}.dispose`,
         ],
       ),
     ];
@@ -987,28 +1040,48 @@ const getCalls = {
     prefix: string,
     $x$p: string,
     $x$c: string,
+    strategy: 'static' | 'dynamic',
   ): string[] {
     if ($x$c === '') {
       return getCalls[`'' -> $x`](prefix, $x$p);
     }
 
-    return [
-      `${prefix}.${$x$p}.canEnter`,
-      `${prefix}.${$x$p}.enter`,
+    switch (strategy) {
+      case 'static':
+        return [
+          `${prefix}.${$x$p}.canEnter`,
+          `${prefix}.${$x$c}.canEnter`,
+          `${prefix}.${$x$p}.enter`,
+          `${prefix}.${$x$c}.enter`,
 
-      `${prefix}.${$x$p}.beforeBind`,
-      `${prefix}.${$x$p}.afterBind`,
-      `${prefix}.${$x$p}.afterAttach`,
-      `${prefix}.${$x$p}.afterAttachChildren`,
+          `${prefix}.${$x$p}.beforeBind`,
+          `${prefix}.${$x$p}.afterBind`,
+          `${prefix}.${$x$p}.afterAttach`,
+          `${prefix}.${$x$c}.beforeBind`,
+          `${prefix}.${$x$c}.afterBind`,
+          `${prefix}.${$x$c}.afterAttach`,
+          `${prefix}.${$x$c}.afterAttachChildren`,
+          `${prefix}.${$x$p}.afterAttachChildren`,
+        ];
+      case 'dynamic':
+        return [
+          `${prefix}.${$x$p}.canEnter`,
+          `${prefix}.${$x$p}.enter`,
 
-      `${prefix}.${$x$c}.canEnter`,
-      `${prefix}.${$x$c}.enter`,
+          `${prefix}.${$x$p}.beforeBind`,
+          `${prefix}.${$x$p}.afterBind`,
+          `${prefix}.${$x$p}.afterAttach`,
+          `${prefix}.${$x$p}.afterAttachChildren`,
 
-      `${prefix}.${$x$c}.beforeBind`,
-      `${prefix}.${$x$c}.afterBind`,
-      `${prefix}.${$x$c}.afterAttach`,
-      `${prefix}.${$x$c}.afterAttachChildren`,
-    ];
+          `${prefix}.${$x$c}.canEnter`,
+          `${prefix}.${$x$c}.enter`,
+
+          `${prefix}.${$x$c}.beforeBind`,
+          `${prefix}.${$x$c}.afterBind`,
+          `${prefix}.${$x$c}.afterAttach`,
+          `${prefix}.${$x$c}.afterAttachChildren`,
+        ];
+    }
   },
   [`$x$p/$x$c -> ''`](
     prefix: string,
@@ -1038,6 +1111,13 @@ const getCalls = {
       `${prefix}.${$x$c}.afterUnbind`,
       `${prefix}.${$x$c}.afterUnbindChildren`,
       `${prefix}.${$x$p}.afterUnbindChildren`,
+      ...addIf(
+        !isStopPhase,
+        [
+          `${prefix}.${$x$p}.dispose`,
+          `${prefix}.${$x$c}.dispose`,
+        ],
+      ),
     ];
   },
   [`$1$p/$1$c -> $2$p/$2$c`](
@@ -1046,6 +1126,7 @@ const getCalls = {
     $1$c: string,
     $2$p: string,
     $2$c: string,
+    strategy: 'static' | 'dynamic',
   ): string[] {
     if ($1$p === $2$p) {
       return getCalls[`$1 -> $2`](prefix, $1$c, $2$c);
@@ -1057,32 +1138,59 @@ const getCalls = {
       }
 
       if ($1$p === '') {
-        return getCalls[`'' -> $x$p/$x$c`](prefix, $2$p, $2$c);
+        return getCalls[`'' -> $x$p/$x$c`](prefix, $2$p, $2$c, strategy);
       }
 
-      return [
-        `${prefix}.${$1$p}.canLeave`,
-        `${prefix}.${$2$p}.canEnter`,
-        `${prefix}.${$1$p}.leave`,
-        `${prefix}.${$2$p}.enter`,
+      switch (strategy) {
+        case 'static':
+          return [
+            `${prefix}.${$1$p}.canLeave`,
+            `${prefix}.${$2$p}.canEnter`,
+            `${prefix}.${$2$c}.canEnter`,
+            `${prefix}.${$1$p}.leave`,
+            `${prefix}.${$2$p}.enter`,
+            `${prefix}.${$2$c}.enter`,
 
-        `${prefix}.${$2$p}.beforeBind`,
-        `${prefix}.${$2$p}.afterBind`,
-        `${prefix}.${$2$p}.afterAttach`,
-        `${prefix}.${$2$p}.afterAttachChildren`,
-        `${prefix}.${$1$p}.beforeDetach`,
-        `${prefix}.${$1$p}.beforeUnbind`,
-        `${prefix}.${$1$p}.afterUnbind`,
-        `${prefix}.${$1$p}.afterUnbindChildren`,
+            `${prefix}.${$2$p}.beforeBind`,
+            `${prefix}.${$2$p}.afterBind`,
+            `${prefix}.${$2$p}.afterAttach`,
+            `${prefix}.${$2$c}.beforeBind`,
+            `${prefix}.${$2$c}.afterBind`,
+            `${prefix}.${$2$c}.afterAttach`,
+            `${prefix}.${$2$c}.afterAttachChildren`,
+            `${prefix}.${$2$p}.afterAttachChildren`,
+            `${prefix}.${$1$p}.beforeDetach`,
+            `${prefix}.${$1$p}.beforeUnbind`,
+            `${prefix}.${$1$p}.afterUnbind`,
+            `${prefix}.${$1$p}.afterUnbindChildren`,
+            `${prefix}.${$1$p}.dispose`,
+          ];
+        case 'dynamic':
+          return [
+            `${prefix}.${$1$p}.canLeave`,
+            `${prefix}.${$2$p}.canEnter`,
+            `${prefix}.${$1$p}.leave`,
+            `${prefix}.${$2$p}.enter`,
 
-        `${prefix}.${$2$c}.canEnter`,
-        `${prefix}.${$2$c}.enter`,
+            `${prefix}.${$2$p}.beforeBind`,
+            `${prefix}.${$2$p}.afterBind`,
+            `${prefix}.${$2$p}.afterAttach`,
+            `${prefix}.${$2$p}.afterAttachChildren`,
+            `${prefix}.${$1$p}.beforeDetach`,
+            `${prefix}.${$1$p}.beforeUnbind`,
+            `${prefix}.${$1$p}.afterUnbind`,
+            `${prefix}.${$1$p}.afterUnbindChildren`,
+            `${prefix}.${$1$p}.dispose`,
 
-        `${prefix}.${$2$c}.beforeBind`,
-        `${prefix}.${$2$c}.afterBind`,
-        `${prefix}.${$2$c}.afterAttach`,
-        `${prefix}.${$2$c}.afterAttachChildren`,
-      ];
+            `${prefix}.${$2$c}.canEnter`,
+            `${prefix}.${$2$c}.enter`,
+
+            `${prefix}.${$2$c}.beforeBind`,
+            `${prefix}.${$2$c}.afterBind`,
+            `${prefix}.${$2$c}.afterAttach`,
+            `${prefix}.${$2$c}.afterAttachChildren`,
+          ];
+      }
     }
 
     if ($2$c === '') {
@@ -1110,37 +1218,74 @@ const getCalls = {
         `${prefix}.${$1$c}.afterUnbind`,
         `${prefix}.${$1$c}.afterUnbindChildren`,
         `${prefix}.${$1$p}.afterUnbindChildren`,
+        `${prefix}.${$1$p}.dispose`,
+        `${prefix}.${$1$c}.dispose`,
       ];
     }
 
-    return [
-      `${prefix}.${$1$p}.canLeave`,
-      `${prefix}.${$1$c}.canLeave`,
-      `${prefix}.${$2$p}.canEnter`,
-      `${prefix}.${$1$p}.leave`,
-      `${prefix}.${$1$c}.leave`,
-      `${prefix}.${$2$p}.enter`,
+    switch (strategy) {
+      case 'static':
+        return [
+          `${prefix}.${$1$p}.canLeave`,
+          `${prefix}.${$1$c}.canLeave`,
+          `${prefix}.${$2$p}.canEnter`,
+          `${prefix}.${$2$c}.canEnter`,
+          `${prefix}.${$1$p}.leave`,
+          `${prefix}.${$1$c}.leave`,
+          `${prefix}.${$2$p}.enter`,
+          `${prefix}.${$2$c}.enter`,
 
-      `${prefix}.${$2$p}.beforeBind`,
-      `${prefix}.${$2$p}.afterBind`,
-      `${prefix}.${$2$p}.afterAttach`,
-      `${prefix}.${$2$p}.afterAttachChildren`,
-      `${prefix}.${$1$p}.beforeDetach`,
-      `${prefix}.${$1$p}.beforeUnbind`,
-      `${prefix}.${$1$p}.afterUnbind`,
-      `${prefix}.${$1$c}.beforeDetach`,
-      `${prefix}.${$1$c}.beforeUnbind`,
-      `${prefix}.${$1$c}.afterUnbind`,
-      `${prefix}.${$1$c}.afterUnbindChildren`,
-      `${prefix}.${$1$p}.afterUnbindChildren`,
+          `${prefix}.${$2$p}.beforeBind`,
+          `${prefix}.${$2$p}.afterBind`,
+          `${prefix}.${$2$p}.afterAttach`,
+          `${prefix}.${$2$c}.beforeBind`,
+          `${prefix}.${$2$c}.afterBind`,
+          `${prefix}.${$2$c}.afterAttach`,
+          `${prefix}.${$2$c}.afterAttachChildren`,
+          `${prefix}.${$2$p}.afterAttachChildren`,
+          `${prefix}.${$1$p}.beforeDetach`,
+          `${prefix}.${$1$p}.beforeUnbind`,
+          `${prefix}.${$1$p}.afterUnbind`,
+          `${prefix}.${$1$c}.beforeDetach`,
+          `${prefix}.${$1$c}.beforeUnbind`,
+          `${prefix}.${$1$c}.afterUnbind`,
+          `${prefix}.${$1$c}.afterUnbindChildren`,
+          `${prefix}.${$1$p}.afterUnbindChildren`,
+          `${prefix}.${$1$p}.dispose`,
+          `${prefix}.${$1$c}.dispose`,
+        ];
+      case 'dynamic':
+        return [
+          `${prefix}.${$1$p}.canLeave`,
+          `${prefix}.${$1$c}.canLeave`,
+          `${prefix}.${$2$p}.canEnter`,
+          `${prefix}.${$1$p}.leave`,
+          `${prefix}.${$1$c}.leave`,
+          `${prefix}.${$2$p}.enter`,
 
-      `${prefix}.${$2$c}.canEnter`,
-      `${prefix}.${$2$c}.enter`,
+          `${prefix}.${$2$p}.beforeBind`,
+          `${prefix}.${$2$p}.afterBind`,
+          `${prefix}.${$2$p}.afterAttach`,
+          `${prefix}.${$2$p}.afterAttachChildren`,
+          `${prefix}.${$1$p}.beforeDetach`,
+          `${prefix}.${$1$p}.beforeUnbind`,
+          `${prefix}.${$1$p}.afterUnbind`,
+          `${prefix}.${$1$c}.beforeDetach`,
+          `${prefix}.${$1$c}.beforeUnbind`,
+          `${prefix}.${$1$c}.afterUnbind`,
+          `${prefix}.${$1$c}.afterUnbindChildren`,
+          `${prefix}.${$1$p}.afterUnbindChildren`,
+          `${prefix}.${$1$p}.dispose`,
+          `${prefix}.${$1$c}.dispose`,
 
-      `${prefix}.${$2$c}.beforeBind`,
-      `${prefix}.${$2$c}.afterBind`,
-      `${prefix}.${$2$c}.afterAttach`,
-      `${prefix}.${$2$c}.afterAttachChildren`,
-    ];
+          `${prefix}.${$2$c}.canEnter`,
+          `${prefix}.${$2$c}.enter`,
+
+          `${prefix}.${$2$c}.beforeBind`,
+          `${prefix}.${$2$c}.afterBind`,
+          `${prefix}.${$2$c}.afterAttach`,
+          `${prefix}.${$2$c}.afterAttachChildren`,
+        ];
+    }
   },
 };

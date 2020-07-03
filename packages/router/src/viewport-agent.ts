@@ -25,7 +25,7 @@ import {
   IRouteContext,
 } from './route-context';
 import {
-  Transition,
+  Transition, ResolutionStrategy,
 } from './router';
 import {
   TransitionPlan,
@@ -34,18 +34,43 @@ import {
   onResolve,
 } from './util';
 
+export class ViewportRequest {
+  public constructor(
+    public readonly viewportName: string,
+    public readonly componentName: string,
+    public readonly resolutionStrategy: ResolutionStrategy,
+    public readonly append: boolean,
+  ) {}
+
+  public static create(
+    input: ViewportRequest,
+  ): ViewportRequest {
+    return new ViewportRequest(
+      input.viewportName,
+      input.componentName,
+      input.resolutionStrategy,
+      input.append,
+    );
+  }
+
+  public toString(): string {
+    return `VR(viewport:'${this.viewportName}',component:'${this.componentName}',strat:'${this.resolutionStrategy}',append:${this.append})`;
+  }
+}
+
 const viewportAgentLookup: WeakMap<object, ViewportAgent> = new WeakMap();
 
 export class ViewportAgent {
   private readonly logger: ILogger;
 
-  private isViewportActive: boolean = false;
+  private isActive: boolean = false;
 
   private curCA: ComponentAgent | null = null;
   private curState: CurrentState = 'empty';
   private nextCA: ComponentAgent | null = null;
   private nextState: NextState = 'empty';
 
+  private resolutionStrategy: ResolutionStrategy = 'dynamic';
   private plan: TransitionPlan = 'replace';
   private nextNode: RouteNode | null = null;
 
@@ -80,10 +105,56 @@ export class ViewportAgent {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    this.logger.trace(`activateFromViewport()`);
-    this.isViewportActive = true;
+    this.isActive = true;
 
-    return this.curCA?.activate(initiator, parent, flags);
+    switch (this.curState) {
+      case 'deactivate':
+      case 'canLeave': {
+        throw new Error(`Unexpected curState at ${this}.activateFromViewport()`);
+      }
+      case 'isActive': {
+        this.logger.trace(() => `activateFromViewport() - activating existing componentAgent at ${this}`);
+        return this.curCA!.activate(initiator, parent, flags);
+      }
+      case 'empty':
+      case 'leave': {
+        switch (this.nextState) {
+          case 'isScheduled':
+          case 'canEnter':
+          case 'activate': {
+            throw new Error(`Unexpected nextState at ${this}.activateFromViewport()`);
+          }
+          case 'empty': {
+            this.logger.trace(() => `activateFromViewport() - nothing to activate at ${this}`);
+            break;
+          }
+          case 'enter': {
+            switch (this.resolutionStrategy) {
+              case 'static': {
+                this.logger.trace(() => `activateFromViewport() - activating nextCA at ${this}`);
+                this.nextState = 'activate';
+                return this.nextCA!.activate(initiator, parent, flags);
+              }
+              case 'dynamic': {
+                switch (this.plan) {
+                  case 'none':
+                  case 'invoke-lifecycles': {
+                    this.logger.trace(() => `activateFromViewport() - activating nextCA at ${this}`);
+                    this.nextState = 'activate';
+                    return this.nextCA!.activate(initiator, parent, flags);
+                  }
+                  case 'replace': {
+                    this.logger.trace(() => `activateFromViewport() - deferring activation at ${this}`);
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        }
+        break;
+      }
+    }
   }
 
   public deactivateFromViewport(
@@ -91,20 +162,30 @@ export class ViewportAgent {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    this.logger.trace(`deactivateFromViewport()`);
-    this.isViewportActive = false;
+    this.isActive = false;
 
-    return this.curCA?.deactivate(initiator, parent, flags);
+    switch (this.curState) {
+      case 'deactivate':
+      case 'canLeave': {
+        throw new Error(`Unexpected curState at ${this}.activateFromViewport()`);
+      }
+      case 'empty': {
+        this.logger.trace(() => `deactivateFromViewport() - nothing to deactivate at ${this}`);
+        break;
+      }
+      case 'isActive':
+      case 'leave': {
+        this.logger.trace(() => `deactivateFromViewport() - deactivating curCA at ${this}`);
+        this.curState = 'deactivate';
+        return this.curCA!.deactivate(initiator, parent, flags);
+      }
+    }
   }
 
-  public canAccept(
-    viewportName: string,
-    componentName: string,
-    append: boolean,
-  ): boolean {
-    const tracePrefix = `canAccept(viewportName:'${viewportName}',componentName:'${componentName}',append:${append})`;
-    if (!this.isViewportActive) {
-      this.logger.trace(`${tracePrefix} -> false (viewport is not active)`);
+  public handles(req: ViewportRequest): boolean {
+    const tracePrefix = `handles(req:${req})`;
+    if (req.resolutionStrategy === 'dynamic' && !this.isActive) {
+      this.logger.trace(`${tracePrefix} -> false (viewport is not active and we're in dynamic resolution mode)`);
       return false;
     }
 
@@ -113,17 +194,17 @@ export class ViewportAgent {
       return false;
     }
 
-    if (append && this.curState === 'isActive') {
+    if (req.append && this.curState === 'isActive') {
       this.logger.trace(`${tracePrefix} -> false (append mode, viewport already has content ${this.curCA})`);
       return false;
     }
 
-    if (viewportName.length > 0 && this.viewport.name !== viewportName) {
+    if (req.viewportName.length > 0 && this.viewport.name !== req.viewportName) {
       this.logger.trace(`${tracePrefix} -> false (names don't match)`);
       return false;
     }
 
-    if (this.viewport.usedBy.length > 0 && !this.viewport.usedBy.split(',').includes(componentName)) {
+    if (this.viewport.usedBy.length > 0 && !this.viewport.usedBy.split(',').includes(req.componentName)) {
       this.logger.trace(`${tracePrefix} -> false (componentName not included in usedBy)`);
       return false;
     }
@@ -132,11 +213,15 @@ export class ViewportAgent {
     return true;
   }
 
-  public scheduleUpdate(next: RouteNode): void {
+  public scheduleUpdate(
+    resolutionStrategy: ResolutionStrategy,
+    next: RouteNode,
+  ): void {
     switch (this.nextState) {
       case 'empty': {
         this.nextNode = next;
         this.nextState = 'isScheduled';
+        this.resolutionStrategy = resolutionStrategy;
         break;
       }
       case 'isScheduled':
@@ -173,11 +258,11 @@ export class ViewportAgent {
       }
     }
 
-    this.logger.trace(() => `scheduleUpdate(next:${next}) - plan set to '${this.plan}'`);
-
     switch (this.plan) {
       case 'none':
       case 'invoke-lifecycles': {
+        this.logger.trace(() => `scheduleUpdate(next:${next}) - plan set to '${this.plan}', compiling residue`);
+
         // These plans can only occur if there is already a current component active in this viewport,
         // and it is the same component as `next`.
         // This means the RouteContext of `next` was created during a previous transition and might contain
@@ -189,8 +274,24 @@ export class ViewportAgent {
         break;
       }
       case 'replace': {
-        // In the case of 'replace', always process this node and its subtree as if it's a new one (so in this case, do nothing special here)
-        break;
+        // In the case of 'replace', always process this node and its subtree as if it's a new one
+        switch (resolutionStrategy) {
+          case 'dynamic': {
+            this.logger.trace(() => `scheduleUpdate(next:${next}) - plan set to '${this.plan}' (strat: 'dynamic'), deferring residue compilation`);
+
+            // In dynamic mode, that means doing nothing here because child resolution will happen after this node is activated
+            break;
+          }
+          case 'static': {
+            this.logger.trace(() => `scheduleUpdate(next:${next}) - plan set to '${this.plan}' (strat: 'static'), creating nextCA and compiling residue`);
+
+            // In static mode, immediately create the component and drill down
+            const controller = this.hostController as ICustomElementController<HTMLElement>;
+            this.nextCA = next.context.createComponentAgent(controller, next);
+            RouteTreeCompiler.compileResidue(next.tree, next.tree.instructions, next.context);
+            break;
+          }
+        }
       }
     }
   }
@@ -238,7 +339,7 @@ export class ViewportAgent {
         if (transition.guardsResult === true) {
           switch (this.plan) {
             case 'none': {
-              this.logger.trace(() => `canLeave(transition:${transition}) - skipping: ${this}`);
+              this.logger.trace(() => `canLeave() - skipping: ${this}`);
               return;
             }
             case 'invoke-lifecycles':
@@ -249,31 +350,31 @@ export class ViewportAgent {
         }
 
         this.curState = 'isActive';
-        this.logger.trace(() => `canLeave(transition:${transition}) - skipping: guardsResult is already non-true`);
+        this.logger.trace(() => `canLeave() - skipping: guardsResult is already non-true`);
         break;
       }
       case 'leave': { // Implies incorrect invocation order [leave -> canLeave]
-        throw new Error(`Unexpected currentState at ${this}.canLeave(transition:${transition})`);
+        throw new Error(`Unexpected currentState at ${this}.canLeave()`);
       }
       case 'empty':
       case 'canLeave':
       case 'deactivate': {
-        this.logger.trace(() => `canLeave(transition:${transition}) - skipping: ${this}`);
+        this.logger.trace(() => `canLeave() - skipping: ${this}`);
         break;
       }
     }
   }
 
   private runCanLeave(transition: Transition, ca: ComponentAgent, nextNode: RouteNode | null): void | Promise<void> {
-    this.logger.trace(() => `runCanLeave(transition:${transition}) - starting [canLeave]`);
+    this.logger.trace(() => `runCanLeave() - starting [canLeave]`);
 
     return onResolve(ca.canLeave(nextNode), result => {
       // Check again, because the value might have been assigned by a parallel hook
       if (transition.guardsResult === true && result !== true) {
-        this.logger.trace(() => `runCanLeave(transition:${transition}) - finished [canLeave], ${ca}.canLeave returned ${result}, assigning to guardsResult`);
+        this.logger.trace(() => `runCanLeave() - finished [canLeave], ${ca}.canLeave returned ${result}, assigning to guardsResult`);
         transition.guardsResult = result;
       } else {
-        this.logger.trace(() => `runCanLeave(transition:${transition}) - finished [canLeave], ${ca}.canLeave returned ${result}, ignoring`);
+        this.logger.trace(() => `runCanLeave() - finished [canLeave], ${ca}.canLeave returned ${result}, ignoring`);
       }
     });
   }
@@ -286,7 +387,7 @@ export class ViewportAgent {
         if (transition.guardsResult === true) {
           switch (this.plan) {
             case 'none': {
-              this.logger.trace(() => `leave(transition:${transition}) - skipping: ${this}`);
+              this.logger.trace(() => `leave() - skipping: ${this}`);
               return;
             }
             case 'invoke-lifecycles':
@@ -299,22 +400,22 @@ export class ViewportAgent {
         throw new Error(`Unexpected guardsResult ${transition.guardsResult} on invoking [leave]`);
       }
       case 'isActive': { // Implies incorrect invocation order [leave] without invoking [canLeave] first
-        throw new Error(`Unexpected currentState at ${this}.leave(transition:${transition})`);
+        throw new Error(`Unexpected currentState at ${this}.leave()`);
       }
       case 'empty':
       case 'leave':
       case 'deactivate': {
-        this.logger.trace(() => `leave(transition:${transition}) - skipping: ${this}`);
+        this.logger.trace(() => `leave() - skipping: ${this}`);
         break;
       }
     }
   }
 
   private runLeave(transition: Transition, ca: ComponentAgent, nextNode: RouteNode | null): void | Promise<void> {
-    this.logger.trace(() => `runLeave(transition:${transition}) - starting [leave]`);
+    this.logger.trace(() => `runLeave() - starting [leave]`);
 
     return onResolve(ca.leave(nextNode), () => {
-      this.logger.trace(() => `runLeave(transition:${transition}) - finished [leave`);
+      this.logger.trace(() => `runLeave() - finished [leave`);
     });
   }
 
@@ -326,47 +427,57 @@ export class ViewportAgent {
         if (transition.guardsResult === true) {
           switch (this.plan) {
             case 'none': {
-              this.logger.trace(() => `canEnter(transition:${transition}) - skipping: ${this}`);
+              this.logger.trace(() => `canEnter() - skipping: ${this}`);
               return;
             }
             case 'invoke-lifecycles': {
               return this.runCanEnter(transition, this.curCA!, this.nextNode!);
             }
             case 'replace': {
-              const controller = this.hostController as ICustomElementController<HTMLElement>;
               const next = this.nextNode!;
-              const ca = this.nextCA = next.context.createComponentAgent(controller, next);
+              switch (this.resolutionStrategy) {
+                case 'static': {
+                  // nextCA was already created during scheduleUpdate, so do nothing
+                  break;
+                }
+                case 'dynamic': {
+                  const controller = this.hostController as ICustomElementController<HTMLElement>;
+                  this.nextCA = next.context.createComponentAgent(controller, next);
+                  break;
+                }
+              }
+              const ca = this.nextCA!;
               return this.runCanEnter(transition, ca, next);
             }
           }
         }
 
         this.nextState = 'isScheduled';
-        this.logger.trace(() => `canEnter(transition:${transition}) - skipping: guardsResult is already non-true`);
+        this.logger.trace(() => `canEnter() - skipping: guardsResult is already non-true`);
         break;
       }
       case 'enter': { // Implies incorrect invocation order [enter -> canEnter]
-        throw new Error(`Unexpected nextState at ${this}.canEnter(transition:${transition})`);
+        throw new Error(`Unexpected nextState at ${this}.canEnter()`);
       }
       case 'empty':
       case 'canEnter':
       case 'activate': {
-        this.logger.trace(() => `canEnter(transition:${transition}) - skipping: ${this}`);
+        this.logger.trace(() => `canEnter() - skipping: ${this}`);
         return;
       }
     }
   }
 
   private runCanEnter(transition: Transition, ca: ComponentAgent, nextNode: RouteNode): void | Promise<void> {
-    this.logger.trace(() => `runCanEnter(transition:${transition}) - starting [canEnter]`);
+    this.logger.trace(() => `runCanEnter() - starting [canEnter]`);
 
     return onResolve(ca.canEnter(nextNode), result => {
       // Check again, because the value might have been assigned by a parallel hook
       if (transition.guardsResult === true && result !== true) {
-        this.logger.trace(() => `runCanEnter(transition:${transition}) - finished [canEnter], ${ca}.canEnter returned ${result}, assigning to guardsResult`);
+        this.logger.trace(() => `runCanEnter() - finished [canEnter], ${ca}.canEnter returned ${result}, assigning to guardsResult`);
         transition.guardsResult = result;
       } else {
-        this.logger.trace(() => `runCanEnter(transition:${transition}) - finished [canEnter], ${ca}.canEnter returned ${result}, ignoring`);
+        this.logger.trace(() => `runCanEnter() - finished [canEnter], ${ca}.canEnter returned ${result}, ignoring`);
       }
     });
   }
@@ -379,7 +490,7 @@ export class ViewportAgent {
         if (transition.guardsResult === true) {
           switch (this.plan) {
             case 'none': {
-              this.logger.trace(() => `enter(transition:${transition}) - skipping: ${this}`);
+              this.logger.trace(() => `enter() - skipping: ${this}`);
               return;
             }
             case 'invoke-lifecycles': {
@@ -394,22 +505,22 @@ export class ViewportAgent {
         throw new Error(`Unexpected guardsResult ${transition.guardsResult} on invoking [enter]`);
       }
       case 'isScheduled': { // Implies incorrect invocation order [enter] without invoking [canEnter] first
-        throw new Error(`Unexpected nextState at ${this}.enter(transition:${transition})`);
+        throw new Error(`Unexpected nextState at ${this}.enter()`);
       }
       case 'empty':
       case 'enter':
       case 'activate': {
-        this.logger.trace(() => `enter(transition:${transition}) - skipping: ${this}`);
+        this.logger.trace(() => `enter() - skipping: ${this}`);
         return;
       }
     }
   }
 
   private runEnter(transition: Transition, ca: ComponentAgent, nextNode: RouteNode): void | Promise<void> {
-    this.logger.trace(() => `runEnter(transition:${transition}) - starting [enter]`);
+    this.logger.trace(() => `runEnter() - starting [enter]`);
 
     return onResolve(ca.enter(nextNode), () => {
-      this.logger.trace(() => `runEnter(transition:${transition}) - finished [enter]`);
+      this.logger.trace(() => `runEnter() - finished [enter]`);
     });
   }
 
@@ -428,24 +539,24 @@ export class ViewportAgent {
           switch (this.plan) {
             case 'none':
             case 'invoke-lifecycles': {
-              this.logger.trace(() => `runDeactivate(transition:${transition}) - skipping: ${this}`);
+              this.logger.trace(() => `runDeactivate() - skipping: ${this}`);
               return;
             }
             case 'replace': {
               const ca = this.curCA;
               if (ca === null) {
-                this.logger.trace(() => `runDeactivate(transition:${transition}) - skipping [deactivate] because no previous component`);
+                this.logger.trace(() => `runDeactivate() - skipping [deactivate] because no previous component`);
                 return;
               } else {
-                this.logger.trace(() => `runDeactivate(transition:${transition}) - starting [deactivate]`);
+                this.logger.trace(() => `runDeactivate() - starting [deactivate]`);
 
                 const controller = this.hostController as ICustomElementController<HTMLElement>;
                 const flags = LifecycleFlags.none;
 
                 return onResolve(ca.deactivate(null, controller, flags), () => {
-                  this.logger.trace(() => `runDeactivate(transition:${transition}) - finished [deactivate]`);
+                  this.logger.trace(() => `runDeactivate() - finished [deactivate], disposing`);
+                  this.dispose();
                 });
-
               }
             }
           }
@@ -455,11 +566,11 @@ export class ViewportAgent {
       }
       case 'isActive': // Implies incorrect invocation order [swap] without invoking router hooks
       case 'canLeave': { // Implies incorrect invocation order [canLeave -> swap]
-        throw new Error(`Unexpected currentState at ${this}.runDeactivate(transition:${transition})`);
+        throw new Error(`Unexpected currentState at ${this}.runDeactivate()`);
       }
       case 'empty':
       case 'deactivate': {
-        this.logger.trace(() => `runDeactivate(transition:${transition}) - skipping: ${this}`);
+        this.logger.trace(() => `runDeactivate() - skipping: ${this}`);
         return;
       }
     }
@@ -474,18 +585,18 @@ export class ViewportAgent {
           switch (this.plan) {
             case 'none':
             case 'invoke-lifecycles': {
-              this.logger.trace(() => `runActivate(transition:${transition}) - ${this}`);
+              this.logger.trace(() => `runActivate() - ${this}`);
               return;
             }
             case 'replace': {
-              this.logger.trace(() => `runActivate(transition:${transition}) - starting [activate]`);
+              this.logger.trace(() => `runActivate() - starting [activate]`);
 
               const ca = this.nextCA!;
               const controller = this.hostController as ICustomElementController<HTMLElement>;
               const flags = LifecycleFlags.none;
 
               return onResolve(ca.activate(null, controller, flags), () => {
-                this.logger.trace(() => `runActivate(transition:${transition}) - finished [activate]`);
+                this.logger.trace(() => `runActivate() - finished [activate]`);
               });
             }
           }
@@ -495,13 +606,22 @@ export class ViewportAgent {
       }
       case 'isScheduled': // Implies incorrect invocation order [swap] without invoking router hooks
       case 'canEnter': { // Implies incorrect invocation order [canEnter -> swap]
-        throw new Error(`Unexpected nextState at ${this}.runActivate(transition:${transition})`);
+        throw new Error(`Unexpected nextState at ${this}.runActivate()`);
       }
       case 'empty':
       case 'activate': {
-        this.logger.trace(() => `runActivate(transition:${transition}) - skipping: ${this}`);
+        this.logger.trace(() => `runActivate() - skipping: ${this}`);
         return;
       }
+    }
+  }
+
+  public dispose(): void {
+    if (this.viewport.stateful /* TODO: incorporate statefulHistoryLength / router opts as well */) {
+      this.logger.trace(() => `dispose() - not disposing stateful viewport at ${this}`);
+    } else {
+      this.logger.trace(() => `dispose() - disposing ${this}`);
+      this.curCA?.dispose();
     }
   }
 
@@ -513,10 +633,10 @@ export class ViewportAgent {
           case 'isActive':
           case 'canLeave':
           case 'leave': {
-            throw new Error(`Unexpected curState at ${this}.endTransition(transition:${transition})`);
+            throw new Error(`Unexpected curState at ${this}.endTransition()`);
           }
           case 'deactivate': {
-            this.logger.trace(() => `endTransition(transition:${transition}) - setting curState to 'empty' at ${this}`);
+            this.logger.trace(() => `endTransition() - setting curState to 'empty' at ${this}`);
 
             this.curState = 'empty';
             this.curCA = null;
@@ -527,27 +647,27 @@ export class ViewportAgent {
       case 'isScheduled':
       case 'canEnter':
       case 'enter': {
-        throw new Error(`Unexpected nextState at ${this}.endTransition(transition:${transition})`);
+        throw new Error(`Unexpected nextState at ${this}.endTransition()`);
       }
       case 'activate': {
         switch (this.curState) {
           case 'isActive':
           case 'canLeave':
           case 'leave': {
-            throw new Error(`Unexpected curState at ${this}.endTransition(transition:${transition})`);
+            throw new Error(`Unexpected curState at ${this}.endTransition()`);
           }
           case 'empty':
           case 'deactivate': {
             switch (this.plan) {
               case 'none':
               case 'invoke-lifecycles': {
-                this.logger.trace(() => `endTransition(transition:${transition}) - setting curState to 'isActive' at ${this}`);
+                this.logger.trace(() => `endTransition() - setting curState to 'isActive' at ${this}`);
 
                 this.curState = 'isActive';
                 break;
               }
               case 'replace': {
-                this.logger.trace(() => `endTransition(transition:${transition}) - setting curState to 'isActive' and reassigning curCA at ${this}`);
+                this.logger.trace(() => `endTransition() - setting curState to 'isActive' and reassigning curCA at ${this}`);
 
                 this.curState = 'isActive';
                 this.curCA = this.nextCA;
@@ -566,7 +686,7 @@ export class ViewportAgent {
   }
 
   public toString(): string {
-    return `VPA(cur:'${this.curState}',next:'${this.nextState}',plan:'${this.plan}',c:${this.curCA},viewport:${this.viewport})`;
+    return `VPA(cur:'${this.curState}',next:'${this.nextState}',plan:'${this.plan}',strat:'${this.resolutionStrategy}',c:${this.curCA},viewport:${this.viewport})`;
   }
 }
 

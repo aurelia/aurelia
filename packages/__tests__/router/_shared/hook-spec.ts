@@ -145,6 +145,8 @@ export const hookSpecs = {
   afterUnbind: getHookSpecs('afterUnbind'),
   afterUnbindChildren: getHookSpecs('afterUnbindChildren'),
 
+  dispose: getHookSpecs('dispose').sync,
+
   canEnter: getHookSpecs('canEnter'),
   enter: getHookSpecs('enter'),
   canLeave: getHookSpecs('canLeave'),

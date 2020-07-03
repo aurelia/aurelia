@@ -68,6 +68,7 @@ export function toManagedState(state: {} | null, navId: number): ManagedState {
 }
 
 export type RoutingMode = 'direct-only' | 'configured-only' | 'direct-first' | 'configured-first';
+export type ResolutionStrategy = 'static' | 'dynamic';
 export type QueryParamsStrategy = 'overwrite' | 'preserve' | 'merge';
 export type FragmentStrategy = 'overwrite' | 'preserve';
 export type HistoryStrategy = 'none' | 'replace' | 'push';
@@ -102,6 +103,24 @@ export class RouterOptions {
      * Default: `configured-first`
      */
     public readonly routingMode: ValueOrFunc<RoutingMode>,
+    /**
+     * The operating mode of the router that determines at which point in the lifecycle viewports and child routes can be resolved.
+     *
+     * - `static`: viewports and child routes that are registered during template compilation, can be resolved immediately.
+     * - `dynamic`: viewports and child routes can only be resolved after their parent has been activated. (default)
+     *
+     * Default: `dynamic`
+     *
+     * @description
+     * - `static` allows hooks of child routes to be invoked in a phased manner, similar to Aurelia v1, but dynamic viewport property bindings and
+     * conditionally rendered viewports will only be available on next navigation after the one where they were created.
+     *
+     * - `dynamic` enables the full feature set of the v2 router with viewport property bindings and
+     * dynamically added & conditionally rendered viewports, but child route `canEnter` guards will run only after the parent already activated. This means
+     * that canceling/disallowing a navigation from a child component will not prevent side-effects from occurring, so global guards may need to be used instead
+     * when that's not desirable.
+     */
+    public readonly resolutionStrategy: ResolutionStrategy,
     /**
      * The strategy to use for determining the query parameters when both the previous and the new url has a query string.
      *
@@ -154,6 +173,7 @@ export class RouterOptions {
       input.useHref ?? true,
       input.statefulHistoryLength ?? 0,
       input.routingMode ?? 'configured-first',
+      input.resolutionStrategy ?? 'dynamic',
       input.queryParamsStrategy ?? 'overwrite',
       input.fragmentStrategy ?? 'overwrite',
       input.historyStrategy ?? 'push',
@@ -236,6 +256,7 @@ export class NavigationOptions extends RouterOptions {
       routerOptions.useHref,
       routerOptions.statefulHistoryLength,
       routerOptions.routingMode,
+      routerOptions.resolutionStrategy,
       routerOptions.queryParamsStrategy,
       routerOptions.fragmentStrategy,
       routerOptions.historyStrategy,
@@ -789,10 +810,28 @@ export class Router {
       transition.previousRouteTree.root.children,
       transition.routeTree.root.children,
     ), () => {
-      return onResolve(resolveAll(transition.routeTree.root.children.map((child, i) => {
-        return this.processResidue(transition, child, i, 1);
-      })), () => {
-        this.logger.trace(() => `dequeue(transition:${transition}) - finished processResidue, finalizing transition`);
+      let residueResult: void | Promise<void>;
+      switch (transition.options.resolutionStrategy) {
+        case 'static':
+          // In static mode there *should* never be a residue, so just in case, check the tree and throw if there is, so we don't
+          // get potential weird silent failures
+          residueResult = void 0;
+          transition.routeTree.root.children.forEach(function visit(child) {
+            if (child.residue.length > 0) {
+              throw new Error(`Unexpected residue: ${child}`);
+            } else {
+              child.children.forEach(visit);
+            }
+          });
+          break;
+        case 'dynamic':
+          residueResult = resolveAll(transition.routeTree.root.children.map((child, i) => {
+            return this.processResidue(transition, child, i, 1);
+          }));
+          break;
+      }
+      return onResolve(residueResult, () => {
+        this.logger.trace(() => `dequeue() - finished processResidue, finalizing transition`);
 
         walkViewportTree(
           [
@@ -865,7 +904,7 @@ export class Router {
     /**
      * Step 1 - run the canLeave hook on the previous nodes
      */
-    this.logger.trace(() => `runLifecycles(transition:${transition}) - starting [canLeave] on previous`);
+    this.logger.trace(() => `runLifecycles() - starting [canLeave] on previous`);
     return onResolve(walkViewportTree(
       previous,
       function (viewport) {
@@ -879,7 +918,7 @@ export class Router {
         return this.cancelNavigation(transition);
       }
 
-      this.logger.trace(() => `runLifecycles(transition:${transition}) - finished [canLeave] on previous, starting [canEnter] on next`);
+      this.logger.trace(() => `runLifecycles() - finished [canLeave] on previous, starting [canEnter] on next`);
 
       /**
        * Step 2 - run the canEnter hook on the current nodes
@@ -897,7 +936,7 @@ export class Router {
           return this.cancelNavigation(transition);
         }
 
-        this.logger.trace(() => `runLifecycles(transition:${transition}) - finished [canEnter] on next, starting [leave] on previous`);
+        this.logger.trace(() => `runLifecycles() - finished [canEnter] on next, starting [leave] on previous`);
 
         /**
          * Step 3 - run the leave hook on the previous nodes
@@ -908,7 +947,7 @@ export class Router {
             return viewport.leave(transition);
           }
         ), () => {
-          this.logger.trace(() => `runLifecycles(transition:${transition}) - finished [leave] on previous, starting [enter] on next`);
+          this.logger.trace(() => `runLifecycles() - finished [leave] on previous, starting [enter] on next`);
 
           /**
            * Step 4 - run the enter hook on the current nodes
@@ -919,7 +958,7 @@ export class Router {
               return viewport.enter(transition);
             }
           ), () => {
-            this.logger.trace(() => `runLifecycles(transition:${transition}) - finished [enter] on next, starting [swap] on previous&next`);
+            this.logger.trace(() => `runLifecycles() - finished [enter] on next, starting [swap] on previous&next`);
 
             /**
              * Step 5 - run the deactivate hooks on all "outgoing" components and the activate hooks on all "incoming" components for all known viewports
@@ -933,7 +972,7 @@ export class Router {
                 return viewport.swap(transition);
               }
             ), () => {
-              this.logger.trace(() => `runLifecycles(transition:${transition}) - finished [swap] on previous&next`);
+              this.logger.trace(() => `runLifecycles() - finished [swap] on previous&next`);
             });
           });
         });

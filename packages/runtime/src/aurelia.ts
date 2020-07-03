@@ -201,6 +201,9 @@ export class Aurelia<TNode extends INode = INode> {
   private next?: CompositionRoot<TNode>;
 
   public constructor(container: IContainer = DI.createContainer()) {
+    if(container.has(Aurelia, true)) {
+      throw new Error('An instance of Aurelia is already registered with the container or an ancestor of it.');
+    }
     this.container = container;
     this.task = LifecycleTask.done;
 

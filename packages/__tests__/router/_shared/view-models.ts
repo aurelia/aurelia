@@ -140,8 +140,9 @@ export class HookSpecs {
   public toString(): string {
     const strings: string[] = [];
     for (const k of hookNames) {
-      if (this[k] !== hookSpecs[k].sync) {
-        strings.push(this[k].toString());
+      const spec = this[k];
+      if (spec !== hookSpecs[k].sync) {
+        strings.push(`${spec.name}.${spec.type}`);
       }
     }
     return `Hooks(${strings.join(',')})`;

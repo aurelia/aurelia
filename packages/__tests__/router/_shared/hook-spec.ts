@@ -6,6 +6,8 @@ import { HookName } from './hook-invocation-tracker';
 import { ITestRouteViewModel } from './view-models';
 
 export interface IHookSpec<T extends HookName> {
+  name: T;
+  type: string;
   invoke(
     vm: ITestRouteViewModel,
     getValue: () => ReturnType<ITestRouteViewModel[T]>,
@@ -15,33 +17,32 @@ export interface IHookSpec<T extends HookName> {
 function getHookSpecs<T extends HookName>(name: T) {
   return {
     sync: {
+      name,
+      type: 'sync',
       invoke(_vm, getValue) {
         return getValue();
       },
-      toString() {
-        return `${name}.sync`;
-      },
     } as IHookSpec<T>,
     async1: {
+      name,
+      type: 'async1',
       async invoke(_vm, getValue) {
         await Promise.resolve();
         return getValue();
-      },
-      toString() {
-        return `${name}.async1`;
       },
     } as IHookSpec<T>,
     async2: {
+      name,
+      type: 'async2',
       async invoke(_vm, getValue) {
         await Promise.resolve();
         await Promise.resolve();
         return getValue();
       },
-      toString() {
-        return `${name}.async2`;
-      },
     } as IHookSpec<T>,
     setTimeout_0: {
+      name,
+      type: 'setTimeout_0',
       async invoke(vm, getValue) {
         const ctx = vm.$controller.context;
         const label = `${vm.name}.${name}`;
@@ -49,11 +50,10 @@ function getHookSpecs<T extends HookName>(name: T) {
         await setTimeoutWaiter(ctx, 0, label);
         return getValue();
       },
-      toString() {
-        return `${name}.setTimeout_0`;
-      },
     } as IHookSpec<T>,
     yieldDelayedMicroTask_1: {
+      name,
+      type: 'yieldDelayedMicroTask_1',
       async invoke(vm, getValue) {
         const ctx = vm.$controller.context;
         const label = `${vm.name}.${name}`;
@@ -61,11 +61,10 @@ function getHookSpecs<T extends HookName>(name: T) {
         await delayedTaskWaiter(ctx, 1, TaskQueuePriority.microTask, label);
         return getValue();
       },
-      toString() {
-        return `${name}.yieldDelayedMicroTask_1`;
-      },
     } as IHookSpec<T>,
     yieldDelayedMacroTask_1: {
+      name,
+      type: 'yieldDelayedMacroTask_1',
       async invoke(vm, getValue) {
         const ctx = vm.$controller.context;
         const label = `${vm.name}.${name}`;
@@ -73,11 +72,10 @@ function getHookSpecs<T extends HookName>(name: T) {
         await delayedTaskWaiter(ctx, 1, TaskQueuePriority.macroTask, label);
         return getValue();
       },
-      toString() {
-        return `${name}.yieldDelayedMacroTask_1`;
-      },
     } as IHookSpec<T>,
     yieldDelayedRenderTask_1: {
+      name,
+      type: 'yieldDelayedRenderTask_1',
       async invoke(vm, getValue) {
         const ctx = vm.$controller.context;
         const label = `${vm.name}.${name}`;
@@ -85,11 +83,10 @@ function getHookSpecs<T extends HookName>(name: T) {
         await delayedTaskWaiter(ctx, 1, TaskQueuePriority.render, label);
         return getValue();
       },
-      toString() {
-        return `${name}.yieldDelayedRenderTask_1`;
-      },
     } as IHookSpec<T>,
     yieldAsyncMicroTask_1: {
+      name,
+      type: 'yieldAsyncMicroTask_1',
       async invoke(vm, getValue) {
         const ctx = vm.$controller.context;
         const label = `${vm.name}.${name}`;
@@ -97,11 +94,10 @@ function getHookSpecs<T extends HookName>(name: T) {
         await asyncTaskWaiter(ctx, 1, TaskQueuePriority.microTask, label);
         return getValue();
       },
-      toString() {
-        return `${name}.yieldAsyncMicroTask_1`;
-      },
     } as IHookSpec<T>,
     yieldAsyncMacroTask_1: {
+      name,
+      type: 'yieldAsyncMacroTask_1',
       async invoke(vm, getValue) {
         const ctx = vm.$controller.context;
         const label = `${vm.name}.${name}`;
@@ -109,11 +105,10 @@ function getHookSpecs<T extends HookName>(name: T) {
         await asyncTaskWaiter(ctx, 1, TaskQueuePriority.macroTask, label);
         return getValue();
       },
-      toString() {
-        return `${name}.yieldAsyncMacroTask_1`;
-      },
     } as IHookSpec<T>,
     yieldAsyncRenderTask_1: {
+      name,
+      type: 'yieldAsyncRenderTask_1',
       async invoke(vm, getValue) {
         const ctx = vm.$controller.context;
         const label = `${vm.name}.${name}`;
@@ -121,11 +116,10 @@ function getHookSpecs<T extends HookName>(name: T) {
         await asyncTaskWaiter(ctx, 1, TaskQueuePriority.render, label);
         return getValue();
       },
-      toString() {
-        return `${name}.yieldAsyncRenderTask_1`;
-      },
     } as IHookSpec<T>,
     yieldMacroTaskLoop_1: {
+      name,
+      type: 'yieldMacroTaskLoop_1',
       async invoke(vm, getValue) {
         const ctx = vm.$controller.context;
         const label = `${vm.name}.${name}`;
@@ -133,11 +127,10 @@ function getHookSpecs<T extends HookName>(name: T) {
         await taskLoopWaiter(ctx, 1, TaskQueuePriority.macroTask, label);
         return getValue();
       },
-      toString() {
-        return `${name}.yieldMacroTaskLoop_1`;
-      },
     } as IHookSpec<T>,
     yieldMacroTaskLoop_2: {
+      name,
+      type: 'yieldMacroTaskLoop_2',
       async invoke(vm, getValue) {
         const ctx = vm.$controller.context;
         const label = `${vm.name}.${name}`;
@@ -145,11 +138,10 @@ function getHookSpecs<T extends HookName>(name: T) {
         await taskLoopWaiter(ctx, 2, TaskQueuePriority.macroTask, label);
         return getValue();
       },
-      toString() {
-        return `${name}.yieldMacroTaskLoop_2`;
-      },
     } as IHookSpec<T>,
     yieldRenderTaskLoop_1: {
+      name,
+      type: 'yieldRenderTaskLoop_1',
       async invoke(vm, getValue) {
         const ctx = vm.$controller.context;
         const label = `${vm.name}.${name}`;
@@ -157,20 +149,16 @@ function getHookSpecs<T extends HookName>(name: T) {
         await taskLoopWaiter(ctx, 1, TaskQueuePriority.render, label);
         return getValue();
       },
-      toString() {
-        return `${name}.yieldRenderTaskLoop_1`;
-      },
     } as IHookSpec<T>,
     yieldRenderTaskLoop_2: {
+      name,
+      type: 'yieldRenderTaskLoop_2',
       async invoke(vm, getValue) {
         const ctx = vm.$controller.context;
         const label = `${vm.name}.${name}`;
 
         await taskLoopWaiter(ctx, 2, TaskQueuePriority.render, label);
         return getValue();
-      },
-      toString() {
-        return `${name}.yieldRenderTaskLoop_2`;
       },
     } as IHookSpec<T>,
   };

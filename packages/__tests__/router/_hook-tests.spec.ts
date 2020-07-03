@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { customElement } from '@aurelia/runtime';
 import { IRouterOptions } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
@@ -378,202 +379,217 @@ describe('router hooks', function () {
       }
 
       describe('variations', function () {
-        it(`'a/b/c/d' -> 'a' (c.leave: setTimeout_0)`, async function () {
-          @customElement({ name: 'root', template: '<au-viewport>' })
-          class Root extends TestRouteViewModelBase {
-            public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) {
-              super(hia);
+        for (const hookSpec of [
+          HookSpecs.create({ canLeave: hookSpecs.canLeave.setTimeout_0 }),
+          HookSpecs.create({ leave: hookSpecs.leave.setTimeout_0 }),
+          HookSpecs.create({ canEnter: hookSpecs.canEnter.setTimeout_0 }),
+          HookSpecs.create({ enter: hookSpecs.enter.setTimeout_0 }),
+
+          HookSpecs.create({ beforeBind: hookSpecs.beforeBind.setTimeout_0 }),
+          HookSpecs.create({ afterBind: hookSpecs.afterBind.setTimeout_0 }),
+          HookSpecs.create({ afterAttach: hookSpecs.afterAttach.setTimeout_0 }),
+
+          HookSpecs.create({ beforeDetach: hookSpecs.beforeDetach.setTimeout_0 }),
+          HookSpecs.create({ beforeUnbind: hookSpecs.beforeUnbind.setTimeout_0 }),
+          HookSpecs.create({ afterUnbind: hookSpecs.afterUnbind.setTimeout_0 }),
+        ]) {
+          it(`'a/b/c/d' -> 'a' (c.hookSpec:${hookSpec})`, async function () {
+            @customElement({ name: 'root', template: '<au-viewport>' })
+            class Root extends TestRouteViewModelBase {
+              public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) {
+                super(hia);
+              }
             }
-          }
-          @customElement({ name: 'a', template: '<au-viewport>' })
-          class A extends TestRouteViewModelBase {
-            public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) {
-              super(hia);
+            @customElement({ name: 'a', template: '<au-viewport>' })
+            class A extends TestRouteViewModelBase {
+              public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) {
+                super(hia);
+              }
             }
-          }
-          @customElement({ name: 'b', template: '<au-viewport>' })
-          class B extends TestRouteViewModelBase {
-            public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) {
-              super(hia);
+            @customElement({ name: 'b', template: '<au-viewport>' })
+            class B extends TestRouteViewModelBase {
+              public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) {
+                super(hia);
+              }
             }
-          }
-          @customElement({ name: 'c', template: '<au-viewport>' })
-          class C extends TestRouteViewModelBase {
-            public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) {
-              super(hia, HookSpecs.create({ leave: hookSpecs.leave.setTimeout_0 }));
+            @customElement({ name: 'c', template: '<au-viewport>' })
+            class C extends TestRouteViewModelBase {
+              public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) {
+                super(hia, hookSpec);
+              }
             }
-          }
-          @customElement({ name: 'd', template: null })
-          class D extends TestRouteViewModelBase {
-            public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) {
-              super(hia);
+            @customElement({ name: 'd', template: null })
+            class D extends TestRouteViewModelBase {
+              public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) {
+                super(hia);
+              }
             }
-          }
 
-          const { router, hia, tearDown } = await createFixture(Root, [A, B, C, D], getDefaultHIAConfig, getRouterOptions);
+            const { router, hia, tearDown } = await createFixture(Root, [A, B, C, D], getDefaultHIAConfig, getRouterOptions);
 
-          hia.setPhase(`('' -> 'a/b/c/d')`);
-          await router.goto('a/b/c/d');
+            hia.setPhase(`('' -> 'a/b/c/d')`);
+            await router.goto('a/b/c/d');
 
-          hia.setPhase(`('a/b/c/d' -> 'a')`);
-          await router.goto('a');
+            hia.setPhase(`('a/b/c/d' -> 'a')`);
+            await router.goto('a');
 
-          await tearDown();
+            await tearDown();
 
-          switch (strategy) {
-            case 'dynamic': {
-              assert.deepStrictEqual(
-                hia.notifyHistory,
-                [
-                  `start.root.beforeBind`,
-                  `start.root.afterBind`,
-                  `start.root.afterAttach`,
-                  `start.root.afterAttachChildren`,
+            switch (strategy) {
+              case 'dynamic': {
+                assert.deepStrictEqual(
+                  hia.notifyHistory,
+                  [
+                    `start.root.beforeBind`,
+                    `start.root.afterBind`,
+                    `start.root.afterAttach`,
+                    `start.root.afterAttachChildren`,
 
-                  `('' -> 'a/b/c/d').a.canEnter`,
-                  `('' -> 'a/b/c/d').a.enter`,
-                  `('' -> 'a/b/c/d').a.beforeBind`,
-                  `('' -> 'a/b/c/d').a.afterBind`,
-                  `('' -> 'a/b/c/d').a.afterAttach`,
-                  `('' -> 'a/b/c/d').a.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').a.canEnter`,
+                    `('' -> 'a/b/c/d').a.enter`,
+                    `('' -> 'a/b/c/d').a.beforeBind`,
+                    `('' -> 'a/b/c/d').a.afterBind`,
+                    `('' -> 'a/b/c/d').a.afterAttach`,
+                    `('' -> 'a/b/c/d').a.afterAttachChildren`,
 
-                  `('' -> 'a/b/c/d').b.canEnter`,
-                  `('' -> 'a/b/c/d').b.enter`,
-                  `('' -> 'a/b/c/d').b.beforeBind`,
-                  `('' -> 'a/b/c/d').b.afterBind`,
-                  `('' -> 'a/b/c/d').b.afterAttach`,
-                  `('' -> 'a/b/c/d').b.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').b.canEnter`,
+                    `('' -> 'a/b/c/d').b.enter`,
+                    `('' -> 'a/b/c/d').b.beforeBind`,
+                    `('' -> 'a/b/c/d').b.afterBind`,
+                    `('' -> 'a/b/c/d').b.afterAttach`,
+                    `('' -> 'a/b/c/d').b.afterAttachChildren`,
 
-                  `('' -> 'a/b/c/d').c.canEnter`,
-                  `('' -> 'a/b/c/d').c.enter`,
-                  `('' -> 'a/b/c/d').c.beforeBind`,
-                  `('' -> 'a/b/c/d').c.afterBind`,
-                  `('' -> 'a/b/c/d').c.afterAttach`,
-                  `('' -> 'a/b/c/d').c.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').c.canEnter`,
+                    `('' -> 'a/b/c/d').c.enter`,
+                    `('' -> 'a/b/c/d').c.beforeBind`,
+                    `('' -> 'a/b/c/d').c.afterBind`,
+                    `('' -> 'a/b/c/d').c.afterAttach`,
+                    `('' -> 'a/b/c/d').c.afterAttachChildren`,
 
-                  `('' -> 'a/b/c/d').d.canEnter`,
-                  `('' -> 'a/b/c/d').d.enter`,
-                  `('' -> 'a/b/c/d').d.beforeBind`,
-                  `('' -> 'a/b/c/d').d.afterBind`,
-                  `('' -> 'a/b/c/d').d.afterAttach`,
-                  `('' -> 'a/b/c/d').d.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').d.canEnter`,
+                    `('' -> 'a/b/c/d').d.enter`,
+                    `('' -> 'a/b/c/d').d.beforeBind`,
+                    `('' -> 'a/b/c/d').d.afterBind`,
+                    `('' -> 'a/b/c/d').d.afterAttach`,
+                    `('' -> 'a/b/c/d').d.afterAttachChildren`,
 
-                  `('a/b/c/d' -> 'a').b.canLeave`,
-                  `('a/b/c/d' -> 'a').c.canLeave`,
-                  `('a/b/c/d' -> 'a').d.canLeave`,
+                    `('a/b/c/d' -> 'a').b.canLeave`,
+                    `('a/b/c/d' -> 'a').c.canLeave`,
+                    `('a/b/c/d' -> 'a').d.canLeave`,
 
-                  `('a/b/c/d' -> 'a').b.leave`,
-                  `('a/b/c/d' -> 'a').c.leave`,
-                  `('a/b/c/d' -> 'a').d.leave`,
+                    `('a/b/c/d' -> 'a').b.leave`,
+                    `('a/b/c/d' -> 'a').c.leave`,
+                    `('a/b/c/d' -> 'a').d.leave`,
 
-                  `('a/b/c/d' -> 'a').b.beforeDetach`,
-                  `('a/b/c/d' -> 'a').b.beforeUnbind`,
-                  `('a/b/c/d' -> 'a').b.afterUnbind`,
-                  `('a/b/c/d' -> 'a').c.beforeDetach`,
-                  `('a/b/c/d' -> 'a').c.beforeUnbind`,
-                  `('a/b/c/d' -> 'a').c.afterUnbind`,
-                  `('a/b/c/d' -> 'a').d.beforeDetach`,
-                  `('a/b/c/d' -> 'a').d.beforeUnbind`,
-                  `('a/b/c/d' -> 'a').d.afterUnbind`,
-                  `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
-                  `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
-                  `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
-                  `('a/b/c/d' -> 'a').b.dispose`,
-                  `('a/b/c/d' -> 'a').c.dispose`,
-                  `('a/b/c/d' -> 'a').d.dispose`,
+                    `('a/b/c/d' -> 'a').b.beforeDetach`,
+                    `('a/b/c/d' -> 'a').b.beforeUnbind`,
+                    `('a/b/c/d' -> 'a').b.afterUnbind`,
+                    `('a/b/c/d' -> 'a').c.beforeDetach`,
+                    `('a/b/c/d' -> 'a').c.beforeUnbind`,
+                    `('a/b/c/d' -> 'a').c.afterUnbind`,
+                    `('a/b/c/d' -> 'a').d.beforeDetach`,
+                    `('a/b/c/d' -> 'a').d.beforeUnbind`,
+                    `('a/b/c/d' -> 'a').d.afterUnbind`,
+                    `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').b.dispose`,
+                    `('a/b/c/d' -> 'a').c.dispose`,
+                    `('a/b/c/d' -> 'a').d.dispose`,
 
-                  `stop.root.beforeDetach`,
-                  `stop.root.beforeUnbind`,
-                  `stop.root.afterUnbind`,
+                    `stop.root.beforeDetach`,
+                    `stop.root.beforeUnbind`,
+                    `stop.root.afterUnbind`,
 
-                  `stop.a.beforeDetach`,
-                  `stop.a.beforeUnbind`,
-                  `stop.a.afterUnbind`,
-                  `stop.a.afterUnbindChildren`,
+                    `stop.a.beforeDetach`,
+                    `stop.a.beforeUnbind`,
+                    `stop.a.afterUnbind`,
+                    `stop.a.afterUnbindChildren`,
 
-                  `stop.root.afterUnbindChildren`,
-                ],
-              );
-              break;
+                    `stop.root.afterUnbindChildren`,
+                  ],
+                );
+                break;
+              }
+              case 'static': {
+                assert.deepStrictEqual(
+                  hia.notifyHistory,
+                  [
+                    `start.root.beforeBind`,
+                    `start.root.afterBind`,
+                    `start.root.afterAttach`,
+                    `start.root.afterAttachChildren`,
+
+                    `('' -> 'a/b/c/d').a.canEnter`,
+                    `('' -> 'a/b/c/d').b.canEnter`,
+                    `('' -> 'a/b/c/d').c.canEnter`,
+                    `('' -> 'a/b/c/d').d.canEnter`,
+
+                    `('' -> 'a/b/c/d').a.enter`,
+                    `('' -> 'a/b/c/d').b.enter`,
+                    `('' -> 'a/b/c/d').c.enter`,
+                    `('' -> 'a/b/c/d').d.enter`,
+
+                    `('' -> 'a/b/c/d').a.beforeBind`,
+                    `('' -> 'a/b/c/d').a.afterBind`,
+                    `('' -> 'a/b/c/d').a.afterAttach`,
+                    `('' -> 'a/b/c/d').b.beforeBind`,
+                    `('' -> 'a/b/c/d').b.afterBind`,
+                    `('' -> 'a/b/c/d').b.afterAttach`,
+                    `('' -> 'a/b/c/d').c.beforeBind`,
+                    `('' -> 'a/b/c/d').c.afterBind`,
+                    `('' -> 'a/b/c/d').c.afterAttach`,
+                    `('' -> 'a/b/c/d').d.beforeBind`,
+                    `('' -> 'a/b/c/d').d.afterBind`,
+                    `('' -> 'a/b/c/d').d.afterAttach`,
+                    `('' -> 'a/b/c/d').d.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').c.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').b.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').a.afterAttachChildren`,
+
+                    `('a/b/c/d' -> 'a').b.canLeave`,
+                    `('a/b/c/d' -> 'a').c.canLeave`,
+                    `('a/b/c/d' -> 'a').d.canLeave`,
+
+                    `('a/b/c/d' -> 'a').b.leave`,
+                    `('a/b/c/d' -> 'a').c.leave`,
+                    `('a/b/c/d' -> 'a').d.leave`,
+
+                    `('a/b/c/d' -> 'a').b.beforeDetach`,
+                    `('a/b/c/d' -> 'a').b.beforeUnbind`,
+                    `('a/b/c/d' -> 'a').b.afterUnbind`,
+                    `('a/b/c/d' -> 'a').c.beforeDetach`,
+                    `('a/b/c/d' -> 'a').c.beforeUnbind`,
+                    `('a/b/c/d' -> 'a').c.afterUnbind`,
+                    `('a/b/c/d' -> 'a').d.beforeDetach`,
+                    `('a/b/c/d' -> 'a').d.beforeUnbind`,
+                    `('a/b/c/d' -> 'a').d.afterUnbind`,
+                    `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').b.dispose`,
+                    `('a/b/c/d' -> 'a').c.dispose`,
+                    `('a/b/c/d' -> 'a').d.dispose`,
+
+                    `stop.root.beforeDetach`,
+                    `stop.root.beforeUnbind`,
+                    `stop.root.afterUnbind`,
+
+                    `stop.a.beforeDetach`,
+                    `stop.a.beforeUnbind`,
+                    `stop.a.afterUnbind`,
+                    `stop.a.afterUnbindChildren`,
+
+                    `stop.root.afterUnbindChildren`,
+                  ],
+                );
+                break;
+              }
             }
-            case 'static': {
-              assert.deepStrictEqual(
-                hia.notifyHistory,
-                [
-                  `start.root.beforeBind`,
-                  `start.root.afterBind`,
-                  `start.root.afterAttach`,
-                  `start.root.afterAttachChildren`,
 
-                  `('' -> 'a/b/c/d').a.canEnter`,
-                  `('' -> 'a/b/c/d').b.canEnter`,
-                  `('' -> 'a/b/c/d').c.canEnter`,
-                  `('' -> 'a/b/c/d').d.canEnter`,
-
-                  `('' -> 'a/b/c/d').a.enter`,
-                  `('' -> 'a/b/c/d').b.enter`,
-                  `('' -> 'a/b/c/d').c.enter`,
-                  `('' -> 'a/b/c/d').d.enter`,
-
-                  `('' -> 'a/b/c/d').a.beforeBind`,
-                  `('' -> 'a/b/c/d').a.afterBind`,
-                  `('' -> 'a/b/c/d').a.afterAttach`,
-                  `('' -> 'a/b/c/d').b.beforeBind`,
-                  `('' -> 'a/b/c/d').b.afterBind`,
-                  `('' -> 'a/b/c/d').b.afterAttach`,
-                  `('' -> 'a/b/c/d').c.beforeBind`,
-                  `('' -> 'a/b/c/d').c.afterBind`,
-                  `('' -> 'a/b/c/d').c.afterAttach`,
-                  `('' -> 'a/b/c/d').d.beforeBind`,
-                  `('' -> 'a/b/c/d').d.afterBind`,
-                  `('' -> 'a/b/c/d').d.afterAttach`,
-                  `('' -> 'a/b/c/d').d.afterAttachChildren`,
-                  `('' -> 'a/b/c/d').c.afterAttachChildren`,
-                  `('' -> 'a/b/c/d').b.afterAttachChildren`,
-                  `('' -> 'a/b/c/d').a.afterAttachChildren`,
-
-                  `('a/b/c/d' -> 'a').b.canLeave`,
-                  `('a/b/c/d' -> 'a').c.canLeave`,
-                  `('a/b/c/d' -> 'a').d.canLeave`,
-
-                  `('a/b/c/d' -> 'a').b.leave`,
-                  `('a/b/c/d' -> 'a').c.leave`,
-                  `('a/b/c/d' -> 'a').d.leave`,
-
-                  `('a/b/c/d' -> 'a').b.beforeDetach`,
-                  `('a/b/c/d' -> 'a').b.beforeUnbind`,
-                  `('a/b/c/d' -> 'a').b.afterUnbind`,
-                  `('a/b/c/d' -> 'a').c.beforeDetach`,
-                  `('a/b/c/d' -> 'a').c.beforeUnbind`,
-                  `('a/b/c/d' -> 'a').c.afterUnbind`,
-                  `('a/b/c/d' -> 'a').d.beforeDetach`,
-                  `('a/b/c/d' -> 'a').d.beforeUnbind`,
-                  `('a/b/c/d' -> 'a').d.afterUnbind`,
-                  `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
-                  `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
-                  `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
-                  `('a/b/c/d' -> 'a').b.dispose`,
-                  `('a/b/c/d' -> 'a').c.dispose`,
-                  `('a/b/c/d' -> 'a').d.dispose`,
-
-                  `stop.root.beforeDetach`,
-                  `stop.root.beforeUnbind`,
-                  `stop.root.afterUnbind`,
-
-                  `stop.a.beforeDetach`,
-                  `stop.a.beforeUnbind`,
-                  `stop.a.afterUnbind`,
-                  `stop.a.afterUnbindChildren`,
-
-                  `stop.root.afterUnbindChildren`,
-                ],
-              );
-              break;
-            }
-          }
-
-          hia.dispose();
-        });
+            hia.dispose();
+          });
+        }
       });
     });
   }

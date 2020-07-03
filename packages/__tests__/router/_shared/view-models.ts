@@ -129,12 +129,41 @@ export class HookSpecs {
     $this.afterUnbind = void 0;
     $this.afterUnbindChildren = void 0;
 
+    $this.$dispose = void 0;
+
     $this.canEnter = void 0;
     $this.enter = void 0;
     $this.canLeave = void 0;
     $this.leave = void 0;
   }
+
+  public toString(): string {
+    const strings: string[] = [];
+    for (const k of hookNames) {
+      if (this[k] !== hookSpecs[k].sync) {
+        strings.push(this[k].toString());
+      }
+    }
+    return `Hooks(${strings.join(',')})`;
+  }
 }
+
+const hookNames = [
+  'beforeBind',
+  'afterBind',
+  'afterAttach',
+  'afterAttachChildren',
+
+  'beforeDetach',
+  'beforeUnbind',
+  'afterUnbind',
+  'afterUnbindChildren',
+
+  'canEnter',
+  'enter',
+  'canLeave',
+  'leave',
+] as const;
 
 export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   public readonly $controller!: ICustomElementController<HTMLElement, this>;

@@ -144,6 +144,7 @@ export class HookInvocationAggregator {
     this.beforeUnbind.dispose();
     this.afterUnbind.dispose();
     this.afterUnbindChildren.dispose();
+    this.$$dispose.dispose();
     this.canEnter.dispose();
     this.enter.dispose();
     this.canLeave.dispose();
@@ -162,6 +163,7 @@ export class HookInvocationAggregator {
     $this.beforeUnbind = void 0;
     $this.afterUnbind = void 0;
     $this.afterUnbindChildren = void 0;
+    $this.$$dispose = void 0;
     $this.canEnter = void 0;
     $this.enter = void 0;
     $this.canLeave = void 0;

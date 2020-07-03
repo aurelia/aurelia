@@ -199,7 +199,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         throw new Error('The value of "as-custom-element" attribute cannot be empty for local template'); /* TODO: use reporter/logger */
       }
       if (localTemplateNames.has(name)) {
-        throw new Error(`Duplicate definition of the local template named ${name}`); /* TODO: use reporter/logger */
+        throw new Error(`Duplicate definition of the local template named ${name}`);
       } else {
         localTemplateNames.add(name);
       }

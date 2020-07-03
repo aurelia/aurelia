@@ -412,7 +412,7 @@ export class FragmentNodeSequence implements INodeSequence {
     }
   }
 
-  public appendTo(parent: Node): void {
+  public appendTo(parent: Node, enhance: boolean = false): void {
     if (this.isMounted) {
       let current = this.firstChild;
       const end = this.lastChild;
@@ -430,9 +430,7 @@ export class FragmentNodeSequence implements INodeSequence {
       }
     } else {
       this.isMounted = true;
-      // In case on enhance, the host and fragment is the same.
-      // The generalization with `.contains` makes sense as we might not want to append the children if the host already has it.
-      if (!parent.contains(this.fragment)) {
+      if (!enhance) {
         parent.appendChild(this.fragment);
       }
     }

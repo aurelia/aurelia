@@ -51,12 +51,12 @@ export class CompositionRoot<T extends INode = INode> {
   public viewModel?: ICustomElementViewModel<T>;
 
   private createTask?: ILifecycleTask;
-  private enhanceDefinition: CustomElementDefinition | undefined;
+  private readonly enhanceDefinition: CustomElementDefinition | undefined;
 
   public constructor(
     config: ISinglePageApp<T>,
     container: IContainer,
-    toEnhance: boolean = false,
+    enhance: boolean = false,
   ) {
     this.config = config;
     if (config.host != void 0) {
@@ -84,8 +84,14 @@ export class CompositionRoot<T extends INode = INode> {
     const taskManager = this.container.get(IStartTaskManager);
     const beforeCreateTask = taskManager.runBeforeCreate();
 
-    if (toEnhance) {
-      this.setEnhanceDefinition(config);
+    if (enhance) {
+      // this.setEnhanceDefinition(config);
+      const component = config.component as Constructable | ICustomElementViewModel<T>;
+      this.enhanceDefinition = CustomElement.getDefinition(
+        CustomElement.isType(component)
+          ? CustomElement.define({ ...CustomElement.getDefinition(component), template: this.host, enhance: true }, component)
+          : CustomElement.define({ name: (void 0)!, template: this.host, enhance: true })
+      );
     }
 
     if (beforeCreateTask.done) {
@@ -93,19 +99,6 @@ export class CompositionRoot<T extends INode = INode> {
       this.create();
     } else {
       this.task = new ContinuationTask(beforeCreateTask, this.create, this);
-    }
-  }
-
-  private setEnhanceDefinition(config: ISinglePageApp<T>) {
-    const component = config.component as Constructable | ICustomElementViewModel<T>;
-    if (CustomElement.isType(component)) {
-      CustomElement.define(
-        this.enhanceDefinition = CustomElementDefinition.create({ ...CustomElement.getDefinition(component), template: this.host, enhance: true }),
-        component);
-    } else {
-      CustomElement.define(
-        this.enhanceDefinition = CustomElementDefinition.create({ name: CustomElement.generateName(), template: this.host, enhance: true }),
-        class { });
     }
   }
 
@@ -283,8 +276,8 @@ export class Aurelia<TNode extends INode = INode> {
     return this.task.wait() as Promise<void>;
   }
 
-  private configureRoot(config: ISinglePageApp<TNode>, toEnhance?: boolean): Omit<this, 'register' | 'app' | 'enhance'> {
-    this.next = new CompositionRoot(config, this.container, toEnhance);
+  private configureRoot(config: ISinglePageApp<TNode>, enhance?: boolean): Omit<this, 'register' | 'app' | 'enhance'> {
+    this.next = new CompositionRoot(config, this.container, enhance);
 
     if (this.isRunning) {
       this.start();

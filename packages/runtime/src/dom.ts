@@ -48,7 +48,7 @@ export interface INodeSequence<T extends INode = INode> extends INode {
   /**
    * Append this sequence as a child to parent
    */
-  appendTo(parent: T): void;
+  appendTo(parent: T, enhance?: boolean): void;
 
   /**
    * Remove this sequence from the DOM.

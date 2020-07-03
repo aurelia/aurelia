@@ -217,4 +217,42 @@ describe('enhance', function () {
       });
     }
   );
+
+  it(`respects the hooks in raw object component`, async function () {
+    const ctx = TestContext.createHTMLTestContext();
+
+    const host = ctx.dom.createElement('div');
+    host.innerHTML = '<span></span>';
+    ctx.doc.body.appendChild(host);
+
+    const component = {
+      eventLog: [],
+      create() { this.eventLog.push('create'); },
+      beforeCompile() { this.eventLog.push('beforeCompile'); },
+      afterCompile() { this.eventLog.push('afterCompile'); },
+      afterCompileChildren() { this.eventLog.push('afterCompileChildren'); },
+      beforeBind() { this.eventLog.push('beforeBind'); },
+      afterBind() { this.eventLog.push('afterBind'); },
+      beforeAttach() { this.eventLog.push('beforeAttach'); },
+      afterAttach() { this.eventLog.push('afterAttach'); },
+    };
+    const container = ctx.container;
+    const au = new Aurelia(container);
+    au.enhance({ host, component });
+    await au.start().wait();
+
+    await au.stop().wait();
+    ctx.doc.body.removeChild(host);
+
+    assert.deepStrictEqual(component.eventLog, [
+      'create',
+      'beforeCompile',
+      'afterCompile',
+      'afterCompileChildren',
+      'beforeBind',
+      'afterBind',
+      'beforeAttach',
+      'afterAttach',
+    ]);
+  });
 });

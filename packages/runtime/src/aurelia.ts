@@ -27,6 +27,7 @@ import {
 } from './lifecycle-task';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element';
 import { Controller } from './templating/controller';
+import { HooksDefinition } from './definitions';
 
 export interface ISinglePageApp<THost extends INode = INode> {
   strategy?: BindingStrategy;
@@ -90,7 +91,7 @@ export class CompositionRoot<T extends INode = INode> {
       this.enhanceDefinition = CustomElement.getDefinition(
         CustomElement.isType(component)
           ? CustomElement.define({ ...CustomElement.getDefinition(component), template: this.host, enhance: true }, component)
-          : CustomElement.define({ name: (void 0)!, template: this.host, enhance: true })
+          : CustomElement.define({ name: (void 0)!, template: this.host, enhance: true, hooks: new HooksDefinition(component) })
       );
     }
 

@@ -14,13 +14,13 @@ The convention for HTML-only components is the filename becomes the tag name, an
 
 Here is a basic example that will render a heading one element with a value of `This is a HTML-only component`.
 
-```HTML
+```markup
 <h1>This is a HTML-only component</h1>
 ```
 
 Saving this as `my-element.html` will result in a component that will be referenced using its tag `<my-element></my-element>`. To import the component in your application, use the `<import>` element.
 
-```HTML
+```markup
 <import from="./my-element.html"></import>
 
 <my-element></my-element>
@@ -30,14 +30,14 @@ Saving this as `my-element.html` will result in a component that will be referen
 
 In many instances, you'll want a custom element which supports one or more bindable properties. These properties allow you to pass in data to the component itself. Taking the above example, let's allow the text to be changed and we will save it as `heading-one.html` instead.
 
-```HTML
+```markup
 <bindable name="text"></bindable>
 <h1>${text}</h1>
 ```
 
 To use our newly created `heading-one` component, import it and use it like this:
 
-```HTML
+```markup
 <import from="./heading-one.html"></import>
 
 <heading-one text="This is my heading..."></heading-one>
@@ -45,7 +45,7 @@ To use our newly created `heading-one` component, import it and use it like this
 
 You can even specify the binding mode for your bindables. This will make our bindable property `two-way` so it updates in both directions.
 
-```HTML
+```markup
 <bindable name="text" mode="two-way"></bindable>
 <h1>${text}</h1>
 ```

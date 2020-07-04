@@ -113,6 +113,9 @@ export const enum ExpressionKind {
   Parameter,
 }
 
+const fragmentRouteExpressionCache = new Map<string, RouteExpression>();
+const routeExpressionCache = new Map<string, RouteExpression>();
+
 export type RouteExpressionOrHigher = CompositeSegmentExpressionOrHigher | RouteExpression;
 export class RouteExpression {
   public get kind(): ExpressionKind.Route { return ExpressionKind.Route; }
@@ -126,6 +129,15 @@ export class RouteExpression {
   ) {}
 
   public static parse(path: string, fragmentIsRoute: boolean): RouteExpression {
+    const cache = fragmentIsRoute ? fragmentRouteExpressionCache : routeExpressionCache;
+    let result = cache.get(path);
+    if (result === void 0) {
+      cache.set(path, result = RouteExpression.$parse(path, fragmentIsRoute));
+    }
+    return result;
+  }
+
+  private static $parse(path: string, fragmentIsRoute: boolean): RouteExpression {
     // First strip off the fragment (and if fragment should be used as route, set it as the path)
     let fragment: string | null;
     const fragmentStart = path.indexOf('#');

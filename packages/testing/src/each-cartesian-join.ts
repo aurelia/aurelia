@@ -264,3 +264,18 @@ function updateElementByIndices<T extends any>(arrays: T[][], args: T[], indices
   }
   return args;
 }
+
+export function generateCartesianProduct<T1>(arrays: [T1[]]): Generator<[T1]>;
+export function generateCartesianProduct<T1, T2>(arrays: [T1[], T2[]]): Generator<[T1, T2]>;
+export function generateCartesianProduct<T1, T2, T3>(arrays: [T1[], T2[], T3[]]): Generator<[T1, T2, T3]>;
+export function generateCartesianProduct<T1, T2, T3, T4>(arrays: [T1[], T2[], T3[], T4[]]): Generator<[T1, T2, T3, T4]>;
+export function generateCartesianProduct<T1, T2, T3, T4, T5>(arrays: [T1[], T2[], T3[], T4[], T5[]]): Generator<[T1, T2, T3, T4, T5]>;
+export function* generateCartesianProduct<T extends any>(arrays: T[][]): Generator<T[]> {
+  const [head, ...tail] = arrays;
+  const tailCombinations: Generator<[any]> | [][] = tail.length > 0 ? generateCartesianProduct(tail as any) : [[]];
+  for (const t of tailCombinations) {
+    for (const h of head) {
+      yield [h, ...t];
+    }
+  }
+}

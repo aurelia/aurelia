@@ -1,7 +1,7 @@
 export { assert, fail } from './assert';
 export { AuNode, AuDOM, AuDOMConfiguration, AuDOMInitializer, AuDOMTest, AuNodeSequence, AuNodeSequenceFactory, AuObserverLocator, AuProjector, AuProjectorLocator, AuTextInstruction, AuTextRenderer, } from './au-dom';
 export { globalAttributeNames, CSS_PROPERTIES, PSEUDO_ELEMENTS, } from './data';
-export { eachCartesianJoinFactory, eachCartesianJoin, eachCartesianJoinAsync, } from './each-cartesian-join';
+export { eachCartesianJoinFactory, eachCartesianJoin, eachCartesianJoinAsync, generateCartesianProduct, } from './each-cartesian-join';
 export { h, hJsx, } from './h';
 export { createFixture } from './startup';
 export { HTMLTestContext, TestContext, } from './html-test-context';

@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/router",
-  "version": "0.8.0-dev.202006241022",
+  "version": "0.8.0-dev.202007041504",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -34,12 +34,12 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.8.0-dev.202006241022",
-    "@aurelia/metadata": "0.8.0-dev.202006241022",
-    "@aurelia/route-recognizer": "0.8.0-dev.202006241022",
-    "@aurelia/runtime-html": "0.8.0-dev.202006241022",
-    "@aurelia/runtime": "0.8.0-dev.202006241022",
-    "@aurelia/scheduler": "0.8.0-dev.202006241022"
+    "@aurelia/kernel": "0.8.0-dev.202007041504",
+    "@aurelia/metadata": "0.8.0-dev.202007041504",
+    "@aurelia/route-recognizer": "0.8.0-dev.202007041504",
+    "@aurelia/runtime-html": "0.8.0-dev.202007041504",
+    "@aurelia/runtime": "0.8.0-dev.202007041504",
+    "@aurelia/scheduler": "0.8.0-dev.202007041504"
   },
   "devDependencies": {
     "typescript": "^3.8.3"

@@ -150,5 +150,15 @@
         }
         return args;
     }
+    function* generateCartesianProduct(arrays) {
+        const [head, ...tail] = arrays;
+        const tailCombinations = tail.length > 0 ? generateCartesianProduct(tail) : [[]];
+        for (const t of tailCombinations) {
+            for (const h of head) {
+                yield [h, ...t];
+            }
+        }
+    }
+    exports.generateCartesianProduct = generateCartesianProduct;
 });
 //# sourceMappingURL=each-cartesian-join.js.map

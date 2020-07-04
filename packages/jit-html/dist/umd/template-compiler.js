@@ -51,17 +51,30 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             });
         }
     }
+    var LocalTemplateBindableAttributes;
+    (function (LocalTemplateBindableAttributes) {
+        LocalTemplateBindableAttributes["property"] = "property";
+        LocalTemplateBindableAttributes["attribute"] = "attribute";
+        LocalTemplateBindableAttributes["mode"] = "mode";
+    })(LocalTemplateBindableAttributes || (LocalTemplateBindableAttributes = {}));
+    const allowedLocalTemplateBindableAttributes = Object.freeze([
+        "property" /* property */,
+        "attribute" /* attribute */,
+        "mode" /* mode */
+    ]);
+    const localTemplateIdentifier = 'as-custom-element';
     /**
      * Default (runtime-agnostic) implementation for `ITemplateCompiler`.
      *
      * @internal
      */
     let TemplateCompiler = class TemplateCompiler {
-        constructor(factory, attrParser, exprParser, attrSyntaxModifier) {
+        constructor(factory, attrParser, exprParser, attrSyntaxModifier, logger) {
             this.factory = factory;
             this.attrParser = attrParser;
             this.exprParser = exprParser;
             this.attrSyntaxModifier = attrSyntaxModifier;
+            this.logger = logger.scopeTo('TemplateCompiler');
         }
         get name() {
             return 'default';
@@ -76,8 +89,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             }
             const resources = jit_1.ResourceModel.getOrCreate(context);
             const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
-            const binder = new template_binder_1.TemplateBinder(context.get(runtime_1.IDOM), resources, attrParser, exprParser, attrSyntaxModifier);
+            const dom = context.get(runtime_1.IDOM);
+            const binder = new template_binder_1.TemplateBinder(dom, resources, attrParser, exprParser, attrSyntaxModifier);
             const template = factory.createTemplate(definition.template);
+            processLocalTemplates(template, definition, context, dom, this.logger);
             const surrogate = binder.bind(template);
             const compilation = this.compilation = new CustomElementCompilationUnit(definition, surrogate, template);
             const customAttributes = surrogate.customAttributes;
@@ -311,8 +326,109 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         __param(1, jit_1.IAttributeParser),
         __param(2, runtime_1.IExpressionParser),
         __param(3, attribute_syntax_transformer_1.IAttrSyntaxTransformer),
-        __metadata("design:paramtypes", [Object, Object, Object, Object])
+        __param(4, kernel_1.ILogger),
+        __metadata("design:paramtypes", [Object, Object, Object, Object, Object])
     ], TemplateCompiler);
     exports.TemplateCompiler = TemplateCompiler;
+    function getTemplateName(localTemplate, localTemplateNames) {
+        const name = localTemplate.getAttribute(localTemplateIdentifier);
+        if (name === null || name === '') {
+            throw new Error('The value of "as-custom-element" attribute cannot be empty for local template');
+        }
+        if (localTemplateNames.has(name)) {
+            throw new Error(`Duplicate definition of the local template named ${name}`);
+        }
+        else {
+            localTemplateNames.add(name);
+        }
+        return name;
+    }
+    function getBindingMode(bindable) {
+        switch (bindable.getAttribute("mode" /* mode */)) {
+            case 'oneTime':
+                return runtime_1.BindingMode.oneTime;
+            case 'toView':
+                return runtime_1.BindingMode.toView;
+            case 'fromView':
+                return runtime_1.BindingMode.fromView;
+            case 'twoWay':
+                return runtime_1.BindingMode.twoWay;
+            case 'default':
+            default:
+                return runtime_1.BindingMode.default;
+        }
+    }
+    function processLocalTemplates(template, definition, context, dom, logger) {
+        let root;
+        if (template.nodeName === 'TEMPLATE') {
+            if (template.hasAttribute(localTemplateIdentifier)) {
+                throw new Error('The root cannot be a local template itself.');
+            }
+            root = template.content;
+        }
+        else {
+            root = template;
+        }
+        const localTemplates = kernel_1.toArray(root.querySelectorAll('template[as-custom-element]'));
+        const numLocalTemplates = localTemplates.length;
+        if (numLocalTemplates === 0) {
+            return;
+        }
+        if (numLocalTemplates === root.childElementCount) {
+            throw new Error('The custom element does not have any content other than local template(s).');
+        }
+        const localTemplateNames = new Set();
+        for (const localTemplate of localTemplates) {
+            if (localTemplate.parentNode !== root) {
+                throw new Error('Local templates needs to be defined directly under root.');
+            }
+            const name = getTemplateName(localTemplate, localTemplateNames);
+            const localTemplateType = class LocalTemplate {
+            };
+            const content = localTemplate.content;
+            const bindableEls = kernel_1.toArray(content.querySelectorAll('bindable'));
+            const bindableInstructions = runtime_1.Bindable.for(localTemplateType);
+            const properties = new Set();
+            const attributes = new Set();
+            for (const bindableEl of bindableEls) {
+                if (bindableEl.parentNode !== content) {
+                    throw new Error('Bindable properties of local templates needs to be defined directly under root.');
+                }
+                const property = bindableEl.getAttribute("property" /* property */);
+                if (property === null) {
+                    throw new Error(`The attribute 'property' is missing in ${bindableEl.outerHTML}`);
+                }
+                const attribute = bindableEl.getAttribute("attribute" /* attribute */);
+                if (attribute !== null
+                    && attributes.has(attribute)
+                    || properties.has(property)) {
+                    throw new Error(`Bindable property and attribute needs to be unique; found property: ${property}, attribute: ${attribute}`);
+                }
+                else {
+                    if (attribute !== null) {
+                        attributes.add(attribute);
+                    }
+                    properties.add(property);
+                }
+                bindableInstructions.add({
+                    property,
+                    attribute: attribute !== null && attribute !== void 0 ? attribute : void 0,
+                    mode: getBindingMode(bindableEl),
+                });
+                const ignoredAttributes = bindableEl.getAttributeNames().filter((attrName) => !allowedLocalTemplateBindableAttributes.includes(attrName));
+                if (ignoredAttributes.length > 0) {
+                    logger.warn(`The attribute(s) ${ignoredAttributes.join(', ')} will be ignored for ${bindableEl.outerHTML}. Only ${allowedLocalTemplateBindableAttributes.join(', ')} are processed.`);
+                }
+                content.removeChild(bindableEl);
+            }
+            const div = dom.createElement('div');
+            div.appendChild(content);
+            const localTemplateDefinition = runtime_1.CustomElement.define({ name, template: div.innerHTML }, localTemplateType);
+            // the casting is needed here as the dependencies are typed as readonly array
+            definition.dependencies.push(localTemplateDefinition);
+            context.register(localTemplateDefinition);
+            root.removeChild(localTemplate);
+        }
+    }
 });
 //# sourceMappingURL=template-compiler.js.map

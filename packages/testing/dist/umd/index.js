@@ -33,6 +33,7 @@
     exports.eachCartesianJoinFactory = each_cartesian_join_1.eachCartesianJoinFactory;
     exports.eachCartesianJoin = each_cartesian_join_1.eachCartesianJoin;
     exports.eachCartesianJoinAsync = each_cartesian_join_1.eachCartesianJoinAsync;
+    exports.generateCartesianProduct = each_cartesian_join_1.generateCartesianProduct;
     var h_1 = require("./h");
     exports.h = h_1.h;
     exports.hJsx = h_1.hJsx;

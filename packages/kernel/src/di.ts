@@ -116,6 +116,7 @@ export class ResolverBuilder<K> {
 
 export type RegisterSelf<T extends Constructable> = {
   register(container: IContainer): IResolver<InstanceType<T>>;
+  registerInRequester: boolean;
 };
 
 export type Key = PropertyKey | object | InterfaceSymbol | Constructable | IResolver;
@@ -420,6 +421,7 @@ export const DI = {
       const registration = Registration.transient(target as T, target as T);
       return registration.register(container, target);
     };
+    target.registerInRequester = false;
     return target as T & RegisterSelf<T>;
   },
   /**
@@ -439,11 +441,13 @@ export const DI = {
    * Foo.register(container);
    * ```
    */
-  singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
+  singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>, options: SingletonOptions = defaultSingletonOptions):
+    T & RegisterSelf<T> {
     target.register = function register(container: IContainer): IResolver<InstanceType<T>> {
       const registration = Registration.singleton(target, target);
       return registration.register(container, target);
     };
+    target.registerInRequester = options.scoped;
     return target as T & RegisterSelf<T>;
   },
 };
@@ -468,7 +472,8 @@ function createResolver(getter: (key: any, handler: IContainer, requestor: ICont
 
 export const inject = DI.inject;
 
-function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
+function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>):
+  T & RegisterSelf<T> {
   return DI.transient(target);
 }
 /**
@@ -497,6 +502,9 @@ export function transient<T extends Constructable>(target?: T & Partial<Register
   return target == null ? transientDecorator : transientDecorator(target);
 }
 
+type SingletonOptions = { scoped: boolean };
+const defaultSingletonOptions = { scoped: false };
+
 function singletonDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
   return DI.singleton(target);
 }
@@ -510,6 +518,7 @@ function singletonDecorator<T extends Constructable>(target: T & Partial<Registe
  * ```
  */
 export function singleton<T extends Constructable>(): typeof singletonDecorator;
+export function singleton<T extends Constructable>(options?: SingletonOptions): typeof singletonDecorator;
 /**
  * Registers the `target` class as a singleton dependency; the class will only be created once. Each
  * consecutive time the dependency is resolved, the same instance will be returned.
@@ -522,8 +531,13 @@ export function singleton<T extends Constructable>(): typeof singletonDecorator;
  * ```
  */
 export function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
-export function singleton<T extends Constructable>(target?: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> | typeof singletonDecorator {
-  return target == null ? singletonDecorator : singletonDecorator(target);
+export function singleton<T extends Constructable>(targetOrOptions?: (T & Partial<RegisterSelf<T>>) | SingletonOptions): T & RegisterSelf<T> | typeof singletonDecorator {
+  if (typeof targetOrOptions === 'function') {
+    return DI.singleton(targetOrOptions);
+  }
+  return function <T extends Constructable>($target: T) {
+    return DI.singleton($target, targetOrOptions as SingletonOptions | undefined);
+  };
 }
 
 export const all = createResolver((key: Key, handler: IContainer, requestor: IContainer) => requestor.getAll(key));
@@ -859,6 +873,14 @@ function isRegistry(obj: IRegistry | Record<string, IRegistry>): obj is IRegistr
   return typeof obj.register === 'function';
 }
 
+function isSelfRegistry<T extends Constructable>(obj: RegisterSelf<T>): obj is RegisterSelf<T> {
+  return isRegistry(obj) && typeof obj.registerInRequester === 'boolean';
+}
+
+function isRegisterInRequester<T extends Constructable>(obj: RegisterSelf<T>): obj is RegisterSelf<T> {
+  return isSelfRegistry(obj) && obj.registerInRequester;
+}
+
 function isClass<T extends { prototype?: any }>(obj: T): obj is Class<any, T> {
   return obj.prototype !== void 0;
 }
@@ -1066,7 +1088,7 @@ export class Container implements IContainer {
 
       if (resolver == null) {
         if (current.parent == null) {
-          const handler = this.config.jitRegisterInRoot ? current : this;
+          const handler = (isRegisterInRequester(key as unknown as RegisterSelf<Constructable>)) ? this : current;
           return autoRegister ? this.jitRegister(key, handler) : null;
         }
 
@@ -1102,7 +1124,7 @@ export class Container implements IContainer {
 
       if (resolver == null) {
         if (current.parent == null) {
-          const handler = this.config.jitRegisterInRoot ? current : this;
+          const handler = (isRegisterInRequester(key as unknown as RegisterSelf<Constructable>)) ? this : current;
           resolver = this.jitRegister(key, handler);
           return resolver.resolve(current, this);
         }

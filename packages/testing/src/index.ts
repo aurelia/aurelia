@@ -26,6 +26,7 @@ export {
   eachCartesianJoinFactory,
   eachCartesianJoin,
   eachCartesianJoinAsync,
+  generateCartesianProduct,
 } from './each-cartesian-join';
 export {
   h,

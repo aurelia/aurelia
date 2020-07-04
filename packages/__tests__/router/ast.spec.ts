@@ -375,30 +375,11 @@ describe('route-expression', function () {
     specs[`/${route.raw}`] = new RouteExpression(`/${route.raw}`, route, PLATFORM.emptyObject, null, false);
   }
 
-  function unparent(obj: any, seen: Set<any> = new Set()): void {
-    if (seen.has(obj)) {
-      return obj;
-    }
-    seen.add(obj);
-    for (const key in obj) {
-      if (key === 'route' || key === 'parent') {
-        obj[key] = void 0;
-      } else {
-        const value = obj[key];
-        if (typeof value === 'object' && value !== null) {
-          unparent(value, seen);
-        }
-      }
-    }
-
-    return obj;
-  }
-
   for (const path in specs) {
     const expected = specs[path];
     it(path, function () {
       const actual = RouteExpression.parse(path, false);
-      assert.deepStrictEqual(unparent(actual), unparent(expected));
+      assert.deepStrictEqual(actual, expected);
     });
   }
 

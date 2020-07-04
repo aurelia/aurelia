@@ -6,10 +6,6 @@
 // const paramTerminal = ['=', ',', ')'];
 
 import {
-  Writable,
-} from '@aurelia/kernel';
-
-import {
   ViewportInstructionTree,
   ViewportInstruction,
   Params,
@@ -121,20 +117,13 @@ export type RouteExpressionOrHigher = CompositeSegmentExpressionOrHigher | Route
 export class RouteExpression {
   public get kind(): ExpressionKind.Route { return ExpressionKind.Route; }
 
-  public readonly route: RouteExpression;
-  public readonly segments: readonly SegmentExpression[];
-
   public constructor(
     public readonly raw: string,
     public readonly root: CompositeSegmentExpressionOrHigher,
     public readonly queryParams: Params,
     public readonly fragment: string | null,
     public readonly fragmentIsRoute: boolean,
-  ) {
-    this.segments = root.segments;
-    this.route = this;
-    root.setParent(this);
-  }
+  ) {}
 
   public static parse(path: string, fragmentIsRoute: boolean): RouteExpression {
     // First strip off the fragment (and if fragment should be used as route, set it as the path)
@@ -203,10 +192,6 @@ export class RouteExpression {
     return new RouteExpression(raw, root, queryParams, fragment, fragmentIsRoute);
   }
 
-  public equals(other: RouteExpression): boolean {
-    return this.root.equals(other.root);
-  }
-
   public toInstructionTree(
     options: NavigationOptions,
   ): ViewportInstructionTree {
@@ -249,20 +234,11 @@ export type CompositeSegmentExpressionOrLower = RouteExpression | CompositeSegme
 export class CompositeSegmentExpression {
   public get kind(): ExpressionKind.CompositeSegment { return ExpressionKind.CompositeSegment; }
 
-  public readonly route!: RouteExpression;
-  public readonly parent!: RouteExpression | SegmentGroupExpression;
-
-  public readonly segments: readonly SegmentExpression[];
-
   public constructor(
     public readonly raw: string,
     public readonly siblings: readonly ScopedSegmentExpressionOrHigher[],
     public readonly append: boolean,
-  ) {
-    this.segments = siblings.flatMap(function (x) {
-      return x.segments;
-    });
-  }
+  ) {}
 
   public static parse(
     state: ParserState,
@@ -284,26 +260,6 @@ export class CompositeSegmentExpression {
 
     const raw = state.playback();
     return new CompositeSegmentExpression(raw, siblings, append);
-  }
-
-  public setParent(parent: RouteExpression | SegmentGroupExpression): void {
-    (this as Writable<this>).parent = parent;
-    (this as Writable<this>).route = parent.route;
-
-    for (const sibling of this.siblings) {
-      sibling.setParent(this);
-    }
-  }
-
-  public equals(other: CompositeSegmentExpressionOrHigher): boolean {
-    return (
-      other.kind === ExpressionKind.CompositeSegment &&
-      this.append === other.append &&
-      this.siblings.length === other.siblings.length &&
-      this.siblings.every(function (x, i) {
-        return x.equals(other.siblings[i]);
-      })
-    );
   }
 
   public toInstructions(append: boolean): ViewportInstruction[] {
@@ -335,18 +291,11 @@ export type ScopedSegmentExpressionOrLower = CompositeSegmentExpressionOrLower |
 export class ScopedSegmentExpression {
   public get kind(): ExpressionKind.ScopedSegment { return ExpressionKind.ScopedSegment; }
 
-  public readonly route!: RouteExpression;
-  public readonly parent!: SegmentGroupExpressionOrLower;
-
-  public readonly segments: readonly SegmentExpression[];
-
   public constructor(
     public readonly raw: string,
     public readonly left: SegmentGroupExpressionOrHigher,
     public readonly right: ScopedSegmentExpressionOrHigher,
-  ) {
-    this.segments = [...left.segments, ...right.segments];
-  }
+  ) {}
 
   public static parse(
     state: ParserState,
@@ -364,22 +313,6 @@ export class ScopedSegmentExpression {
 
     state.discard();
     return left;
-  }
-
-  public setParent(parent: SegmentGroupExpressionOrLower): void {
-    (this as Writable<this>).parent = parent;
-    (this as Writable<this>).route = parent.route;
-
-    this.left.setParent(this);
-    this.right.setParent(this);
-  }
-
-  public equals(other: CompositeSegmentExpressionOrHigher): boolean {
-    return (
-      other.kind === ExpressionKind.ScopedSegment &&
-      this.left.equals(other.left) &&
-      this.right.equals(other.right)
-    );
   }
 
   public toInstructions(append: boolean): ViewportInstruction[] {
@@ -428,17 +361,10 @@ export type SegmentGroupExpressionOrLower = ScopedSegmentExpressionOrLower | Seg
 export class SegmentGroupExpression {
   public get kind(): ExpressionKind.SegmentGroup { return ExpressionKind.SegmentGroup; }
 
-  public readonly route!: RouteExpression;
-  public readonly parent!: SegmentGroupExpressionOrLower;
-
-  public readonly segments: readonly SegmentExpression[];
-
   public constructor(
     public readonly raw: string,
     public readonly expression: CompositeSegmentExpressionOrHigher,
-  ) {
-    this.segments = expression.segments;
-  }
+  ) {}
 
   public static parse(
     state: ParserState,
@@ -457,24 +383,8 @@ export class SegmentGroupExpression {
     return SegmentExpression.parse(state);
   }
 
-  public setParent(parent: SegmentGroupExpressionOrLower): void {
-    (this as Writable<this>).parent = parent;
-    (this as Writable<this>).route = parent.route;
-
-    this.expression.setParent(this);
-  }
-
-  public equals(other: CompositeSegmentExpressionOrHigher): boolean {
-    return (
-      other.kind === ExpressionKind.SegmentGroup &&
-      this.expression.equals(other.expression)
-    );
-  }
-
   public toInstructions(append: boolean): ViewportInstruction[] {
-    return this.segments.flatMap(function (x) {
-      return x.toInstructions(append);
-    });
+    return this.expression.toInstructions(append);
   }
 
   public toString(): string {
@@ -490,20 +400,13 @@ export class SegmentExpression {
 
   public static get EMPTY(): SegmentExpression { return new SegmentExpression('', ComponentExpression.EMPTY, ActionExpression.EMPTY, ViewportExpression.EMPTY, true); }
 
-  public readonly route!: RouteExpression;
-  public readonly parent!: SegmentGroupExpressionOrLower;
-
-  public readonly segments: readonly SegmentExpression[];
-
   public constructor(
     public readonly raw: string,
     public readonly component: ComponentExpression,
     public readonly action: ActionExpression,
     public readonly viewport: ViewportExpression,
     public readonly scoped: boolean,
-  ) {
-    this.segments = [this];
-  }
+  ) {}
 
   public static parse(
     state: ParserState,
@@ -517,25 +420,6 @@ export class SegmentExpression {
 
     const raw = state.playback();
     return new SegmentExpression(raw, component, action, viewport, scoped);
-  }
-
-  public setParent(parent: SegmentGroupExpressionOrLower): void {
-    (this as Writable<this>).parent = parent;
-    (this as Writable<this>).route = parent.route;
-
-    this.component.setParent(this);
-    this.action.setParent(this);
-    this.viewport.setParent(this);
-  }
-
-  public equals(other: CompositeSegmentExpressionOrHigher): boolean {
-    return (
-      other.kind === ExpressionKind.Segment &&
-      this.scoped === other.scoped &&
-      this.component.equals(other.component) &&
-      this.action.equals(other.action) &&
-      this.viewport.equals(other.viewport)
-    );
   }
 
   public toInstructions(append: boolean): ViewportInstruction[] {
@@ -558,9 +442,6 @@ export class ComponentExpression {
   public get kind(): ExpressionKind.Component { return ExpressionKind.Component; }
 
   public static get EMPTY(): ComponentExpression { return new ComponentExpression('', '', ParameterListExpression.EMPTY); }
-
-  public readonly route!: RouteExpression;
-  public readonly parent!: SegmentExpression;
 
   /**
    * A single segment matching parameter, e.g. `:foo` (will match `a` but not `a/b`)
@@ -625,20 +506,6 @@ export class ComponentExpression {
     return new ComponentExpression(raw, name, parameterList);
   }
 
-  public setParent(parent: SegmentExpression): void {
-    (this as Writable<this>).parent = parent;
-    (this as Writable<this>).route = parent.route;
-
-    this.parameterList.setParent(this);
-  }
-
-  public equals(other: ComponentExpression): boolean {
-    return (
-      this.name === other.name &&
-      this.parameterList.equals(other.parameterList)
-    );
-  }
-
   public toString(): string {
     return this.raw;
   }
@@ -648,9 +515,6 @@ export class ActionExpression {
   public get kind(): ExpressionKind.Action { return ExpressionKind.Action; }
 
   public static get EMPTY(): ActionExpression { return new ActionExpression('', '', ParameterListExpression.EMPTY); }
-
-  public readonly route!: RouteExpression;
-  public readonly parent!: SegmentExpression;
 
   public constructor(
     public readonly raw: string,
@@ -682,20 +546,6 @@ export class ActionExpression {
     return new ActionExpression(raw, name, parameterList);
   }
 
-  public setParent(parent: SegmentExpression): void {
-    (this as Writable<this>).parent = parent;
-    (this as Writable<this>).route = parent.route;
-
-    this.parameterList.setParent(this);
-  }
-
-  public equals(other: ActionExpression): boolean {
-    return (
-      this.name === other.name &&
-      this.parameterList.equals(other.parameterList)
-    );
-  }
-
   public toString(): string {
     return this.raw;
   }
@@ -705,9 +555,6 @@ export class ViewportExpression {
   public get kind(): ExpressionKind.Viewport { return ExpressionKind.Viewport; }
 
   public static get EMPTY(): ViewportExpression { return new ViewportExpression('', ''); }
-
-  public readonly route!: RouteExpression;
-  public readonly parent!: SegmentExpression;
 
   public constructor(
     public readonly raw: string,
@@ -736,15 +583,6 @@ export class ViewportExpression {
     return new ViewportExpression(raw, name);
   }
 
-  public setParent(parent: SegmentExpression): void {
-    (this as Writable<this>).parent = parent;
-    (this as Writable<this>).route = parent.route;
-  }
-
-  public equals(other: ViewportExpression): boolean {
-    return this.name === other.name;
-  }
-
   public toString(): string {
     return this.raw;
   }
@@ -754,9 +592,6 @@ export class ParameterListExpression {
   public get kind(): ExpressionKind.ParameterList { return ExpressionKind.ParameterList; }
 
   public static get EMPTY(): ParameterListExpression { return new ParameterListExpression('', []); }
-
-  public readonly route!: RouteExpression;
-  public readonly parent!: ComponentExpression | ActionExpression;
 
   public constructor(
     public readonly raw: string,
@@ -782,24 +617,6 @@ export class ParameterListExpression {
     return new ParameterListExpression(raw, expressions);
   }
 
-  public setParent(parent: ComponentExpression | ActionExpression): void {
-    (this as Writable<this>).parent = parent;
-    (this as Writable<this>).route = parent.route;
-
-    for (const expr of this.expressions) {
-      expr.setParent(this);
-    }
-  }
-
-  public equals(other: ParameterListExpression): boolean {
-    return (
-      this.expressions.length === other.expressions.length &&
-      this.expressions.every(function (x, i) {
-        return x.equals(other.expressions[i]);
-      })
-    );
-  }
-
   public toObject(): Params {
     return {}; // TODO
   }
@@ -813,9 +630,6 @@ export class ParameterExpression {
   public get kind(): ExpressionKind.Parameter { return ExpressionKind.Parameter; }
 
   public static get EMPTY(): ParameterExpression { return new ParameterExpression('', '', ''); }
-
-  public readonly route!: RouteExpression;
-  public readonly parent!: ParameterListExpression;
 
   public constructor(
     public readonly raw: string,
@@ -855,18 +669,6 @@ export class ParameterExpression {
 
     const raw = state.playback();
     return new ParameterExpression(raw, key, value);
-  }
-
-  public setParent(parent: ParameterListExpression): void {
-    (this as Writable<this>).parent = parent;
-    (this as Writable<this>).route = parent.route;
-  }
-
-  public equals(other: ParameterExpression): boolean {
-    return (
-      this.key === other.key &&
-      this.value === other.value
-    );
   }
 
   public toString(): string {

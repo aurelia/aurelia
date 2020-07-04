@@ -470,6 +470,6 @@ export declare const Metadata: {
     getOwnKeys: typeof $getOwnKeys;
     delete: typeof $delete;
 };
-export declare function applyMetadataPolyfill(reflect: typeof Reflect): void;
+export declare function applyMetadataPolyfill(reflect: typeof Reflect, throwIfConflict?: boolean, forceOverwrite?: boolean, writable?: boolean, configurable?: boolean): void;
 export {};
 //# sourceMappingURL=index.d.ts.map

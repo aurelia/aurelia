@@ -57,13 +57,13 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined, projection?: CustomElementDefinition): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, part?: string | undefined, projection?: CustomElementDefinition): void {
     if (this.firstArg !== null) {
-      const delay = Number(this.firstArg.evaluate(flags, scope, this.locator, part, projection));
+      const delay = Number(this.firstArg.evaluate(flags, scope, this.locator, hostScope, part, projection));
       if (!isNaN(delay)) {
         this.opts.delay = delay;
       }
     }
-    this.binding.$bind(flags, scope, part);
+    this.binding.$bind(flags, scope, hostScope, part);
   }
 }

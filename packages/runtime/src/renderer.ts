@@ -57,7 +57,7 @@ import { ObserversLookup } from './observation';
 import { ICompiledRenderContext, getRenderContext } from './templating/render-context';
 import { BindingBehaviorExpression } from './binding/ast';
 import { BindingBehaviorFactory, BindingBehaviorInstance, IInterceptableBinding } from './resources/binding-behavior';
-import { IProjections } from './resources/custom-elements/au-slot';
+import { IProjections, AuSlotContentType } from './resources/custom-elements/au-slot';
 
 export interface ITemplateCompiler {
   compile(partialDefinition: PartialCustomElementDefinition, context: IContainer): CustomElementDefinition;
@@ -293,8 +293,15 @@ export class CustomElementRenderer implements IInstructionRenderer {
     const isAuSlot = slotName !== void 0 && projectionFallback !== void 0;
     if (isAuSlot) {
       const projections = context.get(IProjections);
-      const definition = projections[slotName!] ?? projectionFallback;
-      viewFactory = getRenderContext(definition, context, parts).getViewFactory();
+      let contentType: AuSlotContentType;
+      let definition = projections[slotName!];
+      if (definition !== void 0) {
+        contentType = AuSlotContentType.Projection;
+      } else {
+        definition = projectionFallback!;
+        contentType = AuSlotContentType.Fallback;
+      }
+      viewFactory = getRenderContext(definition, context, parts).getViewFactory(void 0, contentType);
       // consume the slot
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete projections[slotName!];

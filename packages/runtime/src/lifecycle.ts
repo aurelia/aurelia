@@ -40,6 +40,7 @@ import {
 import {
   Scope,
 } from './observation/binding-context';
+import { AuSlotContentType } from './resources/custom-elements/au-slot';
 
 export interface IBinding {
   interceptor: this;
@@ -52,7 +53,7 @@ export interface IBinding {
    */
   readonly part?: string;
   readonly $state: State;
-  $bind(flags: LifecycleFlags, scope: IScope, part?: string, projection?: CustomElementDefinition): void;
+  $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): void;
   $unbind(flags: LifecycleFlags): void;
 }
 
@@ -87,7 +88,7 @@ export interface IController<
 
   part: string | undefined;
 
-  bind(flags: LifecycleFlags, scope?: IScope, partName?: string, projection?: CustomElementDefinition): ILifecycleTask;
+  bind(flags: LifecycleFlags, scope?: IScope, hostScope?: IScope | null, partName?: string, projection?: CustomElementDefinition): ILifecycleTask;
   unbind(flags: LifecycleFlags): ILifecycleTask;
   attach(flags: LifecycleFlags): void;
   detach(flags: LifecycleFlags): void;
@@ -363,6 +364,7 @@ export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   readonly name: string;
   readonly parts: PartialCustomElementDefinitionParts | undefined;
   readonly context: IRenderContext<T>;
+  readonly contentType: AuSlotContentType | undefined;
   create(flags?: LifecycleFlags): ISyntheticView<T>;
   resolve(requestor: IContainer, parts?: PartialCustomElementDefinitionParts): IViewFactory<T>;
 }

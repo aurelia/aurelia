@@ -17,6 +17,7 @@ import { Controller } from './controller';
 import { PartialCustomElementDefinitionParts, mergeParts } from '../definitions';
 import { IRenderContext, getRenderContext } from './render-context';
 import { MaybePromiseOrTask } from '../lifecycle-task';
+import { AuSlotContentType } from '../resources/custom-elements/au-slot';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
@@ -31,6 +32,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     public readonly context: IRenderContext<T>,
     private readonly lifecycle: ILifecycle,
     public readonly parts: PartialCustomElementDefinitionParts | undefined,
+    public readonly contentType: AuSlotContentType | undefined,
   ) {}
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {

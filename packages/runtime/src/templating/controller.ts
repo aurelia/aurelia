@@ -313,7 +313,7 @@ export class Controller<
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this as unknown as IDryCustomElementController<T, NonNullable<C>>, definition, flags, instance);
 
-    this.scope = Scope.create(flags, this.bindingContext!, null);
+    this.scope = Scope.create(flags, this.bindingContext!, null, true);
 
     const hooks = this.hooks;
     if (hooks.hasCreate) {
@@ -468,7 +468,7 @@ export class Controller<
     return this.unmountSynthetic(flags);
   }
 
-  public bind(flags: LifecycleFlags, scope?: IScope, part?: string, projection?: CustomElementDefinition): ILifecycleTask {
+  public bind(flags: LifecycleFlags, scope?: IScope, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): ILifecycleTask {
     this.part = part;
     this.projection = projection;
     // TODO: benchmark which of these techniques is fastest:
@@ -482,11 +482,11 @@ export class Controller<
     flags |= LifecycleFlags.fromBind;
     switch (this.vmKind) {
       case ViewModelKind.customElement:
-        return this.bindCustomElement(flags, scope);
+        return this.bindCustomElement(flags, scope, hostScope);
       case ViewModelKind.customAttribute:
-        return this.bindCustomAttribute(flags, scope);
+        return this.bindCustomAttribute(flags, scope, hostScope);
       case ViewModelKind.synthetic:
-        return this.bindSynthetic(flags, scope);
+        return this.bindSynthetic(flags, scope, hostScope);
     }
   }
 
@@ -603,7 +603,7 @@ export class Controller<
   }
 
   // #region bind/unbind
-  private bindCustomElement(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
+  private bindCustomElement(flags: LifecycleFlags, scope?: IScope, hostScope?: IScope | null): ILifecycleTask {
     const $scope = this.scope as Writable<IScope>;
 
     $scope.parentScope = scope === void 0 ? null : scope;
@@ -624,14 +624,14 @@ export class Controller<
       const ret = (this.bindingContext as BindingContext<T, C>).beforeBind(flags);
       if (hasAsyncWork(ret)) {
         // this.scope could be reassigned during beforeBind so reference that instead of $scope.
-        return new ContinuationTask(ret, this.bindBindings, this, flags, this.scope!);
+        return new ContinuationTask(ret, this.bindBindings, this, flags, this.scope!, hostScope!);
       }
     }
 
-    return this.bindBindings(flags, this.scope!);
+    return this.bindBindings(flags, this.scope!, hostScope!);
   }
 
-  private bindCustomAttribute(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
+  private bindCustomAttribute(flags: LifecycleFlags, scope?: IScope, hostScope?: IScope | null): ILifecycleTask {
     if ((this.state & State.isBound) > 0) {
       if (this.scope === scope) {
         return LifecycleTask.done;
@@ -641,7 +641,7 @@ export class Controller<
       const task = this.unbind(flags);
 
       if (!task.done) {
-        return new ContinuationTask(task, this.bind, this, flags, scope);
+        return new ContinuationTask(task, this.bind, this, flags, scope, hostScope);
       }
     } else {
       flags |= LifecycleFlags.fromBind;
@@ -663,7 +663,7 @@ export class Controller<
     return LifecycleTask.done;
   }
 
-  private bindSynthetic(flags: LifecycleFlags, scope?: IScope): ILifecycleTask {
+  private bindSynthetic(flags: LifecycleFlags, scope?: IScope, hostScope?: IScope | null): ILifecycleTask {
     if (scope == void 0) {
       throw new Error(`Scope is null or undefined`); // TODO: create error code
     }
@@ -693,10 +693,10 @@ export class Controller<
     this.state |= State.isBinding;
 
     this.lifecycle.afterBind.begin();
-    return this.bindBindings(flags, this.scope!);
+    return this.bindBindings(flags, this.scope!, hostScope!);
   }
 
-  private bindBindings(flags: LifecycleFlags, scope: IScope): ILifecycleTask {
+  private bindBindings(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): ILifecycleTask {
     const { bindings } = this;
     if (bindings !== void 0) {
       const { length } = bindings;
@@ -704,7 +704,7 @@ export class Controller<
         flags |= LifecycleFlags.isStrictBindingStrategy;
       }
       for (let i = 0; i < length; ++i) {
-        bindings[i].$bind(flags, scope, this.part, this.projection);
+        bindings[i].$bind(flags, scope, hostScope, this.part, this.projection);
       }
     }
 
@@ -720,7 +720,7 @@ export class Controller<
       const { length } = controllers;
       for (let i = 0; i < length; ++i) {
         controllers[i].parent = this as unknown as IHydratedController<T>;
-        task = controllers[i].bind(flags, scope, this.part);
+        task = controllers[i].bind(flags, scope, null, this.part);
         if (!task.done) {
           if (tasks === void 0) {
             tasks = [];

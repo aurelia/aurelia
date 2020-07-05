@@ -345,6 +345,7 @@ export interface IScope {
   readonly projections: readonly CustomElementDefinition[];
   readonly bindingContext: IBindingContext;
   readonly overrideContext: IOverrideContext;
+  readonly isComponentScope: boolean;
 }
 
 export type ObserversLookup = IIndexable<{

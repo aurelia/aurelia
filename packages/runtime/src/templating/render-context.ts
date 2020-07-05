@@ -30,7 +30,7 @@ import {
 import { IRenderer, ITemplateCompiler } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { ViewFactory } from './view';
-import { IProjections } from '../resources/custom-elements/au-slot';
+import { IProjections, AuSlotContentType } from '../resources/custom-elements/au-slot';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const definitionContainerPartsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<PartialCustomElementDefinitionParts, RenderContext>>>();
@@ -83,7 +83,7 @@ export interface IRenderContext<T extends INode = INode> extends IContainer {
    *
    * @returns Either a new `IViewFactory` (if this is the first call), or a cached one.
    */
-  getViewFactory(name?: string): IViewFactory<T>;
+  getViewFactory(name?: string, contentType?: AuSlotContentType): IViewFactory<T>;
 }
 
 /**
@@ -384,14 +384,14 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     return this;
   }
 
-  public getViewFactory(name?: string): IViewFactory<T> {
+  public getViewFactory(name?: string, contentType?: AuSlotContentType): IViewFactory<T> {
     let factory = this.factory;
     if (factory === void 0) {
       if (name === void 0) {
         name = this.definition.name;
       }
       const lifecycle = this.parentContainer.get(ILifecycle);
-      factory = this.factory = new ViewFactory<T>(name, this, lifecycle, this.parts);
+      factory = this.factory = new ViewFactory<T>(name, this, lifecycle, this.parts, contentType);
     }
     return factory;
   }

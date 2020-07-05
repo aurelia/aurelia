@@ -24,6 +24,7 @@ export class CallBinding {
 
   public $state: State = State.none;
   public $scope?: IScope;
+  public $hostScope?: IScope | null;
   public part?: string;
   public projection?: CustomElementDefinition;
 
@@ -42,7 +43,7 @@ export class CallBinding {
   public callSource(args: object): unknown {
     const overrideContext = this.$scope!.overrideContext;
     Object.assign(overrideContext, args);
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope!, this.locator, this.part, this.projection);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope!, this.locator, this.$hostScope, this.part, this.projection);
 
     for (const prop in args) {
       Reflect.deleteProperty(overrideContext, prop);
@@ -51,7 +52,7 @@ export class CallBinding {
     return result;
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string, projection?: CustomElementDefinition): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -63,6 +64,7 @@ export class CallBinding {
     this.$state |= State.isBinding;
 
     this.$scope = scope;
+    this.$hostScope = hostScope;
     this.part = part;
     this.projection = projection;
 

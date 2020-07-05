@@ -346,6 +346,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       task = view.bind(
         flags,
         viewScope,
+        null,
         part,
       );
 
@@ -406,6 +407,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         task = view.bind(
           flags,
           viewScope,
+          null,
           part,
         );
         views.splice(i, 0, view);

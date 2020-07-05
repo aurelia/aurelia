@@ -374,7 +374,7 @@ TPrec extends Precedence.Unary ? IsUnary :
           }
           consume(state, Token.CloseParen);
           if (access & Access.Scope) {
-            result = new CallScopeExpression(name, args, (result as AccessScopeExpression | AccessThisExpression).ancestor);
+            result = new CallScopeExpression(name, args, (result as AccessScopeExpression | AccessThisExpression).ancestor, result === $host);
           } else if (access & Access.Member) {
             result = new CallMemberExpression(result as IsLeftHandSide, name, args);
           } else {

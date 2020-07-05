@@ -23,7 +23,7 @@ export class Replaceable<T extends INode = INode> implements ICustomAttributeVie
 
   public beforeBind(flags: LifecycleFlags): ILifecycleTask {
     this.view.parent = this.$controller;
-    return this.view.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope, this.factory.name);
+    return this.view.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.$controller.scope, null, this.factory.name);
   }
 
   public beforeAttach(flags: LifecycleFlags): void {

@@ -376,7 +376,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
       } else {
         fragmentCache.set(
           compiledDefinition,
-          this.fragment = this.dom.createDocumentFragment(template),
+          this.fragment = this.definition.enhance ? template as T : this.dom.createDocumentFragment(template),
         );
       }
     }
@@ -416,7 +416,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   // #region ICompiledRenderContext api
 
   public createNodes(): INodeSequence<T> {
-    return this.dom.createNodeSequence(this.fragment);
+    return this.dom.createNodeSequence(this.fragment, !this.definition.enhance);
   }
 
   // TODO: split up into 2 methods? getComponentFactory + getSyntheticFactory or something

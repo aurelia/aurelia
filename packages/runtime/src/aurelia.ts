@@ -3,7 +3,7 @@ import {
   DI,
   IContainer,
   PLATFORM,
-  Registration
+  Registration,
 } from '@aurelia/kernel';
 import { IActivator } from './activator';
 import {
@@ -25,8 +25,9 @@ import {
   IStartTaskManager,
   LifecycleTask,
 } from './lifecycle-task';
-import { CustomElement } from './resources/custom-element';
+import { CustomElement, CustomElementDefinition } from './resources/custom-element';
 import { Controller } from './templating/controller';
+import { HooksDefinition } from './definitions';
 
 export interface ISinglePageApp<THost extends INode = INode> {
   strategy?: BindingStrategy;
@@ -51,10 +52,12 @@ export class CompositionRoot<T extends INode = INode> {
   public viewModel?: ICustomElementViewModel<T>;
 
   private createTask?: ILifecycleTask;
+  private readonly enhanceDefinition: CustomElementDefinition | undefined;
 
   public constructor(
     config: ISinglePageApp<T>,
     container: IContainer,
+    enhance: boolean = false,
   ) {
     this.config = config;
     if (config.host != void 0) {
@@ -81,6 +84,15 @@ export class CompositionRoot<T extends INode = INode> {
 
     const taskManager = this.container.get(IStartTaskManager);
     const beforeCreateTask = taskManager.runBeforeCreate();
+
+    if (enhance) {
+      const component = config.component as Constructable | ICustomElementViewModel<T>;
+      this.enhanceDefinition = CustomElement.getDefinition(
+        CustomElement.isType(component)
+          ? CustomElement.define({ ...CustomElement.getDefinition(component), template: this.host, enhance: true }, component)
+          : CustomElement.define({ name: (void 0)!, template: this.host, enhance: true, hooks: new HooksDefinition(component) })
+      );
+    }
 
     if (beforeCreateTask.done) {
       this.task = LifecycleTask.done;
@@ -156,7 +168,7 @@ export class CompositionRoot<T extends INode = INode> {
 
     const container = this.container;
     const lifecycle = container.get(ILifecycle);
-    this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy as number);
+    this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy as number, this.enhanceDefinition);
   }
 }
 
@@ -189,6 +201,9 @@ export class Aurelia<TNode extends INode = INode> {
   private next?: CompositionRoot<TNode>;
 
   public constructor(container: IContainer = DI.createContainer()) {
+    if(container.has(Aurelia, true)) {
+      throw new Error('An instance of Aurelia is already registered with the container or an ancestor of it.');
+    }
     this.container = container;
     this.task = LifecycleTask.done;
 
@@ -208,14 +223,12 @@ export class Aurelia<TNode extends INode = INode> {
     return this;
   }
 
-  public app(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app'> {
-    this.next = new CompositionRoot(config, this.container);
+  public app(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app' | 'enhance'> {
+    return this.configureRoot(config);
+  }
 
-    if (this.isRunning) {
-      this.start();
-    }
-
-    return this;
+  public enhance(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app' | 'enhance'> {
+    return this.configureRoot(config, true);
   }
 
   public start(root: CompositionRoot<TNode> | undefined = this.next): ILifecycleTask {
@@ -266,6 +279,16 @@ export class Aurelia<TNode extends INode = INode> {
     return this.task.wait() as Promise<void>;
   }
 
+  private configureRoot(config: ISinglePageApp<TNode>, enhance?: boolean): Omit<this, 'register' | 'app' | 'enhance'> {
+    this.next = new CompositionRoot(config, this.container, enhance);
+
+    if (this.isRunning) {
+      this.start();
+    }
+
+    return this;
+  }
+
   private onBeforeStart(root: CompositionRoot<TNode>): void {
     Reflect.set(root.host, '$aurelia', this);
     this._root = root;
@@ -298,7 +321,7 @@ export class Aurelia<TNode extends INode = INode> {
     target.dispatchEvent(root.dom.createCustomEvent(name, { detail: this, bubbles: true, cancelable: true }));
   }
 }
-(PLATFORM.global as typeof PLATFORM.global & {Aurelia: unknown}).Aurelia = Aurelia;
+(PLATFORM.global as typeof PLATFORM.global & { Aurelia: unknown }).Aurelia = Aurelia;
 
 export const IDOMInitializer = DI.createInterface<IDOMInitializer>('IDOMInitializer').noDefault();
 

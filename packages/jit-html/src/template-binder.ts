@@ -149,7 +149,7 @@ export class TemplateBinder {
     public readonly attrSyntaxTransformer: IAttrSyntaxTransformer
   ) {}
 
-  public bind(node: HTMLTemplateElement): PlainElementSymbol {
+  public bind(node: HTMLElement): PlainElementSymbol {
     const surrogate = new PlainElementSymbol(this.dom, node);
 
     const resources = this.resources;

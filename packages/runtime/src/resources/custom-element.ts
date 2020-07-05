@@ -55,6 +55,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly strategy?: BindingStrategy;
   readonly hooks?: Readonly<HooksDefinition>;
   readonly scopeParts?: readonly string[];
+  readonly enhance?: boolean;
   readonly projections?: CustomElementDefinition[];
 }>;
 
@@ -210,6 +211,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
     public readonly strategy: BindingStrategy,
     public readonly hooks: Readonly<HooksDefinition>,
     public readonly scopeParts: string[],
+    public readonly enhance: boolean,
     public readonly projections: CustomElementDefinition[],
   ) {}
 
@@ -268,6 +270,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         fromDefinitionOrDefault('strategy', def, () => BindingStrategy.getterSetter),
         fromDefinitionOrDefault('hooks', def, () => HooksDefinition.none),
         mergeArrays(def.scopeParts),
+        fromDefinitionOrDefault('enhance', def, () => false),
         mergeArrays(def.projections),
       );
     }
@@ -306,6 +309,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
         mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), Type.scopeParts),
+        fromAnnotationOrTypeOrDefault('enhance', Type, () => false),
         mergeArrays(CustomElement.getAnnotation(Type, 'projections'), Type.projections),
       );
     }
@@ -349,6 +353,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
       mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), nameOrDef.scopeParts, Type.scopeParts),
+      fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false),
       mergeArrays(CustomElement.getAnnotation(Type, 'projections'), nameOrDef.projections, Type.projections),
     );
   }

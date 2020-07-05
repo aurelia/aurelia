@@ -1,5 +1,3 @@
-import { customElement } from '@aurelia/runtime';
-import template from './app.html';
 import { Camera, Zoom } from './molecules/specs-viewer/camera-specs-viewer';
 import { Laptop, Storage } from './molecules/specs-viewer/laptop-specs-viewer';
 import { User } from './molecules/user-preference/user-preference';
@@ -12,7 +10,6 @@ export type Product = { id: number; name: string };
 
 type Item = { id: number; name: string };
 
-@customElement({ name: 'app', template })
 export class App {
   private text1: string = 'text1';
   private text2: string = 'text2';

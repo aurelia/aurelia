@@ -506,6 +506,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         instructions: [[childInstr]],
         needsCompile: false,
         scopeParts: [],
+        enhance: false,
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -520,6 +521,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       instructions: [[instruction]],
       needsCompile: false,
       scopeParts: [],
+      enhance: false,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   } else {
@@ -543,6 +545,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         instructions,
         needsCompile: false,
         scopeParts: [],
+        enhance: false,
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -558,6 +561,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       instructions: [[instruction]],
       needsCompile: false,
       scopeParts: [],
+      enhance: false,
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   }
@@ -597,6 +601,7 @@ function createCustomElement(
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
     scopeParts: [],
+    enhance: false,
   };
   return [input, output];
 }
@@ -634,6 +639,7 @@ function createCustomAttribute(
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
     scopeParts: [],
+    enhance: false,
   };
   return [input, output];
 }
@@ -751,6 +757,7 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
           needsCompile: false,
           scopeParts: [],
+          enhance: false,
         };
 
         const { sut, container } = createFixture(ctx);
@@ -823,6 +830,7 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
           needsCompile: false,
           scopeParts: [],
+          enhance: false,
         };
 
         const $def = CustomAttribute.define(def, ctor);
@@ -1088,6 +1096,7 @@ describe(`TemplateCompiler - combinations`, function () {
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
           needsCompile: false,
           scopeParts: [],
+          enhance: false,
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);

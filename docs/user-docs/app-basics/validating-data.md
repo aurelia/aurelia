@@ -40,6 +40,7 @@ This documentation explains how to validate the user input for your app using th
 * Inject the infra to your view-model and define rules, and use `validate` binding behavior in your markup.
 
   ```typescript
+  import { newInstanceForScope } from '@aurelia/kernel';
   import { IValidationRules } from '@aurelia/validation';
   import { IValidationController } from '@aurelia/validation-html';
 

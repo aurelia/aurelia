@@ -153,6 +153,7 @@ export declare const AuDOMTest: {
         readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
         readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
         readonly scopeParts?: readonly string[] | undefined;
+        readonly enhance?: boolean | undefined;
     }>;
     createTemplateControllerDefinition(instruction: HydrateTemplateController, name?: string): import("@aurelia/kernel").PartialResourceDefinition<{
         readonly cache?: number | "*" | undefined;
@@ -173,6 +174,7 @@ export declare const AuDOMTest: {
         readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
         readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
         readonly scopeParts?: readonly string[] | undefined;
+        readonly enhance?: boolean | undefined;
     }>;
     createElementDefinition(instructions: TargetedInstruction[][], name: string): import("@aurelia/kernel").PartialResourceDefinition<{
         readonly cache?: number | "*" | undefined;
@@ -193,6 +195,7 @@ export declare const AuDOMTest: {
         readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
         readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
         readonly scopeParts?: readonly string[] | undefined;
+        readonly enhance?: boolean | undefined;
     }>;
     createIfInstruction(expression: string, def: import("@aurelia/kernel").PartialResourceDefinition<{
         readonly cache?: number | "*" | undefined;
@@ -213,6 +216,7 @@ export declare const AuDOMTest: {
         readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
         readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
         readonly scopeParts?: readonly string[] | undefined;
+        readonly enhance?: boolean | undefined;
     }>): HydrateTemplateController;
     createElseInstruction(def: import("@aurelia/kernel").PartialResourceDefinition<{
         readonly cache?: number | "*" | undefined;
@@ -233,6 +237,7 @@ export declare const AuDOMTest: {
         readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
         readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
         readonly scopeParts?: readonly string[] | undefined;
+        readonly enhance?: boolean | undefined;
     }>): HydrateTemplateController;
     createRepeatInstruction(expression: string, def: import("@aurelia/kernel").PartialResourceDefinition<{
         readonly cache?: number | "*" | undefined;
@@ -253,6 +258,7 @@ export declare const AuDOMTest: {
         readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
         readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
         readonly scopeParts?: readonly string[] | undefined;
+        readonly enhance?: boolean | undefined;
     }>): HydrateTemplateController;
     createReplaceableInstruction(def: import("@aurelia/kernel").PartialResourceDefinition<{
         readonly cache?: number | "*" | undefined;
@@ -273,6 +279,7 @@ export declare const AuDOMTest: {
         readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
         readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
         readonly scopeParts?: readonly string[] | undefined;
+        readonly enhance?: boolean | undefined;
     }>): HydrateTemplateController;
     createWithInstruction(expression: string, def: import("@aurelia/kernel").PartialResourceDefinition<{
         readonly cache?: number | "*" | undefined;
@@ -293,6 +300,7 @@ export declare const AuDOMTest: {
         readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
         readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
         readonly scopeParts?: readonly string[] | undefined;
+        readonly enhance?: boolean | undefined;
     }>): HydrateTemplateController;
     createElementInstruction(name: string, bindings: [string, string][], parts?: Record<string, import("@aurelia/kernel").PartialResourceDefinition<{
         readonly cache?: number | "*" | undefined;
@@ -313,6 +321,7 @@ export declare const AuDOMTest: {
         readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
         readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
         readonly scopeParts?: readonly string[] | undefined;
+        readonly enhance?: boolean | undefined;
     }>> | undefined): HydrateElementInstruction;
     createLetInstruction(bindings: [string, string][], toBindingContext?: boolean): LetElementInstruction;
 };

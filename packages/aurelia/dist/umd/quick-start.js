@@ -38,6 +38,9 @@
         static app(config) {
             return createAurelia().app(config);
         }
+        static enhance(config) {
+            return createAurelia().enhance(config);
+        }
         static register(...params) {
             return createAurelia().register(...params);
         }

@@ -12,7 +12,7 @@ export declare class TemplateBinder {
     readonly exprParser: IExpressionParser;
     readonly attrSyntaxTransformer: IAttrSyntaxTransformer;
     constructor(dom: IDOM, resources: ResourceModel, attrParser: IAttributeParser, exprParser: IExpressionParser, attrSyntaxTransformer: IAttrSyntaxTransformer);
-    bind(node: HTMLTemplateElement): PlainElementSymbol;
+    bind(node: HTMLElement): PlainElementSymbol;
     private bindManifest;
     private bindLetElement;
     private bindAttributes;

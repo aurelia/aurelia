@@ -24,6 +24,7 @@ export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     readonly strategy?: BindingStrategy;
     readonly hooks?: Readonly<HooksDefinition>;
     readonly scopeParts?: readonly string[];
+    readonly enhance?: boolean;
 }>;
 export declare type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, ICustomElementViewModel & (T extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
 export declare type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
@@ -128,6 +129,7 @@ export declare class CustomElementDefinition<T extends Constructable = Construct
     readonly strategy: BindingStrategy;
     readonly hooks: Readonly<HooksDefinition>;
     readonly scopeParts: string[];
+    readonly enhance: boolean;
     private constructor();
     static create<T extends Constructable = Constructable>(def: PartialCustomElementDefinition, Type?: null): CustomElementDefinition<T>;
     static create<T extends Constructable = Constructable>(name: string, Type: CustomElementType<T>): CustomElementDefinition<T>;

@@ -1,12 +1,13 @@
-import { DI, PLATFORM, Registration } from '@aurelia/kernel';
+import { DI, PLATFORM, Registration, } from '@aurelia/kernel';
 import { IActivator } from './activator';
 import { INode } from './dom';
 import { ILifecycle, } from './lifecycle';
 import { ContinuationTask, IStartTaskManager, LifecycleTask, } from './lifecycle-task';
 import { CustomElement } from './resources/custom-element';
 import { Controller } from './templating/controller';
+import { HooksDefinition } from './definitions';
 export class CompositionRoot {
-    constructor(config, container) {
+    constructor(config, container, enhance = false) {
         this.config = config;
         if (config.host != void 0) {
             if (container.has(INode, false)) {
@@ -32,6 +33,12 @@ export class CompositionRoot {
         this.activator = this.container.get(IActivator);
         const taskManager = this.container.get(IStartTaskManager);
         const beforeCreateTask = taskManager.runBeforeCreate();
+        if (enhance) {
+            const component = config.component;
+            this.enhanceDefinition = CustomElement.getDefinition(CustomElement.isType(component)
+                ? CustomElement.define({ ...CustomElement.getDefinition(component), template: this.host, enhance: true }, component)
+                : CustomElement.define({ name: (void 0), template: this.host, enhance: true, hooks: new HooksDefinition(component) }));
+        }
         if (beforeCreateTask.done) {
             this.task = LifecycleTask.done;
             this.create();
@@ -103,11 +110,14 @@ export class CompositionRoot {
             : config.component;
         const container = this.container;
         const lifecycle = container.get(ILifecycle);
-        this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy);
+        this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy, this.enhanceDefinition);
     }
 }
 export class Aurelia {
     constructor(container = DI.createContainer()) {
+        if (container.has(Aurelia, true)) {
+            throw new Error('An instance of Aurelia is already registered with the container or an ancestor of it.');
+        }
         this.container = container;
         this.task = LifecycleTask.done;
         this._isRunning = false;
@@ -140,11 +150,10 @@ export class Aurelia {
         return this;
     }
     app(config) {
-        this.next = new CompositionRoot(config, this.container);
-        if (this.isRunning) {
-            this.start();
-        }
-        return this;
+        return this.configureRoot(config);
+    }
+    enhance(config) {
+        return this.configureRoot(config, true);
     }
     start(root = this.next) {
         if (root == void 0) {
@@ -186,6 +195,13 @@ export class Aurelia {
     }
     wait() {
         return this.task.wait();
+    }
+    configureRoot(config, enhance) {
+        this.next = new CompositionRoot(config, this.container, enhance);
+        if (this.isRunning) {
+            this.start();
+        }
+        return this;
     }
     onBeforeStart(root) {
         Reflect.set(root.host, '$aurelia', this);

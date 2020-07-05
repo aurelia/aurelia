@@ -141,7 +141,7 @@
                     fragmentCache.set(compiledDefinition, null);
                 }
                 else {
-                    fragmentCache.set(compiledDefinition, this.fragment = this.dom.createDocumentFragment(template));
+                    fragmentCache.set(compiledDefinition, this.fragment = this.definition.enhance ? template : this.dom.createDocumentFragment(template));
                 }
             }
             return this;
@@ -170,7 +170,7 @@
         // #endregion
         // #region ICompiledRenderContext api
         createNodes() {
-            return this.dom.createNodeSequence(this.fragment);
+            return this.dom.createNodeSequence(this.fragment, !this.definition.enhance);
         }
         // TODO: split up into 2 methods? getComponentFactory + getSyntheticFactory or something
         getComponentFactory(parentController, host, instruction, viewFactory, location) {

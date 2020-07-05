@@ -44,6 +44,7 @@ export declare const Views: {
         readonly strategy?: import("../flags").BindingStrategy | undefined;
         readonly hooks?: Readonly<import("../definitions").HooksDefinition> | undefined;
         readonly scopeParts?: readonly string[] | undefined;
+        readonly enhance?: boolean | undefined;
     }>): readonly CustomElementDefinition<Constructable<{}>>[];
 };
 export declare function view(v: PartialCustomElementDefinition): <T extends Constructable<{}>>(target: T) => void;

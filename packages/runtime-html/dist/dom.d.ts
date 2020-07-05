@@ -34,7 +34,7 @@ export declare class HTMLDOM implements IDOM {
     cloneNode<T>(node: T, deep?: boolean): T;
     convertToRenderLocation(node: Node): IRenderLocation;
     createDocumentFragment(markupOrNode?: string | Node): DocumentFragment;
-    createNodeSequence(fragment: DocumentFragment | null): FragmentNodeSequence;
+    createNodeSequence(fragment: DocumentFragment | null, cloneNode?: boolean): FragmentNodeSequence;
     createElement(name: string): HTMLElement;
     fetch(input: RequestInfo, init?: RequestInit): Promise<Response>;
     createCustomEvent<T = any>(eventType: string, options?: CustomEventInit<T>): CustomEvent<T>;

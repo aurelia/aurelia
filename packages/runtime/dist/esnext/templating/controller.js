@@ -72,11 +72,13 @@ export class Controller {
         }
         return controller;
     }
-    static forCustomElement(viewModel, lifecycle, host, parentContainer, parts, flags = 0 /* none */) {
+    static forCustomElement(viewModel, lifecycle, host, parentContainer, parts, flags = 0 /* none */, 
+    // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
+    definition = void 0) {
         if (controllerLookup.has(viewModel)) {
             return controllerLookup.get(viewModel);
         }
-        const definition = CustomElement.getDefinition(viewModel.constructor);
+        definition = definition !== null && definition !== void 0 ? definition : CustomElement.getDefinition(viewModel.constructor);
         flags |= definition.strategy;
         const controller = new Controller(0 /* customElement */, 
         /* flags          */ flags, 

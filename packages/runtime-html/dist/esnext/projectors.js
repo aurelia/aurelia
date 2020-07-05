@@ -18,7 +18,7 @@ export class HTMLProjectorLocator {
         if (def.containerless) {
             return new ContainerlessProjector(dom, $component, host);
         }
-        return new HostProjector($component, host);
+        return new HostProjector($component, host, def.enhance);
     }
 }
 const childObserverOptions = { childList: true };
@@ -97,8 +97,9 @@ export class ContainerlessProjector {
 }
 /** @internal */
 export class HostProjector {
-    constructor($controller, host) {
+    constructor($controller, host, enhance) {
         this.host = host;
+        this.enhance = enhance;
         Metadata.define(CustomElement.name, $controller, host);
     }
     get children() {
@@ -111,7 +112,7 @@ export class HostProjector {
         return this.host.getRootNode();
     }
     project(nodes) {
-        nodes.appendTo(this.host);
+        nodes.appendTo(this.host, this.enhance);
     }
     take(nodes) {
         nodes.remove();

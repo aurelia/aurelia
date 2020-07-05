@@ -24,7 +24,8 @@ export declare class CompositionRoot<T extends INode = INode> {
     controller?: ICustomElementController<T>;
     viewModel?: ICustomElementViewModel<T>;
     private createTask?;
-    constructor(config: ISinglePageApp<T>, container: IContainer);
+    private readonly enhanceDefinition;
+    constructor(config: ISinglePageApp<T>, container: IContainer, enhance?: boolean);
     activate(antecedent?: ILifecycleTask): ILifecycleTask;
     deactivate(antecedent?: ILifecycleTask): ILifecycleTask;
     private create;
@@ -43,10 +44,12 @@ export declare class Aurelia<TNode extends INode = INode> {
     private next?;
     constructor(container?: IContainer);
     register(...params: any[]): this;
-    app(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app'>;
+    app(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app' | 'enhance'>;
+    enhance(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app' | 'enhance'>;
     start(root?: CompositionRoot<TNode> | undefined): ILifecycleTask;
     stop(root?: CompositionRoot<TNode> | undefined): ILifecycleTask;
     wait(): Promise<void>;
+    private configureRoot;
     private onBeforeStart;
     private onAfterStart;
     private onBeforeStop;

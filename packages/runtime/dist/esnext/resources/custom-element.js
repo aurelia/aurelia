@@ -39,7 +39,7 @@ export function strict(target) {
 }
 const definitionLookup = new WeakMap();
 export class CustomElementDefinition {
-    constructor(Type, name, aliases, key, cache, template, instructions, dependencies, injectable, needsCompile, surrogates, bindables, childrenObservers, containerless, isStrictBinding, shadowOptions, hasSlots, strategy, hooks, scopeParts) {
+    constructor(Type, name, aliases, key, cache, template, instructions, dependencies, injectable, needsCompile, surrogates, bindables, childrenObservers, containerless, isStrictBinding, shadowOptions, hasSlots, strategy, hooks, scopeParts, enhance) {
         this.Type = Type;
         this.name = name;
         this.aliases = aliases;
@@ -60,6 +60,7 @@ export class CustomElementDefinition {
         this.strategy = strategy;
         this.hooks = hooks;
         this.scopeParts = scopeParts;
+        this.enhance = enhance;
     }
     static create(nameOrDef, Type = null) {
         if (Type === null) {
@@ -78,14 +79,14 @@ export class CustomElementDefinition {
             else {
                 Type = CustomElement.generateType(pascalCase(name));
             }
-            return new CustomElementDefinition(Type, name, mergeArrays(def.aliases), fromDefinitionOrDefault('key', def, () => CustomElement.keyFrom(name)), fromDefinitionOrDefault('cache', def, () => 0), fromDefinitionOrDefault('template', def, () => null), mergeArrays(def.instructions), mergeArrays(def.dependencies), fromDefinitionOrDefault('injectable', def, () => null), fromDefinitionOrDefault('needsCompile', def, () => true), mergeArrays(def.surrogates), Bindable.from(def.bindables), Children.from(def.childrenObservers), fromDefinitionOrDefault('containerless', def, () => false), fromDefinitionOrDefault('isStrictBinding', def, () => false), fromDefinitionOrDefault('shadowOptions', def, () => null), fromDefinitionOrDefault('hasSlots', def, () => false), fromDefinitionOrDefault('strategy', def, () => 1 /* getterSetter */), fromDefinitionOrDefault('hooks', def, () => HooksDefinition.none), mergeArrays(def.scopeParts));
+            return new CustomElementDefinition(Type, name, mergeArrays(def.aliases), fromDefinitionOrDefault('key', def, () => CustomElement.keyFrom(name)), fromDefinitionOrDefault('cache', def, () => 0), fromDefinitionOrDefault('template', def, () => null), mergeArrays(def.instructions), mergeArrays(def.dependencies), fromDefinitionOrDefault('injectable', def, () => null), fromDefinitionOrDefault('needsCompile', def, () => true), mergeArrays(def.surrogates), Bindable.from(def.bindables), Children.from(def.childrenObservers), fromDefinitionOrDefault('containerless', def, () => false), fromDefinitionOrDefault('isStrictBinding', def, () => false), fromDefinitionOrDefault('shadowOptions', def, () => null), fromDefinitionOrDefault('hasSlots', def, () => false), fromDefinitionOrDefault('strategy', def, () => 1 /* getterSetter */), fromDefinitionOrDefault('hooks', def, () => HooksDefinition.none), mergeArrays(def.scopeParts), fromDefinitionOrDefault('enhance', def, () => false));
         }
         // If a type is passed in, we ignore the Type property on the definition if it exists.
         // TODO: document this behavior
         if (typeof nameOrDef === 'string') {
             return new CustomElementDefinition(Type, nameOrDef, mergeArrays(CustomElement.getAnnotation(Type, 'aliases'), Type.aliases), CustomElement.keyFrom(nameOrDef), fromAnnotationOrTypeOrDefault('cache', Type, () => 0), fromAnnotationOrTypeOrDefault('template', Type, () => null), mergeArrays(CustomElement.getAnnotation(Type, 'instructions'), Type.instructions), mergeArrays(CustomElement.getAnnotation(Type, 'dependencies'), Type.dependencies), fromAnnotationOrTypeOrDefault('injectable', Type, () => null), fromAnnotationOrTypeOrDefault('needsCompile', Type, () => true), mergeArrays(CustomElement.getAnnotation(Type, 'surrogates'), Type.surrogates), Bindable.from(...Bindable.getAll(Type), CustomElement.getAnnotation(Type, 'bindables'), Type.bindables), Children.from(...Children.getAll(Type), CustomElement.getAnnotation(Type, 'childrenObservers'), Type.childrenObservers), fromAnnotationOrTypeOrDefault('containerless', Type, () => false), fromAnnotationOrTypeOrDefault('isStrictBinding', Type, () => false), fromAnnotationOrTypeOrDefault('shadowOptions', Type, () => null), fromAnnotationOrTypeOrDefault('hasSlots', Type, () => false), fromAnnotationOrTypeOrDefault('strategy', Type, () => 1 /* getterSetter */), 
             // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-            fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type.prototype)), mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), Type.scopeParts));
+            fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type.prototype)), mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), Type.scopeParts), fromAnnotationOrTypeOrDefault('enhance', Type, () => false));
         }
         // This is the typical default behavior, e.g. from regular CustomElement.define invocations or from @customElement deco
         // The ViewValueConverter also uses this signature and passes in a definition where everything except for the 'hooks'
@@ -95,7 +96,7 @@ export class CustomElementDefinition {
         const name = fromDefinitionOrDefault('name', nameOrDef, CustomElement.generateName);
         return new CustomElementDefinition(Type, name, mergeArrays(CustomElement.getAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), CustomElement.keyFrom(name), fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, () => 0), fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, () => null), mergeArrays(CustomElement.getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), mergeArrays(CustomElement.getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, () => null), fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, () => true), mergeArrays(CustomElement.getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), Bindable.from(...Bindable.getAll(Type), CustomElement.getAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), Children.from(...Children.getAll(Type), CustomElement.getAnnotation(Type, 'childrenObservers'), Type.childrenObservers, nameOrDef.childrenObservers), fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, () => false), fromAnnotationOrDefinitionOrTypeOrDefault('isStrictBinding', nameOrDef, Type, () => false), fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, () => null), fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, () => false), fromAnnotationOrDefinitionOrTypeOrDefault('strategy', nameOrDef, Type, () => 1 /* getterSetter */), 
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type.prototype)), mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), nameOrDef.scopeParts, Type.scopeParts));
+        fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type.prototype)), mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), nameOrDef.scopeParts, Type.scopeParts), fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false));
     }
     static getOrCreate(partialDefinition) {
         if (partialDefinition instanceof CustomElementDefinition) {

@@ -86,6 +86,7 @@ export declare class HydrateElementInstruction implements IHydrateElementInstruc
         readonly strategy?: import("./flags").BindingStrategy | undefined;
         readonly hooks?: Readonly<import("./definitions").HooksDefinition> | undefined;
         readonly scopeParts?: readonly string[] | undefined;
+        readonly enhance?: boolean | undefined;
     }>> | undefined;
     type: TargetedInstructionType.hydrateElement;
     constructor(res: string, instructions: ITargetedInstruction[], parts?: Record<string, import("@aurelia/kernel").PartialResourceDefinition<{
@@ -107,6 +108,7 @@ export declare class HydrateElementInstruction implements IHydrateElementInstruc
         readonly strategy?: import("./flags").BindingStrategy | undefined;
         readonly hooks?: Readonly<import("./definitions").HooksDefinition> | undefined;
         readonly scopeParts?: readonly string[] | undefined;
+        readonly enhance?: boolean | undefined;
     }>> | undefined);
 }
 export declare class HydrateAttributeInstruction implements IHydrateAttributeInstruction {
@@ -139,6 +141,7 @@ export declare class HydrateTemplateController implements IHydrateTemplateContro
         readonly strategy?: import("./flags").BindingStrategy | undefined;
         readonly hooks?: Readonly<import("./definitions").HooksDefinition> | undefined;
         readonly scopeParts?: readonly string[] | undefined;
+        readonly enhance?: boolean | undefined;
     }>> | undefined;
     type: TargetedInstructionType.hydrateTemplateController;
     constructor(def: PartialCustomElementDefinition, res: string, instructions: ITargetedInstruction[], link?: boolean | undefined, parts?: Record<string, import("@aurelia/kernel").PartialResourceDefinition<{
@@ -160,6 +163,7 @@ export declare class HydrateTemplateController implements IHydrateTemplateContro
         readonly strategy?: import("./flags").BindingStrategy | undefined;
         readonly hooks?: Readonly<import("./definitions").HooksDefinition> | undefined;
         readonly scopeParts?: readonly string[] | undefined;
+        readonly enhance?: boolean | undefined;
     }>> | undefined);
 }
 export declare class LetElementInstruction implements IHydrateLetElementInstruction {

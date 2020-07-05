@@ -80,7 +80,9 @@ let TemplateCompiler = class TemplateCompiler {
         const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
         const dom = context.get(IDOM);
         const binder = new TemplateBinder(dom, resources, attrParser, exprParser, attrSyntaxModifier);
-        const template = factory.createTemplate(definition.template);
+        const template = definition.enhance === true
+            ? definition.template
+            : factory.createTemplate(definition.template);
         processLocalTemplates(template, definition, context, dom, this.logger);
         const surrogate = binder.bind(template);
         const compilation = this.compilation = new CustomElementCompilationUnit(definition, surrogate, template);

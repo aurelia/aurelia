@@ -89,11 +89,11 @@
             }
             return this.createTemplate(markupOrNode).content;
         }
-        createNodeSequence(fragment) {
+        createNodeSequence(fragment, cloneNode = true) {
             if (fragment === null) {
                 return this.emptyNodes;
             }
-            return new FragmentNodeSequence(this, fragment.cloneNode(true));
+            return new FragmentNodeSequence(this, cloneNode ? fragment.cloneNode(true) : fragment);
         }
         createElement(name) {
             return this.document.createElement(name);
@@ -316,7 +316,7 @@
                 }
             }
         }
-        appendTo(parent) {
+        appendTo(parent, enhance = false) {
             if (this.isMounted) {
                 let current = this.firstChild;
                 const end = this.lastChild;
@@ -332,7 +332,9 @@
             }
             else {
                 this.isMounted = true;
-                parent.appendChild(this.fragment);
+                if (!enhance) {
+                    parent.appendChild(this.fragment);
+                }
             }
         }
         remove() {

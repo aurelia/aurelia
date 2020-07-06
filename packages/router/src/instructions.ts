@@ -180,7 +180,7 @@ export class ViewportInstruction implements IViewportInstruction {
     // TODO(fkleuver): use the context to determine create full tree
     const component = this.component.toUrlComponent();
     const params = this.params === null || Object.keys(this.params).length === 0 ? '' : `(au$obj${getObjectId(this.params)})`; // TODO(fkleuver): serialize them instead
-    const viewport = this.viewport === null ? '' : `@${this.viewport}`;
+    const viewport = this.viewport === null || this.viewport.length === 0 ? '' : `@${this.viewport}`;
     const children = this.children.length === 0 ? '' : `/${this.children.map(function (x) {
       return x.toUrlComponent();
     }).join('+')}`;

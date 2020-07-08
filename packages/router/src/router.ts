@@ -13,10 +13,11 @@ import { arrayRemove } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 import { FoundRoute } from './found-route';
-import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction } from './hook-manager';
+import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction, SetTitleHookFunction } from './hook-manager';
 import { Scope, IScopeOwner } from './scope';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 import { BrowserViewerStore } from './browser-viewer-store';
+import { Navigation } from './navigation';
 
 /**
  * Public API
@@ -33,20 +34,48 @@ export interface IGotoOptions {
 /**
  * Public API
  */
-export interface IRouterOptions extends INavigatorOptions {
-  separators?: IRouteSeparators;
-  useUrlFragmentHash?: boolean;
-  useHref?: boolean;
-  statefulHistoryLength?: number;
-  useDirectRoutes?: boolean;
-  useConfiguredRoutes?: boolean;
-  hooks?: IHookDefinition[];
-  reportCallback?(instruction: INavigatorInstruction): void;
+export interface IRouterActivateOptions extends Omit<Partial<IRouterOptions>, 'title'> {
+  title?: string | IRouterTitle;
 }
 
 /**
  * Public API
  */
+export interface IRouterOptions extends INavigatorOptions {
+  separators?: IRouteSeparators;
+  useUrlFragmentHash: boolean;
+  useHref: boolean;
+  statefulHistoryLength: number;
+  useDirectRoutes: boolean;
+  useConfiguredRoutes: boolean;
+  title: ITitleConfiguration;
+  hooks?: IHookDefinition[];
+  reportCallback?(instruction: Navigation): void;
+}
+
+/**
+ * Public API
+ */
+export interface IRouterTitle extends Partial<ITitleConfiguration> { }
+
+/**
+ * Public API
+ */
+export interface ITitleConfiguration {
+  appTitle: string;
+  appTitleSeparator: string;
+  componentTitleOrder: 'top-down' | 'bottom-up';
+  componentTitleSeparator: string;
+  useComponentNames: boolean;
+  componentPrefix: string;
+  transformTitle?: (title: string, instruction: string | ViewportInstruction | FoundRoute) => string;
+}
+
+/**
+ * Public API
+ */
+export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
+
 export interface IRouter {
   readonly isNavigating: boolean;
   activeComponents: ViewportInstruction[];
@@ -62,13 +91,13 @@ export interface IRouter {
   readonly options: IRouterOptions;
 
   readonly statefulHistory: boolean;
-  activate(options?: IRouterOptions): void;
+  activate(options?: IRouterActivateOptions): void;
   loadUrl(): Promise<void>;
   deactivate(): void;
 
   linkCallback(info: AnchorEventInfo): void;
 
-  processNavigations(qInstruction: QueueItem<INavigatorInstruction>): Promise<void>;
+  processNavigations(qInstruction: QueueItem<Navigation>): Promise<void>;
 
   // External API to get viewport by name
   getViewport(name: string): Viewport | null;
@@ -90,6 +119,7 @@ export interface IRouter {
   allViewports(includeDisabled?: boolean): Viewport[];
   findScope(elementOrViewmodelOrviewport: Element | ICustomElementViewModel | Viewport | ICustomElementController | null): Scope;
 
+  load(...args: any): Promise<void>;
   goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void>;
   refresh(): Promise<void>;
   back(): Promise<void>;
@@ -109,6 +139,7 @@ export interface IRouter {
   addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
   addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
   addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
+  addHook(setTitleHookFunction: SetTitleHookFunction, options?: IHookOptions): HookIdentity;
   addHook(hook: HookFunction, options: IHookOptions): HookIdentity;
   removeHooks(hooks: HookIdentity[]): void;
 
@@ -120,8 +151,6 @@ class ClosestViewportCustomElement { }
  * @internal
  */
 class ClosestScope { }
-
-export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
 
 export class Router implements IRouter {
   public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserViewerStore, LinkHandler, InstructionResolver];
@@ -155,16 +184,25 @@ export class Router implements IRouter {
    * @internal
    */
   public options: IRouterOptions = {
+    useUrlFragmentHash: true,
     useHref: true,
     statefulHistoryLength: 0,
     useDirectRoutes: true,
     useConfiguredRoutes: true,
+    title: {
+      appTitle: "${componentTitles}\${appTitleSeparator}Aurelia",
+      appTitleSeparator: ' | ',
+      componentTitleOrder: 'top-down',
+      componentTitleSeparator: ' > ',
+      useComponentNames: true,
+      componentPrefix: 'app-',
+    }
   };
   private isActive: boolean = false;
   private loadedFirst: boolean = false;
 
-  private processingNavigation: INavigatorInstruction | null = null;
-  private lastNavigation: INavigatorInstruction | null = null;
+  private processingNavigation: Navigation | null = null;
+  private lastNavigation: Navigation | null = null;
   private staleChecks: Record<string, ViewportInstruction[]> = {};
 
   public constructor(
@@ -209,16 +247,21 @@ export class Router implements IRouter {
   /**
    * Public API
    */
-  public activate(options?: IRouterOptions): void {
+  public activate(options?: IRouterActivateOptions): void {
     if (this.isActive) {
       throw new Error('Router has already been activated');
     }
 
     this.isActive = true;
-    this.options = {
-      ...this.options,
-      ...options
+    options = options ?? {};
+    const titleOptions = {
+      ...this.options.title,
+      ...(typeof options.title === 'string' ? { appTitle: options.title } : options.title),
     };
+    options.title = titleOptions;
+
+    Object.assign(this.options, options);
+
     if (this.options.hooks !== void 0) {
       this.addHooks(this.options.hooks);
     }
@@ -242,14 +285,14 @@ export class Router implements IRouter {
    * Public API
    */
   public async loadUrl(): Promise<void> {
-    const entry: INavigatorEntry = {
+    const entry = new Navigation({
       ...this.navigation.viewerState,
       ...{
         fullStateInstruction: '',
         replacing: true,
         fromBrowser: false,
       }
-    };
+    });
     const result = this.navigator.navigate(entry);
     this.loadedFirst = true;
     return result;
@@ -278,7 +321,7 @@ export class Router implements IRouter {
       instruction = instruction.slice(1);
       // '#' === '/' === '#/'
       if (!instruction.startsWith('/')) {
-        instruction = `/${instruction}`;
+        instruction = "/" + instruction;
       }
     }
     // Adds to Navigator's Queue, which makes sure it's serial
@@ -290,7 +333,7 @@ export class Router implements IRouter {
    */
   // TODO: use @bound and improve name (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
-  public navigatorCallback = (instruction: INavigatorInstruction): void => {
+  public navigatorCallback = (instruction: Navigation): void => {
     // Instructions extracted from queue, one at a time
     this.processNavigations(instruction).catch(error => { throw error; });
   };
@@ -348,9 +391,7 @@ export class Router implements IRouter {
   // TODO: use @bound and improve name (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
   public browserNavigatorCallback = (browserNavigationEvent: INavigatorViewerEvent): void => {
-    const entry: INavigatorEntry = (browserNavigationEvent.state && browserNavigationEvent.state.currentEntry
-      ? browserNavigationEvent.state.currentEntry as INavigatorEntry
-      : { instruction: '', fullStateInstruction: '' });
+    const entry = new Navigation(browserNavigationEvent.state?.currentEntry);
     entry.instruction = browserNavigationEvent.instruction;
     entry.fromBrowser = true;
     this.navigator.navigate(entry).catch(error => { throw error; });
@@ -361,12 +402,21 @@ export class Router implements IRouter {
    */
   // TODO: use @bound and improve name (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
-  public processNavigations = async (qInstruction: QueueItem<INavigatorInstruction>): Promise<void> => {
-    const instruction: INavigatorInstruction = this.processingNavigation = qInstruction as INavigatorInstruction;
+  public processNavigations = async (qInstruction: QueueItem<Navigation>): Promise<void> => {
+    const instruction = this.processingNavigation = qInstruction as Navigation;
 
     if (this.options.reportCallback) {
       this.options.reportCallback(instruction);
     }
+    // let {
+    //   fullStateInstruction,
+    //   instructionNavigation,
+    //   configuredRoute,
+    //   configuredRoutePath,
+    //   instructions,
+    //   clearScopeOwners,
+    //   clearViewportScopes,
+    // }
     let fullStateInstruction: boolean = false;
     const instructionNavigation: INavigatorFlags = instruction.navigation as INavigatorFlags;
     if ((instructionNavigation.back || instructionNavigation.forward) && instruction.fullStateInstruction) {
@@ -389,7 +439,7 @@ export class Router implements IRouter {
     if (configuredRoute.foundConfiguration) {
       instruction.path = (instruction.instruction as string).startsWith('/')
         ? (instruction.instruction as string).slice(1) : instruction.instruction as string;
-      configuredRoutePath = `${configuredRoutePath || ''}${configuredRoute.matching}`;
+      configuredRoutePath = (configuredRoutePath ?? '') + configuredRoute.matching;
       this.rootScope!.path = configuredRoutePath;
     }
     // TODO: Used to have an early exit if no instructions. Restore it?
@@ -428,7 +478,7 @@ export class Router implements IRouter {
         viewportInstructions = hooked as ViewportInstruction[];
       }
       for (const viewportInstruction of viewportInstructions) {
-        const scopeOwner: IScopeOwner | null = viewportInstruction.owner;
+        const scopeOwner = viewportInstruction.owner;
         if (scopeOwner !== null) {
           scopeOwner.path = configuredRoutePath;
           if (scopeOwner.setNextContent(viewportInstruction, instruction)) {
@@ -478,11 +528,11 @@ export class Router implements IRouter {
       if (configuredRoute.hasRemaining &&
         viewportInstructions.length === 0 &&
         remainingInstructions.length === 0) {
-        let configured: FoundRoute = new FoundRoute();
-        const routeScopeOwners: IScopeOwner[] = alreadyFoundInstructions
+        let configured = new FoundRoute();
+        const routeScopeOwners = alreadyFoundInstructions
           .filter(instr => instr.owner !== null && instr.owner.path === configuredRoutePath)
-          .map(instr => instr.owner)
-          .filter((value, index, arr) => arr.indexOf(value) === index) as IScopeOwner[];
+          .map(instr => instr.owner!)
+          .filter((value, index, arr) => arr.indexOf(value) === index);
         for (const owner of routeScopeOwners) {
           configured = await this.findInstructions(owner.scope, configuredRoute.remaining, owner.scope);
           if (configured.foundConfiguration) {
@@ -491,7 +541,7 @@ export class Router implements IRouter {
         }
         if (configured.foundInstructions) {
           configuredRoute = configured;
-          configuredRoutePath = `${configuredRoutePath || ''}/${configuredRoute.matching}`;
+          configuredRoutePath = (configuredRoutePath ?? '') + "/" + configuredRoute.matching;
         } else {
           // TODO: Do something here!
           this.unknownRoute(configured.remaining);
@@ -503,19 +553,19 @@ export class Router implements IRouter {
         this.appendedInstructions = this.appendedInstructions.filter(instruction => !instruction.default);
       }
       // Process non-defaults first
-      let appendedInstructions: ViewportInstruction[] = this.appendedInstructions.filter(instruction => !instruction.default);
+      let appendedInstructions = this.appendedInstructions.filter(instruction => !instruction.default);
       this.appendedInstructions = this.appendedInstructions.filter(instruction => instruction.default);
       if (appendedInstructions.length === 0) {
-        const index: number = this.appendedInstructions.findIndex(instruction => instruction.default);
+        const index = this.appendedInstructions.findIndex(instruction => instruction.default);
         if (index >= 0) {
           appendedInstructions = this.appendedInstructions.splice(index, 1);
         }
       }
       while (appendedInstructions.length > 0) {
-        const appendedInstruction: ViewportInstruction = appendedInstructions.shift() as ViewportInstruction;
-        const existingAlreadyFound: boolean = alreadyFoundInstructions.some(instruction => instruction.sameViewport(appendedInstruction));
-        const existingFound: ViewportInstruction | undefined = viewportInstructions.find(value => value.sameViewport(appendedInstruction));
-        const existingRemaining: ViewportInstruction | undefined = remainingInstructions.find(value => value.sameViewport(appendedInstruction));
+        const appendedInstruction = appendedInstructions.shift() as ViewportInstruction;
+        const existingAlreadyFound = alreadyFoundInstructions.some(instruction => instruction.sameViewport(appendedInstruction));
+        const existingFound = viewportInstructions.find(value => value.sameViewport(appendedInstruction));
+        const existingRemaining = remainingInstructions.find(value => value.sameViewport(appendedInstruction));
         if (appendedInstruction.default &&
           (existingAlreadyFound ||
             (existingFound !== void 0 && !existingFound.default) ||
@@ -536,7 +586,7 @@ export class Router implements IRouter {
       }
       if (viewportInstructions.length === 0 && remainingInstructions.length === 0) {
         viewportInstructions = clearScopeOwners.map(owner => {
-          const instruction: ViewportInstruction =
+          const instruction =
             this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, owner.isViewport ? owner as Viewport : void 0);
           if (owner.isViewportScope) {
             instruction.viewportScope = owner as ViewportScope;
@@ -544,7 +594,7 @@ export class Router implements IRouter {
           return instruction;
         });
         viewportInstructions.push(...clearViewportScopes.map(viewportScope => {
-          const instr: ViewportInstruction = this.createViewportInstruction(this.instructionResolver.clearViewportInstruction);
+          const instr = this.createViewportInstruction(this.instructionResolver.clearViewportInstruction);
           instr.viewportScope = viewportScope;
           return instr;
         }));
@@ -664,7 +714,7 @@ export class Router implements IRouter {
    * @internal - Called from the viewport custom element
    */
   public connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport {
-    const parentScope: Scope = this.findParentScope(container);
+    const parentScope = this.findParentScope(container);
     if (viewport === null) {
       viewport = parentScope.addViewport(name, element, container, options);
       this.setClosestScope(container, viewport.connectedScope);
@@ -676,7 +726,7 @@ export class Router implements IRouter {
    */
   public disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void {
     if (!viewport.connectedScope.parent!.removeViewport(viewport, element, container)) {
-      throw new Error(`Failed to remove viewport: ${viewport.name}`);
+      throw new Error("Failed to remove viewport: " + viewport.name);
     }
     this.unsetClosestScope(container);
   }
@@ -696,7 +746,7 @@ export class Router implements IRouter {
    */
   public disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void {
     if (!viewportScope.connectedScope.parent!.removeViewportScope(viewportScope)) {
-      throw new Error(`Failed to remove viewport scope: ${viewportScope.path}`);
+      throw new Error("Failed to remove viewport scope: " + viewportScope.path);
     }
     this.unsetClosestScope(container);
   }
@@ -712,7 +762,10 @@ export class Router implements IRouter {
   /**
    * Public API - THE navigation API
    */
-  public goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void> {
+  public async load(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void> {
+    return this.goto(instructions, options);
+  }
+  public async goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void> {
     options = options || {};
     // TODO: Review query extraction; different pos for path and fragment!
     if (typeof instructions === 'string' && !options.query) {
@@ -735,7 +788,7 @@ export class Router implements IRouter {
       return Promise.resolve();
     }
 
-    const entry: INavigatorEntry = {
+    const entry = new Navigation({
       instruction: instructions as ViewportInstruction[],
       fullStateInstruction: '',
       scope: scope,
@@ -745,7 +798,8 @@ export class Router implements IRouter {
       replacing: options.replace,
       repeating: options.append,
       fromBrowser: false,
-    };
+      origin: options.origin,
+    });
     return this.navigator.navigate(entry);
   }
 
@@ -768,6 +822,13 @@ export class Router implements IRouter {
    */
   public forward(): Promise<void> {
     return this.navigator.go(1);
+  }
+
+  /**
+   * Public API
+   */
+  public go(delta: number): Promise<void> {
+    return this.navigator.go(delta);
   }
 
   /**
@@ -864,6 +925,7 @@ export class Router implements IRouter {
   public addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
   public addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
   public addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
+  public addHook(setTitleHookFunction: SetTitleHookFunction, options?: IHookOptions): HookIdentity;
   public addHook(hookFunction: HookFunction, options?: IHookOptions): HookIdentity;
   public addHook(hook: HookFunction, options: IHookOptions): HookIdentity {
     return this.hookManager.addHook(hook, options);
@@ -951,7 +1013,7 @@ export class Router implements IRouter {
   }
 
   private checkStale(name: string, instructions: ViewportInstruction[]): boolean {
-    const staleCheck: ViewportInstruction[] | undefined = this.staleChecks[name];
+    const staleCheck = this.staleChecks[name];
     if (staleCheck === void 0) {
       this.staleChecks[name] = instructions.slice();
       return false;
@@ -975,13 +1037,13 @@ export class Router implements IRouter {
     }
     if (this.options.useConfiguredRoutes && this.options.useDirectRoutes) {
       // TODO: Add missing/unknown route handling
-      throw new Error(`No matching configured route or component found for '${route}'`);
+      throw new Error("No matching configured route or component found for '" + route + "'");
     } else if (this.options.useConfiguredRoutes) {
       // TODO: Add missing/unknown route handling
-      throw new Error(`No matching configured route found for '${route}'`);
+      throw new Error("No matching configured route found for '" + route + "'");
     } else {
       // TODO: Add missing/unknown route handling
-      throw new Error(`No matching route/component found for '${route}'`);
+      throw new Error("No matching route/component found for '" + route + "'");
     }
   }
 
@@ -1002,12 +1064,12 @@ export class Router implements IRouter {
     return { found: found.slice(), remaining };
   }
 
-  private async cancelNavigation(updatedScopeOwners: IScopeOwner[], qInstruction: QueueItem<INavigatorInstruction>): Promise<void> {
+  private async cancelNavigation(updatedScopeOwners: IScopeOwner[], qInstruction: QueueItem<Navigation>): Promise<void> {
     // TODO: Take care of disabling viewports when cancelling and stateful!
     updatedScopeOwners.forEach((viewport) => {
       viewport.abortContentChange().catch(error => { throw error; });
     });
-    await this.navigator.cancel(qInstruction as INavigatorInstruction);
+    await this.navigator.cancel(qInstruction as Navigation);
     this.processingNavigation = null;
     (qInstruction.resolve as ((value: void | PromiseLike<void>) => void))();
   }
@@ -1018,10 +1080,10 @@ export class Router implements IRouter {
       // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
       this.rootScope = new ViewportScope('rootScope', this, root.config.host as Element, null, true, root.config.component as CustomElementType);
     }
-    return this.rootScope;
+    return this.rootScope!;
   }
 
-  private async replacePaths(instruction: INavigatorInstruction): Promise<void> {
+  private async replacePaths(instruction: Navigation): Promise<void> {
     (this.rootScope as ViewportScope).scope.reparentViewportInstructions();
     let instructions: ViewportInstruction[] = (this.rootScope as ViewportScope).scope.hoistedChildren
       .filter(scope => scope.viewportInstruction !== null && !scope.viewportInstruction.isEmpty())
@@ -1033,9 +1095,9 @@ export class Router implements IRouter {
     const alreadyFound: ViewportInstruction[] = [];
     let { found, remaining } = this.findViewports(instructions, alreadyFound, true);
     let guard = 100;
-    while (remaining.length) {
+    while (remaining.length > 0) {
       // Guard against endless loop
-      if (!guard--) {
+      if (guard-- === 0) {
         throw new Error('Failed to find viewport when updating viewer paths.');
       }
       alreadyFound.push(...found);
@@ -1046,7 +1108,7 @@ export class Router implements IRouter {
     this.activeRoute = instruction.route;
 
     // First invoke with viewport instructions (should it perhaps get full state?)
-    let state: string | ViewportInstruction[] = await this.hookManager.invokeTransformToUrl(instructions, instruction);
+    let state = await this.hookManager.invokeTransformToUrl(instructions, instruction);
     if (typeof state !== 'string') {
       // Convert to string if necessary
       state = this.instructionResolver.stringifyViewportInstructions(state, false, true);
@@ -1054,7 +1116,7 @@ export class Router implements IRouter {
     // Invoke again with string
     state = await this.hookManager.invokeTransformToUrl(state, instruction);
 
-    const query = (instruction.query && instruction.query.length ? `?${instruction.query}` : '');
+    const query = (instruction.query && instruction.query.length ? "?" + instruction.query : '');
     // if (instruction.path === void 0 || instruction.path.length === 0 || instruction.path === '/') {
     instruction.path = state + query;
     // }
@@ -1063,9 +1125,102 @@ export class Router implements IRouter {
     fullViewportStates.push(...this.instructionResolver.cloneViewportInstructions(instructions, this.statefulHistory));
     instruction.fullStateInstruction = fullViewportStates;
 
-    // TODO: Fetch and update title
+    if ((instruction.title ?? null) === null) {
+      const title = await this.getTitle(instructions, instruction);
+      if (title !== null) {
+        instruction.title = title;
+      }
+    }
 
     return Promise.resolve();
+  }
+
+  private async getTitle(instructions: ViewportInstruction[], instruction: Navigation): Promise<string | null> {
+    // First invoke with viewport instructions
+    let title: string | ViewportInstruction[] = await this.hookManager.invokeSetTitle(instructions, instruction);
+    if (typeof title !== 'string') {
+      // Hook didn't return a title, so run title logic
+      const componentTitles = this.stringifyTitles(title, instruction);
+
+      title = this.options.title.appTitle;
+      title = title.replace("${componentTitles}", componentTitles);
+      title = title.replace("${appTitleSeparator}",
+        componentTitles !== ''
+          ? this.options.title.appTitleSeparator
+          : '');
+    }
+    // Invoke again with complete string
+    title = await this.hookManager.invokeSetTitle(title, instruction);
+
+    return title as string;
+  }
+
+  private stringifyTitles(instructions: ViewportInstruction[], navigationInstruction: Navigation): string {
+    const titles = instructions
+      .map(instruction => this.stringifyTitle(instruction, navigationInstruction))
+      .filter(instruction => (instruction?.length ?? 0) > 0);
+
+    return titles.join(' + ');
+  }
+
+  private stringifyTitle(instruction: ViewportInstruction | string, navigationInstruction: Navigation): string {
+    if (typeof instruction === 'string') {
+      return this.resolveTitle(instruction, navigationInstruction);
+    }
+    const route = instruction.route ?? null;
+    const nextInstructions: ViewportInstruction[] | null = instruction.nextScopeInstructions;
+    let stringified: string = '';
+    // It's a configured route
+    if (route !== null) {
+      // Already added as part of a configuration, skip to next scope
+      if (route === '') {
+        return Array.isArray(nextInstructions)
+          ? this.stringifyTitles(nextInstructions, navigationInstruction)
+          : '';
+      } else {
+        stringified += this.resolveTitle(route, navigationInstruction);
+      }
+    } else {
+      stringified += this.resolveTitle(instruction, navigationInstruction);
+    }
+    if (Array.isArray(nextInstructions) && nextInstructions.length > 0) {
+      let nextStringified: string = this.stringifyTitles(nextInstructions, navigationInstruction);
+      if (nextStringified.length > 0) {
+        if (nextInstructions.length !== 1) { // TODO: This should really also check that the instructions have value
+          nextStringified = "[ " + nextStringified + " ]";
+        }
+        if (stringified.length > 0) {
+          stringified = this.options.title.componentTitleOrder === 'top-down'
+            ? stringified + this.options.title.componentTitleSeparator + nextStringified
+            : nextStringified + this.options.title.componentTitleSeparator + stringified;
+        } else {
+          stringified = nextStringified;
+        }
+      }
+    }
+    return stringified;
+  }
+
+  private resolveTitle(instruction: string | ViewportInstruction | FoundRoute, navigationInstruction: Navigation): string {
+    let title = '';
+    if (typeof instruction === 'string') {
+      title = instruction;
+    } else if (instruction instanceof ViewportInstruction) {
+      return instruction.viewport!.getTitle(navigationInstruction);
+    } else if (instruction instanceof FoundRoute) {
+      const routeTitle = instruction.match?.title;
+      if (routeTitle !== void 0) {
+        if (typeof routeTitle === 'string') {
+          title = routeTitle;
+        } else {
+          title = routeTitle.call(instruction, instruction, navigationInstruction);
+        }
+      }
+    }
+    if (this.options.title.transformTitle !== void 0) {
+      title = this.options.title.transformTitle.call(this, title, instruction);
+    }
+    return title;
   }
 
   private async freeComponents(instruction: ViewportInstruction, excludeComponents: IRouteableComponent[], alreadyDone: IRouteableComponent[]): Promise<void> {
@@ -1126,7 +1281,7 @@ export class Router implements IRouter {
     let cur: INode | null = node;
     while (cur !== null) {
       const nodeResourceName: string = (cur as Element).nodeName.toLowerCase();
-      const controller: ICustomElementController = Metadata.getOwn(`${CustomElement.name}:${nodeResourceName}`, cur)
+      const controller: ICustomElementController = Metadata.getOwn(CustomElement.name + ":" + nodeResourceName, cur)
         || Metadata.getOwn(CustomElement.name, cur);
       if (controller !== void 0) {
         return controller;

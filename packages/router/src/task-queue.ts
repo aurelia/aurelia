@@ -25,7 +25,7 @@ export class QueueTask<T> implements ILifecycleTask {
   public constructor(
     private readonly taskQueue: TaskQueue<T>,
     public item: IQueueableItem<T> | QueueableFunction,
-    public cost: number = 0,
+    public cost = 0,
   ) {
     this.promise = new Promise((resolve, reject) => {
       this.resolve = () => {
@@ -47,6 +47,10 @@ export class QueueTask<T> implements ILifecycleTask {
   public wait(): Promise<void> {
     return this.promise;
   }
+  public canCancel(): boolean {
+    return false;
+  }
+  public cancel(): void { return; }
 }
 
 export interface ITaskQueueOptions {
@@ -146,7 +150,7 @@ export class TaskQueue<T> {
     }
     this.processing = this.pending.shift() || null;
     if (this.processing) {
-      this.currentExecutionCostInCurrentTick += this.processing.cost || 0;
+      this.currentExecutionCostInCurrentTick += this.processing.cost ?? 0;
       if (this.callback !== void 0) {
         this.callback(this.processing);
       } else {

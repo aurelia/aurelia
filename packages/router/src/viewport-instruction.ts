@@ -7,6 +7,7 @@ import { Viewport } from './viewport';
 import { IComponentParameter, InstructionResolver } from './instruction-resolver';
 import { Scope, IScopeOwner } from './scope';
 import { ViewportScope } from './viewport-scope';
+import { FoundRoute } from './found-route';
 
 /**
  * @internal - Shouldn't be used directly
@@ -18,6 +19,10 @@ export const enum ParametersType {
   object = 'object',
 }
 
+export type Params = {
+  [key: string]: unknown;
+};
+
 /**
  * Public API - The viewport instructions are the core of the router's navigations
  */
@@ -28,7 +33,7 @@ export class ViewportInstruction {
   public viewportName: string | null = null;
   public viewport: Viewport | null = null;
   public parametersString: string | null = null;
-  public parametersRecord: Record<string, unknown> | null = null;
+  public parametersRecord: Params | null = null;
   public parametersList: unknown[] | null = null;
   public parametersType: ParametersType = ParametersType.none;
 
@@ -36,7 +41,7 @@ export class ViewportInstruction {
   public context: string = '';
   public viewportScope: ViewportScope | null = null;
   public needsViewportDescribed: boolean = false;
-  public route: string | null = null;
+  public route: FoundRoute | string | null = null;
 
   public default: boolean = false;
 
@@ -55,7 +60,7 @@ export class ViewportInstruction {
   }
 
   public get owner(): IScopeOwner | null {
-    return this.viewport || this.viewportScope || null;
+    return this.viewport ?? this.viewportScope ?? null;
   }
 
   public get typedParameters(): ComponentParameters | null {
@@ -90,11 +95,11 @@ export class ViewportInstruction {
       this.componentType = null;
       this.componentInstance = null;
     } else if (ComponentAppellationResolver.isType(component)) {
-      this.componentName = ComponentAppellationResolver.getName(component);
+      this.componentName = this.getNewName(component);
       this.componentType = ComponentAppellationResolver.getType(component);
       this.componentInstance = null;
     } else if (ComponentAppellationResolver.isInstance(component)) {
-      this.componentName = ComponentAppellationResolver.getName(component);
+      this.componentName = this.getNewName(ComponentAppellationResolver.getType(component)!);
       this.componentType = ComponentAppellationResolver.getType(component);
       this.componentInstance = ComponentAppellationResolver.getInstance(component);
     }
@@ -132,7 +137,7 @@ export class ViewportInstruction {
   }
 
   // This only works with objects added to objects!
-  public addParameters(parameters: Record<string, unknown>): void {
+  public addParameters(parameters: Params): void {
     if (this.parametersType === ParametersType.none) {
       return this.setParameters(parameters);
     }
@@ -205,7 +210,7 @@ export class ViewportInstruction {
     const specified: Record<string, unknown> = {};
     for (const spec of specifications) {
       // First get named if it exists
-      let index: number = parameters.findIndex(param => param.key === spec);
+      let index = parameters.findIndex(param => param.key === spec);
       if (index >= 0) {
         const [parameter] = parameters.splice(index, 1);
         specified[spec] = parameter.value;
@@ -222,7 +227,7 @@ export class ViewportInstruction {
     for (const parameter of parameters.filter(param => param.key !== void 0)) {
       specified[parameter.key!] = parameter.value;
     }
-    let index: number = specifications.length;
+    let index = specifications.length;
     // Add all remaining unnamed...
     for (const parameter of parameters.filter(param => param.key === void 0)) {
       // ..with an index
@@ -238,7 +243,7 @@ export class ViewportInstruction {
     const sorted: IComponentParameter[] = [];
     for (const spec of specifications) {
       // First get named if it exists
-      let index: number = parameters.findIndex(param => param.key === spec);
+      let index = parameters.findIndex(param => param.key === spec);
       if (index >= 0) {
         const parameter = { ...parameters.splice(index, 1)[0] };
         parameter.key = void 0;
@@ -291,5 +296,14 @@ export class ViewportInstruction {
     }
     return this.scope === other.scope &&
       (this.viewport ? this.viewport.name : this.viewportName) === (other.viewport ? other.viewport.name : other.viewportName);
+  }
+
+  private getNewName(type: RouteableComponentType): string {
+    if (this.componentName === null
+      // || !type.aliases?.includes(this.componentName)
+    ) {
+      return ComponentAppellationResolver.getName(type);
+    }
+    return this.componentName;
   }
 }

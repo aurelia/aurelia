@@ -1,8 +1,8 @@
-import { NavigationInstructionResolver } from '../type-resolvers';
-import { customAttribute, INode, bindable, BindingMode, IDOM, DelegationStrategy, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime';
-import { IRouter } from '../router';
-import { IEventManager } from '@aurelia/runtime-html';
 import { IDisposable } from '@aurelia/kernel';
+import { customAttribute, INode, bindable, BindingMode, IDOM, DelegationStrategy, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime';
+import { IEventManager } from '@aurelia/runtime-html';
+import { IRouter } from '../router';
+import { NavigationInstructionResolver } from '../type-resolvers';
 
 @customAttribute('goto')
 export class GotoCustomAttribute implements ICustomAttributeViewModel<HTMLElement> {
@@ -12,10 +12,10 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel<HTMLElemen
   private listener: IDisposable | null = null;
   private hasHref: boolean | null = null;
 
-  private readonly element: HTMLElement;
+  private readonly element: Element;
   private observer: any;
 
-  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
+  public readonly $controller!: ICustomAttributeController<Element, this>;
 
   private readonly activeClass: string = 'goto-active';
   public constructor(
@@ -24,7 +24,7 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel<HTMLElemen
     @IRouter private readonly router: IRouter,
     @IEventManager private readonly eventManager: IEventManager,
   ) {
-    this.element = element as HTMLElement;
+    this.element = element as Element;
   }
 
   public beforeBind(): void {

@@ -1,5 +1,5 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
-import { Controller, IController, INode, LifecycleFlags, ILifecycle, CustomElement } from '@aurelia/runtime';
+import { Controller, IController, INode, LifecycleFlags, ILifecycle, CustomElement, IHydratedController } from '@aurelia/runtime';
 import { INavigatorInstruction, IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
 import { parseQuery } from './parser';
 import { Viewport } from './viewport';
@@ -169,6 +169,7 @@ export class ViewportContent {
     if (this.contentStatus !== ContentStatus.created || this.entered || !this.content.componentInstance) {
       return;
     }
+    this.contentStatus = ContentStatus.loaded;
     // Don't load cached content or instantiated history content
     if (!this.fromCache || !this.fromHistory) {
       const host: INode = element as INode;
@@ -182,7 +183,6 @@ export class ViewportContent {
       );
       controller.parent = CustomElement.for(element)!;
     }
-    this.contentStatus = ContentStatus.loaded;
   }
 
   public unloadComponent(cache: ViewportContent[], stateful: boolean = false): void {
@@ -203,31 +203,36 @@ export class ViewportContent {
     if (this.contentStatus !== ContentStatus.loaded) {
       return;
     }
+    this.contentStatus = ContentStatus.initialized;
     // Don't initialize cached content or instantiated history content
     // if (!this.fromCache || !this.fromHistory) {
     // ((this.content.componentInstance as IRouteableComponent).$controller as IController).parent = parent;
-    ((this.content.componentInstance as IRouteableComponent).$controller as IController).bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
+    // New hooks - ((this.content.componentInstance as IRouteableComponent).$controller as IController).bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
     // }
-    this.contentStatus = ContentStatus.initialized;
   }
 
-  public async terminateComponent(stateful: boolean = false): Promise<void> {
-    if (this.contentStatus !== ContentStatus.initialized) {
+  public async terminateComponent(initiator: IHydratedController<Node> | null, flags: LifecycleFlags, stateful: boolean = false): Promise<void> {
+    if (this.contentStatus !== ContentStatus.initialized && this.contentStatus !== ContentStatus.added) {
       return;
     }
+    this.contentStatus = ContentStatus.loaded;
     // Don't terminate cached content
     // if (!stateful) {
-    await ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind).wait();
+    // New hooks - await ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind).wait();
     // ((this.content.componentInstance as IRouteableComponent).$controller as IController).parent = void 0;
     // }
-    this.contentStatus = ContentStatus.loaded;
+    const controller = this.content.componentInstance!.$controller!;
+    await controller.deactivate(initiator ?? controller, null, flags);
   }
 
-  public addComponent(element: Element): void {
+  public async addComponent(initiator: IHydratedController<Node> | null, flags: LifecycleFlags, element: Element): Promise<void> {
     if (this.contentStatus !== ContentStatus.initialized) {
       return;
     }
-    ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).attach(LifecycleFlags.fromStartTask);
+    this.contentStatus = ContentStatus.added;
+    // New hooks - ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).attach(LifecycleFlags.fromStartTask);
+    const controller = this.content.componentInstance!.$controller!;
+    await controller.activate(initiator ?? controller, null, flags);
     if (this.fromCache || this.fromHistory) {
       const elements = Array.from(element.getElementsByTagName('*'));
       for (const el of elements) {
@@ -239,12 +244,12 @@ export class ViewportContent {
         }
       }
     }
-    this.contentStatus = ContentStatus.added;
   }
-  public removeComponent(element: Element | null, stateful: boolean = false): void {
+  public async removeComponent(initiator: IHydratedController<Node> | null, flags: LifecycleFlags, element: Element | null, stateful: boolean = false): Promise<void> {
     if (this.contentStatus !== ContentStatus.added || this.entered) {
       return;
     }
+    this.contentStatus = ContentStatus.initialized;
     if (stateful && element !== null) {
       const elements = Array.from(element.getElementsByTagName('*'));
       for (const el of elements) {
@@ -253,17 +258,19 @@ export class ViewportContent {
         }
       }
     }
-    ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).detach(LifecycleFlags.fromStopTask);
-    this.contentStatus = ContentStatus.initialized;
+    // New hooks - ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).detach(LifecycleFlags.fromStopTask);
+    // const controller = this.content.componentInstance!.$controller!;
+    // await controller.deactivate(initiator ?? controller, null, flags);
+    await Promise.resolve();
   }
 
   public async freeContent(element: Element | null, nextInstruction: INavigatorInstruction | null, cache: ViewportContent[], stateful: boolean = false): Promise<void> {
     switch (this.contentStatus) {
       case ContentStatus.added:
         await this.leave(nextInstruction);
-        this.removeComponent(element, stateful);
+        await this.removeComponent(null, LifecycleFlags.none, element, stateful);
       case ContentStatus.initialized:
-        await this.terminateComponent(stateful);
+        await this.terminateComponent(null, LifecycleFlags.none, stateful);
       case ContentStatus.loaded:
         this.unloadComponent(cache, stateful);
       case ContentStatus.created:

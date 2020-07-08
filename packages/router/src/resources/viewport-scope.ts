@@ -13,10 +13,11 @@ import {
   PartialCustomElementDefinition,
   IController,
   IHydratedController,
+  ISyntheticView,
 } from '@aurelia/runtime';
-import { IRouter } from '../router';
-import { IViewportScopeOptions, ViewportScope } from '../viewport-scope';
 import { IContainer, Writable } from '@aurelia/kernel';
+import { IRouter } from '../router';
+import { ViewportScope, IViewportScopeOptions } from '../viewport-scope';
 
 export const ParentViewportScope = CustomElement.createInjectable();
 
@@ -26,7 +27,7 @@ export const ParentViewportScope = CustomElement.createInjectable();
   containerless: true,
   injectable: ParentViewportScope
 })
-export class ViewportScopeCustomElement implements ICustomElementViewModel<Element> {
+export class ViewportScopeCustomElement implements ICustomElementViewModel<Node> {
   @bindable public name: string = 'default';
   @bindable public catches: string = '';
   @bindable public collection: boolean = false;
@@ -46,7 +47,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
     @ParentViewportScope private readonly parent: ViewportScopeCustomElement,
     @IController private readonly parentController: IHydratedController,
   ) {
-    this.element = element as HTMLElement;
+    this.element = element as Element;
   }
 
   public create(
@@ -88,7 +89,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
     if (this.router.rootScope === null) {
       return;
     }
-    const name: string = this.getAttribute('name', this.name) as string;
+    const name = this.getAttribute('name', this.name) as string;
     const options: IViewportScopeOptions = {};
     let value: string | boolean | undefined = this.getAttribute('catches', this.catches);
     if (value !== void 0) {
@@ -111,7 +112,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
     this.viewportScope = null;
   }
 
-  public beforeBind(flags: LifecycleFlags): void {
+  public beforeBind(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): void {
     this.isBound = true;
 
     (this.$controller as Writable<ICustomElementController>).scope = this.parentController.scope!;
@@ -121,7 +122,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
       this.viewportScope.beforeBind();
     }
   }
-  public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
+  public async beforeUnbind(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): Promise<void> {
     if (this.viewportScope !== null) {
       this.viewportScope.beforeUnbind();
     }

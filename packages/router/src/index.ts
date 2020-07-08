@@ -1,7 +1,4 @@
 import { HookManager } from './hook-manager';
-export {
-  BrowserNavigator,
-} from './browser-navigator';
 
 export {
   ILinkHandlerOptions,
@@ -72,6 +69,7 @@ export {
 
 export {
   IRouterOptions,
+  IRouterTitle,
   IRouter,
   Router,
 } from './router';
@@ -87,6 +85,7 @@ export {
 } from './viewport-content';
 
 export {
+  Params,
   ViewportInstruction,
 } from './viewport-instruction';
 

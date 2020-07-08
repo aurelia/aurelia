@@ -45,7 +45,7 @@ export class ViewportScope implements IScopeOwner {
   }
 
   public get scope(): Scope {
-    return this.connectedScope.scope!;
+    return this.connectedScope.scope;
   }
   public get owningScope(): Scope {
     return this.connectedScope.owningScope!;
@@ -159,7 +159,7 @@ export class ViewportScope implements IScopeOwner {
   public abortContentChange(): Promise<void> {
     this.nextContent = null;
     if (this.add) {
-      const index: number = this.source!.indexOf(this.sourceItem);
+      const index = this.source!.indexOf(this.sourceItem);
       this.source!.splice(index, 1);
       this.sourceItem = null;
     }
@@ -206,7 +206,7 @@ export class ViewportScope implements IScopeOwner {
     if (this.source === null) {
       return null;
     }
-    const siblings: ViewportScope[] = this.siblings;
+    const siblings = this.siblings;
     for (const item of this.source) {
       if (siblings.every(sibling => sibling.sourceItem !== item)) {
         return item;

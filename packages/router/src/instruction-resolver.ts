@@ -1,6 +1,7 @@
 import { ComponentParameters, ComponentAppellation, ViewportHandle } from './interfaces';
 import { ViewportInstruction } from './viewport-instruction';
 import { Scope } from './scope';
+import { FoundRoute } from './found-route';
 
 export interface IInstructionResolverOptions {
   separators?: IRouteSeparators;
@@ -120,11 +121,13 @@ export class InstructionResolver {
     return this.createViewportInstruction('');
   }
 
-  public stringifyViewportInstructions(instructions: ViewportInstruction[], excludeViewport: boolean = false, viewportContext: boolean = false): string {
-    return instructions
-      .map(instruction => this.stringifyViewportInstruction(instruction, excludeViewport, viewportContext))
-      .filter(instruction => instruction && instruction.length)
-      .join(this.separators.sibling);
+  public stringifyViewportInstructions(instructions: ViewportInstruction[] | string, excludeViewport: boolean = false, viewportContext: boolean = false): string {
+    return typeof (instructions) === 'string'
+      ? instructions
+      : instructions
+        .map(instruction => this.stringifyViewportInstruction(instruction, excludeViewport, viewportContext))
+        .filter(instruction => instruction && instruction.length)
+        .join(this.separators.sibling);
   }
 
   public stringifyViewportInstruction(instruction: ViewportInstruction | string, excludeViewport: boolean = false, viewportContext: boolean = false): string {
@@ -147,7 +150,7 @@ export class InstructionResolver {
           excludeCurrentViewport = true;
         }
       }
-      const route: string | null = instruction.route;
+      let route = instruction.route ?? null;
       const nextInstructions: ViewportInstruction[] | null = instruction.nextScopeInstructions;
       let stringified: string = instruction.context;
       // It's a configured route
@@ -158,6 +161,7 @@ export class InstructionResolver {
             ? this.stringifyViewportInstructions(nextInstructions, excludeViewport, viewportContext)
             : '';
         }
+        route = (route as FoundRoute).matching;
         stringified += route.endsWith(this.separators.scope) ? route.slice(0, -this.separators.scope.length) : route;
       } else {
         stringified += this.stringifyAViewportInstruction(instruction, excludeCurrentViewport, excludeCurrentComponent);
@@ -232,11 +236,15 @@ export class InstructionResolver {
   public cloneViewportInstructions(instructions: ViewportInstruction[], keepInstances: boolean = false, context: boolean = false): ViewportInstruction[] {
     const clones: ViewportInstruction[] = [];
     for (const instruction of instructions) {
-      const clone: ViewportInstruction = this.createViewportInstruction(
-        (keepInstances ? instruction.componentInstance : null) || instruction.componentType || instruction.componentName!,
-        keepInstances ? instruction.viewport || instruction.viewportName! : instruction.viewportName!,
+      const clone = this.createViewportInstruction(
+        instruction.componentName!,
+        instruction.viewportName!,
         instruction.typedParameters !== null ? instruction.typedParameters : void 0,
       );
+      if (keepInstances) {
+        clone.setComponent(instruction.componentInstance ?? instruction.componentType ?? instruction.componentName!);
+        clone.setViewport(instruction.viewport ?? instruction.viewportName!);
+      }
       clone.needsViewportDescribed = instruction.needsViewportDescribed;
       clone.route = instruction.route;
       if (context) {
@@ -259,7 +267,7 @@ export class InstructionResolver {
     }
     if (typeof parameters === 'string') {
       const list: IComponentParameter[] = [];
-      const params: string[] = parameters.split(this.separators.parameterSeparator);
+      const params = parameters.split(this.separators.parameterSeparator);
       for (const param of params) {
         let key: string | undefined;
         let value: string;
@@ -287,11 +295,11 @@ export class InstructionResolver {
     if (!Array.isArray(parameters) || parameters.length === 0) {
       return '';
     }
-    const seps: ISeparators = this.separators;
+    const seps = this.separators;
     return parameters
       .map(param => {
-        const key: string | undefined = param.key !== void 0 && uriComponent ? encodeURIComponent(param.key) : param.key;
-        const value: string = uriComponent ? encodeURIComponent(param.value as string) : param.value as string;
+        const key = param.key !== void 0 && uriComponent ? encodeURIComponent(param.key) : param.key;
+        const value = uriComponent ? encodeURIComponent(param.value as string) : param.value as string;
         return key !== void 0 && key !== value ? key + seps.parameterKeySeparator + value : value;
       })
       .join(seps.parameterSeparator);
@@ -311,7 +319,7 @@ export class InstructionResolver {
 
   public matchChildren(instructions: ViewportInstruction[], active: ViewportInstruction[]): boolean {
     for (const instruction of instructions) {
-      const matching: ViewportInstruction[] = active.filter(instr => instr.sameComponent(instruction));
+      const matching = active.filter(instr => instr.sameComponent(instruction));
       if (matching.length === 0) {
         return false;
       }
@@ -393,16 +401,16 @@ export class InstructionResolver {
   }
 
   private parseAViewportInstruction(instruction: string): { instruction: ViewportInstruction; remaining: string } {
-    const seps: ISeparators = this.separators;
-    const tokens: string[] = [seps.parameters, seps.viewport, seps.noScope, seps.scopeEnd, seps.scope, seps.sibling];
+    const seps = this.separators;
+    const tokens = [seps.parameters, seps.viewport, seps.noScope, seps.scopeEnd, seps.scope, seps.sibling];
     let component: string | undefined = void 0;
     let parametersString: string | undefined = void 0;
     let viewport: string | undefined = void 0;
-    let scope: boolean = true;
+    let scope = true;
     let token!: string;
     let pos: number;
 
-    const specials: string[] = [seps.add, seps.clear];
+    const specials = [seps.add, seps.clear];
     for (const special of specials) {
       if (instruction === special) {
         component = instruction;

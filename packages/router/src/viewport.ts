@@ -1,6 +1,6 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
-import { LifecycleFlags, IController, CustomElement, INode } from '@aurelia/runtime';
-import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType } from './interfaces';
+import { LifecycleFlags, IController, CustomElement, INode, ICompiledRenderContext, IHydratedController, IHydratedParentController } from '@aurelia/runtime';
+import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType, NavigationInstruction } from './interfaces';
 import { INavigatorFlags } from './navigator';
 import { IRouter } from './router';
 import { arrayRemove } from './utils';
@@ -14,6 +14,7 @@ export interface IViewportOptions extends IScopeOwnerOptions {
   default?: string;
   fallback?: string;
   noLink?: boolean;
+  noTitle?: boolean;
   stateful?: boolean;
   forceDescription?: boolean;
 }
@@ -49,7 +50,7 @@ export class Viewport implements IScopeOwner {
   }
 
   public get scope(): Scope {
-    return this.connectedScope.scope!;
+    return this.connectedScope.scope;
   }
   public get owningScope(): Scope {
     return this.connectedScope.owningScope!;
@@ -107,7 +108,7 @@ export class Viewport implements IScopeOwner {
 
     if (this.options.stateful) {
       // TODO: Add a parameter here to decide required equality
-      const cached = this.cache.find((item) => (this.nextContent as ViewportContent).isCacheEqual(item));
+      const cached = this.cache.find((item) => this.nextContent!.isCacheEqual(item));
       if (cached) {
         this.nextContent = cached;
         this.nextContent.fromCache = true;
@@ -184,6 +185,9 @@ export class Viewport implements IScopeOwner {
       if (options.noLink) {
         this.options.noLink = options.noLink;
       }
+      if (options.noTitle) {
+        this.options.noTitle = options.noTitle;
+      }
       if (options.noHistory) {
         this.options.noHistory = options.noHistory;
       }
@@ -251,16 +255,16 @@ export class Viewport implements IScopeOwner {
       return true;
     }
 
-    if (((this.nextContent as ViewportContent).content || null) === null) {
+    if ((this.nextContent!.content || null) === null) {
       return false;
     }
 
     await this.waitForElement();
 
-    (this.nextContent as ViewportContent).createComponent(this.container as IContainer, this.options.fallback);
-    await (this.nextContent as ViewportContent).loadComponent(this.container as IContainer, this.element as Element, this);
+    this.nextContent!.createComponent(this.container as IContainer, this.options.fallback);
+    await this.nextContent!.loadComponent(this.container as IContainer, this.element as Element, this);
 
-    return (this.nextContent as ViewportContent).canEnter(this, this.content.instruction);
+    return this.nextContent!.canEnter(this, this.content.instruction);
   }
 
   public async enter(): Promise<boolean> {
@@ -277,6 +281,7 @@ export class Viewport implements IScopeOwner {
     await this.nextContent.enter(this.content.instruction);
     // await this.nextContent.loadComponent(this.container as IContainer, this.element as Element, this);
     this.nextContent.initializeComponent(CustomElement.for(this.element as INode) as IController);
+    await this.nextContent.addComponent(null, LifecycleFlags.none, this.element as Element);
     return true;
   }
 
@@ -284,31 +289,31 @@ export class Viewport implements IScopeOwner {
     Reporter.write(10000, 'Viewport loadContent', this.name);
 
     // No need to wait for next component activation
-    if (this.content.componentInstance && !(this.nextContent as ViewportContent).componentInstance) {
-      await this.content.leave((this.nextContent as ViewportContent).instruction);
+    if (this.content.componentInstance && !this.nextContent!.componentInstance) {
+      await this.content.leave(this.nextContent!.instruction);
       await this.unloadContent();
     }
 
-    if ((this.nextContent as ViewportContent).componentInstance) {
-      if (this.content.componentInstance !== (this.nextContent as ViewportContent).componentInstance) {
-        (this.nextContent as ViewportContent).addComponent(this.element as Element);
+    if (this.nextContent!.componentInstance) {
+      if (this.content.componentInstance !== this.nextContent!.componentInstance) {
+        await this.nextContent!.addComponent(null, LifecycleFlags.none, this.element as Element);
       } else {
         this.connectedScope.reenableReplacedChildren();
       }
       // Only when next component activation is done
       if (this.content.componentInstance) {
-        await this.content.leave((this.nextContent as ViewportContent).instruction);
-        if (!this.content.reentry && this.content.componentInstance !== (this.nextContent as ViewportContent).componentInstance) {
+        await this.content.leave(this.nextContent!.instruction);
+        if (!this.content.reentry && this.content.componentInstance !== this.nextContent!.componentInstance) {
           await this.unloadContent();
         }
       }
 
-      this.content = (this.nextContent as ViewportContent);
+      this.content = this.nextContent!;
       this.content.reentry = false;
     }
 
     if (this.clear) {
-      this.content = new ViewportContent(void 0, (this.nextContent as ViewportContent).instruction);
+      this.content = new ViewportContent(void 0, this.nextContent!.instruction);
     }
 
     this.nextContent = null;
@@ -322,9 +327,9 @@ export class Viewport implements IScopeOwner {
   }
   public async abortContentChange(): Promise<void> {
     this.connectedScope.reenableReplacedChildren();
-    await (this.nextContent as ViewportContent).freeContent(
+    await this.nextContent!.freeContent(
       this.element as Element,
-      (this.nextContent as ViewportContent).instruction,
+      this.nextContent!.instruction,
       this.historyCache,
       this.router.statefulHistory || this.options.stateful);
     if (this.previousViewportState) {
@@ -361,36 +366,38 @@ export class Viewport implements IScopeOwner {
     return false;
   }
 
-  public beforeBind(flags: LifecycleFlags): void {
+  public initializeContent(initiator: IHydratedController<Node>, parent: IHydratedParentController<Node> | null, flags: LifecycleFlags): void {
     if (this.content.componentInstance) {
       this.content.initializeComponent(CustomElement.for(this.element as INode) as IController);
     }
   }
 
-  public async beforeAttach(flags: LifecycleFlags): Promise<void> {
+  public async addContent(initiator: IHydratedController<Node>, parent: IHydratedParentController<Node> | null, flags: LifecycleFlags): Promise<void> {
     this.enabled = true;
     if (this.content.componentInstance) {
       // Only acts if not already entered
       await this.content.enter(this.content.instruction);
-      this.content.addComponent(this.element as Element);
+      await this.content.addComponent(initiator, flags, this.element as Element);
     }
   }
 
-  public async beforeDetach(flags: LifecycleFlags): Promise<void> {
+  public async removeContent(initiator: IHydratedController<Node>, parent: IHydratedParentController<Node> | null, flags: LifecycleFlags): Promise<void> {
     if (this.content.componentInstance) {
       // Only acts if not already left
       await this.content.leave(this.content.instruction);
-      this.content.removeComponent(
-        this.element as Element,
+      await this.content.removeComponent(
+        initiator,
+        flags,
+        this.element,
         this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful
       );
     }
     this.enabled = false;
   }
 
-  public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
+  public async terminateContent(initiator: IHydratedController<Node>, parent: IHydratedParentController<Node> | null, flags: LifecycleFlags): Promise<void> {
     if (this.content.componentInstance) {
-      await this.content.terminateComponent(this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful);
+      await this.content.terminateComponent(initiator, flags, this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful);
     }
   }
 
@@ -410,26 +417,69 @@ export class Viewport implements IScopeOwner {
   }
 
   public getRoutes(): IRoute[] | null {
-    let componentType: RouteableComponentType | null =
-      this.nextContent !== null
-        && this.nextContent.content !== null
-        ? this.nextContent.content.componentType
-        : this.content.content.componentType;
-    // TODO: This is going away once Metadata is in!
-    if (componentType === null || componentType === void 0) {
-      const controller = CustomElement.for(this.element!);
-      componentType = (controller as any)!.context!.componentType;
-    }
-    if (componentType === null || componentType === void 0) {
+    const componentType = this.getComponentType();
+    if (componentType === null) {
       return null;
     }
     const routes: IRoute[] = (componentType as RouteableComponentType & { routes: IRoute[] }).routes;
     return Array.isArray(routes) ? routes : null;
   }
 
+  public getTitle(navigationInstruction: NavigationInstruction): string {
+    if (this.options.noTitle) {
+      return '';
+    }
+    const componentType = this.getComponentType();
+    if (componentType === null) {
+      return '';
+    }
+    let title = '';
+    const typeTitle = componentType.title;
+    if (typeTitle !== void 0) {
+      if (typeof typeTitle === 'string') {
+        title = typeTitle;
+      } else {
+        const component = this.getComponentInstance();
+        title = typeTitle.call(component, component!, navigationInstruction);
+      }
+    } else if (this.router.options.title.useComponentNames) {
+      let name = this.getContentInstruction()!.componentName ?? '';
+      const prefix = this.router.options.title.componentPrefix ?? '';
+      if (name.startsWith(prefix)) {
+        name = name.slice(prefix.length);
+      }
+      name = name.replace('-', ' ');
+      title = name.slice(0, 1).toLocaleUpperCase() + name.slice(1);
+    }
+    if (this.router.options.title.transformTitle !== void 0) {
+      title = this.router.options.title.transformTitle.call(this, title, this.getContentInstruction()!);
+    }
+    return title;
+  }
+
+  private getComponentType(): RouteableComponentType | null {
+    let componentType = this.getContentInstruction()!.componentType ?? null;
+    // TODO: This is going away once Metadata is in!
+    if (componentType === null) {
+      const controller = CustomElement.for(this.element!);
+      componentType = (controller!.context as
+        ICompiledRenderContext<Element> & { componentType: RouteableComponentType })
+        .componentType;
+    }
+    return componentType ?? null;
+  }
+
+  private getComponentInstance(): IRouteableComponent | null {
+    return this.getContentInstruction()!.componentInstance ?? null;
+  }
+
+  private getContentInstruction(): ViewportInstruction | null {
+    return this.nextContent?.content ?? this.content.content ?? null;
+  }
+
   private async unloadContent(): Promise<void> {
-    this.content.removeComponent(this.element as Element, this.router.statefulHistory || this.options.stateful);
-    await this.content.terminateComponent(this.router.statefulHistory || this.options.stateful);
+    await this.content.removeComponent(null, LifecycleFlags.none, this.element as Element, this.router.statefulHistory || this.options.stateful);
+    await this.content.terminateComponent(null, LifecycleFlags.none, this.router.statefulHistory || this.options.stateful);
     this.content.unloadComponent(this.historyCache, this.router.statefulHistory || this.options.stateful);
     this.content.destroyComponent();
   }

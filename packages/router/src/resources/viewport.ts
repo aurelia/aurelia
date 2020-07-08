@@ -8,9 +8,12 @@ import {
   ICompiledCustomElementController,
   ICustomElementViewModel,
   ICustomElementController,
+  IHydratedController,
+  IHydratedParentController,
+  ISyntheticView,
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
-import { IViewportOptions, Viewport } from '../viewport';
+import { Viewport, IViewportOptions } from '../viewport';
 
 export const ParentViewport = CustomElement.createInjectable();
 
@@ -18,13 +21,14 @@ export const ParentViewport = CustomElement.createInjectable();
   name: 'au-viewport',
   injectable: ParentViewport
 })
-export class ViewportCustomElement implements ICustomElementViewModel<Element> {
+export class ViewportCustomElement implements ICustomElementViewModel<Node> {
   @bindable public name: string = 'default';
   @bindable public usedBy: string = '';
   @bindable public default: string = '';
   @bindable public fallback: string = '';
   @bindable public noScope: boolean = false;
   @bindable public noLink: boolean = false;
+  @bindable public noTitle: boolean = false;
   @bindable public noHistory: boolean = false;
   @bindable public stateful: boolean = false;
 
@@ -42,7 +46,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
     @IContainer private container: IContainer,
     @ParentViewport private readonly parentViewport: ViewportCustomElement,
   ) {
-    this.element = element as HTMLElement;
+    this.element = element as Element;
   }
 
   public afterCompile(controller: ICompiledCustomElementController) {
@@ -51,7 +55,33 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
     // this.connect();
   }
 
-  public afterUnbind(): void {
+  public afterBind(initiator: IHydratedController<Node>, parent: IHydratedParentController<Node> | null, flags: LifecycleFlags): void {
+    this.isBound = true;
+    this.connect();
+    if (this.viewport) {
+      this.viewport.initializeContent(initiator, parent, flags);
+    }
+  }
+
+  public async afterAttach(initiator: IHydratedController<Node>, parent: IHydratedParentController<Node> | null, flags: LifecycleFlags): Promise<void> {
+    if (this.viewport) {
+      return this.viewport.addContent(initiator, parent, flags);
+    }
+    return Promise.resolve();
+  }
+
+  public async afterDetach(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): Promise<void> {
+    if (this.viewport) {
+      return this.viewport.removeContent(initiator, parent, flags);
+    }
+    return Promise.resolve();
+  }
+
+  public async afterUnbind(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): Promise<void> {
+    if (this.viewport) {
+      await this.viewport.terminateContent(initiator, parent, flags);
+      this.disconnect();
+    }
     this.isBound = false;
   }
 
@@ -78,6 +108,10 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
     if (value !== void 0) {
       options.noLink = value as boolean;
     }
+    value = this.getAttribute('no-title', this.noTitle, true);
+    if (value !== void 0) {
+      options.noTitle = value as boolean;
+    }
     value = this.getAttribute('no-history', this.noHistory, true);
     if (value !== void 0) {
       options.noHistory = value as boolean;
@@ -93,35 +127,6 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
       this.router.disconnectViewport(this.viewport, this.container, this.element);
     }
     this.viewport = null;
-  }
-
-  public beforeBind(flags: LifecycleFlags): void {
-    this.isBound = true;
-    this.connect();
-    if (this.viewport) {
-      this.viewport.beforeBind(flags);
-    }
-  }
-
-  public beforeAttach(flags: LifecycleFlags): Promise<void> {
-    if (this.viewport) {
-      return this.viewport.beforeAttach(flags);
-    }
-    return Promise.resolve();
-  }
-
-  public beforeDetach(flags: LifecycleFlags): Promise<void> {
-    if (this.viewport) {
-      return this.viewport.beforeDetach(flags);
-    }
-    return Promise.resolve();
-  }
-
-  public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
-    if (this.viewport) {
-      await this.viewport.beforeUnbind(flags);
-      this.disconnect();
-    }
   }
 
   private getAttribute(key: string, value: string | boolean, checkExists: boolean = false): string | boolean | undefined {

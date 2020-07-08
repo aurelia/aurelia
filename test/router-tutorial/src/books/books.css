@@ -1,0 +1,11 @@
+.book-list {
+    display: flex;
+}
+
+.book-list>div {
+    flex-grow: 1;
+}
+
+.book-list a {
+    display: block;
+}

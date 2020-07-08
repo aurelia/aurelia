@@ -1,6 +1,97 @@
+import { HookManager } from './hook-manager';
+
 export {
-  IViewport,
-} from './resources/viewport';
+  ILinkHandlerOptions,
+  AnchorEventInfo,
+
+  LinkHandler,
+} from './link-handler';
+
+export {
+  InstructionResolver,
+} from './instruction-resolver';
+
+export {
+  INavigatorInstruction,
+  IRouteableComponent,
+  RouteableComponentType,
+  IViewportInstruction,
+  NavigationInstruction,
+  ReentryBehavior,
+  IRoute,
+
+  IWindow,
+  IHistory,
+  ILocation,
+} from './interfaces';
+
+export {
+  lifecycleLogger,
+  LifecycleClass,
+} from './lifecycle-logger';
+
+export {
+  HookManager,
+  HookTypes,
+  IHookDefinition,
+} from './hook-manager';
+
+export {
+  INavRoute,
+  Nav,
+} from './nav';
+
+export {
+  NavRoute,
+} from './nav-route';
+
+export {
+  IStoredNavigatorEntry,
+  INavigatorEntry,
+  INavigatorOptions,
+  INavigatorFlags,
+  INavigatorState,
+  INavigatorStore,
+  INavigatorViewer,
+  INavigatorViewerEvent,
+  Navigator,
+} from './navigator';
+
+export {
+  QueueItem,
+  IQueueOptions,
+  Queue,
+} from './queue';
+
+export {
+  RouteRecognizer,
+  IConfigurableRoute,
+  ConfigurableRoute,
+  RecognizedRoute,
+  Endpoint,
+} from './route-recognizer';
+
+export {
+  IRouterOptions,
+  IRouterTitle,
+  IRouter,
+  Router,
+} from './router';
+
+export {
+  IViewportOptions,
+  Viewport,
+} from './viewport';
+
+export {
+  ContentStatus,
+  ViewportContent,
+} from './viewport-content';
+
+export {
+  Params,
+  ViewportInstruction,
+} from './viewport-instruction';
 
 export {
   RouterConfiguration,
@@ -9,99 +100,10 @@ export {
   DefaultResources,
   ViewportCustomElement,
   ViewportCustomElementRegistration,
+  NavCustomElement,
+  NavCustomElementRegistration,
   GotoCustomAttribute,
   GotoCustomAttributeRegistration,
   HrefCustomAttribute,
   HrefCustomAttributeRegistration,
 } from './configuration';
-
-export {
-  IRouteViewModel,
-  ComponentAgent,
-} from './component-agent';
-export {
-  IWindow,
-  IHistory,
-  ILocation,
-} from './interfaces';
-export {
-  ILinkHandler,
-} from './link-handler';
-export {
-  RouteableComponent,
-  NavigationInstruction,
-  IViewportInstruction,
-  Params,
-} from './instructions';
-export {
-  ILocationManager,
-  IBaseHrefProvider,
-} from './location-manager';
-export {
-  Routeable,
-  IRouteConfig,
-  IChildRouteConfig,
-  RouteConfig,
-  ChildRouteConfig,
-  Route,
-  RouteType,
-  route,
-} from './route';
-export {
-  IRouteContext,
-  RouteContext,
-} from './route-context';
-export {
-  RouteDefinition,
-} from './route-definition';
-export {
-  AST,
-  RouteExpression,
-  CompositeSegmentExpression,
-  ScopedSegmentExpression,
-  SegmentGroupExpression,
-  SegmentExpression,
-  ComponentExpression,
-  ActionExpression,
-  ViewportExpression,
-  ParameterListExpression,
-  ParameterExpression,
-} from './route-expression';
-export {
-  Endpoint,
-  RecognizedRoute,
-  RouteRecognizer,
-} from './route-recognizer';
-export {
-  RouteNode,
-  RouteTree,
-} from './route-tree';
-export {
-  AuNavId,
-  ManagedState,
-  isManagedState,
-  toManagedState,
-  IRouter,
-  Router,
-  IRouterOptions,
-  INavigationOptions,
-  RouterOptions,
-  NavigationOptions,
-  Transition,
-  Navigation,
-} from './router';
-export {
-  IRouterEvents,
-  RouterEvent,
-  LocationChangeEvent,
-  NavigationStartEvent,
-  NavigationEndEvent,
-  NavigationCancelEvent,
-  NavigationErrorEvent,
-} from './router-events';
-export {
-  IStateManager,
-} from './state-manager';
-export {
-  ViewportAgent,
-} from './viewport-agent';

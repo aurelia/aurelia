@@ -1,25 +1,8 @@
-
-import {
-  IDisposable,
-} from '@aurelia/kernel';
-import {
-  customAttribute,
-  INode,
-  bindable,
-  BindingMode,
-  IDOM,
-  DelegationStrategy,
-  ICustomAttributeViewModel,
-  ICustomAttributeController,
-} from '@aurelia/runtime';
-import {
-  IEventManager,
-} from '@aurelia/runtime-html';
-
+import { customAttribute, INode, bindable, BindingMode, ViewModelKind, IDOM, DelegationStrategy, ICustomAttributeViewModel, ICustomAttributeController } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { GotoCustomAttribute } from '../configuration';
-import { ILinkHandler } from '../link-handler';
-import { IElement } from '../interfaces';
+import { IEventManager } from '@aurelia/runtime-html';
+import { IDisposable } from '@aurelia/kernel';
 
 @customAttribute({
   name: 'href',
@@ -27,34 +10,32 @@ import { IElement } from '../interfaces';
 })
 export class HrefCustomAttribute implements ICustomAttributeViewModel<Element> {
   @bindable({ mode: BindingMode.toView })
-  public value: unknown;
+  public value: string | undefined;
 
   private eventListener: IDisposable | null = null;
-
+  private readonly element: Element;
   public readonly $controller!: ICustomAttributeController<Element, this>;
 
   public constructor(
     @IDOM private readonly dom: IDOM,
-    @INode private readonly element: IElement,
+    @INode element: INode,
     @IRouter private readonly router: IRouter,
-    @ILinkHandler private readonly linkHandler: ILinkHandler,
     @IEventManager private readonly eventManager: IEventManager,
-  ) {}
+  ) {
+    this.element = element as Element;
+  }
 
   public beforeBind(): void {
     if (this.router.options.useHref && !this.hasGoto()) {
       this.eventListener = this.eventManager.addEventListener(
-        this.dom,
-        this.element,
-        'click',
-        this.linkHandler.onClick as EventListener,
-        DelegationStrategy.none,
-      );
+        this.dom, this.element, 'click', this.router.linkHandler.handler, DelegationStrategy.none);
     }
     this.updateValue();
   }
   public beforeUnbind(): void {
-    this.eventListener?.dispose();
+    if (this.eventListener !== null) {
+      this.eventListener.dispose();
+    }
   }
 
   public valueChanged(): void {
@@ -66,8 +47,9 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel<Element> {
   }
 
   private hasGoto(): boolean {
-    return this.$controller.parent?.children?.some(function (c) {
-      return c.viewModel instanceof GotoCustomAttribute;
-    }) ?? false;
+    const parent = this.$controller.parent!;
+    const siblings = parent.children;
+    return siblings !== void 0
+      && siblings.some(c => c.vmKind === ViewModelKind.customAttribute && c.viewModel instanceof GotoCustomAttribute);
   }
 }

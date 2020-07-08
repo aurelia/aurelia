@@ -1,21 +1,24 @@
-import {
-  bound, DI,
-} from '@aurelia/kernel';
-import {
-  CustomAttribute,
-} from '@aurelia/runtime';
+import { IDOM, CustomAttribute } from '@aurelia/runtime';
+import { HTMLDOM } from '@aurelia/runtime-html';
+import { Key } from '@aurelia/kernel';
+import { GotoCustomAttribute } from './resources/goto';
 
-import {
-  GotoCustomAttribute,
-} from './resources/goto';
-import {
-  IWindow,
-  IMouseEvent,
-  IElement,
-} from './interfaces';
-import {
-  IRouter,
-} from './router';
+/**
+ * Provides information about how to handle an anchor event.
+ *
+ * @internal - Shouldn't be used directly.
+ */
+export interface ILinkHandlerOptions {
+  /**
+   * Attribute href should be used for instruction if present and
+   * attribute goto is not present
+   */
+  useHref?: boolean;
+  /**
+   * Callback method for when a link is clicked
+   */
+  callback(info: AnchorEventInfo): void;
+}
 
 /**
  * Provides information about how to handle an anchor event.
@@ -37,36 +40,45 @@ export interface AnchorEventInfo {
   anchor: Element | null;
 }
 
-export interface ILinkHandler extends LinkHandler {}
-export const ILinkHandler = DI.createInterface<ILinkHandler>('ILinkHandler').withDefault(x => x.singleton(LinkHandler));
-
 /**
  * Class responsible for handling interactions that should trigger navigation.
  *
  * @internal - Shouldn't be used directly.
  */
 export class LinkHandler {
-  public constructor(
-    @IWindow private readonly window: IWindow,
-    @IRouter private readonly router: IRouter,
-  ) {}
+  public static readonly inject: readonly Key[] = [IDOM];
 
+  public window: Window;
+  public document: Document;
+
+  private options: ILinkHandlerOptions = {
+    useHref: true,
+    callback: () => { return; }
+  };
+  private isActive: boolean = false;
+
+  public constructor(
+    dom: HTMLDOM
+  ) {
+    this.window = dom.window;
+    this.document = dom.document;
+  }
   /**
    * Gets the href and a "should handle" recommendation, given an Event.
    *
    * @param event - The Event to inspect for target anchor and href.
    */
-  private getEventInfo(event: IMouseEvent): AnchorEventInfo {
+  private static getEventInfo(event: MouseEvent, win: Window, options: ILinkHandlerOptions): AnchorEventInfo {
     const info: AnchorEventInfo = {
       shouldHandleEvent: false,
       instruction: null,
       anchor: null
     };
 
-    const target = info.anchor = event.currentTarget as Element | null;
+    const target = info.anchor = event.currentTarget as Element;
     // Switch to this for delegation:
     // const target = info.anchor = LinkHandler.closestAnchor(event.target as Element);
-    if (target === null || !this.targetIsThisWindow(target)) {
+    if (!target || !LinkHandler.targetIsThisWindow(target, win)) {
       return info;
     }
 
@@ -78,15 +90,15 @@ export class LinkHandler {
       return info;
     }
 
-    const gotoAttr = CustomAttribute.for<Element, GotoCustomAttribute>(target, 'goto');
-    const goto = (gotoAttr?.viewModel.value ?? null) as string | null;
-    const href = this.router.options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
+    const gotoAttr = CustomAttribute.for(target, 'goto');
+    const goto = gotoAttr !== void 0 ? (gotoAttr.viewModel as GotoCustomAttribute).value as string : null;
+    const href = options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
     if ((goto === null || goto.length === 0) && (href === null || href.length === 0)) {
       return info;
     }
 
     info.anchor = target;
-    info.instruction = goto ?? href;
+    info.instruction = goto || href;
 
     const leftButtonClicked: boolean = event.button === 0;
 
@@ -95,29 +107,64 @@ export class LinkHandler {
   }
 
   /**
+   * Finds the closest ancestor that's an anchor element.
+   *
+   * @param el - The element to search upward from.
+   * @returns The link element that is the closest ancestor.
+   */
+  // private static closestAnchor(el: Element): Element | null {
+  //   while (el !== null && el !== void 0) {
+  //     if (el.tagName === 'A') {
+  //       return el;
+  //     }
+  //     el = el.parentNode as Element;
+  //   }
+  //   return null;
+  // }
+
+  /**
    * Gets a value indicating whether or not an anchor targets the current window.
    *
    * @param target - The anchor element whose target should be inspected.
    * @returns True if the target of the link element is this window; false otherwise.
    */
-  private targetIsThisWindow(target: IElement): boolean {
+  private static targetIsThisWindow(target: Element, win: Window): boolean {
     const targetWindow = target.getAttribute('target');
 
-    return (
-      targetWindow === null ||
-      targetWindow === this.window.name ||
-      targetWindow === '_self'
-    );
+    return !targetWindow ||
+      targetWindow === win.name ||
+      targetWindow === '_self';
   }
 
-  @bound
-  public onClick(e: IMouseEvent): void {
-    const info = this.getEventInfo(e);
+  /**
+   * Activate the instance.
+   *
+   */
+  public activate(options: ILinkHandlerOptions): void {
+    if (this.isActive) {
+      throw new Error('Link handler has already been activated');
+    }
+
+    this.isActive = true;
+    this.options = { ...options };
+  }
+
+  /**
+   * Deactivate the instance. Event handlers and other resources should be cleaned up here.
+   */
+  public deactivate(): void {
+    if (!this.isActive) {
+      throw new Error('Link handler has not been activated');
+    }
+    this.isActive = false;
+  }
+
+  public readonly handler: EventListener = (e: Event) => {
+    const info = LinkHandler.getEventInfo(e as MouseEvent, this.window, this.options);
 
     if (info.shouldHandleEvent) {
       e.preventDefault();
-      // eslint-disable-next-line @typescript-eslint/promise-function-async
-      this.router.goto(info.instruction ?? '', { context: info.anchor }).catch(err => Promise.reject(err));
+      this.options.callback(info);
     }
-  }
+  };
 }

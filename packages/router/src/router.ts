@@ -1,1074 +1,1293 @@
-/* eslint-disable @typescript-eslint/promise-function-async */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-import {
-  IContainer,
-  ILogger,
-  isObject,
-  DI,
-  IDisposable,
-} from '@aurelia/kernel';
-import {
-  IScheduler,
-  PartialCustomElementDefinition,
-} from '@aurelia/runtime';
+/* eslint-disable max-lines-per-function */
+import { DI, IContainer, Key, Reporter, Registration, Metadata } from '@aurelia/kernel';
+import { Aurelia, CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, isRenderContext } from '@aurelia/runtime';
+import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
+import { INavigatorInstruction, IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
+import { AnchorEventInfo, LinkHandler } from './link-handler';
+import { INavRoute, Nav } from './nav';
+import { INavigatorEntry, INavigatorFlags, INavigatorOptions, INavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator';
+import { QueueItem } from './queue';
+import { INavClasses } from './resources/nav';
+import { NavigationInstructionResolver, IViewportInstructionsOptions } from './type-resolvers';
+import { arrayRemove } from './utils';
+import { IViewportOptions, Viewport } from './viewport';
+import { ViewportInstruction } from './viewport-instruction';
+import { FoundRoute } from './found-route';
+import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction, SetTitleHookFunction } from './hook-manager';
+import { Scope, IScopeOwner } from './scope';
+import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
+import { BrowserViewerStore } from './browser-viewer-store';
+import { Navigation } from './navigation';
 
-import {
-  IRouteContext,
-  RouteContext,
-} from './route-context';
-import {
-  IRouterEvents,
-  NavigationStartEvent,
-  NavigationEndEvent,
-  NavigationCancelEvent,
-} from './router-events';
-import {
-  ILocationManager,
-} from './location-manager';
-import {
-  RouteType,
-} from './route';
-import {
-  IRouteViewModel,
-} from './component-agent';
-import {
-  RouteTree,
-  RouteNode,
-  RouteTreeCompiler,
-} from './route-tree';
-import {
-  IViewportInstruction,
-  NavigationInstruction,
-  RouteContextLike,
-  ViewportInstructionTree,
-  Params,
-} from './instructions';
-import {
-  onResolve,
-  resolveAll,
-  walkViewportTree,
-} from './util';
-
-export const AuNavId = 'au-nav-id' as const;
-export type AuNavId = typeof AuNavId;
-
-export type ManagedState = {
-  [k: string]: unknown;
-  [AuNavId]: number;
-};
-
-export function isManagedState(state: {} | null): state is ManagedState {
-  return isObject(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
-}
-export function toManagedState(state: {} | null, navId: number): ManagedState {
-  return {
-    ...state,
-    [AuNavId]: navId,
-  };
+/**
+ * Public API
+ */
+export interface IGotoOptions {
+  title?: string;
+  query?: string;
+  data?: Record<string, unknown>;
+  replace?: boolean;
+  append?: boolean;
+  origin?: ICustomElementViewModel | Element;
 }
 
-export type RoutingMode = 'direct-only' | 'configured-only' | 'direct-first' | 'configured-first';
-export type ResolutionStrategy = 'static' | 'dynamic';
-export type QueryParamsStrategy = 'overwrite' | 'preserve' | 'merge';
-export type FragmentStrategy = 'overwrite' | 'preserve';
-export type HistoryStrategy = 'none' | 'replace' | 'push';
-export type SameUrlStrategy = 'ignore' | 'reload';
-export type ValueOrFunc<T extends string> = T | ((instructions: ViewportInstructionTree) => T);
-function valueOrFuncToValue<T extends string>(instructions: ViewportInstructionTree, valueOrFunc: ValueOrFunc<T>): T {
-  if (typeof valueOrFunc === 'function') {
-    return valueOrFunc(instructions);
-  }
-  return valueOrFunc;
+/**
+ * Public API
+ */
+export interface IRouterActivateOptions extends Omit<Partial<IRouterOptions>, 'title'> {
+  title?: string | IRouterTitle;
 }
 
-export interface IRouterOptions extends Partial<RouterOptions> { }
-export class RouterOptions {
-  public static get DEFAULT(): RouterOptions {
-    return RouterOptions.create({});
-  }
-
-  protected constructor(
-    public readonly useUrlFragmentHash: boolean,
-    public readonly useHref: boolean,
-    public readonly statefulHistoryLength: number,
-    /**
-     * The operating mode of the router that determines how components are resolved based on a url.
-     *
-     * - `direct-only`: only resolves components by name, provided they are either globally or locally registered as dependencies (configuration is ignored)
-     * - `configured-only`: only match the url against configured routes.
-     * - `direct-first`: first tries to resolve by component name from available dependencies, then by configured routes.
-     * - `configured-first`: first tries to resolve by configured routes, then by component name from available dependencies. (default)
-     * - A function that returns one of the 4 above values based on the navigation.
-     *
-     * Default: `configured-first`
-     */
-    public readonly routingMode: ValueOrFunc<RoutingMode>,
-    /**
-     * The operating mode of the router that determines at which point in the lifecycle viewports and child routes can be resolved.
-     *
-     * - `static`: viewports and child routes that are registered during template compilation, can be resolved immediately.
-     * - `dynamic`: viewports and child routes can only be resolved after their parent has been activated. (default)
-     *
-     * Default: `dynamic`
-     *
-     * @description
-     * - `static` allows hooks of child routes to be invoked in a phased manner, similar to Aurelia v1, but dynamic viewport property bindings and
-     * conditionally rendered viewports will only be available on next navigation after the one where they were created.
-     *
-     * - `dynamic` enables the full feature set of the v2 router with viewport property bindings and
-     * dynamically added & conditionally rendered viewports, but child route `canEnter` guards will run only after the parent already activated. This means
-     * that canceling/disallowing a navigation from a child component will not prevent side-effects from occurring, so global guards may need to be used instead
-     * when that's not desirable.
-     */
-    public readonly resolutionStrategy: ResolutionStrategy,
-    /**
-     * The strategy to use for determining the query parameters when both the previous and the new url has a query string.
-     *
-     * - `overwrite`: uses the query params of the new url. (default)
-     * - `preserve`: uses the query params of the previous url.
-     * - `merge`: uses the query params of both the previous and the new url. When a param name exists in both, the value from the new url is used.
-     * - A function that returns one of the 3 above values based on the navigation.
-     *
-     * Default: `overwrite`
-     */
-    public readonly queryParamsStrategy: ValueOrFunc<QueryParamsStrategy>,
-    /**
-     * The strategy to use for determining the fragment (value that comes after `#`) when both the previous and the new url have one.
-     *
-     * - `overwrite`: uses the fragment of the new url. (default)
-     * - `preserve`: uses the fragment of the previous url.
-     * - A function that returns one of the 2 above values based on the navigation.
-     *
-     * Default: `overwrite`
-     */
-    public readonly fragmentStrategy: ValueOrFunc<FragmentStrategy>,
-    /**
-     * The strategy to use for interacting with the browser's `history` object (if applicable).
-     *
-     * - `none`: do not interact with the `history` object at all.
-     * - `replace`: replace the current state in history
-     * - `push`: push a new state onto the history (default)
-     * - A function that returns one of the 3 above values based on the navigation.
-     *
-     * Default: `push`
-     */
-    public readonly historyStrategy: ValueOrFunc<HistoryStrategy>,
-    /**
-     * The strategy to use for when navigating to the same URL.
-     *
-     * - `ignore`: do nothing (default).
-     * - `reload`: reload the current URL, effectively performing a refresh.
-     * - A function that returns one of the 2 above values based on the navigation.
-     *
-     * Default: `ignore`
-     */
-    public readonly sameUrlStrategy: ValueOrFunc<SameUrlStrategy>,
-  ) { }
-
-  public static create(
-    input: IRouterOptions,
-  ): RouterOptions {
-    return new RouterOptions(
-      input.useUrlFragmentHash ?? false,
-      input.useHref ?? true,
-      input.statefulHistoryLength ?? 0,
-      input.routingMode ?? 'configured-first',
-      input.resolutionStrategy ?? 'dynamic',
-      input.queryParamsStrategy ?? 'overwrite',
-      input.fragmentStrategy ?? 'overwrite',
-      input.historyStrategy ?? 'push',
-      input.sameUrlStrategy ?? 'ignore',
-    );
-  }
-  /** @internal */
-  public getRoutingMode(instructions: ViewportInstructionTree): RoutingMode {
-    return valueOrFuncToValue(instructions, this.routingMode);
-  }
-  /** @internal */
-  public getQueryParamsStrategy(instructions: ViewportInstructionTree): QueryParamsStrategy {
-    return valueOrFuncToValue(instructions, this.queryParamsStrategy);
-  }
-  /** @internal */
-  public getFragmentStrategy(instructions: ViewportInstructionTree): FragmentStrategy {
-    return valueOrFuncToValue(instructions, this.fragmentStrategy);
-  }
-  /** @internal */
-  public getHistoryStrategy(instructions: ViewportInstructionTree): HistoryStrategy {
-    return valueOrFuncToValue(instructions, this.historyStrategy);
-  }
-  /** @internal */
-  public getSameUrlStrategy(instructions: ViewportInstructionTree): SameUrlStrategy {
-    return valueOrFuncToValue(instructions, this.sameUrlStrategy);
-  }
-
-  protected stringifyProperties(): string {
-    return ([
-      'queryParamsStrategy',
-      'fragmentStrategy',
-      'historyStrategy',
-      'sameUrlStrategy',
-    ] as const).map(key => {
-      const value = this[key];
-      return `${key}:${typeof value === 'function' ? value : `'${value}'`}`;
-    }).join(',');
-  }
-
-  public toString(): string {
-    return `RO(${this.stringifyProperties()})`;
-  }
+/**
+ * Public API
+ */
+export interface IRouterOptions extends INavigatorOptions {
+  separators?: IRouteSeparators;
+  useUrlFragmentHash: boolean;
+  useHref: boolean;
+  statefulHistoryLength: number;
+  useDirectRoutes: boolean;
+  useConfiguredRoutes: boolean;
+  title: ITitleConfiguration;
+  hooks?: IHookDefinition[];
+  reportCallback?(instruction: Navigation): void;
 }
 
-export interface INavigationOptions extends Partial<NavigationOptions> { }
-export class NavigationOptions extends RouterOptions {
-  public static get DEFAULT(): NavigationOptions {
-    return NavigationOptions.create({});
-  }
+/**
+ * Public API
+ */
+export interface IRouterTitle extends Partial<ITitleConfiguration> { }
 
-  private constructor(
-    routerOptions: RouterOptions,
-    public readonly title: string | null,
-    public readonly append: boolean,
-    /**
-     * Specify a context to use for relative navigation.
-     *
-     * - `null` (or empty): navigate relative to the root (absolute navigation)
-     * - `IRouteContext`: navigate relative to specifically this RouteContext (advanced users).
-     * - `HTMLElement`: navigate relative to the routeable component (page) that directly or indirectly contains this element.
-     * - `ICustomElementViewModel` (the `this` object when working from inside a view model): navigate relative to this component (if it was loaded as a route), or the routeable component (page) directly or indirectly containing it.
-     * - `ICustomElementController`: same as `ICustomElementViewModel`, but using the controller object instead of the view model object (advanced users).
-     */
-    public readonly context: RouteContextLike | null,
-    /**
-     * Specify an object to be serialized to a query string, and then set to the query string of the new URL.
-     */
-    public readonly queryParams: Params | null,
-    /**
-     * Specify the hash fragment for the new URL.
-     */
-    public readonly fragment: string,
-    /**
-     * Specify any kind of state to be stored together with the history entry for this navigation.
-     */
-    public readonly state: Params | null,
-  ) {
-    super(
-      routerOptions.useUrlFragmentHash,
-      routerOptions.useHref,
-      routerOptions.statefulHistoryLength,
-      routerOptions.routingMode,
-      routerOptions.resolutionStrategy,
-      routerOptions.queryParamsStrategy,
-      routerOptions.fragmentStrategy,
-      routerOptions.historyStrategy,
-      routerOptions.sameUrlStrategy,
-    );
-  }
-
-  public static create(
-    input: INavigationOptions,
-  ): NavigationOptions {
-    return new NavigationOptions(
-      RouterOptions.create(input),
-      input.title ?? null,
-      input.append ?? false,
-      input.context ?? null,
-      input.queryParams ?? null,
-      input.fragment ?? '',
-      input.state ?? null,
-    );
-  }
-
-  public toString(): string {
-    return `NO(${super.stringifyProperties()})`;
-  }
+/**
+ * Public API
+ */
+export interface ITitleConfiguration {
+  appTitle: string;
+  appTitleSeparator: string;
+  componentTitleOrder: 'top-down' | 'bottom-up';
+  componentTitleSeparator: string;
+  useComponentNames: boolean;
+  componentPrefix: string;
+  transformTitle?: (title: string, instruction: string | ViewportInstruction | FoundRoute) => string;
 }
 
-export class Navigation {
-  private constructor(
-    public readonly id: number,
-    public readonly instructions: ViewportInstructionTree,
-    public readonly trigger: 'popstate' | 'hashchange' | 'api',
-    public readonly options: NavigationOptions,
-    public readonly prevNavigation: Navigation | null,
-    // Set on next navigation, this is the route after all redirects etc have been processed.
-    public finalInstructions: ViewportInstructionTree | undefined,
-  ) { }
-
-  public static create(input: Navigation): Navigation {
-    return new Navigation(
-      input.id,
-      input.instructions,
-      input.trigger,
-      input.options,
-      input.prevNavigation,
-      input.finalInstructions,
-    );
-  }
-
-  public toString(): string {
-    return `N(id:${this.id},instructions:${this.instructions},trigger:'${this.trigger}')`;
-  }
-}
-
-export class Transition {
-  private constructor(
-    public readonly id: number,
-    public readonly prevInstructions: ViewportInstructionTree,
-    public readonly instructions: ViewportInstructionTree,
-    public finalInstructions: ViewportInstructionTree,
-    public readonly instructionsChanged: boolean,
-    public readonly trigger: 'popstate' | 'hashchange' | 'api',
-    public readonly options: NavigationOptions,
-    public readonly managedState: ManagedState | null,
-    public readonly previousRouteTree: RouteTree,
-    public routeTree: RouteTree,
-    public readonly promise: Promise<boolean> | null,
-    public readonly resolve: ((success: boolean) => void) | null,
-    public readonly reject: ((err: unknown) => void) | null,
-    public guardsResult: boolean | ViewportInstructionTree,
-  ) { }
-
-  public static create(
-    input: Transition,
-  ): Transition {
-    return new Transition(
-      input.id,
-      input.prevInstructions,
-      input.instructions,
-      input.finalInstructions,
-      input.instructionsChanged,
-      input.trigger,
-      input.options,
-      input.managedState,
-      input.previousRouteTree,
-      input.routeTree,
-      input.promise,
-      input.resolve,
-      input.reject,
-      input.guardsResult,
-    );
-  }
-
-  public toString(): string {
-    return `T(id:${this.id},trigger:'${this.trigger}',instructions:${this.instructions})`;
-  }
-}
-
-export interface IRouter extends Router { }
+/**
+ * Public API
+ */
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
-export class Router {
-  private _ctx: RouteContext | null = null;
-  private get ctx(): RouteContext {
-    let ctx = this._ctx;
-    if (ctx === null) {
-      if (!this.container.has(IRouteContext, true)) {
-        throw new Error(`Root RouteContext is not set. Did you forget to register RouteConfiguration, or try to navigate before calling Aurelia.start()?`);
-      }
-      ctx = this._ctx = this.container.get(IRouteContext);
+
+export interface IRouter {
+  readonly isNavigating: boolean;
+  activeComponents: ViewportInstruction[];
+  readonly rootScope: ViewportScope | null;
+  readonly activeRoute?: IRoute;
+  readonly container: IContainer;
+  readonly instructionResolver: InstructionResolver;
+  navigator: Navigator;
+  readonly navigation: BrowserViewerStore;
+  readonly hookManager: HookManager;
+  readonly linkHandler: LinkHandler;
+  readonly navs: Readonly<Record<string, Nav>>;
+  readonly options: IRouterOptions;
+
+  readonly statefulHistory: boolean;
+  activate(options?: IRouterActivateOptions): void;
+  loadUrl(): Promise<void>;
+  deactivate(): void;
+
+  linkCallback(info: AnchorEventInfo): void;
+
+  processNavigations(qInstruction: QueueItem<Navigation>): Promise<void>;
+
+  // External API to get viewport by name
+  getViewport(name: string): Viewport | null;
+
+  // Called from the viewport scope custom element
+  setClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer, scope: Scope): void;
+  getClosestScope(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController | IContainer): Scope | null;
+  unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void;
+
+  // Called from the viewport custom element
+  connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport;
+  // Called from the viewport custom element
+  disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void;
+  // Called from the viewport scope custom element
+  connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope;
+  // Called from the viewport scope custom element
+  disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void;
+
+  allViewports(includeDisabled?: boolean): Viewport[];
+  findScope(elementOrViewmodelOrviewport: Element | ICustomElementViewModel | Viewport | ICustomElementController | null): Scope;
+
+  load(...args: any): Promise<void>;
+  goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void>;
+  refresh(): Promise<void>;
+  back(): Promise<void>;
+  forward(): Promise<void>;
+
+  checkActive(instructions: ViewportInstruction[]): boolean;
+
+  setNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
+  addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
+  updateNav(name?: string): void;
+  findNav(name: string): Nav;
+
+  addRoutes(routes: IRoute[], context?: ICustomElementViewModel | Element): IRoute[];
+  removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel | Element): void;
+  addHooks(hooks: IHookDefinition[]): HookIdentity[];
+
+  addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
+  addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
+  addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
+  addHook(setTitleHookFunction: SetTitleHookFunction, options?: IHookOptions): HookIdentity;
+  addHook(hook: HookFunction, options: IHookOptions): HookIdentity;
+  removeHooks(hooks: HookIdentity[]): void;
+
+  createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope?: boolean, nextScopeInstructions?: ViewportInstruction[] | null): ViewportInstruction;
+}
+
+class ClosestViewportCustomElement { }
+/**
+ * @internal
+ */
+class ClosestScope { }
+
+export class Router implements IRouter {
+  public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserViewerStore, LinkHandler, InstructionResolver];
+
+  public rootScope: ViewportScope | null = null;
+
+  /**
+   * @internal
+   */
+  public hookManager: HookManager;
+
+  /**
+   * @internal
+   */
+  public navs: Record<string, Nav> = {};
+  /**
+   * Public API
+   */
+  public activeComponents: ViewportInstruction[] = [];
+  /**
+   * Public API
+   */
+  public activeRoute?: IRoute;
+
+  /**
+   * @internal
+   */
+  public appendedInstructions: ViewportInstruction[] = [];
+
+  /**
+   * @internal
+   */
+  public options: IRouterOptions = {
+    useUrlFragmentHash: true,
+    useHref: true,
+    statefulHistoryLength: 0,
+    useDirectRoutes: true,
+    useConfiguredRoutes: true,
+    title: {
+      appTitle: "${componentTitles}\${appTitleSeparator}Aurelia",
+      appTitleSeparator: ' | ',
+      componentTitleOrder: 'top-down',
+      componentTitleSeparator: ' > ',
+      useComponentNames: true,
+      componentPrefix: 'app-',
     }
-    return ctx;
-  }
+  };
+  private isActive: boolean = false;
+  private loadedFirst: boolean = false;
 
-  private _routeTree: RouteTree | null = null;
-  public get routeTree(): RouteTree {
-    let routeTree = this._routeTree;
-    if (routeTree === null) {
-      // Lazy instantiation for only the very first (synthetic) tree.
-      // Doing it here instead of in the constructor to delay it until we have the context.
-      const ctx = this.ctx;
-      routeTree = this._routeTree = new RouteTree(
-        ViewportInstructionTree.create(''),
-        RouteNode.create({
-          context: ctx,
-          instruction: null,
-          component: ctx.definition.component,
-          append: false,
-        }),
-      );
-    }
-    return routeTree;
-  }
-
-  private _currentTransition: Transition | null = null;
-  private get currentTransition(): Transition {
-    let currentTransition = this._currentTransition;
-    if (currentTransition === null) {
-      currentTransition = this._currentTransition = Transition.create({
-        id: 0,
-        prevInstructions: this.instructions,
-        instructions: this.instructions,
-        finalInstructions: this.instructions,
-        instructionsChanged: true,
-        trigger: 'api',
-        options: NavigationOptions.DEFAULT,
-        managedState: null,
-        previousRouteTree: this.routeTree.clone(),
-        routeTree: this.routeTree,
-        resolve: null,
-        reject: null,
-        promise: null,
-        guardsResult: true,
-      });
-    }
-    return currentTransition;
-  }
-  private set currentTransition(value: Transition) {
-    this._currentTransition = value;
-  }
-
-  public options: RouterOptions = RouterOptions.DEFAULT;
-
-  private navigated: boolean = false;
-  private navigationId: number = 0;
-
-  private lastSuccessfulNavigation: Navigation | null = null;
-  private activeNavigation: Navigation | null = null;
-
-  private instructions: ViewportInstructionTree = ViewportInstructionTree.create('');
-
-  private nextTransition: Transition | null = null;
-  private locationChangeSubscription: IDisposable | null = null;
+  private processingNavigation: Navigation | null = null;
+  private lastNavigation: Navigation | null = null;
+  private staleChecks: Record<string, ViewportInstruction[]> = {};
 
   public constructor(
-    @IContainer private readonly container: IContainer,
-    @IScheduler private readonly scheduler: IScheduler,
-    @ILogger private readonly logger: ILogger,
-    @IRouterEvents private readonly events: IRouterEvents,
-    @ILocationManager private readonly locationMgr: ILocationManager,
+    /**
+     * @internal - Shouldn't be used directly.
+     */
+    public readonly container: IContainer,
+    /**
+     * @internal - Shouldn't be used directly.
+     */
+    public navigator: Navigator,
+    /**
+     * @internal - Shouldn't be used directly.
+     */
+    public navigation: BrowserViewerStore,
+    /**
+     * @internal - Shouldn't be used directly.
+     */
+    public linkHandler: LinkHandler,
+    /**
+     * @internal - Shouldn't be used directly. Probably.
+     */
+    public instructionResolver: InstructionResolver
   ) {
-    this.logger = logger.root.scopeTo('Router');
+    this.hookManager = new HookManager();
   }
 
   /**
-   * Get the closest RouteContext relative to the provided component, controller or node.
-   *
-   * @param context - The object from which to resolve the closest RouteContext.
-   *
-   * @returns when the value is:
-   * - `null`: the root
-   * - `IRouteContext`: the provided value (no-op)
-   * - `HTMLElement`: the context of the routeable component (page) that directly or indirectly contains this element.
-   * - `ICustomElementViewModel` (the `this` object when working from inside a view model): the context of this component (if it was loaded as a route), or the routeable component (page) directly or indirectly containing it.
-   * - `ICustomElementController`: same as `ICustomElementViewModel`, but using the controller object instead of the view model object (advanced users).
+   * Public API
    */
-  public getContext(context: RouteContextLike | null): IRouteContext {
-    return RouteContext.resolve(this.ctx, context);
+  public get isNavigating(): boolean {
+    return this.processingNavigation !== null;
   }
 
-  public start(
-    routerOptions: IRouterOptions,
-    performInitialNavigation: boolean,
-  ): void | Promise<boolean> {
-    this.options = RouterOptions.create(routerOptions);
+  /**
+   * @internal
+   */
+  public get statefulHistory(): boolean {
+    return this.options.statefulHistoryLength !== void 0 && this.options.statefulHistoryLength > 0;
+  }
 
-    this.locationMgr.startListening();
-    this.locationChangeSubscription = this.events.subscribe('au:router:location-change', e => {
-      // TODO(fkleuver): add a throttle config.
-      // At the time of writing, chromium throttles popstate events at a maximum of ~100 per second.
-      // While macroTasks run up to 250 times per second, it is extremely unlikely that more than ~100 per second of these will run due to the double queueing.
-      // However, this throttle limit could theoretically be hit by e.g. integration tests that don't mock Location/History.
-      this.scheduler.queueMacroTask(
-        () => {
-          // Don't try to restore state that might not have anything to do with the Aurelia app
-          const state = isManagedState(e.state) ? e.state : null;
-          const options = NavigationOptions.create({
-            ...this.options,
-            historyStrategy: 'replace',
-          });
-          const instructions = ViewportInstructionTree.create(e.url, options);
-          // The promise will be stored in the transition. However, unlike `goto()`, `start()` does not return this promise in any way.
-          // The router merely guarantees that it will be awaited (or canceled) before the next transition, so a race condition is impossible either way.
-          // However, it is possible to get floating promises lingering during non-awaited unit tests, which could have unpredictable side-effects.
-          // So we do want to solve this at some point.
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          this.enqueue(instructions, e.trigger, state, null);
-        },
-      );
+  /**
+   * Public API
+   */
+  public activate(options?: IRouterActivateOptions): void {
+    if (this.isActive) {
+      throw new Error('Router has already been activated');
+    }
+
+    this.isActive = true;
+    options = options ?? {};
+    const titleOptions = {
+      ...this.options.title,
+      ...(typeof options.title === 'string' ? { appTitle: options.title } : options.title),
+    };
+    options.title = titleOptions;
+
+    Object.assign(this.options, options);
+
+    if (this.options.hooks !== void 0) {
+      this.addHooks(this.options.hooks);
+    }
+
+    this.instructionResolver.activate({ separators: this.options.separators });
+    this.navigator.activate(this, {
+      callback: this.navigatorCallback,
+      store: this.navigation,
+      statefulHistoryLength: this.options.statefulHistoryLength,
+      serializeCallback: this.statefulHistory ? this.navigatorSerializeCallback : void 0,
     });
+    this.linkHandler.activate({ callback: this.linkCallback, useHref: this.options.useHref });
+    this.navigation.activate({
+      callback: this.browserNavigatorCallback,
+      useUrlFragmentHash: this.options.useUrlFragmentHash
+    });
+    this.ensureRootScope();
+  }
 
-    if (!this.navigated && performInitialNavigation) {
-      return this.goto(this.locationMgr.getPath(), { historyStrategy: 'replace' });
+  /**
+   * Public API
+   */
+  public async loadUrl(): Promise<void> {
+    const entry = new Navigation({
+      ...this.navigation.viewerState,
+      ...{
+        fullStateInstruction: '',
+        replacing: true,
+        fromBrowser: false,
+      }
+    });
+    const result = this.navigator.navigate(entry);
+    this.loadedFirst = true;
+    return result;
+  }
+
+  /**
+   * Public API
+   */
+  public deactivate(): void {
+    if (!this.isActive) {
+      throw new Error('Router has not been activated');
+    }
+    this.linkHandler.deactivate();
+    this.navigator.deactivate();
+    this.navigation.deactivate();
+  }
+
+  /**
+   * @internal
+   */
+  // TODO: use @bound and improve name (eslint-disable is temp)
+  // eslint-disable-next-line @typescript-eslint/typedef
+  public linkCallback = (info: AnchorEventInfo): void => {
+    let instruction = info.instruction || '';
+    if (typeof instruction === 'string' && instruction.startsWith('#')) {
+      instruction = instruction.slice(1);
+      // '#' === '/' === '#/'
+      if (!instruction.startsWith('/')) {
+        instruction = "/" + instruction;
+      }
+    }
+    // Adds to Navigator's Queue, which makes sure it's serial
+    this.goto(instruction, { origin: info.anchor! }).catch(error => { throw error; });
+  };
+
+  /**
+   * @internal
+   */
+  // TODO: use @bound and improve name (eslint-disable is temp)
+  // eslint-disable-next-line @typescript-eslint/typedef
+  public navigatorCallback = (instruction: Navigation): void => {
+    // Instructions extracted from queue, one at a time
+    this.processNavigations(instruction).catch(error => { throw error; });
+  };
+
+  /**
+   * @internal
+   */
+  // TODO: use @bound and improve name (eslint-disable is temp)
+  // eslint-disable-next-line @typescript-eslint/typedef
+  public navigatorSerializeCallback = async (entry: IStoredNavigatorEntry, preservedEntries: IStoredNavigatorEntry[]): Promise<IStoredNavigatorEntry> => {
+    let excludeComponents = [];
+    for (const preservedEntry of preservedEntries) {
+      if (typeof preservedEntry.instruction !== 'string') {
+        excludeComponents.push(...this.instructionResolver.flattenViewportInstructions(preservedEntry.instruction)
+          .filter(instruction => instruction.viewport !== null)
+          .map(instruction => instruction.componentInstance));
+      }
+      if (typeof preservedEntry.fullStateInstruction !== 'string') {
+        excludeComponents.push(...this.instructionResolver.flattenViewportInstructions(preservedEntry.fullStateInstruction)
+          .filter(instruction => instruction.viewport !== null)
+          .map(instruction => instruction.componentInstance));
+      }
+    }
+    excludeComponents = excludeComponents.filter(
+      (component, i, arr) => component !== null && arr.indexOf(component) === i
+    ) as IRouteableComponent[];
+
+    const serialized: IStoredNavigatorEntry = { ...entry };
+    let instructions = [];
+    if (serialized.fullStateInstruction && typeof serialized.fullStateInstruction !== 'string') {
+      instructions.push(...serialized.fullStateInstruction);
+      serialized.fullStateInstruction = this.instructionResolver.stringifyViewportInstructions(serialized.fullStateInstruction);
+    }
+    if (serialized.instruction && typeof serialized.instruction !== 'string') {
+      instructions.push(...serialized.instruction);
+      serialized.instruction = this.instructionResolver.stringifyViewportInstructions(serialized.instruction);
+    }
+    instructions = instructions.filter(
+      (instruction, i, arr) =>
+        instruction !== null
+        && instruction.componentInstance !== null
+        && arr.indexOf(instruction) === i
+    );
+
+    const alreadyDone: IRouteableComponent[] = [];
+    for (const instruction of instructions) {
+      await this.freeComponents(instruction, excludeComponents, alreadyDone);
+    }
+    return serialized;
+  };
+
+  /**
+   * @internal
+   */
+  // TODO: use @bound and improve name (eslint-disable is temp)
+  // eslint-disable-next-line @typescript-eslint/typedef
+  public browserNavigatorCallback = (browserNavigationEvent: INavigatorViewerEvent): void => {
+    const entry = new Navigation(browserNavigationEvent.state?.currentEntry);
+    entry.instruction = browserNavigationEvent.instruction;
+    entry.fromBrowser = true;
+    this.navigator.navigate(entry).catch(error => { throw error; });
+  };
+
+  /**
+   * @internal
+   */
+  // TODO: use @bound and improve name (eslint-disable is temp)
+  // eslint-disable-next-line @typescript-eslint/typedef
+  public processNavigations = async (qInstruction: QueueItem<Navigation>): Promise<void> => {
+    const instruction = this.processingNavigation = qInstruction as Navigation;
+
+    if (this.options.reportCallback) {
+      this.options.reportCallback(instruction);
+    }
+    // let {
+    //   fullStateInstruction,
+    //   instructionNavigation,
+    //   configuredRoute,
+    //   configuredRoutePath,
+    //   instructions,
+    //   clearScopeOwners,
+    //   clearViewportScopes,
+    // }
+    let fullStateInstruction: boolean = false;
+    const instructionNavigation: INavigatorFlags = instruction.navigation as INavigatorFlags;
+    if ((instructionNavigation.back || instructionNavigation.forward) && instruction.fullStateInstruction) {
+      fullStateInstruction = true;
+      // if (!confirm('Perform history navigation?')) { this.navigator.cancel(instruction); this.processingNavigation = null; return Promise.resolve(); }
+    }
+    let configuredRoute = await this.findInstructions(
+      this.rootScope!.scope,
+      instruction.instruction,
+      instruction.scope || this.rootScope!.scope,
+      !fullStateInstruction);
+    let instructions = configuredRoute.instructions;
+    let configuredRoutePath: string | null = null;
+
+    if (instruction.instruction.length > 0 && !configuredRoute.foundConfiguration && !configuredRoute.foundInstructions) {
+      // TODO: Do something here!
+      this.unknownRoute(configuredRoute.remaining);
+    }
+
+    if (configuredRoute.foundConfiguration) {
+      instruction.path = (instruction.instruction as string).startsWith('/')
+        ? (instruction.instruction as string).slice(1) : instruction.instruction as string;
+      configuredRoutePath = (configuredRoutePath ?? '') + configuredRoute.matching;
+      this.rootScope!.path = configuredRoutePath;
+    }
+    // TODO: Used to have an early exit if no instructions. Restore it?
+    const clearScopeOwners: IScopeOwner[] = [];
+    let clearViewportScopes: ViewportScope[] = [];
+    for (const clearInstruction of instructions.filter(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
+      const scope: Scope = clearInstruction.scope || this.rootScope!.scope;
+      clearScopeOwners.push(...scope.children.filter(scope => !scope.owner!.isEmpty).map(scope => scope.owner!));
+      if (scope.viewportScope !== null) {
+        clearViewportScopes.push(scope.viewportScope);
+      }
+    }
+    instructions = instructions.filter(instr => !this.instructionResolver.isClearAllViewportsInstruction(instr));
+
+    for (const addInstruction of instructions.filter(instr => this.instructionResolver.isAddAllViewportsInstruction(instr))) {
+      addInstruction.setViewport((addInstruction.scope || this.rootScope!.scope).viewportScope!.name);
+      addInstruction.scope = addInstruction.scope!.owningScope!;
+    }
+
+    const updatedScopeOwners: IScopeOwner[] = [];
+    const alreadyFoundInstructions: ViewportInstruction[] = [];
+    // TODO: Take care of cancellations down in subsets/iterations
+    let { found: viewportInstructions, remaining: remainingInstructions } = this.findViewports(instructions, alreadyFoundInstructions);
+    let guard = 100;
+    do {
+      if (!guard--) { // Guard against endless loop
+        console.log('remainingInstructions', remainingInstructions);
+        throw Reporter.error(2002);
+      }
+      const changedScopeOwners: IScopeOwner[] = [];
+
+      const hooked = await this.hookManager.invokeBeforeNavigation(viewportInstructions, instruction);
+      if (hooked === false) {
+        return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], instruction);
+      } else {
+        viewportInstructions = hooked as ViewportInstruction[];
+      }
+      for (const viewportInstruction of viewportInstructions) {
+        const scopeOwner = viewportInstruction.owner;
+        if (scopeOwner !== null) {
+          scopeOwner.path = configuredRoutePath;
+          if (scopeOwner.setNextContent(viewportInstruction, instruction)) {
+            changedScopeOwners.push(scopeOwner);
+          }
+          arrayRemove(clearScopeOwners, value => value === scopeOwner);
+          if (!this.instructionResolver.isClearViewportInstruction(viewportInstruction)
+            && viewportInstruction.scope !== null
+            && viewportInstruction.scope!.parent! !== null
+            && viewportInstruction.scope!.parent!.isViewportScope
+          ) {
+            arrayRemove(clearViewportScopes, value => value === viewportInstruction.scope!.parent!.viewportScope);
+          }
+        }
+      }
+      let results = await Promise.all(changedScopeOwners.map((value) => value.canLeave()));
+      if (results.some(result => result === false)) {
+        return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], instruction);
+      }
+      results = await Promise.all(changedScopeOwners.map(async (value) => {
+        const canEnter = await value.canEnter();
+        if (typeof canEnter === 'boolean') {
+          if (canEnter) {
+            return value.enter();
+          } else {
+            return false;
+          }
+        }
+        await this.goto(canEnter, { append: true });
+        await value.abortContentChange();
+        // TODO: Abort content change in the viewports
+        return true;
+      }));
+      if (results.some(result => result === false)) {
+        return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], qInstruction);
+      }
+      for (const viewport of changedScopeOwners) {
+        if (updatedScopeOwners.every(value => value !== viewport)) {
+          updatedScopeOwners.push(viewport);
+        }
+      }
+      // TODO: Fix multi level recursiveness!
+      alreadyFoundInstructions.push(...viewportInstructions);
+      ({ found: viewportInstructions, remaining: remainingInstructions } = this.findViewports(remainingInstructions, alreadyFoundInstructions));
+
+      // Look for configured child routes (once we've loaded everything so far?)
+      if (configuredRoute.hasRemaining &&
+        viewportInstructions.length === 0 &&
+        remainingInstructions.length === 0) {
+        let configured = new FoundRoute();
+        const routeScopeOwners = alreadyFoundInstructions
+          .filter(instr => instr.owner !== null && instr.owner.path === configuredRoutePath)
+          .map(instr => instr.owner!)
+          .filter((value, index, arr) => arr.indexOf(value) === index);
+        for (const owner of routeScopeOwners) {
+          configured = await this.findInstructions(owner.scope, configuredRoute.remaining, owner.scope);
+          if (configured.foundConfiguration) {
+            break;
+          }
+        }
+        if (configured.foundInstructions) {
+          configuredRoute = configured;
+          configuredRoutePath = (configuredRoutePath ?? '') + "/" + configuredRoute.matching;
+        } else {
+          // TODO: Do something here!
+          this.unknownRoute(configured.remaining);
+        }
+        this.appendInstructions(configured.instructions);
+      }
+      // Don't use defaults when it's a full state navigation
+      if (fullStateInstruction) {
+        this.appendedInstructions = this.appendedInstructions.filter(instruction => !instruction.default);
+      }
+      // Process non-defaults first
+      let appendedInstructions = this.appendedInstructions.filter(instruction => !instruction.default);
+      this.appendedInstructions = this.appendedInstructions.filter(instruction => instruction.default);
+      if (appendedInstructions.length === 0) {
+        const index = this.appendedInstructions.findIndex(instruction => instruction.default);
+        if (index >= 0) {
+          appendedInstructions = this.appendedInstructions.splice(index, 1);
+        }
+      }
+      while (appendedInstructions.length > 0) {
+        const appendedInstruction = appendedInstructions.shift() as ViewportInstruction;
+        const existingAlreadyFound = alreadyFoundInstructions.some(instruction => instruction.sameViewport(appendedInstruction));
+        const existingFound = viewportInstructions.find(value => value.sameViewport(appendedInstruction));
+        const existingRemaining = remainingInstructions.find(value => value.sameViewport(appendedInstruction));
+        if (appendedInstruction.default &&
+          (existingAlreadyFound ||
+            (existingFound !== void 0 && !existingFound.default) ||
+            (existingRemaining !== void 0 && !existingRemaining.default))) {
+          continue;
+        }
+        if (existingFound !== void 0) {
+          arrayRemove(viewportInstructions, value => value === existingFound);
+        }
+        if (existingRemaining !== void 0) {
+          arrayRemove(remainingInstructions, value => value === existingRemaining);
+        }
+        if (appendedInstruction.viewport !== null) {
+          viewportInstructions.push(appendedInstruction);
+        } else {
+          remainingInstructions.push(appendedInstruction);
+        }
+      }
+      if (viewportInstructions.length === 0 && remainingInstructions.length === 0) {
+        viewportInstructions = clearScopeOwners.map(owner => {
+          const instruction =
+            this.createViewportInstruction(this.instructionResolver.clearViewportInstruction, owner.isViewport ? owner as Viewport : void 0);
+          if (owner.isViewportScope) {
+            instruction.viewportScope = owner as ViewportScope;
+          }
+          return instruction;
+        });
+        viewportInstructions.push(...clearViewportScopes.map(viewportScope => {
+          const instr = this.createViewportInstruction(this.instructionResolver.clearViewportInstruction);
+          instr.viewportScope = viewportScope;
+          return instr;
+        }));
+        clearViewportScopes = [];
+      }
+    } while (viewportInstructions.length > 0 || remainingInstructions.length > 0);
+
+    await Promise.all(updatedScopeOwners.map((value) => value.loadContent()));
+    await this.replacePaths(instruction);
+    // this.updateNav();
+
+    // Remove history entry if no history viewports updated
+    if (instructionNavigation.new && !instructionNavigation.first && !instruction.repeating && updatedScopeOwners.every(viewport => viewport.options.noHistory)) {
+      instruction.untracked = true;
+    }
+    updatedScopeOwners.forEach((viewport) => {
+      viewport.finalizeContentChange();
+    });
+    this.lastNavigation = this.processingNavigation;
+    if (this.lastNavigation.repeating) {
+      this.lastNavigation.repeating = false;
+    }
+    this.processingNavigation = null;
+    await this.navigator.finalize(instruction);
+  };
+
+  /**
+   * @internal
+   */
+  public findScope(origin: Element | ICustomElementViewModel | Viewport | Scope | ICustomElementController | null): Scope {
+    // this.ensureRootScope();
+    if (origin === void 0 || origin === null) {
+      return this.rootScope!.scope;
+    }
+    if (origin instanceof Scope || origin instanceof Viewport) {
+      return origin.scope;
+    }
+    return this.getClosestScope(origin) || this.rootScope!.scope;
+  }
+  /**
+   * @internal
+   */
+  public findParentScope(container: IContainer | null): Scope {
+    if (container === null) {
+      return this.rootScope!.scope;
+    }
+    // Already (prematurely) set on this view model so get it from container's parent instead
+    if (container.has(ClosestScope, false)) {
+      container = (container as IContainer & { parent: IContainer }).parent;
+      if (container === null) {
+        return this.rootScope!.scope;
+      }
+    }
+    if (container.has(ClosestScope, true)) {
+      return container.get<Scope>(ClosestScope);
+    }
+    return this.rootScope!.scope;
+  }
+
+  /**
+   * Public API - Get viewport by name
+   */
+  public getViewport(name: string): Viewport | null {
+    return this.allViewports().find(viewport => viewport.name === name) || null;
+  }
+  /**
+   * Public API (not yet implemented)
+   */
+  public addViewport(...args: unknown[]): unknown {
+    throw new Error('Not implemented');
+  }
+  /**
+   * Public API (not yet implemented)
+   */
+  public findViewportScope(...args: unknown[]): unknown {
+    throw new Error('Not implemented');
+  }
+  /**
+   * Public API (not yet implemented)
+   */
+  public addViewportScope(...args: unknown[]): unknown {
+    throw new Error('Not implemented');
+  }
+
+  /**
+   * @internal - Called from the viewport scope custom element in created()
+   */
+  public setClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer, scope: Scope): void {
+    const container: IContainer | null = this.getContainer(viewModelOrContainer);
+    Registration.instance(ClosestScope, scope).register(container!);
+  }
+  /**
+   * @internal
+   */
+  public getClosestScope(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController | IContainer): Scope | null {
+    const container: IContainer | null = 'resourceResolvers' in viewModelOrElement
+      ? viewModelOrElement as IContainer
+      : this.getClosestContainer(viewModelOrElement as ICustomElementViewModel | Element | ICustomElementController);
+    if (container === null) {
+      return null;
+    }
+    if (!container.has(ClosestScope, true)) {
+      return null;
+    }
+    return container.get<Scope>(ClosestScope) || null;
+  }
+  /**
+   * @internal
+   */
+  public unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void {
+    const container: IContainer | null = this.getContainer(viewModelOrContainer);
+    // TODO: Get an 'unregister' on container
+    (container as any).resolvers.delete(ClosestScope);
+  }
+
+  /**
+   * @internal - Called from the viewport custom element
+   */
+  public connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport {
+    const parentScope = this.findParentScope(container);
+    if (viewport === null) {
+      viewport = parentScope.addViewport(name, element, container, options);
+      this.setClosestScope(container, viewport.connectedScope);
+    }
+    return viewport as Viewport;
+  }
+  /**
+   * @internal - Called from the viewport custom element
+   */
+  public disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void {
+    if (!viewport.connectedScope.parent!.removeViewport(viewport, element, container)) {
+      throw new Error("Failed to remove viewport: " + viewport.name);
+    }
+    this.unsetClosestScope(container);
+  }
+  /**
+   * @internal - Called from the viewport scope custom element
+   */
+  public connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope {
+    const parentScope: Scope = this.findParentScope(container);
+    if (viewportScope === null) {
+      viewportScope = parentScope.addViewportScope(name, element, options);
+      this.setClosestScope(container, viewportScope.connectedScope);
+    }
+    return viewportScope as ViewportScope;
+  }
+  /**
+   * @internal - Called from the viewport scope custom element
+   */
+  public disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void {
+    if (!viewportScope.connectedScope.parent!.removeViewportScope(viewportScope)) {
+      throw new Error("Failed to remove viewport scope: " + viewportScope.path);
+    }
+    this.unsetClosestScope(container);
+  }
+
+  /**
+   * @internal
+   */
+  public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
+    // this.ensureRootScope();
+    return (this.rootScope as ViewportScope).scope.allViewports(includeDisabled, includeReplaced);
+  }
+
+  /**
+   * Public API - THE navigation API
+   */
+  public async load(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void> {
+    return this.goto(instructions, options);
+  }
+  public async goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void> {
+    options = options || {};
+    // TODO: Review query extraction; different pos for path and fragment!
+    if (typeof instructions === 'string' && !options.query) {
+      const [path, search] = instructions.split('?');
+      instructions = path;
+      options.query = search;
+    }
+    const toOptions: IViewportInstructionsOptions = {};
+    if (options.origin) {
+      toOptions.context = options.origin;
+    }
+
+    let scope: Scope | null = null;
+    ({ instructions, scope } = NavigationInstructionResolver.createViewportInstructions(this, instructions, toOptions));
+
+    if (options.append && this.processingNavigation) {
+      instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
+      this.appendInstructions(instructions as ViewportInstruction[], scope);
+      // Can't return current navigation promise since it can lead to deadlock in enter
+      return Promise.resolve();
+    }
+
+    const entry = new Navigation({
+      instruction: instructions as ViewportInstruction[],
+      fullStateInstruction: '',
+      scope: scope,
+      title: options.title,
+      data: options.data,
+      query: options.query,
+      replacing: options.replace,
+      repeating: options.append,
+      fromBrowser: false,
+      origin: options.origin,
+    });
+    return this.navigator.navigate(entry);
+  }
+
+  /**
+   * Public API
+   */
+  public refresh(): Promise<void> {
+    return this.navigator.refresh();
+  }
+
+  /**
+   * Public API
+   */
+  public back(): Promise<void> {
+    return this.navigator.go(-1);
+  }
+
+  /**
+   * Public API
+   */
+  public forward(): Promise<void> {
+    return this.navigator.go(1);
+  }
+
+  /**
+   * Public API
+   */
+  public go(delta: number): Promise<void> {
+    return this.navigator.go(delta);
+  }
+
+  /**
+   * Public API
+   */
+  public checkActive(instructions: ViewportInstruction[]): boolean {
+    for (const instruction of instructions) {
+      const scopeInstructions: ViewportInstruction[] = this.instructionResolver.matchScope(this.activeComponents, instruction.scope!);
+      const matching: ViewportInstruction[] = scopeInstructions.filter(instr => instr.sameComponent(instruction, true));
+      if (matching.length === 0) {
+        return false;
+      }
+      if (Array.isArray(instruction.nextScopeInstructions)
+        && instruction.nextScopeInstructions.length > 0
+        && this.instructionResolver.matchChildren(
+          instruction.nextScopeInstructions,
+          matching.map(instr => Array.isArray(instr.nextScopeInstructions) ? instr.nextScopeInstructions : []).flat()
+        ) === false) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Public API
+   */
+  public setNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
+    const nav = this.findNav(name);
+    if (nav !== void 0 && nav !== null) {
+      nav.routes = [];
+    }
+    this.addNav(name, routes, classes);
+  }
+  /**
+   * Public API
+   */
+  public addNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
+    let nav = this.navs[name];
+    if (nav === void 0 || nav === null) {
+      nav = this.navs[name] = new Nav(this, name, [], classes);
+    }
+    nav.addRoutes(routes);
+    nav.update();
+  }
+  /**
+   * Public API
+   */
+  public updateNav(name?: string): void {
+    const navs = name
+      ? [name]
+      : Object.keys(this.navs);
+    for (const nav of navs) {
+      if (this.navs[nav] !== void 0 && this.navs[nav] !== null) {
+        this.navs[nav].update();
+      }
     }
   }
-
-  public stop(): void {
-    this.locationMgr.stopListening();
-    this.locationChangeSubscription?.dispose();
+  /**
+   * Public API
+   */
+  public findNav(name: string): Nav {
+    return this.navs[name];
   }
 
   /**
-   * Loads the provided path.
-   *
-   * Examples:
-   *
-   * ```ts
-   * // Use direct routing syntax to goto 'product-detail' with parameter id=37, as a child of the current component, in the next available sibling viewport.
-   * router.goto('+product-detail(id=37)');
-   * // Load the route 'product-detail', as a child of the current component, with child route '37'.
-   * router.goto('product-detail/37', { context: this });
-   * ```
+   * Public API
    */
-  public goto(
-    path: string,
-    options?: INavigationOptions,
-  ): Promise<boolean>;
+  public addRoutes(routes: IRoute[], context?: ICustomElementViewModel | Element): IRoute[] {
+    // TODO: This should add to the context instead
+    // TODO: Add routes without context to rootScope content (which needs to be created)?
+    return [];
+    // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
+    // return viewport.addRoutes(routes);
+  }
   /**
-   * Loads the provided paths as siblings.
-   *
-   * Examples:
-   *
-   * ```ts
-   * router.goto(['book-detail(20)', 'author-detail(11)']);
-   * router.goto(['category/50/product/20', 'widget/30'], { routingMode: 'configured-only' });
-   * router.goto(['category/50/product/20', 'widget(id=30)]);
-   * ```
+   * Public API
    */
-  public goto(
-    paths: readonly string[],
-    options?: INavigationOptions,
-  ): Promise<boolean>;
-  /**
-   * Loads the provided component type. Must be a custom element.
-   *
-   * Examples:
-   *
-   * ```ts
-   * router.goto(ProductList);
-   * router.goto(CustomElement.define({ name: 'greeter', template: 'Hello!' }));
-   * ```
-   */
-  public goto(
-    componentType: RouteType,
-    options?: INavigationOptions,
-  ): Promise<boolean>;
-  /**
-   * Loads the provided component types. Must be custom elements.
-   *
-   * Examples:
-   *
-   * ```ts
-   * router.goto([MemberList, OrganizationList]);
-   * ```
-   */
-  public goto(
-    componentTypes: readonly RouteType[],
-    options?: INavigationOptions,
-  ): Promise<boolean>;
-  /**
-   * Loads the provided component definition. May or may not be pre-compiled.
-   *
-   * Examples:
-   *
-   * ```ts
-   * router.goto({ name: 'greeter', template: 'Hello!' });
-   * ```
-   */
-  public goto(
-    componentDefinition: PartialCustomElementDefinition,
-    options?: INavigationOptions,
-  ): Promise<boolean>;
-  /**
-   * Loads the provided component instance.
-   *
-   * Examples:
-   *
-   * ```ts
-   * // Given an already defined custom element named Greeter
-   * const greeter = new Greeter();
-   * Controller.forCustomElement(greeter, this.lifecycle, null, this.context);
-   * router.goto(greeter);
-   * ```
-   */
-  public goto(
-    componentInstance: IRouteViewModel,
-    options?: INavigationOptions,
-  ): Promise<boolean>;
-  /**
-   * Loads the provided ViewportInstruction, with component specified in any of the ways as described
-   * in the other method overloads, and optional additional properties.
-   *
-   * Examples:
-   *
-   * ```ts
-   * router.goto({ component: 'product-detail', parameters: { id: 37 } })
-   * router.goto({ component: ProductDetail, parameters: { id: 37 } })
-   * router.goto({ component: 'category(id=50)', children: ['product(id=20)'] })
-   * router.goto({ component: 'category(id=50)', children: [{ component: 'product', parameters: { id: 20 } }] })
-   * router.goto({
-   *   component: CustomElement.define({
-   *     name: 'greeter',
-   *     template: 'Hello, ${name}!'
-   *   }, class {
-   *     goto(instruction) {
-   *       this.name = instruction.parameters.name;
-   *     }
-   *   }),
-   *   parameters: { name: 'John' }
-   * })
-   * ```
-   */
-  public goto(
-    viewportInstruction: IViewportInstruction,
-    options?: INavigationOptions,
-  ): Promise<boolean>;
-  public goto(
-    instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
-    options?: INavigationOptions,
-  ): Promise<boolean>;
-  public goto(
-    instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
-    options?: INavigationOptions,
-  ): Promise<boolean> {
-    const instructions = this.createViewportInstructions(instructionOrInstructions, options);
-
-    this.logger.trace(`goto(instructions:${instructions})`);
-
-    return this.enqueue(instructions, 'api', null, null);
+  public removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel | Element): void {
+    // TODO: This should remove from the context instead
+    // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
+    // return viewport.removeRoutes(routes);
   }
 
-  public isActive(
-    instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
-    context: RouteContextLike,
-  ): boolean {
-    const ctx = this.getContext(context);
-    const instructions = this.createViewportInstructions(instructionOrInstructions, { context: ctx });
-
-    this.logger.trace(`isActive(instructions:${instructions},ctx:${ctx})`);
-
-    // TODO: incorporate potential context offset by `../` etc in the instructions
-    return this.routeTree.contains(instructions);
+  /**
+   * Public API
+   */
+  public addHooks(hooks: IHookDefinition[]): HookIdentity[] {
+    return hooks.map(hook => this.addHook(hook.hook, hook.options));
+  }
+  /**
+   * Public API
+   */
+  public addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
+  public addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
+  public addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
+  public addHook(setTitleHookFunction: SetTitleHookFunction, options?: IHookOptions): HookIdentity;
+  public addHook(hookFunction: HookFunction, options?: IHookOptions): HookIdentity;
+  public addHook(hook: HookFunction, options: IHookOptions): HookIdentity {
+    return this.hookManager.addHook(hook, options);
+  }
+  /**
+   * Public API
+   */
+  public removeHooks(hooks: HookIdentity[]): void {
+    return;
   }
 
-  private createViewportInstructions(
-    instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
-    options?: INavigationOptions,
-  ): ViewportInstructionTree {
-    return ViewportInstructionTree.create(
-      instructionOrInstructions,
-      this.getNavigationOptions(options),
-    );
+  /**
+   * Public API - The right way to create ViewportInstructions
+   */
+  public createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: ViewportInstruction[] | null = null): ViewportInstruction {
+    return this.instructionResolver.createViewportInstruction(component, viewport, parameters, ownsScope, nextScopeInstructions);
   }
 
-  private async enqueue(
-    instructions: ViewportInstructionTree,
-    trigger: 'popstate' | 'hashchange' | 'api',
-    managedState: ManagedState | null,
-    failedTransition: Transition | null,
-  ): Promise<boolean> {
-    const lastTransition = this.currentTransition;
-    lastTransition.finalInstructions = this.instructions;
+  private async findInstructions(scope: Scope, instruction: string | ViewportInstruction[], instructionScope: Scope, transformUrl: boolean = false): Promise<FoundRoute> {
+    let route = new FoundRoute();
+    if (typeof instruction === 'string') {
+      instruction = transformUrl
+        ? await this.hookManager.invokeTransformFromUrl(instruction as string, this.processingNavigation as INavigatorInstruction)
+        : instruction;
+      if (Array.isArray(instruction)) {
+        route.instructions = instruction;
+      } else {
+        // TODO: Review this
+        if (instruction === '/') {
+          instruction = '';
+        }
 
-    if (
-      trigger !== 'api' &&
-      lastTransition.trigger === 'api' &&
-      lastTransition.instructions.equals(instructions)
-    ) {
-      // User-triggered navigation that results in `replaceState` with the same URL. The API call already triggered the navigation; event is ignored.
-      this.logger.debug(`Ignoring navigation triggered by '${trigger}' because it is the same URL as the previous navigation which was triggered by 'api'.`);
+        const instructions = this.instructionResolver.parseViewportInstructions(instruction);
+        if (this.options.useConfiguredRoutes && !this.hasSiblingInstructions(instructions)) {
+          const foundRoute = scope.findMatchingRoute(instruction);
+          if (foundRoute !== null && foundRoute.foundConfiguration) {
+            route = foundRoute;
+          } else {
+            if (this.options.useDirectRoutes) {
+              route.instructions = instructions;
+              if (route.instructions.length > 0) {
+                const nextInstructions = route.instructions[0].nextScopeInstructions || [];
+                route.remaining = this.instructionResolver.stringifyViewportInstructions(nextInstructions);
+                route.instructions[0].nextScopeInstructions = null;
+              }
+            }
+          }
+        } else if (this.options.useDirectRoutes) {
+          route.instructions = instructions;
+        }
+      }
+    } else {
+      route.instructions = instruction;
+    }
+
+    for (const instr of route.instructions) {
+      if (instr.scope === null) {
+        instr.scope = instructionScope;
+      }
+    }
+
+    return route;
+  }
+
+  private hasSiblingInstructions(instructions: ViewportInstruction[] | null): boolean {
+    if (instructions === null) {
+      return false;
+    }
+    if (instructions.length > 1) {
       return true;
     }
-
-    let resolve: Exclude<Transition['resolve'], null> = (void 0)!; // Need this initializer because TS doesn't know the promise executor will run synchronously
-    let reject: Exclude<Transition['reject'], null> = (void 0)!;
-    let promise: Exclude<Transition['promise'], null>;
-
-    if (failedTransition === null) {
-      promise = new Promise(function ($resolve, $reject) {
-        resolve = $resolve;
-        reject = $reject;
-      });
-    } else {
-      // Ensure that `await router.goto` only resolves when the transition truly finished, so chain forward on top of
-      // any previously failed transition that caused a recovering backwards navigation.
-      this.logger.debug(`Reusing promise/resolve/reject from the previously failed transition ${failedTransition}`);
-      /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-      promise = failedTransition.promise!;
-      resolve = failedTransition.resolve!;
-      reject = failedTransition.reject!;
-      /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
-    }
-
-    // This is an intentional overwrite: if a new transition is scheduled while the currently scheduled transition hasn't even started yet,
-    // then the currently scheduled transition is effectively canceled/ignored.
-    // This is consistent with the runtime's controller behavior, where if you rapidly call async activate -> deactivate -> activate (for example), then the deactivate is canceled.
-    const nextTransition = this.nextTransition = Transition.create({
-      id: ++this.navigationId,
-      trigger,
-      managedState,
-      prevInstructions: lastTransition.finalInstructions,
-      finalInstructions: instructions,
-      instructionsChanged: !lastTransition.finalInstructions.equals(instructions),
-      instructions,
-      options: instructions.options,
-      promise,
-      resolve,
-      reject,
-      previousRouteTree: this.routeTree.clone(),
-      routeTree: this.routeTree,
-      guardsResult: true,
-    });
-
-    this.logger.debug(`Scheduling transition: ${nextTransition}`);
-
-    if (this.activeNavigation === null) {
-      this.dequeue(nextTransition).catch(function (err) {
-        // Catch any errors that might be thrown by `dequeue` and reject the original promise which is awaited down below
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        nextTransition.reject!(err);
-      });
-    }
-
-    try {
-      // Explicitly await so we can catch, log and re-throw
-      const result = await promise;
-      this.logger.debug(`Transition succeeded: ${nextTransition}`);
-      return result;
-    } catch (err) {
-      this.logger.error(`Navigation failed: ${nextTransition}`, err);
-      throw err;
-    }
+    return instructions.some(instruction => this.hasSiblingInstructions(instruction.nextScopeInstructions));
   }
 
-  private async dequeue(
-    transition: Transition,
-  ): Promise<void> {
-    this.currentTransition = transition;
-    this.nextTransition = null;
+  private appendInstructions(instructions: ViewportInstruction[], scope: Scope | null = null): void {
+    if (scope === null) {
+      scope = this.rootScope!.scope;
+    }
+    for (const instruction of instructions) {
+      if (instruction.scope === null) {
+        instruction.scope = scope;
+      }
+    }
+    this.appendedInstructions.push(...(instructions as ViewportInstruction[]));
+  }
 
-    // Clone it because the prevNavigation could have observers and stuff on it, and it's meant to be a standalone snapshot from here on.
-    const prevNavigation = this.lastSuccessfulNavigation === null ? null : Navigation.create({
-      ...this.lastSuccessfulNavigation,
-      // There could be arbitrary state stored on a navigation, so to prevent memory leaks we only keep one `prevNavigation` around
-      prevNavigation: null,
-    });
+  private checkStale(name: string, instructions: ViewportInstruction[]): boolean {
+    const staleCheck = this.staleChecks[name];
+    if (staleCheck === void 0) {
+      this.staleChecks[name] = instructions.slice();
+      return false;
+    }
+    if (staleCheck.length !== instructions.length) {
+      this.staleChecks[name] = instructions.slice();
+      return false;
+    }
+    for (let i = 0, ii = instructions.length; i < ii; i++) {
+      if (staleCheck[i] !== instructions[i]) {
+        this.staleChecks[name] = instructions.slice();
+        return false;
+      }
+    }
+    return true;
+  }
 
-    this.activeNavigation = Navigation.create({
-      id: transition.id,
-      instructions: transition.instructions,
-      trigger: transition.trigger,
-      options: transition.options,
-      prevNavigation,
-      finalInstructions: transition.finalInstructions,
-    });
-
-    const routeChanged = !transition.instructions.equals(this.instructions);
-    const shouldProcessRoute = routeChanged || transition.options.getSameUrlStrategy(this.instructions) === 'reload';
-
-    if (!shouldProcessRoute) {
-      this.logger.trace(() => `dequeue(transition:${transition}) - NOT processing route`);
-
-      this.navigated = true;
-      this.activeNavigation = null;
-
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      transition.resolve!(false);
-
-      this.runNextTransition(transition);
+  private unknownRoute(route: string) {
+    if (typeof route !== 'string' || route.length === 0) {
       return;
     }
-
-    this.logger.trace(() => `dequeue(transition:${transition}) - processing route`);
-
-    this.events.publish(new NavigationStartEvent(
-      transition.id,
-      transition.instructions,
-      transition.trigger,
-      transition.managedState,
-    ));
-
-    // If user triggered a new transition in response to the NavigationStartEvent
-    // (in which case `this.nextTransition` will NOT be null), we short-circuit here and go straight to processing the next one.
-    if (this.nextTransition !== null) {
-      this.logger.debug(() => `dequeue(transition:${transition}) - aborting because a new transition was queued in response to the NavigationStartEvent`);
-      return this.dequeue(this.nextTransition);
-    }
-
-    const navigationContext = this.getContext(transition.options.context);
-
-    // TODO: apply redirects
-    //
-    //
-    // ---
-
-    this.activeNavigation = Navigation.create({
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      ...this.activeNavigation!,
-      // After redirects are applied, this could be a different route
-      finalInstructions: transition.finalInstructions,
-    });
-
-    // TODO: run global guards
-    //
-    //
-    // ---
-
-    RouteTreeCompiler.compileRoot(this.routeTree, transition.finalInstructions, navigationContext);
-    this.instructions = transition.finalInstructions;
-
-    return onResolve(this.runLifecycles(
-      transition,
-      transition.previousRouteTree.root.children,
-      transition.routeTree.root.children,
-    ), () => {
-      let residueResult: void | Promise<void>;
-      switch (transition.options.resolutionStrategy) {
-        case 'static':
-          // In static mode there *should* never be a residue, so just in case, check the tree and throw if there is, so we don't
-          // get potential weird silent failures
-          residueResult = void 0;
-          transition.routeTree.root.children.forEach(function visit(child) {
-            if (child.residue.length > 0) {
-              throw new Error(`Unexpected residue: ${child}`);
-            } else {
-              child.children.forEach(visit);
-            }
-          });
-          break;
-        case 'dynamic':
-          residueResult = resolveAll(transition.routeTree.root.children.map((child, i) => {
-            return this.processResidue(transition, child, i, 1);
-          }));
-          break;
-      }
-      return onResolve(residueResult, () => {
-        this.logger.trace(() => `dequeue() - finished processResidue, finalizing transition`);
-
-        walkViewportTree(
-          [
-            ...transition.previousRouteTree.root.children,
-            ...transition.routeTree.root.children,
-          ],
-          function (viewport) {
-            viewport.endTransition(transition);
-          }
-        );
-
-        this.navigated = true;
-        this.events.publish(new NavigationEndEvent(
-          transition.id,
-          transition.instructions,
-          this.
-          instructions,
-        ));
-        this.lastSuccessfulNavigation = this.activeNavigation;
-        this.activeNavigation = null;
-        this.applyHistoryState(transition);
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        transition.resolve!(true);
-
-        this.runNextTransition(transition);
-      });
-    });
-  }
-
-  /**
-   * See if there is any residue, and recurse through them invoking canEnter -> enter -> Controller.activate, if applicable
-   *
-   * NOTE: there are two "modes" with important differences in semantics from this point onwards: "new" and "old" (the latter mimicking the way v1 worked).
-   *
-   * In "old" mode, lifecycles happen in separate phases, one at a time, but this means that all router lifecycles must happen
-   * before any runtime lifecycles happen. In this mode, if we arrived here, we are done.
-   *
-   * In "new" mode, child components are only loaded (and have their hooks invoked) after their parents have had their runtime hooks
-   * (bind, attach) invoked. In this mode, if we arrived here, there may still be residue (in which case "new" mode is implied) and aforementioned
-   * recurse through canEnter -> enter -> Controller.activate
-   */
-  private processResidue(
-    transition: Transition,
-    node: RouteNode,
-    // index and depth are solely to more easily keep track of where we are in the tree, for debugging/tracing purposes
-    index: number,
-    depth: number,
-  ): void | Promise<void> {
-    this.logger.trace(() => `processResidue(index:${index},depth:${depth},node:${node})`);
-
-    const ctx = node.context;
-    if (ctx === null) {
-      throw new Error(`Unexpected null context at ${node}`);
-    }
-
-    RouteTreeCompiler.compileResidue(this.routeTree, transition.finalInstructions, ctx);
-
-    return onResolve(this.runLifecycles(transition, node.children, node.children), () => {
-      return resolveAll(node.children.map((child, i) => {
-        return this.processResidue(transition, child, i, depth + 1);
-      }));
-    });
-  }
-
-  private runLifecycles(
-    transition: Transition,
-    previous: RouteNode[],
-    next: RouteNode[],
-  ): void | Promise<void> {
-    /**
-     * Step 1 - run the canLeave hook on the previous nodes
-     */
-    this.logger.trace(() => `runLifecycles() - starting [canLeave] on previous`);
-    return onResolve(walkViewportTree(
-      previous,
-      function (viewport) {
-        return viewport.canLeave(transition);
-      }
-    ), () => {
-      /**
-       * Step 1.1 - if any of the canLeave hooks returned something other than `true`, we cancel the navigation
-       */
-      if (transition.guardsResult !== true) {
-        return this.cancelNavigation(transition);
-      }
-
-      this.logger.trace(() => `runLifecycles() - finished [canLeave] on previous, starting [canEnter] on next`);
-
-      /**
-       * Step 2 - run the canEnter hook on the current nodes
-       */
-      return onResolve(walkViewportTree(
-        next,
-        function (viewport) {
-          return viewport.canEnter(transition);
-        }
-      ), () => {
-        /**
-         * Step 2.1 - if any of the canEnter hooks returned something other than `true`, we cancel the navigation
-         */
-        if (transition.guardsResult !== true) {
-          return this.cancelNavigation(transition);
-        }
-
-        this.logger.trace(() => `runLifecycles() - finished [canEnter] on next, starting [leave] on previous`);
-
-        /**
-         * Step 3 - run the leave hook on the previous nodes
-         */
-        return onResolve(walkViewportTree(
-          previous,
-          function (viewport) {
-            return viewport.leave(transition);
-          }
-        ), () => {
-          this.logger.trace(() => `runLifecycles() - finished [leave] on previous, starting [enter] on next`);
-
-          /**
-           * Step 4 - run the enter hook on the current nodes
-           */
-          return onResolve(walkViewportTree(
-            next,
-            function (viewport) {
-              return viewport.enter(transition);
-            }
-          ), () => {
-            this.logger.trace(() => `runLifecycles() - finished [enter] on next, starting [swap] on previous&next`);
-
-            /**
-             * Step 5 - run the deactivate hooks on all "outgoing" components and the activate hooks on all "incoming" components for all known viewports
-             */
-            return onResolve(walkViewportTree(
-              [
-                ...next,
-                ...previous,
-              ],
-              function (viewport) {
-                return viewport.swap(transition);
-              }
-            ), () => {
-              this.logger.trace(() => `runLifecycles() - finished [swap] on previous&next`);
-            });
-          });
-        });
-      });
-    });
-  }
-
-  private applyHistoryState(
-    transition: Transition,
-  ): void {
-    switch (transition.options.getHistoryStrategy(this.instructions)) {
-      case 'none':
-        // do nothing
-        break;
-      case 'push':
-        this.locationMgr.pushState(
-          toManagedState(transition.options.state, transition.id),
-          transition.options.title ?? '',
-          transition.finalInstructions.toUrl(),
-        );
-        break;
-      case 'replace':
-        this.locationMgr.replaceState(
-          toManagedState(transition.options.state, transition.id),
-          transition.options.title ?? '',
-          transition.finalInstructions.toUrl(),
-        );
-        break;
-    }
-  }
-
-  private cancelNavigation(
-    transition: Transition,
-  ): void | Promise<void> {
-    this.logger.trace(() => `cancelNavigation(transition:${transition})`);
-
-    walkViewportTree(
-      [
-        ...transition.previousRouteTree.root.children,
-        ...transition.routeTree.root.children,
-      ],
-      function (viewport) {
-        viewport.cancelUpdate();
-      },
-    );
-
-    this.activeNavigation = null;
-    this.instructions = transition.prevInstructions;
-    this._routeTree = transition.previousRouteTree;
-    this.events.publish(new NavigationCancelEvent(
-      transition.id,
-      transition.instructions,
-      `guardsResult is ${transition.guardsResult}`,
-    ));
-
-    if (transition.guardsResult === false) {
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      transition.resolve!(false);
-
-      // In case a new navigation was requested in the meantime, immediately start processing it
-      this.runNextTransition(transition);
+    if (this.options.useConfiguredRoutes && this.options.useDirectRoutes) {
+      // TODO: Add missing/unknown route handling
+      throw new Error("No matching configured route or component found for '" + route + "'");
+    } else if (this.options.useConfiguredRoutes) {
+      // TODO: Add missing/unknown route handling
+      throw new Error("No matching configured route found for '" + route + "'");
     } else {
-      return onResolve(
-        this.enqueue(transition.guardsResult as ViewportInstructionTree, 'api', transition.managedState, transition),
-        () => {
-          this.logger.trace(() => `cancelNavigation(transition:${transition}) - finished redirect`);
-        },
-      );
+      // TODO: Add missing/unknown route handling
+      throw new Error("No matching route/component found for '" + route + "'");
     }
   }
 
-  private runNextTransition(
-    transition: Transition,
-  ): void {
-    if (this.nextTransition !== null) {
-      this.logger.trace(() => `runNextTransition(transition:${transition}) -> scheduling nextTransition: ${this.nextTransition}`);
-      this.scheduler.queueMacroTask(
-        () => {
-          // nextTransition is allowed to change up until the point when it's actually time to process it,
-          // so we need to check it for null again when the scheduled task runs.
-          const $nextTransition = this.nextTransition;
-          if ($nextTransition !== null) {
-            this.dequeue($nextTransition).catch(function (reason) {
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-              $nextTransition.reject!(reason);
-            });
-          }
-        },
-      );
+  private findViewports(instructions: ViewportInstruction[], alreadyFound: ViewportInstruction[], withoutViewports: boolean = false): { found: ViewportInstruction[]; remaining: ViewportInstruction[] } {
+    const found: ViewportInstruction[] = [];
+    const remaining: ViewportInstruction[] = [];
+
+    while (instructions.length) {
+      if (instructions[0].scope === null) {
+        instructions[0].scope = this.rootScope!.scope;
+      }
+      const scope: Scope = instructions[0].scope!;
+      const { foundViewports, remainingInstructions } = scope.findViewports(instructions.filter(instruction => instruction.scope === scope), alreadyFound, withoutViewports);
+      found.push(...foundViewports);
+      remaining.push(...remainingInstructions);
+      instructions = instructions.filter(instruction => instruction.scope !== scope);
     }
+    return { found: found.slice(), remaining };
   }
 
-  private getNavigationOptions(options?: INavigationOptions): NavigationOptions {
-    return NavigationOptions.create({
-      ...this.options,
-      ...options,
+  private async cancelNavigation(updatedScopeOwners: IScopeOwner[], qInstruction: QueueItem<Navigation>): Promise<void> {
+    // TODO: Take care of disabling viewports when cancelling and stateful!
+    updatedScopeOwners.forEach((viewport) => {
+      viewport.abortContentChange().catch(error => { throw error; });
     });
+    await this.navigator.cancel(qInstruction as Navigation);
+    this.processingNavigation = null;
+    (qInstruction.resolve as ((value: void | PromiseLike<void>) => void))();
+  }
+
+  private ensureRootScope(): ViewportScope {
+    if (!this.rootScope) {
+      const root = this.container.get(Aurelia).root;
+      // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
+      this.rootScope = new ViewportScope('rootScope', this, root.config.host as Element, null, true, root.config.component as CustomElementType);
+    }
+    return this.rootScope!;
+  }
+
+  private async replacePaths(instruction: Navigation): Promise<void> {
+    (this.rootScope as ViewportScope).scope.reparentViewportInstructions();
+    let instructions: ViewportInstruction[] = (this.rootScope as ViewportScope).scope.hoistedChildren
+      .filter(scope => scope.viewportInstruction !== null && !scope.viewportInstruction.isEmpty())
+      .map(scope => scope.viewportInstruction) as ViewportInstruction[];
+    instructions = this.instructionResolver.cloneViewportInstructions(instructions, true);
+
+    // The following makes sure right viewport/viewport scopes are set and update
+    // whether viewport name is necessary or not
+    const alreadyFound: ViewportInstruction[] = [];
+    let { found, remaining } = this.findViewports(instructions, alreadyFound, true);
+    let guard = 100;
+    while (remaining.length > 0) {
+      // Guard against endless loop
+      if (guard-- === 0) {
+        throw new Error('Failed to find viewport when updating viewer paths.');
+      }
+      alreadyFound.push(...found);
+      ({ found, remaining } = this.findViewports(remaining, alreadyFound, true));
+    }
+
+    this.activeComponents = instructions;
+    this.activeRoute = instruction.route;
+
+    // First invoke with viewport instructions (should it perhaps get full state?)
+    let state = await this.hookManager.invokeTransformToUrl(instructions, instruction);
+    if (typeof state !== 'string') {
+      // Convert to string if necessary
+      state = this.instructionResolver.stringifyViewportInstructions(state, false, true);
+    }
+    // Invoke again with string
+    state = await this.hookManager.invokeTransformToUrl(state, instruction);
+
+    const query = (instruction.query && instruction.query.length ? "?" + instruction.query : '');
+    // if (instruction.path === void 0 || instruction.path.length === 0 || instruction.path === '/') {
+    instruction.path = state + query;
+    // }
+
+    const fullViewportStates = [this.createViewportInstruction(this.instructionResolver.clearViewportInstruction)];
+    fullViewportStates.push(...this.instructionResolver.cloneViewportInstructions(instructions, this.statefulHistory));
+    instruction.fullStateInstruction = fullViewportStates;
+
+    if ((instruction.title ?? null) === null) {
+      const title = await this.getTitle(instructions, instruction);
+      if (title !== null) {
+        instruction.title = title;
+      }
+    }
+
+    return Promise.resolve();
+  }
+
+  private async getTitle(instructions: ViewportInstruction[], instruction: Navigation): Promise<string | null> {
+    // First invoke with viewport instructions
+    let title: string | ViewportInstruction[] = await this.hookManager.invokeSetTitle(instructions, instruction);
+    if (typeof title !== 'string') {
+      // Hook didn't return a title, so run title logic
+      const componentTitles = this.stringifyTitles(title, instruction);
+
+      title = this.options.title.appTitle;
+      title = title.replace("${componentTitles}", componentTitles);
+      title = title.replace("${appTitleSeparator}",
+        componentTitles !== ''
+          ? this.options.title.appTitleSeparator
+          : '');
+    }
+    // Invoke again with complete string
+    title = await this.hookManager.invokeSetTitle(title, instruction);
+
+    return title as string;
+  }
+
+  private stringifyTitles(instructions: ViewportInstruction[], navigationInstruction: Navigation): string {
+    const titles = instructions
+      .map(instruction => this.stringifyTitle(instruction, navigationInstruction))
+      .filter(instruction => (instruction?.length ?? 0) > 0);
+
+    return titles.join(' + ');
+  }
+
+  private stringifyTitle(instruction: ViewportInstruction | string, navigationInstruction: Navigation): string {
+    if (typeof instruction === 'string') {
+      return this.resolveTitle(instruction, navigationInstruction);
+    }
+    const route = instruction.route ?? null;
+    const nextInstructions: ViewportInstruction[] | null = instruction.nextScopeInstructions;
+    let stringified: string = '';
+    // It's a configured route
+    if (route !== null) {
+      // Already added as part of a configuration, skip to next scope
+      if (route === '') {
+        return Array.isArray(nextInstructions)
+          ? this.stringifyTitles(nextInstructions, navigationInstruction)
+          : '';
+      } else {
+        stringified += this.resolveTitle(route, navigationInstruction);
+      }
+    } else {
+      stringified += this.resolveTitle(instruction, navigationInstruction);
+    }
+    if (Array.isArray(nextInstructions) && nextInstructions.length > 0) {
+      let nextStringified: string = this.stringifyTitles(nextInstructions, navigationInstruction);
+      if (nextStringified.length > 0) {
+        if (nextInstructions.length !== 1) { // TODO: This should really also check that the instructions have value
+          nextStringified = "[ " + nextStringified + " ]";
+        }
+        if (stringified.length > 0) {
+          stringified = this.options.title.componentTitleOrder === 'top-down'
+            ? stringified + this.options.title.componentTitleSeparator + nextStringified
+            : nextStringified + this.options.title.componentTitleSeparator + stringified;
+        } else {
+          stringified = nextStringified;
+        }
+      }
+    }
+    return stringified;
+  }
+
+  private resolveTitle(instruction: string | ViewportInstruction | FoundRoute, navigationInstruction: Navigation): string {
+    let title = '';
+    if (typeof instruction === 'string') {
+      title = instruction;
+    } else if (instruction instanceof ViewportInstruction) {
+      return instruction.viewport!.getTitle(navigationInstruction);
+    } else if (instruction instanceof FoundRoute) {
+      const routeTitle = instruction.match?.title;
+      if (routeTitle !== void 0) {
+        if (typeof routeTitle === 'string') {
+          title = routeTitle;
+        } else {
+          title = routeTitle.call(instruction, instruction, navigationInstruction);
+        }
+      }
+    }
+    if (this.options.title.transformTitle !== void 0) {
+      title = this.options.title.transformTitle.call(this, title, instruction);
+    }
+    return title;
+  }
+
+  private async freeComponents(instruction: ViewportInstruction, excludeComponents: IRouteableComponent[], alreadyDone: IRouteableComponent[]): Promise<void> {
+    const component = instruction.componentInstance;
+    const viewport = instruction.viewport;
+    if (component === null || viewport === null || alreadyDone.some(done => done === component)) {
+      return;
+    }
+    if (!excludeComponents.some(exclude => exclude === component)) {
+      await viewport.freeContent(component);
+      alreadyDone.push(component);
+      return;
+    }
+    if (instruction.nextScopeInstructions !== null) {
+      for (const nextInstruction of instruction.nextScopeInstructions) {
+        await this.freeComponents(nextInstruction, excludeComponents, alreadyDone);
+      }
+    }
+  }
+
+  private getClosestContainer(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController): IContainer | null {
+    if ('context' in viewModelOrElement) {
+      return viewModelOrElement.context;
+    }
+
+    if ('$controller' in viewModelOrElement) {
+      return viewModelOrElement.$controller!.context;
+    }
+    const controller = this.CustomElementFor(viewModelOrElement);
+
+    if (controller === void 0) {
+      return null;
+    }
+
+    return controller.context;
+  }
+
+  private getContainer(viewModelOrContainer: ICustomElementViewModel | IContainer): IContainer | null {
+    if ('resourceResolvers' in viewModelOrContainer) {
+      return viewModelOrContainer;
+    }
+
+    if (isRenderContext(viewModelOrContainer)) {
+      return viewModelOrContainer.get(IContainer);
+    }
+
+    if ('$controller' in viewModelOrContainer) {
+      return viewModelOrContainer.$controller!.context.get(IContainer);
+    }
+
+    return null;
+  }
+
+  // TODO: This is probably wrong since it caused test fails when in CustomElement.for
+  // Fred probably knows and will need to look at it
+  // This can most likely also be changed so that the node traversal isn't necessary
+  private CustomElementFor(node: INode): ICustomElementController | undefined {
+    let cur: INode | null = node;
+    while (cur !== null) {
+      const nodeResourceName: string = (cur as Element).nodeName.toLowerCase();
+      const controller: ICustomElementController = Metadata.getOwn(CustomElement.name + ":" + nodeResourceName, cur)
+        || Metadata.getOwn(CustomElement.name, cur);
+      if (controller !== void 0) {
+        return controller;
+      }
+      cur = DOM.getEffectiveParentNode(cur);
+    }
+    return (void 0);
   }
 }

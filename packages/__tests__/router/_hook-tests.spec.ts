@@ -27,32 +27,45 @@ function getDefaultHIAConfig(): IHIAConfig {
   };
 }
 
-function getDefaultRouterOptions(): IRouterOptions {
-  return {};
-}
+// function getDefaultRouterOptions(): IRouterOptions {
+//   return {};
+// }
 
 describe('router hooks', function () {
   const strategies = [
-    'static',
+    // 'static',
     'dynamic',
   ] as const;
 
   const timings = [
-    'sync',
+    // 'sync',
     'async1',
-    'async2',
+    // 'async2',
   ] as const;
 
   for (const strategy of strategies) {
     const getRouterOptions = (): IRouterOptions => {
       return {
-        resolutionStrategy: strategy,
+        // resolutionStrategy: strategy,
+        useUrlFragmentHash: true,
+        useHref: true,
+        statefulHistoryLength: 0,
+        useDirectRoutes: true,
+        useConfiguredRoutes: true,
+        title: {
+          appTitle: "${componentTitles}\${appTitleSeparator}Aurelia",
+          appTitleSeparator: ' | ',
+          componentTitleOrder: 'top-down',
+          componentTitleSeparator: ' > ',
+          useComponentNames: true,
+          componentPrefix: 'app-',
+        }
       };
     };
 
     describe(`strategy: '${strategy}'`, function () {
       for (const timing of timings) {
-        const async = timing !== 'sync';
+        const async = true; // timing !== 'sync';
 
         const $hookSpecs = HookSpecs.create({
           beforeBind: hookSpecs.beforeBind[timing],
@@ -192,46 +205,46 @@ describe('router hooks', function () {
             for (const [[$1$0, $1$1], [$2$0, $2$1]] of [
               // Only $0 changes with every nav
               [['a01', 'a02'], ['a03', 'a02']],
-              [[''   , 'a02'], ['a03', 'a02']],
-              [['a01', 'a02'], [''   , 'a02']],
+              [['', 'a02'], ['a03', 'a02']],
+              [['a01', 'a02'], ['', 'a02']],
 
               [['a01', 'a02'], ['a02', 'a02']],
-              [[''   , 'a02'], ['a02', 'a02']],
-              [['a01', 'a02'], [''   , 'a02']],
+              [['', 'a02'], ['a02', 'a02']],
+              [['a01', 'a02'], ['', 'a02']],
 
               [['a02', 'a02'], ['a01', 'a02']],
-              [[''   , 'a02'], ['a01', 'a02']],
-              [['a02', 'a02'], [''   , 'a02']],
+              [['', 'a02'], ['a01', 'a02']],
+              [['a02', 'a02'], ['', 'a02']],
               // Only $1 changes with every nav
               [['a01', 'a02'], ['a01', 'a03']],
-              [['a01', ''   ], ['a01', 'a03']],
-              [['a01', 'a02'], ['a01', ''   ]],
+              [['a01', ''], ['a01', 'a03']],
+              [['a01', 'a02'], ['a01', '']],
 
               [['a01', 'a02'], ['a01', 'a01']],
-              [['a01', ''   ], ['a01', 'a01']],
-              [['a01', 'a02'], ['a01', ''   ]],
+              [['a01', ''], ['a01', 'a01']],
+              [['a01', 'a02'], ['a01', '']],
 
               [['a01', 'a01'], ['a01', 'a02']],
-              [['a01', ''   ], ['a01', 'a02']],
-              [['a01', 'a01'], ['a01', ''   ]],
+              [['a01', ''], ['a01', 'a02']],
+              [['a01', 'a01'], ['a01', '']],
               // Both $0 and $1 change with every nav
               [['a01', 'a02'], ['a03', 'a04']],
-              [[''   , 'a02'], ['a03', 'a04']],
-              [['a01', ''   ], ['a03', 'a04']],
-              [['a01', 'a02'], [''   , 'a04']],
-              [['a01', 'a02'], ['a03', ''   ]],
+              [['', 'a02'], ['a03', 'a04']],
+              [['a01', ''], ['a03', 'a04']],
+              [['a01', 'a02'], ['', 'a04']],
+              [['a01', 'a02'], ['a03', '']],
 
               [['a01', 'a02'], ['a02', 'a01']],
-              [[''   , 'a02'], ['a02', 'a01']],
-              [['a01', ''   ], ['a02', 'a01']],
-              [['a01', 'a02'], [''   , 'a01']],
-              [['a01', 'a02'], ['a02', ''   ]],
+              [['', 'a02'], ['a02', 'a01']],
+              [['a01', ''], ['a02', 'a01']],
+              [['a01', 'a02'], ['', 'a01']],
+              [['a01', 'a02'], ['a02', '']],
 
               [['a01', 'a02'], ['a04', 'a01']],
-              [[''   , 'a02'], ['a04', 'a01']],
-              [['a01', ''   ], ['a04', 'a01']],
-              [['a01', 'a02'], [''   , 'a01']],
-              [['a01', 'a02'], ['a04', ''   ]],
+              [['', 'a02'], ['a04', 'a01']],
+              [['a01', ''], ['a04', 'a01']],
+              [['a01', 'a02'], ['', 'a01']],
+              [['a01', 'a02'], ['a04', '']],
             ]) {
               const $1 = join('+', `${$1$0}@$0`, `${$1$1}@$1`);
               const $2 = join('+', `${$2$0}@$0`, `${$2$1}@$1`);
@@ -294,26 +307,26 @@ describe('router hooks', function () {
               [['a12', 'a12'], ['a11', 'a12']],
               // Only child changes with every nav
               [['a11', 'a01'], ['a11', 'a02']],
-              [['a11', ''   ], ['a11', 'a02']],
-              [['a11', 'a01'], ['a11', ''   ]],
+              [['a11', ''], ['a11', 'a02']],
+              [['a11', 'a01'], ['a11', '']],
 
               [['a11', 'a11'], ['a11', 'a02']],
-              [['a11', 'a11'], ['a11', ''   ]],
+              [['a11', 'a11'], ['a11', '']],
 
               [['a11', 'a01'], ['a11', 'a11']],
-              [['a11', ''   ], ['a11', 'a11']],
+              [['a11', ''], ['a11', 'a11']],
               // Both parent and child change with every nav
               [['a11', 'a01'], ['a12', 'a02']],
-              [['a11', ''   ], ['a12', 'a02']],
-              [['a11', 'a01'], ['a12', ''   ]],
+              [['a11', ''], ['a12', 'a02']],
+              [['a11', 'a01'], ['a12', '']],
 
               [['a11', 'a11'], ['a12', 'a02']],
               [['a11', 'a11'], ['a12', 'a12']],
-              [['a11', 'a11'], ['a12', ''   ]],
+              [['a11', 'a11'], ['a12', '']],
 
               [['a12', 'a02'], ['a11', 'a11']],
               [['a12', 'a12'], ['a11', 'a11']],
-              [['a12', ''   ], ['a11', 'a11']],
+              [['a12', ''], ['a11', 'a11']],
 
               [['a11', 'a12'], ['a13', 'a14']],
               [['a11', 'a12'], ['a13', 'a11']],
@@ -511,80 +524,80 @@ describe('router hooks', function () {
                 );
                 break;
               }
-              case 'static': {
-                assert.deepStrictEqual(
-                  hia.notifyHistory,
-                  [
-                    `start.root.beforeBind`,
-                    `start.root.afterBind`,
-                    `start.root.afterAttach`,
-                    `start.root.afterAttachChildren`,
+              // case 'static': {
+              //   assert.deepStrictEqual(
+              //     hia.notifyHistory,
+              //     [
+              //       `start.root.beforeBind`,
+              //       `start.root.afterBind`,
+              //       `start.root.afterAttach`,
+              //       `start.root.afterAttachChildren`,
 
-                    `('' -> 'a/b/c/d').a.canEnter`,
-                    `('' -> 'a/b/c/d').b.canEnter`,
-                    `('' -> 'a/b/c/d').c.canEnter`,
-                    `('' -> 'a/b/c/d').d.canEnter`,
+              //       `('' -> 'a/b/c/d').a.canEnter`,
+              //       `('' -> 'a/b/c/d').b.canEnter`,
+              //       `('' -> 'a/b/c/d').c.canEnter`,
+              //       `('' -> 'a/b/c/d').d.canEnter`,
 
-                    `('' -> 'a/b/c/d').a.enter`,
-                    `('' -> 'a/b/c/d').b.enter`,
-                    `('' -> 'a/b/c/d').c.enter`,
-                    `('' -> 'a/b/c/d').d.enter`,
+              //       `('' -> 'a/b/c/d').a.enter`,
+              //       `('' -> 'a/b/c/d').b.enter`,
+              //       `('' -> 'a/b/c/d').c.enter`,
+              //       `('' -> 'a/b/c/d').d.enter`,
 
-                    `('' -> 'a/b/c/d').a.beforeBind`,
-                    `('' -> 'a/b/c/d').a.afterBind`,
-                    `('' -> 'a/b/c/d').a.afterAttach`,
-                    `('' -> 'a/b/c/d').b.beforeBind`,
-                    `('' -> 'a/b/c/d').b.afterBind`,
-                    `('' -> 'a/b/c/d').b.afterAttach`,
-                    `('' -> 'a/b/c/d').c.beforeBind`,
-                    `('' -> 'a/b/c/d').c.afterBind`,
-                    `('' -> 'a/b/c/d').c.afterAttach`,
-                    `('' -> 'a/b/c/d').d.beforeBind`,
-                    `('' -> 'a/b/c/d').d.afterBind`,
-                    `('' -> 'a/b/c/d').d.afterAttach`,
-                    `('' -> 'a/b/c/d').d.afterAttachChildren`,
-                    `('' -> 'a/b/c/d').c.afterAttachChildren`,
-                    `('' -> 'a/b/c/d').b.afterAttachChildren`,
-                    `('' -> 'a/b/c/d').a.afterAttachChildren`,
+              //       `('' -> 'a/b/c/d').a.beforeBind`,
+              //       `('' -> 'a/b/c/d').a.afterBind`,
+              //       `('' -> 'a/b/c/d').a.afterAttach`,
+              //       `('' -> 'a/b/c/d').b.beforeBind`,
+              //       `('' -> 'a/b/c/d').b.afterBind`,
+              //       `('' -> 'a/b/c/d').b.afterAttach`,
+              //       `('' -> 'a/b/c/d').c.beforeBind`,
+              //       `('' -> 'a/b/c/d').c.afterBind`,
+              //       `('' -> 'a/b/c/d').c.afterAttach`,
+              //       `('' -> 'a/b/c/d').d.beforeBind`,
+              //       `('' -> 'a/b/c/d').d.afterBind`,
+              //       `('' -> 'a/b/c/d').d.afterAttach`,
+              //       `('' -> 'a/b/c/d').d.afterAttachChildren`,
+              //       `('' -> 'a/b/c/d').c.afterAttachChildren`,
+              //       `('' -> 'a/b/c/d').b.afterAttachChildren`,
+              //       `('' -> 'a/b/c/d').a.afterAttachChildren`,
 
-                    `('a/b/c/d' -> 'a').b.canLeave`,
-                    `('a/b/c/d' -> 'a').c.canLeave`,
-                    `('a/b/c/d' -> 'a').d.canLeave`,
+              //       `('a/b/c/d' -> 'a').b.canLeave`,
+              //       `('a/b/c/d' -> 'a').c.canLeave`,
+              //       `('a/b/c/d' -> 'a').d.canLeave`,
 
-                    `('a/b/c/d' -> 'a').b.leave`,
-                    `('a/b/c/d' -> 'a').c.leave`,
-                    `('a/b/c/d' -> 'a').d.leave`,
+              //       `('a/b/c/d' -> 'a').b.leave`,
+              //       `('a/b/c/d' -> 'a').c.leave`,
+              //       `('a/b/c/d' -> 'a').d.leave`,
 
-                    `('a/b/c/d' -> 'a').b.beforeDetach`,
-                    `('a/b/c/d' -> 'a').b.beforeUnbind`,
-                    `('a/b/c/d' -> 'a').b.afterUnbind`,
-                    `('a/b/c/d' -> 'a').c.beforeDetach`,
-                    `('a/b/c/d' -> 'a').c.beforeUnbind`,
-                    `('a/b/c/d' -> 'a').c.afterUnbind`,
-                    `('a/b/c/d' -> 'a').d.beforeDetach`,
-                    `('a/b/c/d' -> 'a').d.beforeUnbind`,
-                    `('a/b/c/d' -> 'a').d.afterUnbind`,
-                    `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
-                    `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
-                    `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
-                    `('a/b/c/d' -> 'a').b.dispose`,
-                    `('a/b/c/d' -> 'a').c.dispose`,
-                    `('a/b/c/d' -> 'a').d.dispose`,
+              //       `('a/b/c/d' -> 'a').b.beforeDetach`,
+              //       `('a/b/c/d' -> 'a').b.beforeUnbind`,
+              //       `('a/b/c/d' -> 'a').b.afterUnbind`,
+              //       `('a/b/c/d' -> 'a').c.beforeDetach`,
+              //       `('a/b/c/d' -> 'a').c.beforeUnbind`,
+              //       `('a/b/c/d' -> 'a').c.afterUnbind`,
+              //       `('a/b/c/d' -> 'a').d.beforeDetach`,
+              //       `('a/b/c/d' -> 'a').d.beforeUnbind`,
+              //       `('a/b/c/d' -> 'a').d.afterUnbind`,
+              //       `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
+              //       `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
+              //       `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
+              //       `('a/b/c/d' -> 'a').b.dispose`,
+              //       `('a/b/c/d' -> 'a').c.dispose`,
+              //       `('a/b/c/d' -> 'a').d.dispose`,
 
-                    `stop.root.beforeDetach`,
-                    `stop.root.beforeUnbind`,
-                    `stop.root.afterUnbind`,
+              //       `stop.root.beforeDetach`,
+              //       `stop.root.beforeUnbind`,
+              //       `stop.root.afterUnbind`,
 
-                    `stop.a.beforeDetach`,
-                    `stop.a.beforeUnbind`,
-                    `stop.a.afterUnbind`,
-                    `stop.a.afterUnbindChildren`,
+              //       `stop.a.beforeDetach`,
+              //       `stop.a.beforeUnbind`,
+              //       `stop.a.afterUnbind`,
+              //       `stop.a.afterUnbindChildren`,
 
-                    `stop.root.afterUnbindChildren`,
-                  ],
-                );
-                break;
-              }
+              //       `stop.root.afterUnbindChildren`,
+              //     ],
+              //   );
+              //   break;
+              // }
             }
 
             hia.dispose();

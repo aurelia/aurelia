@@ -39,5 +39,5 @@ function initializeBrowserTestContext(): void {
 
 initializeBrowserTestContext();
 
-const testContext = require.context('.', true, /router.*?\.spec\.js$/i);
+const testContext = require.context('.', true, /router\/[^_].*?\.spec\.js$/i);
 testContext.keys().forEach(testContext);

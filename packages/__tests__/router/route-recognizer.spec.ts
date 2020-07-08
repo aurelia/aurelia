@@ -1,4 +1,4 @@
-import { Endpoint, RecognizedRoute, RouteRecognizer, RouteDefinition } from '@aurelia/router';
+import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer } from '@aurelia/route-recognizer';
 import { assert } from '@aurelia/testing';
 
 describe(RouteRecognizer.name, function () {
@@ -2694,7 +2694,7 @@ describe(RouteRecognizer.name, function () {
 
               it(title, function () {
                 // Arrange
-                const sut = new RouteRecognizer([]);
+                const sut = new RouteRecognizer();
 
                 // Act
                 const actual = sut.recognize(path);
@@ -2708,15 +2708,17 @@ describe(RouteRecognizer.name, function () {
 
               it(title, function () {
                 // Arrange
-                const sut = new RouteRecognizer([]);
+                const sut = new RouteRecognizer();
                 for (const route of routes) {
-                  sut.add({ path: route } as unknown as RouteDefinition, false);
+                  sut.add({ path: route, handler: null });
                 }
 
                 const params = { ...$params };
                 const paramNames = Object.keys(params);
-                const endpoint = new Endpoint(false, { path: match } as unknown as RouteDefinition, paramNames);
-                const expected = new RecognizedRoute(endpoint, params, null);
+                const isDynamic = paramNames.length > 0;
+                const configurableRoute = new ConfigurableRoute(match, false, null);
+                const endpoint = new Endpoint(configurableRoute, paramNames);
+                const expected = new RecognizedRoute(endpoint, params, new URLSearchParams(), isDynamic, '');
 
                 // Act
                 const actual1 = sut.recognize(path);
@@ -2732,4 +2734,22 @@ describe(RouteRecognizer.name, function () {
       }
     }
   }
+
+  it(`passes the queryString to URLSearchParams`, function () {
+    // Arrange
+    const sut = new RouteRecognizer();
+
+    const query = `foo=bar`;
+    sut.add({ path: 'a', handler: null });
+
+    const configurableRoute = new ConfigurableRoute('a', false, null);
+    const endpoint = new Endpoint(configurableRoute, []);
+    const expected = new RecognizedRoute(endpoint, {}, new URLSearchParams(query), false, query);
+
+    // Act
+    const actual = sut.recognize(`a?foo=bar`);
+
+    // Assert
+    assert.deepStrictEqual(actual, expected);
+  });
 });

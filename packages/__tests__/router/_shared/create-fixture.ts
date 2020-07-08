@@ -53,13 +53,13 @@ export async function createFixture<T extends Constructable>(
       logConfig.level = level;
     },
     async tearDown() {
-      assert.isSchedulerEmpty();
+      // assert.isSchedulerEmpty();
 
       hia.setPhase('stop');
 
       await au.stop().wait();
 
-      assert.isSchedulerEmpty();
+      // assert.isSchedulerEmpty();
     },
   };
 }

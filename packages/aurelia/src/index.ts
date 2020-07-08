@@ -317,6 +317,11 @@ export {
   // lifecycleLogger,
   // LifecycleClass,
 
+  INavRoute,
+  // Nav,
+
+  NavRoute,
+
   // IStoredNavigatorEntry,
   // INavigatorEntry,
   // INavigatorOptions,
@@ -357,13 +362,10 @@ export {
   // ContentStatus,
   // ViewportContent,
 
-  // IViewportInstruction,
+  ViewportInstruction,
 
   RouterConfiguration,
   RouterRegistration,
-
-  route,
-  Route,
   // DefaultComponents as RouterDefaultComponents,
   // DefaultResources as RouterDefaultResources,
   // ViewportCustomElement,

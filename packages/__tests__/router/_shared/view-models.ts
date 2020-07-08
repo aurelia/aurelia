@@ -1,10 +1,10 @@
 import { Writable } from '@aurelia/kernel';
 import { ICustomElementController, IHydratedController, IHydratedParentController, LifecycleFlags } from '@aurelia/runtime';
-import { Params, RouteNode, NavigationInstruction, IRouteViewModel } from '@aurelia/router';
+import { Params, INavigatorInstruction, NavigationInstruction, IRouteableComponent, ViewportInstruction } from '@aurelia/router';
 import { IHookInvocationAggregator } from './hook-invocation-tracker';
 import { IHookSpec, hookSpecsMap } from './hook-spec';
 
-export interface ITestRouteViewModel extends IRouteViewModel {
+export interface ITestRouteViewModel extends IRouteableComponent<HTMLElement> {
   readonly $controller: ICustomElementController<HTMLElement, this>;
   readonly name: string;
 
@@ -50,21 +50,21 @@ export interface ITestRouteViewModel extends IRouteViewModel {
 
   canLoad(
     params: Params,
-    next: RouteNode,
-    current: RouteNode | null,
-  ): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
-  load(
+    next: INavigatorInstruction,
+    current: INavigatorInstruction | null,
+  ): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
+  enter(
     params: Params,
-    next: RouteNode,
-    current: RouteNode | null,
+    next: INavigatorInstruction,
+    current: INavigatorInstruction | null,
   ): void | Promise<void>;
-  canUnload(
-    next: RouteNode | null,
-    current: RouteNode,
+  canLeave(
+    next: INavigatorInstruction | null,
+    current: INavigatorInstruction,
   ): boolean | Promise<boolean>;
-  unload(
-    next: RouteNode | null,
-    current: RouteNode,
+  leave(
+    next: INavigatorInstruction | null,
+    current: INavigatorInstruction,
   ): void | Promise<void>;
 }
 
@@ -300,10 +300,10 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
 
   public canLoad(
     params: Params,
-    next: RouteNode,
-    current: RouteNode | null,
-  ): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
-    return this.specs.canLoad.invoke(
+    next: INavigatorInstruction,
+    current: INavigatorInstruction | null,
+  ): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]> {
+    return this.specs.canEnter.invoke(
       this,
       () => {
         this.hia.canLoad.notify(this.name);
@@ -314,8 +314,8 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
 
   public load(
     params: Params,
-    next: RouteNode,
-    current: RouteNode | null,
+    next: INavigatorInstruction,
+    current: INavigatorInstruction | null,
   ): void | Promise<void> {
     return this.specs.load.invoke(
       this,
@@ -326,9 +326,9 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     );
   }
 
-  public canUnload(
-    next: RouteNode | null,
-    current: RouteNode,
+  public canLeave(
+    next: INavigatorInstruction | null,
+    current: INavigatorInstruction,
   ): boolean | Promise<boolean> {
     return this.specs.canUnload.invoke(
       this,
@@ -339,9 +339,9 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     );
   }
 
-  public unload(
-    next: RouteNode | null,
-    current: RouteNode,
+  public leave(
+    next: INavigatorInstruction | null,
+    current: INavigatorInstruction,
   ): void | Promise<void> {
     return this.specs.unload.invoke(
       this,
@@ -416,30 +416,30 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
 
   protected $canLoad(
     _params: Params,
-    _next: RouteNode,
-    _current: RouteNode | null,
-  ): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
+    _next: INavigatorInstruction,
+    _current: INavigatorInstruction | null,
+  ): string | boolean | ViewportInstruction[] | Promise<string | boolean | ViewportInstruction[]> {
     return true;
   }
 
   protected $load(
     _params: Params,
-    _next: RouteNode,
-    _current: RouteNode | null,
+    _next: INavigatorInstruction,
+    _current: INavigatorInstruction | null,
   ): void | Promise<void> {
     // do nothing
   }
 
-  protected $canUnload(
-    _next: RouteNode | null,
-    _current: RouteNode,
+  protected $canLeave(
+    _next: INavigatorInstruction | null,
+    _current: INavigatorInstruction,
   ): boolean | Promise<boolean> {
     return true;
   }
 
-  protected $unload(
-    _next: RouteNode | null,
-    _current: RouteNode,
+  protected $leave(
+    _next: INavigatorInstruction | null,
+    _current: INavigatorInstruction,
   ): void | Promise<void> {
     // do nothing
   }

@@ -1078,6 +1078,9 @@ export class Controller<
       return this.activate(this as Controller<T>, parent, flags);
     }
 
+    if ((flags & LifecycleFlags.dispose) === LifecycleFlags.dispose) {
+      this.dispose();
+    }
     this.state = (this.state & State.disposed) | State.deactivated;
     if (initiator !== this) {
       // For the initiator, the promise is resolved at the end of endDeactivate because that promise resolution

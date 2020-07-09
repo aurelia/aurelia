@@ -1,38 +1,129 @@
-function addIf(
-  condition: boolean,
-  itemsIfTrue: string[] = [],
-  itemsIfFalse: string[] = [],
+import { IRouterOptionsSpec, IComponentSpec } from '../_hook-tests.spec';
+
+function deactivate(
+  prefix: string,
+  component: string,
 ): string[] {
-  return condition ? itemsIfTrue : itemsIfFalse;
+  return [
+    `${prefix}.${component}.beforeDetach`,
+    `${prefix}.${component}.beforeUnbind`,
+    `${prefix}.${component}.afterUnbind`,
+  ];
 }
 
-export const getCalls = {
-  [`$x -> ''`](
+function activate(
+  prefix: string,
+  component: string,
+): string[] {
+  return [
+    `${prefix}.${component}.beforeBind`,
+    `${prefix}.${component}.afterBind`,
+    `${prefix}.${component}.afterAttach`,
+  ];
+}
+
+function interleave(
+  ...arrs: string[][]
+): string[] {
+  const result: string[] = [];
+  while (arrs.length > 0) {
+    for (let i = 0, ii = arrs.length; i < ii; ++i) {
+      const arr = arrs[i];
+      result.push(arr.shift());
+      if (arr.length === 0) {
+        arrs.splice(i, 1);
+        --i;
+        --ii;
+      }
+    }
+  }
+  return result;
+}
+export const getStopPhaseCalls = {
+  '$x -> ""'(
     prefix: string,
     $x: string,
-    isStopPhase: boolean,
   ): string[] {
     return [
-      ...addIf(
-        !isStopPhase,
-        [
-          `${prefix}.${$x}.canLeave`,
-          `${prefix}.${$x}.leave`,
-        ],
-      ),
-      `${prefix}.${$x}.beforeDetach`,
-      `${prefix}.${$x}.beforeUnbind`,
-      `${prefix}.${$x}.afterUnbind`,
+      ...deactivate(prefix, $x),
       `${prefix}.${$x}.afterUnbindChildren`,
-      ...addIf(
-        !isStopPhase,
-        [
-          `${prefix}.${$x}.dispose`,
-        ],
-      ),
     ];
   },
-  [`'' -> $x`](
+  '$x$0+$x$1 -> ""'(
+    prefix: string,
+    $x$0: string,
+    $x$1: string,
+    comp: IComponentSpec,
+  ): string[] {
+    if ($x$0 === '') {
+      return getStopPhaseCalls['$x -> ""'](prefix, $x$1);
+    }
+
+    if ($x$1 === '') {
+      return getStopPhaseCalls['$x -> ""'](prefix, $x$0);
+    }
+
+    switch (comp.kind) {
+      case 'all-async':
+        return [
+          ...interleave(
+            deactivate(prefix, $x$0),
+            deactivate(prefix, $x$1),
+          ),
+          `${prefix}.${$x$0}.afterUnbindChildren`,
+          `${prefix}.${$x$1}.afterUnbindChildren`,
+        ];
+      case 'all-sync':
+        // In 'stop' phase, reason the last two hooks are ordered the way they are is
+        // because the controllers are linked to the parent controller in `deactivate` and so those hooks only
+        // happen after everything else happened.
+        // This linking does not occur in the same way when controllers are deactivated in isolation by the router.
+        return [
+          ...deactivate(prefix, $x$0),
+          ...deactivate(prefix, $x$1),
+          `${prefix}.${$x$0}.afterUnbindChildren`,
+          `${prefix}.${$x$1}.afterUnbindChildren`,
+        ];
+    }
+  },
+  '$x$p/$x$c -> ""'(
+    prefix: string,
+    $x$p: string,
+    $x$c: string,
+  ): string[] {
+    if ($x$c === '') {
+      return getStopPhaseCalls['$x -> ""'](prefix, $x$p);
+    }
+
+    return [
+      ...deactivate(prefix, $x$p),
+      ...deactivate(prefix, $x$c),
+      `${prefix}.${$x$c}.afterUnbindChildren`,
+      `${prefix}.${$x$p}.afterUnbindChildren`,
+    ];
+  },
+};
+
+// switch (opts.swapStrategy) {
+//   case 'parallel':
+//   case 'remove-first':
+//   case 'add-first':
+// }
+export const getCalls = {
+  '$x -> ""'(
+    prefix: string,
+    $x: string,
+  ): string[] {
+    return [
+      `${prefix}.${$x}.canLeave`,
+      `${prefix}.${$x}.leave`,
+
+      ...deactivate(prefix, $x),
+      `${prefix}.${$x}.afterUnbindChildren`,
+      `${prefix}.${$x}.dispose`,
+    ];
+  },
+  '"" -> $x'(
     prefix: string,
     $x: string,
   ): string[] {
@@ -40,382 +131,664 @@ export const getCalls = {
       `${prefix}.${$x}.canEnter`,
       `${prefix}.${$x}.enter`,
 
-      `${prefix}.${$x}.beforeBind`,
-      `${prefix}.${$x}.afterBind`,
-      `${prefix}.${$x}.afterAttach`,
+      ...activate(prefix, $x),
       `${prefix}.${$x}.afterAttachChildren`,
     ];
   },
-  [`$1 -> $2`](
+  '$1 -> $2'(
     prefix: string,
     $1: string,
     $2: string,
+    opts: IRouterOptionsSpec,
+    comp: IComponentSpec,
   ): string[] {
     if ($1 === '') {
-      return getCalls[`'' -> $x`](prefix, $2);
+      return getCalls['"" -> $x'](prefix, $2);
     }
 
     if ($2 === '') {
-      return getCalls[`$x -> ''`](prefix, $1, false);
+      return getCalls['$x -> ""'](prefix, $1);
     }
 
-    return [
+    const routerHooks = [
       `${prefix}.${$1}.canLeave`,
       `${prefix}.${$2}.canEnter`,
       `${prefix}.${$1}.leave`,
       `${prefix}.${$2}.enter`,
-
-      `${prefix}.${$2}.beforeBind`,
-      `${prefix}.${$2}.afterBind`,
-      `${prefix}.${$2}.afterAttach`,
-      `${prefix}.${$2}.afterAttachChildren`,
-      `${prefix}.${$1}.beforeDetach`,
-      `${prefix}.${$1}.beforeUnbind`,
-      `${prefix}.${$1}.afterUnbind`,
-      `${prefix}.${$1}.afterUnbindChildren`,
-      `${prefix}.${$1}.dispose`,
     ];
+    switch (comp.kind) {
+      case 'all-async':
+        switch (opts.swapStrategy) {
+          case 'parallel':
+            return [
+              ...routerHooks,
+              ...interleave(
+                deactivate(prefix, $1),
+                activate(prefix, $2),
+              ),
+              `${prefix}.${$1}.afterUnbindChildren`,
+              `${prefix}.${$2}.afterAttachChildren`,
+              `${prefix}.${$1}.dispose`,
+            ];
+          case 'remove-first':
+            return [
+              ...routerHooks,
+              ...deactivate(prefix, $1),
+              `${prefix}.${$1}.afterUnbindChildren`,
+              `${prefix}.${$1}.dispose`,
+              ...activate(prefix, $2),
+              `${prefix}.${$2}.afterAttachChildren`,
+            ];
+          case 'add-first':
+            return [
+              ...routerHooks,
+              ...activate(prefix, $2),
+              `${prefix}.${$2}.afterAttachChildren`,
+              ...deactivate(prefix, $1),
+              `${prefix}.${$1}.afterUnbindChildren`,
+              `${prefix}.${$1}.dispose`,
+            ];
+        }
+        break;
+      case 'all-sync':
+        switch (opts.swapStrategy) {
+          case 'parallel':
+          case 'remove-first':
+            return [
+              ...routerHooks,
+              ...deactivate(prefix, $1),
+              `${prefix}.${$1}.afterUnbindChildren`,
+              `${prefix}.${$1}.dispose`,
+              ...activate(prefix, $2),
+              `${prefix}.${$2}.afterAttachChildren`,
+            ];
+          case 'add-first':
+            return [
+              ...routerHooks,
+              ...activate(prefix, $2),
+              `${prefix}.${$2}.afterAttachChildren`,
+              ...deactivate(prefix, $1),
+              `${prefix}.${$1}.afterUnbindChildren`,
+              `${prefix}.${$1}.dispose`,
+            ];
+        }
+    }
   },
-  [`'' -> $x$0+$x$1`](
+  '"" -> $x$0+$x$1'(
     prefix: string,
     $x$0: string,
     $x$1: string,
-    async: boolean,
+    opts: IRouterOptionsSpec,
+    comp: IComponentSpec,
   ): string[] {
     if ($x$0 === '') {
-      return getCalls[`'' -> $x`](prefix, $x$1);
+      return getCalls['"" -> $x'](prefix, $x$1);
     }
 
     if ($x$1 === '') {
-      return getCalls[`'' -> $x`](prefix, $x$0);
+      return getCalls['"" -> $x'](prefix, $x$0);
     }
 
-    return [
+    const routerHooks = [
       `${prefix}.${$x$0}.canEnter`,
       `${prefix}.${$x$1}.canEnter`,
       `${prefix}.${$x$0}.enter`,
       `${prefix}.${$x$1}.enter`,
-
-      ...addIf(
-        async,
-        [
-          `${prefix}.${$x$0}.beforeBind`,
-          `${prefix}.${$x$1}.beforeBind`,
-          `${prefix}.${$x$0}.afterBind`,
-          `${prefix}.${$x$1}.afterBind`,
-          `${prefix}.${$x$0}.afterAttach`,
-          `${prefix}.${$x$1}.afterAttach`,
-          `${prefix}.${$x$0}.afterAttachChildren`,
-          `${prefix}.${$x$1}.afterAttachChildren`,
-        ],
-        [
-          `${prefix}.${$x$0}.beforeBind`,
-          `${prefix}.${$x$0}.afterBind`,
-          `${prefix}.${$x$0}.afterAttach`,
-          `${prefix}.${$x$0}.afterAttachChildren`,
-          `${prefix}.${$x$1}.beforeBind`,
-          `${prefix}.${$x$1}.afterBind`,
-          `${prefix}.${$x$1}.afterAttach`,
-          `${prefix}.${$x$1}.afterAttachChildren`,
-        ],
-      ),
     ];
+    switch (comp.kind) {
+      case 'all-async':
+        return [
+          ...routerHooks,
+          ...interleave(
+            activate(prefix, $x$0),
+            activate(prefix, $x$1),
+          ),
+          `${prefix}.${$x$0}.afterAttachChildren`,
+          `${prefix}.${$x$1}.afterAttachChildren`,
+        ];
+      case 'all-sync':
+        return [
+          ...routerHooks,
+          ...activate(prefix, $x$0),
+          `${prefix}.${$x$0}.afterAttachChildren`,
+          ...activate(prefix, $x$1),
+          `${prefix}.${$x$1}.afterAttachChildren`,
+        ];
+    }
   },
-  [`$x$0+$x$1 -> ''`](
+  '$x$0+$x$1 -> ""'(
     prefix: string,
     $x$0: string,
     $x$1: string,
-    isStopPhase: boolean,
-    async: boolean,
+    opts: IRouterOptionsSpec,
+    comp: IComponentSpec,
   ): string[] {
     if ($x$0 === '') {
-      return getCalls[`$x -> ''`](prefix, $x$1, isStopPhase);
+      return getCalls['$x -> ""'](prefix, $x$1);
     }
 
     if ($x$1 === '') {
-      return getCalls[`$x -> ''`](prefix, $x$0, isStopPhase);
+      return getCalls['$x -> ""'](prefix, $x$0);
     }
 
-    if (isStopPhase) {
-      if (async) {
-        return [
-          `${prefix}.${$x$0}.beforeDetach`,
-          `${prefix}.${$x$1}.beforeDetach`,
-          `${prefix}.${$x$0}.beforeUnbind`,
-          `${prefix}.${$x$1}.beforeUnbind`,
-          `${prefix}.${$x$0}.afterUnbind`,
-          `${prefix}.${$x$1}.afterUnbind`,
-          `${prefix}.${$x$0}.afterUnbindChildren`,
-          `${prefix}.${$x$1}.afterUnbindChildren`,
-        ];
-      }
-
-      // In 'stop' phase, reason the last two hooks are ordered the way they are is
-      // because the controllers are linked to the parent controller in `deactivate` and so those hooks only
-      // happen after everything else happened.
-      // This linking does not occur in the same way when controllers are deactivated in isolation by the router.
-      return [
-        `${prefix}.${$x$0}.beforeDetach`,
-        `${prefix}.${$x$0}.beforeUnbind`,
-        `${prefix}.${$x$0}.afterUnbind`,
-        `${prefix}.${$x$1}.beforeDetach`,
-        `${prefix}.${$x$1}.beforeUnbind`,
-        `${prefix}.${$x$1}.afterUnbind`,
-        `${prefix}.${$x$0}.afterUnbindChildren`,
-        `${prefix}.${$x$1}.afterUnbindChildren`,
-      ];
-    }
-
-    return [
+    const routerHooks = [
       `${prefix}.${$x$0}.canLeave`,
       `${prefix}.${$x$1}.canLeave`,
       `${prefix}.${$x$0}.leave`,
       `${prefix}.${$x$1}.leave`,
-
-      ...addIf(
-        async,
-        [
-          `${prefix}.${$x$0}.beforeDetach`,
-          `${prefix}.${$x$1}.beforeDetach`,
-          `${prefix}.${$x$0}.beforeUnbind`,
-          `${prefix}.${$x$1}.beforeUnbind`,
-          `${prefix}.${$x$0}.afterUnbind`,
-          `${prefix}.${$x$1}.afterUnbind`,
-          `${prefix}.${$x$0}.afterUnbindChildren`,
-          `${prefix}.${$x$1}.afterUnbindChildren`,
-          `${prefix}.${$x$1}.dispose`,
-          `${prefix}.${$x$0}.dispose`,
-        ],
-        [
-          `${prefix}.${$x$0}.beforeDetach`,
-          `${prefix}.${$x$0}.beforeUnbind`,
-          `${prefix}.${$x$0}.afterUnbind`,
-          `${prefix}.${$x$0}.afterUnbindChildren`,
-          `${prefix}.${$x$0}.dispose`,
-          `${prefix}.${$x$1}.beforeDetach`,
-          `${prefix}.${$x$1}.beforeUnbind`,
-          `${prefix}.${$x$1}.afterUnbind`,
-          `${prefix}.${$x$1}.afterUnbindChildren`,
-          `${prefix}.${$x$1}.dispose`,
-        ],
-      ),
     ];
+    switch (comp.kind) {
+      case 'all-async':
+        return [
+          ...routerHooks,
+          ...interleave(
+            deactivate(prefix, $x$0),
+            deactivate(prefix, $x$1),
+          ),
+          `${prefix}.${$x$0}.afterUnbindChildren`,
+          `${prefix}.${$x$1}.afterUnbindChildren`,
+          `${prefix}.${$x$1}.dispose`,
+          `${prefix}.${$x$0}.dispose`,
+        ];
+      case 'all-sync':
+        return [
+          ...routerHooks,
+          ...deactivate(prefix, $x$0),
+          `${prefix}.${$x$0}.afterUnbindChildren`,
+          `${prefix}.${$x$0}.dispose`,
+          ...deactivate(prefix, $x$1),
+          `${prefix}.${$x$1}.afterUnbindChildren`,
+          `${prefix}.${$x$1}.dispose`,
+        ];
+    }
   },
-  [`$1$0+$1$1 -> $2$0+$2$1`](
+  '$1$0+$1$1 -> $2$0'(
+    prefix: string,
+    $1$0: string,
+    $1$1: string,
+    $2$0: string,
+    opts: IRouterOptionsSpec,
+    comp: IComponentSpec,
+  ): string[] {
+    const routerHooks = [
+      `${prefix}.${$1$0}.canLeave`,
+      `${prefix}.${$1$1}.canLeave`,
+      `${prefix}.${$2$0}.canEnter`,
+      `${prefix}.${$1$0}.leave`,
+      `${prefix}.${$1$1}.leave`,
+      `${prefix}.${$2$0}.enter`,
+    ];
+    switch (comp.kind) {
+      case 'all-async':
+        switch (opts.swapStrategy) {
+          case 'parallel':
+            return [
+              ...routerHooks,
+              ...interleave(
+                [
+                  ...deactivate(prefix, $1$0),
+                  `${prefix}.${$1$0}.afterUnbindChildren`,
+                  `${prefix}.${$1$0}.dispose`,
+                ],
+                [
+                  ...activate(prefix, $2$0),
+                  `${prefix}.${$2$0}.afterAttachChildren`,
+                ],
+                [
+                  ...deactivate(prefix, $1$1),
+                  `${prefix}.${$1$1}.afterUnbindChildren`,
+                  `${prefix}.${$1$1}.dispose`,
+                ],
+              ),
+            ];
+          case 'remove-first':
+            return [
+              ...routerHooks,
+              ...interleave(
+                [
+                  ...deactivate(prefix, $1$1),
+                  `${prefix}.${$1$1}.afterUnbindChildren`,
+                  `${prefix}.${$1$1}.dispose`,
+                ],
+                [
+                  ...deactivate(prefix, $1$0),
+                  `${prefix}.${$1$0}.afterUnbindChildren`,
+                  `${prefix}.${$1$0}.dispose`,
+                ],
+              ),
+              ...activate(prefix, $2$0),
+              `${prefix}.${$2$0}.afterAttachChildren`,
+            ];
+          case 'add-first':
+            return [
+              ...routerHooks,
+              ...interleave(
+                [
+                  ...activate(prefix, $2$0),
+                  `${prefix}.${$2$0}.afterAttachChildren`,
+                ],
+                [
+                  ...deactivate(prefix, $1$1),
+                  `${prefix}.${$1$1}.afterUnbindChildren`,
+                  `${prefix}.${$1$1}.dispose`,
+                ],
+              ),
+              ...deactivate(prefix, $1$0),
+              `${prefix}.${$1$0}.afterUnbindChildren`,
+              `${prefix}.${$1$0}.dispose`,
+            ];
+        }
+        break;
+      case 'all-sync':
+        switch (opts.swapStrategy) {
+          case 'parallel':
+            return [
+              ...routerHooks,
+              ...deactivate(prefix, $1$0),
+              `${prefix}.${$1$0}.afterUnbindChildren`,
+              `${prefix}.${$1$0}.dispose`,
+              ...activate(prefix, $2$0),
+              `${prefix}.${$2$0}.afterAttachChildren`,
+              ...deactivate(prefix, $1$1),
+              `${prefix}.${$1$1}.afterUnbindChildren`,
+              `${prefix}.${$1$1}.dispose`,
+            ];
+          case 'remove-first':
+            return [
+              ...routerHooks,
+              ...deactivate(prefix, $1$1),
+              `${prefix}.${$1$1}.afterUnbindChildren`,
+              `${prefix}.${$1$1}.dispose`,
+              ...deactivate(prefix, $1$0),
+              `${prefix}.${$1$0}.afterUnbindChildren`,
+              `${prefix}.${$1$0}.dispose`,
+              ...activate(prefix, $2$0),
+              `${prefix}.${$2$0}.afterAttachChildren`,
+            ];
+          case 'add-first':
+            return [
+              ...routerHooks,
+              ...activate(prefix, $2$0),
+              `${prefix}.${$2$0}.afterAttachChildren`,
+              ...deactivate(prefix, $1$0),
+              `${prefix}.${$1$0}.afterUnbindChildren`,
+              `${prefix}.${$1$0}.dispose`,
+              ...deactivate(prefix, $1$1),
+              `${prefix}.${$1$1}.afterUnbindChildren`,
+              `${prefix}.${$1$1}.dispose`,
+            ];
+        }
+    }
+  },
+  '$1$0+$1$1 -> $2$1'(
+    prefix: string,
+    $1$0: string,
+    $1$1: string,
+    $2$1: string,
+    opts: IRouterOptionsSpec,
+    comp: IComponentSpec,
+  ): string[] {
+    const routerHooks = [
+      `${prefix}.${$1$0}.canLeave`,
+      `${prefix}.${$1$1}.canLeave`,
+      `${prefix}.${$2$1}.canEnter`,
+      `${prefix}.${$1$0}.leave`,
+      `${prefix}.${$1$1}.leave`,
+      `${prefix}.${$2$1}.enter`,
+    ];
+    switch (comp.kind) {
+      case 'all-async':
+        switch (opts.swapStrategy) {
+          case 'parallel':
+            return [
+              ...routerHooks,
+              ...interleave(
+                [
+                  ...deactivate(prefix, $1$0),
+                  `${prefix}.${$1$0}.afterUnbindChildren`,
+                  `${prefix}.${$1$0}.dispose`,
+                ],
+                [
+                  ...deactivate(prefix, $1$1),
+                  `${prefix}.${$1$1}.afterUnbindChildren`,
+                  `${prefix}.${$1$1}.dispose`,
+                ],
+                [
+                  ...activate(prefix, $2$1),
+                  `${prefix}.${$2$1}.afterAttachChildren`,
+                ],
+              ),
+            ];
+          case 'remove-first':
+            return [
+              ...routerHooks,
+              ...interleave(
+                [
+                  ...deactivate(prefix, $1$0),
+                  `${prefix}.${$1$0}.afterUnbindChildren`,
+                  `${prefix}.${$1$0}.dispose`,
+                ],
+                [
+                  ...deactivate(prefix, $1$1),
+                  `${prefix}.${$1$1}.afterUnbindChildren`,
+                  `${prefix}.${$1$1}.dispose`,
+                ],
+              ),
+              ...activate(prefix, $2$1),
+              `${prefix}.${$2$1}.afterAttachChildren`,
+            ];
+          case 'add-first':
+            return [
+              ...routerHooks,
+              ...interleave(
+                [
+                  ...deactivate(prefix, $1$0),
+                  `${prefix}.${$1$0}.afterUnbindChildren`,
+                  `${prefix}.${$1$0}.dispose`,
+                ],
+                [
+                  ...activate(prefix, $2$1),
+                  `${prefix}.${$2$1}.afterAttachChildren`,
+                ],
+              ),
+              ...deactivate(prefix, $1$1),
+              `${prefix}.${$1$1}.afterUnbindChildren`,
+              `${prefix}.${$1$1}.dispose`,
+            ];
+        }
+        break;
+      case 'all-sync':
+        switch (opts.swapStrategy) {
+          case 'parallel':
+          case 'remove-first':
+            return [
+              ...routerHooks,
+              ...deactivate(prefix, $1$0),
+              `${prefix}.${$1$0}.afterUnbindChildren`,
+              `${prefix}.${$1$0}.dispose`,
+              ...deactivate(prefix, $1$1),
+              `${prefix}.${$1$1}.afterUnbindChildren`,
+              `${prefix}.${$1$1}.dispose`,
+              ...activate(prefix, $2$1),
+              `${prefix}.${$2$1}.afterAttachChildren`,
+            ];
+          case 'add-first':
+            return [
+              ...routerHooks,
+              ...deactivate(prefix, $1$0),
+              `${prefix}.${$1$0}.afterUnbindChildren`,
+              `${prefix}.${$1$0}.dispose`,
+              ...activate(prefix, $2$1),
+              `${prefix}.${$2$1}.afterAttachChildren`,
+              ...deactivate(prefix, $1$1),
+              `${prefix}.${$1$1}.afterUnbindChildren`,
+              `${prefix}.${$1$1}.dispose`,
+            ];
+        }
+    }
+  },
+  '$1$0 -> $2$0+$2$1'(
+    prefix: string,
+    $1$0: string,
+    $2$0: string,
+    $2$1: string,
+    opts: IRouterOptionsSpec,
+    comp: IComponentSpec,
+  ): string[] {
+    const routerHooks = [
+      `${prefix}.${$1$0}.canLeave`,
+      `${prefix}.${$2$0}.canEnter`,
+      `${prefix}.${$2$1}.canEnter`,
+      `${prefix}.${$1$0}.leave`,
+      `${prefix}.${$2$0}.enter`,
+      `${prefix}.${$2$1}.enter`,
+    ];
+    switch (comp.kind) {
+      case 'all-async':
+        switch (opts.swapStrategy) {
+          case 'parallel':
+            return [
+              ...routerHooks,
+              ...interleave(
+                [
+                  ...activate(prefix, $2$1),
+                  `${prefix}.${$2$1}.afterAttachChildren`,
+                ],
+                [
+                  ...deactivate(prefix, $1$0),
+                  `${prefix}.${$1$0}.afterUnbindChildren`,
+                  `${prefix}.${$1$0}.dispose`,
+                ],
+                [
+                  ...activate(prefix, $2$0),
+                  `${prefix}.${$2$0}.afterAttachChildren`,
+                ],
+              ),
+            ];
+          case 'remove-first':
+            return [
+              ...routerHooks,
+              ...interleave(
+                [
+                  ...deactivate(prefix, $1$0),
+                  `${prefix}.${$1$0}.afterUnbindChildren`,
+                  `${prefix}.${$1$0}.dispose`,
+                ],
+                [
+                  ...activate(prefix, $2$1),
+                  `${prefix}.${$2$1}.afterAttachChildren`,
+                ],
+              ),
+              ...activate(prefix, $2$0),
+              `${prefix}.${$2$0}.afterAttachChildren`,
+            ];
+          case 'add-first':
+            return [
+              ...routerHooks,
+              ...interleave(
+                [
+                  ...activate(prefix, $2$1),
+                  `${prefix}.${$2$1}.afterAttachChildren`,
+                ],
+                [
+                  ...activate(prefix, $2$0),
+                  `${prefix}.${$2$0}.afterAttachChildren`,
+                ],
+              ),
+              ...deactivate(prefix, $1$0),
+              `${prefix}.${$1$0}.afterUnbindChildren`,
+              `${prefix}.${$1$0}.dispose`,
+            ];
+        }
+        break;
+      case 'all-sync':
+        switch (opts.swapStrategy) {
+          case 'parallel':
+            return [
+              ...routerHooks,
+              ...activate(prefix, $2$1),
+              `${prefix}.${$2$1}.afterAttachChildren`,
+              ...deactivate(prefix, $1$0),
+              `${prefix}.${$1$0}.afterUnbindChildren`,
+              `${prefix}.${$1$0}.dispose`,
+              ...activate(prefix, $2$0),
+              `${prefix}.${$2$0}.afterAttachChildren`,
+            ];
+          case 'remove-first':
+            return [
+              ...routerHooks,
+              ...deactivate(prefix, $1$0),
+              `${prefix}.${$1$0}.afterUnbindChildren`,
+              `${prefix}.${$1$0}.dispose`,
+              ...activate(prefix, $2$0),
+              `${prefix}.${$2$0}.afterAttachChildren`,
+              ...activate(prefix, $2$1),
+              `${prefix}.${$2$1}.afterAttachChildren`,
+            ];
+          case 'add-first':
+            return [
+              ...routerHooks,
+              ...activate(prefix, $2$1),
+              `${prefix}.${$2$1}.afterAttachChildren`,
+              ...activate(prefix, $2$0),
+              `${prefix}.${$2$0}.afterAttachChildren`,
+              ...deactivate(prefix, $1$0),
+              `${prefix}.${$1$0}.afterUnbindChildren`,
+              `${prefix}.${$1$0}.dispose`,
+            ];
+        }
+    }
+  },
+  '$1$1 -> $2$0+$2$1'(
+    prefix: string,
+    $1$1: string,
+    $2$0: string,
+    $2$1: string,
+    opts: IRouterOptionsSpec,
+    comp: IComponentSpec,
+  ): string[] {
+    const routerHooks = [
+      `${prefix}.${$1$1}.canLeave`,
+      `${prefix}.${$2$0}.canEnter`,
+      `${prefix}.${$2$1}.canEnter`,
+      `${prefix}.${$1$1}.leave`,
+      `${prefix}.${$2$0}.enter`,
+      `${prefix}.${$2$1}.enter`,
+    ];
+    switch (comp.kind) {
+      case 'all-async':
+        switch (opts.swapStrategy) {
+          case 'parallel':
+            return [
+              ...routerHooks,
+              ...interleave(
+                [
+                  ...activate(prefix, $2$0),
+                  `${prefix}.${$2$0}.afterAttachChildren`,
+                ],
+                [
+                  ...deactivate(prefix, $1$1),
+                  `${prefix}.${$1$1}.afterUnbindChildren`,
+                  `${prefix}.${$1$1}.dispose`,
+                ],
+                [
+                  ...activate(prefix, $2$1),
+                  `${prefix}.${$2$1}.afterAttachChildren`,
+                ],
+              ),
+            ];
+          case 'remove-first':
+            return [
+              ...routerHooks,
+              ...interleave(
+                [
+                  ...activate(prefix, $2$0),
+                  `${prefix}.${$2$0}.afterAttachChildren`,
+                ],
+                [
+                  ...deactivate(prefix, $1$1),
+                  `${prefix}.${$1$1}.afterUnbindChildren`,
+                  `${prefix}.${$1$1}.dispose`,
+                ],
+              ),
+              ...activate(prefix, $2$1),
+              `${prefix}.${$2$1}.afterAttachChildren`,
+            ];
+          case 'add-first':
+            return [
+              ...routerHooks,
+              ...interleave(
+                [
+                  ...activate(prefix, $2$0),
+                  `${prefix}.${$2$0}.afterAttachChildren`,
+                ],
+                [
+                  ...activate(prefix, $2$1),
+                  `${prefix}.${$2$1}.afterAttachChildren`,
+                ],
+              ),
+              ...deactivate(prefix, $1$1),
+              `${prefix}.${$1$1}.afterUnbindChildren`,
+              `${prefix}.${$1$1}.dispose`,
+            ];
+        }
+        break;
+      case 'all-sync':
+        switch (opts.swapStrategy) {
+          case 'parallel':
+          case 'remove-first':
+            return [
+              ...routerHooks,
+              ...activate(prefix, $2$0),
+              `${prefix}.${$2$0}.afterAttachChildren`,
+              ...deactivate(prefix, $1$1),
+              `${prefix}.${$1$1}.afterUnbindChildren`,
+              `${prefix}.${$1$1}.dispose`,
+              ...activate(prefix, $2$1),
+              `${prefix}.${$2$1}.afterAttachChildren`,
+            ];
+          case 'add-first':
+            return [
+              ...routerHooks,
+              ...activate(prefix, $2$0),
+              `${prefix}.${$2$0}.afterAttachChildren`,
+              ...activate(prefix, $2$1),
+              `${prefix}.${$2$1}.afterAttachChildren`,
+              ...deactivate(prefix, $1$1),
+              `${prefix}.${$1$1}.afterUnbindChildren`,
+              `${prefix}.${$1$1}.dispose`,
+            ];
+        }
+    }
+  },
+  '$1$0+$1$1 -> $2$0+$2$1'(
     prefix: string,
     $1$0: string,
     $1$1: string,
     $2$0: string,
     $2$1: string,
-    async: boolean,
+    opts: IRouterOptionsSpec,
+    comp: IComponentSpec,
   ): string[] {
     if ($1$0 === $2$0) {
-      return getCalls[`$1 -> $2`](prefix, $1$1, $2$1);
+      return getCalls['$1 -> $2'](prefix, $1$1, $2$1, opts, comp);
     }
 
     if ($1$1 === $2$1) {
-      return getCalls[`$1 -> $2`](prefix, $1$0, $2$0);
+      return getCalls['$1 -> $2'](prefix, $1$0, $2$0, opts, comp);
     }
 
     if ($1$0 === '') {
       if ($1$1 === '') {
-        return getCalls[`'' -> $x$0+$x$1`](prefix, $2$0, $2$1, async);
+        return getCalls['"" -> $x$0+$x$1'](prefix, $2$0, $2$1, opts, comp);
       }
       if ($2$1 === '') {
-        return getCalls[`'' -> $x$0+$x$1`](prefix, $2$0, $1$1, async);
+        return getCalls['"" -> $x$0+$x$1'](prefix, $2$0, $1$1, opts, comp);
       }
 
-      return [
-        `${prefix}.${$1$1}.canLeave`,
-        `${prefix}.${$2$0}.canEnter`,
-        `${prefix}.${$2$1}.canEnter`,
-        `${prefix}.${$1$1}.leave`,
-        `${prefix}.${$2$0}.enter`,
-        `${prefix}.${$2$1}.enter`,
-
-        ...addIf(
-          async,
-          [
-            `${prefix}.${$2$0}.beforeBind`,
-            `${prefix}.${$2$1}.beforeBind`,
-            `${prefix}.${$2$0}.afterBind`,
-            `${prefix}.${$2$1}.afterBind`,
-            `${prefix}.${$2$0}.afterAttach`,
-            `${prefix}.${$2$1}.afterAttach`,
-            `${prefix}.${$2$0}.afterAttachChildren`,
-            `${prefix}.${$2$1}.afterAttachChildren`,
-            `${prefix}.${$1$1}.beforeDetach`,
-            `${prefix}.${$1$1}.beforeUnbind`,
-            `${prefix}.${$1$1}.afterUnbind`,
-            `${prefix}.${$1$1}.afterUnbindChildren`,
-            `${prefix}.${$1$1}.dispose`,
-          ],
-          [
-            `${prefix}.${$2$0}.beforeBind`,
-            `${prefix}.${$2$0}.afterBind`,
-            `${prefix}.${$2$0}.afterAttach`,
-            `${prefix}.${$2$0}.afterAttachChildren`,
-            `${prefix}.${$2$1}.beforeBind`,
-            `${prefix}.${$2$1}.afterBind`,
-            `${prefix}.${$2$1}.afterAttach`,
-            `${prefix}.${$2$1}.afterAttachChildren`,
-            `${prefix}.${$1$1}.beforeDetach`,
-            `${prefix}.${$1$1}.beforeUnbind`,
-            `${prefix}.${$1$1}.afterUnbind`,
-            `${prefix}.${$1$1}.afterUnbindChildren`,
-            `${prefix}.${$1$1}.dispose`,
-          ],
-        ),
-      ];
+      return getCalls['$1$1 -> $2$0+$2$1'](prefix, $1$1, $2$0, $2$1, opts, comp);
     }
 
     if ($1$1 === '') {
-      return [
-        `${prefix}.${$1$0}.canLeave`,
-        `${prefix}.${$2$0}.canEnter`,
-        `${prefix}.${$2$1}.canEnter`,
-        `${prefix}.${$1$0}.leave`,
-        `${prefix}.${$2$0}.enter`,
-        `${prefix}.${$2$1}.enter`,
-
-        ...addIf(
-          async,
-          [
-            `${prefix}.${$2$0}.beforeBind`,
-            `${prefix}.${$2$1}.beforeBind`,
-            `${prefix}.${$2$0}.afterBind`,
-            `${prefix}.${$2$1}.afterBind`,
-            `${prefix}.${$2$0}.afterAttach`,
-            `${prefix}.${$2$1}.afterAttach`,
-            `${prefix}.${$2$0}.afterAttachChildren`,
-            `${prefix}.${$2$1}.afterAttachChildren`,
-            `${prefix}.${$1$0}.beforeDetach`,
-            `${prefix}.${$1$0}.beforeUnbind`,
-            `${prefix}.${$1$0}.afterUnbind`,
-            `${prefix}.${$1$0}.afterUnbindChildren`,
-            `${prefix}.${$1$0}.dispose`,
-          ],
-          [
-            `${prefix}.${$2$0}.beforeBind`,
-            `${prefix}.${$2$0}.afterBind`,
-            `${prefix}.${$2$0}.afterAttach`,
-            `${prefix}.${$2$0}.afterAttachChildren`,
-            `${prefix}.${$1$0}.beforeDetach`,
-            `${prefix}.${$1$0}.beforeUnbind`,
-            `${prefix}.${$1$0}.afterUnbind`,
-            `${prefix}.${$1$0}.afterUnbindChildren`,
-            `${prefix}.${$1$0}.dispose`,
-            `${prefix}.${$2$1}.beforeBind`,
-            `${prefix}.${$2$1}.afterBind`,
-            `${prefix}.${$2$1}.afterAttach`,
-            `${prefix}.${$2$1}.afterAttachChildren`,
-          ],
-        ),
-      ];
+      return getCalls['$1$0 -> $2$0+$2$1'](prefix, $1$0, $2$0, $2$1, opts, comp);
     }
 
     if ($2$0 === '') {
       if ($1$1 === '') {
-        return getCalls[`$x$0+$x$1 -> ''`](prefix, $1$0, $2$1, false, async);
+        return getCalls['$x$0+$x$1 -> ""'](prefix, $1$0, $2$1, opts, comp);
       }
       if ($2$1 === '') {
-        return getCalls[`$x$0+$x$1 -> ''`](prefix, $1$0, $1$1, false, async);
+        return getCalls['$x$0+$x$1 -> ""'](prefix, $1$0, $1$1, opts, comp);
       }
 
-      return [
-        `${prefix}.${$1$0}.canLeave`,
-        `${prefix}.${$1$1}.canLeave`,
-        `${prefix}.${$2$1}.canEnter`,
-        `${prefix}.${$1$0}.leave`,
-        `${prefix}.${$1$1}.leave`,
-        `${prefix}.${$2$1}.enter`,
-
-        ...addIf(
-          async,
-          [
-            `${prefix}.${$2$1}.beforeBind`,
-            `${prefix}.${$1$0}.beforeDetach`,
-            `${prefix}.${$2$1}.afterBind`,
-            `${prefix}.${$1$0}.beforeUnbind`,
-            `${prefix}.${$2$1}.afterAttach`,
-            `${prefix}.${$1$0}.afterUnbind`,
-            `${prefix}.${$2$1}.afterAttachChildren`,
-            `${prefix}.${$1$0}.afterUnbindChildren`,
-            `${prefix}.${$1$0}.dispose`,
-            `${prefix}.${$1$1}.beforeDetach`,
-            `${prefix}.${$1$1}.beforeUnbind`,
-            `${prefix}.${$1$1}.afterUnbind`,
-            `${prefix}.${$1$1}.afterUnbindChildren`,
-            `${prefix}.${$1$1}.dispose`,
-          ],
-          [
-            `${prefix}.${$2$1}.beforeBind`,
-            `${prefix}.${$2$1}.afterBind`,
-            `${prefix}.${$2$1}.afterAttach`,
-            `${prefix}.${$2$1}.afterAttachChildren`,
-            `${prefix}.${$1$1}.beforeDetach`,
-            `${prefix}.${$1$1}.beforeUnbind`,
-            `${prefix}.${$1$1}.afterUnbind`,
-            `${prefix}.${$1$1}.afterUnbindChildren`,
-            `${prefix}.${$1$1}.dispose`,
-            `${prefix}.${$1$0}.beforeDetach`,
-            `${prefix}.${$1$0}.beforeUnbind`,
-            `${prefix}.${$1$0}.afterUnbind`,
-            `${prefix}.${$1$0}.afterUnbindChildren`,
-            `${prefix}.${$1$0}.dispose`,
-          ],
-        ),
-      ];
+      return getCalls['$1$0+$1$1 -> $2$1'](prefix, $1$0, $1$1, $2$1, opts, comp);
     }
 
     if ($2$1 === '') {
-      return [
-        `${prefix}.${$1$0}.canLeave`,
-        `${prefix}.${$1$1}.canLeave`,
-        `${prefix}.${$2$0}.canEnter`,
-        `${prefix}.${$1$0}.leave`,
-        `${prefix}.${$1$1}.leave`,
-        `${prefix}.${$2$0}.enter`,
-
-        ...addIf(
-          async,
-          [
-            `${prefix}.${$2$0}.beforeBind`,
-            `${prefix}.${$1$1}.beforeDetach`,
-            `${prefix}.${$2$0}.afterBind`,
-            `${prefix}.${$1$1}.beforeUnbind`,
-            `${prefix}.${$2$0}.afterAttach`,
-            `${prefix}.${$1$1}.afterUnbind`,
-            `${prefix}.${$2$0}.afterAttachChildren`,
-            `${prefix}.${$1$1}.afterUnbindChildren`,
-            `${prefix}.${$1$1}.dispose`,
-            `${prefix}.${$1$0}.beforeDetach`,
-            `${prefix}.${$1$0}.beforeUnbind`,
-            `${prefix}.${$1$0}.afterUnbind`,
-            `${prefix}.${$1$0}.afterUnbindChildren`,
-            `${prefix}.${$1$0}.dispose`,
-          ],
-          [
-            `${prefix}.${$2$0}.beforeBind`,
-            `${prefix}.${$2$0}.afterBind`,
-            `${prefix}.${$2$0}.afterAttach`,
-            `${prefix}.${$2$0}.afterAttachChildren`,
-            `${prefix}.${$1$0}.beforeDetach`,
-            `${prefix}.${$1$0}.beforeUnbind`,
-            `${prefix}.${$1$0}.afterUnbind`,
-            `${prefix}.${$1$0}.afterUnbindChildren`,
-            `${prefix}.${$1$0}.dispose`,
-            `${prefix}.${$1$1}.beforeDetach`,
-            `${prefix}.${$1$1}.beforeUnbind`,
-            `${prefix}.${$1$1}.afterUnbind`,
-            `${prefix}.${$1$1}.afterUnbindChildren`,
-            `${prefix}.${$1$1}.dispose`,
-          ],
-        ),
-      ];
+      return getCalls['$1$0+$1$1 -> $2$0'](prefix, $1$0, $1$1, $2$0, opts, comp);
     }
 
-    return [
+    const routerHooks = [
       `${prefix}.${$1$0}.canLeave`,
       `${prefix}.${$1$1}.canLeave`,
       `${prefix}.${$2$0}.canEnter`,
@@ -424,63 +797,134 @@ export const getCalls = {
       `${prefix}.${$1$1}.leave`,
       `${prefix}.${$2$0}.enter`,
       `${prefix}.${$2$1}.enter`,
-
-      ...addIf(
-        async,
-        [
-          `${prefix}.${$2$0}.beforeBind`,
-          `${prefix}.${$2$1}.beforeBind`,
-          `${prefix}.${$2$0}.afterBind`,
-          `${prefix}.${$2$1}.afterBind`,
-          `${prefix}.${$2$0}.afterAttach`,
-          `${prefix}.${$2$1}.afterAttach`,
-          `${prefix}.${$2$0}.afterAttachChildren`,
-          `${prefix}.${$2$1}.afterAttachChildren`,
-          `${prefix}.${$1$0}.beforeDetach`,
-          `${prefix}.${$1$1}.beforeDetach`,
-          `${prefix}.${$1$0}.beforeUnbind`,
-          `${prefix}.${$1$1}.beforeUnbind`,
-          `${prefix}.${$1$0}.afterUnbind`,
-          `${prefix}.${$1$1}.afterUnbind`,
-          `${prefix}.${$1$0}.afterUnbindChildren`,
-          `${prefix}.${$1$1}.afterUnbindChildren`,
-          `${prefix}.${$1$0}.dispose`,
-          `${prefix}.${$1$1}.dispose`,
-        ],
-        [
-          `${prefix}.${$2$0}.beforeBind`,
-          `${prefix}.${$2$0}.afterBind`,
-          `${prefix}.${$2$0}.afterAttach`,
-          `${prefix}.${$2$0}.afterAttachChildren`,
-          `${prefix}.${$1$0}.beforeDetach`,
-          `${prefix}.${$1$0}.beforeUnbind`,
-          `${prefix}.${$1$0}.afterUnbind`,
-          `${prefix}.${$1$0}.afterUnbindChildren`,
-          `${prefix}.${$1$0}.dispose`,
-          `${prefix}.${$2$1}.beforeBind`,
-          `${prefix}.${$2$1}.afterBind`,
-          `${prefix}.${$2$1}.afterAttach`,
-          `${prefix}.${$2$1}.afterAttachChildren`,
-          `${prefix}.${$1$1}.beforeDetach`,
-          `${prefix}.${$1$1}.beforeUnbind`,
-          `${prefix}.${$1$1}.afterUnbind`,
-          `${prefix}.${$1$1}.afterUnbindChildren`,
-          `${prefix}.${$1$1}.dispose`,
-        ],
-      ),
     ];
+    switch (comp.kind) {
+      case 'all-async':
+        switch (opts.swapStrategy) {
+          case 'parallel':
+            return [
+              ...routerHooks,
+              ...interleave(
+                [
+                  ...deactivate(prefix, $1$0),
+                  `${prefix}.${$1$0}.afterUnbindChildren`,
+                  `${prefix}.${$1$0}.dispose`,
+                ],
+                [
+                  ...activate(prefix, $2$0),
+                  `${prefix}.${$2$0}.afterAttachChildren`,
+                ],
+                [
+                  ...deactivate(prefix, $1$1),
+                  `${prefix}.${$1$1}.afterUnbindChildren`,
+                  `${prefix}.${$1$1}.dispose`,
+                ],
+                [
+                  ...activate(prefix, $2$1),
+                  `${prefix}.${$2$1}.afterAttachChildren`,
+                ],
+              ),
+            ];
+          case 'remove-first':
+            return [
+              ...routerHooks,
+              ...interleave(
+                [
+                  ...deactivate(prefix, $1$0),
+                  `${prefix}.${$1$0}.afterUnbindChildren`,
+                  `${prefix}.${$1$0}.dispose`,
+                ],
+                [
+                  ...deactivate(prefix, $1$1),
+                  `${prefix}.${$1$1}.afterUnbindChildren`,
+                  `${prefix}.${$1$1}.dispose`,
+                ],
+              ),
+              ...interleave(
+                [
+                  ...activate(prefix, $2$0),
+                  `${prefix}.${$2$0}.afterAttachChildren`,
+                ],
+                [
+                  ...activate(prefix, $2$1),
+                  `${prefix}.${$2$1}.afterAttachChildren`,
+                ],
+              ),
+            ];
+          case 'add-first':
+            return [
+              ...routerHooks,
+              ...interleave(
+                [
+                  ...activate(prefix, $2$0),
+                  `${prefix}.${$2$0}.afterAttachChildren`,
+                ],
+                [
+                  ...activate(prefix, $2$1),
+                  `${prefix}.${$2$1}.afterAttachChildren`,
+                ],
+              ),
+              ...interleave(
+                [
+                  ...deactivate(prefix, $1$0),
+                  `${prefix}.${$1$0}.afterUnbindChildren`,
+                  `${prefix}.${$1$0}.dispose`,
+                ],
+                [
+                  ...deactivate(prefix, $1$1),
+                  `${prefix}.${$1$1}.afterUnbindChildren`,
+                  `${prefix}.${$1$1}.dispose`,
+                ],
+              ),
+            ];
+        }
+        break;
+      case 'all-sync':
+        switch (opts.swapStrategy) {
+          case 'parallel':
+          case 'remove-first':
+            return [
+              ...routerHooks,
+              ...deactivate(prefix, $1$0),
+              `${prefix}.${$1$0}.afterUnbindChildren`,
+              `${prefix}.${$1$0}.dispose`,
+              ...activate(prefix, $2$0),
+              `${prefix}.${$2$0}.afterAttachChildren`,
+              ...deactivate(prefix, $1$1),
+              `${prefix}.${$1$1}.afterUnbindChildren`,
+              `${prefix}.${$1$1}.dispose`,
+              ...activate(prefix, $2$1),
+              `${prefix}.${$2$1}.afterAttachChildren`,
+            ];
+          case 'add-first':
+            return [
+              ...routerHooks,
+              ...activate(prefix, $2$0),
+              `${prefix}.${$2$0}.afterAttachChildren`,
+              ...deactivate(prefix, $1$0),
+              `${prefix}.${$1$0}.afterUnbindChildren`,
+              `${prefix}.${$1$0}.dispose`,
+              ...activate(prefix, $2$1),
+              `${prefix}.${$2$1}.afterAttachChildren`,
+              ...deactivate(prefix, $1$1),
+              `${prefix}.${$1$1}.afterUnbindChildren`,
+              `${prefix}.${$1$1}.dispose`,
+            ];
+        }
+    }
   },
-  [`'' -> $x$p/$x$c`](
+  '"" -> $x$p/$x$c'(
     prefix: string,
     $x$p: string,
     $x$c: string,
-    strategy: 'static' | 'dynamic',
+    opts: IRouterOptionsSpec,
+    comp: IComponentSpec,
   ): string[] {
     if ($x$c === '') {
-      return getCalls[`'' -> $x`](prefix, $x$p);
+      return getCalls['"" -> $x'](prefix, $x$p);
     }
 
-    switch (strategy) {
+    switch (opts.resolutionStrategy) {
       case 'static':
         return [
           `${prefix}.${$x$p}.canEnter`,
@@ -488,12 +932,8 @@ export const getCalls = {
           `${prefix}.${$x$p}.enter`,
           `${prefix}.${$x$c}.enter`,
 
-          `${prefix}.${$x$p}.beforeBind`,
-          `${prefix}.${$x$p}.afterBind`,
-          `${prefix}.${$x$p}.afterAttach`,
-          `${prefix}.${$x$c}.beforeBind`,
-          `${prefix}.${$x$c}.afterBind`,
-          `${prefix}.${$x$c}.afterAttach`,
+          ...activate(prefix, $x$p),
+          ...activate(prefix, $x$c),
           `${prefix}.${$x$c}.afterAttachChildren`,
           `${prefix}.${$x$p}.afterAttachChildren`,
         ];
@@ -502,224 +942,497 @@ export const getCalls = {
           `${prefix}.${$x$p}.canEnter`,
           `${prefix}.${$x$p}.enter`,
 
-          `${prefix}.${$x$p}.beforeBind`,
-          `${prefix}.${$x$p}.afterBind`,
-          `${prefix}.${$x$p}.afterAttach`,
+          ...activate(prefix, $x$p),
           `${prefix}.${$x$p}.afterAttachChildren`,
 
           `${prefix}.${$x$c}.canEnter`,
           `${prefix}.${$x$c}.enter`,
 
-          `${prefix}.${$x$c}.beforeBind`,
-          `${prefix}.${$x$c}.afterBind`,
-          `${prefix}.${$x$c}.afterAttach`,
+          ...activate(prefix, $x$c),
           `${prefix}.${$x$c}.afterAttachChildren`,
         ];
     }
   },
-  [`$x$p/$x$c -> ''`](
+  '$x$p/$x$c -> ""'(
     prefix: string,
     $x$p: string,
     $x$c: string,
-    isStopPhase: boolean,
+    opts: IRouterOptionsSpec,
+    comp: IComponentSpec,
   ): string[] {
     if ($x$c === '') {
-      return getCalls[`$x -> ''`](prefix, $x$p, isStopPhase);
+      return getCalls['$x -> ""'](prefix, $x$p);
     }
 
     return [
-      ...addIf(
-        !isStopPhase,
-        [
-          `${prefix}.${$x$p}.canLeave`,
-          `${prefix}.${$x$c}.canLeave`,
-          `${prefix}.${$x$p}.leave`,
-          `${prefix}.${$x$c}.leave`,
-        ],
-      ),
-      `${prefix}.${$x$p}.beforeDetach`,
-      `${prefix}.${$x$p}.beforeUnbind`,
-      `${prefix}.${$x$p}.afterUnbind`,
-      `${prefix}.${$x$c}.beforeDetach`,
-      `${prefix}.${$x$c}.beforeUnbind`,
-      `${prefix}.${$x$c}.afterUnbind`,
+      `${prefix}.${$x$c}.canLeave`,
+      `${prefix}.${$x$p}.canLeave`,
+      `${prefix}.${$x$c}.leave`,
+      `${prefix}.${$x$p}.leave`,
+
+      ...deactivate(prefix, $x$c),
       `${prefix}.${$x$c}.afterUnbindChildren`,
+      `${prefix}.${$x$c}.dispose`,
+
+      ...deactivate(prefix, $x$p),
       `${prefix}.${$x$p}.afterUnbindChildren`,
-      ...addIf(
-        !isStopPhase,
-        [
-          `${prefix}.${$x$p}.dispose`,
-          `${prefix}.${$x$c}.dispose`,
-        ],
-      ),
+      `${prefix}.${$x$p}.dispose`,
     ];
   },
-  [`$1$p/$1$c -> $2$p/$2$c`](
+  '$1$p/$1$c -> $2$p'(
+    prefix: string,
+    $1$p: string,
+    $1$c: string,
+    $2$p: string,
+    opts: IRouterOptionsSpec,
+    comp: IComponentSpec,
+  ): string[] {
+    if ($2$p === '') {
+      return getCalls['$x$p/$x$c -> ""'](prefix, $1$p, $1$c, opts, comp);
+    }
+
+    const routerHooks = [
+      `${prefix}.${$1$c}.canLeave`,
+      `${prefix}.${$1$p}.canLeave`,
+      `${prefix}.${$2$p}.canEnter`,
+      `${prefix}.${$1$c}.leave`,
+      `${prefix}.${$1$p}.leave`,
+      `${prefix}.${$2$p}.enter`,
+    ];
+    switch (opts.swapStrategy) {
+      case 'parallel':
+        switch (comp.kind) {
+          case 'all-async':
+            return [
+              ...routerHooks,
+              ...deactivate(prefix, $1$c),
+              `${prefix}.${$1$c}.afterUnbindChildren`,
+              `${prefix}.${$1$c}.dispose`,
+              ...interleave(
+                [
+                  ...deactivate(prefix, $1$p),
+                  `${prefix}.${$1$p}.afterUnbindChildren`,
+                  `${prefix}.${$1$p}.dispose`,
+                ],
+                [
+                  ...activate(prefix, $2$p),
+                  `${prefix}.${$2$p}.afterAttachChildren`,
+                ],
+              ),
+            ];
+          case 'all-sync':
+            return [
+              ...routerHooks,
+              ...deactivate(prefix, $1$c),
+              `${prefix}.${$1$c}.afterUnbindChildren`,
+              `${prefix}.${$1$c}.dispose`,
+              ...deactivate(prefix, $1$p),
+              `${prefix}.${$1$p}.afterUnbindChildren`,
+              `${prefix}.${$1$p}.dispose`,
+              ...activate(prefix, $2$p),
+              `${prefix}.${$2$p}.afterAttachChildren`,
+            ];
+        }
+        break;
+      case 'remove-first':
+        return [
+          ...routerHooks,
+          ...deactivate(prefix, $1$c),
+          `${prefix}.${$1$c}.afterUnbindChildren`,
+          `${prefix}.${$1$c}.dispose`,
+          ...deactivate(prefix, $1$p),
+          `${prefix}.${$1$p}.afterUnbindChildren`,
+          `${prefix}.${$1$p}.dispose`,
+          ...activate(prefix, $2$p),
+          `${prefix}.${$2$p}.afterAttachChildren`,
+        ];
+      case 'add-first':
+        return [
+          ...routerHooks,
+          ...deactivate(prefix, $1$c),
+          `${prefix}.${$1$c}.afterUnbindChildren`,
+          `${prefix}.${$1$c}.dispose`,
+          ...activate(prefix, $2$p),
+          `${prefix}.${$2$p}.afterAttachChildren`,
+          ...deactivate(prefix, $1$p),
+          `${prefix}.${$1$p}.afterUnbindChildren`,
+          `${prefix}.${$1$p}.dispose`,
+        ];
+    }
+  },
+  '$1$p -> $2$p/$2$c'(
+    prefix: string,
+    $1$p: string,
+    $2$p: string,
+    $2$c: string,
+    opts: IRouterOptionsSpec,
+    comp: IComponentSpec,
+  ): string[] {
+    if ($2$c === '') {
+      return getCalls['$1 -> $2'](prefix, $1$p, $2$p, opts, comp);
+    }
+
+    if ($1$p === '') {
+      return getCalls['"" -> $x$p/$x$c'](prefix, $2$p, $2$c, opts, comp);
+    }
+
+    switch (opts.resolutionStrategy) {
+      case 'static': {
+        const routerHooks = [
+          `${prefix}.${$1$p}.canLeave`,
+          `${prefix}.${$2$p}.canEnter`,
+          `${prefix}.${$2$c}.canEnter`,
+          `${prefix}.${$1$p}.leave`,
+          `${prefix}.${$2$p}.enter`,
+          `${prefix}.${$2$c}.enter`,
+        ];
+        switch (opts.swapStrategy) {
+          case 'parallel':
+            switch (comp.kind) {
+              case 'all-async':
+                return [
+                  ...routerHooks,
+
+                  ...interleave(
+                    [
+                      ...deactivate(prefix, $1$p),
+                      `${prefix}.${$1$p}.afterUnbindChildren`,
+                      `${prefix}.${$1$p}.dispose`,
+                    ],
+                    [
+                      ...activate(prefix, $2$p),
+                      ...activate(prefix, $2$c),
+                    ],
+                  ),
+                  `${prefix}.${$2$c}.afterAttachChildren`,
+                  `${prefix}.${$2$p}.afterAttachChildren`,
+                ];
+              case 'all-sync':
+                return [
+                  ...routerHooks,
+
+                  ...deactivate(prefix, $1$p),
+                  `${prefix}.${$1$p}.afterUnbindChildren`,
+                  `${prefix}.${$1$p}.dispose`,
+                  ...activate(prefix, $2$p),
+                  ...activate(prefix, $2$c),
+                  `${prefix}.${$2$c}.afterAttachChildren`,
+                  `${prefix}.${$2$p}.afterAttachChildren`,
+                ];
+            }
+            break;
+          case 'remove-first':
+            return [
+              ...routerHooks,
+
+              ...deactivate(prefix, $1$p),
+              `${prefix}.${$1$p}.afterUnbindChildren`,
+              `${prefix}.${$1$p}.dispose`,
+              ...activate(prefix, $2$p),
+              ...activate(prefix, $2$c),
+              `${prefix}.${$2$c}.afterAttachChildren`,
+              `${prefix}.${$2$p}.afterAttachChildren`,
+            ];
+          case 'add-first':
+            return [
+              ...routerHooks,
+
+              ...activate(prefix, $2$p),
+              ...activate(prefix, $2$c),
+              `${prefix}.${$2$c}.afterAttachChildren`,
+              `${prefix}.${$2$p}.afterAttachChildren`,
+              ...deactivate(prefix, $1$p),
+              `${prefix}.${$1$p}.afterUnbindChildren`,
+              `${prefix}.${$1$p}.dispose`,
+            ];
+        }
+        break;
+      }
+      case 'dynamic': {
+        const routerHooks = [
+          `${prefix}.${$1$p}.canLeave`,
+          `${prefix}.${$2$p}.canEnter`,
+          `${prefix}.${$1$p}.leave`,
+          `${prefix}.${$2$p}.enter`,
+        ];
+        switch (opts.swapStrategy) {
+          case 'parallel':
+            switch (comp.kind) {
+              case 'all-async':
+                return [
+                  ...routerHooks,
+                  ...interleave(
+                    [
+                      ...deactivate(prefix, $1$p),
+                      `${prefix}.${$1$p}.afterUnbindChildren`,
+                      `${prefix}.${$1$p}.dispose`,
+                    ],
+                    [
+                      ...activate(prefix, $2$p),
+                      `${prefix}.${$2$p}.afterAttachChildren`,
+                    ],
+                  ),
+
+                  `${prefix}.${$2$c}.canEnter`,
+                  `${prefix}.${$2$c}.enter`,
+
+                  ...activate(prefix, $2$c),
+                  `${prefix}.${$2$c}.afterAttachChildren`,
+                ];
+              case 'all-sync':
+                return [
+                  ...routerHooks,
+                  ...deactivate(prefix, $1$p),
+                  `${prefix}.${$1$p}.afterUnbindChildren`,
+                  `${prefix}.${$1$p}.dispose`,
+                  ...activate(prefix, $2$p),
+                  `${prefix}.${$2$p}.afterAttachChildren`,
+
+                  `${prefix}.${$2$c}.canEnter`,
+                  `${prefix}.${$2$c}.enter`,
+
+                  ...activate(prefix, $2$c),
+                  `${prefix}.${$2$c}.afterAttachChildren`,
+                ];
+            }
+            break;
+          case 'remove-first':
+            return [
+              ...routerHooks,
+
+              ...deactivate(prefix, $1$p),
+              `${prefix}.${$1$p}.afterUnbindChildren`,
+              `${prefix}.${$1$p}.dispose`,
+              ...activate(prefix, $2$p),
+              `${prefix}.${$2$p}.afterAttachChildren`,
+
+              `${prefix}.${$2$c}.canEnter`,
+              `${prefix}.${$2$c}.enter`,
+
+              ...activate(prefix, $2$c),
+              `${prefix}.${$2$c}.afterAttachChildren`,
+            ];
+          case 'add-first':
+            return [
+              ...routerHooks,
+
+              ...activate(prefix, $2$p),
+              `${prefix}.${$2$p}.afterAttachChildren`,
+              ...deactivate(prefix, $1$p),
+              `${prefix}.${$1$p}.afterUnbindChildren`,
+              `${prefix}.${$1$p}.dispose`,
+
+              `${prefix}.${$2$c}.canEnter`,
+              `${prefix}.${$2$c}.enter`,
+
+              ...activate(prefix, $2$c),
+              `${prefix}.${$2$c}.afterAttachChildren`,
+            ];
+        }
+      }
+    }
+  },
+  '$1$p/$1$c -> $2$p/$2$c'(
     prefix: string,
     $1$p: string,
     $1$c: string,
     $2$p: string,
     $2$c: string,
-    strategy: 'static' | 'dynamic',
+    opts: IRouterOptionsSpec,
+    comp: IComponentSpec,
   ): string[] {
     if ($1$p === $2$p) {
-      return getCalls[`$1 -> $2`](prefix, $1$c, $2$c);
+      return getCalls['$1 -> $2'](prefix, $1$c, $2$c, opts, comp);
     }
 
     if ($1$c === '') {
-      if ($2$c === '') {
-        return getCalls[`$1 -> $2`](prefix, $1$p, $2$p);
-      }
-
-      if ($1$p === '') {
-        return getCalls[`'' -> $x$p/$x$c`](prefix, $2$p, $2$c, strategy);
-      }
-
-      switch (strategy) {
-        case 'static':
-          return [
-            `${prefix}.${$1$p}.canLeave`,
-            `${prefix}.${$2$p}.canEnter`,
-            `${prefix}.${$2$c}.canEnter`,
-            `${prefix}.${$1$p}.leave`,
-            `${prefix}.${$2$p}.enter`,
-            `${prefix}.${$2$c}.enter`,
-
-            `${prefix}.${$2$p}.beforeBind`,
-            `${prefix}.${$2$p}.afterBind`,
-            `${prefix}.${$2$p}.afterAttach`,
-            `${prefix}.${$2$c}.beforeBind`,
-            `${prefix}.${$2$c}.afterBind`,
-            `${prefix}.${$2$c}.afterAttach`,
-            `${prefix}.${$2$c}.afterAttachChildren`,
-            `${prefix}.${$2$p}.afterAttachChildren`,
-            `${prefix}.${$1$p}.beforeDetach`,
-            `${prefix}.${$1$p}.beforeUnbind`,
-            `${prefix}.${$1$p}.afterUnbind`,
-            `${prefix}.${$1$p}.afterUnbindChildren`,
-            `${prefix}.${$1$p}.dispose`,
-          ];
-        case 'dynamic':
-          return [
-            `${prefix}.${$1$p}.canLeave`,
-            `${prefix}.${$2$p}.canEnter`,
-            `${prefix}.${$1$p}.leave`,
-            `${prefix}.${$2$p}.enter`,
-
-            `${prefix}.${$2$p}.beforeBind`,
-            `${prefix}.${$2$p}.afterBind`,
-            `${prefix}.${$2$p}.afterAttach`,
-            `${prefix}.${$2$p}.afterAttachChildren`,
-            `${prefix}.${$1$p}.beforeDetach`,
-            `${prefix}.${$1$p}.beforeUnbind`,
-            `${prefix}.${$1$p}.afterUnbind`,
-            `${prefix}.${$1$p}.afterUnbindChildren`,
-            `${prefix}.${$1$p}.dispose`,
-
-            `${prefix}.${$2$c}.canEnter`,
-            `${prefix}.${$2$c}.enter`,
-
-            `${prefix}.${$2$c}.beforeBind`,
-            `${prefix}.${$2$c}.afterBind`,
-            `${prefix}.${$2$c}.afterAttach`,
-            `${prefix}.${$2$c}.afterAttachChildren`,
-          ];
-      }
+      return getCalls['$1$p -> $2$p/$2$c'](prefix, $1$p, $2$p, $2$c, opts, comp);
     }
 
     if ($2$c === '') {
-      if ($2$p === '') {
-        return getCalls[`$x$p/$x$c -> ''`](prefix, $1$p, $1$c, false);
-      }
-
-      return [
-        `${prefix}.${$1$p}.canLeave`,
-        `${prefix}.${$1$c}.canLeave`,
-        `${prefix}.${$2$p}.canEnter`,
-        `${prefix}.${$1$p}.leave`,
-        `${prefix}.${$1$c}.leave`,
-        `${prefix}.${$2$p}.enter`,
-
-        `${prefix}.${$2$p}.beforeBind`,
-        `${prefix}.${$2$p}.afterBind`,
-        `${prefix}.${$2$p}.afterAttach`,
-        `${prefix}.${$2$p}.afterAttachChildren`,
-        `${prefix}.${$1$p}.beforeDetach`,
-        `${prefix}.${$1$p}.beforeUnbind`,
-        `${prefix}.${$1$p}.afterUnbind`,
-        `${prefix}.${$1$c}.beforeDetach`,
-        `${prefix}.${$1$c}.beforeUnbind`,
-        `${prefix}.${$1$c}.afterUnbind`,
-        `${prefix}.${$1$c}.afterUnbindChildren`,
-        `${prefix}.${$1$p}.afterUnbindChildren`,
-        `${prefix}.${$1$p}.dispose`,
-        `${prefix}.${$1$c}.dispose`,
-      ];
+      return getCalls['$1$p/$1$c -> $2$p'](prefix, $1$p, $1$c, $2$p, opts, comp);
     }
 
-    switch (strategy) {
-      case 'static':
-        return [
-          `${prefix}.${$1$p}.canLeave`,
+    switch (opts.resolutionStrategy) {
+      case 'static': {
+        const routerHooks = [
           `${prefix}.${$1$c}.canLeave`,
+          `${prefix}.${$1$p}.canLeave`,
           `${prefix}.${$2$p}.canEnter`,
           `${prefix}.${$2$c}.canEnter`,
-          `${prefix}.${$1$p}.leave`,
           `${prefix}.${$1$c}.leave`,
+          `${prefix}.${$1$p}.leave`,
           `${prefix}.${$2$p}.enter`,
           `${prefix}.${$2$c}.enter`,
-
-          `${prefix}.${$2$p}.beforeBind`,
-          `${prefix}.${$2$p}.afterBind`,
-          `${prefix}.${$2$p}.afterAttach`,
-          `${prefix}.${$2$c}.beforeBind`,
-          `${prefix}.${$2$c}.afterBind`,
-          `${prefix}.${$2$c}.afterAttach`,
-          `${prefix}.${$2$c}.afterAttachChildren`,
-          `${prefix}.${$2$p}.afterAttachChildren`,
-          `${prefix}.${$1$p}.beforeDetach`,
-          `${prefix}.${$1$p}.beforeUnbind`,
-          `${prefix}.${$1$p}.afterUnbind`,
-          `${prefix}.${$1$c}.beforeDetach`,
-          `${prefix}.${$1$c}.beforeUnbind`,
-          `${prefix}.${$1$c}.afterUnbind`,
-          `${prefix}.${$1$c}.afterUnbindChildren`,
-          `${prefix}.${$1$p}.afterUnbindChildren`,
-          `${prefix}.${$1$p}.dispose`,
-          `${prefix}.${$1$c}.dispose`,
         ];
-      case 'dynamic':
-        return [
-          `${prefix}.${$1$p}.canLeave`,
+        switch (opts.swapStrategy) {
+          case 'parallel':
+            switch (comp.kind) {
+              case 'all-async':
+                return [
+                  ...routerHooks,
+                  ...deactivate(prefix, $1$c),
+                  `${prefix}.${$1$c}.afterUnbindChildren`,
+                  `${prefix}.${$1$c}.dispose`,
+                  ...interleave(
+                    [
+                      ...deactivate(prefix, $1$p),
+                      `${prefix}.${$1$p}.afterUnbindChildren`,
+                      `${prefix}.${$1$p}.dispose`
+                    ],
+                    [
+                      ...activate(prefix, $2$p),
+                      ...activate(prefix, $2$c),
+                    ],
+                  ),
+                  `${prefix}.${$2$c}.afterAttachChildren`,
+                  `${prefix}.${$2$p}.afterAttachChildren`,
+                ];
+              case 'all-sync':
+                return [
+                  ...routerHooks,
+                  ...deactivate(prefix, $1$c),
+                  `${prefix}.${$1$c}.afterUnbindChildren`,
+                  `${prefix}.${$1$c}.dispose`,
+                  ...deactivate(prefix, $1$p),
+                  `${prefix}.${$1$p}.afterUnbindChildren`,
+                  `${prefix}.${$1$p}.dispose`,
+                  ...activate(prefix, $2$p),
+                  ...activate(prefix, $2$c),
+                  `${prefix}.${$2$c}.afterAttachChildren`,
+                  `${prefix}.${$2$p}.afterAttachChildren`,
+                ];
+            }
+            break;
+          case 'remove-first':
+            return [
+              ...routerHooks,
+              ...deactivate(prefix, $1$c),
+              `${prefix}.${$1$c}.afterUnbindChildren`,
+              `${prefix}.${$1$c}.dispose`,
+              ...deactivate(prefix, $1$p),
+              `${prefix}.${$1$p}.afterUnbindChildren`,
+              `${prefix}.${$1$p}.dispose`,
+              ...activate(prefix, $2$p),
+              ...activate(prefix, $2$c),
+              `${prefix}.${$2$c}.afterAttachChildren`,
+              `${prefix}.${$2$p}.afterAttachChildren`,
+            ];
+          case 'add-first':
+            return [
+              ...routerHooks,
+              ...deactivate(prefix, $1$c),
+              `${prefix}.${$1$c}.afterUnbindChildren`,
+              `${prefix}.${$1$c}.dispose`,
+              ...activate(prefix, $2$p),
+              ...activate(prefix, $2$c),
+              `${prefix}.${$2$c}.afterAttachChildren`,
+              `${prefix}.${$2$p}.afterAttachChildren`,
+              ...deactivate(prefix, $1$p),
+              `${prefix}.${$1$p}.afterUnbindChildren`,
+              `${prefix}.${$1$p}.dispose`,
+            ];
+        }
+        break;
+      }
+      case 'dynamic': {
+        const routerHooks = [
           `${prefix}.${$1$c}.canLeave`,
+          `${prefix}.${$1$p}.canLeave`,
           `${prefix}.${$2$p}.canEnter`,
-          `${prefix}.${$1$p}.leave`,
           `${prefix}.${$1$c}.leave`,
+          `${prefix}.${$1$p}.leave`,
           `${prefix}.${$2$p}.enter`,
-
-          `${prefix}.${$2$p}.beforeBind`,
-          `${prefix}.${$2$p}.afterBind`,
-          `${prefix}.${$2$p}.afterAttach`,
-          `${prefix}.${$2$p}.afterAttachChildren`,
-          `${prefix}.${$1$p}.beforeDetach`,
-          `${prefix}.${$1$p}.beforeUnbind`,
-          `${prefix}.${$1$p}.afterUnbind`,
-          `${prefix}.${$1$c}.beforeDetach`,
-          `${prefix}.${$1$c}.beforeUnbind`,
-          `${prefix}.${$1$c}.afterUnbind`,
-          `${prefix}.${$1$c}.afterUnbindChildren`,
-          `${prefix}.${$1$p}.afterUnbindChildren`,
-          `${prefix}.${$1$p}.dispose`,
-          `${prefix}.${$1$c}.dispose`,
-
-          `${prefix}.${$2$c}.canEnter`,
-          `${prefix}.${$2$c}.enter`,
-
-          `${prefix}.${$2$c}.beforeBind`,
-          `${prefix}.${$2$c}.afterBind`,
-          `${prefix}.${$2$c}.afterAttach`,
-          `${prefix}.${$2$c}.afterAttachChildren`,
         ];
+        switch (opts.swapStrategy) {
+          case 'parallel':
+            switch (comp.kind) {
+              case 'all-async':
+                return [
+                  ...routerHooks,
+
+                  ...deactivate(prefix, $1$c),
+                  `${prefix}.${$1$c}.afterUnbindChildren`,
+                  `${prefix}.${$1$c}.dispose`,
+                  ...interleave(
+                    [
+                      ...deactivate(prefix, $1$p),
+                      `${prefix}.${$1$p}.afterUnbindChildren`,
+                      `${prefix}.${$1$p}.dispose`,
+                    ],
+                    [
+                      ...activate(prefix, $2$p),
+                      `${prefix}.${$2$p}.afterAttachChildren`,
+                    ],
+                  ),
+
+                  `${prefix}.${$2$c}.canEnter`,
+                  `${prefix}.${$2$c}.enter`,
+
+                  ...activate(prefix, $2$c),
+                  `${prefix}.${$2$c}.afterAttachChildren`,
+                ];
+              case 'all-sync':
+                return [
+                  ...routerHooks,
+
+                  ...deactivate(prefix, $1$c),
+                  `${prefix}.${$1$c}.afterUnbindChildren`,
+                  `${prefix}.${$1$c}.dispose`,
+                  ...deactivate(prefix, $1$p),
+                  `${prefix}.${$1$p}.afterUnbindChildren`,
+                  `${prefix}.${$1$p}.dispose`,
+                  ...activate(prefix, $2$p),
+                  `${prefix}.${$2$p}.afterAttachChildren`,
+
+                  `${prefix}.${$2$c}.canEnter`,
+                  `${prefix}.${$2$c}.enter`,
+
+                  ...activate(prefix, $2$c),
+                  `${prefix}.${$2$c}.afterAttachChildren`,
+                ];
+            }
+            break;
+          case 'remove-first':
+            return [
+              ...routerHooks,
+
+              ...deactivate(prefix, $1$c),
+              `${prefix}.${$1$c}.afterUnbindChildren`,
+              `${prefix}.${$1$c}.dispose`,
+              ...deactivate(prefix, $1$p),
+              `${prefix}.${$1$p}.afterUnbindChildren`,
+              `${prefix}.${$1$p}.dispose`,
+              ...activate(prefix, $2$p),
+              `${prefix}.${$2$p}.afterAttachChildren`,
+
+              `${prefix}.${$2$c}.canEnter`,
+              `${prefix}.${$2$c}.enter`,
+
+              ...activate(prefix, $2$c),
+              `${prefix}.${$2$c}.afterAttachChildren`,
+            ];
+          case 'add-first':
+            return [
+              ...routerHooks,
+
+              ...deactivate(prefix, $1$c),
+              `${prefix}.${$1$c}.afterUnbindChildren`,
+              `${prefix}.${$1$c}.dispose`,
+              ...activate(prefix, $2$p),
+              `${prefix}.${$2$p}.afterAttachChildren`,
+              ...deactivate(prefix, $1$p),
+              `${prefix}.${$1$p}.afterUnbindChildren`,
+              `${prefix}.${$1$p}.dispose`,
+
+              `${prefix}.${$2$c}.canEnter`,
+              `${prefix}.${$2$c}.enter`,
+
+              ...activate(prefix, $2$c),
+              `${prefix}.${$2$c}.afterAttachChildren`,
+            ];
+        }
+      }
     }
   },
 };

@@ -49,45 +49,56 @@ export function resolveAll(
 }
 
 export function walkViewportTree<R extends void | Promise<void>>(
+  direction: 'bottom-up' | 'top-down',
   nodes: RouteNode[],
   callback: (viewportAgent: ViewportAgent) => R,
 ): R {
-  const seen = new Map<ViewportAgent, void | Promise<void>>();
-  return onResolve($walkViewportTree(nodes, callback, seen), function () {
-    seen.clear();
-  }) as R;
-}
+  const cache = new Map<ViewportAgent, void | Promise<void>>();
 
-function $walkViewportTree<R extends void | Promise<void>>(
-  nodes: RouteNode[],
-  callback: (viewportAgent: ViewportAgent) => R,
-  seen: Map<ViewportAgent, void | Promise<void>>,
-): R {
-  return resolveAll(nodes.map(function (node) {
-    const vpa = node.context.vpa;
+  function cachedCallback(vpa: ViewportAgent): R {
     let result: void | Promise<void>;
-    if (seen.has(vpa)) {
-      result = seen.get(vpa);
+    if (cache.has(vpa)) {
+      result = cache.get(vpa);
     } else {
       result = callback(vpa);
       if (result instanceof Promise) {
-        seen.set(vpa, result);
+        cache.set(vpa, result);
         // It can't throw and nothing needs to wait for it
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         result.then(function () {
           // Just check that we haven't been cleared yet, so we can't cause minor mem leaks
-          if (seen.size > 0) {
+          if (cache.size > 0) {
             // Set to void after the promise resolves, so that we don't wait unnecessary ticks later down the road
-            seen.set(vpa, void 0);
+            cache.set(vpa, void 0);
           }
         });
       } else {
         // Don't care about anything other than undefined if it's not a promise, so to prevent potential megamorphism, set to undefined
-        seen.set(vpa, void 0);
+        cache.set(vpa, void 0);
       }
     }
-    return onResolve(result, function () {
-      return $walkViewportTree(node.children, callback, seen);
-    });
-  })) as R;
+    return result as R;
+  }
+
+  let result: void | Promise<void>;
+  switch (direction) {
+    case 'bottom-up':
+      result = resolveAll(nodes.map(function traverse(node): R {
+        return onResolve(resolveAll(node.children.map(traverse)), function () {
+          return cachedCallback(node.context.vpa);
+        }) as R;
+      }));
+      break;
+    case 'top-down':
+      result = resolveAll(nodes.map(function traverse(node): R {
+        return onResolve(cachedCallback(node.context.vpa), function () {
+          return resolveAll(node.children.map(traverse));
+        }) as R;
+      }));
+      break;
+  }
+
+  return onResolve(result, function () {
+    cache.clear();
+  }) as R;
 }

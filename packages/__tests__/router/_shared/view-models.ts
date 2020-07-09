@@ -2,7 +2,7 @@ import { Writable } from '@aurelia/kernel';
 import { ICustomElementController, IHydratedController, IHydratedParentController, LifecycleFlags } from '@aurelia/runtime';
 import { Params, RouteNode, NavigationInstruction, IRouteViewModel } from '@aurelia/router';
 import { IHookInvocationAggregator } from './hook-invocation-tracker';
-import { IHookSpec, hookSpecs } from './hook-spec';
+import { IHookSpec, hookSpecsMap } from './hook-spec';
 
 export interface ITestRouteViewModel extends IRouteViewModel {
   readonly $controller: ICustomElementController<HTMLElement, this>;
@@ -97,22 +97,22 @@ export class HookSpecs {
   ): HookSpecs {
     return new HookSpecs(
       // TODO: use '??' instead of '||' but gotta figure out first why ts-node doesn't understand ES2020 syntax
-      input.beforeBind || hookSpecs.beforeBind.sync,
-      input.afterBind || hookSpecs.afterBind.sync,
-      input.afterAttach || hookSpecs.afterAttach.sync,
-      input.afterAttachChildren || hookSpecs.afterAttachChildren.sync,
+      input.beforeBind || hookSpecsMap.beforeBind.sync,
+      input.afterBind || hookSpecsMap.afterBind.sync,
+      input.afterAttach || hookSpecsMap.afterAttach.sync,
+      input.afterAttachChildren || hookSpecsMap.afterAttachChildren.sync,
 
-      input.beforeDetach || hookSpecs.beforeDetach.sync,
-      input.beforeUnbind || hookSpecs.beforeUnbind.sync,
-      input.afterUnbind || hookSpecs.afterUnbind.sync,
-      input.afterUnbindChildren || hookSpecs.afterUnbindChildren.sync,
+      input.beforeDetach || hookSpecsMap.beforeDetach.sync,
+      input.beforeUnbind || hookSpecsMap.beforeUnbind.sync,
+      input.afterUnbind || hookSpecsMap.afterUnbind.sync,
+      input.afterUnbindChildren || hookSpecsMap.afterUnbindChildren.sync,
 
-      hookSpecs.dispose,
+      hookSpecsMap.dispose,
 
-      input.canEnter || hookSpecs.canEnter.sync,
-      input.enter || hookSpecs.enter.sync,
-      input.canLeave || hookSpecs.canLeave.sync,
-      input.leave || hookSpecs.leave.sync,
+      input.canEnter || hookSpecsMap.canEnter.sync,
+      input.enter || hookSpecsMap.enter.sync,
+      input.canLeave || hookSpecsMap.canLeave.sync,
+      input.leave || hookSpecsMap.leave.sync,
     );
   }
 
@@ -141,7 +141,7 @@ export class HookSpecs {
     const strings: string[] = [];
     for (const k of hookNames) {
       const spec = this[k];
-      if (spec !== hookSpecs[k].sync) {
+      if (spec !== hookSpecsMap[k].sync) {
         strings.push(`${spec.name}.${spec.type}`);
       }
     }

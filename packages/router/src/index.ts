@@ -66,6 +66,7 @@ export {
   ViewportExpression,
   ParameterListExpression,
   ParameterExpression,
+  ExpressionKind,
 } from './route-expression';
 export {
   Endpoint,
@@ -89,6 +90,13 @@ export {
   NavigationOptions,
   Transition,
   Navigation,
+  RoutingMode,
+  ResolutionStrategy,
+  SwapStrategy,
+  QueryParamsStrategy,
+  FragmentStrategy,
+  HistoryStrategy,
+  SameUrlStrategy,
 } from './router';
 export {
   IRouterEvents,

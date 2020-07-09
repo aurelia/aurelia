@@ -69,6 +69,7 @@ export function toManagedState(state: {} | null, navId: number): ManagedState {
 
 export type RoutingMode = 'direct-only' | 'configured-only' | 'direct-first' | 'configured-first';
 export type ResolutionStrategy = 'static' | 'dynamic';
+export type SwapStrategy = 'add-first' | 'remove-first' | 'parallel';
 export type QueryParamsStrategy = 'overwrite' | 'preserve' | 'merge';
 export type FragmentStrategy = 'overwrite' | 'preserve';
 export type HistoryStrategy = 'none' | 'replace' | 'push';
@@ -121,6 +122,7 @@ export class RouterOptions {
      * when that's not desirable.
      */
     public readonly resolutionStrategy: ResolutionStrategy,
+    public readonly swapStrategy: SwapStrategy,
     /**
      * The strategy to use for determining the query parameters when both the previous and the new url has a query string.
      *
@@ -174,6 +176,7 @@ export class RouterOptions {
       input.statefulHistoryLength ?? 0,
       input.routingMode ?? 'configured-first',
       input.resolutionStrategy ?? 'dynamic',
+      input.swapStrategy ?? 'add-first',
       input.queryParamsStrategy ?? 'overwrite',
       input.fragmentStrategy ?? 'overwrite',
       input.historyStrategy ?? 'push',
@@ -257,6 +260,7 @@ export class NavigationOptions extends RouterOptions {
       routerOptions.statefulHistoryLength,
       routerOptions.routingMode,
       routerOptions.resolutionStrategy,
+      routerOptions.swapStrategy,
       routerOptions.queryParamsStrategy,
       routerOptions.fragmentStrategy,
       routerOptions.historyStrategy,
@@ -834,6 +838,7 @@ export class Router {
         this.logger.trace(() => `dequeue() - finished processResidue, finalizing transition`);
 
         walkViewportTree(
+          'top-down', // order doesn't matter for this operation
           [
             ...transition.previousRouteTree.root.children,
             ...transition.routeTree.root.children,
@@ -901,79 +906,67 @@ export class Router {
     previous: RouteNode[],
     next: RouteNode[],
   ): void | Promise<void> {
-    /**
-     * Step 1 - run the canLeave hook on the previous nodes
-     */
     this.logger.trace(() => `runLifecycles() - starting [canLeave] on previous`);
-    return onResolve(walkViewportTree(
-      previous,
-      function (viewport) {
-        return viewport.canLeave(transition);
-      }
-    ), () => {
-      /**
-       * Step 1.1 - if any of the canLeave hooks returned something other than `true`, we cancel the navigation
-       */
+
+    return onResolve(walkViewportTree('bottom-up', previous, function (viewport) {
+      return viewport.canLeave(transition);
+    }), () => {
       if (transition.guardsResult !== true) {
         return this.cancelNavigation(transition);
       }
 
       this.logger.trace(() => `runLifecycles() - finished [canLeave] on previous, starting [canEnter] on next`);
 
-      /**
-       * Step 2 - run the canEnter hook on the current nodes
-       */
-      return onResolve(walkViewportTree(
-        next,
-        function (viewport) {
-          return viewport.canEnter(transition);
-        }
-      ), () => {
-        /**
-         * Step 2.1 - if any of the canEnter hooks returned something other than `true`, we cancel the navigation
-         */
+      return onResolve(walkViewportTree('top-down', next, function (viewport) {
+        return viewport.canEnter(transition);
+      }), () => {
         if (transition.guardsResult !== true) {
           return this.cancelNavigation(transition);
         }
 
         this.logger.trace(() => `runLifecycles() - finished [canEnter] on next, starting [leave] on previous`);
 
-        /**
-         * Step 3 - run the leave hook on the previous nodes
-         */
-        return onResolve(walkViewportTree(
-          previous,
-          function (viewport) {
-            return viewport.leave(transition);
-          }
-        ), () => {
+        return onResolve(walkViewportTree('bottom-up', previous, function (viewport) {
+          return viewport.leave(transition);
+        }), () => {
           this.logger.trace(() => `runLifecycles() - finished [leave] on previous, starting [enter] on next`);
 
-          /**
-           * Step 4 - run the enter hook on the current nodes
-           */
-          return onResolve(walkViewportTree(
-            next,
-            function (viewport) {
-              return viewport.enter(transition);
-            }
-          ), () => {
-            this.logger.trace(() => `runLifecycles() - finished [enter] on next, starting [swap] on previous&next`);
+          return onResolve(walkViewportTree('top-down', next, function (viewport) {
+            return viewport.enter(transition);
+          }), () => {
+            switch (transition.options.swapStrategy) {
+              case 'add-first':
+              case 'parallel':
+                this.logger.trace(() => `runLifecycles() - finished [enter] on next, starting [activate] on next & [deactivate] on previous (swapStrategy: '${transition.options.swapStrategy}')`);
 
-            /**
-             * Step 5 - run the deactivate hooks on all "outgoing" components and the activate hooks on all "incoming" components for all known viewports
-             */
-            return onResolve(walkViewportTree(
-              [
-                ...next,
-                ...previous,
-              ],
-              function (viewport) {
-                return viewport.swap(transition);
-              }
-            ), () => {
-              this.logger.trace(() => `runLifecycles() - finished [swap] on previous&next`);
-            });
+                // Note: these two operations are invoked in parallel, but they don't run completely in parallel.
+                // The viewport agents themselves ensure that the swap intersections are sequenced properly based on the swapStrategy.
+                return onResolve(resolveAll([
+                  walkViewportTree('top-down', next, function (viewport) {
+                    return viewport.activateFromRouter(transition);
+                  }),
+                  walkViewportTree('bottom-up', previous, function (viewport) {
+                    return viewport.deactivateFromRouter(transition);
+                  }),
+                ]), () => {
+                  this.logger.trace(() => `runLifecycles() - finished [activate] on next & [deactivate] on previous`);
+                });
+              case 'remove-first':
+                this.logger.trace(() => `runLifecycles() - finished [enter] on next, starting [deactivate] on previous & [activate] on next (swapStrategy: 'remove-first')`);
+
+                // Note: the order of these two `walkViewportTree` invocations are not what enforces the swapStrategy per se (at least not on a per-subtree basis),
+                // but it does make a slight different w.r.t. the timings and it also matters for the overall invocation order (especially in synchronous situations)
+                return onResolve(resolveAll([
+                  walkViewportTree('bottom-up', previous, function (viewport) {
+                    return viewport.deactivateFromRouter(transition);
+                  }),
+                  walkViewportTree('top-down', next, function (viewport) {
+                    return viewport.activateFromRouter(transition);
+                  }),
+                ]), () => {
+                  this.logger.trace(() => `runLifecycles() - finished [deactivate] on previous & [activate] on next`);
+                });
+            }
           });
         });
       });
@@ -1010,6 +1003,7 @@ export class Router {
     this.logger.trace(() => `cancelNavigation(transition:${transition})`);
 
     walkViewportTree(
+      'top-down', // order doesn't matter for this operation
       [
         ...transition.previousRouteTree.root.children,
         ...transition.routeTree.root.children,

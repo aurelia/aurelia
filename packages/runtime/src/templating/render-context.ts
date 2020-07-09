@@ -144,6 +144,10 @@ export interface ICompiledRenderContext<T extends INode = INode> extends IRender
     target: unknown,
     parts: PartialCustomElementDefinitionParts | undefined,
   ): void;
+
+  getProjectionFor(
+    name: string,
+  ): CustomElementDefinition | null;
 }
 
 /**
@@ -321,6 +325,10 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     return this.container.registerResolver(key, resolver);
   }
 
+  public deregisterResolverFor<K extends Key, T = K>(key: K): void {
+    this.container.deregisterResolverFor(key);
+  }
+
   public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
     return this.container.registerTransformer(key, transformer);
   }
@@ -442,7 +450,6 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
         this.container.registerResolver(
           IProjections,
           this.projectionProvider = new InstanceProvider<IProjections>(),
-          true,
         );
         this.projectionProvider.prepare(projections);
       }
@@ -457,6 +464,24 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     return this;
   }
 
+  public getProjectionFor(slotName: string): CustomElementDefinition | null {
+    console.group(`getProjectionFor ${slotName}`);
+    const container = this.container;
+
+    if (!container.has(IProjections, true)) { console.log("no projections registered"); return null; }
+
+    const projections = container.get(IProjections);
+    console.log(`all projections`, this.container.getAll(IProjections), projections);
+    const definition = projections[slotName];
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete projections[slotName];
+    if (Object.keys(projections).length === 0) {
+      console.log("RC deregistering resolver");
+      container.deregisterResolverFor(IProjections);
+    }
+    console.groupEnd();
+    return definition ?? null;
+  }
   // #endregion
 
   // #region IComponentFactory api
@@ -501,7 +526,7 @@ export class ViewFactoryProvider<T extends INode = INode> implements IResolver {
   public prepare(factory: IViewFactory<T>): void {
     this.factory = factory;
   }
-  public get $isResolver(): true {return true; }
+  public get $isResolver(): true { return true; }
 
   public resolve(handler: IContainer, requestor: IContainer): IViewFactory<T> {
     const factory = this.factory;

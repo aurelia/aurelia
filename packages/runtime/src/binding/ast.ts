@@ -475,7 +475,7 @@ export class AccessScopeExpression implements IAccessScopeExpression {
 
   private getScope(scope: IScope, hostScope: IScope | null | undefined) {
     scope = this.accessHostScope ? hostScope! : scope;
-    if (scope === null || scope === void 0) { throw new Error('Host scope is missing.'); }
+    if (scope === null || scope === void 0) { throw new Error('Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?'); }
     return scope;
   }
 

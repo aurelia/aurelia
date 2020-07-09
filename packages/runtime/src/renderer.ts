@@ -284,6 +284,8 @@ export class CustomElementRenderer implements IInstructionRenderer {
     instruction: IHydrateElementInstruction,
     parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
+    console.group(`CustomElementRenderer#render`);
+    console.log(instruction.res, instruction.instructions, instruction);
     parts = mergeParts(parts, instruction.parts);
 
     let viewFactory: IViewFactory | undefined;
@@ -292,19 +294,16 @@ export class CustomElementRenderer implements IInstructionRenderer {
     const projectionFallback = instruction.projectionFallback;
     const isAuSlot = slotName !== void 0 && projectionFallback !== void 0;
     if (isAuSlot) {
-      const projections = context.get(IProjections);
       let contentType: AuSlotContentType;
-      let definition = projections[slotName!];
-      if (definition !== void 0) {
+      let definition = context.getProjectionFor(slotName!); // projections[slotName!];
+      if (definition !== null) {
+        console.log(definition.template);
         contentType = AuSlotContentType.Projection;
       } else {
         definition = projectionFallback!;
         contentType = AuSlotContentType.Fallback;
       }
       viewFactory = getRenderContext(definition, context, parts).getViewFactory(void 0, contentType);
-      // consume the slot
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-      delete projections[slotName!];
     }
 
     const factory = context.getComponentFactory(
@@ -341,7 +340,9 @@ export class CustomElementRenderer implements IInstructionRenderer {
 
     controller.addController(childController);
 
+    console.log("disposing factory");
     factory.dispose();
+    console.groupEnd();
   }
 }
 

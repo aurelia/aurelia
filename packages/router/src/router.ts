@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function */
-import { DI, IContainer, Key, Reporter, Registration, Metadata } from '@aurelia/kernel';
+import { DI, IContainer, Registration, IIndexable, Key, Reporter, Metadata } from '@aurelia/kernel';
 import { Aurelia, CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, isRenderContext } from '@aurelia/runtime';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { INavigatorInstruction, IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
@@ -91,9 +91,9 @@ export interface IRouter {
   readonly options: IRouterOptions;
 
   readonly statefulHistory: boolean;
-  activate(options?: IRouterActivateOptions): void;
+  start(options?: IRouterActivateOptions): void;
   loadUrl(): Promise<void>;
-  deactivate(): void;
+  stop(): void;
 
   linkCallback(info: AnchorEventInfo): void;
 
@@ -247,9 +247,9 @@ export class Router implements IRouter {
   /**
    * Public API
    */
-  public activate(options?: IRouterActivateOptions): void {
+  public start(options?: IRouterActivateOptions): void {
     if (this.isActive) {
-      throw new Error('Router has already been activated');
+      throw new Error('Router has already been started');
     }
 
     this.isActive = true;
@@ -266,15 +266,15 @@ export class Router implements IRouter {
       this.addHooks(this.options.hooks);
     }
 
-    this.instructionResolver.activate({ separators: this.options.separators });
-    this.navigator.activate(this, {
+    this.instructionResolver.start({ separators: this.options.separators });
+    this.navigator.start(this, {
       callback: this.navigatorCallback,
       store: this.navigation,
       statefulHistoryLength: this.options.statefulHistoryLength,
       serializeCallback: this.statefulHistory ? this.navigatorSerializeCallback : void 0,
     });
-    this.linkHandler.activate({ callback: this.linkCallback, useHref: this.options.useHref });
-    this.navigation.activate({
+    this.linkHandler.start({ callback: this.linkCallback, useHref: this.options.useHref });
+    this.navigation.start({
       callback: this.browserNavigatorCallback,
       useUrlFragmentHash: this.options.useUrlFragmentHash
     });
@@ -301,13 +301,13 @@ export class Router implements IRouter {
   /**
    * Public API
    */
-  public deactivate(): void {
+  public stop(): void {
     if (!this.isActive) {
-      throw new Error('Router has not been activated');
+      throw new Error('Router has not been started');
     }
-    this.linkHandler.deactivate();
-    this.navigator.deactivate();
-    this.navigation.deactivate();
+    this.linkHandler.stop();
+    this.navigator.stop();
+    this.navigation.stop();
   }
 
   /**
@@ -418,7 +418,7 @@ export class Router implements IRouter {
     //   clearViewportScopes,
     // }
     let fullStateInstruction: boolean = false;
-    const instructionNavigation: INavigatorFlags = instruction.navigation as INavigatorFlags;
+    const instructionNavigation = instruction.navigation as INavigatorFlags;
     if ((instructionNavigation.back || instructionNavigation.forward) && instruction.fullStateInstruction) {
       fullStateInstruction = true;
       // if (!confirm('Perform history navigation?')) { this.navigator.cancel(instruction); this.processingNavigation = null; return Promise.resolve(); }
@@ -446,7 +446,7 @@ export class Router implements IRouter {
     const clearScopeOwners: IScopeOwner[] = [];
     let clearViewportScopes: ViewportScope[] = [];
     for (const clearInstruction of instructions.filter(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
-      const scope: Scope = clearInstruction.scope || this.rootScope!.scope;
+      const scope = clearInstruction.scope || this.rootScope!.scope;
       clearScopeOwners.push(...scope.children.filter(scope => !scope.owner!.isEmpty).map(scope => scope.owner!));
       if (scope.viewportScope !== null) {
         clearViewportScopes.push(scope.viewportScope);
@@ -466,8 +466,9 @@ export class Router implements IRouter {
     let guard = 100;
     do {
       if (!guard--) { // Guard against endless loop
-        console.log('remainingInstructions', remainingInstructions);
-        throw Reporter.error(2002);
+        const err = new Error(remainingInstructions.length + ' remaining instructions after 100 iterations; there is likely an infinite loop.');
+        (err as Error & IIndexable)['remainingInstructions'] = remainingInstructions;
+        throw err;
       }
       const changedScopeOwners: IScopeOwner[] = [];
 
@@ -683,7 +684,7 @@ export class Router implements IRouter {
    * @internal - Called from the viewport scope custom element in created()
    */
   public setClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer, scope: Scope): void {
-    const container: IContainer | null = this.getContainer(viewModelOrContainer);
+    const container = this.getContainer(viewModelOrContainer);
     Registration.instance(ClosestScope, scope).register(container!);
   }
   /**
@@ -705,7 +706,7 @@ export class Router implements IRouter {
    * @internal
    */
   public unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void {
-    const container: IContainer | null = this.getContainer(viewModelOrContainer);
+    const container = this.getContainer(viewModelOrContainer);
     // TODO: Get an 'unregister' on container
     (container as any).resolvers.delete(ClosestScope);
   }
@@ -734,12 +735,12 @@ export class Router implements IRouter {
    * @internal - Called from the viewport scope custom element
    */
   public connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope {
-    const parentScope: Scope = this.findParentScope(container);
+    const parentScope = this.findParentScope(container);
     if (viewportScope === null) {
       viewportScope = parentScope.addViewportScope(name, element, options);
       this.setClosestScope(container, viewportScope.connectedScope);
     }
-    return viewportScope as ViewportScope;
+    return viewportScope;
   }
   /**
    * @internal - Called from the viewport scope custom element
@@ -836,8 +837,8 @@ export class Router implements IRouter {
    */
   public checkActive(instructions: ViewportInstruction[]): boolean {
     for (const instruction of instructions) {
-      const scopeInstructions: ViewportInstruction[] = this.instructionResolver.matchScope(this.activeComponents, instruction.scope!);
-      const matching: ViewportInstruction[] = scopeInstructions.filter(instr => instr.sameComponent(instruction, true));
+      const scopeInstructions = this.instructionResolver.matchScope(this.activeComponents, instruction.scope!);
+      const matching = scopeInstructions.filter(instr => instr.sameComponent(instruction, true));
       if (matching.length === 0) {
         return false;
       }

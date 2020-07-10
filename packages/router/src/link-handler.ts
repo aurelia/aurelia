@@ -137,12 +137,12 @@ export class LinkHandler {
   }
 
   /**
-   * Activate the instance.
+   * Start the instance.
    *
    */
-  public activate(options: ILinkHandlerOptions): void {
+  public start(options: ILinkHandlerOptions): void {
     if (this.isActive) {
-      throw new Error('Link handler has already been activated');
+      throw new Error('Link handler has already been started');
     }
 
     this.isActive = true;
@@ -150,11 +150,11 @@ export class LinkHandler {
   }
 
   /**
-   * Deactivate the instance. Event handlers and other resources should be cleaned up here.
+   * Stop the instance. Event handlers and other resources should be cleaned up here.
    */
-  public deactivate(): void {
+  public stop(): void {
     if (!this.isActive) {
-      throw new Error('Link handler has not been activated');
+      throw new Error('Link handler has not been started');
     }
     this.isActive = false;
   }

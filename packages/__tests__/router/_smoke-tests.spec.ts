@@ -101,7 +101,7 @@ async function createFixture<T extends Constructable>(
       // scheduler.getRenderTaskQueue().flush();
       // assert.isSchedulerEmpty();
 
-      router.deactivate();
+      router.stop();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
 

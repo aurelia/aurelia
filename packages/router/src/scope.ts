@@ -232,17 +232,15 @@ export class Scope {
     while ((instruction = viewportInstructions.next()) !== null) {
       instruction.needsViewportDescribed = true;
       for (const name in availableViewports) {
-        if (Object.prototype.hasOwnProperty.call(availableViewports, name)) {
-          const viewport = availableViewports[name];
-          // TODO: Also check if (resolved) component wants a specific viewport
-          if (viewport?.wantComponent(instruction.componentName!)) {
-            const remaining = this.foundViewport(instruction, viewport, disregardViewports, true);
-            foundViewports.push(instruction);
-            remainingInstructions.push(...remaining);
-            availableViewports[name] = null;
-            viewportInstructions.removeCurrent();
-            break;
-          }
+        const viewport = availableViewports[name];
+        // TODO: Also check if (resolved) component wants a specific viewport
+        if (viewport?.wantComponent(instruction.componentName!)) {
+          const remaining = this.foundViewport(instruction, viewport, disregardViewports, true);
+          foundViewports.push(instruction);
+          remainingInstructions.push(...remaining);
+          availableViewports[name] = null;
+          viewportInstructions.removeCurrent();
+          break;
         }
       }
     }
@@ -250,7 +248,7 @@ export class Scope {
     // Next in line is specified viewport (but not if we're disregarding viewports)
     if (!disregardViewports) {
       while ((instruction = viewportInstructions.next()) !== null) {
-        const name = instruction.viewportName as string;
+        const name = instruction.viewportName;
         if (!name || !name.length) {
           continue;
         }
@@ -258,8 +256,8 @@ export class Scope {
         if (!this.getEnabledViewports(ownedScopes)[name]) {
           continue;
           // TODO: No longer pre-creating viewports. Evaluate!
-          this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
-          availableViewports[name] = this.getEnabledViewports(ownedScopes)[name];
+          this.addViewport(name!, null, null, { scope: newScope, forceDescription: true });
+          availableViewports[name!] = this.getEnabledViewports(ownedScopes)[name!];
         }
         const viewport = availableViewports[name];
         if (viewport?.acceptComponent(instruction.componentName!)) {
@@ -276,11 +274,9 @@ export class Scope {
     while ((instruction = viewportInstructions.next()) !== null) {
       const remainingViewports: Viewport[] = [];
       for (const name in availableViewports) {
-        if (Object.prototype.hasOwnProperty.call(availableViewports, name)) {
-          const viewport = availableViewports[name];
-          if (viewport?.acceptComponent(instruction.componentName!)) {
-            remainingViewports.push(viewport);
-          }
+        const viewport = availableViewports[name];
+        if (viewport?.acceptComponent(instruction.componentName!)) {
+          remainingViewports.push(viewport);
         }
       }
       if (remainingViewports.length === 1) {

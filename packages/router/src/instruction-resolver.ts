@@ -49,7 +49,7 @@ export class InstructionResolver {
     action: '.',
   };
 
-  public activate(options?: IInstructionResolverOptions): void {
+  public start(options?: IInstructionResolverOptions): void {
     options = options || {};
     this.separators = { ...this.separators, ...options.separators };
   }
@@ -134,8 +134,8 @@ export class InstructionResolver {
     if (typeof instruction === 'string') {
       return this.stringifyAViewportInstruction(instruction, excludeViewport);
     } else {
-      let excludeCurrentViewport: boolean = excludeViewport;
-      let excludeCurrentComponent: boolean = false;
+      let excludeCurrentViewport = excludeViewport;
+      let excludeCurrentComponent = false;
       if (viewportContext) {
         if (instruction.viewport && instruction.viewport.options.noLink) {
           return '';
@@ -286,7 +286,7 @@ export class InstructionResolver {
     if (Array.isArray(parameters)) {
       return parameters.map(param => ({ key: void 0, value: param }));
     }
-    const keys: string[] = Object.keys(parameters);
+    const keys = Object.keys(parameters);
     keys.sort();
     return keys.map(key => ({ key, value: parameters[key] }));
   }

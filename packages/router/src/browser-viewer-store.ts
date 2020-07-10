@@ -1,7 +1,7 @@
 import { IScheduler } from '@aurelia/runtime';
+import { IWindow, IHistory, ILocation } from './interfaces';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, INavigatorViewerState } from './navigator';
 import { QueueTask, TaskQueue } from './task-queue';
-import { IWindow, IHistory, ILocation } from './interfaces';
 
 /**
  * @internal
@@ -49,25 +49,25 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     this.pendingCalls = new TaskQueue<IAction>();
   }
 
-  public activate(options: IBrowserViewerStoreOptions): void {
+  public start(options: IBrowserViewerStoreOptions): void {
     if (this.isActive) {
-      throw new Error('Browser navigation has already been activated');
+      throw new Error('Browser navigation has already been started');
     }
     this.isActive = true;
     this.options.callback = options.callback;
     if (options.useUrlFragmentHash != void 0) {
       this.options.useUrlFragmentHash = options.useUrlFragmentHash;
     }
-    this.pendingCalls.activate({ scheduler: this.scheduler, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
+    this.pendingCalls.start({ scheduler: this.scheduler, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
     this.window.addEventListener('popstate', this.handlePopstate);
   }
 
-  public deactivate(): void {
+  public stop(): void {
     if (!this.isActive) {
-      throw new Error('Browser navigation has not been activated');
+      throw new Error('Browser navigation has not been started');
     }
     this.window.removeEventListener('popstate', this.handlePopstate);
-    this.pendingCalls.deactivate();
+    this.pendingCalls.stop();
     this.options = { useUrlFragmentHash: true, callback: () => { return; } };
     this.isActive = false;
   }
@@ -115,7 +115,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
 
   public async pushNavigatorState(state: INavigatorState): Promise<void> {
     const { title, path } = state.currentEntry;
-    const fragment: string = this.options.useUrlFragmentHash ? '#/' : '';
+    const fragment = this.options.useUrlFragmentHash ? '#/' : '';
 
     return this.pendingCalls.enqueue(
       (task: QueueTask<IAction>) => {
@@ -131,7 +131,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
 
   public async replaceNavigatorState(state: INavigatorState): Promise<void> {
     const { title, path } = state.currentEntry;
-    const fragment: string = this.options.useUrlFragmentHash ? '#/' : '';
+    const fragment = this.options.useUrlFragmentHash ? '#/' : '';
 
     return this.pendingCalls.enqueue(
       (task: QueueTask<IAction>) => {

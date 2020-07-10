@@ -1,10 +1,9 @@
 import { Constructable, DI } from '@aurelia/kernel';
 import { CustomElementType, INode, ICustomElementViewModel } from '@aurelia/runtime';
+import { HTMLDOM } from '@aurelia/runtime-html';
 import { INavigatorEntry, INavigatorFlags, IStoredNavigatorEntry } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
-
-import { HTMLDOM } from '@aurelia/runtime-html';
 
 export const IWindow = DI.createInterface<IWindow>('IWindow').withDefault(x => x.callback(handler => handler.get(HTMLDOM).window));
 export interface IWindow extends Window { }

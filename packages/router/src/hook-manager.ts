@@ -93,7 +93,7 @@ export class HookManager {
   public addHook(setTitleHookFunction: SetTitleHookFunction, options?: IHookOptions): HookIdentity;
   public addHook(hookFunction: HookFunction, options?: IHookOptions): HookIdentity;
   public addHook(hookFunction: HookFunction, options?: IHookOptions): HookIdentity {
-    const hook: Hook = new Hook(hookFunction, options || {}, ++this.lastIdentity);
+    const hook = new Hook(hookFunction, options || {}, ++this.lastIdentity);
 
     this.hooks[hook.type].push(hook);
 
@@ -103,7 +103,7 @@ export class HookManager {
   public removeHook(id: HookIdentity): void {
     for (const type in this.hooks) {
       if (Object.prototype.hasOwnProperty.call(this.hooks, type)) {
-        const index: number = this.hooks[type as HookTypes].findIndex(hook => hook.id === id);
+        const index = this.hooks[type as HookTypes].findIndex(hook => hook.id === id);
         if (index >= 0) {
           this.hooks[type as HookTypes].splice(index, 1);
         }
@@ -127,7 +127,7 @@ export class HookManager {
   public async invoke(type: HookTypes, navigationInstruction: INavigatorInstruction, arg: HookParameter): Promise<HookResult> {
     for (const hook of this.hooks[type]) {
       if (!hook.wantsMatch || hook.matches(arg)) {
-        const outcome: HookParameter | HookResult = await hook.invoke(navigationInstruction, arg);
+        const outcome = await hook.invoke(navigationInstruction, arg);
         if (typeof outcome === 'boolean') {
           if (!outcome) {
             return false;

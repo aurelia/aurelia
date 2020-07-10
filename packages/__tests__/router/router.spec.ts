@@ -150,7 +150,7 @@ describe('Router', function () {
 
     async function tearDown() {
       unspyNavigationStates(router, _pushState, _replaceState);
-      router.deactivate();
+      router.stop();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
     }
@@ -951,7 +951,7 @@ describe('Router', function () {
       async function $teardown() {
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
-        router.deactivate();
+        router.stop();
       }
 
       return { ctx, container, scheduler, host, component, au, router, $teardown };
@@ -1198,7 +1198,7 @@ describe('Router', function () {
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        router.deactivate();
+        router.stop();
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
       }
@@ -1327,7 +1327,7 @@ describe('Router', function () {
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        router.deactivate();
+        router.stop();
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
       }
@@ -1594,7 +1594,7 @@ describe('Router', function () {
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        router.deactivate();
+        router.stop();
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
       }

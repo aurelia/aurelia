@@ -23,8 +23,8 @@ export interface INavigatorStore {
  * @internal - Shouldn't be used directly
  */
 export interface INavigatorViewer {
-  activate(options: INavigatorViewerOptions): void;
-  deactivate(): void;
+  start(options: INavigatorViewerOptions): void;
+  stop(): void;
   setTitle(title: string): void;
 }
 /**
@@ -149,9 +149,9 @@ export class Navigator {
     return this.pendingNavigations.length;
   }
 
-  public activate(router: IRouter, options?: INavigatorOptions): void {
+  public start(router: IRouter, options?: INavigatorOptions): void {
     if (this.isActive) {
-      throw new Error('Navigator has already been activated');
+      throw new Error('Navigator has already been started');
     }
 
     this.isActive = true;
@@ -159,15 +159,15 @@ export class Navigator {
     this.options = { ...options };
   }
 
-  public deactivate(): void {
+  public stop(): void {
     if (!this.isActive) {
-      throw new Error('Navigator has not been activated');
+      throw new Error('Navigator has not been started');
     }
     this.pendingNavigations.clear();
     this.isActive = false;
   }
 
-  public navigate(entry: Navigation): Promise<void> {
+  public async navigate(entry: Navigation): Promise<void> {
     return this.pendingNavigations.enqueue(entry);
   }
 

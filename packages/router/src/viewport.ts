@@ -1,12 +1,13 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags, IController, CustomElement, INode, ICompiledRenderContext, IHydratedController, IHydratedParentController } from '@aurelia/runtime';
-import { ComponentAppellation, INavigatorInstruction, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType, NavigationInstruction } from './interfaces';
+import { ComponentAppellation, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType, NavigationInstruction } from './interfaces';
 import { INavigatorFlags } from './navigator';
 import { IRouter } from './router';
 import { arrayRemove } from './utils';
 import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
 import { IScopeOwner, IScopeOwnerOptions, Scope } from './scope';
+import { Navigation } from './navigation';
 
 export interface IViewportOptions extends IScopeOwnerOptions {
   scope?: boolean;
@@ -85,7 +86,7 @@ export class Viewport implements IScopeOwner {
     return false;
   }
 
-  public setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: INavigatorInstruction): boolean {
+  public setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: Navigation): boolean {
     let viewportInstruction: ViewportInstruction;
     if (content instanceof ViewportInstruction) {
       viewportInstruction = content;

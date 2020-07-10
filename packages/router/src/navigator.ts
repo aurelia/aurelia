@@ -1,5 +1,5 @@
 import { Reporter } from '@aurelia/kernel';
-import { INavigatorInstruction, IRoute, IRouteableComponent } from './interfaces';
+import { IRoute, IRouteableComponent } from './interfaces';
 import { Queue, QueueItem } from './queue';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
@@ -85,7 +85,7 @@ export interface INavigatorOptions {
   viewer?: INavigatorViewer;
   store?: INavigatorStore;
   statefulHistoryLength?: number;
-  callback?(instruction: INavigatorInstruction): void;
+  callback?(instruction: Navigation): void;
   serializeCallback?(entry: Navigation, entries: Navigation[]): Promise<IStoredNavigatorEntry>;
 }
 
@@ -306,7 +306,7 @@ export class Navigator {
     }
   }
 
-  public toStoredEntry(entry: INavigatorInstruction): IStoredNavigatorEntry {
+  public toStoredEntry(entry: Navigation): IStoredNavigatorEntry {
     const {
       previous,
       fromBrowser,

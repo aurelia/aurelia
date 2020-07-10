@@ -4,6 +4,7 @@ import { HTMLDOM } from '@aurelia/runtime-html';
 import { INavigatorEntry, INavigatorFlags, IStoredNavigatorEntry } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
+import { Navigation } from './navigation';
 
 export const IWindow = DI.createInterface<IWindow>('IWindow').withDefault(x => x.callback(handler => handler.get(HTMLDOM).window));
 export interface IWindow extends Window { }
@@ -128,10 +129,10 @@ export type TitleFunction = (viewModel: IRouteableComponent, instruction: Naviga
 
 export interface IRouteableComponent<T extends INode = INode> extends ICustomElementViewModel<T> {
   reentryBehavior?: ReentryBehavior;
-  canEnter?(parameters: Record<string, unknown>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
-  enter?(parameters: Record<string, unknown>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): void | Promise<void>;
-  canLeave?(nextInstruction: INavigatorInstruction | null, instruction: INavigatorInstruction): boolean | Promise<boolean>;
-  leave?(nextInstruction: INavigatorInstruction | null, instruction: INavigatorInstruction): void | Promise<void>;
+  canEnter?(parameters: Record<string, unknown>, nextInstruction: Navigation, instruction: Navigation): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
+  enter?(parameters: Record<string, unknown>, nextInstruction: Navigation, instruction: Navigation): void | Promise<void>;
+  canLeave?(nextInstruction: Navigation | null, instruction: Navigation): boolean | Promise<boolean>;
+  leave?(nextInstruction: Navigation | null, instruction: Navigation): void | Promise<void>;
 }
 
 export const enum ReentryBehavior {
@@ -141,11 +142,11 @@ export const enum ReentryBehavior {
   refresh = 'refresh',
 }
 
-export interface INavigatorInstruction extends INavigatorEntry {
-  navigation?: INavigatorFlags;
-  previous?: IStoredNavigatorEntry;
-  repeating?: boolean;
-}
+// export interface Navigation extends INavigatorEntry {
+//   navigation?: INavigatorFlags;
+//   previous?: IStoredNavigatorEntry;
+//   repeating?: boolean;
+// }
 
 export interface IViewportInstruction {
   component: ComponentAppellation;

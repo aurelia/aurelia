@@ -13,7 +13,7 @@ import {
   IRouter,
   NavigationInstruction,
   // TODO? IRouteContext,
-  INavigatorInstruction,
+  Navigation,
 } from '@aurelia/router';
 import {
   Aurelia,
@@ -140,8 +140,8 @@ describe('router (smoke tests)', function () {
     @customElement({ name: name(B01), template: `${name(B01)}${vp(0)}` })
     class B01 {
       public async canLeave(
-        next: INavigatorInstruction | null,
-        current: INavigatorInstruction,
+        next: Navigation | null,
+        current: Navigation,
       ): Promise<true> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return true;
@@ -150,8 +150,8 @@ describe('router (smoke tests)', function () {
     @customElement({ name: name(B02), template: `${name(B02)}${vp(0)}` })
     class B02 {
       public async canLeave(
-        next: INavigatorInstruction | null,
-        current: INavigatorInstruction,
+        next: Navigation | null,
+        current: Navigation,
       ): Promise<false> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return false;
@@ -162,8 +162,8 @@ describe('router (smoke tests)', function () {
     @customElement({ name: name(B11), template: `${name(B11)}${vp(1)}` })
     class B11 {
       public async canLeave(
-        next: INavigatorInstruction | null,
-        current: INavigatorInstruction,
+        next: Navigation | null,
+        current: Navigation,
       ): Promise<true> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return true;
@@ -172,8 +172,8 @@ describe('router (smoke tests)', function () {
     @customElement({ name: name(B12), template: `${name(B12)}${vp(1)}` })
     class B12 {
       public async canLeave(
-        next: INavigatorInstruction | null,
-        current: INavigatorInstruction,
+        next: Navigation | null,
+        current: Navigation,
       ): Promise<false> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return false;

@@ -1,6 +1,6 @@
 import { Writable } from '@aurelia/kernel';
 import { ICustomElementController, IHydratedController, IHydratedParentController, LifecycleFlags } from '@aurelia/runtime';
-import { Params, INavigatorInstruction, NavigationInstruction, IRouteableComponent, ViewportInstruction } from '@aurelia/router';
+import { Params, NavigationInstruction, IRouteableComponent, ViewportInstruction } from '@aurelia/router';
 import { IHookInvocationAggregator } from './hook-invocation-tracker';
 import { IHookSpec, hookSpecs } from './hook-spec';
 
@@ -50,21 +50,21 @@ export interface ITestRouteViewModel extends IRouteableComponent<HTMLElement> {
 
   canEnter(
     params: Params,
-    next: INavigatorInstruction,
-    current: INavigatorInstruction | null,
+    next: Navigation,
+    current: Navigation | null,
   ): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
   enter(
     params: Params,
-    next: INavigatorInstruction,
-    current: INavigatorInstruction | null,
+    next: Navigation,
+    current: Navigation | null,
   ): void | Promise<void>;
   canLeave(
-    next: INavigatorInstruction | null,
-    current: INavigatorInstruction,
+    next: Navigation | null,
+    current: Navigation,
   ): boolean | Promise<boolean>;
   leave(
-    next: INavigatorInstruction | null,
-    current: INavigatorInstruction,
+    next: Navigation | null,
+    current: Navigation,
   ): void | Promise<void>;
 }
 
@@ -300,8 +300,8 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
 
   public canEnter(
     params: Params,
-    next: INavigatorInstruction,
-    current: INavigatorInstruction | null,
+    next: Navigation,
+    current: Navigation | null,
   ): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]> {
     return this.specs.canEnter.invoke(
       this,
@@ -314,8 +314,8 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
 
   public enter(
     params: Params,
-    next: INavigatorInstruction,
-    current: INavigatorInstruction | null,
+    next: Navigation,
+    current: Navigation | null,
   ): void | Promise<void> {
     return this.specs.enter.invoke(
       this,
@@ -327,8 +327,8 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   public canLeave(
-    next: INavigatorInstruction | null,
-    current: INavigatorInstruction,
+    next: Navigation | null,
+    current: Navigation,
   ): boolean | Promise<boolean> {
     return this.specs.canLeave.invoke(
       this,
@@ -340,8 +340,8 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   public leave(
-    next: INavigatorInstruction | null,
-    current: INavigatorInstruction,
+    next: Navigation | null,
+    current: Navigation,
   ): void | Promise<void> {
     return this.specs.leave.invoke(
       this,
@@ -416,30 +416,30 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
 
   protected $canEnter(
     _params: Params,
-    _next: INavigatorInstruction,
-    _current: INavigatorInstruction | null,
+    _next: Navigation,
+    _current: Navigation | null,
   ): string | boolean | ViewportInstruction[] | Promise<string | boolean | ViewportInstruction[]> {
     return true;
   }
 
   protected $enter(
     _params: Params,
-    _next: INavigatorInstruction,
-    _current: INavigatorInstruction | null,
+    _next: Navigation,
+    _current: Navigation | null,
   ): void | Promise<void> {
     // do nothing
   }
 
   protected $canLeave(
-    _next: INavigatorInstruction | null,
-    _current: INavigatorInstruction,
+    _next: Navigation | null,
+    _current: Navigation,
   ): boolean | Promise<boolean> {
     return true;
   }
 
   protected $leave(
-    _next: INavigatorInstruction | null,
-    _current: INavigatorInstruction,
+    _next: Navigation | null,
+    _current: Navigation,
   ): void | Promise<void> {
     // do nothing
   }

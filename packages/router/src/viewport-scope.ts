@@ -1,9 +1,10 @@
 import { CustomElementType } from '@aurelia/runtime';
-import { ComponentAppellation, INavigatorInstruction, IRoute, RouteableComponentType } from './interfaces';
+import { ComponentAppellation, IRoute, RouteableComponentType } from './interfaces';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
 import { IScopeOwner, IScopeOwnerOptions, Scope } from './scope';
 import { arrayRemove } from './utils';
+import { Navigation } from './navigation';
 
 export interface IViewportScopeOptions extends IScopeOwnerOptions {
   catches?: string | string[];
@@ -101,7 +102,7 @@ export class ViewportScope implements IScopeOwner {
     }
   }
 
-  public setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: INavigatorInstruction): boolean {
+  public setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: Navigation): boolean {
     let viewportInstruction: ViewportInstruction;
     if (content instanceof ViewportInstruction) {
       viewportInstruction = content;

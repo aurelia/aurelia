@@ -92,13 +92,13 @@ export interface INavigatorOptions {
 /**
  * Public API - part of INavigationInstruction
  */
-export interface INavigatorFlags {
-  first?: boolean;
-  new?: boolean;
-  refresh?: boolean;
-  forward?: boolean;
-  back?: boolean;
-  replace?: boolean;
+export interface INavigationFlags {
+  first: boolean;
+  new: boolean;
+  refresh: boolean;
+  forward: boolean;
+  back: boolean;
+  replace: boolean;
 }
 
 /**
@@ -173,7 +173,14 @@ export class Navigator {
 
   public processNavigations: (qEntry: QueueItem<Navigation>) => void = (qEntry: QueueItem<Navigation>): void => {
     const entry = qEntry as Navigation;
-    const navigationFlags: INavigatorFlags = {};
+    const navigationFlags: INavigationFlags = {
+      first: false,
+      new: false,
+      refresh: false,
+      forward: false,
+      back: false,
+      replace: false,
+    };
 
     if (this.currentEntry === this.uninitializedEntry) { // Refresh or first entry
       this.loadState();
@@ -371,7 +378,7 @@ export class Navigator {
     }
   }
 
-  private invokeCallback(entry: Navigation, navigationFlags: INavigatorFlags, previousEntry: Navigation): void {
+  private invokeCallback(entry: Navigation, navigationFlags: INavigationFlags, previousEntry: Navigation): void {
     const instruction: Navigation = new Navigation({ ...entry });
     instruction.navigation = navigationFlags;
     instruction.previous = previousEntry;

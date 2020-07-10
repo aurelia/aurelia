@@ -1,7 +1,6 @@
 import { Constructable, DI } from '@aurelia/kernel';
 import { CustomElementType, INode, ICustomElementViewModel } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
-import { INavigatorEntry, INavigatorFlags, IStoredNavigatorEntry } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 import { Navigation } from './navigation';
@@ -53,12 +52,6 @@ export const enum ReentryBehavior {
   enter = 'enter',
   refresh = 'refresh',
 }
-
-// export interface Navigation extends INavigatorEntry {
-//   navigation?: INavigatorFlags;
-//   previous?: IStoredNavigatorEntry;
-//   repeating?: boolean;
-// }
 
 export interface IViewportInstruction {
   component: ComponentAppellation;

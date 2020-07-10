@@ -1,7 +1,6 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags, IController, CustomElement, INode, ICompiledRenderContext, IHydratedController, IHydratedParentController } from '@aurelia/runtime';
 import { ComponentAppellation, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType, NavigationInstruction } from './interfaces';
-import { INavigatorFlags } from './navigator';
 import { IRouter } from './router';
 import { arrayRemove } from './utils';
 import { ViewportContent } from './viewport-content';
@@ -130,7 +129,7 @@ export class Viewport implements IScopeOwner {
 
     // ReentryBehavior 'refresh' takes precedence
     if (!this.content.equalComponent(this.nextContent) ||
-      (instruction.navigation as INavigatorFlags).refresh ||
+      instruction.navigation.refresh ||
       this.content.reentryBehavior() === ReentryBehavior.refresh
     ) {
       this.connectedScope.disableReplacedChildren();

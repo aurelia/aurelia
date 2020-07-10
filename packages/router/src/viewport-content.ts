@@ -1,9 +1,10 @@
 import { IContainer, Reporter } from '@aurelia/kernel';
 import { Controller, IController, INode, LifecycleFlags, ILifecycle, CustomElement, IHydratedController } from '@aurelia/runtime';
-import { INavigatorInstruction, IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
+import { IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
 import { parseQuery } from './parser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
+import { Navigation } from './navigation';
 
 /**
  * @internal - Shouldn't be used directly
@@ -29,10 +30,10 @@ export class ViewportContent {
   public constructor(
     // Can (and wants) be a (resolved) type or a string (to be resolved later)
     public content: ViewportInstruction = new ViewportInstruction(''),
-    public instruction: INavigatorInstruction = {
+    public instruction = new Navigation({
       instruction: '',
       fullStateInstruction: '',
-    },
+    }),
     container: IContainer | null = null
   ) {
     // If we've got a container, we're good to resolve type
@@ -103,7 +104,7 @@ export class ViewportContent {
     this.contentStatus = ContentStatus.none;
   }
 
-  public async canEnter(viewport: Viewport, previousInstruction: INavigatorInstruction): Promise<boolean | ViewportInstruction[]> {
+  public async canEnter(viewport: Viewport, previousInstruction: Navigation): Promise<boolean | ViewportInstruction[]> {
     if (!this.content.componentInstance) {
       return false;
     }
@@ -126,7 +127,7 @@ export class ViewportContent {
     return result as Promise<ViewportInstruction[]>;
   }
 
-  public async canLeave(nextInstruction: INavigatorInstruction | null): Promise<boolean> {
+  public async canLeave(nextInstruction: Navigation | null): Promise<boolean> {
     if (!this.content.componentInstance || !this.content.componentInstance.canLeave) {
       return true;
     }
@@ -140,7 +141,7 @@ export class ViewportContent {
     return result;
   }
 
-  public async enter(previousInstruction: INavigatorInstruction): Promise<void> {
+  public async enter(previousInstruction: Navigation): Promise<void> {
     // if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.entered)) {
     if (!this.reentry && (this.contentStatus !== ContentStatus.loaded || this.entered)) {
       return;
@@ -153,7 +154,7 @@ export class ViewportContent {
     }
     this.entered = true;
   }
-  public async leave(nextInstruction: INavigatorInstruction | null): Promise<void> {
+  public async leave(nextInstruction: Navigation | null): Promise<void> {
     if (this.contentStatus !== ContentStatus.added || !this.entered) {
       return;
     }
@@ -264,7 +265,7 @@ export class ViewportContent {
     await Promise.resolve();
   }
 
-  public async freeContent(element: Element | null, nextInstruction: INavigatorInstruction | null, cache: ViewportContent[], stateful: boolean = false): Promise<void> {
+  public async freeContent(element: Element | null, nextInstruction: Navigation | null, cache: ViewportContent[], stateful: boolean = false): Promise<void> {
     switch (this.contentStatus) {
       case ContentStatus.added:
         await this.leave(nextInstruction);

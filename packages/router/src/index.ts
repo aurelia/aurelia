@@ -12,7 +12,7 @@ export {
 } from './instruction-resolver';
 
 export {
-  INavigatorInstruction,
+  // Navigation,
   IRouteableComponent,
   RouteableComponentType,
   IViewportInstruction,
@@ -40,6 +40,10 @@ export {
 export {
   NavRoute,
 } from './nav-route';
+
+export {
+  Navigation,
+} from './navigation';
 
 export {
   IStoredNavigatorEntry,

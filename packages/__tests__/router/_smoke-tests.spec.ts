@@ -13,7 +13,7 @@ import {
   IRouter,
   NavigationInstruction,
   // TODO? IRouteContext,
-  INavigatorInstruction,
+  Navigation,
 } from '@aurelia/router';
 import {
   Aurelia,
@@ -127,7 +127,7 @@ describe('router (smoke tests)', function () {
     class A12 {}
     const A1 = [A11, A12];
 
-    @customElement({ name: name(Root2), template: `${name(Root2)}${vp(2)}` })
+    @customElement({ name: name(Root2), template: `${name(Rsoot2)}${vp(2)}` })
     class Root2 {}
     @customElement({ name: name(A21), template: `${name(A21)}${vp(2)}` })
     class A21 {}
@@ -139,9 +139,9 @@ describe('router (smoke tests)', function () {
 
     @customElement({ name: name(B01), template: `${name(B01)}${vp(0)}` })
     class B01 {
-      public async canUnload(
-        next: RouteNode | null,
-        current: RouteNode,
+      public async canLeave(
+        next: Navigation | null,
+        current: Navigation,
       ): Promise<true> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return true;
@@ -149,9 +149,9 @@ describe('router (smoke tests)', function () {
     }
     @customElement({ name: name(B02), template: `${name(B02)}${vp(0)}` })
     class B02 {
-      public async canUnload(
-        next: RouteNode | null,
-        current: RouteNode,
+      public async canLeave(
+        next: Navigation | null,
+        current: Navigation,
       ): Promise<false> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return false;
@@ -161,9 +161,9 @@ describe('router (smoke tests)', function () {
 
     @customElement({ name: name(B11), template: `${name(B11)}${vp(1)}` })
     class B11 {
-      public async canUnload(
-        next: RouteNode | null,
-        current: RouteNode,
+      public async canLeave(
+        next: Navigation | null,
+        current: Navigation,
       ): Promise<true> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return true;
@@ -171,9 +171,9 @@ describe('router (smoke tests)', function () {
     }
     @customElement({ name: name(B12), template: `${name(B12)}${vp(1)}` })
     class B12 {
-      public async canUnload(
-        next: RouteNode | null,
-        current: RouteNode,
+      public async canLeave(
+        next: Navigation | null,
+        current: Navigation,
       ): Promise<false> {
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
         return false;

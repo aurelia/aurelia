@@ -2,7 +2,7 @@
 import { DI, IContainer, Registration, IIndexable, Key, Reporter, Metadata } from '@aurelia/kernel';
 import { Aurelia, CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, isRenderContext } from '@aurelia/runtime';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
-import { INavigatorInstruction, IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
+import { IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
 import { INavigatorEntry, INavigatorFlags, INavigatorOptions, INavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator';
@@ -949,7 +949,7 @@ export class Router implements IRouter {
     let route = new FoundRoute();
     if (typeof instruction === 'string') {
       instruction = transformUrl
-        ? await this.hookManager.invokeTransformFromUrl(instruction as string, this.processingNavigation as INavigatorInstruction)
+        ? await this.hookManager.invokeTransformFromUrl(instruction as string, this.processingNavigation as Navigation)
         : instruction;
       if (Array.isArray(instruction)) {
         route.instructions = instruction;

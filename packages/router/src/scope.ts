@@ -1,7 +1,7 @@
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 import { IContainer } from '@aurelia/kernel';
 import { CustomElementType } from '@aurelia/runtime';
-import { IRoute, ComponentAppellation, INavigatorInstruction } from './interfaces';
+import { IRoute, ComponentAppellation } from './interfaces';
 import { FoundRoute } from './found-route';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
@@ -10,6 +10,7 @@ import { Viewport, IViewportOptions } from './viewport';
 import { arrayRemove } from './utils';
 import { Collection } from './collection';
 import { IConfigurableRoute, RouteRecognizer } from './route-recognizer';
+import { Navigation } from './navigation';
 
 /**
  * @internal - Shouldn't be used directly
@@ -42,7 +43,7 @@ export interface IScopeOwner {
   isViewportScope: boolean;
   isEmpty: boolean;
 
-  setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: INavigatorInstruction): boolean;
+  setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: Navigation): boolean;
   canLeave(): Promise<boolean>;
   canEnter(): Promise<boolean | ViewportInstruction[]>;
   enter(): Promise<boolean>;

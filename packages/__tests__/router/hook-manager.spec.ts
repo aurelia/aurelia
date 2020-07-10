@@ -38,7 +38,7 @@ describe('HookManager', function () {
 
     async function tearDown() {
       unspyNavigationStates(router, _pushState, _replaceState);
-      router.deactivate();
+      router.stop();
       RouterConfiguration.customize();
       await au.stop().wait();
     }

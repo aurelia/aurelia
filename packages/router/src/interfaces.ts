@@ -1,16 +1,9 @@
 import { Constructable, DI } from '@aurelia/kernel';
 import { CustomElementType, INode, ICustomElementViewModel } from '@aurelia/runtime';
+import { HTMLDOM } from '@aurelia/runtime-html';
 import { INavigatorEntry, INavigatorFlags, IStoredNavigatorEntry } from './navigator';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
-
-import { HTMLDOM } from '@aurelia/runtime-html';
-
-/*
-* Contains interfaces and types that aren't strongly connected
-* to component(s) or that are considered an essential part
-* of the API.
-*/
 
 export type RouteableComponentType<C extends Constructable = Constructable> = CustomElementType<C> & {
   parameters?: string[];

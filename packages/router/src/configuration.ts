@@ -46,7 +46,7 @@ export const DefaultResources: IRegistry[] = [
 
 let configurationOptions: IRouterActivateOptions = {};
 let configurationCall: ((router: IRouter) => void) = (router: IRouter) => {
-  router.activate(configurationOptions);
+  router.start(configurationOptions);
 };
 
 /**
@@ -74,14 +74,14 @@ const routerConfiguration = {
 export const RouterConfiguration = {
   /**
    * Make it possible to specify options to Router activation.
-   * Parameter is either a config object that's passed to Router's activate
-   * or a config function that's called instead of Router's activate.
+   * Parameter is either a config object that's passed to Router's start
+   * or a config function that's called instead of Router's start.
    */
   customize(config?: IRouterActivateOptions | ((router: IRouter) => void)) {
     if (config === undefined) {
       configurationOptions = {};
       configurationCall = (router: IRouter) => {
-        router.activate(configurationOptions);
+        router.start(configurationOptions);
       };
     } else if (config instanceof Function) {
       configurationCall = config;

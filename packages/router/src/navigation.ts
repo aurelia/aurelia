@@ -1,5 +1,5 @@
 import { ICustomElementViewModel } from '@aurelia/runtime';
-import { INavigatorFlags } from './navigator';
+import { INavigationFlags } from './navigator';
 import { ViewportInstruction } from './viewport-instruction';
 import { Scope } from './scope';
 import { IRoute } from './interfaces';
@@ -17,7 +17,7 @@ export interface INavigation extends IStoredNavigation {
 }
 
 export interface IStoredNavigation {
-  navigation?: INavigatorFlags;
+  navigation?: INavigationFlags;
   repeating?: boolean;
 
   instruction: string | ViewportInstruction[];
@@ -34,7 +34,7 @@ export interface IStoredNavigation {
 }
 
 export class Navigation {
-  public navigation?: INavigatorFlags;
+  public navigation: INavigationFlags;
   public previous?: Navigation;
   public repeating?: boolean;
 
@@ -65,7 +65,14 @@ export class Navigation {
     instruction: '',
     fullStateInstruction: '',
   }) {
-    this.navigation = entry.navigation;
+    this.navigation = entry.navigation ?? {
+      first: false,
+      new: false,
+      refresh: false,
+      forward: false,
+      back: false,
+      replace: false,
+    };
     this.repeating = entry.repeating;
 
     // INavigatorEntry
@@ -90,6 +97,10 @@ export class Navigation {
     this.query = entry.query;
     this.parameters = entry.parameters;
     this.data = entry.data;
+  }
+
+  public get useFullStateInstruction(): boolean {
+    return (this.navigation.back ?? false) || (this.navigation.forward ?? false);
   }
 
   public toStored(): IStoredNavigation {

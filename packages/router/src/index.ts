@@ -53,7 +53,7 @@ export {
   IStoredNavigatorEntry,
   INavigatorEntry,
   INavigatorOptions,
-  INavigatorFlags,
+  INavigationFlags,
   INavigatorState,
   INavigatorStore,
   INavigatorViewer,

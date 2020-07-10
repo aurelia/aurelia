@@ -1,11 +1,11 @@
 /* eslint-disable max-lines-per-function */
-import { DI, IContainer, Registration, IIndexable, Key, Reporter, Metadata } from '@aurelia/kernel';
+import { DI, IContainer, Registration, IIndexable, Key, Metadata } from '@aurelia/kernel';
 import { Aurelia, CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, isRenderContext } from '@aurelia/runtime';
 import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
 import { IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
-import { INavigatorEntry, INavigatorFlags, INavigatorOptions, INavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator';
+import { INavigatorOptions, INavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator';
 import { QueueItem } from './queue';
 import { INavClasses } from './resources/nav';
 import { NavigationInstructionResolver, IViewportInstructionsOptions } from './type-resolvers';
@@ -417,17 +417,11 @@ export class Router implements IRouter {
     //   clearScopeOwners,
     //   clearViewportScopes,
     // }
-    let fullStateInstruction: boolean = false;
-    const instructionNavigation = instruction.navigation as INavigatorFlags;
-    if ((instructionNavigation.back || instructionNavigation.forward) && instruction.fullStateInstruction) {
-      fullStateInstruction = true;
-      // if (!confirm('Perform history navigation?')) { this.navigator.cancel(instruction); this.processingNavigation = null; return Promise.resolve(); }
-    }
     let configuredRoute = await this.findInstructions(
       this.rootScope!.scope,
       instruction.instruction,
-      instruction.scope || this.rootScope!.scope,
-      !fullStateInstruction);
+      instruction.scope ?? this.rootScope!.scope,
+      !instruction.useFullStateInstruction);
     let instructions = configuredRoute.instructions;
     let configuredRoutePath: string | null = null;
 
@@ -550,7 +544,7 @@ export class Router implements IRouter {
         this.appendInstructions(configured.instructions);
       }
       // Don't use defaults when it's a full state navigation
-      if (fullStateInstruction) {
+      if (instruction.useFullStateInstruction) {
         this.appendedInstructions = this.appendedInstructions.filter(instruction => !instruction.default);
       }
       // Process non-defaults first
@@ -608,7 +602,7 @@ export class Router implements IRouter {
     // this.updateNav();
 
     // Remove history entry if no history viewports updated
-    if (instructionNavigation.new && !instructionNavigation.first && !instruction.repeating && updatedScopeOwners.every(viewport => viewport.options.noHistory)) {
+    if (instruction.navigation!.new && !instruction.navigation!.first && !instruction.repeating && updatedScopeOwners.every(viewport => viewport.options.noHistory)) {
       instruction.untracked = true;
     }
     updatedScopeOwners.forEach((viewport) => {

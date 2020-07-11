@@ -93,7 +93,7 @@ export class Activator implements IActivator {
     flags: LifecycleFlags,
   ): void {
     const lifecycle = container.get(ILifecycle);
-    Controller.forCustomElement(component, lifecycle, host, container, void 0, flags);
+    Controller.forCustomElement(component, lifecycle, host, container, void 0, null, flags);
   }
 
   private bind(

@@ -20,6 +20,7 @@ import {
   PartialCustomElementDefinition,
   CustomElementDefinition,
 } from './resources/custom-element';
+import { SlotInfo } from './resources/custom-elements/au-slot';
 
 /**
  * TargetedInstructionType enum values become the property names for the associated renderers when they are injected
@@ -175,9 +176,7 @@ export interface IHydrateElementInstruction extends IHydrateInstruction {
   res: string;
   instructions: ITargetedInstruction[];
   parts?: Record<string, PartialCustomElementDefinition>;
-  projections?: Record<string, CustomElementDefinition>;
-  projectionFallback?: CustomElementDefinition;
-  slotName?: string;
+  slotInfo: SlotInfo | null;
 }
 
 export interface IHydrateAttributeInstruction extends IHydrateInstruction {

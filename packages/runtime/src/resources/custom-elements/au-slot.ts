@@ -33,6 +33,14 @@ export enum AuSlotContentType {
   Fallback
 }
 
+export class SlotInfo {
+  public constructor(
+    public readonly name: string,
+    public readonly type: AuSlotContentType,
+    public readonly content: CustomElementDefinition,
+  ) { }
+}
+
 @customElement({ name: 'au-slot', template: null, containerless: true })
 export class AuSlot<T extends INode = Node> implements ICustomElementViewModel<T> {
   public readonly view: ISyntheticView<T>;

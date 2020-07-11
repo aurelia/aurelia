@@ -18,10 +18,10 @@ import {
   ITargetedInstruction,
   TargetedInstructionType,
   PartialCustomElementDefinitionParts,
-  CustomElementDefinitionParts
 } from './definitions';
 import { BindingMode } from './flags';
 import { PartialCustomElementDefinition, CustomElementDefinition } from './resources/custom-element';
+import { SlotInfo } from './resources/custom-elements/au-slot';
 
 export class InterpolationInstruction implements IInterpolationInstruction {
   public type: TargetedInstructionType.interpolation = TargetedInstructionType.interpolation;
@@ -124,10 +124,8 @@ export class HydrateElementInstruction implements IHydrateElementInstruction {
   public constructor(
     public res: string,
     public instructions: ITargetedInstruction[],
+    public slotInfo: SlotInfo | null,
     public parts?: PartialCustomElementDefinitionParts, // TODO: remove
-    public projections?: CustomElementDefinitionParts,
-    public projectionFallback?: CustomElementDefinition,
-    public slotName?: string,
   ) {}
 }
 

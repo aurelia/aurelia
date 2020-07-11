@@ -81,6 +81,7 @@ import {
   ICompiledRenderContext,
 } from './render-context';
 import { ChildrenObserver } from './children';
+import { IProjections } from '../resources/custom-elements/au-slot';
 
 type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   create(
@@ -216,6 +217,8 @@ export class Controller<
     host: T,
     parentContainer: IContainer,
     parts: PartialCustomElementDefinitionParts | undefined,
+    // projections *targeted* for this custom element. these are not the projections *provided* by this custom element.
+    targetedProjections: IProjections | null,
     flags: LifecycleFlags = LifecycleFlags.none,
     // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
     definition: CustomElementDefinition | undefined = void 0,
@@ -240,7 +243,7 @@ export class Controller<
 
     controllerLookup.set(viewModel, controller as Controller<INode, IViewModel>);
 
-    controller.hydrateCustomElement(definition, parentContainer, parts);
+    controller.hydrateCustomElement(definition, parentContainer, parts, targetedProjections);
 
     return controller as unknown as ICustomElementController<T, C>;
   }
@@ -307,13 +310,14 @@ export class Controller<
     definition: CustomElementDefinition,
     parentContainer: IContainer,
     parts: PartialCustomElementDefinitionParts | undefined,
+    targetedProjections: IProjections | null,
   ): void {
     const flags = this.flags |= definition.strategy;
     const instance = this.viewModel as ICustomElementViewModel<T>;
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this as unknown as IDryCustomElementController<T, NonNullable<C>>, definition, flags, instance);
 
-    this.scope = Scope.create(flags, this.bindingContext!, null, true);
+    this.scope = Scope.create(flags, this.bindingContext!, null, definition.projectionsMap, true);
 
     const hooks = this.hooks;
     if (hooks.hasCreate) {
@@ -342,7 +346,7 @@ export class Controller<
       );
     }
 
-    const compiledContext = context.compile();
+    const compiledContext = context.compile(targetedProjections);
     const compiledDefinition = compiledContext.compiledDefinition;
 
     this.scopeParts = compiledDefinition.scopeParts;
@@ -397,7 +401,7 @@ export class Controller<
     parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
     this.context = context;
-    const compiledContext = context.compile();
+    const compiledContext = context.compile(null);
     const compiledDefinition = compiledContext.compiledDefinition;
 
     this.scopeParts = compiledDefinition.scopeParts;

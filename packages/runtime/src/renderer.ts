@@ -57,10 +57,10 @@ import { ObserversLookup } from './observation';
 import { ICompiledRenderContext, getRenderContext } from './templating/render-context';
 import { BindingBehaviorExpression } from './binding/ast';
 import { BindingBehaviorFactory, BindingBehaviorInstance, IInterceptableBinding } from './resources/binding-behavior';
-import { IProjections, AuSlotContentType } from './resources/custom-elements/au-slot';
+import { IProjections } from './resources/custom-elements/au-slot';
 
 export interface ITemplateCompiler {
-  compile(partialDefinition: PartialCustomElementDefinition, context: IContainer): CustomElementDefinition;
+  compile(partialDefinition: PartialCustomElementDefinition, context: IContainer, targetedProjections: IProjections | null): CustomElementDefinition;
 }
 
 export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler').noDefault();
@@ -282,7 +282,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
     controller: IRenderableController,
     target: INode,
     instruction: IHydrateElementInstruction,
-    parts: PartialCustomElementDefinitionParts | undefined,
+    parts: PartialCustomElementDefinitionParts | undefined, // TODO: remove
   ): void {
     console.group(`CustomElementRenderer#render`);
     console.log(instruction.res, instruction.instructions, instruction);
@@ -290,20 +290,9 @@ export class CustomElementRenderer implements IInstructionRenderer {
 
     let viewFactory: IViewFactory | undefined;
 
-    const slotName = instruction.slotName;
-    const projectionFallback = instruction.projectionFallback;
-    const isAuSlot = slotName !== void 0 && projectionFallback !== void 0;
-    if (isAuSlot) {
-      let contentType: AuSlotContentType;
-      let definition = context.getProjectionFor(slotName!); // projections[slotName!];
-      if (definition !== null) {
-        console.log(definition.template);
-        contentType = AuSlotContentType.Projection;
-      } else {
-        definition = projectionFallback!;
-        contentType = AuSlotContentType.Fallback;
-      }
-      viewFactory = getRenderContext(definition, context, parts).getViewFactory(void 0, contentType);
+    const slotInfo = instruction.slotInfo;
+    if (slotInfo!==null) {
+      viewFactory = getRenderContext(slotInfo.content, context, parts).getViewFactory(void 0, slotInfo.type);
     }
 
     const factory = context.getComponentFactory(
@@ -324,6 +313,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
       /* host            */target,
       /* parentContainer */context,
       /* parts           */parts,
+      /* projections     */controller.scope?.providedProjections?.get(instruction) ?? null,
       /* flags           */flags,
     );
 
@@ -408,6 +398,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     const viewFactory = getRenderContext(instruction.def, parentContext, parts).getViewFactory();
     const renderLocation = parentContext.dom.convertToRenderLocation(target);
 
+    console.group(`TemplateControllerRenderer#render ${instruction.res}`);
     const componentFactory = parentContext.getComponentFactory(
       /* parentController */controller,
       /* host             */target,
@@ -445,6 +436,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     controller.addController(childController);
 
     componentFactory.dispose();
+    console.groupEnd();
   }
 }
 

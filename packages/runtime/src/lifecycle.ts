@@ -79,6 +79,7 @@ export interface IController<
   /** @internal */readonly id: number;
   readonly flags: LifecycleFlags;
   readonly state: State;
+  scope: IScope | undefined;
 
   parent?: IHydratedController<T>;
 

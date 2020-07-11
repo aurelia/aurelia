@@ -74,7 +74,7 @@ export interface IRenderContext<T extends INode = INode> extends IContainer {
    *
    * @returns The compiled `IRenderContext`.
    */
-  compile(): ICompiledRenderContext<T>;
+  compile(targetedProjections: IProjections | null): ICompiledRenderContext<T>;
 
   /**
    * Creates an (or returns the cached) `IViewFactory` that can be used to create synthetic view controllers.
@@ -144,10 +144,6 @@ export interface ICompiledRenderContext<T extends INode = INode> extends IRender
     target: unknown,
     parts: PartialCustomElementDefinitionParts | undefined,
   ): void;
-
-  getProjectionFor(
-    name: string,
-  ): CustomElementDefinition | null;
 }
 
 /**
@@ -254,7 +250,6 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   private readonly instructionProvider: InstanceProvider<ITargetedInstruction>;
   private readonly factoryProvider: ViewFactoryProvider<T>;
   private readonly renderLocationProvider: InstanceProvider<IRenderLocation<T>>;
-  private projectionProvider: InstanceProvider<IProjections> | undefined;
 
   private viewModelProvider: InstanceProvider<ICustomElementViewModel<T>> | undefined = void 0;
   private fragment: T | null = null;
@@ -325,9 +320,9 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     return this.container.registerResolver(key, resolver);
   }
 
-  public deregisterResolverFor<K extends Key, T = K>(key: K): void {
-    this.container.deregisterResolverFor(key);
-  }
+  // public deregisterResolverFor<K extends Key, T = K>(key: K): void {
+  //   this.container.deregisterResolverFor(key);
+  // }
 
   public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
     return this.container.registerTransformer(key, transformer);
@@ -355,7 +350,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   // #endregion
 
   // #region IRenderContext api
-  public compile(): ICompiledRenderContext<T> {
+  public compile(targetedProjections: IProjections | null): ICompiledRenderContext<T> {
     let compiledDefinition: CustomElementDefinition;
     if (this.isCompiled) {
       return this;
@@ -367,7 +362,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
       const container = this.container;
       const compiler = container.get(ITemplateCompiler);
 
-      compiledDefinition = this.compiledDefinition = compiler.compile(definition, container);
+      compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, targetedProjections);
     } else {
       compiledDefinition = this.compiledDefinition = definition;
     }
@@ -444,15 +439,6 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     }
     if (instruction !== void 0) {
       this.instructionProvider.prepare(instruction);
-
-      const projections = (instruction as IHydrateElementInstruction).projections;
-      if (projections !== void 0) {
-        this.container.registerResolver(
-          IProjections,
-          this.projectionProvider = new InstanceProvider<IProjections>(),
-        );
-        this.projectionProvider.prepare(projections);
-      }
     }
     if (location !== void 0) {
       this.renderLocationProvider.prepare(location as IRenderLocation<T>);
@@ -462,25 +448,6 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     }
 
     return this;
-  }
-
-  public getProjectionFor(slotName: string): CustomElementDefinition | null {
-    console.group(`getProjectionFor ${slotName}`);
-    const container = this.container;
-
-    if (!container.has(IProjections, true)) { console.log("no projections registered"); return null; }
-
-    const projections = container.get(IProjections);
-    console.log(`all projections`, this.container.getAll(IProjections), projections);
-    const definition = projections[slotName];
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-    delete projections[slotName];
-    if (Object.keys(projections).length === 0) {
-      console.log("RC deregistering resolver");
-      container.deregisterResolverFor(IProjections);
-    }
-    console.groupEnd();
-    return definition ?? null;
   }
   // #endregion
 

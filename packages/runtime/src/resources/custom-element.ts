@@ -17,6 +17,7 @@ import {
   fromAnnotationOrDefinitionOrTypeOrDefault,
   Injectable,
   IResolver,
+  mergeObjects,
 } from '@aurelia/kernel';
 import {
   registerAliases,
@@ -37,6 +38,7 @@ import {
 import { BindingStrategy } from '../flags';
 import { Bindable, PartialBindableDefinition, BindableDefinition } from '../templating/bindable';
 import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children';
+import { IProjections } from './custom-elements/au-slot';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
@@ -57,6 +59,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly scopeParts?: readonly string[];
   readonly enhance?: boolean;
   readonly projections?: CustomElementDefinition[];
+  readonly projectionsMap?: WeakMap<ITargetedInstruction, IProjections> | null;
 }>;
 
 export type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, ICustomElementViewModel & (T extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
@@ -213,6 +216,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
     public readonly scopeParts: string[],
     public readonly enhance: boolean,
     public readonly projections: CustomElementDefinition[],
+    public readonly projectionsMap: WeakMap<ITargetedInstruction, IProjections> | null,
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -272,6 +276,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         mergeArrays(def.scopeParts),
         fromDefinitionOrDefault('enhance', def, () => false),
         mergeArrays(def.projections),
+        mergeObjects(def.projectionsMap!),
       );
     }
 
@@ -311,6 +316,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), Type.scopeParts),
         fromAnnotationOrTypeOrDefault('enhance', Type, () => false),
         mergeArrays(CustomElement.getAnnotation(Type, 'projections'), Type.projections),
+        mergeObjects(CustomElement.getAnnotation(Type, 'projectionsMap')!, Type.projectionsMap!),
       );
     }
 
@@ -355,6 +361,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
       mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), nameOrDef.scopeParts, Type.scopeParts),
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false),
       mergeArrays(CustomElement.getAnnotation(Type, 'projections'), nameOrDef.projections, Type.projections),
+      mergeObjects(CustomElement.getAnnotation(Type, 'projectionsMap')!, nameOrDef.projectionsMap!, Type.projectionsMap!),
     );
   }
 

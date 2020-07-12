@@ -348,7 +348,7 @@ export interface IScope {
   readonly bindingContext: IBindingContext;
   readonly overrideContext: IOverrideContext;
   readonly isComponentScope: boolean;
-  readonly providedProjections: WeakMap<ITargetedInstruction, IProjections> | null;
+  providedProjections: WeakMap<ITargetedInstruction, IProjections> | null;
 }
 
 export type ObserversLookup = IIndexable<{

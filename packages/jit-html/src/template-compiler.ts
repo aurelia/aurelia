@@ -34,6 +34,9 @@ import {
   BindingMode,
   Bindable,
   CustomElement,
+  IProjections,
+  SlotInfo,
+  AuSlotContentType,
 } from '@aurelia/runtime';
 import {
   HTMLAttributeInstruction,
@@ -60,7 +63,6 @@ import {
   TemplateControllerSymbol,
   TextSymbol
 } from './semantic-model';
-import { IProjections, SlotInfo, AuSlotContentType } from '@aurelia/runtime/dist/resources/custom-elements/au-slot';
 
 class CustomElementCompilationUnit {
   public readonly instructions: ITargetedInstruction[][] = [];

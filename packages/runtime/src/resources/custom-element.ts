@@ -17,7 +17,6 @@ import {
   fromAnnotationOrDefinitionOrTypeOrDefault,
   Injectable,
   IResolver,
-  mergeObjects,
 } from '@aurelia/kernel';
 import {
   registerAliases,
@@ -276,7 +275,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         mergeArrays(def.scopeParts),
         fromDefinitionOrDefault('enhance', def, () => false),
         mergeArrays(def.projections),
-        mergeObjects(def.projectionsMap!),
+        fromDefinitionOrDefault('projectionsMap', def as CustomElementDefinition, () => null),
       );
     }
 
@@ -316,7 +315,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), Type.scopeParts),
         fromAnnotationOrTypeOrDefault('enhance', Type, () => false),
         mergeArrays(CustomElement.getAnnotation(Type, 'projections'), Type.projections),
-        mergeObjects(CustomElement.getAnnotation(Type, 'projectionsMap')!, Type.projectionsMap!),
+        fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => null),
       );
     }
 
@@ -361,7 +360,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
       mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), nameOrDef.scopeParts, Type.scopeParts),
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false),
       mergeArrays(CustomElement.getAnnotation(Type, 'projections'), nameOrDef.projections, Type.projections),
-      mergeObjects(CustomElement.getAnnotation(Type, 'projectionsMap')!, nameOrDef.projectionsMap!, Type.projectionsMap!),
+      fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => null),
     );
   }
 

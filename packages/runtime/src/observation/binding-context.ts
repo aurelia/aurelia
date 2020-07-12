@@ -171,7 +171,7 @@ export class BindingContext implements IBindingContext {
 export class Scope implements IScope {
   public parentScope: IScope | null;
   public scopeParts: readonly string[];
-  public projections: readonly CustomElementDefinition[];
+  public projections: readonly CustomElementDefinition[]; // TODO remove
   public bindingContext: IBindingContext;
   public overrideContext: IOverrideContext;
 
@@ -179,7 +179,7 @@ export class Scope implements IScope {
     parentScope: IScope | null,
     bindingContext: IBindingContext,
     overrideContext: IOverrideContext,
-    public readonly providedProjections: WeakMap<ITargetedInstruction, IProjections> | null,
+    public providedProjections: WeakMap<ITargetedInstruction, IProjections> | null,
     public readonly isComponentScope: boolean,
   ) {
     this.parentScope = parentScope;
@@ -207,7 +207,7 @@ export class Scope implements IScope {
    * during binding, it will traverse up via the `parentOverrideContext` of the `OverrideContext` until
    * it finds the property.
    */
-  public static create(flags: LifecycleFlags, bc: object, oc: IOverrideContext, providedProjections: WeakMap<ITargetedInstruction, IProjections> | null, isComponentScope?: boolean): Scope;
+  public static create(flags: LifecycleFlags, bc: object, oc: IOverrideContext, isComponentScope?: boolean): Scope;
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
    *
@@ -217,15 +217,14 @@ export class Scope implements IScope {
    * @param bc - The `BindingContext` to back the `Scope` with.
    * @param oc - null. This overload is functionally equivalent to not passing this argument at all.
    */
-  public static create(flags: LifecycleFlags, bc: object, oc: null, providedProjections?: WeakMap<ITargetedInstruction, IProjections> | null, isComponentScope?: boolean): Scope;
+  public static create(flags: LifecycleFlags, bc: object, oc: null, isComponentScope?: boolean): Scope;
   public static create(
     flags: LifecycleFlags,
     bc: object,
     oc?: IOverrideContext | null,
-    providedProjections: WeakMap<ITargetedInstruction, IProjections> | null = null,
     isComponentScope: boolean = false
   ): Scope {
-    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc, oc as null) : oc, providedProjections, isComponentScope);
+    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc, oc as null) : oc, null, isComponentScope);
   }
 
   public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {

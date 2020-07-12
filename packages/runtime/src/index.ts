@@ -252,6 +252,9 @@ export {
 
 export {
   AuSlot,
+  IProjections,
+  SlotInfo,
+  AuSlotContentType,
 } from './resources/custom-elements/au-slot';
 
 export {

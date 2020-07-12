@@ -317,7 +317,7 @@ export class Controller<
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this as unknown as IDryCustomElementController<T, NonNullable<C>>, definition, flags, instance);
 
-    this.scope = Scope.create(flags, this.bindingContext!, null, definition.projectionsMap, true);
+    const scope = this.scope = Scope.create(flags, this.bindingContext!, null, true);
 
     const hooks = this.hooks;
     if (hooks.hasCreate) {
@@ -349,6 +349,7 @@ export class Controller<
     const compiledContext = context.compile(targetedProjections);
     const compiledDefinition = compiledContext.compiledDefinition;
 
+    scope.providedProjections = compiledDefinition.projectionsMap;
     this.scopeParts = compiledDefinition.scopeParts;
     this.projections = compiledDefinition.projections;
     this.isStrictBinding = compiledDefinition.isStrictBinding;

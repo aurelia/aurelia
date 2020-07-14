@@ -12,6 +12,7 @@ import { arrayRemove } from './utils';
 import { Collection } from './collection';
 import { IConfigurableRoute, RouteRecognizer } from './route-recognizer';
 import { Navigation } from './navigation';
+import { IRoutingController, IConnectionCustomElement } from './resources/viewport';
 
 /**
  * @internal - Shouldn't be used directly
@@ -81,7 +82,7 @@ export class Scope {
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
   ) {
     this.owningScope = owningScope ?? this;
-    this.scope = this.hasScope ? this : this.owningScope;
+    this.scope = this.hasScope ? this : this.owningScope.scope;
   }
 
   public get isViewport(): boolean {
@@ -257,7 +258,7 @@ export class Scope {
         if (!this.getEnabledViewports(ownedScopes)[name]) {
           continue;
           // TODO: No longer pre-creating viewports. Evaluate!
-          this.addViewport(name!, null, null, { scope: newScope, forceDescription: true });
+          this.addViewport(name!, null, { scope: newScope, forceDescription: true });
           availableViewports[name!] = this.getEnabledViewports(ownedScopes)[name!];
         }
         const viewport = availableViewports[name];
@@ -303,7 +304,7 @@ export class Scope {
           if (!this.getEnabledViewports(ownedScopes)[name!]) {
             continue;
             // TODO: No longer pre-creating viewports. Evaluate!
-            this.addViewport(name!, null, null, { scope: newScope, forceDescription: true });
+            this.addViewport(name!, null, { scope: newScope, forceDescription: true });
             availableViewports[name!] = this.getEnabledViewports(ownedScopes)[name!];
           }
           viewport = availableViewports[name!];
@@ -351,35 +352,36 @@ export class Scope {
     return remaining;
   }
 
-  public addViewport(name: string, element: Element | null, container: IContainer | null, options: IViewportOptions = {}): Viewport {
+  public addViewport(name: string, connectionCE: IConnectionCustomElement | null, options: IViewportOptions = {}): Viewport {
     let viewport: Viewport | null = this.getEnabledViewports(this.getOwnedScopes())[name];
     // Each au-viewport element has its own Viewport
-    if (element && viewport && viewport.element !== null && viewport.element !== element) {
+    if (((connectionCE ?? null) !== null) &&
+      ((viewport?.connectionCE ?? null) !== null) &&
+      viewport.connectionCE !== connectionCE) {
       viewport.enabled = false;
-      viewport = this.getOwnedViewports(true).find(child => child.name === name && child.element === element) || null;
-      if (viewport) {
-        viewport.enabled = true;
+      viewport = this.getOwnedViewports(true).find(child => child.name === name && child.connectionCE === connectionCE) ?? null;
+      if ((viewport ?? null) !== null) {
+        viewport!.enabled = true;
       }
     }
-    if (!viewport) {
-      viewport = new Viewport(this.router, name, null, null, this.scope, !!options.scope, options);
+    if ((viewport ?? null) === null) {
+      viewport = new Viewport(this.router, name, null, this.scope, !!options.scope, options);
       this.addChild(viewport.connectedScope);
     }
-    // TODO: Either explain why || instead of && here (might only need one) or change it to && if that should turn out to not be relevant
-    if (element || container) {
-      viewport.setElement(element as Element, container as IContainer, options);
+    if ((connectionCE ?? null) !== null) {
+      viewport!.setConnection(connectionCE!, options);
     }
-    return viewport;
+    return viewport!;
   }
-  public removeViewport(viewport: Viewport, element: Element | null, container: IContainer | null): boolean {
-    if ((!element && !container) || viewport.remove(element, container)) {
+  public removeViewport(viewport: Viewport, connectionCE: IConnectionCustomElement | null): boolean {
+    if (((connectionCE ?? null) !== null) || viewport.remove(connectionCE)) {
       this.removeChild(viewport.connectedScope);
       return true;
     }
     return false;
   }
-  public addViewportScope(name: string, element: Element | null, options: IViewportScopeOptions = {}): ViewportScope {
-    const viewportScope = new ViewportScope(name, this.router, element, this.scope, true, null, options);
+  public addViewportScope(name: string, controller: IRoutingController | null, options: IViewportScopeOptions = {}): ViewportScope {
+    const viewportScope = new ViewportScope(name, this.router, controller, this.scope, true, null, options);
     this.addChild(viewportScope.connectedScope);
     return viewportScope;
   }

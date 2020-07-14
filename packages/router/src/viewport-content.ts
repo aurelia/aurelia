@@ -1,10 +1,12 @@
+/* eslint-disable no-fallthrough */
 import { IContainer, Reporter } from '@aurelia/kernel';
-import { Controller, IController, INode, LifecycleFlags, ILifecycle, CustomElement, IHydratedController } from '@aurelia/runtime';
+import { Controller, IController, INode, LifecycleFlags, ILifecycle, CustomElement, IHydratedController, ICustomElementController, ICustomElementViewModel, ISyntheticView } from '@aurelia/runtime';
 import { IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
 import { parseQuery } from './parser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 import { Navigation } from './navigation';
+import { IRoutingController, IConnectionCustomElement } from './resources/viewport';
 
 /**
  * @internal - Shouldn't be used directly
@@ -12,9 +14,7 @@ import { Navigation } from './navigation';
 export const enum ContentStatus {
   none = 0,
   created = 1,
-  loaded = 2,
-  initialized = 3,
-  added = 4,
+  activated = 3,
 }
 
 /**
@@ -34,11 +34,11 @@ export class ViewportContent {
       instruction: '',
       fullStateInstruction: '',
     }),
-    container: IContainer | null = null
+    connectionCE: IConnectionCustomElement | null = null
   ) {
     // If we've got a container, we're good to resolve type
-    if (!this.content.isComponentType() && container !== null) {
-      this.content.componentType = this.toComponentType(container);
+    if (!this.content.isComponentType() && (connectionCE?.container ?? null) !== null) {
+      this.content.componentType = this.toComponentType(connectionCE!.container!);
     }
   }
 
@@ -71,20 +71,31 @@ export class ViewportContent {
     return this.content.sameComponent(other.content, true);
   }
 
-  public createComponent(container: IContainer, fallback?: string): void {
+  public contentController(connectionCE: IConnectionCustomElement): ICustomElementController<Element, ICustomElementViewModel<Element>> {
+    return Controller.forCustomElement(
+      this.content.componentInstance as ICustomElementViewModel<Element>,
+      connectionCE.container.get(ILifecycle),
+      connectionCE.element,
+      connectionCE.container,
+      void 0,
+      void 0,
+    );
+  }
+
+  public createComponent(connectionCE: IConnectionCustomElement, fallback?: string): void {
     if (this.contentStatus !== ContentStatus.none) {
       return;
     }
     // Don't load cached content or instantiated history content
     if (!this.fromCache && !this.fromHistory) {
       try {
-        this.content.componentInstance = this.toComponentInstance(container);
+        this.content.componentInstance = this.toComponentInstance(connectionCE.container);
       } catch (e) {
         if (fallback !== void 0) {
           this.content.setParameters({ id: this.content.componentName });
           this.content.setComponent(fallback);
           try {
-            this.content.componentInstance = this.toComponentInstance(container);
+            this.content.componentInstance = this.toComponentInstance(connectionCE.container);
           } catch (ee) {
             throw e;
           }
@@ -94,7 +105,19 @@ export class ViewportContent {
       }
     }
     this.contentStatus = ContentStatus.created;
+
+    // if (this.contentStatus !== ContentStatus.created || !this.entered || !this.content.componentInstance) {
+    if (this.contentStatus !== ContentStatus.created || this.entered || !this.content.componentInstance) {
+      return;
+    }
+    // this.contentStatus = ContentStatus.loaded;
+    // Don't load cached content or instantiated history content
+    if (!this.fromCache || !this.fromHistory) {
+      const controller = this.contentController(connectionCE);
+      controller.parent = CustomElement.for(connectionCE.element)!;
+    }
   }
+
   public destroyComponent(): void {
     // TODO: We might want to do something here eventually, who knows?
     if (this.contentStatus !== ContentStatus.created) {
@@ -143,7 +166,7 @@ export class ViewportContent {
 
   public async enter(previousInstruction: Navigation): Promise<void> {
     // if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.entered)) {
-    if (!this.reentry && (this.contentStatus !== ContentStatus.loaded || this.entered)) {
+    if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.entered)) {
       return;
     }
     if (this.content.componentInstance && this.content.componentInstance.enter) {
@@ -155,7 +178,7 @@ export class ViewportContent {
     this.entered = true;
   }
   public async leave(nextInstruction: Navigation | null): Promise<void> {
-    if (this.contentStatus !== ContentStatus.added || !this.entered) {
+    if (this.contentStatus !== ContentStatus.activated || !this.entered) {
       return;
     }
     if (this.content.componentInstance && this.content.componentInstance.leave) {
@@ -164,31 +187,9 @@ export class ViewportContent {
     this.entered = false;
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  public async loadComponent(container: IContainer, element: Element, viewport: Viewport): Promise<void> {
-    // if (this.contentStatus !== ContentStatus.created || !this.entered || !this.content.componentInstance) {
-    if (this.contentStatus !== ContentStatus.created || this.entered || !this.content.componentInstance) {
-      return;
-    }
-    this.contentStatus = ContentStatus.loaded;
-    // Don't load cached content or instantiated history content
-    if (!this.fromCache || !this.fromHistory) {
-      const host: INode = element as INode;
-      const controller = Controller.forCustomElement(
-        this.content.componentInstance,
-        container.get(ILifecycle),
-        host,
-        container,
-        void 0,
-        void 0,
-      );
-      controller.parent = CustomElement.for(element)!;
-    }
-  }
-
   public unloadComponent(cache: ViewportContent[], stateful: boolean = false): void {
     // TODO: We might want to do something here eventually, who knows?
-    if (this.contentStatus !== ContentStatus.loaded) {
+    if (this.contentStatus !== ContentStatus.activated) {
       return;
     }
 
@@ -200,42 +201,17 @@ export class ViewportContent {
     }
   }
 
-  public initializeComponent(parent: IController): void {
-    if (this.contentStatus !== ContentStatus.loaded) {
+  public async activateComponent(initiator: IHydratedController<Element> | null, parent: ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags, connectionCE: IConnectionCustomElement): Promise<void> {
+    if (this.contentStatus !== ContentStatus.created) {
       return;
     }
-    this.contentStatus = ContentStatus.initialized;
-    // Don't initialize cached content or instantiated history content
-    // if (!this.fromCache || !this.fromHistory) {
-    // ((this.content.componentInstance as IRouteableComponent).$controller as IController).parent = parent;
-    // New hooks - ((this.content.componentInstance as IRouteableComponent).$controller as IController).bind(LifecycleFlags.fromStartTask | LifecycleFlags.fromBind);
-    // }
-  }
+    this.contentStatus = ContentStatus.activated;
 
-  public async terminateComponent(initiator: IHydratedController<Node> | null, flags: LifecycleFlags, stateful: boolean = false): Promise<void> {
-    if (this.contentStatus !== ContentStatus.initialized && this.contentStatus !== ContentStatus.added) {
-      return;
-    }
-    this.contentStatus = ContentStatus.loaded;
-    // Don't terminate cached content
-    // if (!stateful) {
-    // New hooks - await ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).unbind(LifecycleFlags.fromStopTask | LifecycleFlags.fromUnbind).wait();
-    // ((this.content.componentInstance as IRouteableComponent).$controller as IController).parent = void 0;
-    // }
-    const controller = this.content.componentInstance!.$controller!;
-    await controller.deactivate(initiator ?? controller, null, flags);
-  }
+    const contentController = this.contentController(connectionCE);
+    await contentController.activate(initiator ?? contentController, parent!, flags);
 
-  public async addComponent(initiator: IHydratedController<Node> | null, flags: LifecycleFlags, element: Element): Promise<void> {
-    if (this.contentStatus !== ContentStatus.initialized) {
-      return;
-    }
-    this.contentStatus = ContentStatus.added;
-    // New hooks - ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).attach(LifecycleFlags.fromStartTask);
-    const controller = this.content.componentInstance!.$controller!;
-    await controller.activate(initiator ?? controller, null, flags);
     if (this.fromCache || this.fromHistory) {
-      const elements = Array.from(element.getElementsByTagName('*'));
+      const elements = Array.from(connectionCE.element.getElementsByTagName('*'));
       for (const el of elements) {
         const attr = el.getAttribute('au-element-scroll');
         if (attr) {
@@ -246,34 +222,33 @@ export class ViewportContent {
       }
     }
   }
-  public async removeComponent(initiator: IHydratedController<Node> | null, flags: LifecycleFlags, element: Element | null, stateful: boolean = false): Promise<void> {
-    if (this.contentStatus !== ContentStatus.added || this.entered) {
+
+  public async deactivateComponent(initiator: IHydratedController<Element> | null, parent: ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags, connectionCE: IConnectionCustomElement, stateful: boolean = false): Promise<void> {
+    if (this.contentStatus !== ContentStatus.activated) {
       return;
     }
-    this.contentStatus = ContentStatus.initialized;
-    if (stateful && element !== null) {
-      const elements = Array.from(element.getElementsByTagName('*'));
+    this.contentStatus = ContentStatus.created;
+
+    if (stateful && connectionCE.element !== null) {
+      // const contentController = this.content.componentInstance!.$controller!;
+      const elements = Array.from(connectionCE.element.getElementsByTagName('*'));
       for (const el of elements) {
         if (el.scrollTop > 0 || el.scrollLeft) {
           el.setAttribute('au-element-scroll', `${el.scrollTop},${el.scrollLeft}`);
         }
       }
     }
-    // New hooks - ((this.content.componentInstance as IRouteableComponent).$controller as IController<Node>).detach(LifecycleFlags.fromStopTask);
-    // const controller = this.content.componentInstance!.$controller!;
-    // await controller.deactivate(initiator ?? controller, null, flags);
-    await Promise.resolve();
+
+    const contentController = this.contentController(connectionCE);
+    await contentController.deactivate(initiator ?? contentController, parent!, flags);
   }
 
-  public async freeContent(element: Element | null, nextInstruction: Navigation | null, cache: ViewportContent[], stateful: boolean = false): Promise<void> {
+  public async freeContent(connectionCE: IConnectionCustomElement | null, nextInstruction: Navigation | null, cache: ViewportContent[], stateful: boolean = false): Promise<void> {
     switch (this.contentStatus) {
-      case ContentStatus.added:
+      case ContentStatus.activated:
         await this.leave(nextInstruction);
-        await this.removeComponent(null, LifecycleFlags.none, element, stateful);
-      case ContentStatus.initialized:
-        await this.terminateComponent(null, LifecycleFlags.none, stateful);
-      case ContentStatus.loaded:
-        this.unloadComponent(cache, stateful);
+        await this.deactivateComponent(null, connectionCE!.controller, LifecycleFlags.none, connectionCE!, stateful);
+        this.unloadComponent(cache, stateful); // TODO: Hook up to new dispose
       case ContentStatus.created:
         this.destroyComponent();
     }

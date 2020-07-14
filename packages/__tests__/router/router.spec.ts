@@ -196,7 +196,7 @@ describe('Router', function () {
     router.goto('uier@left').catch((error) => { throw error; });
     const last = router.goto('bar@left');
     // Depending on browser/node, there can be 1 or 2 in the queue here
-    assert.notStrictEqual(router.navigator.queued, 0, `router.navigator.queued`);
+    assert.notStrictEqual(router['navigator'].queued, 0, `router.navigator.queued`);
     await last;
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
 

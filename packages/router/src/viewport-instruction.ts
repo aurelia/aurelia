@@ -187,11 +187,15 @@ export class ViewportInstruction {
       return this.componentInstance;
     }
     if (container !== void 0 && container !== null) {
+      const instance = this.isComponentType()
+        ? container.get<IRouteableComponent>(this.componentType!)
+        : container.get<IRouteableComponent>(CustomElement.keyFrom(this.componentName!));
       if (this.isComponentType()) {
-        return container.get<IRouteableComponent>(this.componentType!);
-      } else {
-        return container.get<IRouteableComponent>(CustomElement.keyFrom(this.componentName!));
+        if (!(instance instanceof this.componentType!)) {
+          console.warn('Failed to instantiate', this.componentType, instance);
+        }
       }
+      return instance ?? null;
     }
     return null;
   }

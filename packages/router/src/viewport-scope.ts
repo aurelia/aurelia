@@ -1,4 +1,4 @@
-import { CustomElementType } from '@aurelia/runtime';
+import { CustomElementType, ICustomElementController } from '@aurelia/runtime';
 import { ComponentAppellation, IRoute, RouteableComponentType } from './interfaces';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
@@ -30,7 +30,7 @@ export class ViewportScope implements IScopeOwner {
   public constructor(
     public name: string,
     public readonly router: IRouter,
-    public element: Element | null,
+    public controller: ICustomElementController | null,
     owningScope: Scope | null,
     scope: boolean,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it

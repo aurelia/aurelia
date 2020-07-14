@@ -1,3 +1,4 @@
+/* eslint-disable prefer-template */
 /* eslint-disable max-lines-per-function */
 import { DI, IContainer, Registration, IIndexable, Key, Metadata } from '@aurelia/kernel';
 import { Aurelia, CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, isRenderContext } from '@aurelia/runtime';
@@ -18,6 +19,8 @@ import { Scope, IScopeOwner } from './scope';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 import { BrowserViewerStore } from './browser-viewer-store';
 import { Navigation } from './navigation';
+import { IRoutingController, IConnectionCustomElement } from './resources/viewport';
+// import { NavigationCoordinator } from './navigation-coordinator';
 
 /**
  * Public API
@@ -76,75 +79,7 @@ export interface ITitleConfiguration {
  */
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
 
-export interface IRouter {
-  readonly isNavigating: boolean;
-  activeComponents: ViewportInstruction[];
-  readonly rootScope: ViewportScope | null;
-  readonly activeRoute?: IRoute;
-  readonly container: IContainer;
-  readonly instructionResolver: InstructionResolver;
-  navigator: Navigator;
-  readonly navigation: BrowserViewerStore;
-  readonly hookManager: HookManager;
-  readonly linkHandler: LinkHandler;
-  readonly navs: Readonly<Record<string, Nav>>;
-  readonly options: IRouterOptions;
-
-  readonly statefulHistory: boolean;
-  start(options?: IRouterActivateOptions): void;
-  loadUrl(): Promise<void>;
-  stop(): void;
-
-  linkCallback(info: AnchorEventInfo): void;
-
-  processNavigations(qInstruction: QueueItem<Navigation>): Promise<void>;
-
-  // External API to get viewport by name
-  getViewport(name: string): Viewport | null;
-
-  // Called from the viewport scope custom element
-  setClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer, scope: Scope): void;
-  getClosestScope(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController | IContainer): Scope | null;
-  unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void;
-
-  // Called from the viewport custom element
-  connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport;
-  // Called from the viewport custom element
-  disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void;
-  // Called from the viewport scope custom element
-  connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope;
-  // Called from the viewport scope custom element
-  disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void;
-
-  allViewports(includeDisabled?: boolean): Viewport[];
-  findScope(elementOrViewmodelOrviewport: Element | ICustomElementViewModel | Viewport | ICustomElementController | null): Scope;
-
-  load(...args: any): Promise<void>;
-  goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void>;
-  refresh(): Promise<void>;
-  back(): Promise<void>;
-  forward(): Promise<void>;
-
-  checkActive(instructions: ViewportInstruction[]): boolean;
-
-  setNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
-  addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
-  updateNav(name?: string): void;
-  findNav(name: string): Nav;
-
-  addRoutes(routes: IRoute[], context?: ICustomElementViewModel | Element): IRoute[];
-  removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel | Element): void;
-  addHooks(hooks: IHookDefinition[]): HookIdentity[];
-
-  addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
-  addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
-  addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
-  addHook(setTitleHookFunction: SetTitleHookFunction, options?: IHookOptions): HookIdentity;
-  addHook(hook: HookFunction, options: IHookOptions): HookIdentity;
-  removeHooks(hooks: HookIdentity[]): void;
-
-  createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope?: boolean, nextScopeInstructions?: ViewportInstruction[] | null): ViewportInstruction;
-}
+export interface IRouter extends Router { }
 
 class ClosestViewportCustomElement { }
 /**
@@ -153,14 +88,14 @@ class ClosestViewportCustomElement { }
 class ClosestScope { }
 
 export class Router implements IRouter {
-  public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserViewerStore, LinkHandler, InstructionResolver];
+  public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserViewerStore, LinkHandler, InstructionResolver, HookManager];
 
   public rootScope: ViewportScope | null = null;
 
   /**
    * @internal
    */
-  public hookManager: HookManager;
+  // public hookManager: HookManager;
 
   /**
    * @internal
@@ -214,9 +149,7 @@ export class Router implements IRouter {
      * @internal - Shouldn't be used directly.
      */
     public navigator: Navigator,
-    /**
-     * @internal - Shouldn't be used directly.
-     */
+
     public navigation: BrowserViewerStore,
     /**
      * @internal - Shouldn't be used directly.
@@ -225,9 +158,13 @@ export class Router implements IRouter {
     /**
      * @internal - Shouldn't be used directly. Probably.
      */
-    public instructionResolver: InstructionResolver
+    public instructionResolver: InstructionResolver,
+    /**
+     * @internal - Shouldn't be used directly. Probably.
+     */
+    public hookManager: HookManager,
   ) {
-    this.hookManager = new HookManager();
+    // this.hookManager = new HookManager();
   }
 
   /**
@@ -417,6 +354,7 @@ export class Router implements IRouter {
     //   clearScopeOwners,
     //   clearViewportScopes,
     // }
+    // const coordinator = NavigationCoordinator.create(this, instruction);
     let configuredRoute = await this.findInstructions(
       this.rootScope!.scope,
       instruction.instruction,
@@ -432,7 +370,8 @@ export class Router implements IRouter {
 
     if (configuredRoute.foundConfiguration) {
       instruction.path = (instruction.instruction as string).startsWith('/')
-        ? (instruction.instruction as string).slice(1) : instruction.instruction as string;
+        ? (instruction.instruction as string).slice(1)
+        : instruction.instruction as string;
       configuredRoutePath = (configuredRoutePath ?? '') + configuredRoute.matching;
       this.rootScope!.path = configuredRoutePath;
     }
@@ -597,6 +536,8 @@ export class Router implements IRouter {
       }
     } while (viewportInstructions.length > 0 || remainingInstructions.length > 0);
 
+    // coordinator.finalScopeOwner();
+
     await Promise.all(updatedScopeOwners.map((value) => value.loadContent()));
     await this.replacePaths(instruction);
     // this.updateNav();
@@ -708,47 +649,44 @@ export class Router implements IRouter {
   /**
    * @internal - Called from the viewport custom element
    */
-  public connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport {
-    const parentScope = this.findParentScope(container);
+  public connectViewport(viewport: Viewport | null, connectionCE: IConnectionCustomElement, name: string, options?: IViewportOptions): Viewport {
+    const parentScope = this.findParentScope(connectionCE.container);
     if (viewport === null) {
-      viewport = parentScope.addViewport(name, element, container, options);
-      this.setClosestScope(container, viewport.connectedScope);
+      viewport = parentScope.addViewport(name, connectionCE, options);
+      this.setClosestScope(connectionCE.container, viewport.connectedScope);
     }
-    return viewport as Viewport;
+    return viewport!;
   }
   /**
    * @internal - Called from the viewport custom element
    */
-  public disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void {
-    if (!viewport.connectedScope.parent!.removeViewport(viewport, element, container)) {
+  public disconnectViewport(viewport: Viewport, connectionCE: IConnectionCustomElement): void {
+    if (!viewport.connectedScope.parent!.removeViewport(viewport, connectionCE)) {
       throw new Error("Failed to remove viewport: " + viewport.name);
     }
-    this.unsetClosestScope(container);
+    this.unsetClosestScope(connectionCE.container);
   }
   /**
    * @internal - Called from the viewport scope custom element
    */
-  public connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope {
-    const parentScope = this.findParentScope(container);
+  public connectViewportScope(viewportScope: ViewportScope | null, controller: IRoutingController, name: string, options?: IViewportScopeOptions): ViewportScope {
+    const parentScope = this.findParentScope(controller.routingContainer!);
     if (viewportScope === null) {
-      viewportScope = parentScope.addViewportScope(name, element, options);
-      this.setClosestScope(container, viewportScope.connectedScope);
+      viewportScope = parentScope.addViewportScope(name, controller, options);
+      this.setClosestScope(controller.routingContainer!, viewportScope.connectedScope);
     }
     return viewportScope;
   }
   /**
    * @internal - Called from the viewport scope custom element
    */
-  public disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void {
+  public disconnectViewportScope(viewportScope: ViewportScope, controller: IRoutingController): void {
     if (!viewportScope.connectedScope.parent!.removeViewportScope(viewportScope)) {
       throw new Error("Failed to remove viewport scope: " + viewportScope.path);
     }
-    this.unsetClosestScope(container);
+    this.unsetClosestScope(controller.routingContainer!);
   }
 
-  /**
-   * @internal
-   */
   public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
     // this.ensureRootScope();
     return (this.rootScope as ViewportScope).scope.allViewports(includeDisabled, includeReplaced);
@@ -1073,7 +1011,7 @@ export class Router implements IRouter {
     if (!this.rootScope) {
       const root = this.container.get(Aurelia).root;
       // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
-      this.rootScope = new ViewportScope('rootScope', this, root.config.host as Element, null, true, root.config.component as CustomElementType);
+      this.rootScope = new ViewportScope('rootScope', this, root.controller!, null, true, root.config.component as CustomElementType);
     }
     return this.rootScope!;
   }

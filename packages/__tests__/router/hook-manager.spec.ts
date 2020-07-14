@@ -1,4 +1,4 @@
-import { HookManager, HookTypes, ViewportInstruction, RouterConfiguration, IRouter } from '@aurelia/router';
+import { HookManager, HookTypes, ViewportInstruction, RouterConfiguration, IRouter, Navigation, InstructionResolver } from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, Aurelia, IScheduler } from '@aurelia/runtime';
 import { DebugConfiguration } from '@aurelia/debug';
@@ -31,6 +31,8 @@ describe('HookManager', function () {
         App)
       .app({ host: host, component: App });
 
+    const hookManager = container.get(HookManager);
+    const instructionResolver = container.get(InstructionResolver);
     const router = container.get(IRouter);
     const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
@@ -43,9 +45,9 @@ describe('HookManager', function () {
       await au.stop().wait();
     }
 
-    const navigationInstruction: Navigation = { instruction: 'test', fullStateInstruction: 'full-test' };
-    const viewportInstructions: ViewportInstruction[] = router.instructionResolver.parseViewportInstructions('parent/child');
-    return { au, container, scheduler, host, router, tearDown, navigationInstruction, viewportInstructions };
+    const navigationInstruction = new Navigation({ instruction: 'test', fullStateInstruction: 'full-test' });
+    const viewportInstructions: ViewportInstruction[] = instructionResolver.parseViewportInstructions('parent/child');
+    return { au, container, scheduler, host, router, tearDown, navigationInstruction, viewportInstructions, hookManager, instructionResolver };
   }
 
   function spyNavigationStates(router, spy) {
@@ -283,25 +285,24 @@ describe('HookManager', function () {
         ? typeof input === 'string' ? [router.createViewportInstruction(`hooked-${input}`)] : `hooked-${input[0].componentName}`
         : input;
     const hook = { hook: hookFunction, options: { type: HookTypes.TransformToUrl } };
-    const { router, tearDown, navigationInstruction } = await createFixture({
+    const { router, tearDown, navigationInstruction, hookManager } = await createFixture({
       hooks: [hook, hook, hook],
     });
 
-    const sut = router.hookManager;
     const str = 'testing';
 
-    const hooked: string | ViewportInstruction[] = await sut.invokeTransformToUrl(str, navigationInstruction) as ViewportInstruction[];
+    const hooked: string | ViewportInstruction[] = await hookManager.invokeTransformToUrl(str, navigationInstruction) as ViewportInstruction[];
     assert.strictEqual(hooked[0].componentName, `hooked-hooked-hooked-${str}`, `hooked-hooked-hooked`);
 
     await tearDown();
   });
 
   it('sets a TransformToUrl hook with alternating types through api', async function () {
-    const { router, tearDown, navigationInstruction } = await createFixture();
+    const { router, tearDown, navigationInstruction, hookManager } = await createFixture();
 
     const str = 'testing';
 
-    let hooked: string | ViewportInstruction[] = await router.hookManager.invokeTransformToUrl(str, navigationInstruction) as string;
+    let hooked: string | ViewportInstruction[] = await hookManager.invokeTransformToUrl(str, navigationInstruction) as string;
     assert.strictEqual(hooked, `${str}`, `not hooked`);
 
     const hookFunction = (input: string | ViewportInstruction[], navigationInstruction: Navigation): Promise<string | ViewportInstruction[]> =>
@@ -313,7 +314,7 @@ describe('HookManager', function () {
     router.addHook(hookFunction, { type: HookTypes.TransformToUrl });
     router.addHook(hookFunction, { type: HookTypes.TransformToUrl });
 
-    hooked = await router.hookManager.invokeTransformToUrl(str, navigationInstruction) as ViewportInstruction[];
+    hooked = await hookManager.invokeTransformToUrl(str, navigationInstruction) as ViewportInstruction[];
     assert.strictEqual(hooked[0].componentName, `hooked-hooked-hooked-${str}`, `hooked-hooked-hooked`);
 
     await tearDown();

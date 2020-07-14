@@ -15,13 +15,22 @@ import {
 import { IRouter } from '../router';
 import { Viewport, IViewportOptions } from '../viewport';
 
+export interface IRoutingController extends ICustomElementController<Element> {
+  routingContainer?: IContainer;
+}
+export interface IConnectionCustomElement extends ICustomElementViewModel<Element> {
+  element: Element;
+  container: IContainer;
+  controller: IRoutingController;
+}
+
 export const ParentViewport = CustomElement.createInjectable();
 
 @customElement({
   name: 'au-viewport',
   injectable: ParentViewport
 })
-export class ViewportCustomElement implements ICustomElementViewModel<Node> {
+export class ViewportCustomElement implements ICustomElementViewModel<Element> {
   @bindable public name: string = 'default';
   @bindable public usedBy: string = '';
   @bindable public default: string = '';
@@ -36,50 +45,78 @@ export class ViewportCustomElement implements ICustomElementViewModel<Node> {
 
   public readonly $controller!: ICustomElementController<Element, this>;
 
-  private readonly element: Element;
+  public controller!: IRoutingController;
+  public readonly element: Element;
 
   private isBound: boolean = false;
 
   public constructor(
     @IRouter private readonly router: IRouter,
     @INode element: INode,
-    @IContainer private container: IContainer,
+    @IContainer public container: IContainer,
     @ParentViewport private readonly parentViewport: ViewportCustomElement,
   ) {
     this.element = element as Element;
   }
 
   public afterCompile(controller: ICompiledCustomElementController) {
+    this.controller = controller as IRoutingController;
     this.container = controller.context.get(IContainer);
     // console.log('Viewport creating', this.getAttribute('name', this.name), this.container, this.parentViewport, controller, this);
     // this.connect();
   }
 
-  public afterBind(initiator: IHydratedController<Node>, parent: IHydratedParentController<Node> | null, flags: LifecycleFlags): void {
+  public afterBind(initiator: IHydratedController<Element>, parent: IHydratedParentController<Element> | null, flags: LifecycleFlags): void | Promise<void> {
     this.isBound = true;
     this.connect();
+  }
+
+  public async afterAttach(initiator: IHydratedController<Element>, parent: IHydratedParentController<Element> | null, flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      this.viewport.initializeContent(initiator, parent, flags);
+      this.viewport.enabled = true;
+      // Only acts if not already entered
+      await this.viewport.content?.enter(this.viewport.content.instruction);
+      await this.viewport.content?.activateComponent(initiator, this.$controller, flags, this);
+      // TODO: Restore scroll state
     }
   }
 
-  public async afterAttach(initiator: IHydratedController<Node>, parent: IHydratedParentController<Node> | null, flags: LifecycleFlags): Promise<void> {
-    if (this.viewport) {
-      return this.viewport.addContent(initiator, parent, flags);
-    }
-    return Promise.resolve();
+  public async beforeDetach(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): Promise<void> {
+    // TODO: Save scroll state
   }
 
-  public async afterDetach(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): Promise<void> {
+  public async beforeUnbind(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      return this.viewport.removeContent(initiator, parent, flags);
+      // Only acts if not already left
+      await this.viewport.content?.leave(this.viewport.content.instruction);
+      await this.viewport.content?.deactivateComponent(initiator, this.$controller as ICustomElementController<Element, ICustomElementViewModel<Element>>, flags, this,
+        this.viewport.doForceRemove
+          ? false
+          : this.router.statefulHistory || this.viewport.options.stateful);
+      this.viewport.enabled = false;
     }
-    return Promise.resolve();
   }
 
   public async afterUnbind(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
-      await this.viewport.terminateContent(initiator, parent, flags);
+      // TODO: Save to cache, something like
+      // this.viewport.cacheContent();
+      // From viewport-content:
+      // public unloadComponent(cache: ViewportContent[], stateful: boolean = false): void {
+      //   // TODO: We might want to do something here eventually, who knows?
+      //   if (this.contentStatus !== ContentStatus.loaded) {
+      //     return;
+      //   }
+
+      //   // Don't unload components when stateful
+      //   if (!stateful) {
+      //     this.contentStatus = ContentStatus.created;
+      //   } else {
+      //     cache.push(this);
+      //   }
+      // }
+
+
       this.disconnect();
     }
     this.isBound = false;
@@ -89,6 +126,17 @@ export class ViewportCustomElement implements ICustomElementViewModel<Node> {
     if (this.router.rootScope === null) {
       return;
     }
+    // let controllerContainer = (this.controller.context as any).container;
+    // let output = '';
+    // do {
+    //   console.log(output, ':', controllerContainer === this.container, this.controller, controllerContainer, this.container);
+    //   if (controllerContainer === this.container) {
+    //     break;
+    //   }
+    //   controllerContainer = controllerContainer.parent;
+    //   output += '.parent';
+    // } while (controllerContainer);
+
     const name: string = this.getAttribute('name', this.name) as string;
     let value: string | boolean | undefined = this.getAttribute('no-scope', this.noScope);
     const options: IViewportOptions = { scope: value === void 0 || !value ? true : false };
@@ -120,11 +168,12 @@ export class ViewportCustomElement implements ICustomElementViewModel<Node> {
     if (value !== void 0) {
       options.stateful = value as boolean;
     }
-    this.viewport = this.router.connectViewport(this.viewport, this.container, name, this.element, options);
+    this.controller.routingContainer = this.container;
+    this.viewport = this.router.connectViewport(this.viewport, this, name, options);
   }
   public disconnect(): void {
     if (this.viewport) {
-      this.router.disconnectViewport(this.viewport, this.container, this.element);
+      this.router.disconnectViewport(this.viewport, this);
     }
     this.viewport = null;
   }

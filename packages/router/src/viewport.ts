@@ -1,5 +1,5 @@
-import { IContainer, Reporter } from '@aurelia/kernel';
-import { LifecycleFlags, IController, CustomElement, INode, ICompiledRenderContext, IHydratedController, IHydratedParentController } from '@aurelia/runtime';
+import { Reporter } from '@aurelia/kernel';
+import { LifecycleFlags, ICompiledRenderContext, ICustomElementController, CustomElement, ICustomElementViewModel } from '@aurelia/runtime';
 import { ComponentAppellation, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType, NavigationInstruction } from './interfaces';
 import { IRouter } from './router';
 import { arrayRemove } from './utils';
@@ -7,6 +7,7 @@ import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
 import { IScopeOwner, IScopeOwnerOptions, Scope } from './scope';
 import { Navigation } from './navigation';
+import { IRoutingController, IConnectionCustomElement } from './resources/viewport';
 
 export interface IViewportOptions extends IScopeOwnerOptions {
   scope?: boolean;
@@ -29,7 +30,7 @@ export class Viewport implements IScopeOwner {
   public path: string | null = null;
 
   private clear: boolean = false;
-  private elementResolve?: ((value?: void | PromiseLike<void>) => void) | null = null;
+  private connectionResolve?: ((value?: void | PromiseLike<void>) => void) | null = null;
 
   private previousViewportState: Viewport | null = null;
 
@@ -39,8 +40,7 @@ export class Viewport implements IScopeOwner {
   public constructor(
     public readonly router: IRouter,
     public name: string,
-    public element: Element | null,
-    public container: IContainer | null,
+    public connectionCE: IConnectionCustomElement | null,
     owningScope: Scope,
     scope: boolean,
     public options: IViewportOptions = {}
@@ -100,7 +100,7 @@ export class Viewport implements IScopeOwner {
     this.clear = this.router.instructionResolver.isClearViewportInstruction(viewportInstruction);
 
     // Can have a (resolved) type or a string (to be resolved later)
-    this.nextContent = new ViewportContent(!this.clear ? viewportInstruction : void 0, instruction, this.container);
+    this.nextContent = new ViewportContent(!this.clear ? viewportInstruction : void 0, instruction, this.connectionCE ?? null);
 
     this.nextContent.fromHistory = this.nextContent.componentInstance && instruction.navigation
       ? !!instruction.navigation.back || !!instruction.navigation.forward
@@ -166,13 +166,13 @@ export class Viewport implements IScopeOwner {
     return true;
   }
 
-  public setElement(element: Element, container: IContainer, options: IViewportOptions): void {
+  public setConnection(connectionCE: IConnectionCustomElement, options: IViewportOptions): void {
     options = options || {};
-    if (this.element !== element) {
+    if (this.connectionCE !== connectionCE) {
       // TODO: Restore this state on navigation cancel
       this.previousViewportState = { ...this };
       this.clearState();
-      this.element = element;
+      this.connectionCE = connectionCE;
       if (options.usedBy) {
         this.options.usedBy = options.usedBy;
       }
@@ -194,17 +194,14 @@ export class Viewport implements IScopeOwner {
       if (options.stateful) {
         this.options.stateful = options.stateful;
       }
-      if (this.elementResolve) {
-        this.elementResolve();
+      if (this.connectionResolve) {
+        this.connectionResolve();
       }
     }
     // TODO: Might not need this? Figure it out
     // if (container) {
     //   container['viewportName'] = this.name;
     // }
-    if (this.container !== container) {
-      this.container = container;
-    }
 
     if (!this.content.componentInstance && (!this.nextContent || !this.nextContent.componentInstance) && this.options.default) {
       const instructions = this.router.instructionResolver.parseViewportInstructions(this.options.default);
@@ -218,11 +215,11 @@ export class Viewport implements IScopeOwner {
     }
   }
 
-  public async remove(element: Element | null, container: IContainer | null): Promise<boolean> {
-    if (this.element === element && this.container === container) {
+  public async remove(connectionCE: IConnectionCustomElement | null): Promise<boolean> {
+    if (this.connectionCE === connectionCE) {
       if (this.content.componentInstance) {
         await this.content.freeContent(
-          this.element as Element,
+          this.connectionCE,
           (this.nextContent ? this.nextContent.instruction : null),
           this.historyCache,
           this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful
@@ -255,14 +252,13 @@ export class Viewport implements IScopeOwner {
       return true;
     }
 
-    if ((this.nextContent!.content || null) === null) {
+    if ((this.nextContent!.content ?? null) === null) {
       return false;
     }
 
-    await this.waitForElement();
+    await this.waitForConnection();
 
-    this.nextContent!.createComponent(this.container as IContainer, this.options.fallback);
-    await this.nextContent!.loadComponent(this.container as IContainer, this.element as Element, this);
+    this.nextContent!.createComponent(this.connectionCE!, this.options.fallback);
 
     return this.nextContent!.canEnter(this, this.content.instruction);
   }
@@ -279,9 +275,7 @@ export class Viewport implements IScopeOwner {
     }
 
     await this.nextContent.enter(this.content.instruction);
-    // await this.nextContent.loadComponent(this.container as IContainer, this.element as Element, this);
-    this.nextContent.initializeComponent(CustomElement.for(this.element as INode) as IController);
-    await this.nextContent.addComponent(null, LifecycleFlags.none, this.element as Element);
+    await this.nextContent.activateComponent(null, this.connectionCE!.$controller as ICustomElementController<Element, ICustomElementViewModel<Element>>, LifecycleFlags.none, this.connectionCE!);
     return true;
   }
 
@@ -291,12 +285,16 @@ export class Viewport implements IScopeOwner {
     // No need to wait for next component activation
     if (this.content.componentInstance && !this.nextContent!.componentInstance) {
       await this.content.leave(this.nextContent!.instruction);
-      await this.unloadContent();
+      await this.content!.freeContent(
+        this.connectionCE,
+        this.nextContent!.instruction,
+        this.historyCache,
+        this.router.statefulHistory || this.options.stateful);
     }
 
     if (this.nextContent!.componentInstance) {
       if (this.content.componentInstance !== this.nextContent!.componentInstance) {
-        await this.nextContent!.addComponent(null, LifecycleFlags.none, this.element as Element);
+        await this.nextContent!.activateComponent(null, this.connectionCE!.$controller as IRoutingController, LifecycleFlags.none, this.connectionCE!);
       } else {
         this.connectedScope.reenableReplacedChildren();
       }
@@ -304,7 +302,11 @@ export class Viewport implements IScopeOwner {
       if (this.content.componentInstance) {
         await this.content.leave(this.nextContent!.instruction);
         if (!this.content.reentry && this.content.componentInstance !== this.nextContent!.componentInstance) {
-          await this.unloadContent();
+          await this.content!.freeContent(
+            this.connectionCE,
+            this.nextContent!.instruction,
+            this.historyCache,
+            this.router.statefulHistory || this.options.stateful);
         }
       }
 
@@ -328,7 +330,7 @@ export class Viewport implements IScopeOwner {
   public async abortContentChange(): Promise<void> {
     this.connectedScope.reenableReplacedChildren();
     await this.nextContent!.freeContent(
-      this.element as Element,
+      this.connectionCE,
       this.nextContent!.instruction,
       this.historyCache,
       this.router.statefulHistory || this.options.stateful);
@@ -364,41 +366,6 @@ export class Viewport implements IScopeOwner {
       return true;
     }
     return false;
-  }
-
-  public initializeContent(initiator: IHydratedController<Node>, parent: IHydratedParentController<Node> | null, flags: LifecycleFlags): void {
-    if (this.content.componentInstance) {
-      this.content.initializeComponent(CustomElement.for(this.element as INode) as IController);
-    }
-  }
-
-  public async addContent(initiator: IHydratedController<Node>, parent: IHydratedParentController<Node> | null, flags: LifecycleFlags): Promise<void> {
-    this.enabled = true;
-    if (this.content.componentInstance) {
-      // Only acts if not already entered
-      await this.content.enter(this.content.instruction);
-      await this.content.addComponent(initiator, flags, this.element as Element);
-    }
-  }
-
-  public async removeContent(initiator: IHydratedController<Node>, parent: IHydratedParentController<Node> | null, flags: LifecycleFlags): Promise<void> {
-    if (this.content.componentInstance) {
-      // Only acts if not already left
-      await this.content.leave(this.content.instruction);
-      await this.content.removeComponent(
-        initiator,
-        flags,
-        this.element,
-        this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful
-      );
-    }
-    this.enabled = false;
-  }
-
-  public async terminateContent(initiator: IHydratedController<Node>, parent: IHydratedParentController<Node> | null, flags: LifecycleFlags): Promise<void> {
-    if (this.content.componentInstance) {
-      await this.content.terminateComponent(initiator, flags, this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful);
-    }
   }
 
   public async freeContent(component: IRouteableComponent) {
@@ -461,7 +428,7 @@ export class Viewport implements IScopeOwner {
     let componentType = this.getContentInstruction()!.componentType ?? null;
     // TODO: This is going away once Metadata is in!
     if (componentType === null) {
-      const controller = CustomElement.for(this.element!);
+      const controller = CustomElement.for(this.connectionCE!.element);
       componentType = (controller!.context as
         ICompiledRenderContext<Element> & { componentType: RouteableComponentType })
         .componentType;
@@ -477,13 +444,6 @@ export class Viewport implements IScopeOwner {
     return this.nextContent?.content ?? this.content.content ?? null;
   }
 
-  private async unloadContent(): Promise<void> {
-    await this.content.removeComponent(null, LifecycleFlags.none, this.element as Element, this.router.statefulHistory || this.options.stateful);
-    await this.content.terminateComponent(null, LifecycleFlags.none, this.router.statefulHistory || this.options.stateful);
-    this.content.unloadComponent(this.historyCache, this.router.statefulHistory || this.options.stateful);
-    this.content.destroyComponent();
-  }
-
   private clearState(): void {
     this.options = {};
 
@@ -491,12 +451,12 @@ export class Viewport implements IScopeOwner {
     this.cache = [];
   }
 
-  private async waitForElement(): Promise<void> {
-    if (this.element) {
+  private async waitForConnection(): Promise<void> {
+    if (this.connectionCE !== null) {
       return Promise.resolve();
     }
     return new Promise((resolve) => {
-      this.elementResolve = resolve;
+      this.connectionResolve = resolve;
     });
   }
 }

@@ -308,6 +308,7 @@ class RecognizeResult {
 
 export class RouteRecognizer {
   private readonly rootState: SeparatorState = new State(null, null, '') as SeparatorState;
+  private readonly cache: Map<string, RecognizedRoute | null> = new Map();
 
   public constructor(
     private readonly config: readonly RouteDefinition[],
@@ -322,6 +323,9 @@ export class RouteRecognizer {
     if (collectResidue) {
       this.$add(route, true);
     }
+
+    // Clear the cache whenever there are state changes, because the recognizeResults could be arbitrarily different as a result
+    this.cache.clear();
   }
 
   private $add(route: RouteDefinition, collectResidue: boolean): void {
@@ -366,6 +370,14 @@ export class RouteRecognizer {
   }
 
   public recognize(path: string): RecognizedRoute | null {
+    let result = this.cache.get(path);
+    if (result === void 0) {
+      this.cache.set(path, result = this.$recognize(path));
+    }
+    return result;
+  }
+
+  private $recognize(path: string): RecognizedRoute | null {
     path = decodeURI(path);
 
     if (!path.startsWith('/')) {

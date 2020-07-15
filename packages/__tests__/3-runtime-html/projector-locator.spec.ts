@@ -18,7 +18,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0, null);
     const projector = locator.getElementProjector(dom, controller, host, definition);
 
     assert.instanceOf(projector, ShadowDOMProjector, `projector`);
@@ -43,7 +43,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0, null);
     const projector = locator.getElementProjector(dom, controller, host, definition);
 
     assert.instanceOf(projector, ShadowDOMProjector, `projector`);
@@ -70,7 +70,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0, null);
     const projector = locator.getElementProjector(dom, controller, host, definition);
 
     assert.instanceOf(projector, ContainerlessProjector, `projector`);
@@ -104,7 +104,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0, null);
     const projector = locator.getElementProjector(dom, controller, host, definition);
 
     assert.instanceOf(projector, ContainerlessProjector, `projector`);
@@ -129,7 +129,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0, null);
     const projector = locator.getElementProjector(dom, controller, host, definition);
 
     assert.strictEqual(CustomElement.for(host), component, `CustomElement.for(host)`);
@@ -150,7 +150,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0, null);
 
     assert.throws(() => locator.getElementProjector(dom, controller, host, definition), /21/, `() => locator.getElementProjector(dom, component, host, definition)`);
   });
@@ -167,7 +167,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0, null);
 
     assert.throws(() => locator.getElementProjector(dom, controller, host, definition), /21/, `() => locator.getElementProjector(dom, component, host, definition)`);
   });

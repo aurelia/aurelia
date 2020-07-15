@@ -212,7 +212,7 @@ describe.skip('controller', function () {
 
       const viewModel = container.get(ViewModel);
 
-      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container, void 0);
+      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container, void 0, null);
 
       const expectedCalls = new CallCollection();
 
@@ -341,7 +341,7 @@ describe.skip('controller', function () {
                 h('view-model', { class: 'au' }),
                 [],
                 [
-                  [new HydrateElementInstruction('view-model', [])],
+                  [new HydrateElementInstruction('view-model', [], null)],
                 ],
                 noHooks,
               ),
@@ -354,7 +354,7 @@ describe.skip('controller', function () {
 
       const viewModel = container.get(ViewModel);
 
-      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container, void 0);
+      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container, void 0, null);
 
       const expectedCalls = new CallCollection();
 
@@ -741,6 +741,7 @@ describe.skip('controller', function () {
                     new HydrateElementInstruction(
                       'view-model',
                       [new ToViewBindingInstruction(parseExpression('msg'), 'msg')],
+                      null,
                     ),
                   ],
                 ],
@@ -756,7 +757,7 @@ describe.skip('controller', function () {
       const viewModel = container.get(ViewModel);
       viewModel['msg'] = 'hi';
 
-      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container, void 0);
+      const sut = Controller.forCustomElement(viewModel, lifecycle, host, container, void 0, null);
 
       const expectedCalls = new CallCollection();
 

@@ -398,7 +398,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
     function compileWith(markup: string | Element, extraResources: any[] = []) {
       extraResources.forEach(e => container.register(e));
       const templateDefinition: PartialCustomElementDefinition = { template: markup, instructions: [], surrogates: [] } as unknown as PartialCustomElementDefinition;
-      return sut.compile(templateDefinition, container);
+      return sut.compile(templateDefinition, container, null);
     }
 
     function verifyInstructions(actual: readonly any[], expectation: IExpectedInstruction[], type?: string) {
@@ -762,7 +762,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
         const { sut, container } = createFixture(ctx);
 
-        const actual = sut.compile(input, container);
+        const actual = sut.compile(input, container, null);
 
         verifyBindingInstructionsEqual(actual, expected);
       });
@@ -836,7 +836,7 @@ describe(`TemplateCompiler - combinations`, function () {
         const $def = CustomAttribute.define(def, ctor);
         const { sut, container } = createFixture(ctx, $def);
 
-        const actual = sut.compile(input, container);
+        const actual = sut.compile(input, container, null);
 
         verifyBindingInstructionsEqual(actual, expected);
       });
@@ -894,7 +894,7 @@ describe(`TemplateCompiler - combinations`, function () {
         if (attrName.endsWith('.qux')) {
           let e;
           try {
-            sut.compile(input, container);
+            sut.compile(input, container, null);
           } catch (err) {
             // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
             // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
@@ -904,7 +904,7 @@ describe(`TemplateCompiler - combinations`, function () {
         } else {
           // enableTracing();
           // Tracer.enableLiveLogging(SymbolTraceWriter);
-          const actual = sut.compile(input, container);
+          const actual = sut.compile(input, container, null);
           // console.log('\n'+stringifyTemplateDefinition(actual, 0));
           // disableTracing();
           try {
@@ -969,7 +969,7 @@ describe(`TemplateCompiler - combinations`, function () {
           CustomAttribute.define({ name: 'qux', isTemplateController: true }, class Qux {})
         );
 
-        const actual = sut.compile(input, container);
+        const actual = sut.compile(input, container, null);
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch (err) {
@@ -1031,7 +1031,7 @@ describe(`TemplateCompiler - combinations`, function () {
           CustomAttribute.define({ name: 'quux', isTemplateController: true }, class Quux {})
         );
 
-        const actual = sut.compile(input, container);
+        const actual = sut.compile(input, container, null);
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch (err) {
@@ -1100,7 +1100,7 @@ describe(`TemplateCompiler - combinations`, function () {
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);
-        const actual = sut.compile(input, container);
+        const actual = sut.compile(input, container, null);
         // console.log('\n'+stringifyTemplateDefinition(actual, 0));
         // disableTracing();
         try {
@@ -1173,7 +1173,7 @@ describe(`TemplateCompiler - combinations`, function () {
         if (attrName.endsWith('.qux')) {
           let e;
           try {
-            sut.compile(input, container);
+            sut.compile(input, container, null);
           } catch (err) {
             // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
             // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
@@ -1183,7 +1183,7 @@ describe(`TemplateCompiler - combinations`, function () {
         } else {
           // enableTracing();
           // Tracer.enableLiveLogging(SymbolTraceWriter);
-          const actual = sut.compile(input, container);
+          const actual = sut.compile(input, container, null);
           // console.log('\n'+stringifyTemplateDefinition(actual, 0));
           // disableTracing();
           try {
@@ -1231,7 +1231,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);
-        const actual = sut.compile(input, container);
+        const actual = sut.compile(input, container, null);
         // console.log('\n'+stringifyTemplateDefinition(actual, 0));
         // disableTracing();
         try {
@@ -1363,7 +1363,7 @@ describe('TemplateCompiler - local templates', function () {
   for (const { template, verifyDefinition, expectedContent } of getLocalTemplateTestData()) {
     it(template, function () {
       const { container, sut } = createFixture();
-      const definition = sut.compile({ name: 'lorem-ipsum', template }, container);
+      const definition = sut.compile({ name: 'lorem-ipsum', template }, container, null);
       verifyDefinition(definition, ResourceModel.getOrCreate(container));
     });
     if (template.includes(`mode="fromView"`)) { continue; }
@@ -1502,7 +1502,7 @@ describe('TemplateCompiler - local templates', function () {
   it('throws error if a root template is a local template', function () {
     const template = `<template as-custom-element="foo-bar">I have local root!</template>`;
     const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'The root cannot be a local template itself.');
+    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The root cannot be a local template itself.');
   });
 
   it('throws error if the custom element has only local templates', function () {
@@ -1511,25 +1511,25 @@ describe('TemplateCompiler - local templates', function () {
     <template as-custom-element="fiz-baz">Of course not!</template>
     `;
     const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'The custom element does not have any content other than local template(s).');
+    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The custom element does not have any content other than local template(s).');
   });
 
   it('throws error if a local template is not under root', function () {
     const template = `<div><template as-custom-element="foo-bar">Can I hide here?</template></div>`;
     const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'Local templates needs to be defined directly under root.');
+    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'Local templates needs to be defined directly under root.');
   });
 
   it('throws error if a local template does not have name', function () {
     const template = `<template as-custom-element="">foo-bar</template><div></div>`;
     const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'The value of "as-custom-element" attribute cannot be empty for local template');
+    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The value of "as-custom-element" attribute cannot be empty for local template');
   });
 
   it('throws error if a duplicate local templates are found', function () {
     const template = `<template as-custom-element="foo-bar">foo-bar1</template><template as-custom-element="foo-bar">foo-bar2</template><div></div>`;
     const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'Duplicate definition of the local template named foo-bar');
+    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'Duplicate definition of the local template named foo-bar');
   });
 
   it('throws error if bindable is not under root', function () {
@@ -1540,7 +1540,7 @@ describe('TemplateCompiler - local templates', function () {
     </template>
     <div></div>`;
     const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'Bindable properties of local templates needs to be defined directly under root.');
+    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'Bindable properties of local templates needs to be defined directly under root.');
   });
 
   it('throws error if bindable property is missing', function () {
@@ -1549,7 +1549,7 @@ describe('TemplateCompiler - local templates', function () {
     </template>
     <div></div>`;
     const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'The attribute \'property\' is missing in <bindable attribute="prop"></bindable>');
+    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The attribute \'property\' is missing in <bindable attribute="prop"></bindable>');
   });
 
   it('throws error if duplicate bindable properties are found', function () {
@@ -1560,7 +1560,7 @@ describe('TemplateCompiler - local templates', function () {
     <div></div>`;
     const { container, sut } = createFixture();
     assert.throws(
-      () => sut.compile({ name: 'lorem-ipsum', template }, container),
+      () => sut.compile({ name: 'lorem-ipsum', template }, container, null),
       'Bindable property and attribute needs to be unique; found property: prop, attribute: '
     );
   });
@@ -1573,7 +1573,7 @@ describe('TemplateCompiler - local templates', function () {
     <div></div>`;
     const { container, sut } = createFixture();
     assert.throws(
-      () => sut.compile({ name: 'lorem-ipsum', template }, container),
+      () => sut.compile({ name: 'lorem-ipsum', template }, container, null),
       'Bindable property and attribute needs to be unique; found property: prop2, attribute: bar'
     );
   });
@@ -1585,7 +1585,7 @@ describe('TemplateCompiler - local templates', function () {
     <div></div>`;
     const { container, sut } = createFixture();
 
-    sut.compile({ name: 'lorem-ipsum', template }, container);
+    sut.compile({ name: 'lorem-ipsum', template }, container, null);
     const sinks = container.get(DefaultLogger)['warnSinks'] as ISink[];
     const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
     assert.strictEqual(eventLog.log.length, 1, `eventLog.log.length`);

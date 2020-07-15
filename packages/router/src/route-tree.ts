@@ -337,7 +337,7 @@ export class RouteTreeCompiler {
     const routeTree = this.routeTree;
     routeTree.root.setTree(routeTree);
 
-    this.logger.trace(`compileRoot(rootCtx:${rootCtx},routeTree:${routeTree},instructions:${instructions})`);
+    this.logger.trace(`compileRoot(rootCtx:%s,routeTree:%s,instructions:%s)`, rootCtx, routeTree, instructions);
 
     // The root of the routing tree is always the CompositionRoot of the Aurelia app.
     // From a routing perspective it's simply a "marker": it does not need to be loaded,
@@ -358,9 +358,9 @@ export class RouteTreeCompiler {
     depth: number,
   ): void {
     if (depth >= this.ctx.path.length) {
-      this.logger.trace(() => `compileResidue(parent:${parent},depth:${depth}) - deferring because leaf context is reached: ${this.ctx}`);
+      this.logger.trace(`compileResidue(parent:%s,depth:${depth}) - deferring because leaf context is reached: %s`, parent, this.ctx);
     } else {
-      this.logger.trace(`compileResidue(parent:${parent},depth:${depth})`);
+      this.logger.trace(`compileResidue(parent:%s,depth:${depth})`, parent);
 
       while (parent.residue.length > 0) {
         const current = parent.residue.shift()!;
@@ -374,7 +374,7 @@ export class RouteTreeCompiler {
     depth: number,
     append: boolean,
   ): void {
-    this.logger.trace(() => `compile(instruction:${instruction},depth:${depth},append:${append})`);
+    this.logger.trace(`compile(instruction:%s,depth:${depth},append:${append})`, instruction);
 
     const ctx = this.ctx.path[depth];
     switch (instruction.component.type) {
@@ -426,7 +426,7 @@ export class RouteTreeCompiler {
     node: RouteNode,
     instructions: ViewportInstructionTree,
   ): void {
-    this.logger.trace(() => `updateOrCompile(node:${node})`);
+    this.logger.trace(`updateOrCompile(node:%s)`, node);
 
     if (!node.context.isRoot) {
       node.context.vpa.scheduleUpdate(this.resolutionStrategy, this.lifecycleStrategy, node);
@@ -449,7 +449,7 @@ export class RouteTreeCompiler {
     depth: number,
     append: boolean,
   ): RouteNode {
-    this.logger.trace(() => `resolve(instruction:${instruction},depth:${depth},append:${append}) in '${this.mode}' mode at ${this.ctx.path[depth]}`);
+    this.logger.trace(`resolve(instruction:%s,depth:${depth},append:${append}) in '${this.mode}' mode at ${this.ctx.path[depth]}`, instruction);
 
     let node: RouteNode | null;
     switch (this.mode) {
@@ -496,7 +496,7 @@ export class RouteTreeCompiler {
     }
 
     if (result === null) {
-      this.logger.trace(() => `resolveConfigured(instruction:${instruction},depth:${depth},append:${append}) -> null`);
+      this.logger.trace(`resolveConfigured(instruction:%s,depth:${depth},append:${append}) -> null`, instruction);
 
       return null;
     }
@@ -528,7 +528,7 @@ export class RouteTreeCompiler {
       residue: result.residue === null ? [] : [ViewportInstruction.create(result.residue)],
     });
 
-    this.logger.trace(() => `resolveConfigured(instruction:${instruction},depth:${depth},append:${append}) -> ${childCtx.node}`);
+    this.logger.trace(`resolveConfigured(instruction:%s,depth:${depth},append:${append}) -> %s`, instruction, childCtx.node);
 
     return childCtx.node;
   }
@@ -546,7 +546,7 @@ export class RouteTreeCompiler {
         // TODO: use RouteExpression.parse and recursively build more instructions if needed
         const resource: CustomElementDefinition | null = ctx.findResource(CustomElement, instruction.component.value);
         if (resource === null) {
-          this.logger.trace(() => `resolveDirect(instruction:${instruction},depth:${depth},append:${append}) - string -> null`);
+          this.logger.trace(`resolveDirect(instruction:%s,depth:${depth},append:${append}) - string -> null`, instruction);
 
           return null;
         }

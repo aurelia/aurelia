@@ -125,7 +125,7 @@ export class RouteContext implements IContainer {
     const prev = this.prevNode = this._node;
     if (prev !== value) {
       this._node = value;
-      this.logger.trace(`Node changed from ${this.prevNode} to ${value}`);
+      this.logger.trace(`Node changed from %s to %s`, this.prevNode, value);
     }
   }
 
@@ -148,7 +148,7 @@ export class RouteContext implements IContainer {
     const prev = this._vpa;
     if (prev !== value) {
       this._vpa = value;
-      this.logger.trace(`ViewportAgent changed from ${prev} to ${value}`);
+      this.logger.trace(`ViewportAgent changed from %s to %s`, prev, value);
     }
   }
 
@@ -235,7 +235,7 @@ export class RouteContext implements IContainer {
 
     let routeContext = routeDefinitionLookup.get(routeDefinition);
     if (routeContext === void 0) {
-      logger.trace(() => `creating new RouteContext for ${routeDefinition}`);
+      logger.trace(`creating new RouteContext for %s`, routeDefinition);
 
       const parent = renderContext.has(IRouteContext, true)
         ? renderContext.get(IRouteContext)
@@ -252,7 +252,7 @@ export class RouteContext implements IContainer {
         ),
       );
     } else {
-      logger.trace(() => `returning existing RouteContext for ${routeDefinition}`);
+      logger.trace(`returning existing RouteContext for %s`, routeDefinition);
 
       if (viewportAgent !== null) {
         routeContext.vpa = viewportAgent;
@@ -301,12 +301,12 @@ export class RouteContext implements IContainer {
     const logger = root.get(ILogger).scopeTo('RouteContext');
 
     if (context === null || context === void 0) {
-      logger.trace(`resolve(context:${String(context)}) - returning root RouteContext`);
+      logger.trace(`resolve(context:%s) - returning root RouteContext`, context);
       return root;
     }
 
     if (isRouteContext(context)) {
-      logger.trace(() => `resolve(context:${context.toString()}) - returning provided RouteContext`);
+      logger.trace(`resolve(context:%s) - returning provided RouteContext`, context);
       return context;
     }
 
@@ -418,7 +418,7 @@ export class RouteContext implements IContainer {
   // #endregion
 
   public resolveViewportAgent(req: ViewportRequest): ViewportAgent {
-    this.logger.trace(`resolveViewportAgent(req:${req})`);
+    this.logger.trace(`resolveViewportAgent(req:%s)`, req);
 
     const agent = this.childViewportAgents.find(function (x) {
       return x.handles(req);
@@ -441,7 +441,7 @@ export class RouteContext implements IContainer {
     hostController: ICustomElementController<HTMLElement>,
     routeNode: RouteNode,
   ): ComponentAgent {
-    this.logger.trace(() => `createComponentAgent(hostController:${hostController},routeNode:${routeNode})`);
+    this.logger.trace(`createComponentAgent(hostController:%s,routeNode:%s)`, hostController, routeNode);
 
     this.hostControllerProvider.prepare(hostController);
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
@@ -457,9 +457,9 @@ export class RouteContext implements IContainer {
   public registerViewport(viewport: IViewport): ViewportAgent {
     const agent = ViewportAgent.for(viewport, this);
     if (this.childViewportAgents.includes(agent)) {
-      this.logger.trace(() => `registerViewport(agent:${agent}) -> already registered, so skipping`);
+      this.logger.trace(`registerViewport(agent:%s) -> already registered, so skipping`, agent);
     } else {
-      this.logger.trace(() => `registerViewport(agent:${agent}) -> adding`);
+      this.logger.trace(`registerViewport(agent:%s) -> adding`, agent);
       this.childViewportAgents.push(agent);
     }
 
@@ -469,10 +469,10 @@ export class RouteContext implements IContainer {
   public unregisterViewport(viewport: IViewport): void {
     const agent = ViewportAgent.for(viewport, this);
     if (this.childViewportAgents.includes(agent)) {
-      this.logger.trace(() => `unregisterViewport(agent:${agent}) -> unregistering`);
+      this.logger.trace(`unregisterViewport(agent:%s) -> unregistering`, agent);
       this.childViewportAgents.splice(this.childViewportAgents.indexOf(agent), 1);
     } else {
-      this.logger.trace(() => `unregisterViewport(agent:${agent}) -> not registered, so skipping`);
+      this.logger.trace(`unregisterViewport(agent:%s) -> not registered, so skipping`, agent);
     }
   }
 

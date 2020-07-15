@@ -133,7 +133,7 @@ export class ViewportAgent {
       case 'canLeave':
         throw new Error(`Unexpected curState at ${this}.activateFromViewport()`);
       case 'isActive':
-        this.logger.trace(() => `activateFromViewport() - activating existing componentAgent at ${this}`);
+        this.logger.trace(`activateFromViewport() - activating existing componentAgent at %s`, this);
         return this.curCA!.activate(initiator, parent, flags);
       case 'empty':
       case 'leave':
@@ -148,7 +148,7 @@ export class ViewportAgent {
               case 'parallel':
                 switch (this.resolutionStrategy) {
                   case 'static':
-                    this.logger.trace(() => `activateFromViewport() - activating nextCA at ${this}`);
+                    this.logger.trace(`activateFromViewport() - activating nextCA at %s`, this);
                     this.nextState = 'activate';
                     return runSequence(
                       () => { return this.nextCA!.enter(this.nextNode!); },
@@ -160,23 +160,23 @@ export class ViewportAgent {
             }
             break;
           case 'empty':
-            this.logger.trace(() => `activateFromViewport() - nothing to activate at ${this}`);
+            this.logger.trace(`activateFromViewport() - nothing to activate at %s`, this);
             break;
           case 'enter':
             switch (this.resolutionStrategy) {
               case 'static':
-                this.logger.trace(() => `activateFromViewport() - activating nextCA at ${this}`);
+                this.logger.trace(`activateFromViewport() - activating nextCA at %s`, this);
                 this.nextState = 'activate';
                 return this.nextCA!.activate(initiator, parent, flags);
               case 'dynamic':
                 switch (this.plan) {
                   case 'none':
                   case 'invoke-lifecycles':
-                    this.logger.trace(() => `activateFromViewport() - activating nextCA at ${this}`);
+                    this.logger.trace(`activateFromViewport() - activating nextCA at %s`, this);
                     this.nextState = 'activate';
                     return this.nextCA!.activate(initiator, parent, flags);
                   case 'replace':
-                    this.logger.trace(() => `activateFromViewport() - deferring activation at ${this}`);
+                    this.logger.trace(`activateFromViewport() - deferring activation at %s`, this);
                     break;
                 }
             }
@@ -196,50 +196,50 @@ export class ViewportAgent {
       case 'canLeave':
         throw new Error(`Unexpected curState at ${this}.activateFromViewport()`);
       case 'empty':
-        this.logger.trace(() => `deactivateFromViewport() - nothing to deactivate at ${this}`);
+        this.logger.trace(`deactivateFromViewport() - nothing to deactivate at %s`, this);
         break;
       case 'deactivate':
         // This will happen with bottom-up deactivation because the child is already deactivated, the parent
         // again tries to deactivate the child (that would be this viewport) but the router hasn't finalized the transition yet.
         // Since this is viewport was already deactivated, and we know the precise circumstance under which that happens, we can safely ignore the call.
-        this.logger.trace(() => `deactivateFromViewport() - already deactivating at ${this}`);
+        this.logger.trace(`deactivateFromViewport() - already deactivating at %s`, this);
         break;
       case 'isActive':
       case 'leave':
-        this.logger.trace(() => `deactivateFromViewport() - deactivating curCA at ${this}`);
+        this.logger.trace(`deactivateFromViewport() - deactivating curCA at %s`, this);
         this.curState = 'deactivate';
         return this.curCA!.deactivate(initiator, parent, flags);
     }
   }
 
   public handles(req: ViewportRequest): boolean {
-    const tracePrefix = `handles(req:${req})`;
+    const tracePrefix = `handles(req:%s)`;
     if (req.resolutionStrategy === 'dynamic' && !this.isActive) {
-      this.logger.trace(`${tracePrefix} -> false (viewport is not active and we're in dynamic resolution mode)`);
+      this.logger.trace(`${tracePrefix} -> false (viewport is not active and we're in dynamic resolution mode)`, req);
       return false;
     }
 
     if (this.nextState === 'isScheduled') {
-      this.logger.trace(`${tracePrefix} -> false (update already scheduled for ${this.nextNode})`);
+      this.logger.trace(`${tracePrefix} -> false (update already scheduled for %s)`, req, this.nextNode);
       return false;
     }
 
     if (req.append && this.curState === 'isActive') {
-      this.logger.trace(`${tracePrefix} -> false (append mode, viewport already has content ${this.curCA})`);
+      this.logger.trace(`${tracePrefix} -> false (append mode, viewport already has content %s)`, req, this.curCA);
       return false;
     }
 
     if (req.viewportName.length > 0 && this.viewport.name !== req.viewportName) {
-      this.logger.trace(`${tracePrefix} -> false (names don't match)`);
+      this.logger.trace(`${tracePrefix} -> false (names don't match)`, req);
       return false;
     }
 
     if (this.viewport.usedBy.length > 0 && !this.viewport.usedBy.split(',').includes(req.componentName)) {
-      this.logger.trace(`${tracePrefix} -> false (componentName not included in usedBy)`);
+      this.logger.trace(`${tracePrefix} -> false (componentName not included in usedBy)`, req);
       return false;
     }
 
-    this.logger.trace(`${tracePrefix} -> true`);
+    this.logger.trace(`${tracePrefix} -> true`, req);
     return true;
   }
 
@@ -289,7 +289,7 @@ export class ViewportAgent {
     switch (this.plan) {
       case 'none':
       case 'invoke-lifecycles':
-        this.logger.trace(() => `scheduleUpdate(next:${next}) - plan set to '${this.plan}', compiling residue`);
+        this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s', compiling residue`, next, this.plan);
 
         // These plans can only occur if there is already a current component active in this viewport,
         // and it is the same component as `next`.
@@ -304,12 +304,12 @@ export class ViewportAgent {
         // In the case of 'replace', always process this node and its subtree as if it's a new one
         switch (resolutionStrategy) {
           case 'dynamic':
-            this.logger.trace(() => `scheduleUpdate(next:${next}) - plan set to '${this.plan}' (strat: 'dynamic'), deferring residue compilation`);
+            this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s' (strat: 'dynamic'), deferring residue compilation`, next, this.plan);
 
             // In dynamic mode, that means doing nothing here because child resolution will happen after this node is activated
             break;
           case 'static': {
-            this.logger.trace(() => `scheduleUpdate(next:${next}) - plan set to '${this.plan}' (strat: 'static'), creating nextCA and compiling residue`);
+            this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s' (strat: 'static'), creating nextCA and compiling residue`, next, this.plan);
 
             // In static mode, immediately create the component and drill down
             const controller = this.hostController as ICustomElementController<HTMLElement>;
@@ -322,7 +322,7 @@ export class ViewportAgent {
   }
 
   public cancelUpdate(): void {
-    this.logger.trace(() => `cancelUpdate(nextNode:${this.nextNode})`);
+    this.logger.trace(`cancelUpdate(nextNode:%s)`, this.nextNode);
 
     switch (this.curState) {
       case 'empty':
@@ -359,7 +359,7 @@ export class ViewportAgent {
         if (tr.guardsResult === true) {
           switch (this.plan) {
             case 'none':
-              this.logger.trace(() => `canLeave() - skipping: ${this}`);
+              this.logger.trace(`canLeave() - skipping: %s`, this);
               return;
             case 'invoke-lifecycles':
             case 'replace':
@@ -368,30 +368,30 @@ export class ViewportAgent {
         }
 
         this.curState = 'isActive';
-        this.logger.trace(() => `canLeave() - skipping: guardsResult is already non-true`);
+        this.logger.trace(`canLeave() - skipping: guardsResult is already non-true`);
         break;
       case 'leave': // Implies incorrect invocation order [leave -> canLeave]
         throw new Error(`Unexpected currentState at ${this}.canLeave()`);
       case 'empty':
       case 'canLeave':
       case 'deactivate':
-        this.logger.trace(() => `canLeave() - skipping: ${this}`);
+        this.logger.trace(`canLeave() - skipping: %s`, this);
         break;
     }
   }
 
   private runCanLeave(tr: Transition, ca: ComponentAgent, nextNode: RouteNode | null): void | Promise<void> {
-    this.logger.trace(() => `runCanLeave() - starting [canLeave]`);
+    this.logger.trace(`runCanLeave() - starting [canLeave]`);
 
     return runSequence(
       () => { return ca.canLeave(nextNode); },
       (_, result) => {
         // Check again, because the value might have been assigned by a parallel hook
         if (tr.guardsResult === true && result !== true) {
-          this.logger.trace(() => `runCanLeave() - finished [canLeave], ${ca}.canLeave returned ${result}, assigning to guardsResult`);
+          this.logger.trace(`runCanLeave() - finished [canLeave], %s.canLeave returned %s, assigning to guardsResult`, ca, result);
           tr.guardsResult = result;
         } else {
-          this.logger.trace(() => `runCanLeave() - finished [canLeave], ${ca}.canLeave returned ${result}, ignoring`);
+          this.logger.trace(`runCanLeave() - finished [canLeave], %s.canLeave returned %s, ignoring`, ca, result);
         }
       },
     );
@@ -405,7 +405,7 @@ export class ViewportAgent {
         if (tr.guardsResult === true) {
           switch (this.plan) {
             case 'none':
-              this.logger.trace(() => `leave() - skipping: ${this}`);
+              this.logger.trace(`leave() - skipping: %s`, this);
               return;
             case 'invoke-lifecycles':
             case 'replace':
@@ -419,17 +419,17 @@ export class ViewportAgent {
       case 'empty':
       case 'leave':
       case 'deactivate':
-        this.logger.trace(() => `leave() - skipping: ${this}`);
+        this.logger.trace(`leave() - skipping: %s`, this);
         break;
     }
   }
 
   private runLeave(tr: Transition, ca: ComponentAgent, nextNode: RouteNode | null): void | Promise<void> {
-    this.logger.trace(() => `runLeave() - starting [leave]`);
+    this.logger.trace(`runLeave() - starting [leave]`);
 
     return runSequence(
       () => { return ca.leave(nextNode); },
-      () => { this.logger.trace(() => `runLeave() - finished [leave`); },
+      () => { this.logger.trace(`runLeave() - finished [leave`); },
     );
   }
 
@@ -445,12 +445,12 @@ export class ViewportAgent {
           switch (this.plan) {
             case 'none':
             case 'invoke-lifecycles':
-              this.logger.trace(() => `${prefix} - skipping: ${this}`);
+              this.logger.trace(`${prefix} - skipping: %s`, this);
               return;
             case 'replace':
               switch (this.nextState) {
                 case 'empty':
-                  this.logger.trace(() => `${prefix} - deactivating immediately: ${this}`);
+                  this.logger.trace(`${prefix} - deactivating immediately: %s`, this);
                   return this.runDeactivate(tr);
                 case 'isScheduled':
                   throw new Error(`Unexpected nextState at ${this}.${prefix}`);
@@ -459,12 +459,12 @@ export class ViewportAgent {
                     case 'phased':
                       throw new Error(`Unexpected nextState at ${this}.${prefix}`);
                     case 'parallel':
-                      this.logger.trace(() => `${prefix} - deferring swap operation: ${this}`);
+                      this.logger.trace(`${prefix} - deferring swap operation: %s`, this);
                       return this.deferredSwap = createExposedPromise();
                   }
                   break;
                 case 'enter':
-                  this.logger.trace(() => `${prefix} - deferring swap operation: ${this}`);
+                  this.logger.trace(`${prefix} - deferring swap operation: %s`, this);
                   return this.deferredSwap = createExposedPromise();
                 case 'activate':
                   return this.swap(tr);
@@ -482,13 +482,13 @@ export class ViewportAgent {
           case 'parallel':
             switch (this.nextState) {
               case 'empty':
-                this.logger.trace(() => `${prefix} - deactivating immediately: ${this}`);
+                this.logger.trace(`${prefix} - deactivating immediately: %s`, this);
                 return this.runDeactivate(tr);
               case 'isScheduled':
                 throw new Error(`Unexpected nextState at ${this}.${prefix}`);
               case 'canEnter':
               case 'enter':
-                this.logger.trace(() => `${prefix} - deferring swap operation: ${this}`);
+                this.logger.trace(`${prefix} - deferring swap operation: %s`, this);
                 return this.deferredSwap = createExposedPromise();
               case 'activate':
                 return this.swap(tr);
@@ -497,7 +497,7 @@ export class ViewportAgent {
         break;
       case 'empty':
       case 'deactivate':
-        this.logger.trace(() => `runDeactivate() - skipping: ${this}`);
+        this.logger.trace(`runDeactivate() - skipping: %s`, this);
         return;
     }
   }
@@ -508,9 +508,9 @@ export class ViewportAgent {
 
     const ca = this.curCA;
     if (ca === null) {
-      this.logger.trace(() => `${prefix} - skipping [deactivate] because no previous component`);
+      this.logger.trace(`${prefix} - skipping [deactivate] because no previous component`);
     } else {
-      this.logger.trace(() => `${prefix} - starting [deactivate]`);
+      this.logger.trace(`${prefix} - starting [deactivate]`);
 
       const controller = this.hostController as ICustomElementController<HTMLElement>;
       const flags = this.viewport.stateful
@@ -519,7 +519,7 @@ export class ViewportAgent {
 
       return runSequence(
         () => { return ca.deactivate(null, controller, flags); },
-        () => { this.logger.trace(() => `${prefix} - finished [deactivate]`); },
+        () => { this.logger.trace(`${prefix} - finished [deactivate]`); },
       );
     }
   }
@@ -532,7 +532,7 @@ export class ViewportAgent {
         if (tr.guardsResult === true) {
           switch (this.plan) {
             case 'none':
-              this.logger.trace(() => `canEnter() - skipping: ${this}`);
+              this.logger.trace(`canEnter() - skipping: %s`, this);
               return;
             case 'invoke-lifecycles':
               return this.runCanEnter(tr, this.curCA!, this.nextNode!);
@@ -556,30 +556,30 @@ export class ViewportAgent {
         }
 
         this.nextState = 'isScheduled';
-        this.logger.trace(() => `canEnter() - skipping: guardsResult is already non-true`);
+        this.logger.trace(`canEnter() - skipping: guardsResult is already non-true`);
         break;
       case 'enter': // Implies incorrect invocation order [enter -> canEnter]
         throw new Error(`Unexpected nextState at ${this}.canEnter()`);
       case 'empty':
       case 'canEnter':
       case 'activate':
-        this.logger.trace(() => `canEnter() - skipping: ${this}`);
+        this.logger.trace(`canEnter() - skipping: %s`, this);
         return;
     }
   }
 
   private runCanEnter(tr: Transition, ca: ComponentAgent, nextNode: RouteNode): void | Promise<void> {
-    this.logger.trace(() => `runCanEnter() - starting [canEnter]`);
+    this.logger.trace(`runCanEnter() - starting [canEnter]`);
 
     return runSequence(
       () => { return ca.canEnter(nextNode); },
       (_, result) => {
         // Check again, because the value might have been assigned by a parallel hook
         if (tr.guardsResult === true && result !== true) {
-          this.logger.trace(() => `runCanEnter() - finished [canEnter], ${ca}.canEnter returned ${result}, assigning to guardsResult`);
+          this.logger.trace(`runCanEnter() - finished [canEnter], %s.canEnter returned %s, assigning to guardsResult`, ca, result);
           tr.guardsResult = result;
         } else {
-          this.logger.trace(() => `runCanEnter() - finished [canEnter], ${ca}.canEnter returned ${result}, ignoring`);
+          this.logger.trace(`runCanEnter() - finished [canEnter], %s.canEnter returned %s, ignoring`, ca, result);
         }
       },
     );
@@ -593,7 +593,7 @@ export class ViewportAgent {
         if (tr.guardsResult === true) {
           switch (this.plan) {
             case 'none':
-              this.logger.trace(() => `enter() - skipping: ${this}`);
+              this.logger.trace(`enter() - skipping: %s`, this);
               return;
             case 'invoke-lifecycles':
               return this.runEnter(tr, this.curCA!, this.nextNode!);
@@ -608,16 +608,16 @@ export class ViewportAgent {
       case 'empty':
       case 'enter':
       case 'activate':
-        this.logger.trace(() => `enter() - skipping: ${this}`);
+        this.logger.trace(`enter() - skipping: %s`, this);
         return;
     }
   }
 
   private runEnter(transition: Transition, ca: ComponentAgent, nextNode: RouteNode): void | Promise<void> {
-    this.logger.trace(() => `runEnter() - starting [enter]`);
+    this.logger.trace(`runEnter() - starting [enter]`);
     return runSequence(
       () => { return ca.enter(nextNode); },
-      () => { this.logger.trace(() => `runEnter() - finished [enter]`); },
+      () => { this.logger.trace(`runEnter() - finished [enter]`); },
     );
   }
 
@@ -632,12 +632,12 @@ export class ViewportAgent {
           switch (this.plan) {
             case 'none':
             case 'invoke-lifecycles':
-              this.logger.trace(() => `${prefix} - skipping: ${this}`);
+              this.logger.trace(`${prefix} - skipping: %s`, this);
               return;
             case 'replace':
               switch (this.curState) {
                 case 'empty':
-                  this.logger.trace(() => `${prefix} - activating immediately: ${this}`);
+                  this.logger.trace(`${prefix} - activating immediately: %s`, this);
                   return this.runActivate(tr);
                 case 'isActive':
                   throw new Error(`Unexpected curState at ${this}.${prefix}`);
@@ -646,12 +646,12 @@ export class ViewportAgent {
                     case 'phased':
                       throw new Error(`Unexpected curState at ${this}.${prefix}`);
                     case 'parallel':
-                      this.logger.trace(() => `${prefix} - deferring swap operation: ${this}`);
+                      this.logger.trace(`${prefix} - deferring swap operation: %s`, this);
                       return this.deferredSwap = createExposedPromise();
                   }
                   break;
                 case 'leave':
-                  this.logger.trace(() => `${prefix} - deferring swap operation: ${this}`);
+                  this.logger.trace(`${prefix} - deferring swap operation: %s`, this);
                   return this.deferredSwap = createExposedPromise();
                 case 'deactivate':
                   return this.swap(tr);
@@ -669,13 +669,13 @@ export class ViewportAgent {
           case 'parallel':
             switch (this.curState) {
               case 'empty':
-                this.logger.trace(() => `${prefix} - activating immediately: ${this}`);
+                this.logger.trace(`${prefix} - activating immediately: %s`, this);
                 return this.runActivate(tr);
               case 'isActive':
                 throw new Error(`Unexpected curState at ${this}.${prefix}`);
               case 'canLeave':
               case 'leave':
-                this.logger.trace(() => `${prefix} - deferring swap operation: ${this}`);
+                this.logger.trace(`${prefix} - deferring swap operation: %s`, this);
                 return this.deferredSwap = createExposedPromise();
               case 'deactivate':
                 return this.swap(tr);
@@ -684,7 +684,7 @@ export class ViewportAgent {
         break;
       case 'empty':
       case 'activate':
-        this.logger.trace(() => `activateFromRouter() - skipping: ${this}`);
+        this.logger.trace(`activateFromRouter() - skipping: %s`, this);
         return;
     }
   }
@@ -692,7 +692,7 @@ export class ViewportAgent {
   private runActivate(tr: Transition): void | Promise<void> {
     const lifecycleStrategy = tr.options.lifecycleStrategy;
     const prefix = `runActivate(lifecycleStrategy:'${lifecycleStrategy}')`;
-    this.logger.trace(() => `${prefix} - starting [activate]`);
+    this.logger.trace(`${prefix} - starting [activate]`);
 
     const ca = this.nextCA!;
     const controller = this.hostController as ICustomElementController<HTMLElement>;
@@ -700,12 +700,12 @@ export class ViewportAgent {
 
     return runSequence(
       () => { return ca.activate(null, controller, flags); },
-      () => { this.logger.trace(() => `${prefix} - finished [activate]`); },
+      () => { this.logger.trace(`${prefix} - finished [activate]`); },
     );
   }
 
   private swap(tr: Transition): void | Promise<void> {
-    this.logger.trace(() => `swap(swapStrategy:'${tr.options.swapStrategy}') - starting [swap]`);
+    this.logger.trace(`swap(swapStrategy:'${tr.options.swapStrategy}') - starting [swap]`);
 
     return runSequence(
       () => {
@@ -727,7 +727,7 @@ export class ViewportAgent {
             ]);
         }
       },
-      () => { this.logger.trace(() => `swap(swapStrategy:'${tr.options.swapStrategy}') - finished [swap]`); },
+      () => { this.logger.trace(`swap(swapStrategy:'${tr.options.swapStrategy}') - finished [swap]`); },
       () => {
         this.deferredSwap!.resolve();
         this.deferredSwap = null;
@@ -737,9 +737,9 @@ export class ViewportAgent {
 
   public dispose(): void {
     if (this.viewport.stateful /* TODO: incorporate statefulHistoryLength / router opts as well */) {
-      this.logger.trace(() => `dispose() - not disposing stateful viewport at ${this}`);
+      this.logger.trace(`dispose() - not disposing stateful viewport at %s`, this);
     } else {
-      this.logger.trace(() => `dispose() - disposing ${this}`);
+      this.logger.trace(`dispose() - disposing %s`, this);
       this.curCA?.dispose();
     }
   }
@@ -754,7 +754,7 @@ export class ViewportAgent {
           case 'leave':
             throw new Error(`Unexpected curState at ${this}.endTransition()`);
           case 'deactivate':
-            this.logger.trace(() => `endTransition() - setting curState to 'empty' at ${this}`);
+            this.logger.trace(`endTransition() - setting curState to 'empty' at %s`, this);
 
             this.curState = 'empty';
             this.curCA = null;
@@ -775,12 +775,12 @@ export class ViewportAgent {
             switch (this.plan) {
               case 'none':
               case 'invoke-lifecycles':
-                this.logger.trace(() => `endTransition() - setting curState to 'isActive' at ${this}`);
+                this.logger.trace(`endTransition() - setting curState to 'isActive' at %s`, this);
 
                 this.curState = 'isActive';
                 break;
               case 'replace':
-                this.logger.trace(() => `endTransition() - setting curState to 'isActive' and reassigning curCA at ${this}`);
+                this.logger.trace(`endTransition() - setting curState to 'isActive' and reassigning curCA at %s`, this);
 
                 this.curState = 'isActive';
                 this.curCA = this.nextCA;

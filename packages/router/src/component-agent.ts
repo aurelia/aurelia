@@ -134,7 +134,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
   public canEnter(next: RouteNode): boolean | ViewportInstructionTree | Promise<boolean | ViewportInstructionTree> {
     if (this.hasCanEnter) {
-      this.logger.trace(`canEnter(next:${next}) - invoking hook on component`);
+      this.logger.trace(`canEnter(next:%s) - invoking hook on component`, next);
       return runSequence(
         () => { return this.instance.canEnter!(next.params, next, this.routeNode); },
         (_, result) => {
@@ -147,36 +147,36 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
       );
     }
 
-    this.logger.trace(`canEnter(next:${next}) - component does not implement this hook, so skipping`);
+    this.logger.trace(`canEnter(next:%s) - component does not implement this hook, so skipping`, next);
     return true;
   }
 
   public enter(next: RouteNode): void | Promise<void> {
     if (this.hasEnter) {
-      this.logger.trace(`enter(next:${next}) - invoking hook on component`);
+      this.logger.trace(`enter(next:%s) - invoking hook on component`, next);
       return this.instance.enter!(next.params, next, this.routeNode);
     }
 
-    this.logger.trace(`enter(next:${next}) - component does not implement this hook, so skipping`);
+    this.logger.trace(`enter(next:%s) - component does not implement this hook, so skipping`, next);
   }
 
   public canLeave(next: RouteNode | null): boolean | Promise<boolean> {
     if (this.hasCanLeave) {
-      this.logger.trace(`canLeave(next:${next}) - invoking hook on component`);
+      this.logger.trace(`canLeave(next:%s) - invoking hook on component`, next);
       return this.instance.canLeave!(next, this.routeNode);
     }
 
-    this.logger.trace(`canLeave(next:${next}) - component does not implement this hook, so skipping`);
+    this.logger.trace(`canLeave(next:%s) - component does not implement this hook, so skipping`, next);
     return true;
   }
 
   public leave(next: RouteNode | null): void | Promise<void> {
     if (this.hasLeave) {
-      this.logger.trace(`leave(next:${next}) - invoking hook on component`);
+      this.logger.trace(`leave(next:%s) - invoking hook on component`, next);
       return this.instance.leave!(next, this.routeNode);
     }
 
-    this.logger.trace(`leave(next:${next}) - component does not implement this hook, so skipping`);
+    this.logger.trace(`leave(next:%s) - component does not implement this hook, so skipping`, next);
   }
 
   public toString(): string {

@@ -633,7 +633,7 @@ export class Router {
   ): Promise<boolean> {
     const instructions = this.createViewportInstructions(instructionOrInstructions, options);
 
-    this.logger.trace(`goto(instructions:${instructions})`);
+    this.logger.trace('goto(instructions:%s)', instructions);
 
     return this.enqueue(instructions, 'api', null, null);
   }
@@ -645,7 +645,7 @@ export class Router {
     const ctx = this.getContext(context);
     const instructions = this.createViewportInstructions(instructionOrInstructions, { context: ctx });
 
-    this.logger.trace(`isActive(instructions:${instructions},ctx:${ctx})`);
+    this.logger.trace('isActive(instructions:%s,ctx:%s)', instructions, ctx);
 
     // TODO: incorporate potential context offset by `../` etc in the instructions
     return this.routeTree.contains(instructions);
@@ -672,7 +672,7 @@ export class Router {
 
     if (trigger !== 'api' && lastTr.trigger === 'api' && lastTr.instructions.equals(instructions)) {
       // User-triggered navigation that results in `replaceState` with the same URL. The API call already triggered the navigation; event is ignored.
-      this.logger.debug(`Ignoring navigation triggered by '${trigger}' because it is the same URL as the previous navigation which was triggered by 'api'.`);
+      this.logger.debug(`Ignoring navigation triggered by '%s' because it is the same URL as the previous navigation which was triggered by 'api'.`, trigger);
       return true;
     }
 
@@ -685,7 +685,7 @@ export class Router {
     } else {
       // Ensure that `await router.goto` only resolves when the transition truly finished, so chain forward on top of
       // any previously failed transition that caused a recovering backwards navigation.
-      this.logger.debug(`Reusing promise/resolve/reject from the previously failed transition ${failedTr}`);
+      this.logger.debug(`Reusing promise/resolve/reject from the previously failed transition %s`, failedTr);
       /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
       promise = failedTr.promise!;
       resolve = failedTr.resolve!;
@@ -713,7 +713,7 @@ export class Router {
       guardsResult: true,
     });
 
-    this.logger.debug(`Scheduling transition: ${nextTr}`);
+    this.logger.debug(`Scheduling transition: %s`, nextTr);
 
     if (this.activeNavigation === null) {
       // Catch any errors that might be thrown by `dequeue` and reject the original promise which is awaited down below
@@ -724,10 +724,10 @@ export class Router {
     try {
       // Explicitly await so we can catch, log and re-throw
       const result = await promise;
-      this.logger.debug(`Transition succeeded: ${nextTr}`);
+      this.logger.debug(`Transition succeeded: %s`, nextTr);
       return result;
     } catch (err) {
-      this.logger.error(`Navigation failed: ${nextTr}`, err);
+      this.logger.error(`Navigation failed: %s`, nextTr, err);
       throw err;
     }
   }
@@ -756,7 +756,7 @@ export class Router {
     const shouldProcessRoute = routeChanged || tr.options.getSameUrlStrategy(this.instructions) === 'reload';
 
     if (!shouldProcessRoute) {
-      this.logger.trace(() => `dequeue(transition:${tr}) - NOT processing route`);
+      this.logger.trace(`dequeue(tr:%s) - NOT processing route`, tr);
 
       this.navigated = true;
       this.activeNavigation = null;
@@ -768,14 +768,14 @@ export class Router {
       return;
     }
 
-    this.logger.trace(() => `dequeue(transition:${tr}) - processing route`);
+    this.logger.trace(`dequeue(tr:%s) - processing route`, tr);
 
     this.events.publish(new NavigationStartEvent(tr.id, tr.instructions, tr.trigger, tr.managedState));
 
     // If user triggered a new transition in response to the NavigationStartEvent
     // (in which case `this.nextTransition` will NOT be null), we short-circuit here and go straight to processing the next one.
     if (this.nextTr !== null) {
-      this.logger.debug(() => `dequeue(transition:${tr}) - aborting because a new transition was queued in response to the NavigationStartEvent`);
+      this.logger.debug(`dequeue(tr:%s) - aborting because a new transition was queued in response to the NavigationStartEvent`, tr);
       return this.dequeue(this.nextTr);
     }
 
@@ -823,7 +823,7 @@ export class Router {
         }
       },
       () => {
-        this.logger.trace(() => `dequeue() - finished processResidue, finalizing transition`);
+        this.logger.trace(`dequeue() - finished processResidue, finalizing transition`);
 
         // order doesn't matter for this operation
         traverse('top-down', [...prev, ...next], vp => { vp.endTransition(tr); });
@@ -851,7 +851,7 @@ export class Router {
    * - Eagerly or by the viewport agent (for resolutionStrategy `static`) during scheduleUpdate which happens during route tree compilation
    */
   private processResidue(tr: Transition, node: RouteNode, index: number, depth: number): void | Promise<void> {
-    this.logger.trace(() => `processResidue(index:${index},depth:${depth},node:${node})`);
+    this.logger.trace(`processResidue(index:%s,depth:%s,node:%s)`, index, depth, node);
 
     const ctx = node.context;
     if (ctx === null) {
@@ -959,7 +959,7 @@ export class Router {
   }
 
   private cancelNavigation(tr: Transition): void | Promise<void> {
-    this.logger.trace(() => `cancelNavigation(transition:${tr})`);
+    this.logger.trace(`cancelNavigation(tr:%s)`, tr);
 
     const prev = tr.previousRouteTree.root.children;
     const next = tr.routeTree.root.children;
@@ -980,14 +980,14 @@ export class Router {
     } else {
       return runSequence(
         () => { return this.enqueue(tr.guardsResult as ViewportInstructionTree, 'api', tr.managedState, tr); },
-        () => { this.logger.trace(() => `cancelNavigation(transition:${tr}) - finished redirect`); }
+        () => { this.logger.trace(`cancelNavigation(tr:%s) - finished redirect`, tr); }
       );
     }
   }
 
   private runNextTransition(tr: Transition): void {
     if (this.nextTr !== null) {
-      this.logger.trace(() => `runNextTransition(transition:${tr}) -> scheduling nextTransition: ${this.nextTr}`);
+      this.logger.trace(`runNextTransition(tr:%s) -> scheduling nextTransition: %s`, tr, this.nextTr);
       this.scheduler.queueMacroTask(
         () => {
           // nextTransition is allowed to change up until the point when it's actually time to process it,

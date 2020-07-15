@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { customElement } from '@aurelia/runtime';
-import { IRouterOptions, ResolutionStrategy, SwapStrategy } from '@aurelia/router';
+import { IRouterOptions, ResolutionStrategy, LifecycleStrategy, SwapStrategy } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
 
 import { IHookInvocationAggregator, IHIAConfig } from './_shared/hook-invocation-tracker';
 import { TestRouteViewModelBase, HookSpecs } from './_shared/view-models';
 import { hookSpecsMap } from './_shared/hook-spec';
-import { getCalls, getStopPhaseCalls } from './_shared/get-calls';
+import { getStopPhaseCalls, getCalls } from './_shared/get-calls';
 import { createFixture } from './_shared/create-fixture';
 
 function vp(count: number): string {
@@ -29,7 +29,9 @@ function getDefaultHIAConfig(): IHIAConfig {
 
 export interface IRouterOptionsSpec {
   resolutionStrategy: ResolutionStrategy;
+  lifecycleStrategy: LifecycleStrategy;
   swapStrategy: SwapStrategy;
+  toString(): string;
 }
 
 export interface IComponentSpec {
@@ -38,32 +40,34 @@ export interface IComponentSpec {
 }
 
 describe('router hooks', function () {
-  const routerOptionsSpecs: IRouterOptionsSpec[] = [
-    {
-      resolutionStrategy: 'static',
-      swapStrategy: 'parallel',
-    },
-    {
-      resolutionStrategy: 'static',
-      swapStrategy: 'add-first',
-    },
-    {
-      resolutionStrategy: 'static',
-      swapStrategy: 'remove-first',
-    },
-    {
-      resolutionStrategy: 'dynamic',
-      swapStrategy: 'parallel',
-    },
-    {
-      resolutionStrategy: 'dynamic',
-      swapStrategy: 'add-first',
-    },
-    {
-      resolutionStrategy: 'dynamic',
-      swapStrategy: 'remove-first',
-    },
+  const resolutionStrategies: ResolutionStrategy[] = [
+    'static',
+    'dynamic',
   ];
+  const lifecycleStrategies: LifecycleStrategy[] = [
+    'phased',
+    'parallel',
+  ];
+  const swapStrategies: SwapStrategy[] = [
+    'parallel',
+    'add-first',
+    'remove-first',
+  ];
+  const routerOptionsSpecs: IRouterOptionsSpec[] = [];
+  for (const resolutionStrategy of resolutionStrategies) {
+    for (const lifecycleStrategy of lifecycleStrategies) {
+      for (const swapStrategy of swapStrategies) {
+        routerOptionsSpecs.push({
+          resolutionStrategy,
+          lifecycleStrategy,
+          swapStrategy,
+          toString() {
+            return `resolutionStrategy:'${resolutionStrategy}',lifecycleStrategy:'${lifecycleStrategy}',swapStrategy:'${swapStrategy}'`;
+          },
+        });
+      }
+    }
+  }
 
   const componentSpecs: IComponentSpec[] = [
     {
@@ -189,16 +193,9 @@ describe('router hooks', function () {
 
     describe(`componentSpec.kind:'${kind}'`, function () {
       for (const routerOptionsSpec of routerOptionsSpecs) {
-        const { resolutionStrategy, swapStrategy } = routerOptionsSpec;
+        const getRouterOptions = (): IRouterOptions => routerOptionsSpec;
 
-        const getRouterOptions = (): IRouterOptions => {
-          return {
-            resolutionStrategy,
-            swapStrategy,
-          };
-        };
-
-        describe(`resolutionStrategy:'${resolutionStrategy}',swapStrategy:'${swapStrategy}'`, function () {
+        describe(`${routerOptionsSpec}`, function () {
           for (const [$1, $2, $3, $4] of [
             ['a01', 'a02', 'a01', 'a02'],
             ['a01', 'a02', 'a03', 'a01'],
@@ -234,13 +231,13 @@ describe('router hooks', function () {
                   `start.root1.afterAttach`,
                   `start.root1.afterAttachChildren`,
 
-                  ...getCalls['"" -> $x'](t1, $1),
+                  ...getCalls[componentSpec.kind]['"" -> $x'](t1, $1),
 
-                  ...getCalls['$1 -> $2'](t2, $1, $2, routerOptionsSpec, componentSpec),
+                  ...getCalls[componentSpec.kind]['$1 -> $2'](t2, $1, $2, routerOptionsSpec, componentSpec),
 
-                  ...getCalls['$1 -> $2'](t3, $2, $3, routerOptionsSpec, componentSpec),
+                  ...getCalls[componentSpec.kind]['$1 -> $2'](t3, $2, $3, routerOptionsSpec, componentSpec),
 
-                  ...getCalls['$1 -> $2'](t4, $3, $4, routerOptionsSpec, componentSpec),
+                  ...getCalls[componentSpec.kind]['$1 -> $2'](t4, $3, $4, routerOptionsSpec, componentSpec),
 
                   `stop.root1.beforeDetach`,
                   `stop.root1.beforeUnbind`,
@@ -332,13 +329,13 @@ describe('router hooks', function () {
                   `start.root2.afterAttach`,
                   `start.root2.afterAttachChildren`,
 
-                  ...getCalls['"" -> $x$0+$x$1'](t1, $1$0, $1$1, routerOptionsSpec, componentSpec),
+                  ...getCalls[componentSpec.kind]['"" -> $x$0+$x$1'](t1, $1$0, $1$1, routerOptionsSpec, componentSpec),
 
-                  ...getCalls['$1$0+$1$1 -> $2$0+$2$1'](t2, $1$0, $1$1, $2$0, $2$1, routerOptionsSpec, componentSpec),
+                  ...getCalls[componentSpec.kind]['$1$0+$1$1 -> $2$0+$2$1'](t2, $1$0, $1$1, $2$0, $2$1, routerOptionsSpec, componentSpec),
 
-                  ...getCalls['$1$0+$1$1 -> $2$0+$2$1'](t3, $2$0, $2$1, $1$0, $1$1, routerOptionsSpec, componentSpec),
+                  ...getCalls[componentSpec.kind]['$1$0+$1$1 -> $2$0+$2$1'](t3, $2$0, $2$1, $1$0, $1$1, routerOptionsSpec, componentSpec),
 
-                  ...getCalls['$1$0+$1$1 -> $2$0+$2$1'](t4, $1$0, $1$1, $2$0, $2$1, routerOptionsSpec, componentSpec),
+                  ...getCalls[componentSpec.kind]['$1$0+$1$1 -> $2$0+$2$1'](t4, $1$0, $1$1, $2$0, $2$1, routerOptionsSpec, componentSpec),
 
                   `stop.root2.beforeDetach`,
                   `stop.root2.beforeUnbind`,
@@ -420,13 +417,13 @@ describe('router hooks', function () {
                   `start.root1.afterAttach`,
                   `start.root1.afterAttachChildren`,
 
-                  ...getCalls['"" -> $x$p/$x$c'](t1, $1p, $1c, routerOptionsSpec, componentSpec),
+                  ...getCalls[componentSpec.kind]['"" -> $x$p/$x$c'](t1, $1p, $1c, routerOptionsSpec, componentSpec),
 
-                  ...getCalls['$1$p/$1$c -> $2$p/$2$c'](t2, $1p, $1c, $2p, $2c, routerOptionsSpec, componentSpec),
+                  ...getCalls[componentSpec.kind]['$1$p/$1$c -> $2$p/$2$c'](t2, $1p, $1c, $2p, $2c, routerOptionsSpec, componentSpec),
 
-                  ...getCalls['$1$p/$1$c -> $2$p/$2$c'](t3, $2p, $2c, $1p, $1c, routerOptionsSpec, componentSpec),
+                  ...getCalls[componentSpec.kind]['$1$p/$1$c -> $2$p/$2$c'](t3, $2p, $2c, $1p, $1c, routerOptionsSpec, componentSpec),
 
-                  ...getCalls['$1$p/$1$c -> $2$p/$2$c'](t4, $1p, $1c, $2p, $2c, routerOptionsSpec, componentSpec),
+                  ...getCalls[componentSpec.kind]['$1$p/$1$c -> $2$p/$2$c'](t4, $1p, $1c, $2p, $2c, routerOptionsSpec, componentSpec),
 
                   `stop.root1.beforeDetach`,
                   `stop.root1.beforeUnbind`,
@@ -448,16 +445,9 @@ describe('router hooks', function () {
   }
 
   for (const routerOptionsSpec of routerOptionsSpecs) {
-    const { resolutionStrategy, swapStrategy } = routerOptionsSpec;
+    const getRouterOptions = (): IRouterOptions => routerOptionsSpec;
 
-    const getRouterOptions = (): IRouterOptions => {
-      return {
-        resolutionStrategy,
-        swapStrategy,
-      };
-    };
-
-    describe(`resolutionStrategy:'${resolutionStrategy}',swapStrategy:'${swapStrategy}'`, function () {
+    describe(`${routerOptionsSpec}`, function () {
       for (const hookSpec of [
         HookSpecs.create({
           canLeave: hookSpecsMap.canLeave.setTimeout_0,
@@ -532,155 +522,317 @@ describe('router hooks', function () {
 
           await tearDown();
 
-          switch (resolutionStrategy) {
-            case 'dynamic': {
-              assert.deepStrictEqual(
-                hia.notifyHistory,
-                [
-                  `start.root.beforeBind`,
-                  `start.root.afterBind`,
-                  `start.root.afterAttach`,
-                  `start.root.afterAttachChildren`,
+          switch (routerOptionsSpec.lifecycleStrategy) {
+            case 'phased': {
+              switch (routerOptionsSpec.resolutionStrategy) {
+                case 'dynamic': {
+                  assert.deepStrictEqual(
+                    hia.notifyHistory,
+                    [
+                      `start.root.beforeBind`,
+                      `start.root.afterBind`,
+                      `start.root.afterAttach`,
+                      `start.root.afterAttachChildren`,
 
-                  `('' -> 'a/b/c/d').a.canEnter`,
-                  `('' -> 'a/b/c/d').a.enter`,
-                  `('' -> 'a/b/c/d').a.beforeBind`,
-                  `('' -> 'a/b/c/d').a.afterBind`,
-                  `('' -> 'a/b/c/d').a.afterAttach`,
-                  `('' -> 'a/b/c/d').a.afterAttachChildren`,
+                      `('' -> 'a/b/c/d').a.canEnter`,
+                      `('' -> 'a/b/c/d').a.enter`,
+                      `('' -> 'a/b/c/d').a.beforeBind`,
+                      `('' -> 'a/b/c/d').a.afterBind`,
+                      `('' -> 'a/b/c/d').a.afterAttach`,
+                      `('' -> 'a/b/c/d').a.afterAttachChildren`,
 
-                  `('' -> 'a/b/c/d').b.canEnter`,
-                  `('' -> 'a/b/c/d').b.enter`,
-                  `('' -> 'a/b/c/d').b.beforeBind`,
-                  `('' -> 'a/b/c/d').b.afterBind`,
-                  `('' -> 'a/b/c/d').b.afterAttach`,
-                  `('' -> 'a/b/c/d').b.afterAttachChildren`,
+                      `('' -> 'a/b/c/d').b.canEnter`,
+                      `('' -> 'a/b/c/d').b.enter`,
+                      `('' -> 'a/b/c/d').b.beforeBind`,
+                      `('' -> 'a/b/c/d').b.afterBind`,
+                      `('' -> 'a/b/c/d').b.afterAttach`,
+                      `('' -> 'a/b/c/d').b.afterAttachChildren`,
 
-                  `('' -> 'a/b/c/d').c.canEnter`,
-                  `('' -> 'a/b/c/d').c.enter`,
-                  `('' -> 'a/b/c/d').c.beforeBind`,
-                  `('' -> 'a/b/c/d').c.afterBind`,
-                  `('' -> 'a/b/c/d').c.afterAttach`,
-                  `('' -> 'a/b/c/d').c.afterAttachChildren`,
+                      `('' -> 'a/b/c/d').c.canEnter`,
+                      `('' -> 'a/b/c/d').c.enter`,
+                      `('' -> 'a/b/c/d').c.beforeBind`,
+                      `('' -> 'a/b/c/d').c.afterBind`,
+                      `('' -> 'a/b/c/d').c.afterAttach`,
+                      `('' -> 'a/b/c/d').c.afterAttachChildren`,
 
-                  `('' -> 'a/b/c/d').d.canEnter`,
-                  `('' -> 'a/b/c/d').d.enter`,
-                  `('' -> 'a/b/c/d').d.beforeBind`,
-                  `('' -> 'a/b/c/d').d.afterBind`,
-                  `('' -> 'a/b/c/d').d.afterAttach`,
-                  `('' -> 'a/b/c/d').d.afterAttachChildren`,
+                      `('' -> 'a/b/c/d').d.canEnter`,
+                      `('' -> 'a/b/c/d').d.enter`,
+                      `('' -> 'a/b/c/d').d.beforeBind`,
+                      `('' -> 'a/b/c/d').d.afterBind`,
+                      `('' -> 'a/b/c/d').d.afterAttach`,
+                      `('' -> 'a/b/c/d').d.afterAttachChildren`,
 
-                  `('a/b/c/d' -> 'a').d.canLeave`,
-                  `('a/b/c/d' -> 'a').c.canLeave`,
-                  `('a/b/c/d' -> 'a').b.canLeave`,
+                      `('a/b/c/d' -> 'a').d.canLeave`,
+                      `('a/b/c/d' -> 'a').c.canLeave`,
+                      `('a/b/c/d' -> 'a').b.canLeave`,
 
-                  `('a/b/c/d' -> 'a').d.leave`,
-                  `('a/b/c/d' -> 'a').c.leave`,
-                  `('a/b/c/d' -> 'a').b.leave`,
+                      `('a/b/c/d' -> 'a').d.leave`,
+                      `('a/b/c/d' -> 'a').c.leave`,
+                      `('a/b/c/d' -> 'a').b.leave`,
 
-                  `('a/b/c/d' -> 'a').d.beforeDetach`,
-                  `('a/b/c/d' -> 'a').d.beforeUnbind`,
-                  `('a/b/c/d' -> 'a').d.afterUnbind`,
-                  `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
-                  `('a/b/c/d' -> 'a').d.dispose`,
-                  `('a/b/c/d' -> 'a').c.beforeDetach`,
-                  `('a/b/c/d' -> 'a').c.beforeUnbind`,
-                  `('a/b/c/d' -> 'a').c.afterUnbind`,
-                  `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
-                  `('a/b/c/d' -> 'a').c.dispose`,
-                  `('a/b/c/d' -> 'a').b.beforeDetach`,
-                  `('a/b/c/d' -> 'a').b.beforeUnbind`,
-                  `('a/b/c/d' -> 'a').b.afterUnbind`,
-                  `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
-                  `('a/b/c/d' -> 'a').b.dispose`,
+                      `('a/b/c/d' -> 'a').d.beforeDetach`,
+                      `('a/b/c/d' -> 'a').d.beforeUnbind`,
+                      `('a/b/c/d' -> 'a').d.afterUnbind`,
+                      `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
+                      `('a/b/c/d' -> 'a').d.dispose`,
+                      `('a/b/c/d' -> 'a').c.beforeDetach`,
+                      `('a/b/c/d' -> 'a').c.beforeUnbind`,
+                      `('a/b/c/d' -> 'a').c.afterUnbind`,
+                      `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
+                      `('a/b/c/d' -> 'a').c.dispose`,
+                      `('a/b/c/d' -> 'a').b.beforeDetach`,
+                      `('a/b/c/d' -> 'a').b.beforeUnbind`,
+                      `('a/b/c/d' -> 'a').b.afterUnbind`,
+                      `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
+                      `('a/b/c/d' -> 'a').b.dispose`,
 
-                  `stop.root.beforeDetach`,
-                  `stop.root.beforeUnbind`,
-                  `stop.root.afterUnbind`,
+                      `stop.root.beforeDetach`,
+                      `stop.root.beforeUnbind`,
+                      `stop.root.afterUnbind`,
 
-                  `stop.a.beforeDetach`,
-                  `stop.a.beforeUnbind`,
-                  `stop.a.afterUnbind`,
-                  `stop.a.afterUnbindChildren`,
+                      `stop.a.beforeDetach`,
+                      `stop.a.beforeUnbind`,
+                      `stop.a.afterUnbind`,
+                      `stop.a.afterUnbindChildren`,
 
-                  `stop.root.afterUnbindChildren`,
-                ],
-              );
+                      `stop.root.afterUnbindChildren`,
+                    ],
+                  );
+                  break;
+                }
+                case 'static': {
+                  assert.deepStrictEqual(
+                    hia.notifyHistory,
+                    [
+                      `start.root.beforeBind`,
+                      `start.root.afterBind`,
+                      `start.root.afterAttach`,
+                      `start.root.afterAttachChildren`,
+
+                      `('' -> 'a/b/c/d').a.canEnter`,
+                      `('' -> 'a/b/c/d').b.canEnter`,
+                      `('' -> 'a/b/c/d').c.canEnter`,
+                      `('' -> 'a/b/c/d').d.canEnter`,
+
+                      `('' -> 'a/b/c/d').a.enter`,
+                      `('' -> 'a/b/c/d').b.enter`,
+                      `('' -> 'a/b/c/d').c.enter`,
+                      `('' -> 'a/b/c/d').d.enter`,
+
+                      `('' -> 'a/b/c/d').a.beforeBind`,
+                      `('' -> 'a/b/c/d').a.afterBind`,
+                      `('' -> 'a/b/c/d').a.afterAttach`,
+                      `('' -> 'a/b/c/d').b.beforeBind`,
+                      `('' -> 'a/b/c/d').b.afterBind`,
+                      `('' -> 'a/b/c/d').b.afterAttach`,
+                      `('' -> 'a/b/c/d').c.beforeBind`,
+                      `('' -> 'a/b/c/d').c.afterBind`,
+                      `('' -> 'a/b/c/d').c.afterAttach`,
+                      `('' -> 'a/b/c/d').d.beforeBind`,
+                      `('' -> 'a/b/c/d').d.afterBind`,
+                      `('' -> 'a/b/c/d').d.afterAttach`,
+                      `('' -> 'a/b/c/d').d.afterAttachChildren`,
+                      `('' -> 'a/b/c/d').c.afterAttachChildren`,
+                      `('' -> 'a/b/c/d').b.afterAttachChildren`,
+                      `('' -> 'a/b/c/d').a.afterAttachChildren`,
+
+                      `('a/b/c/d' -> 'a').d.canLeave`,
+                      `('a/b/c/d' -> 'a').c.canLeave`,
+                      `('a/b/c/d' -> 'a').b.canLeave`,
+
+                      `('a/b/c/d' -> 'a').d.leave`,
+                      `('a/b/c/d' -> 'a').c.leave`,
+                      `('a/b/c/d' -> 'a').b.leave`,
+
+                      `('a/b/c/d' -> 'a').d.beforeDetach`,
+                      `('a/b/c/d' -> 'a').d.beforeUnbind`,
+                      `('a/b/c/d' -> 'a').d.afterUnbind`,
+                      `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
+                      `('a/b/c/d' -> 'a').d.dispose`,
+                      `('a/b/c/d' -> 'a').c.beforeDetach`,
+                      `('a/b/c/d' -> 'a').c.beforeUnbind`,
+                      `('a/b/c/d' -> 'a').c.afterUnbind`,
+                      `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
+                      `('a/b/c/d' -> 'a').c.dispose`,
+                      `('a/b/c/d' -> 'a').b.beforeDetach`,
+                      `('a/b/c/d' -> 'a').b.beforeUnbind`,
+                      `('a/b/c/d' -> 'a').b.afterUnbind`,
+                      `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
+                      `('a/b/c/d' -> 'a').b.dispose`,
+
+                      `stop.root.beforeDetach`,
+                      `stop.root.beforeUnbind`,
+                      `stop.root.afterUnbind`,
+
+                      `stop.a.beforeDetach`,
+                      `stop.a.beforeUnbind`,
+                      `stop.a.afterUnbind`,
+                      `stop.a.afterUnbindChildren`,
+
+                      `stop.root.afterUnbindChildren`,
+                    ],
+                  );
+                  break;
+                }
+              }
               break;
             }
-            case 'static': {
-              assert.deepStrictEqual(
-                hia.notifyHistory,
-                [
-                  `start.root.beforeBind`,
-                  `start.root.afterBind`,
-                  `start.root.afterAttach`,
-                  `start.root.afterAttachChildren`,
+            case 'parallel': {
+              switch (routerOptionsSpec.resolutionStrategy) {
+                case 'dynamic': {
+                  assert.deepStrictEqual(
+                    hia.notifyHistory,
+                    [
+                      `start.root.beforeBind`,
+                      `start.root.afterBind`,
+                      `start.root.afterAttach`,
+                      `start.root.afterAttachChildren`,
 
-                  `('' -> 'a/b/c/d').a.canEnter`,
-                  `('' -> 'a/b/c/d').b.canEnter`,
-                  `('' -> 'a/b/c/d').c.canEnter`,
-                  `('' -> 'a/b/c/d').d.canEnter`,
+                      `('' -> 'a/b/c/d').a.canEnter`,
+                      `('' -> 'a/b/c/d').a.enter`,
+                      `('' -> 'a/b/c/d').a.beforeBind`,
+                      `('' -> 'a/b/c/d').a.afterBind`,
+                      `('' -> 'a/b/c/d').a.afterAttach`,
+                      `('' -> 'a/b/c/d').a.afterAttachChildren`,
 
-                  `('' -> 'a/b/c/d').a.enter`,
-                  `('' -> 'a/b/c/d').b.enter`,
-                  `('' -> 'a/b/c/d').c.enter`,
-                  `('' -> 'a/b/c/d').d.enter`,
+                      `('' -> 'a/b/c/d').b.canEnter`,
+                      `('' -> 'a/b/c/d').b.enter`,
+                      `('' -> 'a/b/c/d').b.beforeBind`,
+                      `('' -> 'a/b/c/d').b.afterBind`,
+                      `('' -> 'a/b/c/d').b.afterAttach`,
+                      `('' -> 'a/b/c/d').b.afterAttachChildren`,
 
-                  `('' -> 'a/b/c/d').a.beforeBind`,
-                  `('' -> 'a/b/c/d').a.afterBind`,
-                  `('' -> 'a/b/c/d').a.afterAttach`,
-                  `('' -> 'a/b/c/d').b.beforeBind`,
-                  `('' -> 'a/b/c/d').b.afterBind`,
-                  `('' -> 'a/b/c/d').b.afterAttach`,
-                  `('' -> 'a/b/c/d').c.beforeBind`,
-                  `('' -> 'a/b/c/d').c.afterBind`,
-                  `('' -> 'a/b/c/d').c.afterAttach`,
-                  `('' -> 'a/b/c/d').d.beforeBind`,
-                  `('' -> 'a/b/c/d').d.afterBind`,
-                  `('' -> 'a/b/c/d').d.afterAttach`,
-                  `('' -> 'a/b/c/d').d.afterAttachChildren`,
-                  `('' -> 'a/b/c/d').c.afterAttachChildren`,
-                  `('' -> 'a/b/c/d').b.afterAttachChildren`,
-                  `('' -> 'a/b/c/d').a.afterAttachChildren`,
+                      `('' -> 'a/b/c/d').c.canEnter`,
+                      `('' -> 'a/b/c/d').c.enter`,
+                      `('' -> 'a/b/c/d').c.beforeBind`,
+                      `('' -> 'a/b/c/d').c.afterBind`,
+                      `('' -> 'a/b/c/d').c.afterAttach`,
+                      `('' -> 'a/b/c/d').c.afterAttachChildren`,
 
-                  `('a/b/c/d' -> 'a').d.canLeave`,
-                  `('a/b/c/d' -> 'a').c.canLeave`,
-                  `('a/b/c/d' -> 'a').b.canLeave`,
+                      `('' -> 'a/b/c/d').d.canEnter`,
+                      `('' -> 'a/b/c/d').d.enter`,
+                      `('' -> 'a/b/c/d').d.beforeBind`,
+                      `('' -> 'a/b/c/d').d.afterBind`,
+                      `('' -> 'a/b/c/d').d.afterAttach`,
+                      `('' -> 'a/b/c/d').d.afterAttachChildren`,
 
-                  `('a/b/c/d' -> 'a').d.leave`,
-                  `('a/b/c/d' -> 'a').c.leave`,
-                  `('a/b/c/d' -> 'a').b.leave`,
+                      `('a/b/c/d' -> 'a').d.canLeave`,
+                      `('a/b/c/d' -> 'a').c.canLeave`,
+                      `('a/b/c/d' -> 'a').b.canLeave`,
 
-                  `('a/b/c/d' -> 'a').d.beforeDetach`,
-                  `('a/b/c/d' -> 'a').d.beforeUnbind`,
-                  `('a/b/c/d' -> 'a').d.afterUnbind`,
-                  `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
-                  `('a/b/c/d' -> 'a').d.dispose`,
-                  `('a/b/c/d' -> 'a').c.beforeDetach`,
-                  `('a/b/c/d' -> 'a').c.beforeUnbind`,
-                  `('a/b/c/d' -> 'a').c.afterUnbind`,
-                  `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
-                  `('a/b/c/d' -> 'a').c.dispose`,
-                  `('a/b/c/d' -> 'a').b.beforeDetach`,
-                  `('a/b/c/d' -> 'a').b.beforeUnbind`,
-                  `('a/b/c/d' -> 'a').b.afterUnbind`,
-                  `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
-                  `('a/b/c/d' -> 'a').b.dispose`,
+                      `('a/b/c/d' -> 'a').d.leave`,
+                      `('a/b/c/d' -> 'a').d.beforeDetach`,
+                      `('a/b/c/d' -> 'a').d.beforeUnbind`,
+                      `('a/b/c/d' -> 'a').d.afterUnbind`,
+                      `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
+                      `('a/b/c/d' -> 'a').d.dispose`,
 
-                  `stop.root.beforeDetach`,
-                  `stop.root.beforeUnbind`,
-                  `stop.root.afterUnbind`,
+                      `('a/b/c/d' -> 'a').c.leave`,
+                      `('a/b/c/d' -> 'a').c.beforeDetach`,
+                      `('a/b/c/d' -> 'a').c.beforeUnbind`,
+                      `('a/b/c/d' -> 'a').c.afterUnbind`,
+                      `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
+                      `('a/b/c/d' -> 'a').c.dispose`,
 
-                  `stop.a.beforeDetach`,
-                  `stop.a.beforeUnbind`,
-                  `stop.a.afterUnbind`,
-                  `stop.a.afterUnbindChildren`,
+                      `('a/b/c/d' -> 'a').b.leave`,
+                      `('a/b/c/d' -> 'a').b.beforeDetach`,
+                      `('a/b/c/d' -> 'a').b.beforeUnbind`,
+                      `('a/b/c/d' -> 'a').b.afterUnbind`,
+                      `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
+                      `('a/b/c/d' -> 'a').b.dispose`,
 
-                  `stop.root.afterUnbindChildren`,
-                ],
-              );
-              break;
+                      `stop.root.beforeDetach`,
+                      `stop.root.beforeUnbind`,
+                      `stop.root.afterUnbind`,
+
+                      `stop.a.beforeDetach`,
+                      `stop.a.beforeUnbind`,
+                      `stop.a.afterUnbind`,
+                      `stop.a.afterUnbindChildren`,
+
+                      `stop.root.afterUnbindChildren`,
+                    ],
+                  );
+                  break;
+                }
+                case 'static': {
+                  assert.deepStrictEqual(
+                    hia.notifyHistory,
+                    [
+                      `start.root.beforeBind`,
+                      `start.root.afterBind`,
+                      `start.root.afterAttach`,
+                      `start.root.afterAttachChildren`,
+
+                      `('' -> 'a/b/c/d').a.canEnter`,
+                      `('' -> 'a/b/c/d').b.canEnter`,
+                      `('' -> 'a/b/c/d').c.canEnter`,
+                      `('' -> 'a/b/c/d').d.canEnter`,
+
+                      `('' -> 'a/b/c/d').a.enter`,
+                      `('' -> 'a/b/c/d').a.beforeBind`,
+                      `('' -> 'a/b/c/d').a.afterBind`,
+                      `('' -> 'a/b/c/d').a.afterAttach`,
+
+                      `('' -> 'a/b/c/d').b.enter`,
+                      `('' -> 'a/b/c/d').b.beforeBind`,
+                      `('' -> 'a/b/c/d').b.afterBind`,
+                      `('' -> 'a/b/c/d').b.afterAttach`,
+
+                      `('' -> 'a/b/c/d').c.enter`,
+                      `('' -> 'a/b/c/d').c.beforeBind`,
+                      `('' -> 'a/b/c/d').c.afterBind`,
+                      `('' -> 'a/b/c/d').c.afterAttach`,
+
+                      `('' -> 'a/b/c/d').d.enter`,
+                      `('' -> 'a/b/c/d').d.beforeBind`,
+                      `('' -> 'a/b/c/d').d.afterBind`,
+                      `('' -> 'a/b/c/d').d.afterAttach`,
+                      `('' -> 'a/b/c/d').d.afterAttachChildren`,
+                      `('' -> 'a/b/c/d').c.afterAttachChildren`,
+                      `('' -> 'a/b/c/d').b.afterAttachChildren`,
+                      `('' -> 'a/b/c/d').a.afterAttachChildren`,
+
+                      `('a/b/c/d' -> 'a').d.canLeave`,
+                      `('a/b/c/d' -> 'a').c.canLeave`,
+                      `('a/b/c/d' -> 'a').b.canLeave`,
+
+                      `('a/b/c/d' -> 'a').d.leave`,
+                      `('a/b/c/d' -> 'a').d.beforeDetach`,
+                      `('a/b/c/d' -> 'a').d.beforeUnbind`,
+                      `('a/b/c/d' -> 'a').d.afterUnbind`,
+                      `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
+                      `('a/b/c/d' -> 'a').d.dispose`,
+
+                      `('a/b/c/d' -> 'a').c.leave`,
+                      `('a/b/c/d' -> 'a').c.beforeDetach`,
+                      `('a/b/c/d' -> 'a').c.beforeUnbind`,
+                      `('a/b/c/d' -> 'a').c.afterUnbind`,
+                      `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
+                      `('a/b/c/d' -> 'a').c.dispose`,
+
+                      `('a/b/c/d' -> 'a').b.leave`,
+                      `('a/b/c/d' -> 'a').b.beforeDetach`,
+                      `('a/b/c/d' -> 'a').b.beforeUnbind`,
+                      `('a/b/c/d' -> 'a').b.afterUnbind`,
+                      `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
+                      `('a/b/c/d' -> 'a').b.dispose`,
+
+                      `stop.root.beforeDetach`,
+                      `stop.root.beforeUnbind`,
+                      `stop.root.afterUnbind`,
+
+                      `stop.a.beforeDetach`,
+                      `stop.a.beforeUnbind`,
+                      `stop.a.afterUnbind`,
+                      `stop.a.afterUnbindChildren`,
+
+                      `stop.root.afterUnbindChildren`,
+                    ],
+                  );
+                  break;
+                }
+              }
             }
           }
 
@@ -695,4 +847,9 @@ function join(sep: string, ...parts: string[]): string {
   return parts.filter(function (x) {
     return x.length > 0 && x.split('@')[0].length > 0;
   }).join(sep);
+}
+
+function log(value: any): any {
+  console.log(value);
+  return value;
 }

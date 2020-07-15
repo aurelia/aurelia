@@ -65,7 +65,7 @@ async function createFixture<T extends Constructable>(
   const { container, scheduler } = ctx;
 
   container.register(TestRouterConfiguration.for(ctx, level));
-  container.register(RouterConfiguration);
+  container.register(RouterConfiguration.customize({ lifecycleStrategy: 'phased' }));
   container.register(...deps);
 
   const component = container.get(Component);

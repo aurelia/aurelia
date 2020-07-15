@@ -92,6 +92,7 @@ export {
   Navigation,
   RoutingMode,
   ResolutionStrategy,
+  LifecycleStrategy,
   SwapStrategy,
   QueryParamsStrategy,
   FragmentStrategy,

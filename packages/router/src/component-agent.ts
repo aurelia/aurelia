@@ -27,7 +27,9 @@ import {
   NavigationInstruction,
   ViewportInstructionTree,
 } from './instructions';
-import { onResolve } from './util';
+import {
+  runSequence,
+} from './util';
 
 export interface IRouteViewModel extends ICustomElementViewModel<HTMLElement> {
   canEnter?(
@@ -133,13 +135,16 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   public canEnter(next: RouteNode): boolean | ViewportInstructionTree | Promise<boolean | ViewportInstructionTree> {
     if (this.hasCanEnter) {
       this.logger.trace(`canEnter(next:${next}) - invoking hook on component`);
-      return onResolve(this.instance.canEnter!(next.params, next, this.routeNode), result => {
-        if (typeof result === 'boolean') {
-          return result;
-        }
+      return runSequence(
+        () => { return this.instance.canEnter!(next.params, next, this.routeNode); },
+        (_, result) => {
+          if (typeof result === 'boolean') {
+            return result;
+          }
 
-        return ViewportInstructionTree.create(result);
-      });
+          return ViewportInstructionTree.create(result);
+        },
+      );
     }
 
     this.logger.trace(`canEnter(next:${next}) - component does not implement this hook, so skipping`);

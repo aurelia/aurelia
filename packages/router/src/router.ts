@@ -44,9 +44,9 @@ import {
   Params,
 } from './instructions';
 import {
-  onResolve,
   resolveAll,
-  walkViewportTree,
+  traverse,
+  runSequence,
 } from './util';
 
 export const AuNavId = 'au-nav-id' as const;
@@ -70,6 +70,7 @@ export function toManagedState(state: {} | null, navId: number): ManagedState {
 export type RoutingMode = 'direct-only' | 'configured-only' | 'direct-first' | 'configured-first';
 export type ResolutionStrategy = 'static' | 'dynamic';
 export type SwapStrategy = 'add-first' | 'remove-first' | 'parallel';
+export type LifecycleStrategy = 'phased' | 'parallel';
 export type QueryParamsStrategy = 'overwrite' | 'preserve' | 'merge';
 export type FragmentStrategy = 'overwrite' | 'preserve';
 export type HistoryStrategy = 'none' | 'replace' | 'push';
@@ -123,6 +124,7 @@ export class RouterOptions {
      */
     public readonly resolutionStrategy: ResolutionStrategy,
     public readonly swapStrategy: SwapStrategy,
+    public readonly lifecycleStrategy: LifecycleStrategy,
     /**
      * The strategy to use for determining the query parameters when both the previous and the new url has a query string.
      *
@@ -177,6 +179,7 @@ export class RouterOptions {
       input.routingMode ?? 'configured-first',
       input.resolutionStrategy ?? 'dynamic',
       input.swapStrategy ?? 'add-first',
+      input.lifecycleStrategy ?? 'parallel',
       input.queryParamsStrategy ?? 'overwrite',
       input.fragmentStrategy ?? 'overwrite',
       input.historyStrategy ?? 'push',
@@ -206,6 +209,10 @@ export class RouterOptions {
 
   protected stringifyProperties(): string {
     return ([
+      'routingMode',
+      'resolutionStrategy',
+      'swapStrategy',
+      'lifecycleStrategy',
       'queryParamsStrategy',
       'fragmentStrategy',
       'historyStrategy',
@@ -261,6 +268,7 @@ export class NavigationOptions extends RouterOptions {
       routerOptions.routingMode,
       routerOptions.resolutionStrategy,
       routerOptions.swapStrategy,
+      routerOptions.lifecycleStrategy,
       routerOptions.queryParamsStrategy,
       routerOptions.fragmentStrategy,
       routerOptions.historyStrategy,
@@ -354,7 +362,7 @@ export class Transition {
   }
 
   public toString(): string {
-    return `T(id:${this.id},trigger:'${this.trigger}',instructions:${this.instructions})`;
+    return `T(id:${this.id},trigger:'${this.trigger}',instructions:${this.instructions},options:${this.options})`;
   }
 }
 
@@ -393,11 +401,11 @@ export class Router {
     return routeTree;
   }
 
-  private _currentTransition: Transition | null = null;
-  private get currentTransition(): Transition {
-    let currentTransition = this._currentTransition;
-    if (currentTransition === null) {
-      currentTransition = this._currentTransition = Transition.create({
+  private _currentTr: Transition | null = null;
+  private get currentTr(): Transition {
+    let currentTr = this._currentTr;
+    if (currentTr === null) {
+      currentTr = this._currentTr = Transition.create({
         id: 0,
         prevInstructions: this.instructions,
         instructions: this.instructions,
@@ -414,10 +422,10 @@ export class Router {
         guardsResult: true,
       });
     }
-    return currentTransition;
+    return currentTr;
   }
-  private set currentTransition(value: Transition) {
-    this._currentTransition = value;
+  private set currentTr(value: Transition) {
+    this._currentTr = value;
   }
 
   public options: RouterOptions = RouterOptions.DEFAULT;
@@ -430,7 +438,7 @@ export class Router {
 
   private instructions: ViewportInstructionTree = ViewportInstructionTree.create('');
 
-  private nextTransition: Transition | null = null;
+  private nextTr: Transition | null = null;
   private locationChangeSubscription: IDisposable | null = null;
 
   public constructor(
@@ -656,17 +664,13 @@ export class Router {
   private async enqueue(
     instructions: ViewportInstructionTree,
     trigger: 'popstate' | 'hashchange' | 'api',
-    managedState: ManagedState | null,
-    failedTransition: Transition | null,
+    state: ManagedState | null,
+    failedTr: Transition | null,
   ): Promise<boolean> {
-    const lastTransition = this.currentTransition;
-    lastTransition.finalInstructions = this.instructions;
+    const lastTr = this.currentTr;
+    lastTr.finalInstructions = this.instructions;
 
-    if (
-      trigger !== 'api' &&
-      lastTransition.trigger === 'api' &&
-      lastTransition.instructions.equals(instructions)
-    ) {
+    if (trigger !== 'api' && lastTr.trigger === 'api' && lastTr.instructions.equals(instructions)) {
       // User-triggered navigation that results in `replaceState` with the same URL. The API call already triggered the navigation; event is ignored.
       this.logger.debug(`Ignoring navigation triggered by '${trigger}' because it is the same URL as the previous navigation which was triggered by 'api'.`);
       return true;
@@ -676,32 +680,29 @@ export class Router {
     let reject: Exclude<Transition['reject'], null> = (void 0)!;
     let promise: Exclude<Transition['promise'], null>;
 
-    if (failedTransition === null) {
-      promise = new Promise(function ($resolve, $reject) {
-        resolve = $resolve;
-        reject = $reject;
-      });
+    if (failedTr === null) {
+      promise = new Promise(function ($resolve, $reject) { resolve = $resolve; reject = $reject; });
     } else {
       // Ensure that `await router.goto` only resolves when the transition truly finished, so chain forward on top of
       // any previously failed transition that caused a recovering backwards navigation.
-      this.logger.debug(`Reusing promise/resolve/reject from the previously failed transition ${failedTransition}`);
+      this.logger.debug(`Reusing promise/resolve/reject from the previously failed transition ${failedTr}`);
       /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-      promise = failedTransition.promise!;
-      resolve = failedTransition.resolve!;
-      reject = failedTransition.reject!;
+      promise = failedTr.promise!;
+      resolve = failedTr.resolve!;
+      reject = failedTr.reject!;
       /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
     }
 
     // This is an intentional overwrite: if a new transition is scheduled while the currently scheduled transition hasn't even started yet,
     // then the currently scheduled transition is effectively canceled/ignored.
     // This is consistent with the runtime's controller behavior, where if you rapidly call async activate -> deactivate -> activate (for example), then the deactivate is canceled.
-    const nextTransition = this.nextTransition = Transition.create({
+    const nextTr = this.nextTr = Transition.create({
       id: ++this.navigationId,
       trigger,
-      managedState,
-      prevInstructions: lastTransition.finalInstructions,
+      managedState: state,
+      prevInstructions: lastTr.finalInstructions,
       finalInstructions: instructions,
-      instructionsChanged: !lastTransition.finalInstructions.equals(instructions),
+      instructionsChanged: !lastTr.finalInstructions.equals(instructions),
       instructions,
       options: instructions.options,
       promise,
@@ -712,32 +713,28 @@ export class Router {
       guardsResult: true,
     });
 
-    this.logger.debug(`Scheduling transition: ${nextTransition}`);
+    this.logger.debug(`Scheduling transition: ${nextTr}`);
 
     if (this.activeNavigation === null) {
-      this.dequeue(nextTransition).catch(function (err) {
-        // Catch any errors that might be thrown by `dequeue` and reject the original promise which is awaited down below
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        nextTransition.reject!(err);
-      });
+      // Catch any errors that might be thrown by `dequeue` and reject the original promise which is awaited down below
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+      this.dequeue(nextTr).catch(err => { nextTr.reject!(err); });
     }
 
     try {
       // Explicitly await so we can catch, log and re-throw
       const result = await promise;
-      this.logger.debug(`Transition succeeded: ${nextTransition}`);
+      this.logger.debug(`Transition succeeded: ${nextTr}`);
       return result;
     } catch (err) {
-      this.logger.error(`Navigation failed: ${nextTransition}`, err);
+      this.logger.error(`Navigation failed: ${nextTr}`, err);
       throw err;
     }
   }
 
-  private async dequeue(
-    transition: Transition,
-  ): Promise<void> {
-    this.currentTransition = transition;
-    this.nextTransition = null;
+  private async dequeue(tr: Transition): Promise<void> {
+    this.currentTr = tr;
+    this.nextTr = null;
 
     // Clone it because the prevNavigation could have observers and stuff on it, and it's meant to be a standalone snapshot from here on.
     const prevNavigation = this.lastSuccessfulNavigation === null ? null : Navigation.create({
@@ -747,47 +744,42 @@ export class Router {
     });
 
     this.activeNavigation = Navigation.create({
-      id: transition.id,
-      instructions: transition.instructions,
-      trigger: transition.trigger,
-      options: transition.options,
+      id: tr.id,
+      instructions: tr.instructions,
+      trigger: tr.trigger,
+      options: tr.options,
       prevNavigation,
-      finalInstructions: transition.finalInstructions,
+      finalInstructions: tr.finalInstructions,
     });
 
-    const routeChanged = !transition.instructions.equals(this.instructions);
-    const shouldProcessRoute = routeChanged || transition.options.getSameUrlStrategy(this.instructions) === 'reload';
+    const routeChanged = !tr.instructions.equals(this.instructions);
+    const shouldProcessRoute = routeChanged || tr.options.getSameUrlStrategy(this.instructions) === 'reload';
 
     if (!shouldProcessRoute) {
-      this.logger.trace(() => `dequeue(transition:${transition}) - NOT processing route`);
+      this.logger.trace(() => `dequeue(transition:${tr}) - NOT processing route`);
 
       this.navigated = true;
       this.activeNavigation = null;
 
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      transition.resolve!(false);
+      tr.resolve!(false);
 
-      this.runNextTransition(transition);
+      this.runNextTransition(tr);
       return;
     }
 
-    this.logger.trace(() => `dequeue(transition:${transition}) - processing route`);
+    this.logger.trace(() => `dequeue(transition:${tr}) - processing route`);
 
-    this.events.publish(new NavigationStartEvent(
-      transition.id,
-      transition.instructions,
-      transition.trigger,
-      transition.managedState,
-    ));
+    this.events.publish(new NavigationStartEvent(tr.id, tr.instructions, tr.trigger, tr.managedState));
 
     // If user triggered a new transition in response to the NavigationStartEvent
     // (in which case `this.nextTransition` will NOT be null), we short-circuit here and go straight to processing the next one.
-    if (this.nextTransition !== null) {
-      this.logger.debug(() => `dequeue(transition:${transition}) - aborting because a new transition was queued in response to the NavigationStartEvent`);
-      return this.dequeue(this.nextTransition);
+    if (this.nextTr !== null) {
+      this.logger.debug(() => `dequeue(transition:${tr}) - aborting because a new transition was queued in response to the NavigationStartEvent`);
+      return this.dequeue(this.nextTr);
     }
 
-    const navigationContext = this.getContext(transition.options.context);
+    const navigationContext = this.getContext(tr.options.context);
 
     // TODO: apply redirects
     //
@@ -798,7 +790,7 @@ export class Router {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       ...this.activeNavigation!,
       // After redirects are applied, this could be a different route
-      finalInstructions: transition.finalInstructions,
+      finalInstructions: tr.finalInstructions,
     });
 
     // TODO: run global guards
@@ -806,85 +798,59 @@ export class Router {
     //
     // ---
 
-    RouteTreeCompiler.compileRoot(this.routeTree, transition.finalInstructions, navigationContext);
-    this.instructions = transition.finalInstructions;
+    RouteTreeCompiler.compileRoot(this.routeTree, tr.finalInstructions, navigationContext);
+    this.instructions = tr.finalInstructions;
 
-    return onResolve(this.runLifecycles(
-      transition,
-      transition.previousRouteTree.root.children,
-      transition.routeTree.root.children,
-    ), () => {
-      let residueResult: void | Promise<void>;
-      switch (transition.options.resolutionStrategy) {
-        case 'static':
-          // In static mode there *should* never be a residue, so just in case, check the tree and throw if there is, so we don't
-          // get potential weird silent failures
-          residueResult = void 0;
-          transition.routeTree.root.children.forEach(function visit(child) {
-            if (child.residue.length > 0) {
-              throw new Error(`Unexpected residue: ${child}`);
-            } else {
-              child.children.forEach(visit);
-            }
-          });
-          break;
-        case 'dynamic':
-          residueResult = resolveAll(transition.routeTree.root.children.map((child, i) => {
-            return this.processResidue(transition, child, i, 1);
-          }));
-          break;
-      }
-      return onResolve(residueResult, () => {
+    const prev = tr.previousRouteTree.root.children;
+    const next = tr.routeTree.root.children;
+    return runSequence(
+      () => { return this.runLifecycles(tr, prev, next); },
+      () => {
+        switch (tr.options.resolutionStrategy) {
+          case 'static':
+            next.forEach(function visit(x) {
+              if (x.residue.length > 0) {
+                // In static mode there *should* never be a residue, so just in case, check the tree and throw if there is, so we don't
+                // get potential weird silent failures (indeed that's all we do here - the residue processing itself happens in the ViewportAgent during scheduleUpdate)
+                throw new Error(`Unexpected residue: ${x}`);
+              } else {
+                x.children.forEach(visit);
+              }
+            });
+            break;
+          case 'dynamic':
+            return resolveAll(next.map((x, i) => { return this.processResidue(tr, x, i, 1); }));
+        }
+      },
+      () => {
         this.logger.trace(() => `dequeue() - finished processResidue, finalizing transition`);
 
-        walkViewportTree(
-          'top-down', // order doesn't matter for this operation
-          [
-            ...transition.previousRouteTree.root.children,
-            ...transition.routeTree.root.children,
-          ],
-          function (viewport) {
-            viewport.endTransition(transition);
-          }
-        );
+        // order doesn't matter for this operation
+        traverse('top-down', [...prev, ...next], vp => { vp.endTransition(tr); });
 
         this.navigated = true;
-        this.events.publish(new NavigationEndEvent(
-          transition.id,
-          transition.instructions,
-          this.
-          instructions,
-        ));
+
+        this.events.publish(new NavigationEndEvent(tr.id, tr.instructions, this.instructions));
+
         this.lastSuccessfulNavigation = this.activeNavigation;
         this.activeNavigation = null;
-        this.applyHistoryState(transition);
+        this.applyHistoryState(tr);
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        transition.resolve!(true);
+        tr.resolve!(true);
 
-        this.runNextTransition(transition);
-      });
-    });
+        this.runNextTransition(tr);
+      },
+    );
   }
 
   /**
    * See if there is any residue, and recurse through them invoking canEnter -> enter -> Controller.activate, if applicable
    *
-   * NOTE: there are two "modes" with important differences in semantics from this point onwards: "new" and "old" (the latter mimicking the way v1 worked).
-   *
-   * In "old" mode, lifecycles happen in separate phases, one at a time, but this means that all router lifecycles must happen
-   * before any runtime lifecycles happen. In this mode, if we arrived here, we are done.
-   *
-   * In "new" mode, child components are only loaded (and have their hooks invoked) after their parents have had their runtime hooks
-   * (bind, attach) invoked. In this mode, if we arrived here, there may still be residue (in which case "new" mode is implied) and aforementioned
-   * recurse through canEnter -> enter -> Controller.activate
+   * NOTE: this method is called in one of two ways:
+   * - Lazily by the router after activating the next component (for resolutionStrategy `dynamic`)
+   * - Eagerly or by the viewport agent (for resolutionStrategy `static`) during scheduleUpdate which happens during route tree compilation
    */
-  private processResidue(
-    transition: Transition,
-    node: RouteNode,
-    // index and depth are solely to more easily keep track of where we are in the tree, for debugging/tracing purposes
-    index: number,
-    depth: number,
-  ): void | Promise<void> {
+  private processResidue(tr: Transition, node: RouteNode, index: number, depth: number): void | Promise<void> {
     this.logger.trace(() => `processResidue(index:${index},depth:${depth},node:${node})`);
 
     const ctx = node.context;
@@ -892,167 +858,144 @@ export class Router {
       throw new Error(`Unexpected null context at ${node}`);
     }
 
-    RouteTreeCompiler.compileResidue(this.routeTree, transition.finalInstructions, ctx);
+    RouteTreeCompiler.compileResidue(this.routeTree, tr.finalInstructions, ctx);
 
-    return onResolve(this.runLifecycles(transition, node.children, node.children), () => {
-      return resolveAll(node.children.map((child, i) => {
-        return this.processResidue(transition, child, i, depth + 1);
-      }));
-    });
+    return runSequence(
+      () => { return this.runLifecycles(tr, node.children, node.children); },
+      () => { return resolveAll(node.children.map((x, i) => { return this.processResidue(tr, x, i, depth + 1); })); },
+    );
   }
 
-  private runLifecycles(
-    transition: Transition,
-    previous: RouteNode[],
-    next: RouteNode[],
-  ): void | Promise<void> {
-    this.logger.trace(() => `runLifecycles() - starting [canLeave] on previous`);
-
-    return onResolve(walkViewportTree('bottom-up', previous, function (viewport) {
-      return viewport.canLeave(transition);
-    }), () => {
-      if (transition.guardsResult !== true) {
-        return this.cancelNavigation(transition);
+  private runLifecycles(tr: Transition, prev: RouteNode[], next: RouteNode[]): void | Promise<void> {
+    const abortIfNeeded = (abort: () => void) => {
+      if (tr.guardsResult !== true) {
+        abort();
+        return this.cancelNavigation(tr);
       }
+    };
 
-      this.logger.trace(() => `runLifecycles() - finished [canLeave] on previous, starting [canEnter] on next`);
-
-      return onResolve(walkViewportTree('top-down', next, function (viewport) {
-        return viewport.canEnter(transition);
-      }), () => {
-        if (transition.guardsResult !== true) {
-          return this.cancelNavigation(transition);
-        }
-
-        this.logger.trace(() => `runLifecycles() - finished [canEnter] on next, starting [leave] on previous`);
-
-        return onResolve(walkViewportTree('bottom-up', previous, function (viewport) {
-          return viewport.leave(transition);
-        }), () => {
-          this.logger.trace(() => `runLifecycles() - finished [leave] on previous, starting [enter] on next`);
-
-          return onResolve(walkViewportTree('top-down', next, function (viewport) {
-            return viewport.enter(transition);
-          }), () => {
-            switch (transition.options.swapStrategy) {
+    return runSequence(
+      () => { return traverse('bottom-up', prev, vp => { return vp.canLeave(tr); }); },
+      abortIfNeeded,
+      () => { return traverse('top-down', next, vp => { return vp.canEnter(tr); }); },
+      abortIfNeeded,
+      () => {
+        switch (tr.options.lifecycleStrategy) {
+          case 'phased':
+            return runSequence(
+              () => { return traverse('bottom-up', prev, vp => { return vp.leave(tr); }); },
+              () => { return traverse('top-down', next, vp => { return vp.enter(tr); }); },
+              () => {
+                switch (tr.options.swapStrategy) {
+                  case 'add-first':
+                  case 'parallel':
+                    // Note: these two operations are invoked in parallel, but they don't run completely in parallel.
+                    // The viewport agents themselves ensure that the swap intersections are sequenced properly based on the swapStrategy.
+                    return resolveAll([
+                      traverse('top-down', next, vp => { return vp.activateFromRouter(tr); }),
+                      traverse('bottom-up', prev, vp => { return vp.deactivateFromRouter(tr); }),
+                    ]);
+                  case 'remove-first':
+                    // Note: the order of these two `walkViewportTree` invocations are not what enforces the swapStrategy per se (at least not on a per-subtree basis),
+                    // but it does make a slight different w.r.t. the timings and it also matters for the overall invocation order (especially in synchronous situations)
+                    return resolveAll([
+                      traverse('bottom-up', prev, vp => { return vp.deactivateFromRouter(tr); }),
+                      traverse('top-down', next, vp => { return vp.activateFromRouter(tr); }),
+                    ]);
+                }
+              },
+            );
+          case 'parallel':
+            switch (tr.options.swapStrategy) {
               case 'add-first':
               case 'parallel':
-                this.logger.trace(() => `runLifecycles() - finished [enter] on next, starting [activate] on next & [deactivate] on previous (swapStrategy: '${transition.options.swapStrategy}')`);
-
-                // Note: these two operations are invoked in parallel, but they don't run completely in parallel.
-                // The viewport agents themselves ensure that the swap intersections are sequenced properly based on the swapStrategy.
-                return onResolve(resolveAll([
-                  walkViewportTree('top-down', next, function (viewport) {
-                    return viewport.activateFromRouter(transition);
+                return resolveAll([
+                  traverse('top-down', next, vp => {
+                    return runSequence(
+                      () => { return vp.enter(tr); },
+                      () => { return vp.activateFromRouter(tr); },
+                    );
                   }),
-                  walkViewportTree('bottom-up', previous, function (viewport) {
-                    return viewport.deactivateFromRouter(transition);
+                  traverse('bottom-up', prev, vp => {
+                    return runSequence(
+                      () => { return vp.leave(tr); },
+                      () => { return vp.deactivateFromRouter(tr); },
+                    );
                   }),
-                ]), () => {
-                  this.logger.trace(() => `runLifecycles() - finished [activate] on next & [deactivate] on previous`);
-                });
+                ]);
               case 'remove-first':
-                this.logger.trace(() => `runLifecycles() - finished [enter] on next, starting [deactivate] on previous & [activate] on next (swapStrategy: 'remove-first')`);
-
-                // Note: the order of these two `walkViewportTree` invocations are not what enforces the swapStrategy per se (at least not on a per-subtree basis),
-                // but it does make a slight different w.r.t. the timings and it also matters for the overall invocation order (especially in synchronous situations)
-                return onResolve(resolveAll([
-                  walkViewportTree('bottom-up', previous, function (viewport) {
-                    return viewport.deactivateFromRouter(transition);
+                return resolveAll([
+                  traverse('bottom-up', prev, vp => {
+                    return runSequence(
+                      () => { return vp.leave(tr); },
+                      () => { return vp.deactivateFromRouter(tr); },
+                    );
                   }),
-                  walkViewportTree('top-down', next, function (viewport) {
-                    return viewport.activateFromRouter(transition);
+                  traverse('top-down', next, vp => {
+                    return runSequence(
+                      () => { return vp.enter(tr); },
+                      () => { return vp.activateFromRouter(tr); },
+                    );
                   }),
-                ]), () => {
-                  this.logger.trace(() => `runLifecycles() - finished [deactivate] on previous & [activate] on next`);
-                });
+                ]);
             }
-          });
-        });
-      });
-    });
+        }
+      },
+    );
   }
 
-  private applyHistoryState(
-    transition: Transition,
-  ): void {
-    switch (transition.options.getHistoryStrategy(this.instructions)) {
+  private applyHistoryState(tr: Transition): void {
+    switch (tr.options.getHistoryStrategy(this.instructions)) {
       case 'none':
         // do nothing
         break;
       case 'push':
-        this.locationMgr.pushState(
-          toManagedState(transition.options.state, transition.id),
-          transition.options.title ?? '',
-          transition.finalInstructions.toUrl(),
-        );
+        this.locationMgr.pushState(toManagedState(tr.options.state, tr.id), tr.options.title ?? '', tr.finalInstructions.toUrl());
         break;
       case 'replace':
-        this.locationMgr.replaceState(
-          toManagedState(transition.options.state, transition.id),
-          transition.options.title ?? '',
-          transition.finalInstructions.toUrl(),
-        );
+        this.locationMgr.replaceState(toManagedState(tr.options.state, tr.id), tr.options.title ?? '', tr.finalInstructions.toUrl());
         break;
     }
   }
 
-  private cancelNavigation(
-    transition: Transition,
-  ): void | Promise<void> {
-    this.logger.trace(() => `cancelNavigation(transition:${transition})`);
+  private cancelNavigation(tr: Transition): void | Promise<void> {
+    this.logger.trace(() => `cancelNavigation(transition:${tr})`);
 
-    walkViewportTree(
-      'top-down', // order doesn't matter for this operation
-      [
-        ...transition.previousRouteTree.root.children,
-        ...transition.routeTree.root.children,
-      ],
-      function (viewport) {
-        viewport.cancelUpdate();
-      },
-    );
+    const prev = tr.previousRouteTree.root.children;
+    const next = tr.routeTree.root.children;
+    // order doesn't matter for this operation
+    traverse('top-down', [...prev, ...next], vp => { vp.cancelUpdate(); });
 
     this.activeNavigation = null;
-    this.instructions = transition.prevInstructions;
-    this._routeTree = transition.previousRouteTree;
-    this.events.publish(new NavigationCancelEvent(
-      transition.id,
-      transition.instructions,
-      `guardsResult is ${transition.guardsResult}`,
-    ));
+    this.instructions = tr.prevInstructions;
+    this._routeTree = tr.previousRouteTree;
+    this.events.publish(new NavigationCancelEvent(tr.id, tr.instructions, `guardsResult is ${tr.guardsResult}`));
 
-    if (transition.guardsResult === false) {
+    if (tr.guardsResult === false) {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      transition.resolve!(false);
+      tr.resolve!(false);
 
       // In case a new navigation was requested in the meantime, immediately start processing it
-      this.runNextTransition(transition);
+      this.runNextTransition(tr);
     } else {
-      return onResolve(
-        this.enqueue(transition.guardsResult as ViewportInstructionTree, 'api', transition.managedState, transition),
-        () => {
-          this.logger.trace(() => `cancelNavigation(transition:${transition}) - finished redirect`);
-        },
+      return runSequence(
+        () => { return this.enqueue(tr.guardsResult as ViewportInstructionTree, 'api', tr.managedState, tr); },
+        () => { this.logger.trace(() => `cancelNavigation(transition:${tr}) - finished redirect`); }
       );
     }
   }
 
-  private runNextTransition(
-    transition: Transition,
-  ): void {
-    if (this.nextTransition !== null) {
-      this.logger.trace(() => `runNextTransition(transition:${transition}) -> scheduling nextTransition: ${this.nextTransition}`);
+  private runNextTransition(tr: Transition): void {
+    if (this.nextTr !== null) {
+      this.logger.trace(() => `runNextTransition(transition:${tr}) -> scheduling nextTransition: ${this.nextTr}`);
       this.scheduler.queueMacroTask(
         () => {
           // nextTransition is allowed to change up until the point when it's actually time to process it,
           // so we need to check it for null again when the scheduled task runs.
-          const $nextTransition = this.nextTransition;
-          if ($nextTransition !== null) {
-            this.dequeue($nextTransition).catch(function (reason) {
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-              $nextTransition.reject!(reason);
-            });
+          const nextTr = this.nextTr;
+          if (nextTr !== null) {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+            this.dequeue(nextTr).catch(reason => { nextTr.reject!(reason);});
           }
         },
       );
@@ -1060,9 +1003,6 @@ export class Router {
   }
 
   private getNavigationOptions(options?: INavigationOptions): NavigationOptions {
-    return NavigationOptions.create({
-      ...this.options,
-      ...options,
-    });
+    return NavigationOptions.create({ ...this.options, ...options });
   }
 }

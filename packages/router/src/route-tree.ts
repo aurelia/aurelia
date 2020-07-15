@@ -16,6 +16,7 @@ import {
 import {
   RoutingMode,
   ResolutionStrategy,
+  LifecycleStrategy,
 } from './router';
 import {
   ViewportInstructionTree,
@@ -287,6 +288,7 @@ export class RouteTreeCompiler {
   private readonly logger: ILogger;
   private readonly mode: RoutingMode;
   private readonly resolutionStrategy: ResolutionStrategy;
+  private readonly lifecycleStrategy: LifecycleStrategy;
 
   public constructor(
     private readonly routeTree: RouteTree,
@@ -295,6 +297,7 @@ export class RouteTreeCompiler {
   ) {
     this.mode = instructions.options.getRoutingMode(instructions);
     this.resolutionStrategy = instructions.options.resolutionStrategy;
+    this.lifecycleStrategy = instructions.options.lifecycleStrategy;
     this.logger = ctx.get(ILogger).scopeTo('RouteTreeBuilder');
   }
 
@@ -393,7 +396,7 @@ export class RouteTreeCompiler {
             const childNode = this.resolve(instruction, depth, append);
             this.compileResidue(childNode, depth + 1);
             ctx.node.appendChild(childNode);
-            childNode.context.vpa.scheduleUpdate(this.resolutionStrategy, childNode);
+            childNode.context.vpa.scheduleUpdate(this.resolutionStrategy, this.lifecycleStrategy, childNode);
           }
         }
         break;
@@ -403,7 +406,7 @@ export class RouteTreeCompiler {
         const childNode = this.resolve(instruction, depth, append);
         this.compileResidue(childNode, depth + 1);
         ctx.node.appendChild(childNode);
-        childNode.context.vpa.scheduleUpdate(this.resolutionStrategy, childNode);
+        childNode.context.vpa.scheduleUpdate(this.resolutionStrategy, this.lifecycleStrategy, childNode);
         break;
       }
     }
@@ -426,7 +429,7 @@ export class RouteTreeCompiler {
     this.logger.trace(() => `updateOrCompile(node:${node})`);
 
     if (!node.context.isRoot) {
-      node.context.vpa.scheduleUpdate(this.resolutionStrategy, node);
+      node.context.vpa.scheduleUpdate(this.resolutionStrategy, this.lifecycleStrategy, node);
     }
     node.queryParams = instructions.queryParams;
     node.fragment = instructions.fragment;

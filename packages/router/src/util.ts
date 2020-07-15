@@ -5,18 +5,95 @@ type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
 type MaybePromise<T> = T extends Promise<infer R> ? (T | R) : (T | Promise<T>);
 
 /**
- * Normalize a potential promise via a callback, to ensure things stay synchronous when they can.
- *
- * If the value is a promise, it is `then`ed before the callback is invoked. Otherwise the callback is invoked synchronously.
+ * Normalize a series of callbacks that may or may not return promises, while staying synchronous wherever possible.
  */
-export function onResolve<TValue, TRet>(
-  maybePromise: TValue,
-  resolveCallback: (value: UnwrapPromise<TValue>) => TRet,
-): MaybePromise<TRet> {
-  if (maybePromise instanceof Promise) {
-    return maybePromise.then(resolveCallback) as MaybePromise<TRet>;
+export function runSequence<T1, T2>(
+  call1: (abort: () => void) => T1,
+  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
+): MaybePromise<T2>;
+export function runSequence<T1, T2, T3>(
+  call1: (abort: () => void) => T1,
+  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
+  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
+): MaybePromise<T3>;
+export function runSequence<T1, T2, T3, T4>(
+  call1: (abort: () => void) => T1,
+  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
+  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
+  call4: (abort: () => void, value: UnwrapPromise<T3>) => T4,
+): MaybePromise<T4>;
+export function runSequence<T1, T2, T3, T4, T5>(
+  call1: (abort: () => void) => T1,
+  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
+  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
+  call4: (abort: () => void, value: UnwrapPromise<T3>) => T4,
+  call5: (abort: () => void, value: UnwrapPromise<T4>) => T5,
+): MaybePromise<T5>;
+export function runSequence<T1, T2, T3, T4, T5, T6>(
+  call1: (abort: () => void) => T1,
+  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
+  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
+  call4: (abort: () => void, value: UnwrapPromise<T3>) => T4,
+  call5: (abort: () => void, value: UnwrapPromise<T4>) => T5,
+  call6: (abort: () => void, value: UnwrapPromise<T5>) => T6,
+): MaybePromise<T6>;
+export function runSequence<T1, T2, T3, T4, T5, T6, T7>(
+  call1: (abort: () => void) => T1,
+  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
+  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
+  call4: (abort: () => void, value: UnwrapPromise<T3>) => T4,
+  call5: (abort: () => void, value: UnwrapPromise<T4>) => T5,
+  call6: (abort: () => void, value: UnwrapPromise<T5>) => T6,
+  call7: (abort: () => void, value: UnwrapPromise<T6>) => T7,
+): MaybePromise<T7>;
+export function runSequence<T1, T2, T3, T4, T5, T6, T7, T8>(
+  call1: (abort: () => void) => T1,
+  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
+  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
+  call4: (abort: () => void, value: UnwrapPromise<T3>) => T4,
+  call5: (abort: () => void, value: UnwrapPromise<T4>) => T5,
+  call6: (abort: () => void, value: UnwrapPromise<T5>) => T6,
+  call7: (abort: () => void, value: UnwrapPromise<T6>) => T7,
+  call8: (abort: () => void, value: UnwrapPromise<T7>) => T8,
+): MaybePromise<T8>;
+export function runSequence<T1, T2, T3, T4, T5, T6, T7, T8, T9>(
+  call1: (abort: () => void) => T1,
+  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
+  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
+  call4: (abort: () => void, value: UnwrapPromise<T3>) => T4,
+  call5: (abort: () => void, value: UnwrapPromise<T4>) => T5,
+  call6: (abort: () => void, value: UnwrapPromise<T5>) => T6,
+  call7: (abort: () => void, value: UnwrapPromise<T6>) => T7,
+  call8: (abort: () => void, value: UnwrapPromise<T7>) => T8,
+  call9: (abort: () => void, value: UnwrapPromise<T8>) => T9,
+): MaybePromise<T9>;
+export function runSequence(
+  ...calls: ((abort: () => void, value: unknown) => unknown)[]
+): unknown {
+  let aborted = false;
+  function abort(): void {
+    aborted = true;
   }
-  return resolveCallback(maybePromise as UnwrapPromise<TValue>) as MaybePromise<TRet>;
+
+  function runNext(prevResult: unknown): unknown {
+    if (aborted) {
+      return prevResult;
+    }
+
+    const nextCall = calls.shift()!;
+    const nextValue = nextCall(abort, prevResult);
+    if (calls.length === 0) {
+      return nextValue;
+    }
+
+    if (nextValue instanceof Promise) {
+      return nextValue.then(runNext);
+    }
+
+    return runNext(nextValue);
+  }
+
+  return runNext(void 0);
 }
 
 /**
@@ -44,11 +121,11 @@ export function resolveAll(
     case 1:
       return promises[0];
     default:
-      return Promise.all(promises).then() as unknown as Promise<void>;
+      return Promise.all(promises) as unknown as Promise<void>;
   }
 }
 
-export function walkViewportTree<R extends void | Promise<void>>(
+export function traverse<R extends void | Promise<void>>(
   direction: 'bottom-up' | 'top-down',
   nodes: RouteNode[],
   callback: (viewportAgent: ViewportAgent) => R,
@@ -80,25 +157,25 @@ export function walkViewportTree<R extends void | Promise<void>>(
     return result as R;
   }
 
-  let result: void | Promise<void>;
-  switch (direction) {
-    case 'bottom-up':
-      result = resolveAll(nodes.map(function traverse(node): R {
-        return onResolve(resolveAll(node.children.map(traverse)), function () {
-          return cachedCallback(node.context.vpa);
-        }) as R;
-      }));
-      break;
-    case 'top-down':
-      result = resolveAll(nodes.map(function traverse(node): R {
-        return onResolve(cachedCallback(node.context.vpa), function () {
-          return resolveAll(node.children.map(traverse));
-        }) as R;
-      }));
-      break;
-  }
-
-  return onResolve(result, function () {
-    cache.clear();
-  }) as R;
+  return runSequence(
+    () => {
+      switch (direction) {
+        case 'bottom-up':
+          return resolveAll(nodes.map(function dive(node): R {
+            return runSequence(
+              () => { return resolveAll(node.children.map(dive)); },
+              () => { return cachedCallback(node.context.vpa); },
+            ) as R;
+          }));
+        case 'top-down':
+          return resolveAll(nodes.map(function dive(node): R {
+            return runSequence(
+              () => { return cachedCallback(node.context.vpa); },
+              () => { return resolveAll(node.children.map(dive)); },
+            ) as R;
+          }));
+      }
+    },
+    () => { cache.clear(); },
+  ) as R;
 }

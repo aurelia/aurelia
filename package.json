@@ -111,7 +111,7 @@
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^4.0.2",
     "lerna": "^3.19.0",
-    "lodash": "4.17.15",
+    "lodash": "4.17.19",
     "magic-string": "^0.25.4",
     "marked": "^0.8.0",
     "mocha": "~6.1.4",

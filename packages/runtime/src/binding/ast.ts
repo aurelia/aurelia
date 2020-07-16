@@ -139,6 +139,13 @@ export function isPureLiteral(expr: IsExpressionOrStatement): expr is IsLiteral 
   return false;
 }
 
+function chooseScope(accessHostScope: boolean, scope: IScope, hostScope: IScope | null | undefined){
+  if (accessHostScope) {
+    if (hostScope === null || hostScope === void 0) { throw new Error('Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?'); }
+    return hostScope;
+  }
+  return scope;
+}
 const enum RuntimeError {
   NoLocator = 202,
   NoBehaviorFound = 203,
@@ -259,7 +266,7 @@ export class ValueConverterExpression implements IValueConverterExpression {
       }
       return (converter.toView.call as (...args: unknown[]) => void)(converter, ...result);
     }
-    return this.expression.evaluate(flags, scope, locator, hostScope, part);
+    return this.expression.evaluate(flags, scope, locator, hostScope, part, projection);
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): unknown {
@@ -447,7 +454,7 @@ export class AccessScopeExpression implements IAccessScopeExpression {
   ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): IBindingContext | IBinding | IOverrideContext {
-    const obj = BindingContext.get(this.getScope(scope, hostScope), this.name, this.ancestor, flags, part, projection) as IBindingContext;
+    const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, part, projection) as IBindingContext;
     const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (flags & LifecycleFlags.isStrictBindingStrategy) {
       return evaluatedValue;
@@ -456,7 +463,7 @@ export class AccessScopeExpression implements IAccessScopeExpression {
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): unknown {
-    const obj = BindingContext.get(this.getScope(scope, hostScope), this.name, this.ancestor, flags, part, projection) as IBindingContext;
+    const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, part, projection) as IBindingContext;
     if (obj instanceof Object) {
       if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
         obj.$observers[this.name].setValue(value, flags);
@@ -469,14 +476,8 @@ export class AccessScopeExpression implements IAccessScopeExpression {
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): void {
-    const context = BindingContext.get(this.getScope(scope, hostScope), this.name, this.ancestor, flags, part, projection)!;
+    const context = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, part, projection)!;
     binding.observeProperty(flags, context, this.name);
-  }
-
-  private getScope(scope: IScope, hostScope: IScope | null | undefined) {
-    scope = this.accessHostScope ? hostScope! : scope;
-    if (scope === null || scope === void 0) { throw new Error('Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?'); }
-    return scope;
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -581,8 +582,7 @@ export class CallScopeExpression implements ICallScopeExpression {
   ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): unknown {
-    scope = this.accessHostScope ? hostScope! : scope;
-    if (scope === null || scope === void 0) { throw new Error('Host scope is missing.'); }
+    scope = chooseScope(this.accessHostScope, scope, hostScope);
     const args = evalList(flags, scope, locator, this.args, hostScope, part, projection);
     const context = BindingContext.get(scope, this.name, this.ancestor, flags, part, projection)!;
     const func = getFunction(flags, context, this.name);

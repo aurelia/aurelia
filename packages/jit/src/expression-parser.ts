@@ -892,7 +892,7 @@ function consume(state: ParserState, token: Token): void {
  * Usage: TokenValues[token & Token.Type]
  */
 const TokenValues = [
-  $false, $true, $null, $undefined, '$this', '$parent',
+  $false, $true, $null, $undefined, '$this', '$host', '$parent',
 
   '(', '{', '.', '}', ')', ',', '[', ']', ':', '?', '\'', '"',
 

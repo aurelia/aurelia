@@ -135,11 +135,11 @@ export class Controller<
     parentName = parentName.length > 0 ? `${parentName} -> ` : '';
     switch (this.vmKind) {
       case ViewModelKind.customAttribute:
-        return `${parentName}Attribute<${this.viewModel!.constructor.name}>`;
+        return `${parentName}Attribute<${this.viewModel?.constructor.name}>`;
       case ViewModelKind.customElement:
-        return `${parentName}Element<${this.viewModel!.constructor.name}>`;
+        return `${parentName}Element<${this.viewModel?.constructor.name}>`;
       case ViewModelKind.synthetic:
-        return `${parentName}View<${this.viewFactory!.name}>`;
+        return `${parentName}View<${this.viewFactory?.name}>`;
     }
   }
 
@@ -775,6 +775,7 @@ export class Controller<
       case State.none:
       case State.deactivated:
       case State.disposed:
+      case State.deactivated | State.disposed:
         // If we're already deactivated (or even disposed), or never activated in the first place, no need to do anything.
         return;
       default:

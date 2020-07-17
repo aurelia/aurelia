@@ -179,3 +179,20 @@ export function traverse<R extends void | Promise<void>>(
     () => { cache.clear(); },
   ) as R;
 }
+
+export type ExposedPromise<T> = Promise<T> & {
+  resolve(value?: T): void;
+  reject(reason?: unknown): void;
+};
+
+export function createExposedPromise<T>(): ExposedPromise<T> {
+  let $resolve: (value?: T) => void = (void 0)!;
+  let $reject: (reason?: unknown) => void = (void 0)!;
+  const promise = new Promise(function (resolve, reject) {
+    $resolve = resolve;
+    $reject = reject;
+  }) as ExposedPromise<T>;
+  promise.resolve = $resolve;
+  promise.reject = $reject;
+  return promise;
+}

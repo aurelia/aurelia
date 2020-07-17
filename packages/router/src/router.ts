@@ -209,17 +209,17 @@ export class RouterOptions {
 
   protected stringifyProperties(): string {
     return ([
-      'routingMode',
-      'resolutionStrategy',
-      'swapStrategy',
-      'lifecycleStrategy',
-      'queryParamsStrategy',
-      'fragmentStrategy',
-      'historyStrategy',
-      'sameUrlStrategy',
-    ] as const).map(key => {
+      ['routingMode', 'mode'],
+      ['resolutionStrategy', 'resolution'],
+      ['swapStrategy', 'swap'],
+      ['lifecycleStrategy', 'lifecycle'],
+      ['queryParamsStrategy', 'queryParams'],
+      ['fragmentStrategy', 'fragment'],
+      ['historyStrategy', 'history'],
+      ['sameUrlStrategy', 'sameUrl'],
+    ] as const).map(([key, name]) => {
       const value = this[key];
-      return `${key}:${typeof value === 'function' ? value : `'${value}'`}`;
+      return `${name}:${typeof value === 'function' ? value : `'${value}'`}`;
     }).join(',');
   }
 

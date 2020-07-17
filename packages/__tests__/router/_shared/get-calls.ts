@@ -1,788 +1,218 @@
+/* eslint-disable no-fallthrough */
 import { IRouterOptionsSpec, IComponentSpec } from '../_hook-tests.spec';
 
-function deactivate(
+function* deactivate(
   prefix: string,
   component: string,
-): string[] {
-  return [
-    `${prefix}.${component}.beforeDetach`,
-    `${prefix}.${component}.beforeUnbind`,
-    `${prefix}.${component}.afterUnbind`,
-  ];
+  afterChildren: boolean,
+  leave: boolean,
+) {
+  if (leave) {
+    yield `${prefix}.${component}.leave`;
+  }
+  yield `${prefix}.${component}.beforeDetach`;
+  yield `${prefix}.${component}.beforeUnbind`;
+  yield `${prefix}.${component}.afterUnbind`;
+  if (afterChildren) {
+    yield `${prefix}.${component}.afterUnbindChildren`;
+    yield `${prefix}.${component}.dispose`;
+  }
 }
 
-function activate(
+function* activate(
   prefix: string,
   component: string,
-): string[] {
-  return [
-    `${prefix}.${component}.beforeBind`,
-    `${prefix}.${component}.afterBind`,
-    `${prefix}.${component}.afterAttach`,
-  ];
+  afterChildren: boolean,
+  enter: boolean,
+) {
+  if (enter) {
+    yield `${prefix}.${component}.enter`;
+  }
+  yield `${prefix}.${component}.beforeBind`;
+  yield `${prefix}.${component}.afterBind`;
+  yield `${prefix}.${component}.afterAttach`;
+  if (afterChildren) {
+    yield `${prefix}.${component}.afterAttachChildren`;
+  }
 }
 
-function interleave(
-  ...arrs: string[][]
-): string[] {
-  const result: string[] = [];
-  while (arrs.length > 0) {
-    for (let i = 0, ii = arrs.length; i < ii; ++i) {
-      const arr = arrs[i];
-      result.push(arr.shift());
-      if (arr.length === 0) {
-        arrs.splice(i, 1);
+function* interleave(
+  ...generators: Generator<string, void>[]
+) {
+  while (generators.length > 0) {
+    for (let i = 0, ii = generators.length; i < ii; ++i) {
+      const gen = generators[i];
+      const next = gen.next();
+      if (next.done) {
+        generators.splice(i, 1);
         --i;
         --ii;
+      } else {
+        yield next.value as string;
       }
     }
   }
-  return result;
 }
 
 export const getStopPhaseCalls = {
-  '$x -> ""'(
+  *'$x -> ""'(
     prefix: string,
     $x: string,
-  ): string[] {
-    return [
-      ...deactivate(prefix, $x),
-      `${prefix}.${$x}.afterUnbindChildren`,
-    ];
+  ) {
+    yield* deactivate(prefix, $x, false, false);
+    yield `${prefix}.${$x}.afterUnbindChildren`;
   },
-  '$x$0+$x$1 -> ""'(
+  *'$x$0+$x$1 -> ""'(
     prefix: string,
     $x$0: string,
     $x$1: string,
     comp: IComponentSpec,
-  ): string[] {
-    if ($x$0 === '') {
-      return getStopPhaseCalls['$x -> ""'](prefix, $x$1);
-    }
-
-    if ($x$1 === '') {
-      return getStopPhaseCalls['$x -> ""'](prefix, $x$0);
-    }
+  ) {
+    if ($x$0.length === 0) { return yield* getStopPhaseCalls['$x -> ""'](prefix, $x$1); }
+    if ($x$1.length === 0) { return yield* getStopPhaseCalls['$x -> ""'](prefix, $x$0); }
 
     switch (comp.kind) {
-      case 'all-async': {
-        return [
-          ...interleave(
-            deactivate(prefix, $x$0),
-            deactivate(prefix, $x$1),
-          ),
-          `${prefix}.${$x$0}.afterUnbindChildren`,
-          `${prefix}.${$x$1}.afterUnbindChildren`,
-        ];
-      }
-      case 'all-sync': {
+      case 'all-async':
+        yield* interleave(
+          deactivate(prefix, $x$0, false, false),
+          deactivate(prefix, $x$1, false, false),
+        );
+        yield `${prefix}.${$x$0}.afterUnbindChildren`;
+        yield `${prefix}.${$x$1}.afterUnbindChildren`;
+        break;
+      case 'all-sync':
         // In 'stop' phase, reason the last two hooks are ordered the way they are is
         // because the controllers are linked to the parent controller in `deactivate` and so those hooks only
         // happen after everything else happened.
         // This linking does not occur in the same way when controllers are deactivated in isolation by the router.
-        return [
-          ...deactivate(prefix, $x$0),
-          ...deactivate(prefix, $x$1),
-          `${prefix}.${$x$0}.afterUnbindChildren`,
-          `${prefix}.${$x$1}.afterUnbindChildren`,
-        ];
-      }
+        yield* deactivate(prefix, $x$0, false, false);
+        yield* deactivate(prefix, $x$1, false, false);
+        yield `${prefix}.${$x$0}.afterUnbindChildren`;
+        yield `${prefix}.${$x$1}.afterUnbindChildren`;
+        break;
     }
   },
-  '$x$p/$x$c -> ""'(
+  *'$x$p/$x$c -> ""'(
     prefix: string,
     $x$p: string,
     $x$c: string,
-  ): string[] {
-    if ($x$c === '') {
-      return getStopPhaseCalls['$x -> ""'](prefix, $x$p);
-    }
+  ) {
+    if ($x$c.length === 0) { return yield* getStopPhaseCalls['$x -> ""'](prefix, $x$p); }
 
-    return [
-      ...deactivate(prefix, $x$p),
-      ...deactivate(prefix, $x$c),
-      `${prefix}.${$x$c}.afterUnbindChildren`,
-      `${prefix}.${$x$p}.afterUnbindChildren`,
-    ];
+    yield* deactivate(prefix, $x$p, false, false);
+    yield* deactivate(prefix, $x$c, false, false);
+    yield `${prefix}.${$x$c}.afterUnbindChildren`;
+    yield `${prefix}.${$x$p}.afterUnbindChildren`;
   },
 };
 
 export const getAsyncCalls = {
-  '$x -> ""'(
+  *'$x -> ""'(
     prefix: string,
     $x: string,
-  ): string[] {
-    return [
-      `${prefix}.${$x}.canLeave`,
-      `${prefix}.${$x}.leave`,
-
-      ...deactivate(prefix, $x),
-      `${prefix}.${$x}.afterUnbindChildren`,
-      `${prefix}.${$x}.dispose`,
-    ];
+  ) {
+    yield `${prefix}.${$x}.canLeave`;
+    yield* deactivate(prefix, $x, true, true);
   },
-  '"" -> $x'(
+  *'"" -> $x'(
     prefix: string,
     $x: string,
-  ): string[] {
-    return [
-      `${prefix}.${$x}.canEnter`,
-      `${prefix}.${$x}.enter`,
-
-      ...activate(prefix, $x),
-      `${prefix}.${$x}.afterAttachChildren`,
-    ];
+  ) {
+    yield `${prefix}.${$x}.canEnter`;
+    yield* activate(prefix, $x, true, true);
   },
-  '$1 -> $2'(
+  *'$1 -> $2'(
     prefix: string,
     $1: string,
     $2: string,
     opts: IRouterOptionsSpec,
     comp: IComponentSpec,
-  ): string[] {
-    if ($1 === '') {
-      return getAsyncCalls['"" -> $x'](prefix, $2);
-    }
+  ) {
+    if ($1.length === 0) { return yield* getAsyncCalls['"" -> $x'](prefix, $2); }
+    if ($2.length === 0) { return yield* getAsyncCalls['$x -> ""'](prefix, $1); }
 
-    if ($2 === '') {
-      return getAsyncCalls['$x -> ""'](prefix, $1);
-    }
+    yield `${prefix}.${$1}.canLeave`;
+    yield `${prefix}.${$2}.canEnter`;
 
-    let routerHooks: string[];
     switch (opts.lifecycleStrategy) {
-      case 'phased': {
-        routerHooks = [
-          `${prefix}.${$1}.canLeave`,
-          `${prefix}.${$2}.canEnter`,
-          `${prefix}.${$1}.leave`,
-          `${prefix}.${$2}.enter`,
-        ];
+      case 'phased':
+        yield `${prefix}.${$1}.leave`;
+        yield `${prefix}.${$2}.enter`;
         break;
-      }
-      case 'parallel': {
+      case 'parallel':
         // Note: in parallel mode, the swapStrategy does affect the order in which the router hooks are invoked, but this is not necessarily part of
         // the "contract" that is fulfilled by the swapStrategy. It's just an effect of the way it's implemented, which happens to make it look like
         // the router hooks are part of the swap, but they aren't. This can easily be demonstrated by having the enter and leave hooks wait a different
         // amount of time: the activate/deactivate invocations will still be aligned.
         switch (opts.swapStrategy) {
           case 'parallel':
-          case 'add-first': {
-            routerHooks = [
-              `${prefix}.${$1}.canLeave`,
-              `${prefix}.${$2}.canEnter`,
-              `${prefix}.${$2}.enter`,
-              `${prefix}.${$1}.leave`,
-            ];
+          case 'add-first':
+            yield `${prefix}.${$2}.enter`;
+            yield `${prefix}.${$1}.leave`;
             break;
-          }
-          case 'remove-first': {
-            routerHooks = [
-              `${prefix}.${$1}.canLeave`,
-              `${prefix}.${$2}.canEnter`,
-              `${prefix}.${$1}.leave`,
-              `${prefix}.${$2}.enter`,
-            ];
+          case 'remove-first':
+            yield `${prefix}.${$1}.leave`;
+            yield `${prefix}.${$2}.enter`;
             break;
-          }
         }
-      }
     }
 
     switch (opts.swapStrategy) {
-      case 'parallel': {
-        return [
-          ...routerHooks,
-          ...interleave(
-            deactivate(prefix, $1),
-            activate(prefix, $2),
-          ),
-          `${prefix}.${$1}.afterUnbindChildren`,
-          `${prefix}.${$2}.afterAttachChildren`,
-          `${prefix}.${$1}.dispose`,
-        ];
-      }
-      case 'remove-first': {
-        return [
-          ...routerHooks,
-          ...deactivate(prefix, $1),
-          `${prefix}.${$1}.afterUnbindChildren`,
-          `${prefix}.${$1}.dispose`,
-          ...activate(prefix, $2),
-          `${prefix}.${$2}.afterAttachChildren`,
-        ];
-      }
-      case 'add-first': {
-        return [
-          ...routerHooks,
-          ...activate(prefix, $2),
-          `${prefix}.${$2}.afterAttachChildren`,
-          ...deactivate(prefix, $1),
-          `${prefix}.${$1}.afterUnbindChildren`,
-          `${prefix}.${$1}.dispose`,
-        ];
-      }
+      case 'parallel':
+        yield* interleave(
+          deactivate(prefix, $1, true, false),
+          activate(prefix, $2, true, false),
+        );
+        break;
+      case 'remove-first':
+        yield* deactivate(prefix, $1, true, false);
+        yield* activate(prefix, $2, true, false);
+        break;
+      case 'add-first':
+        yield* activate(prefix, $2, true, false);
+        yield* deactivate(prefix, $1, true, false);
+        break;
     }
   },
-  '"" -> $x$0+$x$1'(
+  *'"" -> $x$0+$x$1'(
     prefix: string,
     $x$0: string,
     $x$1: string,
     opts: IRouterOptionsSpec,
     comp: IComponentSpec,
-  ): string[] {
-    if ($x$0 === '') {
-      return getAsyncCalls['"" -> $x'](prefix, $x$1);
-    }
+  ) {
+    if ($x$0.length === 0) { return yield* getAsyncCalls['"" -> $x'](prefix, $x$1); }
+    if ($x$1.length === 0) { return yield* getAsyncCalls['"" -> $x'](prefix, $x$0); }
 
-    if ($x$1 === '') {
-      return getAsyncCalls['"" -> $x'](prefix, $x$0);
-    }
-
-    return [
-      `${prefix}.${$x$0}.canEnter`,
-      `${prefix}.${$x$1}.canEnter`,
-      `${prefix}.${$x$0}.enter`,
-      `${prefix}.${$x$1}.enter`,
-      ...interleave(
-        activate(prefix, $x$0),
-        activate(prefix, $x$1),
-      ),
-      `${prefix}.${$x$0}.afterAttachChildren`,
-      `${prefix}.${$x$1}.afterAttachChildren`,
-    ];
+    yield `${prefix}.${$x$0}.canEnter`;
+    yield `${prefix}.${$x$1}.canEnter`;
+    yield* interleave(
+      activate(prefix, $x$0, true, true),
+      activate(prefix, $x$1, true, true),
+    );
   },
-  '$x$0+$x$1 -> ""'(
+  *'$x$0+$x$1 -> ""'(
     prefix: string,
     $x$0: string,
     $x$1: string,
     opts: IRouterOptionsSpec,
     comp: IComponentSpec,
-  ): string[] {
-    if ($x$0 === '') {
-      return getAsyncCalls['$x -> ""'](prefix, $x$1);
-    }
+  ) {
+    if ($x$0.length === 0) { return yield* getAsyncCalls['$x -> ""'](prefix, $x$1); }
+    if ($x$1.length === 0) { return yield* getAsyncCalls['$x -> ""'](prefix, $x$0); }
 
-    if ($x$1 === '') {
-      return getAsyncCalls['$x -> ""'](prefix, $x$0);
-    }
-
-    return [
-      `${prefix}.${$x$0}.canLeave`,
-      `${prefix}.${$x$1}.canLeave`,
-      `${prefix}.${$x$0}.leave`,
-      `${prefix}.${$x$1}.leave`,
-      ...interleave(
-        deactivate(prefix, $x$0),
-        deactivate(prefix, $x$1),
-      ),
-      `${prefix}.${$x$0}.afterUnbindChildren`,
-      `${prefix}.${$x$1}.afterUnbindChildren`,
-      `${prefix}.${$x$1}.dispose`,
-      `${prefix}.${$x$0}.dispose`,
-    ];
+    yield `${prefix}.${$x$0}.canLeave`;
+    yield `${prefix}.${$x$1}.canLeave`;
+    yield* interleave(
+      deactivate(prefix, $x$0, false, true),
+      deactivate(prefix, $x$1, false, true),
+    );
+    yield `${prefix}.${$x$0}.afterUnbindChildren`;
+    yield `${prefix}.${$x$1}.afterUnbindChildren`;
+    yield `${prefix}.${$x$1}.dispose`;
+    yield `${prefix}.${$x$0}.dispose`;
   },
-  '$1$0+$1$1 -> $2$0'(
-    prefix: string,
-    $1$0: string,
-    $1$1: string,
-    $2$0: string,
-    opts: IRouterOptionsSpec,
-    comp: IComponentSpec,
-  ): string[] {
-    let routerHooks: string[];
-    switch (opts.lifecycleStrategy) {
-      case 'phased': {
-        routerHooks = [
-          `${prefix}.${$1$0}.canLeave`,
-          `${prefix}.${$1$1}.canLeave`,
-          `${prefix}.${$2$0}.canEnter`,
-          `${prefix}.${$1$0}.leave`,
-          `${prefix}.${$1$1}.leave`,
-          `${prefix}.${$2$0}.enter`,
-        ];
-        break;
-      }
-      case 'parallel': {
-        switch (opts.swapStrategy) {
-          case 'parallel':
-          case 'add-first': {
-            routerHooks = [
-              `${prefix}.${$1$0}.canLeave`,
-              `${prefix}.${$1$1}.canLeave`,
-              `${prefix}.${$2$0}.canEnter`,
-              `${prefix}.${$2$0}.enter`,
-              `${prefix}.${$1$0}.leave`,
-              `${prefix}.${$1$1}.leave`,
-            ];
-            break;
-          }
-          case 'remove-first': {
-            routerHooks = [
-              `${prefix}.${$1$0}.canLeave`,
-              `${prefix}.${$1$1}.canLeave`,
-              `${prefix}.${$2$0}.canEnter`,
-              `${prefix}.${$1$0}.leave`,
-              `${prefix}.${$1$1}.leave`,
-              `${prefix}.${$2$0}.enter`,
-            ];
-            break;
-          }
-        }
-      }
-    }
-
-    switch (opts.swapStrategy) {
-      case 'parallel': {
-        return [
-          ...routerHooks,
-          ...interleave(
-            [
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-            ],
-            [
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-            ],
-            [
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ],
-          ),
-        ];
-      }
-      case 'remove-first': {
-        return [
-          ...routerHooks,
-          ...interleave(
-            [
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ],
-            [
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-            ],
-          ),
-          ...activate(prefix, $2$0),
-          `${prefix}.${$2$0}.afterAttachChildren`,
-        ];
-      }
-      case 'add-first': {
-        return [
-          ...routerHooks,
-          ...interleave(
-            [
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-            ],
-            [
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ],
-          ),
-          ...deactivate(prefix, $1$0),
-          `${prefix}.${$1$0}.afterUnbindChildren`,
-          `${prefix}.${$1$0}.dispose`,
-        ];
-      }
-    }
-  },
-  '$1$0+$1$1 -> $2$1'(
-    prefix: string,
-    $1$0: string,
-    $1$1: string,
-    $2$1: string,
-    opts: IRouterOptionsSpec,
-    comp: IComponentSpec,
-  ): string[] {
-    let routerHooks: string[];
-    switch (opts.lifecycleStrategy) {
-      case 'phased': {
-        routerHooks = [
-          `${prefix}.${$1$0}.canLeave`,
-          `${prefix}.${$1$1}.canLeave`,
-          `${prefix}.${$2$1}.canEnter`,
-          `${prefix}.${$1$0}.leave`,
-          `${prefix}.${$1$1}.leave`,
-          `${prefix}.${$2$1}.enter`,
-        ];
-        break;
-      }
-      case 'parallel': {
-        switch (opts.swapStrategy) {
-          case 'parallel':
-          case 'add-first': {
-            routerHooks = [
-              `${prefix}.${$1$0}.canLeave`,
-              `${prefix}.${$1$1}.canLeave`,
-              `${prefix}.${$2$1}.canEnter`,
-              `${prefix}.${$2$1}.enter`,
-              `${prefix}.${$1$0}.leave`,
-              `${prefix}.${$1$1}.leave`,
-            ];
-            break;
-          }
-          case 'remove-first': {
-            routerHooks = [
-              `${prefix}.${$1$0}.canLeave`,
-              `${prefix}.${$1$1}.canLeave`,
-              `${prefix}.${$2$1}.canEnter`,
-              `${prefix}.${$1$0}.leave`,
-              `${prefix}.${$1$1}.leave`,
-              `${prefix}.${$2$1}.enter`,
-            ];
-            break;
-          }
-        }
-      }
-    }
-
-    switch (opts.swapStrategy) {
-      case 'parallel': {
-        return [
-          ...routerHooks,
-          ...interleave(
-            [
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-            ],
-            [
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ],
-            [
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ],
-          ),
-        ];
-      }
-      case 'remove-first': {
-        return [
-          ...routerHooks,
-          ...interleave(
-            [
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-            ],
-            [
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ],
-          ),
-          ...activate(prefix, $2$1),
-          `${prefix}.${$2$1}.afterAttachChildren`,
-        ];
-      }
-      case 'add-first': {
-        return [
-          ...routerHooks,
-          ...interleave(
-            [
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-            ],
-            [
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ],
-          ),
-          ...deactivate(prefix, $1$1),
-          `${prefix}.${$1$1}.afterUnbindChildren`,
-          `${prefix}.${$1$1}.dispose`,
-        ];
-      }
-    }
-  },
-  '$1$0 -> $2$0+$2$1'(
-    prefix: string,
-    $1$0: string,
-    $2$0: string,
-    $2$1: string,
-    opts: IRouterOptionsSpec,
-    comp: IComponentSpec,
-  ): string[] {
-    let routerHooks: string[];
-    switch (opts.lifecycleStrategy) {
-      case 'phased': {
-        routerHooks = [
-          `${prefix}.${$1$0}.canLeave`,
-          `${prefix}.${$2$0}.canEnter`,
-          `${prefix}.${$2$1}.canEnter`,
-          `${prefix}.${$1$0}.leave`,
-          `${prefix}.${$2$0}.enter`,
-          `${prefix}.${$2$1}.enter`,
-        ];
-        break;
-      }
-      case 'parallel': {
-        switch (opts.swapStrategy) {
-          case 'parallel':
-          case 'add-first': {
-            routerHooks = [
-              `${prefix}.${$1$0}.canLeave`,
-              `${prefix}.${$2$0}.canEnter`,
-              `${prefix}.${$2$1}.canEnter`,
-              `${prefix}.${$2$0}.enter`,
-              `${prefix}.${$2$1}.enter`,
-              `${prefix}.${$1$0}.leave`,
-            ];
-            break;
-          }
-          case 'remove-first': {
-            routerHooks = [
-              `${prefix}.${$1$0}.canLeave`,
-              `${prefix}.${$2$0}.canEnter`,
-              `${prefix}.${$2$1}.canEnter`,
-              `${prefix}.${$1$0}.leave`,
-              `${prefix}.${$2$0}.enter`,
-              `${prefix}.${$2$1}.enter`,
-            ];
-            break;
-          }
-        }
-      }
-    }
-
-    switch (opts.swapStrategy) {
-      case 'parallel': {
-        return [
-          ...routerHooks,
-          ...interleave(
-            [
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ],
-            [
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-            ],
-            [
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-            ],
-          ),
-        ];
-      }
-      case 'remove-first': {
-        return [
-          ...routerHooks,
-          ...interleave(
-            [
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-            ],
-            [
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ],
-          ),
-          ...activate(prefix, $2$0),
-          `${prefix}.${$2$0}.afterAttachChildren`,
-        ];
-      }
-      case 'add-first': {
-        return [
-          ...routerHooks,
-          ...interleave(
-            [
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ],
-            [
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-            ],
-          ),
-          ...deactivate(prefix, $1$0),
-          `${prefix}.${$1$0}.afterUnbindChildren`,
-          `${prefix}.${$1$0}.dispose`,
-        ];
-      }
-    }
-  },
-  '$1$1 -> $2$0+$2$1'(
-    prefix: string,
-    $1$1: string,
-    $2$0: string,
-    $2$1: string,
-    opts: IRouterOptionsSpec,
-    comp: IComponentSpec,
-  ): string[] {
-    switch (opts.lifecycleStrategy) {
-      case 'phased': {
-        const routerHooks = [
-          `${prefix}.${$1$1}.canLeave`,
-          `${prefix}.${$2$0}.canEnter`,
-          `${prefix}.${$2$1}.canEnter`,
-          `${prefix}.${$1$1}.leave`,
-          `${prefix}.${$2$0}.enter`,
-          `${prefix}.${$2$1}.enter`,
-        ];
-
-        switch (opts.swapStrategy) {
-          case 'parallel': {
-            return [
-              ...routerHooks,
-              ...interleave(
-                [
-                  ...activate(prefix, $2$0),
-                  `${prefix}.${$2$0}.afterAttachChildren`,
-                ],
-                [
-                  ...deactivate(prefix, $1$1),
-                  `${prefix}.${$1$1}.afterUnbindChildren`,
-                  `${prefix}.${$1$1}.dispose`,
-                ],
-                [
-                  ...activate(prefix, $2$1),
-                  `${prefix}.${$2$1}.afterAttachChildren`,
-                ],
-              ),
-            ];
-          }
-          case 'remove-first': {
-            return [
-              ...routerHooks,
-              ...interleave(
-                [
-                  ...activate(prefix, $2$0),
-                  `${prefix}.${$2$0}.afterAttachChildren`,
-                ],
-                [
-                  ...deactivate(prefix, $1$1),
-                  `${prefix}.${$1$1}.afterUnbindChildren`,
-                  `${prefix}.${$1$1}.dispose`,
-                ],
-              ),
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ];
-          }
-          case 'add-first': {
-            return [
-              ...routerHooks,
-              ...interleave(
-                [
-                  ...activate(prefix, $2$0),
-                  `${prefix}.${$2$0}.afterAttachChildren`,
-                ],
-                [
-                  ...activate(prefix, $2$1),
-                  `${prefix}.${$2$1}.afterAttachChildren`,
-                ],
-              ),
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ];
-          }
-        }
-        break;
-      }
-      case 'parallel': {
-        let routerHooks: string[];
-        switch (opts.swapStrategy) {
-          case 'parallel':
-          case 'add-first': {
-            routerHooks = [
-              `${prefix}.${$1$1}.canLeave`,
-              `${prefix}.${$2$0}.canEnter`,
-              `${prefix}.${$2$1}.canEnter`,
-              `${prefix}.${$2$0}.enter`,
-              `${prefix}.${$2$1}.enter`,
-              `${prefix}.${$1$1}.leave`,
-            ];
-            break;
-          }
-          case 'remove-first': {
-            routerHooks = [
-              `${prefix}.${$1$1}.canLeave`,
-              `${prefix}.${$2$0}.canEnter`,
-              `${prefix}.${$2$1}.canEnter`,
-              `${prefix}.${$1$1}.leave`,
-              `${prefix}.${$2$0}.enter`,
-              `${prefix}.${$2$1}.enter`,
-            ];
-            break;
-          }
-        }
-
-        switch (opts.swapStrategy) {
-          case 'parallel': {
-            return [
-              ...routerHooks,
-              ...interleave(
-                [
-                  ...activate(prefix, $2$0),
-                  `${prefix}.${$2$0}.afterAttachChildren`,
-                ],
-                [
-                  ...deactivate(prefix, $1$1),
-                  `${prefix}.${$1$1}.afterUnbindChildren`,
-                  `${prefix}.${$1$1}.dispose`,
-                ],
-                [
-                  ...activate(prefix, $2$1),
-                  `${prefix}.${$2$1}.afterAttachChildren`,
-                ],
-              ),
-            ];
-          }
-          case 'remove-first': {
-            return [
-              ...routerHooks,
-              ...interleave(
-                [
-                  ...activate(prefix, $2$0),
-                  `${prefix}.${$2$0}.afterAttachChildren`,
-                ],
-                [
-                  ...deactivate(prefix, $1$1),
-                  `${prefix}.${$1$1}.afterUnbindChildren`,
-                  `${prefix}.${$1$1}.dispose`,
-                ],
-              ),
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ];
-          }
-          case 'add-first': {
-            return [
-              ...routerHooks,
-              ...interleave(
-                [
-                  ...activate(prefix, $2$0),
-                  `${prefix}.${$2$0}.afterAttachChildren`,
-                ],
-                [
-                  ...activate(prefix, $2$1),
-                  `${prefix}.${$2$1}.afterAttachChildren`,
-                ],
-              ),
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ];
-          }
-        }
-      }
-    }
-  },
-  '$1$0+$1$1 -> $2$0+$2$1'(
+  *'$1$0+$1$1 -> $2$0+$2$1'(
     prefix: string,
     $1$0: string,
     $1$1: string,
@@ -790,713 +220,199 @@ export const getAsyncCalls = {
     $2$1: string,
     opts: IRouterOptionsSpec,
     comp: IComponentSpec,
-  ): string[] {
-    if ($1$0 === $2$0) {
-      return getAsyncCalls['$1 -> $2'](prefix, $1$1, $2$1, opts, comp);
+  ) {
+    if ($1$0 === $2$0) { return yield* getAsyncCalls['$1 -> $2'](prefix, $1$1, $2$1, opts, comp); }
+    if ($1$1 === $2$1) { return yield* getAsyncCalls['$1 -> $2'](prefix, $1$0, $2$0, opts, comp); }
+    if ($1$0.length === 0) {
+      if ($1$1.length === 0) { return yield* getAsyncCalls['"" -> $x$0+$x$1'](prefix, $2$0, $2$1, opts, comp); }
+      if ($2$1.length === 0) { return yield* getAsyncCalls['$1 -> $2'](prefix, $1$1, $2$0, opts, comp); }
+    } else if ($1$1.length === 0 && $2$0.length === 0) {
+      return yield* getAsyncCalls['$1 -> $2'](prefix, $1$0, $2$1, opts, comp);
     }
 
-    if ($1$1 === $2$1) {
-      return getAsyncCalls['$1 -> $2'](prefix, $1$0, $2$0, opts, comp);
-    }
+    if ($1$0.length > 0) { yield `${prefix}.${$1$0}.canLeave`; }
+    if ($1$1.length > 0) { yield `${prefix}.${$1$1}.canLeave`; }
+    if ($2$0.length > 0) { yield `${prefix}.${$2$0}.canEnter`; }
+    if ($2$1.length > 0) { yield `${prefix}.${$2$1}.canEnter`; }
 
-    if ($1$0 === '') {
-      if ($1$1 === '') {
-        return getAsyncCalls['"" -> $x$0+$x$1'](prefix, $2$0, $2$1, opts, comp);
-      }
-      if ($2$1 === '') {
-        return getAsyncCalls['"" -> $x$0+$x$1'](prefix, $2$0, $1$1, opts, comp);
-      }
-
-      return getAsyncCalls['$1$1 -> $2$0+$2$1'](prefix, $1$1, $2$0, $2$1, opts, comp);
-    }
-
-    if ($1$1 === '') {
-      return getAsyncCalls['$1$0 -> $2$0+$2$1'](prefix, $1$0, $2$0, $2$1, opts, comp);
-    }
-
-    if ($2$0 === '') {
-      if ($1$1 === '') {
-        return getAsyncCalls['$x$0+$x$1 -> ""'](prefix, $1$0, $2$1, opts, comp);
-      }
-      if ($2$1 === '') {
-        return getAsyncCalls['$x$0+$x$1 -> ""'](prefix, $1$0, $1$1, opts, comp);
-      }
-
-      return getAsyncCalls['$1$0+$1$1 -> $2$1'](prefix, $1$0, $1$1, $2$1, opts, comp);
-    }
-
-    if ($2$1 === '') {
-      return getAsyncCalls['$1$0+$1$1 -> $2$0'](prefix, $1$0, $1$1, $2$0, opts, comp);
-    }
-
-    let routerHooks: string[];
     switch (opts.lifecycleStrategy) {
-      case 'phased': {
-        routerHooks = [
-          `${prefix}.${$1$0}.canLeave`,
-          `${prefix}.${$1$1}.canLeave`,
-          `${prefix}.${$2$0}.canEnter`,
-          `${prefix}.${$2$1}.canEnter`,
-          `${prefix}.${$1$0}.leave`,
-          `${prefix}.${$1$1}.leave`,
-          `${prefix}.${$2$0}.enter`,
-          `${prefix}.${$2$1}.enter`,
-        ];
+      case 'phased':
+        if ($1$0.length > 0) { yield `${prefix}.${$1$0}.leave`; }
+        if ($1$1.length > 0) { yield `${prefix}.${$1$1}.leave`; }
+        if ($2$0.length > 0) { yield `${prefix}.${$2$0}.enter`; }
+        if ($2$1.length > 0) { yield `${prefix}.${$2$1}.enter`; }
         break;
-      }
-      case 'parallel': {
+      case 'parallel':
         switch (opts.swapStrategy) {
           case 'parallel':
-          case 'add-first': {
-            routerHooks = [
-              `${prefix}.${$1$0}.canLeave`,
-              `${prefix}.${$1$1}.canLeave`,
-              `${prefix}.${$2$0}.canEnter`,
-              `${prefix}.${$2$1}.canEnter`,
-              `${prefix}.${$2$0}.enter`,
-              `${prefix}.${$2$1}.enter`,
-              `${prefix}.${$1$0}.leave`,
-              `${prefix}.${$1$1}.leave`,
-            ];
+          case 'add-first':
+            if ($2$0.length > 0) { yield `${prefix}.${$2$0}.enter`; }
+            if ($2$1.length > 0) { yield `${prefix}.${$2$1}.enter`; }
+            if ($1$0.length > 0) { yield `${prefix}.${$1$0}.leave`; }
+            if ($1$1.length > 0) { yield `${prefix}.${$1$1}.leave`; }
             break;
-          }
-          case 'remove-first': {
-            routerHooks = [
-              `${prefix}.${$1$0}.canLeave`,
-              `${prefix}.${$1$1}.canLeave`,
-              `${prefix}.${$2$0}.canEnter`,
-              `${prefix}.${$2$1}.canEnter`,
-              `${prefix}.${$1$0}.leave`,
-              `${prefix}.${$1$1}.leave`,
-              `${prefix}.${$2$0}.enter`,
-              `${prefix}.${$2$1}.enter`,
-            ];
+          case 'remove-first':
+            if ($1$0.length > 0) { yield `${prefix}.${$1$0}.leave`; }
+            if ($1$1.length > 0) { yield `${prefix}.${$1$1}.leave`; }
+            if ($2$0.length > 0) { yield `${prefix}.${$2$0}.enter`; }
+            if ($2$1.length > 0) { yield `${prefix}.${$2$1}.enter`; }
             break;
-          }
         }
-      }
     }
 
     switch (opts.swapStrategy) {
-      case 'parallel': {
-        return [
-          ...routerHooks,
-          ...interleave(
-            [
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-            ],
-            [
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-            ],
-            [
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ],
-            [
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ],
-          ),
-        ];
-      }
-      case 'remove-first': {
-        return [
-          ...routerHooks,
-          ...interleave(
-            [
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-            ],
-            [
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ],
-          ),
-          ...interleave(
-            [
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-            ],
-            [
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ],
-          ),
-        ];
-      }
-      case 'add-first': {
-        return [
-          ...routerHooks,
-          ...interleave(
-            [
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-            ],
-            [
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ],
-          ),
-          ...interleave(
-            [
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-            ],
-            [
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ],
-          ),
-        ];
-      }
+      case 'parallel':
+        if ($1$0.length === 0) {
+          yield* interleave(
+            activate(prefix, $2$0, true, false),
+            deactivate(prefix, $1$1, true, false),
+            activate(prefix, $2$1, true, false),
+          );
+        } else if ($1$1.length === 0) {
+          yield* interleave(
+            activate(prefix, $2$1, true, false),
+            deactivate(prefix, $1$0, true, false),
+            activate(prefix, $2$0, true, false),
+          );
+        } else if ($2$0.length === 0) {
+          yield* interleave(
+            deactivate(prefix, $1$0, true, false),
+            deactivate(prefix, $1$1, true, false),
+            activate(prefix, $2$1, true, false),
+          );
+        }else if ($2$1.length === 0) {
+          yield* interleave(
+            deactivate(prefix, $1$0, true, false),
+            activate(prefix, $2$0, true, false),
+            deactivate(prefix, $1$1, true, false),
+          );
+        }  else {
+          yield* interleave(
+            deactivate(prefix, $1$0, true, false),
+            activate(prefix, $2$0, true, false),
+            deactivate(prefix, $1$1, true, false),
+            activate(prefix, $2$1, true, false),
+          );
+        }
+        break;
+      case 'remove-first':
+        if ($1$0.length === 0) {
+          yield* interleave(
+            deactivate(prefix, $1$1, true, false),
+            activate(prefix, $2$0, true, false),
+          );
+          yield* activate(prefix, $2$1, true, false);
+        } else if ($1$1.length === 0) {
+          yield* interleave(
+            deactivate(prefix, $1$0, true, false),
+            activate(prefix, $2$1, true, false),
+          );
+          yield* activate(prefix, $2$0, true, false);
+        } else if ($2$0.length === 0) {
+          yield* interleave(
+            deactivate(prefix, $1$0, true, false),
+            deactivate(prefix, $1$1, true, false),
+          );
+          yield* activate(prefix, $2$1, true, false);
+        } else if ($2$1.length === 0) {
+          yield* interleave(
+            deactivate(prefix, $1$0, true, false),
+            deactivate(prefix, $1$1, true, false),
+          );
+          yield* activate(prefix, $2$0, true, false);
+        } else {
+          yield* interleave(
+            deactivate(prefix, $1$0, true, false),
+            deactivate(prefix, $1$1, true, false),
+          );
+          yield* interleave(
+            activate(prefix, $2$0, true, false),
+            activate(prefix, $2$1, true, false),
+          );
+        }
+        break;
+      case 'add-first':
+        if ($2$0.length === 0) {
+          yield* interleave(
+            activate(prefix, $2$1, true, false),
+            deactivate(prefix, $1$0, true, false),
+          );
+          yield* deactivate(prefix, $1$1, true, false);
+        } else if ($2$1.length === 0) {
+          yield* interleave(
+            activate(prefix, $2$0, true, false),
+            deactivate(prefix, $1$1, true, false),
+          );
+          yield* deactivate(prefix, $1$0, true, false);
+        } else if ($1$0.length === 0) {
+          yield* interleave(
+            activate(prefix, $2$0, true, false),
+            activate(prefix, $2$1, true, false),
+          );
+          yield* deactivate(prefix, $1$1, true, false);
+        } else if ($1$1.length === 0) {
+          yield* interleave(
+            activate(prefix, $2$0, true, false),
+            activate(prefix, $2$1, true, false),
+          );
+          yield* deactivate(prefix, $1$0, true, false);
+        } else {
+          yield* interleave(
+            activate(prefix, $2$0, true, false),
+            activate(prefix, $2$1, true, false),
+          );
+          yield* interleave(
+            deactivate(prefix, $1$0, true, false),
+            deactivate(prefix, $1$1, true, false),
+          );
+        }
+        break;
     }
   },
-  '"" -> $x$p/$x$c'(
+  *'"" -> $x$p/$x$c'(
     prefix: string,
     $x$p: string,
     $x$c: string,
     opts: IRouterOptionsSpec,
     comp: IComponentSpec,
-  ): string[] {
-    if ($x$c === '') {
-      return getAsyncCalls['"" -> $x'](prefix, $x$p);
-    }
+  ) {
+    if ($x$c.length === 0) { return yield* getAsyncCalls['"" -> $x'](prefix, $x$p); }
 
     switch (opts.resolutionStrategy) {
-      case 'static': {
+      case 'static':
         switch (opts.lifecycleStrategy) {
-          case 'phased': {
-            return [
-              `${prefix}.${$x$p}.canEnter`,
-              `${prefix}.${$x$c}.canEnter`,
-              `${prefix}.${$x$p}.enter`,
-              `${prefix}.${$x$c}.enter`,
+          case 'phased':
+            yield `${prefix}.${$x$p}.canEnter`;
+            yield `${prefix}.${$x$c}.canEnter`;
+            yield `${prefix}.${$x$p}.enter`;
+            yield `${prefix}.${$x$c}.enter`;
 
-              ...activate(prefix, $x$p),
-              ...activate(prefix, $x$c),
-              `${prefix}.${$x$c}.afterAttachChildren`,
-              `${prefix}.${$x$p}.afterAttachChildren`,
-            ];
-          }
-          case 'parallel': {
-            return [
-              `${prefix}.${$x$p}.canEnter`,
-              `${prefix}.${$x$c}.canEnter`,
-              `${prefix}.${$x$p}.enter`,
-
-              ...activate(prefix, $x$p),
-
-              `${prefix}.${$x$c}.enter`,
-              ...activate(prefix, $x$c),
-              `${prefix}.${$x$c}.afterAttachChildren`,
-              `${prefix}.${$x$p}.afterAttachChildren`,
-            ];
-          }
-        }
-        break;
-      }
-      case 'dynamic': {
-        return [
-          `${prefix}.${$x$p}.canEnter`,
-          `${prefix}.${$x$p}.enter`,
-
-          ...activate(prefix, $x$p),
-          `${prefix}.${$x$p}.afterAttachChildren`,
-
-          `${prefix}.${$x$c}.canEnter`,
-          `${prefix}.${$x$c}.enter`,
-
-          ...activate(prefix, $x$c),
-          `${prefix}.${$x$c}.afterAttachChildren`,
-        ];
-      }
-    }
-  },
-  '$x$p/$x$c -> ""'(
-    prefix: string,
-    $x$p: string,
-    $x$c: string,
-    opts: IRouterOptionsSpec,
-    comp: IComponentSpec,
-  ): string[] {
-    if ($x$c === '') {
-      return getAsyncCalls['$x -> ""'](prefix, $x$p);
-    }
-
-    return [
-      `${prefix}.${$x$c}.canLeave`,
-      `${prefix}.${$x$p}.canLeave`,
-      `${prefix}.${$x$c}.leave`,
-      `${prefix}.${$x$p}.leave`,
-
-      ...deactivate(prefix, $x$c),
-      `${prefix}.${$x$c}.afterUnbindChildren`,
-      `${prefix}.${$x$c}.dispose`,
-
-      ...deactivate(prefix, $x$p),
-      `${prefix}.${$x$p}.afterUnbindChildren`,
-      `${prefix}.${$x$p}.dispose`,
-    ];
-  },
-  '$1$p/$1$c -> $2$p'(
-    prefix: string,
-    $1$p: string,
-    $1$c: string,
-    $2$p: string,
-    opts: IRouterOptionsSpec,
-    comp: IComponentSpec,
-  ): string[] {
-    if ($2$p === '') {
-      return getAsyncCalls['$x$p/$x$c -> ""'](prefix, $1$p, $1$c, opts, comp);
-    }
-
-    switch (opts.lifecycleStrategy) {
-      case 'phased': {
-        const routerHooks = [
-          `${prefix}.${$1$c}.canLeave`,
-          `${prefix}.${$1$p}.canLeave`,
-          `${prefix}.${$2$p}.canEnter`,
-          `${prefix}.${$1$c}.leave`,
-          `${prefix}.${$1$p}.leave`,
-          `${prefix}.${$2$p}.enter`,
-        ];
-        switch (opts.swapStrategy) {
-          case 'parallel': {
-            return [
-              ...routerHooks,
-              ...deactivate(prefix, $1$c),
-              `${prefix}.${$1$c}.afterUnbindChildren`,
-              `${prefix}.${$1$c}.dispose`,
-              ...interleave(
-                [
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                ],
-                [
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                ],
-              ),
-            ];
-          }
-          case 'remove-first': {
-            return [
-              ...routerHooks,
-              ...deactivate(prefix, $1$c),
-              `${prefix}.${$1$c}.afterUnbindChildren`,
-              `${prefix}.${$1$c}.dispose`,
-              ...deactivate(prefix, $1$p),
-              `${prefix}.${$1$p}.afterUnbindChildren`,
-              `${prefix}.${$1$p}.dispose`,
-              ...activate(prefix, $2$p),
-              `${prefix}.${$2$p}.afterAttachChildren`,
-            ];
-          }
-          case 'add-first': {
-            return [
-              ...routerHooks,
-              ...deactivate(prefix, $1$c),
-              `${prefix}.${$1$c}.afterUnbindChildren`,
-              `${prefix}.${$1$c}.dispose`,
-              ...activate(prefix, $2$p),
-              `${prefix}.${$2$p}.afterAttachChildren`,
-              ...deactivate(prefix, $1$p),
-              `${prefix}.${$1$p}.afterUnbindChildren`,
-              `${prefix}.${$1$p}.dispose`,
-            ];
-          }
-        }
-        break;
-      }
-      case 'parallel': {
-        const routerHooks = [
-          `${prefix}.${$1$c}.canLeave`,
-          `${prefix}.${$1$p}.canLeave`,
-          `${prefix}.${$2$p}.canEnter`,
-        ];
-        switch (opts.swapStrategy) {
-          case 'parallel': {
-            return [
-              ...routerHooks,
-              `${prefix}.${$2$p}.enter`,
-              `${prefix}.${$1$c}.leave`,
-
-              ...deactivate(prefix, $1$c),
-              `${prefix}.${$1$c}.afterUnbindChildren`,
-              `${prefix}.${$1$c}.dispose`,
-
-              `${prefix}.${$1$p}.leave`,
-              ...interleave(
-                [
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                ],
-                [
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                ],
-              ),
-            ];
-          }
-          case 'remove-first': {
-            return [
-              ...routerHooks,
-              `${prefix}.${$1$c}.leave`,
-              `${prefix}.${$2$p}.enter`,
-
-              ...deactivate(prefix, $1$c),
-              `${prefix}.${$1$c}.afterUnbindChildren`,
-              `${prefix}.${$1$c}.dispose`,
-
-              `${prefix}.${$1$p}.leave`,
-              ...deactivate(prefix, $1$p),
-              `${prefix}.${$1$p}.afterUnbindChildren`,
-              `${prefix}.${$1$p}.dispose`,
-
-              ...activate(prefix, $2$p),
-              `${prefix}.${$2$p}.afterAttachChildren`,
-            ];
-          }
-          case 'add-first': {
-            return [
-              ...routerHooks,
-              `${prefix}.${$2$p}.enter`,
-              `${prefix}.${$1$c}.leave`,
-
-              ...deactivate(prefix, $1$c),
-              `${prefix}.${$1$c}.afterUnbindChildren`,
-              `${prefix}.${$1$c}.dispose`,
-
-              `${prefix}.${$1$p}.leave`,
-              ...activate(prefix, $2$p),
-              `${prefix}.${$2$p}.afterAttachChildren`,
-
-              ...deactivate(prefix, $1$p),
-              `${prefix}.${$1$p}.afterUnbindChildren`,
-              `${prefix}.${$1$p}.dispose`,
-            ];
-          }
-        }
-      }
-    }
-
-  },
-  '$1$p -> $2$p/$2$c'(
-    prefix: string,
-    $1$p: string,
-    $2$p: string,
-    $2$c: string,
-    opts: IRouterOptionsSpec,
-    comp: IComponentSpec,
-  ): string[] {
-    if ($2$c === '') {
-      return getAsyncCalls['$1 -> $2'](prefix, $1$p, $2$p, opts, comp);
-    }
-
-    if ($1$p === '') {
-      return getAsyncCalls['"" -> $x$p/$x$c'](prefix, $2$p, $2$c, opts, comp);
-    }
-
-    switch (opts.resolutionStrategy) {
-      case 'static': {
-        switch (opts.lifecycleStrategy) {
-          case 'phased': {
-            const routerHooks = [
-              `${prefix}.${$1$p}.canLeave`,
-              `${prefix}.${$2$p}.canEnter`,
-              `${prefix}.${$2$c}.canEnter`,
-              `${prefix}.${$1$p}.leave`,
-              `${prefix}.${$2$p}.enter`,
-              `${prefix}.${$2$c}.enter`,
-            ];
-            switch (opts.swapStrategy) {
-              // resolution: static, lifecycle: phased | parallel, swap: parallel
-              case 'parallel': {
-                return [
-                  ...routerHooks,
-
-                  ...interleave(
-                    [
-                      ...deactivate(prefix, $1$p),
-                      `${prefix}.${$1$p}.afterUnbindChildren`,
-                      `${prefix}.${$1$p}.dispose`,
-                    ],
-                    [
-                      ...activate(prefix, $2$p),
-                      ...activate(prefix, $2$c),
-                    ],
-                  ),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                ];
-              }
-              // resolution: static, lifecycle: phased | parallel, swap: remove-first
-              case 'remove-first': {
-                return [
-                  ...routerHooks,
-
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                  ...activate(prefix, $2$p),
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                ];
-              }
-              // resolution: static, lifecycle: phased | parallel, swap: add-first
-              case 'add-first': {
-                return [
-                  ...routerHooks,
-
-                  ...activate(prefix, $2$p),
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                ];
-              }
-            }
+            yield* activate(prefix, $x$p, false, false);
+            yield* activate(prefix, $x$c, true, false);
+            yield `${prefix}.${$x$p}.afterAttachChildren`;
             break;
-          }
-          case 'parallel': {
-            const routerHooks = [
-              `${prefix}.${$1$p}.canLeave`,
-              `${prefix}.${$2$p}.canEnter`,
-              `${prefix}.${$2$c}.canEnter`,
-            ];
-            switch (opts.swapStrategy) {
-              // resolution: static, lifecycle: phased | parallel, swap: parallel
-              case 'parallel': {
-                return [
-                  ...routerHooks,
+          case 'parallel':
+            yield `${prefix}.${$x$p}.canEnter`;
+            yield `${prefix}.${$x$c}.canEnter`;
 
-                  `${prefix}.${$2$p}.enter`,
-                  `${prefix}.${$1$p}.leave`,
-                  ...interleave(
-                    [
-                      ...deactivate(prefix, $1$p),
-                      `${prefix}.${$1$p}.afterUnbindChildren`,
-                      `${prefix}.${$1$p}.dispose`,
-                    ],
-                    [
-                      ...activate(prefix, $2$p),
+            yield* activate(prefix, $x$p, false, true);
 
-                      `${prefix}.${$2$c}.enter`,
-                      ...activate(prefix, $2$c),
-                    ],
-                  ),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                ];
-              }
-              // resolution: static, lifecycle: phased | parallel, swap: remove-first
-              case 'remove-first': {
-                return [
-                  ...routerHooks,
-
-                  `${prefix}.${$1$p}.leave`,
-                  `${prefix}.${$2$p}.enter`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-
-                  ...activate(prefix, $2$p),
-
-                  `${prefix}.${$2$c}.enter`,
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                ];
-              }
-              // resolution: static, lifecycle: phased | parallel, swap: add-first
-              case 'add-first': {
-                return [
-                  ...routerHooks,
-
-                  `${prefix}.${$2$p}.enter`,
-                  `${prefix}.${$1$p}.leave`,
-                  ...activate(prefix, $2$p),
-
-                  `${prefix}.${$2$c}.enter`,
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                ];
-              }
-            }
-          }
+            yield `${prefix}.${$x$c}.enter`;
+            yield* activate(prefix, $x$c, true, false);
+            yield `${prefix}.${$x$p}.afterAttachChildren`;
+            break;
         }
         break;
-      }
-      case 'dynamic': {
-        switch (opts.lifecycleStrategy) {
-          case 'phased': {
-            const routerHooks = [
-              `${prefix}.${$1$p}.canLeave`,
-              `${prefix}.${$2$p}.canEnter`,
-              `${prefix}.${$1$p}.leave`,
-              `${prefix}.${$2$p}.enter`,
-            ];
-            switch (opts.swapStrategy) {
-              // resolution: dynamic, lifecycle: phased, swap: parallel
-              case 'parallel': {
-                return [
-                  ...routerHooks,
-                  ...interleave(
-                    [
-                      ...deactivate(prefix, $1$p),
-                      `${prefix}.${$1$p}.afterUnbindChildren`,
-                      `${prefix}.${$1$p}.dispose`,
-                    ],
-                    [
-                      ...activate(prefix, $2$p),
-                      `${prefix}.${$2$p}.afterAttachChildren`,
-                    ],
-                  ),
+      case 'dynamic':
+        yield `${prefix}.${$x$p}.canEnter`;
+        yield* activate(prefix, $x$p, true, true);
 
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
-              // resolution: dynamic, lifecycle: phased, swap: remove-first
-              case 'remove-first': {
-                return [
-                  ...routerHooks,
-
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
-              // resolution: dynamic, lifecycle: phased, swap: add-first
-              case 'add-first': {
-                return [
-                  ...routerHooks,
-
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
-            }
-            break;
-          }
-          case 'parallel': {
-            const routerHooks = [
-              `${prefix}.${$1$p}.canLeave`,
-              `${prefix}.${$2$p}.canEnter`,
-            ];
-            switch (opts.swapStrategy) {
-              // resolution: dynamic, lifecycle: parallel, swap: parallel
-              case 'parallel': {
-                return [
-                  ...routerHooks,
-                  `${prefix}.${$2$p}.enter`,
-                  `${prefix}.${$1$p}.leave`,
-
-                  ...interleave(
-                    [
-                      ...deactivate(prefix, $1$p),
-                      `${prefix}.${$1$p}.afterUnbindChildren`,
-                      `${prefix}.${$1$p}.dispose`,
-                    ],
-                    [
-                      ...activate(prefix, $2$p),
-                      `${prefix}.${$2$p}.afterAttachChildren`,
-                    ],
-                  ),
-
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
-              // resolution: dynamic, lifecycle: parallel, swap: remove-first
-              case 'remove-first': {
-                return [
-                  ...routerHooks,
-                  `${prefix}.${$1$p}.leave`,
-                  `${prefix}.${$2$p}.enter`,
-
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
-              // resolution: dynamic, lifecycle: parallel, swap: add-first
-              case 'add-first': {
-                return [
-                  ...routerHooks,
-                  `${prefix}.${$2$p}.enter`,
-                  `${prefix}.${$1$p}.leave`,
-
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
-            }
-          }
-        }
-      }
+        yield `${prefix}.${$x$c}.canEnter`;
+        yield* activate(prefix, $x$c, true, true);
+        break;
     }
   },
-  '$1$p/$1$c -> $2$p/$2$c'(
+  *'$1$p/$1$c -> $2$p/$2$c'(
     prefix: string,
     $1$p: string,
     $1$c: string,
@@ -1504,1679 +420,504 @@ export const getAsyncCalls = {
     $2$c: string,
     opts: IRouterOptionsSpec,
     comp: IComponentSpec,
-  ): string[] {
-    if ($1$p === $2$p) {
-      return getAsyncCalls['$1 -> $2'](prefix, $1$c, $2$c, opts, comp);
-    }
-
-    if ($1$c === '') {
-      return getAsyncCalls['$1$p -> $2$p/$2$c'](prefix, $1$p, $2$p, $2$c, opts, comp);
-    }
-
-    if ($2$c === '') {
-      return getAsyncCalls['$1$p/$1$c -> $2$p'](prefix, $1$p, $1$c, $2$p, opts, comp);
-    }
+  ) {
+    if ($1$p === $2$p) { return yield* getAsyncCalls['$1 -> $2'](prefix, $1$c, $2$c, opts, comp); }
 
     switch (opts.resolutionStrategy) {
-      case 'static': {
+      case 'static':
         switch (opts.lifecycleStrategy) {
-          case 'phased': {
-            const routerHooks = [
-              `${prefix}.${$1$c}.canLeave`,
-              `${prefix}.${$1$p}.canLeave`,
-              `${prefix}.${$2$p}.canEnter`,
-              `${prefix}.${$2$c}.canEnter`,
-              `${prefix}.${$1$c}.leave`,
-              `${prefix}.${$1$p}.leave`,
-              `${prefix}.${$2$p}.enter`,
-              `${prefix}.${$2$c}.enter`,
-            ];
+          case 'phased':
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canLeave`; }
+
+            yield `${prefix}.${$1$p}.canLeave`;
+            yield `${prefix}.${$2$p}.canEnter`;
+
+            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.leave`; }
+
+            yield `${prefix}.${$1$p}.leave`;
+            yield `${prefix}.${$2$p}.enter`;
+
+            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.enter`; }
+
             switch (opts.swapStrategy) {
               // resolution: static, lifecycle: phased, swap: parallel
-              case 'parallel': {
-                return [
-                  ...routerHooks,
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
-                  ...interleave(
-                    [
-                      ...deactivate(prefix, $1$p),
-                      `${prefix}.${$1$p}.afterUnbindChildren`,
-                      `${prefix}.${$1$p}.dispose`
-                    ],
-                    [
-                      ...activate(prefix, $2$p),
-                      ...activate(prefix, $2$c),
-                    ],
-                  ),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                ];
-              }
+              case 'parallel':
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, false); }
+
+                yield* interleave(
+                  deactivate(prefix, $1$p, true, false),
+                  (function* () {
+                    yield* activate(prefix, $2$p, false, false);
+
+                    if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, false); }
+
+                    yield `${prefix}.${$2$p}.afterAttachChildren`;
+                  })(),
+                );
+                break;
               // resolution: static, lifecycle: phased, swap: remove-first
-              case 'remove-first': {
-                return [
-                  ...routerHooks,
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                  ...activate(prefix, $2$p),
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                ];
-              }
+              case 'remove-first':
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, false); }
+
+                yield* deactivate(prefix, $1$p, true, false);
+                yield* activate(prefix, $2$p, false, false);
+
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, false); }
+
+                yield `${prefix}.${$2$p}.afterAttachChildren`;
+                break;
               // resolution: static, lifecycle: phased, swap: add-first
-              case 'add-first': {
-                return [
-                  ...routerHooks,
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
-                  ...activate(prefix, $2$p),
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                ];
-              }
+              case 'add-first':
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, false); }
+
+                yield* activate(prefix, $2$p, false, false);
+
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, false); }
+
+                yield `${prefix}.${$2$p}.afterAttachChildren`;
+                yield* deactivate(prefix, $1$p, true, false);
+                break;
             }
             break;
-          }
-          case 'parallel': {
-            const routerHooks = [
-              `${prefix}.${$1$c}.canLeave`,
-              `${prefix}.${$1$p}.canLeave`,
-              `${prefix}.${$2$p}.canEnter`,
-              `${prefix}.${$2$c}.canEnter`,
-            ];
+          case 'parallel':
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canLeave`; }
+
+            yield `${prefix}.${$1$p}.canLeave`;
+            yield `${prefix}.${$2$p}.canEnter`;
+
+            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+
             switch (opts.swapStrategy) {
               // resolution: static, lifecycle: parallel, swap: parallel
-              case 'parallel': {
-                return [
-                  ...routerHooks,
-                  `${prefix}.${$2$p}.enter`,
-                  `${prefix}.${$1$c}.leave`,
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
-                  `${prefix}.${$1$p}.leave`,
-                  ...interleave(
-                    [
-                      ...deactivate(prefix, $1$p),
-                      `${prefix}.${$1$p}.afterUnbindChildren`,
-                      `${prefix}.${$1$p}.dispose`
-                    ],
-                    [
-                      ...activate(prefix, $2$p),
-                      `${prefix}.${$2$c}.enter`,
-                      ...activate(prefix, $2$c),
-                    ],
-                  ),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                ];
-              }
+              case 'parallel':
+                yield `${prefix}.${$2$p}.enter`;
+
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, true); }
+
+                yield `${prefix}.${$1$p}.leave`;
+                yield* interleave(
+                  deactivate(prefix, $1$p, true, false),
+                  (function* () {
+                    yield* activate(prefix, $2$p, false, false);
+
+                    if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
+
+                    yield `${prefix}.${$2$p}.afterAttachChildren`;
+                  })(),
+                );
+                break;
               // resolution: static, lifecycle: parallel, swap: remove-first
-              case 'remove-first': {
-                return [
-                  ...routerHooks,
+              case 'remove-first':
+                if ($1$c.length > 0) {
+                  yield `${prefix}.${$1$c}.leave`;
+                  yield `${prefix}.${$2$p}.enter`;
+                  yield* deactivate(prefix, $1$c, true, false);
+                  yield `${prefix}.${$1$p}.leave`;
+                } else {
+                  yield `${prefix}.${$1$p}.leave`;
+                  yield `${prefix}.${$2$p}.enter`;
+                }
 
-                  `${prefix}.${$1$c}.leave`,
-                  `${prefix}.${$2$p}.enter`,
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
+                yield* deactivate(prefix, $1$p, true, false);
+                yield* activate(prefix, $2$p, false, false);
 
-                  `${prefix}.${$1$p}.leave`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
 
-                  ...activate(prefix, $2$p),
-
-                  `${prefix}.${$2$c}.enter`,
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                ];
-              }
+                yield `${prefix}.${$2$p}.afterAttachChildren`;
+                break;
               // resolution: static, lifecycle: parallel, swap: add-first
-              case 'add-first': {
-                return [
-                  ...routerHooks,
+              case 'add-first':
+                yield `${prefix}.${$2$p}.enter`;
 
-                  `${prefix}.${$2$p}.enter`,
-                  `${prefix}.${$1$c}.leave`,
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, true); }
 
-                  `${prefix}.${$1$p}.leave`,
-                  ...activate(prefix, $2$p),
+                yield `${prefix}.${$1$p}.leave`;
+                yield* activate(prefix, $2$p, false, false);
 
-                  `${prefix}.${$2$c}.enter`,
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
 
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                ];
-              }
+                yield `${prefix}.${$2$p}.afterAttachChildren`;
+                yield* deactivate(prefix, $1$p, true, false);
+                break;
             }
             break;
-          }
         }
         break;
-      }
-      case 'dynamic': {
+      case 'dynamic':
         switch (opts.lifecycleStrategy) {
-          case 'phased': {
-            const routerHooks = [
-              `${prefix}.${$1$c}.canLeave`,
-              `${prefix}.${$1$p}.canLeave`,
-              `${prefix}.${$2$p}.canEnter`,
-              `${prefix}.${$1$c}.leave`,
-              `${prefix}.${$1$p}.leave`,
-              `${prefix}.${$2$p}.enter`,
-            ];
+          case 'phased':
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canLeave`; }
+
+            yield `${prefix}.${$1$p}.canLeave`;
+            yield `${prefix}.${$2$p}.canEnter`;
+
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.leave`; }
+
+            yield `${prefix}.${$1$p}.leave`;
+            yield `${prefix}.${$2$p}.enter`;
+
             switch (opts.swapStrategy) {
               // resolution: dynamic, lifecycle: phased, swap: parallel
-              case 'parallel': {
-                return [
-                  ...routerHooks,
+              case 'parallel':
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, false); }
 
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
-                  ...interleave(
-                    [
-                      ...deactivate(prefix, $1$p),
-                      `${prefix}.${$1$p}.afterUnbindChildren`,
-                      `${prefix}.${$1$p}.dispose`,
-                    ],
-                    [
-                      ...activate(prefix, $2$p),
-                      `${prefix}.${$2$p}.afterAttachChildren`,
-                    ],
-                  ),
+                yield* interleave(
+                  deactivate(prefix, $1$p, true, false),
+                  activate(prefix, $2$p, true, false),
+                );
 
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
+                break;
               // resolution: dynamic, lifecycle: phased, swap: remove-first
-              case 'remove-first': {
-                return [
-                  ...routerHooks,
+              case 'remove-first':
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, false); }
 
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
+                yield* deactivate(prefix, $1$p, true, false);
+                yield* activate(prefix, $2$p, true, false);
 
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
+                break;
               // resolution: dynamic, lifecycle: phased, swap: add-first
-              case 'add-first': {
-                return [
-                  ...routerHooks,
+              case 'add-first':
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, false); }
 
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
+                yield* activate(prefix, $2$p, true, false);
+                yield* deactivate(prefix, $1$p, true, false);
 
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
+                break;
             }
             break;
-          }
-          case 'parallel': {
-            const routerHooks = [
-              `${prefix}.${$1$c}.canLeave`,
-              `${prefix}.${$1$p}.canLeave`,
-              `${prefix}.${$2$p}.canEnter`,
-            ];
+          case 'parallel':
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canLeave`; }
+
+            yield `${prefix}.${$1$p}.canLeave`;
+            yield `${prefix}.${$2$p}.canEnter`;
+
             switch (opts.swapStrategy) {
               // resolution: dynamic, lifecycle: parallel, swap: parallel
-              case 'parallel': {
-                return [
-                  ...routerHooks,
+              case 'parallel':
+                yield `${prefix}.${$2$p}.enter`;
 
-                  `${prefix}.${$2$p}.enter`,
-                  `${prefix}.${$1$c}.leave`,
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, true); }
 
-                  `${prefix}.${$1$p}.leave`,
-                  ...interleave(
-                    [
-                      ...deactivate(prefix, $1$p),
-                      `${prefix}.${$1$p}.afterUnbindChildren`,
-                      `${prefix}.${$1$p}.dispose`,
-                    ],
-                    [
-                      ...activate(prefix, $2$p),
-                      `${prefix}.${$2$p}.afterAttachChildren`,
-                    ],
-                  ),
+                yield `${prefix}.${$1$p}.leave`;
 
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
+                yield* interleave(
+                  deactivate(prefix, $1$p, true, false),
+                  activate(prefix, $2$p, true, false),
+                );
 
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
+                break;
               // resolution: dynamic, lifecycle: parallel, swap: remove-first
-              case 'remove-first': {
-                return [
-                  ...routerHooks,
+              case 'remove-first':
+                if ($1$c.length > 0) {
+                  yield `${prefix}.${$1$c}.leave`;
+                  yield `${prefix}.${$2$p}.enter`;
+                  yield* deactivate(prefix, $1$c, true, false);
+                  yield `${prefix}.${$1$p}.leave`;
+                } else {
+                  yield `${prefix}.${$1$p}.leave`;
+                  yield `${prefix}.${$2$p}.enter`;
+                }
 
-                  `${prefix}.${$1$c}.leave`,
-                  `${prefix}.${$2$p}.enter`,
+                yield* deactivate(prefix, $1$p, true, false);
+                yield* activate(prefix, $2$p, true, false);
 
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
-
-                  `${prefix}.${$1$p}.leave`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
+                break;
               // resolution: dynamic, lifecycle: parallel, swap: add-first
-              case 'add-first': {
-                return [
-                  ...routerHooks,
+              case 'add-first':
+                yield `${prefix}.${$2$p}.enter`;
 
-                  `${prefix}.${$2$p}.enter`,
-                  `${prefix}.${$1$c}.leave`,
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, true); }
 
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
+                yield `${prefix}.${$1$p}.leave`;
+                yield* activate(prefix, $2$p, true, false);
+                yield* deactivate(prefix, $1$p, true, false);
 
-                  `${prefix}.${$1$p}.leave`,
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
+                break;
             }
-          }
+            break;
         }
-      }
+        break;
     }
   },
 };
 
 export const getSyncCalls = {
-  '$x -> ""'(
+  *'$x -> ""'(
     prefix: string,
     $x: string,
-  ): string[] {
-    return [
-      `${prefix}.${$x}.canLeave`,
-      `${prefix}.${$x}.leave`,
-
-      ...deactivate(prefix, $x),
-      `${prefix}.${$x}.afterUnbindChildren`,
-      `${prefix}.${$x}.dispose`,
-    ];
+  ) {
+    yield `${prefix}.${$x}.canLeave`;
+    yield* deactivate(prefix, $x, true, true);
   },
-  '"" -> $x'(
+  *'"" -> $x'(
     prefix: string,
     $x: string,
-  ): string[] {
-    return [
-      `${prefix}.${$x}.canEnter`,
-      `${prefix}.${$x}.enter`,
-
-      ...activate(prefix, $x),
-      `${prefix}.${$x}.afterAttachChildren`,
-    ];
+  ) {
+    yield `${prefix}.${$x}.canEnter`;
+    yield* activate(prefix, $x, true, true);
   },
-  '$1 -> $2'(
+  *'$1 -> $2'(
     prefix: string,
     $1: string,
     $2: string,
     opts: IRouterOptionsSpec,
     comp: IComponentSpec,
-  ): string[] {
-    if ($1 === '') {
-      return getSyncCalls['"" -> $x'](prefix, $2);
-    }
+  ) {
+    if ($1.length === 0) { return yield* getSyncCalls['"" -> $x'](prefix, $2); }
+    if ($2.length === 0) { return yield* getSyncCalls['$x -> ""'](prefix, $1); }
 
-    if ($2 === '') {
-      return getSyncCalls['$x -> ""'](prefix, $1);
-    }
+    yield `${prefix}.${$1}.canLeave`;
+    yield `${prefix}.${$2}.canEnter`;
 
-    let routerHooks: string[];
     switch (opts.lifecycleStrategy) {
-      case 'phased': {
-        routerHooks = [
-          `${prefix}.${$1}.canLeave`,
-          `${prefix}.${$2}.canEnter`,
-          `${prefix}.${$1}.leave`,
-          `${prefix}.${$2}.enter`,
-        ];
-        break;
-      }
-      case 'parallel': {
+      case 'phased':
+        yield `${prefix}.${$1}.leave`;
+        yield `${prefix}.${$2}.enter`;
+
+        switch (opts.swapStrategy) {
+          case 'parallel':
+          case 'remove-first':
+            yield* deactivate(prefix, $1, true, false);
+            yield* activate(prefix, $2, true, false);
+            return;
+          case 'add-first':
+            yield* activate(prefix, $2, true, false);
+            yield* deactivate(prefix, $1, true, false);
+            return;
+        }
+      case 'parallel':
         // Note: in parallel mode, the swapStrategy does affect the order in which the router hooks are invoked, but this is not necessarily part of
         // the "contract" that is fulfilled by the swapStrategy. It's just an effect of the way it's implemented, which happens to make it look like
         // the router hooks are part of the swap, but they aren't. This can easily be demonstrated by having the enter and leave hooks wait a different
         // amount of time: the activate/deactivate invocations will still be aligned.
         switch (opts.swapStrategy) {
           case 'parallel':
-          case 'add-first': {
-            routerHooks = [
-              `${prefix}.${$1}.canLeave`,
-              `${prefix}.${$2}.canEnter`,
-              `${prefix}.${$2}.enter`,
-              `${prefix}.${$1}.leave`,
-            ];
-            break;
-          }
-          case 'remove-first': {
-            routerHooks = [
-              `${prefix}.${$1}.canLeave`,
-              `${prefix}.${$2}.canEnter`,
-              `${prefix}.${$1}.leave`,
-              `${prefix}.${$2}.enter`,
-            ];
-            break;
-          }
+            yield `${prefix}.${$2}.enter`;
+            yield* deactivate(prefix, $1, true, true);
+            yield* activate(prefix, $2, true, false);
+            return;
+          case 'add-first':
+            yield* activate(prefix, $2, true, true);
+            yield `${prefix}.${$1}.leave`;
+            yield* deactivate(prefix, $1, true, false);
+            return;
+          case 'remove-first':
+            yield* deactivate(prefix, $1, true, true);
+            yield* activate(prefix, $2, true, true);
+            return;
         }
-      }
     }
+  },
+  *'"" -> $x$0+$x$1'(
+    prefix: string,
+    $x$0: string,
+    $x$1: string,
+    opts: IRouterOptionsSpec,
+    comp: IComponentSpec,
+  ) {
+    if ($x$0.length === 0) { return yield* getSyncCalls['"" -> $x'](prefix, $x$1); }
+    if ($x$1.length === 0) { return yield* getSyncCalls['"" -> $x'](prefix, $x$0); }
 
-    switch (opts.swapStrategy) {
+    switch (opts.lifecycleStrategy) {
+      case 'phased':
+        yield `${prefix}.${$x$0}.canEnter`;
+        yield `${prefix}.${$x$1}.canEnter`;
+        yield `${prefix}.${$x$0}.enter`;
+        yield `${prefix}.${$x$1}.enter`;
+
+        yield* activate(prefix, $x$0, true, false);
+        yield* activate(prefix, $x$1, true, false);
+        break;
       case 'parallel':
-      case 'remove-first': {
-        return [
-          ...routerHooks,
-          ...deactivate(prefix, $1),
-          `${prefix}.${$1}.afterUnbindChildren`,
-          `${prefix}.${$1}.dispose`,
-          ...activate(prefix, $2),
-          `${prefix}.${$2}.afterAttachChildren`,
-        ];
-      }
-      case 'add-first': {
-        return [
-          ...routerHooks,
-          ...activate(prefix, $2),
-          `${prefix}.${$2}.afterAttachChildren`,
-          ...deactivate(prefix, $1),
-          `${prefix}.${$1}.afterUnbindChildren`,
-          `${prefix}.${$1}.dispose`,
-        ];
-      }
+        yield `${prefix}.${$x$0}.canEnter`;
+        yield `${prefix}.${$x$1}.canEnter`;
+
+        yield* activate(prefix, $x$0, true, true);
+        yield* activate(prefix, $x$1, true, true);
+        break;
     }
   },
-  '"" -> $x$0+$x$1'(
-    prefix: string,
-    $x$0: string,
-    $x$1: string,
-    opts: IRouterOptionsSpec,
-    comp: IComponentSpec,
-  ): string[] {
-    if ($x$0 === '') {
-      return getSyncCalls['"" -> $x'](prefix, $x$1);
-    }
-
-    if ($x$1 === '') {
-      return getSyncCalls['"" -> $x'](prefix, $x$0);
-    }
-
-    switch (opts.lifecycleStrategy) {
-      case 'phased': {
-        return [
-          `${prefix}.${$x$0}.canEnter`,
-          `${prefix}.${$x$1}.canEnter`,
-          `${prefix}.${$x$0}.enter`,
-          `${prefix}.${$x$1}.enter`,
-          ...activate(prefix, $x$0),
-          `${prefix}.${$x$0}.afterAttachChildren`,
-          ...activate(prefix, $x$1),
-          `${prefix}.${$x$1}.afterAttachChildren`,
-        ];
-      }
-      case 'parallel': {
-        return [
-          `${prefix}.${$x$0}.canEnter`,
-          `${prefix}.${$x$1}.canEnter`,
-
-          `${prefix}.${$x$0}.enter`,
-          ...activate(prefix, $x$0),
-          `${prefix}.${$x$0}.afterAttachChildren`,
-
-          `${prefix}.${$x$1}.enter`,
-          ...activate(prefix, $x$1),
-          `${prefix}.${$x$1}.afterAttachChildren`,
-        ];
-      }
-    }
-  },
-  '$x$0+$x$1 -> ""'(
-    prefix: string,
-    $x$0: string,
-    $x$1: string,
-    opts: IRouterOptionsSpec,
-    comp: IComponentSpec,
-  ): string[] {
-    if ($x$0 === '') {
-      return getSyncCalls['$x -> ""'](prefix, $x$1);
-    }
-
-    if ($x$1 === '') {
-      return getSyncCalls['$x -> ""'](prefix, $x$0);
-    }
-
-    switch (opts.lifecycleStrategy) {
-      case 'phased': {
-        return [
-          `${prefix}.${$x$0}.canEnter`,
-          `${prefix}.${$x$1}.canEnter`,
-          ...deactivate(prefix, $x$0),
-          `${prefix}.${$x$0}.afterUnbindChildren`,
-          `${prefix}.${$x$0}.dispose`,
-          ...deactivate(prefix, $x$1),
-          `${prefix}.${$x$1}.afterUnbindChildren`,
-          `${prefix}.${$x$1}.dispose`,
-        ];
-      }
-      case 'parallel': {
-        return [
-          `${prefix}.${$x$0}.canLeave`,
-          `${prefix}.${$x$1}.canLeave`,
-
-          `${prefix}.${$x$0}.leave`,
-          ...deactivate(prefix, $x$0),
-          `${prefix}.${$x$0}.afterUnbindChildren`,
-          `${prefix}.${$x$0}.dispose`,
-
-          `${prefix}.${$x$1}.leave`,
-          ...deactivate(prefix, $x$1),
-          `${prefix}.${$x$1}.afterUnbindChildren`,
-          `${prefix}.${$x$1}.dispose`,
-        ];
-      }
-    }
-  },
-  '$1$0+$1$1 -> $2$0'(
+  *'$1$0+$1$1 -> $2$0+$2$1'(
     prefix: string,
     $1$0: string,
     $1$1: string,
     $2$0: string,
-    opts: IRouterOptionsSpec,
-    comp: IComponentSpec,
-  ): string[] {
-    switch (opts.lifecycleStrategy) {
-      case 'phased': {
-        const routerHooks = [
-          `${prefix}.${$1$0}.canLeave`,
-          `${prefix}.${$1$1}.canLeave`,
-          `${prefix}.${$2$0}.canEnter`,
-          `${prefix}.${$1$0}.leave`,
-          `${prefix}.${$1$1}.leave`,
-          `${prefix}.${$2$0}.enter`,
-        ];
-        switch (opts.swapStrategy) {
-          case 'parallel': {
-            return [
-              ...routerHooks,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ];
-          }
-          case 'remove-first': {
-            return [
-              ...routerHooks,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-            ];
-          }
-          case 'add-first': {
-            return [
-              ...routerHooks,
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ];
-          }
-        }
-        break;
-      }
-      case 'parallel': {
-        const routerHooks = [
-          `${prefix}.${$1$0}.canLeave`,
-          `${prefix}.${$1$1}.canLeave`,
-          `${prefix}.${$2$0}.canEnter`,
-        ];
-
-        switch (opts.swapStrategy) {
-          case 'parallel': {
-            return [
-              ...routerHooks,
-
-              `${prefix}.${$2$0}.enter`,
-              `${prefix}.${$1$0}.leave`,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-
-              `${prefix}.${$1$1}.leave`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ];
-          }
-          case 'remove-first': {
-            return [
-              ...routerHooks,
-
-              `${prefix}.${$1$0}.leave`,
-              `${prefix}.${$1$1}.leave`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-
-              `${prefix}.${$2$0}.enter`,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-            ];
-          }
-          case 'add-first': {
-            return [
-              ...routerHooks,
-
-              `${prefix}.${$2$0}.enter`,
-              `${prefix}.${$1$0}.leave`,
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-
-              `${prefix}.${$1$1}.leave`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ];
-          }
-        }
-      }
-    }
-  },
-  '$1$0+$1$1 -> $2$1'(
-    prefix: string,
-    $1$0: string,
-    $1$1: string,
     $2$1: string,
     opts: IRouterOptionsSpec,
     comp: IComponentSpec,
-  ): string[] {
+  ) {
+    if ($1$0 === $2$0) { return yield* getSyncCalls['$1 -> $2'](prefix, $1$1, $2$1, opts, comp); }
+    if ($1$1 === $2$1) { return yield* getSyncCalls['$1 -> $2'](prefix, $1$0, $2$0, opts, comp); }
+
+    if ($1$0.length === 0) {
+      if ($1$1.length === 0) { return yield* getSyncCalls['"" -> $x$0+$x$1'](prefix, $2$0, $2$1, opts, comp); }
+      if ($2$1.length === 0) { return yield* getSyncCalls['"" -> $x$0+$x$1'](prefix, $2$0, $1$1, opts, comp); }
+    }
+
+    if ($1$1.length === 0) {
+      if ($2$0.length === 0) { return yield* getSyncCalls['$1 -> $2'](prefix, $1$0, $2$1, opts, comp); }
+      if ($1$0.length === 0) { return yield* getSyncCalls['"" -> $x$0+$x$1'](prefix, $2$0, $2$1, opts, comp); }
+    }
+
+    if ($1$0.length > 0) { yield `${prefix}.${$1$0}.canLeave`; }
+    if ($1$1.length > 0) { yield `${prefix}.${$1$1}.canLeave`; }
+    if ($2$0.length > 0) { yield `${prefix}.${$2$0}.canEnter`; }
+    if ($2$1.length > 0) { yield `${prefix}.${$2$1}.canEnter`; }
+
     switch (opts.lifecycleStrategy) {
-      case 'phased': {
-        const routerHooks = [
-          `${prefix}.${$1$0}.canLeave`,
-          `${prefix}.${$1$1}.canLeave`,
-          `${prefix}.${$2$1}.canEnter`,
-          `${prefix}.${$1$0}.leave`,
-          `${prefix}.${$1$1}.leave`,
-          `${prefix}.${$2$1}.enter`,
-        ];
+      case 'phased':
+        if ($1$0.length > 0) { yield `${prefix}.${$1$0}.leave`; }
+        if ($1$1.length > 0) { yield `${prefix}.${$1$1}.leave`; }
+        if ($2$0.length > 0) { yield `${prefix}.${$2$0}.enter`; }
+        if ($2$1.length > 0) { yield `${prefix}.${$2$1}.enter`; }
 
         switch (opts.swapStrategy) {
           case 'parallel':
-          case 'remove-first': {
-            return [
-              ...routerHooks,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ];
-          }
-          case 'add-first': {
-            return [
-              ...routerHooks,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ];
-          }
+            if ($1$1.length === 0) {
+              if ($2$1.length > 0) { yield* activate(prefix, $2$1, true, false); }
+              if ($1$0.length > 0) { yield* deactivate(prefix, $1$0, true, false); }
+              if ($2$0.length > 0) { yield* activate(prefix, $2$0, true, false); }
+            } else {
+              if ($1$0.length > 0) { yield* deactivate(prefix, $1$0, true, false); }
+              if ($2$0.length > 0) { yield* activate(prefix, $2$0, true, false); }
+              if ($1$1.length > 0) { yield* deactivate(prefix, $1$1, true, false); }
+              if ($2$1.length > 0) { yield* activate(prefix, $2$1, true, false); }
+            }
+            break;
+          case 'remove-first':
+            if ($1$0.length > 0) { yield* deactivate(prefix, $1$0, true, false); }
+            if ($1$1.length > 0) { yield* deactivate(prefix, $1$1, true, false); }
+            if ($2$0.length > 0) { yield* activate(prefix, $2$0, true, false); }
+            if ($2$1.length > 0) { yield* activate(prefix, $2$1, true, false); }
+            break;
+          case 'add-first':
+            if ($2$0.length > 0) { yield* activate(prefix, $2$0, true, false); }
+            if ($2$1.length > 0) { yield* activate(prefix, $2$1, true, false); }
+            if ($1$0.length > 0) { yield* deactivate(prefix, $1$0, true, false); }
+            if ($1$1.length > 0) { yield* deactivate(prefix, $1$1, true, false); }
+            break;
         }
         break;
-      }
-      case 'parallel': {
-        const routerHooks = [
-          `${prefix}.${$1$0}.canLeave`,
-          `${prefix}.${$1$1}.canLeave`,
-          `${prefix}.${$2$1}.canEnter`,
-        ];
-
-        switch (opts.swapStrategy) {
-          case 'parallel': {
-            return [
-              ...routerHooks,
-
-              `${prefix}.${$2$1}.enter`,
-              `${prefix}.${$1$0}.leave`,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-
-              `${prefix}.${$1$1}.leave`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ];
-          }
-          case 'remove-first': {
-            return [
-              ...routerHooks,
-
-              `${prefix}.${$1$0}.leave`,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-
-              `${prefix}.${$1$1}.leave`,
-              `${prefix}.${$2$1}.enter`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ];
-          }
-          case 'add-first': {
-            return [
-              ...routerHooks,
-
-              `${prefix}.${$2$1}.enter`,
-              `${prefix}.${$1$0}.leave`,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-
-              `${prefix}.${$1$1}.leave`,
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ];
-          }
-        }
-      }
-    }
-  },
-  '$1$0 -> $2$0+$2$1'(
-    prefix: string,
-    $1$0: string,
-    $2$0: string,
-    $2$1: string,
-    opts: IRouterOptionsSpec,
-    comp: IComponentSpec,
-  ): string[] {
-    switch (opts.lifecycleStrategy) {
-      case 'phased': {
-        const routerHooks = [
-          `${prefix}.${$1$0}.canLeave`,
-          `${prefix}.${$2$0}.canEnter`,
-          `${prefix}.${$2$1}.canEnter`,
-          `${prefix}.${$1$0}.leave`,
-          `${prefix}.${$2$0}.enter`,
-          `${prefix}.${$2$1}.enter`,
-        ];
-
-        switch (opts.swapStrategy) {
-          case 'parallel': {
-            return [
-              ...routerHooks,
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-            ];
-          }
-          case 'remove-first': {
-            return [
-              ...routerHooks,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ];
-          }
-          case 'add-first': {
-            return [
-              ...routerHooks,
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-            ];
-          }
-        }
-        break;
-      }
-      case 'parallel': {
-        const routerHooks = [
-          `${prefix}.${$1$0}.canLeave`,
-          `${prefix}.${$2$0}.canEnter`,
-          `${prefix}.${$2$1}.canEnter`,
-        ];
-
-        switch (opts.swapStrategy) {
-          case 'parallel': {
-            return [
-              ...routerHooks,
-
-              `${prefix}.${$2$0}.enter`,
-              `${prefix}.${$2$1}.enter`,
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-
-              `${prefix}.${$1$0}.leave`,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-            ];
-          }
-          case 'remove-first': {
-            return [
-              ...routerHooks,
-
-              `${prefix}.${$1$0}.leave`,
-              `${prefix}.${$2$0}.enter`,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-
-              `${prefix}.${$2$1}.enter`,
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ];
-          }
-          case 'add-first': {
-            return [
-              ...routerHooks,
-
-              `${prefix}.${$2$0}.enter`,
-              `${prefix}.${$2$1}.enter`,
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-
-              `${prefix}.${$1$0}.leave`,
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-            ];
-          }
-        }
-      }
-    }
-  },
-  '$1$1 -> $2$0+$2$1'(
-    prefix: string,
-    $1$1: string,
-    $2$0: string,
-    $2$1: string,
-    opts: IRouterOptionsSpec,
-    comp: IComponentSpec,
-  ): string[] {
-    switch (opts.lifecycleStrategy) {
-      case 'phased': {
-        const routerHooks = [
-          `${prefix}.${$1$1}.canLeave`,
-          `${prefix}.${$2$0}.canEnter`,
-          `${prefix}.${$2$1}.canEnter`,
-          `${prefix}.${$1$1}.leave`,
-          `${prefix}.${$2$0}.enter`,
-          `${prefix}.${$2$1}.enter`,
-        ];
-
+      case 'parallel':
         switch (opts.swapStrategy) {
           case 'parallel':
-          case 'remove-first': {
-            return [
-              ...routerHooks,
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ];
-          }
-          case 'add-first': {
-            return [
-              ...routerHooks,
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ];
-          }
+            if ($1$0.length === 0) {
+              yield* activate(prefix, $2$0, true, true);
+              yield `${prefix}.${$2$1}.enter`;
+              yield* deactivate(prefix, $1$1, true, true);
+              yield* activate(prefix, $2$1, true, false);
+            } else if ($1$1.length === 0) {
+              yield `${prefix}.${$2$0}.enter`;
+              yield* activate(prefix, $2$1, true, true);
+              yield* deactivate(prefix, $1$0, true, true);
+              yield* activate(prefix, $2$0, true, false);
+            } else if ($2$0.length === 0) {
+              yield `${prefix}.${$2$1}.enter`;
+              yield* deactivate(prefix, $1$0, true, true);
+              yield* deactivate(prefix, $1$1, true, true);
+              yield* activate(prefix, $2$1, true, false);
+            } else if ($2$1.length === 0) {
+              yield `${prefix}.${$2$0}.enter`;
+              yield* deactivate(prefix, $1$0, true, true);
+              yield* activate(prefix, $2$0, true, false);
+              yield* deactivate(prefix, $1$1, true, true);
+            } else {
+              yield `${prefix}.${$2$0}.enter`;
+              yield `${prefix}.${$2$1}.enter`;
+              yield* deactivate(prefix, $1$0, true, true);
+              yield* activate(prefix, $2$0, true, false);
+              yield* deactivate(prefix, $1$1, true, true);
+              yield* activate(prefix, $2$1, true, false);
+            }
+            break;
+          case 'remove-first':
+            if ($1$0.length > 0) { yield* deactivate(prefix, $1$0, true, true); }
+            if ($1$1.length > 0) { yield* deactivate(prefix, $1$1, true, true); }
+            if ($2$0.length > 0) { yield* activate(prefix, $2$0, true, true); }
+            if ($2$1.length > 0) { yield* activate(prefix, $2$1, true, true); }
+            break;
+          case 'add-first':
+            if ($2$0.length > 0) { yield* activate(prefix, $2$0, true, true); }
+            if ($2$1.length > 0) { yield* activate(prefix, $2$1, true, true); }
+            if ($1$0.length > 0) { yield* deactivate(prefix, $1$0, true, true); }
+            if ($1$1.length > 0) { yield* deactivate(prefix, $1$1, true, true); }
+            break;
         }
         break;
-      }
-      case 'parallel': {
-        const routerHooks = [
-          `${prefix}.${$1$1}.canLeave`,
-          `${prefix}.${$2$0}.canEnter`,
-          `${prefix}.${$2$1}.canEnter`,
-        ];
-
-        switch (opts.swapStrategy) {
-          case 'parallel': {
-            return [
-              ...routerHooks,
-
-              `${prefix}.${$2$0}.enter`,
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-
-              `${prefix}.${$2$1}.enter`,
-              `${prefix}.${$1$1}.leave`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ];
-          }
-          case 'remove-first': {
-            return [
-              ...routerHooks,
-
-              `${prefix}.${$1$1}.leave`,
-              `${prefix}.${$2$0}.enter`,
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-
-              `${prefix}.${$2$1}.enter`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ];
-          }
-          case 'add-first': {
-            return [
-              ...routerHooks,
-
-              `${prefix}.${$2$0}.enter`,
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-
-              `${prefix}.${$2$1}.enter`,
-              `${prefix}.${$1$1}.leave`,
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ];
-          }
-        }
-      }
     }
   },
-  '$1$0+$1$1 -> $2$0+$2$1'(
-    prefix: string,
-    $1$0: string,
-    $1$1: string,
-    $2$0: string,
-    $2$1: string,
-    opts: IRouterOptionsSpec,
-    comp: IComponentSpec,
-  ): string[] {
-    if ($1$0 === $2$0) {
-      return getSyncCalls['$1 -> $2'](prefix, $1$1, $2$1, opts, comp);
-    }
-
-    if ($1$1 === $2$1) {
-      return getSyncCalls['$1 -> $2'](prefix, $1$0, $2$0, opts, comp);
-    }
-
-    if ($1$0 === '') {
-      if ($1$1 === '') {
-        return getSyncCalls['"" -> $x$0+$x$1'](prefix, $2$0, $2$1, opts, comp);
-      }
-      if ($2$1 === '') {
-        return getSyncCalls['"" -> $x$0+$x$1'](prefix, $2$0, $1$1, opts, comp);
-      }
-
-      return getSyncCalls['$1$1 -> $2$0+$2$1'](prefix, $1$1, $2$0, $2$1, opts, comp);
-    }
-
-    if ($1$1 === '') {
-      return getSyncCalls['$1$0 -> $2$0+$2$1'](prefix, $1$0, $2$0, $2$1, opts, comp);
-    }
-
-    if ($2$0 === '') {
-      if ($1$1 === '') {
-        return getSyncCalls['$x$0+$x$1 -> ""'](prefix, $1$0, $2$1, opts, comp);
-      }
-      if ($2$1 === '') {
-        return getSyncCalls['$x$0+$x$1 -> ""'](prefix, $1$0, $1$1, opts, comp);
-      }
-
-      return getSyncCalls['$1$0+$1$1 -> $2$1'](prefix, $1$0, $1$1, $2$1, opts, comp);
-    }
-
-    if ($2$1 === '') {
-      return getSyncCalls['$1$0+$1$1 -> $2$0'](prefix, $1$0, $1$1, $2$0, opts, comp);
-    }
-
-    switch (opts.lifecycleStrategy) {
-      case 'phased': {
-        const routerHooks = [
-          `${prefix}.${$1$0}.canLeave`,
-          `${prefix}.${$1$1}.canLeave`,
-          `${prefix}.${$2$0}.canEnter`,
-          `${prefix}.${$2$1}.canEnter`,
-          `${prefix}.${$1$0}.leave`,
-          `${prefix}.${$1$1}.leave`,
-          `${prefix}.${$2$0}.enter`,
-          `${prefix}.${$2$1}.enter`,
-        ];
-
-        switch (opts.swapStrategy) {
-          case 'parallel':
-          case 'remove-first': {
-            return [
-              ...routerHooks,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ];
-          }
-          case 'add-first': {
-            return [
-              ...routerHooks,
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ];
-          }
-        }
-        break;
-      }
-      case 'parallel': {
-        const routerHooks = [
-          `${prefix}.${$1$0}.canLeave`,
-          `${prefix}.${$1$1}.canLeave`,
-          `${prefix}.${$2$0}.canEnter`,
-          `${prefix}.${$2$1}.canEnter`,
-        ];
-
-        switch (opts.swapStrategy) {
-          case 'parallel': {
-            return [
-              ...routerHooks,
-
-              `${prefix}.${$2$0}.enter`,
-              `${prefix}.${$2$1}.enter`,
-              `${prefix}.${$1$0}.leave`,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-
-              `${prefix}.${$1$1}.leave`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ];
-          }
-          case 'remove-first': {
-            return [
-              ...routerHooks,
-
-              `${prefix}.${$1$0}.leave`,
-              `${prefix}.${$1$1}.leave`,
-              `${prefix}.${$2$0}.enter`,
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-
-              `${prefix}.${$2$1}.enter`,
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-            ];
-          }
-          case 'add-first': {
-            return [
-              ...routerHooks,
-
-              `${prefix}.${$2$0}.enter`,
-              `${prefix}.${$2$1}.enter`,
-              `${prefix}.${$1$0}.leave`,
-              ...activate(prefix, $2$0),
-              `${prefix}.${$2$0}.afterAttachChildren`,
-
-              ...deactivate(prefix, $1$0),
-              `${prefix}.${$1$0}.afterUnbindChildren`,
-              `${prefix}.${$1$0}.dispose`,
-
-              `${prefix}.${$1$1}.leave`,
-              ...activate(prefix, $2$1),
-              `${prefix}.${$2$1}.afterAttachChildren`,
-
-              ...deactivate(prefix, $1$1),
-              `${prefix}.${$1$1}.afterUnbindChildren`,
-              `${prefix}.${$1$1}.dispose`,
-            ];
-          }
-        }
-      }
-    }
-  },
-  '"" -> $x$p/$x$c'(
+  *'"" -> $x$p/$x$c'(
     prefix: string,
     $x$p: string,
     $x$c: string,
     opts: IRouterOptionsSpec,
     comp: IComponentSpec,
-  ): string[] {
-    if ($x$c === '') {
-      return getSyncCalls['"" -> $x'](prefix, $x$p);
-    }
+  ) {
+    if ($x$c.length === 0) { return yield* getSyncCalls['"" -> $x'](prefix, $x$p); }
 
     switch (opts.resolutionStrategy) {
-      case 'static': {
+      case 'static':
         switch (opts.lifecycleStrategy) {
-          case 'phased': {
-            return [
-              `${prefix}.${$x$p}.canEnter`,
-              `${prefix}.${$x$c}.canEnter`,
-              `${prefix}.${$x$p}.enter`,
-              `${prefix}.${$x$c}.enter`,
+          case 'phased':
+            yield `${prefix}.${$x$p}.canEnter`;
+            yield `${prefix}.${$x$c}.canEnter`;
+            yield `${prefix}.${$x$p}.enter`;
+            yield `${prefix}.${$x$c}.enter`;
 
-              ...activate(prefix, $x$p),
-              ...activate(prefix, $x$c),
-              `${prefix}.${$x$c}.afterAttachChildren`,
-              `${prefix}.${$x$p}.afterAttachChildren`,
-            ];
-          }
-          case 'parallel': {
-            return [
-              `${prefix}.${$x$p}.canEnter`,
-              `${prefix}.${$x$c}.canEnter`,
-              `${prefix}.${$x$p}.enter`,
+            yield* activate(prefix, $x$p, false, false);
+            yield* activate(prefix, $x$c, true, false);
+            yield `${prefix}.${$x$p}.afterAttachChildren`;
+            break;
+          case 'parallel':
+            yield `${prefix}.${$x$p}.canEnter`;
+            yield `${prefix}.${$x$c}.canEnter`;
 
-              ...activate(prefix, $x$p),
-
-              `${prefix}.${$x$c}.enter`,
-              ...activate(prefix, $x$c),
-              `${prefix}.${$x$c}.afterAttachChildren`,
-              `${prefix}.${$x$p}.afterAttachChildren`,
-            ];
-          }
+            yield* activate(prefix, $x$p, false, true);
+            yield* activate(prefix, $x$c, true, true);
+            yield `${prefix}.${$x$p}.afterAttachChildren`;
+            break;
         }
         break;
-      }
-      case 'dynamic': {
-        return [
-          `${prefix}.${$x$p}.canEnter`,
-          `${prefix}.${$x$p}.enter`,
+      case 'dynamic':
+        yield `${prefix}.${$x$p}.canEnter`;
+        yield* activate(prefix, $x$p, true, true);
 
-          ...activate(prefix, $x$p),
-          `${prefix}.${$x$p}.afterAttachChildren`,
-
-          `${prefix}.${$x$c}.canEnter`,
-          `${prefix}.${$x$c}.enter`,
-
-          ...activate(prefix, $x$c),
-          `${prefix}.${$x$c}.afterAttachChildren`,
-        ];
-      }
+        yield `${prefix}.${$x$c}.canEnter`;
+        yield* activate(prefix, $x$c, true, true);
+        break;
     }
   },
-  '$x$p/$x$c -> ""'(
+  *'$x$p/$x$c -> ""'(
     prefix: string,
     $x$p: string,
     $x$c: string,
     opts: IRouterOptionsSpec,
     comp: IComponentSpec,
-  ): string[] {
-    if ($x$c === '') {
-      return getSyncCalls['$x -> ""'](prefix, $x$p);
-    }
+  ) {
+    if ($x$c.length === 0) { return yield* getSyncCalls['$x -> ""'](prefix, $x$p); }
 
-    return [
-      `${prefix}.${$x$c}.canLeave`,
-      `${prefix}.${$x$p}.canLeave`,
-      `${prefix}.${$x$c}.leave`,
-      `${prefix}.${$x$p}.leave`,
+    yield `${prefix}.${$x$c}.canLeave`;
+    yield `${prefix}.${$x$p}.canLeave`;
+    yield `${prefix}.${$x$c}.leave`;
+    yield `${prefix}.${$x$p}.leave`;
 
-      ...deactivate(prefix, $x$c),
-      `${prefix}.${$x$c}.afterUnbindChildren`,
-      `${prefix}.${$x$c}.dispose`,
-
-      ...deactivate(prefix, $x$p),
-      `${prefix}.${$x$p}.afterUnbindChildren`,
-      `${prefix}.${$x$p}.dispose`,
-    ];
+    yield* deactivate(prefix, $x$c, true, false);
+    yield* deactivate(prefix, $x$p, true, false);
   },
-  '$1$p/$1$c -> $2$p'(
-    prefix: string,
-    $1$p: string,
-    $1$c: string,
-    $2$p: string,
-    opts: IRouterOptionsSpec,
-    comp: IComponentSpec,
-  ): string[] {
-    if ($2$p === '') {
-      return getSyncCalls['$x$p/$x$c -> ""'](prefix, $1$p, $1$c, opts, comp);
-    }
-
-    switch (opts.lifecycleStrategy) {
-      case 'phased': {
-        const routerHooks = [
-          `${prefix}.${$1$c}.canLeave`,
-          `${prefix}.${$1$p}.canLeave`,
-          `${prefix}.${$2$p}.canEnter`,
-          `${prefix}.${$1$c}.leave`,
-          `${prefix}.${$1$p}.leave`,
-          `${prefix}.${$2$p}.enter`,
-        ];
-        switch (opts.swapStrategy) {
-          case 'parallel':
-          case 'remove-first': {
-            return [
-              ...routerHooks,
-              ...deactivate(prefix, $1$c),
-              `${prefix}.${$1$c}.afterUnbindChildren`,
-              `${prefix}.${$1$c}.dispose`,
-              ...deactivate(prefix, $1$p),
-              `${prefix}.${$1$p}.afterUnbindChildren`,
-              `${prefix}.${$1$p}.dispose`,
-              ...activate(prefix, $2$p),
-              `${prefix}.${$2$p}.afterAttachChildren`,
-            ];
-          }
-          case 'add-first': {
-            return [
-              ...routerHooks,
-              ...deactivate(prefix, $1$c),
-              `${prefix}.${$1$c}.afterUnbindChildren`,
-              `${prefix}.${$1$c}.dispose`,
-              ...activate(prefix, $2$p),
-              `${prefix}.${$2$p}.afterAttachChildren`,
-              ...deactivate(prefix, $1$p),
-              `${prefix}.${$1$p}.afterUnbindChildren`,
-              `${prefix}.${$1$p}.dispose`,
-            ];
-          }
-        }
-        break;
-      }
-      case 'parallel': {
-        const routerHooks = [
-          `${prefix}.${$1$c}.canLeave`,
-          `${prefix}.${$1$p}.canLeave`,
-          `${prefix}.${$2$p}.canEnter`,
-        ];
-        switch (opts.swapStrategy) {
-          case 'parallel': {
-            return [
-              ...routerHooks,
-              `${prefix}.${$2$p}.enter`,
-              `${prefix}.${$1$c}.leave`,
-
-              ...deactivate(prefix, $1$c),
-              `${prefix}.${$1$c}.afterUnbindChildren`,
-              `${prefix}.${$1$c}.dispose`,
-
-              `${prefix}.${$1$p}.leave`,
-              ...deactivate(prefix, $1$p),
-              `${prefix}.${$1$p}.afterUnbindChildren`,
-              `${prefix}.${$1$p}.dispose`,
-
-              ...activate(prefix, $2$p),
-              `${prefix}.${$2$p}.afterAttachChildren`,
-            ];
-          }
-          case 'remove-first': {
-            return [
-              ...routerHooks,
-              `${prefix}.${$1$c}.leave`,
-
-              ...deactivate(prefix, $1$c),
-              `${prefix}.${$1$c}.afterUnbindChildren`,
-              `${prefix}.${$1$c}.dispose`,
-
-              `${prefix}.${$1$p}.leave`,
-              `${prefix}.${$2$p}.enter`,
-              ...deactivate(prefix, $1$p),
-              `${prefix}.${$1$p}.afterUnbindChildren`,
-              `${prefix}.${$1$p}.dispose`,
-
-              ...activate(prefix, $2$p),
-              `${prefix}.${$2$p}.afterAttachChildren`,
-            ];
-          }
-          case 'add-first': {
-            return [
-              ...routerHooks,
-              `${prefix}.${$2$p}.enter`,
-              `${prefix}.${$1$c}.leave`,
-
-              ...deactivate(prefix, $1$c),
-              `${prefix}.${$1$c}.afterUnbindChildren`,
-              `${prefix}.${$1$c}.dispose`,
-
-              `${prefix}.${$1$p}.leave`,
-              ...activate(prefix, $2$p),
-              `${prefix}.${$2$p}.afterAttachChildren`,
-
-              ...deactivate(prefix, $1$p),
-              `${prefix}.${$1$p}.afterUnbindChildren`,
-              `${prefix}.${$1$p}.dispose`,
-            ];
-          }
-        }
-      }
-    }
-  },
-  '$1$p -> $2$p/$2$c'(
-    prefix: string,
-    $1$p: string,
-    $2$p: string,
-    $2$c: string,
-    opts: IRouterOptionsSpec,
-    comp: IComponentSpec,
-  ): string[] {
-    if ($2$c === '') {
-      return getSyncCalls['$1 -> $2'](prefix, $1$p, $2$p, opts, comp);
-    }
-
-    if ($1$p === '') {
-      return getSyncCalls['"" -> $x$p/$x$c'](prefix, $2$p, $2$c, opts, comp);
-    }
-
-    switch (opts.resolutionStrategy) {
-      case 'static': {
-        switch (opts.lifecycleStrategy) {
-          case 'phased': {
-            const routerHooks = [
-              `${prefix}.${$1$p}.canLeave`,
-              `${prefix}.${$2$p}.canEnter`,
-              `${prefix}.${$2$c}.canEnter`,
-              `${prefix}.${$1$p}.leave`,
-              `${prefix}.${$2$p}.enter`,
-              `${prefix}.${$2$c}.enter`,
-            ];
-            switch (opts.swapStrategy) {
-              case 'parallel':
-              case 'remove-first': {
-                return [
-                  ...routerHooks,
-
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                  ...activate(prefix, $2$p),
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                ];
-              }
-              case 'add-first': {
-                return [
-                  ...routerHooks,
-
-                  ...activate(prefix, $2$p),
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                ];
-              }
-            }
-            break;
-          }
-          case 'parallel': {
-            const routerHooks = [
-              `${prefix}.${$1$p}.canLeave`,
-              `${prefix}.${$2$p}.canEnter`,
-              `${prefix}.${$2$c}.canEnter`,
-            ];
-            switch (opts.swapStrategy) {
-              case 'parallel': {
-                return [
-                  ...routerHooks,
-
-                  `${prefix}.${$2$p}.enter`,
-                  `${prefix}.${$1$p}.leave`,
-
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-
-                  ...activate(prefix, $2$p),
-
-                  `${prefix}.${$2$c}.enter`,
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                ];
-              }
-              case 'remove-first': {
-                return [
-                  ...routerHooks,
-
-                  `${prefix}.${$1$p}.leave`,
-                  `${prefix}.${$2$p}.enter`,
-
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-
-                  ...activate(prefix, $2$p),
-
-                  `${prefix}.${$2$c}.enter`,
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                ];
-              }
-              case 'add-first': {
-                return [
-                  ...routerHooks,
-
-                  `${prefix}.${$2$p}.enter`,
-                  `${prefix}.${$1$p}.leave`,
-
-                  ...activate(prefix, $2$p),
-
-                  `${prefix}.${$2$c}.enter`,
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                ];
-              }
-            }
-          }
-        }
-        break;
-      }
-      case 'dynamic': {
-        switch (opts.lifecycleStrategy) {
-          case 'phased': {
-
-            const routerHooks = [
-              `${prefix}.${$1$p}.canLeave`,
-              `${prefix}.${$2$p}.canEnter`,
-              `${prefix}.${$1$p}.leave`,
-              `${prefix}.${$2$p}.enter`,
-            ];
-            switch (opts.swapStrategy) {
-              case 'parallel':
-              case 'remove-first': {
-                return [
-                  ...routerHooks,
-
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
-              case 'add-first': {
-                return [
-                  ...routerHooks,
-
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
-            }
-            break;
-          }
-          case 'parallel': {
-            const routerHooks = [
-              `${prefix}.${$1$p}.canLeave`,
-              `${prefix}.${$2$p}.canEnter`,
-            ];
-            switch (opts.swapStrategy) {
-              case 'parallel': {
-                return [
-                  ...routerHooks,
-                  `${prefix}.${$2$p}.enter`,
-                  `${prefix}.${$1$p}.leave`,
-
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
-              case 'remove-first': {
-                return [
-                  ...routerHooks,
-                  `${prefix}.${$1$p}.leave`,
-                  `${prefix}.${$2$p}.enter`,
-
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
-              case 'add-first': {
-                return [
-                  ...routerHooks,
-                  `${prefix}.${$2$p}.enter`,
-                  `${prefix}.${$1$p}.leave`,
-
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  '$1$p/$1$c -> $2$p/$2$c'(
+  *'$1$p/$1$c -> $2$p/$2$c'(
     prefix: string,
     $1$p: string,
     $1$c: string,
@@ -3184,304 +925,192 @@ export const getSyncCalls = {
     $2$c: string,
     opts: IRouterOptionsSpec,
     comp: IComponentSpec,
-  ): string[] {
-    if ($1$p === $2$p) {
-      return getSyncCalls['$1 -> $2'](prefix, $1$c, $2$c, opts, comp);
-    }
-
-    if ($1$c === '') {
-      return getSyncCalls['$1$p -> $2$p/$2$c'](prefix, $1$p, $2$p, $2$c, opts, comp);
-    }
-
-    if ($2$c === '') {
-      return getSyncCalls['$1$p/$1$c -> $2$p'](prefix, $1$p, $1$c, $2$p, opts, comp);
-    }
+  ) {
+    if ($1$p === $2$p) { return yield* getSyncCalls['$1 -> $2'](prefix, $1$c, $2$c, opts, comp); }
 
     switch (opts.resolutionStrategy) {
-      case 'static': {
+      case 'static':
         switch (opts.lifecycleStrategy) {
-          case 'phased': {
-            const routerHooks = [
-              `${prefix}.${$1$c}.canLeave`,
-              `${prefix}.${$1$p}.canLeave`,
-              `${prefix}.${$2$p}.canEnter`,
-              `${prefix}.${$2$c}.canEnter`,
-              `${prefix}.${$1$c}.leave`,
-              `${prefix}.${$1$p}.leave`,
-              `${prefix}.${$2$p}.enter`,
-              `${prefix}.${$2$c}.enter`,
-            ];
+          case 'phased':
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canLeave`; }
+
+            yield `${prefix}.${$1$p}.canLeave`;
+            yield `${prefix}.${$2$p}.canEnter`;
+
+            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.leave`; }
+
+            yield `${prefix}.${$1$p}.leave`;
+            yield `${prefix}.${$2$p}.enter`;
+
+            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.enter`; }
+
             switch (opts.swapStrategy) {
               case 'parallel':
-              case 'remove-first': {
-                return [
-                  ...routerHooks,
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                  ...activate(prefix, $2$p),
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                ];
-              }
-              case 'add-first': {
-                return [
-                  ...routerHooks,
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
-                  ...activate(prefix, $2$p),
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                ];
-              }
+              case 'remove-first':
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, false); }
+
+                yield* deactivate(prefix, $1$p, true, false);
+                yield* activate(prefix, $2$p, false, false);
+
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, false); }
+
+                yield `${prefix}.${$2$p}.afterAttachChildren`;
+                break;
+              case 'add-first':
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, false); }
+
+                yield* activate(prefix, $2$p, false, false);
+
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, false); }
+
+                yield `${prefix}.${$2$p}.afterAttachChildren`;
+                yield* deactivate(prefix, $1$p, true, false);
+                break;
             }
             break;
-          }
-          case 'parallel': {
-            const routerHooks = [
-              `${prefix}.${$1$c}.canLeave`,
-              `${prefix}.${$1$p}.canLeave`,
-              `${prefix}.${$2$p}.canEnter`,
-              `${prefix}.${$2$c}.canEnter`,
-            ];
+          case 'parallel':
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canLeave`; }
+
+            yield `${prefix}.${$1$p}.canLeave`;
+            yield `${prefix}.${$2$p}.canEnter`;
+
+            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+
             switch (opts.swapStrategy) {
-              case 'parallel': {
-                return [
-                  ...routerHooks,
-                  `${prefix}.${$2$p}.enter`,
-                  `${prefix}.${$1$c}.leave`,
+              case 'parallel':
+                yield `${prefix}.${$2$p}.enter`;
 
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, true); }
 
-                  `${prefix}.${$1$p}.leave`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
+                yield* deactivate(prefix, $1$p, true, true);
+                yield* activate(prefix, $2$p, false, false);
 
-                  ...activate(prefix, $2$p),
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
 
-                  `${prefix}.${$2$c}.enter`,
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                ];
-              }
-              case 'remove-first': {
-                return [
-                  ...routerHooks,
-                  `${prefix}.${$1$c}.leave`,
+                yield `${prefix}.${$2$p}.afterAttachChildren`;
+                break;
+              case 'remove-first':
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, true); }
 
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
+                yield* deactivate(prefix, $1$p, true, true);
+                yield* activate(prefix, $2$p, false, true);
 
-                  `${prefix}.${$1$p}.leave`,
-                  `${prefix}.${$2$p}.enter`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
 
-                  ...activate(prefix, $2$p),
+                yield `${prefix}.${$2$p}.afterAttachChildren`;
+                break;
+              case 'add-first':
+                yield `${prefix}.${$2$p}.enter`;
 
-                  `${prefix}.${$2$c}.enter`,
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                ];
-              }
-              case 'add-first': {
-                return [
-                  ...routerHooks,
-                  `${prefix}.${$2$p}.enter`,
-                  `${prefix}.${$1$c}.leave`,
+                if ($1$c.length > 0) {
+                  yield* deactivate(prefix, $1$c, true, true);
+                  yield `${prefix}.${$1$p}.leave`;
+                  yield* activate(prefix, $2$p, false, false);
 
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
+                  if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
 
-                  `${prefix}.${$1$p}.leave`,
-                  ...activate(prefix, $2$p),
+                  yield `${prefix}.${$2$p}.afterAttachChildren`;
+                  yield* deactivate(prefix, $1$p, true, false);
+                } else {
+                  yield* activate(prefix, $2$p, false, false);
 
-                  `${prefix}.${$2$c}.enter`,
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                  `${prefix}.${$2$p}.afterAttachChildren`,
+                  if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
 
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                ];
-              }
+                  yield `${prefix}.${$2$p}.afterAttachChildren`;
+                  yield* deactivate(prefix, $1$p, true, true);
+                }
+
+                break;
             }
-          }
         }
         break;
-      }
-      case 'dynamic': {
+      case 'dynamic':
         switch (opts.lifecycleStrategy) {
-          case 'phased': {
-            const routerHooks = [
-              `${prefix}.${$1$c}.canLeave`,
-              `${prefix}.${$1$p}.canLeave`,
-              `${prefix}.${$2$p}.canEnter`,
-              `${prefix}.${$1$c}.leave`,
-              `${prefix}.${$1$p}.leave`,
-              `${prefix}.${$2$p}.enter`,
-            ];
+          case 'phased':
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canLeave`; }
+
+            yield `${prefix}.${$1$p}.canLeave`;
+            yield `${prefix}.${$2$p}.canEnter`;
+
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.leave`; }
+
+            yield `${prefix}.${$1$p}.leave`;
+            yield `${prefix}.${$2$p}.enter`;
+
             switch (opts.swapStrategy) {
               case 'parallel':
-              case 'remove-first': {
-                return [
-                  ...routerHooks,
+              case 'remove-first':
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, false); }
 
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
+                yield* deactivate(prefix, $1$p, true, false);
+                yield* activate(prefix, $2$p, true, false);
 
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
+                break;
+              case 'add-first':
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, false); }
 
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
-              case 'add-first': {
-                return [
-                  ...routerHooks,
+                yield* activate(prefix, $2$p, true, false);
+                yield* deactivate(prefix, $1$p, true, false);
 
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
+                break;
             }
             break;
-          }
-          case 'parallel': {
-            const routerHooks = [
-              `${prefix}.${$1$c}.canLeave`,
-              `${prefix}.${$1$p}.canLeave`,
-              `${prefix}.${$2$p}.canEnter`,
-            ];
+          case 'parallel':
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canLeave`; }
+            yield `${prefix}.${$1$p}.canLeave`;
+            yield `${prefix}.${$2$p}.canEnter`;
+
             switch (opts.swapStrategy) {
-              case 'parallel': {
-                return [
-                  ...routerHooks,
-                  `${prefix}.${$2$p}.enter`,
-                  `${prefix}.${$1$c}.leave`,
+              case 'parallel':
+                yield `${prefix}.${$2$p}.enter`;
 
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, true); }
 
-                  `${prefix}.${$1$p}.leave`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
+                yield* deactivate(prefix, $1$p, true, true);
+                yield* activate(prefix, $2$p, true, false);
 
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
+                break;
+              case 'remove-first':
+                if ($1$c.length > 0) { yield `${prefix}.${$1$c}.leave`; }
+                if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, false); }
 
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
+                yield* deactivate(prefix, $1$p, true, true);
+                yield* activate(prefix, $2$p, true, true);
 
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
-              case 'remove-first': {
-                return [
-                  ...routerHooks,
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
+                break;
+              case 'add-first':
+                yield `${prefix}.${$2$p}.enter`;
 
-                  `${prefix}.${$1$c}.leave`,
+                if ($1$c.length > 0) {
+                  yield* deactivate(prefix, $1$c, true, true);
+                  yield `${prefix}.${$1$p}.leave`;
+                  yield* activate(prefix, $2$p, true, false);
+                  yield* deactivate(prefix, $1$p, true, false);
+                } else {
+                  yield* activate(prefix, $2$p, true, false);
+                  yield* deactivate(prefix, $1$p, true, true);
+                }
 
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
-
-                  `${prefix}.${$1$p}.leave`,
-                  `${prefix}.${$2$p}.enter`,
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
-              case 'add-first': {
-                return [
-                  ...routerHooks,
-
-                  `${prefix}.${$2$p}.enter`,
-                  `${prefix}.${$1$c}.leave`,
-
-                  ...deactivate(prefix, $1$c),
-                  `${prefix}.${$1$c}.afterUnbindChildren`,
-                  `${prefix}.${$1$c}.dispose`,
-
-                  `${prefix}.${$1$p}.leave`,
-                  ...activate(prefix, $2$p),
-                  `${prefix}.${$2$p}.afterAttachChildren`,
-
-                  ...deactivate(prefix, $1$p),
-                  `${prefix}.${$1$p}.afterUnbindChildren`,
-                  `${prefix}.${$1$p}.dispose`,
-
-                  `${prefix}.${$2$c}.canEnter`,
-                  `${prefix}.${$2$c}.enter`,
-
-                  ...activate(prefix, $2$c),
-                  `${prefix}.${$2$c}.afterAttachChildren`,
-                ];
-              }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
+                break;
             }
-          }
+            break;
         }
-      }
+        break;
     }
   },
 };
 
-// switch (opts.lifecycleStrategy) {
-//   case 'phased': {
-//   }
-//   case 'parallel': {
-//   }
-// }
 export const getCalls = {
   'all-sync': getSyncCalls,
   'all-async': getAsyncCalls,

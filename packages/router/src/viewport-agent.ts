@@ -1,3 +1,5 @@
+// No-fallthrough disabled due to large numbers of false positives
+/* eslint-disable no-fallthrough */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
   ILogger,
@@ -25,7 +27,10 @@ import {
   IRouteContext,
 } from './route-context';
 import {
-  Transition, ResolutionStrategy, LifecycleStrategy,
+  Transition,
+  ResolutionStrategy,
+  LifecycleStrategy,
+  SwapStrategy,
 } from './router';
 import {
   TransitionPlan,
@@ -33,6 +38,8 @@ import {
 import {
   resolveAll,
   runSequence,
+  ExposedPromise,
+  createExposedPromise,
 } from './util';
 
 export class ViewportRequest {
@@ -59,23 +66,6 @@ export class ViewportRequest {
   }
 }
 
-type ExposedPromise<T> = Promise<T> & {
-  resolve(value?: T): void;
-  reject(reason?: unknown): void;
-};
-
-function createExposedPromise<T>(): ExposedPromise<T> {
-  let $resolve: (value?: T) => void = (void 0)!;
-  let $reject: (reason?: unknown) => void = (void 0)!;
-  const promise = new Promise(function (resolve, reject) {
-    $resolve = resolve;
-    $reject = reject;
-  }) as ExposedPromise<T>;
-  promise.resolve = $resolve;
-  promise.reject = $reject;
-  return promise;
-}
-
 const viewportAgentLookup: WeakMap<object, ViewportAgent> = new WeakMap();
 
 export class ViewportAgent {
@@ -84,13 +74,19 @@ export class ViewportAgent {
   private isActive: boolean = false;
 
   private curCA: ComponentAgent | null = null;
-  private curState: CurrentState = 'empty';
   private nextCA: ComponentAgent | null = null;
-  private nextState: NextState = 'empty';
 
-  private resolutionStrategy: ResolutionStrategy = 'dynamic';
-  private lifecycleStrategy: LifecycleStrategy = 'parallel';
-  private plan: TransitionPlan = 'replace';
+  private get $state(): string { return $state(this.state); }
+  private state: State = State.bothAreEmpty;
+  private get currState(): CurrState { return this.state & State.curr; }
+  private set currState(state: CurrState) { this.state = (this.state & State.next) | state; }
+  private get nextState(): NextState { return this.state & State.next; }
+  private set nextState(state: NextState) { this.state = (this.state & State.curr) | state; }
+
+  private $resolution: ResolutionStrategy = 'dynamic';
+  private $lifecycle: LifecycleStrategy = 'parallel';
+  private $plan: TransitionPlan = 'replace';
+  private $swap: SwapStrategy = 'add-first';
   private nextNode: RouteNode | null = null;
 
   private deferredSwap: ExposedPromise<void> | null = null;
@@ -128,60 +124,49 @@ export class ViewportAgent {
   ): void | Promise<void> {
     this.isActive = true;
 
-    switch (this.curState) {
-      case 'deactivate':
-      case 'canLeave':
-        throw new Error(`Unexpected curState at ${this}.activateFromViewport()`);
-      case 'isActive':
+    switch (this.currState) {
+      case State.currIsActive:
         this.logger.trace(`activateFromViewport() - activating existing componentAgent at %s`, this);
         return this.curCA!.activate(initiator, parent, flags);
-      case 'empty':
-      case 'leave':
+      case State.currIsEmpty:
+      case State.currLeaveDone:
         switch (this.nextState) {
-          case 'isScheduled':
-          case 'activate':
-            throw new Error(`Unexpected nextState at ${this}.activateFromViewport()`);
-          case 'canEnter':
-            switch (this.lifecycleStrategy) {
-              case 'phased':
-                throw new Error(`Unexpected nextState at ${this}.activateFromViewport()`);
-              case 'parallel':
-                switch (this.resolutionStrategy) {
-                  case 'static':
-                    this.logger.trace(`activateFromViewport() - activating nextCA at %s`, this);
-                    this.nextState = 'activate';
-                    return runSequence(
-                      () => { return this.nextCA!.enter(this.nextNode!); },
-                      () => { return this.nextCA!.activate(initiator, parent, flags); },
-                    );
-                  case 'dynamic':
-                    throw new Error(`Unexpected nextState at ${this}.activateFromViewport()`);
-                }
-            }
-            break;
-          case 'empty':
+          case State.nextIsEmpty:
             this.logger.trace(`activateFromViewport() - nothing to activate at %s`, this);
-            break;
-          case 'enter':
-            switch (this.resolutionStrategy) {
+            return;
+          case State.nextCanEnterDone:
+            if (this.$resolution === 'static' && this.$lifecycle === 'parallel') {
+              this.logger.trace(`activateFromViewport() - activating nextCA at %s`, this);
+              this.nextState = State.nextActivate;
+              return runSequence(
+                () => { return this.nextCA!.enter(this.nextNode!); },
+                () => { return this.nextCA!.activate(initiator, parent, flags); },
+              );
+            }
+            this.unexpectedState('activateFromViewport 1');
+          case State.nextEnterDone:
+            switch (this.$resolution) {
               case 'static':
                 this.logger.trace(`activateFromViewport() - activating nextCA at %s`, this);
-                this.nextState = 'activate';
+                this.nextState = State.nextActivate;
                 return this.nextCA!.activate(initiator, parent, flags);
               case 'dynamic':
-                switch (this.plan) {
+                switch (this.$plan) {
                   case 'none':
                   case 'invoke-lifecycles':
                     this.logger.trace(`activateFromViewport() - activating nextCA at %s`, this);
-                    this.nextState = 'activate';
+                    this.nextState = State.nextActivate;
                     return this.nextCA!.activate(initiator, parent, flags);
                   case 'replace':
                     this.logger.trace(`activateFromViewport() - deferring activation at %s`, this);
-                    break;
+                    return;
                 }
             }
+          default:
+            this.unexpectedState('activateFromViewport 2');
         }
-        break;
+      default:
+        this.unexpectedState('activateFromViewport 3');
     }
   }
 
@@ -192,104 +177,100 @@ export class ViewportAgent {
   ): void | Promise<void> {
     this.isActive = false;
 
-    switch (this.curState) {
-      case 'canLeave':
-        throw new Error(`Unexpected curState at ${this}.activateFromViewport()`);
-      case 'empty':
+    switch (this.currState) {
+      case State.currIsEmpty:
         this.logger.trace(`deactivateFromViewport() - nothing to deactivate at %s`, this);
-        break;
-      case 'deactivate':
+        return;
+      case State.currDeactivate:
         // This will happen with bottom-up deactivation because the child is already deactivated, the parent
         // again tries to deactivate the child (that would be this viewport) but the router hasn't finalized the transition yet.
         // Since this is viewport was already deactivated, and we know the precise circumstance under which that happens, we can safely ignore the call.
         this.logger.trace(`deactivateFromViewport() - already deactivating at %s`, this);
-        break;
-      case 'isActive':
-      case 'leave':
+        return;
+      case State.currIsActive:
+      case State.currLeaveDone:
         this.logger.trace(`deactivateFromViewport() - deactivating curCA at %s`, this);
-        this.curState = 'deactivate';
+        this.currState = State.currDeactivate;
         return this.curCA!.deactivate(initiator, parent, flags);
+      default:
+        this.unexpectedState('deactivateFromViewport 1');
     }
   }
 
   public handles(req: ViewportRequest): boolean {
-    const tracePrefix = `handles(req:%s)`;
     if (req.resolutionStrategy === 'dynamic' && !this.isActive) {
-      this.logger.trace(`${tracePrefix} -> false (viewport is not active and we're in dynamic resolution mode)`, req);
+      this.logger.trace(`handles(req:%s) -> false (viewport is not active and we're in dynamic resolution mode)`, req);
       return false;
     }
 
-    if (this.nextState === 'isScheduled') {
-      this.logger.trace(`${tracePrefix} -> false (update already scheduled for %s)`, req, this.nextNode);
+    if (this.nextState === State.nextIsScheduled) {
+      this.logger.trace(`handles(req:%s) -> false (update already scheduled for %s)`, req, this.nextNode);
       return false;
     }
 
-    if (req.append && this.curState === 'isActive') {
-      this.logger.trace(`${tracePrefix} -> false (append mode, viewport already has content %s)`, req, this.curCA);
+    if (req.append && this.currState === State.currIsActive) {
+      this.logger.trace(`handles(req:%s) -> false (append mode, viewport already has content %s)`, req, this.curCA);
       return false;
     }
 
     if (req.viewportName.length > 0 && this.viewport.name !== req.viewportName) {
-      this.logger.trace(`${tracePrefix} -> false (names don't match)`, req);
+      this.logger.trace(`handles(req:%s) -> false (names don't match)`, req);
       return false;
     }
 
     if (this.viewport.usedBy.length > 0 && !this.viewport.usedBy.split(',').includes(req.componentName)) {
-      this.logger.trace(`${tracePrefix} -> false (componentName not included in usedBy)`, req);
+      this.logger.trace(`handles(req:%s) -> false (componentName not included in usedBy)`, req);
       return false;
     }
 
-    this.logger.trace(`${tracePrefix} -> true`, req);
+    this.logger.trace(`handles(req:%s) -> true`, req);
     return true;
   }
 
   public scheduleUpdate(
     resolutionStrategy: ResolutionStrategy,
     lifecycleStrategy: LifecycleStrategy,
+    swapStrategy: SwapStrategy,
     next: RouteNode,
   ): void {
     switch (this.nextState) {
-      case 'empty':
+      case State.nextIsEmpty:
         this.nextNode = next;
-        this.nextState = 'isScheduled';
-        this.resolutionStrategy = resolutionStrategy;
-        this.lifecycleStrategy = lifecycleStrategy;
+        this.nextState = State.nextIsScheduled;
+        this.$resolution = resolutionStrategy;
+        this.$lifecycle = lifecycleStrategy;
+        this.$swap = swapStrategy;
         break;
-      case 'isScheduled':
-      case 'canEnter':
-      case 'enter':
-      case 'activate':
-        throw new Error(`Unexpected nextState at ${this}.scheduleUpdate(next:${next})`);
+      default:
+        this.unexpectedState('scheduleUpdate 1');
     }
 
-    switch (this.curState) {
-      case 'empty':
-      case 'isActive':
+    switch (this.currState) {
+      case State.currIsEmpty:
+      case State.currIsActive:
         break;
-      case 'canLeave':
-      case 'leave':
-      case 'deactivate':
-        throw new Error(`Unexpected curState at ${this}.scheduleUpdate(next:${next})`);
+      default:
+        this.unexpectedState('scheduleUpdate 2');
     }
 
     const cur = this.curCA?.routeNode ?? null;
     if (cur === null || cur.component !== next.component) {
       // Component changed (or is cleared), so set to 'replace'
-      this.plan = 'replace';
+      this.$plan = 'replace';
     } else {
       // Component is the same, so determine plan based on config and/or convention
       const plan = next.context.definition.config.transitionPlan;
       if (typeof plan === 'function') {
-        this.plan = plan(cur, next);
+        this.$plan = plan(cur, next);
       } else {
-        this.plan = plan;
+        this.$plan = plan;
       }
     }
 
-    switch (this.plan) {
+    switch (this.$plan) {
       case 'none':
       case 'invoke-lifecycles':
-        this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s', compiling residue`, next, this.plan);
+        this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s', compiling residue`, next, this.$plan);
 
         // These plans can only occur if there is already a current component active in this viewport,
         // and it is the same component as `next`.
@@ -304,12 +285,12 @@ export class ViewportAgent {
         // In the case of 'replace', always process this node and its subtree as if it's a new one
         switch (resolutionStrategy) {
           case 'dynamic':
-            this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s' (strat: 'dynamic'), deferring residue compilation`, next, this.plan);
+            this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s' (strat: 'dynamic'), deferring residue compilation`, next, this.$plan);
 
             // In dynamic mode, that means doing nothing here because child resolution will happen after this node is activated
             break;
           case 'static': {
-            this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s' (strat: 'static'), creating nextCA and compiling residue`, next, this.plan);
+            this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s' (strat: 'static'), creating nextCA and compiling residue`, next, this.$plan);
 
             // In static mode, immediately create the component and drill down
             const controller = this.hostController as ICustomElementController<HTMLElement>;
@@ -324,59 +305,61 @@ export class ViewportAgent {
   public cancelUpdate(): void {
     this.logger.trace(`cancelUpdate(nextNode:%s)`, this.nextNode);
 
-    switch (this.curState) {
-      case 'empty':
-      case 'isActive':
+    switch (this.currState) {
+      case State.currIsEmpty:
+      case State.currIsActive:
         break;
-      case 'canLeave':
-        this.curState = 'isActive';
+      case State.currCanLeave:
+      case State.currCanLeaveDone:
+        this.currState = State.currIsActive;
         break;
-      case 'leave':
-      case 'deactivate':
+      case State.currLeave:
+      case State.currDeactivate:
         // TODO: should schedule an 'undo' action
         break;
     }
 
     switch (this.nextState) {
-      case 'empty':
-      case 'isScheduled':
-      case 'canEnter':
+      case State.nextIsEmpty:
+      case State.nextIsScheduled:
+      case State.nextCanEnter:
+      case State.nextCanEnterDone:
         this.nextNode = null;
-        this.nextState = 'empty';
+        this.nextState = State.nextIsEmpty;
         break;
-      case 'enter':
-      case 'activate':
+      case State.nextEnter:
+      case State.nextActivate:
         // TODO: should schedule an 'undo' action
         break;
     }
   }
 
   public canLeave(tr: Transition): void | Promise<void> {
-    switch (this.curState) {
-      case 'isActive':
-        this.curState = 'canLeave';
+    if (tr.guardsResult !== true) {
+      this.logger.trace(`canLeave() - skipping: guardsResult is already non-true`);
+      return;
+    }
 
-        if (tr.guardsResult === true) {
-          switch (this.plan) {
-            case 'none':
-              this.logger.trace(`canLeave() - skipping: %s`, this);
-              return;
-            case 'invoke-lifecycles':
-            case 'replace':
-              return this.runCanLeave(tr, this.curCA!, this.nextNode);
-          }
+    switch (this.currState) {
+      case State.currIsActive:
+        switch (this.$plan) {
+          case 'none':
+            this.currState = State.currCanLeaveDone;
+            this.logger.trace(`canLeave() - skipping: %s`, this);
+            return;
+          case 'invoke-lifecycles':
+          case 'replace':
+            this.currState = State.currCanLeave;
+            return this.runCanLeave(tr, this.curCA!, this.nextNode);
         }
-
-        this.curState = 'isActive';
-        this.logger.trace(`canLeave() - skipping: guardsResult is already non-true`);
-        break;
-      case 'leave': // Implies incorrect invocation order [leave -> canLeave]
-        throw new Error(`Unexpected currentState at ${this}.canLeave()`);
-      case 'empty':
-      case 'canLeave':
-      case 'deactivate':
+      case State.currIsEmpty:
+      case State.currCanLeave:
+      case State.currCanLeaveDone:
+      case State.currDeactivate:
         this.logger.trace(`canLeave() - skipping: %s`, this);
-        break;
+        return;
+      default:
+        this.unexpectedState('canLeave 1');
     }
   }
 
@@ -386,6 +369,7 @@ export class ViewportAgent {
     return runSequence(
       () => { return ca.canLeave(nextNode); },
       (_, result) => {
+        this.currState = State.currCanLeaveDone;
         // Check again, because the value might have been assigned by a parallel hook
         if (tr.guardsResult === true && result !== true) {
           this.logger.trace(`runCanLeave() - finished [canLeave], %s.canLeave returned %s, assigning to guardsResult`, ca, result);
@@ -398,29 +382,26 @@ export class ViewportAgent {
   }
 
   public leave(tr: Transition): void | Promise<void> {
-    switch (this.curState) {
-      case 'canLeave':
-        this.curState = 'leave';
-
-        if (tr.guardsResult === true) {
-          switch (this.plan) {
-            case 'none':
-              this.logger.trace(`leave() - skipping: %s`, this);
-              return;
-            case 'invoke-lifecycles':
-            case 'replace':
-              return this.runLeave(tr, this.curCA!, this.nextNode);
-          }
+    ensureGuardsResultIsTrue(tr);
+    switch (this.currState) {
+      case State.currCanLeaveDone:
+        switch (this.$plan) {
+          case 'none':
+            this.currState = State.currLeaveDone;
+            this.logger.trace(`leave() - skipping: %s`, this);
+            return;
+          case 'invoke-lifecycles':
+          case 'replace':
+            this.currState = State.currLeave;
+            return this.runLeave(tr, this.curCA!, this.nextNode);
         }
-
-        throw new Error(`Unexpected guardsResult ${tr.guardsResult} on invoking [leave]`);
-      case 'isActive': // Implies incorrect invocation order [leave] without invoking [canLeave] first
-        throw new Error(`Unexpected currentState at ${this}.leave()`);
-      case 'empty':
-      case 'leave':
-      case 'deactivate':
+      case State.currIsEmpty:
+      case State.currLeave:
+      case State.currDeactivate:
         this.logger.trace(`leave() - skipping: %s`, this);
-        break;
+        return;
+      default:
+        this.unexpectedState('leave 1');
     }
   }
 
@@ -429,88 +410,86 @@ export class ViewportAgent {
 
     return runSequence(
       () => { return ca.leave(nextNode); },
-      () => { this.logger.trace(`runLeave() - finished [leave`); },
+      () => {
+        this.currState = State.currLeaveDone;
+        this.logger.trace(`runLeave() - finished [leave`);
+      },
     );
   }
 
   public deactivateFromRouter(tr: Transition): void | Promise<void> {
-    const lifecycleStrategy = tr.options.lifecycleStrategy;
-    const prefix = `deactivateFromRouter(lifecycleStrategy:'${lifecycleStrategy}')`;
-
-    switch (this.curState) {
-      case 'leave':
-        this.curState = 'deactivate';
-
-        if (tr.guardsResult === true) {
-          switch (this.plan) {
-            case 'none':
-            case 'invoke-lifecycles':
-              this.logger.trace(`${prefix} - skipping: %s`, this);
-              return;
-            case 'replace':
-              switch (this.nextState) {
-                case 'empty':
-                  this.logger.trace(`${prefix} - deactivating immediately: %s`, this);
-                  return this.runDeactivate(tr);
-                case 'isScheduled':
-                  throw new Error(`Unexpected nextState at ${this}.${prefix}`);
-                case 'canEnter':
-                  switch (lifecycleStrategy) {
-                    case 'phased':
-                      throw new Error(`Unexpected nextState at ${this}.${prefix}`);
-                    case 'parallel':
-                      this.logger.trace(`${prefix} - deferring swap operation: %s`, this);
-                      return this.deferredSwap = createExposedPromise();
-                  }
-                  break;
-                case 'enter':
-                  this.logger.trace(`${prefix} - deferring swap operation: %s`, this);
-                  return this.deferredSwap = createExposedPromise();
-                case 'activate':
-                  return this.swap(tr);
-              }
-          }
-        }
-
-        throw new Error(`Unexpected guardsResult ${tr.guardsResult} on invoking [deactivate]`);
-      case 'isActive': // Implies incorrect invocation order [swap] without invoking router hooks
-        throw new Error(`Unexpected currentState at ${this}.runDeactivate()`);
-      case 'canLeave':
-        switch (lifecycleStrategy) {
-          case 'phased':
-            throw new Error(`Unexpected currentState at ${this}.runDeactivate()`); // Implies incorrect invocation order [canLeave -> swap]
-          case 'parallel':
+    ensureGuardsResultIsTrue(tr);
+    switch (this.currState) {
+      case State.currLeaveDone:
+        this.currState = State.currDeactivate;
+        switch (this.$plan) {
+          case 'none':
+          case 'invoke-lifecycles':
+            this.logger.trace(`deactivateFromRouter() - skipping: %s`, this);
+            return;
+          case 'replace':
             switch (this.nextState) {
-              case 'empty':
-                this.logger.trace(`${prefix} - deactivating immediately: %s`, this);
-                return this.runDeactivate(tr);
-              case 'isScheduled':
-                throw new Error(`Unexpected nextState at ${this}.${prefix}`);
-              case 'canEnter':
-              case 'enter':
-                this.logger.trace(`${prefix} - deferring swap operation: %s`, this);
+              case State.nextCanEnterDone:
+                if (this.$lifecycle === 'parallel' && this.$swap === 'remove-first') {
+                  return this.runDeactivate(tr);
+                }
+                // falls through
+              case State.nextCanEnter:
+                if (this.$lifecycle === 'parallel') {
+                  this.logger.trace(`deactivateFromRouter() - deferring swap operation 1: %s`, this);
+                  return this.deferredSwap = createExposedPromise();
+                }
+                this.unexpectedState('deactivateFromRouter 1');
+              case State.nextEnterDone:
+                if (this.$swap === 'remove-first') {
+                  return this.runDeactivate(tr);
+                }
+                // falls through
+              case State.nextEnter:
+                this.logger.trace(`deactivateFromRouter() - deferring swap operation 2: %s`, this);
                 return this.deferredSwap = createExposedPromise();
-              case 'activate':
+              case State.nextIsEmpty:
+              case State.nextActivate:
                 return this.swap(tr);
+              default:
+                this.unexpectedState('deactivateFromRouter 2');
             }
         }
-        break;
-      case 'empty':
-      case 'deactivate':
+      case State.currCanLeaveDone:
+        switch (this.$lifecycle) {
+          case 'phased':
+            this.unexpectedState('deactivateFromRouter 3');
+          case 'parallel':
+            switch (this.nextState) {
+              case State.nextCanEnter:
+              case State.nextCanEnterDone:
+              case State.nextEnter:
+              case State.nextEnterDone:
+                this.logger.trace(`deactivateFromRouter() - deferring swap operation 3: %s`, this);
+                return this.deferredSwap = createExposedPromise();
+              case State.nextIsEmpty:
+              case State.nextActivate:
+                // TODO: leave?
+                return this.swap(tr);
+              default:
+                this.unexpectedState('deactivateFromRouter 4');
+            }
+        }
+      case State.currIsEmpty:
+      case State.currDeactivate:
         this.logger.trace(`runDeactivate() - skipping: %s`, this);
         return;
+      default:
+        this.unexpectedState('deactivateFromRouter 5');
     }
   }
 
   private runDeactivate(tr: Transition): void | Promise<void> {
-    const lifecycleStrategy = tr.options.lifecycleStrategy;
-    const prefix = `runDeactivate(lifecycleStrategy:'${lifecycleStrategy}')`;
-
     const ca = this.curCA;
     if (ca === null) {
-      this.logger.trace(`${prefix} - skipping [deactivate] because no previous component`);
+      this.logger.trace(`runDeactivate() - skipping [deactivate] because no previous component`);
     } else {
-      this.logger.trace(`${prefix} - starting [deactivate]`);
+      this.logger.trace(`runDeactivate() - starting [deactivate]`);
 
       const controller = this.hostController as ICustomElementController<HTMLElement>;
       const flags = this.viewport.stateful
@@ -519,52 +498,53 @@ export class ViewportAgent {
 
       return runSequence(
         () => { return ca.deactivate(null, controller, flags); },
-        () => { this.logger.trace(`${prefix} - finished [deactivate]`); },
+        () => { this.logger.trace(`runDeactivate() - finished [deactivate]`); },
       );
     }
   }
 
   public canEnter(tr: Transition): void | Promise<void> {
-    switch (this.nextState) {
-      case 'isScheduled':
-        this.nextState = 'canEnter';
+    if (tr.guardsResult !== true) {
+      this.logger.trace(`canEnter() - skipping: guardsResult is already non-true`);
+      return;
+    }
 
-        if (tr.guardsResult === true) {
-          switch (this.plan) {
-            case 'none':
-              this.logger.trace(`canEnter() - skipping: %s`, this);
-              return;
-            case 'invoke-lifecycles':
-              return this.runCanEnter(tr, this.curCA!, this.nextNode!);
-            case 'replace': {
-              const next = this.nextNode!;
-              switch (this.resolutionStrategy) {
-                case 'static': {
-                  // nextCA was already created during scheduleUpdate, so do nothing
-                  break;
-                }
-                case 'dynamic': {
-                  const controller = this.hostController as ICustomElementController<HTMLElement>;
-                  this.nextCA = next.context.createComponentAgent(controller, next);
-                  break;
-                }
+    switch (this.nextState) {
+      case State.nextIsScheduled:
+        switch (this.$plan) {
+          case 'none':
+            this.nextState = State.nextCanEnterDone;
+            this.logger.trace(`canEnter() - skipping: %s`, this);
+            return;
+          case 'invoke-lifecycles':
+            this.nextState = State.nextCanEnter;
+            return this.runCanEnter(tr, this.curCA!, this.nextNode!);
+          case 'replace': {
+            this.nextState = State.nextCanEnter;
+            const next = this.nextNode!;
+            switch (this.$resolution) {
+              case 'static': {
+                // nextCA was already created during scheduleUpdate, so do nothing
+                break;
               }
-              const ca = this.nextCA!;
-              return this.runCanEnter(tr, ca, next);
+              case 'dynamic': {
+                const controller = this.hostController as ICustomElementController<HTMLElement>;
+                this.nextCA = next.context.createComponentAgent(controller, next);
+                break;
+              }
             }
+            const ca = this.nextCA!;
+            return this.runCanEnter(tr, ca, next);
           }
         }
-
-        this.nextState = 'isScheduled';
-        this.logger.trace(`canEnter() - skipping: guardsResult is already non-true`);
-        break;
-      case 'enter': // Implies incorrect invocation order [enter -> canEnter]
-        throw new Error(`Unexpected nextState at ${this}.canEnter()`);
-      case 'empty':
-      case 'canEnter':
-      case 'activate':
+      case State.nextIsEmpty:
+      case State.nextCanEnter:
+      case State.nextCanEnterDone:
+      case State.nextActivate:
         this.logger.trace(`canEnter() - skipping: %s`, this);
         return;
+      default:
+        this.unexpectedState('canEnter 1');
     }
   }
 
@@ -574,6 +554,7 @@ export class ViewportAgent {
     return runSequence(
       () => { return ca.canEnter(nextNode); },
       (_, result) => {
+        this.nextState = State.nextCanEnterDone;
         // Check again, because the value might have been assigned by a parallel hook
         if (tr.guardsResult === true && result !== true) {
           this.logger.trace(`runCanEnter() - finished [canEnter], %s.canEnter returned %s, assigning to guardsResult`, ca, result);
@@ -586,30 +567,29 @@ export class ViewportAgent {
   }
 
   public enter(tr: Transition): void | Promise<void> {
+    ensureGuardsResultIsTrue(tr);
     switch (this.nextState) {
-      case 'canEnter':
-        this.nextState = 'enter';
-
-        if (tr.guardsResult === true) {
-          switch (this.plan) {
-            case 'none':
-              this.logger.trace(`enter() - skipping: %s`, this);
-              return;
-            case 'invoke-lifecycles':
-              return this.runEnter(tr, this.curCA!, this.nextNode!);
-            case 'replace':
-              return this.runEnter(tr, this.nextCA!, this.nextNode!);
-          }
+      case State.nextCanEnterDone:
+        switch (this.$plan) {
+          case 'none':
+            this.nextState = State.nextEnterDone;
+            this.logger.trace(`enter() - skipping: %s`, this);
+            return;
+          case 'invoke-lifecycles':
+            this.nextState = State.nextEnter;
+            return this.runEnter(tr, this.curCA!, this.nextNode!);
+          case 'replace':
+            this.nextState = State.nextEnter;
+            return this.runEnter(tr, this.nextCA!, this.nextNode!);
         }
-
-        throw new Error(`Unexpected guardsResult ${tr.guardsResult} on invoking [enter]`);
-      case 'isScheduled': // Implies incorrect invocation order [enter] without invoking [canEnter] first
-        throw new Error(`Unexpected nextState at ${this}.enter()`);
-      case 'empty':
-      case 'enter':
-      case 'activate':
+      case State.nextIsEmpty:
+      case State.nextEnter:
+      case State.nextEnterDone:
+      case State.nextActivate:
         this.logger.trace(`enter() - skipping: %s`, this);
         return;
+      default:
+        this.unexpectedState('enter 1');
     }
   }
 
@@ -617,82 +597,79 @@ export class ViewportAgent {
     this.logger.trace(`runEnter() - starting [enter]`);
     return runSequence(
       () => { return ca.enter(nextNode); },
-      () => { this.logger.trace(`runEnter() - finished [enter]`); },
+      () => {
+        this.nextState = State.nextEnterDone;
+        this.logger.trace(`runEnter() - finished [enter]`);
+      },
     );
   }
 
   public activateFromRouter(tr: Transition): void | Promise<void> {
-    const lifecycleStrategy = tr.options.lifecycleStrategy;
-    const prefix = `activateFromRouter(lifecycleStrategy:'${lifecycleStrategy}')`;
+    ensureGuardsResultIsTrue(tr);
     switch (this.nextState) {
-      case 'enter':
-        this.nextState = 'activate';
-
-        if (tr.guardsResult === true) {
-          switch (this.plan) {
-            case 'none':
-            case 'invoke-lifecycles':
-              this.logger.trace(`${prefix} - skipping: %s`, this);
-              return;
-            case 'replace':
-              switch (this.curState) {
-                case 'empty':
-                  this.logger.trace(`${prefix} - activating immediately: %s`, this);
+      case State.nextEnterDone:
+        this.nextState = State.nextActivate;
+        switch (this.$plan) {
+          case 'none':
+          case 'invoke-lifecycles':
+            this.logger.trace(`activateFromRouter() - skipping: %s`, this);
+            return;
+          case 'replace':
+            switch (this.currState) {
+              case State.currCanLeaveDone:
+                if (this.$lifecycle === 'parallel' && this.$swap === 'add-first' && this.curCA!.routeNode.children.length === 0) {
                   return this.runActivate(tr);
-                case 'isActive':
-                  throw new Error(`Unexpected curState at ${this}.${prefix}`);
-                case 'canLeave':
-                  switch (lifecycleStrategy) {
-                    case 'phased':
-                      throw new Error(`Unexpected curState at ${this}.${prefix}`);
-                    case 'parallel':
-                      this.logger.trace(`${prefix} - deferring swap operation: %s`, this);
-                      return this.deferredSwap = createExposedPromise();
-                  }
-                  break;
-                case 'leave':
-                  this.logger.trace(`${prefix} - deferring swap operation: %s`, this);
+                }
+                // falls through
+              case State.currCanLeave:
+                if (this.$lifecycle === 'parallel') {
+                  this.logger.trace(`activateFromRouter() - deferring swap operation 4: %s`, this);
                   return this.deferredSwap = createExposedPromise();
-                case 'deactivate':
-                  return this.swap(tr);
-              }
-          }
-        }
-
-        throw new Error(`Unexpected guardsResult ${tr.guardsResult} on invoking [activate]`);
-      case 'isScheduled': // Implies incorrect invocation order [swap] without invoking router hooks
-        throw new Error(`Unexpected nextState at ${this}.activateFromRouter()`);
-      case 'canEnter':
-        switch (lifecycleStrategy) {
-          case 'phased':
-            throw new Error(`Unexpected curState at ${this}.${prefix}`); // Implies incorrect invocation order [canEnter -> swap]
-          case 'parallel':
-            switch (this.curState) {
-              case 'empty':
-                this.logger.trace(`${prefix} - activating immediately: %s`, this);
-                return this.runActivate(tr);
-              case 'isActive':
-                throw new Error(`Unexpected curState at ${this}.${prefix}`);
-              case 'canLeave':
-              case 'leave':
-                this.logger.trace(`${prefix} - deferring swap operation: %s`, this);
+                }
+                this.unexpectedState('activateFromRouter 1');
+              case State.currLeaveDone:
+                if (this.$swap === 'add-first' && this.curCA!.routeNode.children.length === 0) {
+                  return this.runActivate(tr);
+                }
+                // falls through
+              case State.currLeave:
+                this.logger.trace(`activateFromRouter() - deferring swap operation 5: %s`, this);
                 return this.deferredSwap = createExposedPromise();
-              case 'deactivate':
+              case State.currIsEmpty:
+              case State.currDeactivate:
                 return this.swap(tr);
+              default:
+                this.unexpectedState('activateFromRouter 2');
             }
         }
-        break;
-      case 'empty':
-      case 'activate':
+      case State.nextCanEnterDone:
+        switch (this.$lifecycle) {
+          case 'phased':
+            this.unexpectedState('activateFromRouter 3');
+          case 'parallel':
+            switch (this.currState) {
+              case State.currCanLeave:
+              case State.currLeave:
+                this.logger.trace(`activateFromRouter() - deferring swap operation 6: %s`, this);
+                return this.deferredSwap = createExposedPromise();
+              case State.currIsEmpty:
+              case State.currDeactivate:
+                return this.swap(tr);
+              default:
+                this.unexpectedState('activateFromRouter 4');
+            }
+        }
+      case State.nextIsEmpty:
+      case State.nextActivate:
         this.logger.trace(`activateFromRouter() - skipping: %s`, this);
         return;
+      default:
+        this.unexpectedState('activateFromRouter 5');
     }
   }
 
   private runActivate(tr: Transition): void | Promise<void> {
-    const lifecycleStrategy = tr.options.lifecycleStrategy;
-    const prefix = `runActivate(lifecycleStrategy:'${lifecycleStrategy}')`;
-    this.logger.trace(`${prefix} - starting [activate]`);
+    this.logger.trace(`runActivate() - starting [activate]`);
 
     const ca = this.nextCA!;
     const controller = this.hostController as ICustomElementController<HTMLElement>;
@@ -700,7 +677,7 @@ export class ViewportAgent {
 
     return runSequence(
       () => { return ca.activate(null, controller, flags); },
-      () => { this.logger.trace(`${prefix} - finished [activate]`); },
+      () => { this.logger.trace(`runActivate() - finished [activate]`); },
     );
   }
 
@@ -709,6 +686,13 @@ export class ViewportAgent {
 
     return runSequence(
       () => {
+        if (this.curCA === null) {
+          return this.runActivate(tr);
+        }
+        if (this.nextCA === null) {
+          return this.runDeactivate(tr);
+        }
+
         switch (tr.options.swapStrategy) {
           case 'add-first':
             return runSequence(
@@ -729,8 +713,10 @@ export class ViewportAgent {
       },
       () => { this.logger.trace(`swap(swapStrategy:'${tr.options.swapStrategy}') - finished [swap]`); },
       () => {
-        this.deferredSwap!.resolve();
-        this.deferredSwap = null;
+        if (this.deferredSwap !== null) {
+          this.deferredSwap.resolve();
+          this.deferredSwap = null;
+        }
       },
     );
   }
@@ -746,72 +732,164 @@ export class ViewportAgent {
 
   public endTransition(tr: Transition): void {
     switch (this.nextState) {
-      case 'empty':
-        switch (this.curState) {
-          case 'empty': // Shouldn't be possible for nextState and curState to both be empty because that shouldn't end up in the route tree
-          case 'isActive':
-          case 'canLeave':
-          case 'leave':
-            throw new Error(`Unexpected curState at ${this}.endTransition()`);
-          case 'deactivate':
-            this.logger.trace(`endTransition() - setting curState to 'empty' at %s`, this);
+      case State.nextIsEmpty:
+        switch (this.currState) {
+          case State.currDeactivate:
+            this.logger.trace(`endTransition() - setting currState to State.nextIsEmpty at %s`, this);
 
-            this.curState = 'empty';
+            this.currState = State.currIsEmpty;
             this.curCA = null;
+            break;
+          default:
+            this.unexpectedState('endTransition 1');
         }
         break;
-      case 'isScheduled':
-      case 'canEnter':
-      case 'enter':
-        throw new Error(`Unexpected nextState at ${this}.endTransition()`);
-      case 'activate':
-        switch (this.curState) {
-          case 'isActive':
-          case 'canLeave':
-          case 'leave':
-            throw new Error(`Unexpected curState at ${this}.endTransition()`);
-          case 'empty':
-          case 'deactivate':
-            switch (this.plan) {
+      case State.nextActivate:
+        switch (this.currState) {
+          case State.currIsEmpty:
+          case State.currDeactivate:
+            switch (this.$plan) {
               case 'none':
               case 'invoke-lifecycles':
-                this.logger.trace(`endTransition() - setting curState to 'isActive' at %s`, this);
+                this.logger.trace(`endTransition() - setting currState to State.currIsActive at %s`, this);
 
-                this.curState = 'isActive';
+                this.currState = State.currIsActive;
                 break;
               case 'replace':
-                this.logger.trace(`endTransition() - setting curState to 'isActive' and reassigning curCA at %s`, this);
+                this.logger.trace(`endTransition() - setting currState to State.currIsActive and reassigning curCA at %s`, this);
 
-                this.curState = 'isActive';
+                this.currState = State.currIsActive;
                 this.curCA = this.nextCA;
                 break;
             }
+            break;
+          default:
+            this.unexpectedState('endTransition 2');
         }
         break;
+      default:
+        this.unexpectedState('endTransition 3');
     }
 
-    this.nextState = 'empty';
+    this.nextState = State.nextIsEmpty;
     this.nextNode = null;
     this.nextCA = null;
   }
 
   public toString(): string {
-    return `VPA(cur:'${this.curState}',next:'${this.nextState}',plan:'${this.plan}',strat:'${this.resolutionStrategy}',c:${this.curCA},viewport:${this.viewport})`;
+    return `VPA(state:${this.$state},plan:'${this.$plan}',lifecycle:'${this.$lifecycle}'resolution:'${this.$resolution}',c:${this.curCA},viewport:${this.viewport})`;
+  }
+
+  private unexpectedState(label: string): never {
+    const err = new Error(`Unexpected state at ${label} of ${this}`);
+    if (this.deferredSwap !== null) {
+      this.deferredSwap.reject(err);
+    }
+    throw err;
   }
 }
 
-type NextState = (
-  'empty' |
-  'isScheduled' |
-  'canEnter' |
-  'enter' |
-  'activate'
+function ensureGuardsResultIsTrue(tr: Transition): void {
+  if (tr.guardsResult !== true) {
+    throw new Error(`Unexpected guardsResult ${tr.guardsResult}`);
+  }
+}
+
+const enum State {
+  curr                = 0b1111111_0000000,
+  currIsEmpty         = 0b1000000_0000000,
+  currIsActive        = 0b0100000_0000000,
+  currCanLeave        = 0b0010000_0000000,
+  currCanLeaveDone    = 0b0001000_0000000,
+  currLeave           = 0b0000100_0000000,
+  currLeaveDone       = 0b0000010_0000000,
+  currDeactivate      = 0b0000001_0000000,
+  next                = 0b0000000_1111111,
+  nextIsEmpty         = 0b0000000_1000000,
+  nextIsScheduled     = 0b0000000_0100000,
+  nextCanEnter        = 0b0000000_0010000,
+  nextCanEnterDone    = 0b0000000_0001000,
+  nextEnter           = 0b0000000_0000100,
+  nextEnterDone       = 0b0000000_0000010,
+  nextActivate        = 0b0000000_0000001,
+  bothAreEmpty        = 0b1000000_1000000,
+}
+
+type CurrState = (
+  State.currIsEmpty |
+  State.currIsActive |
+  State.currCanLeave |
+  State.currCanLeaveDone |
+  State.currLeave |
+  State.currLeaveDone |
+  State.currDeactivate
 );
 
-type CurrentState = (
-  'empty' |
-  'isActive' |
-  'canLeave' |
-  'leave' |
-  'deactivate'
+type NextState = (
+  State.nextIsEmpty |
+  State.nextIsScheduled |
+  State.nextCanEnter |
+  State.nextCanEnterDone |
+  State.nextEnter |
+  State.nextEnterDone |
+  State.nextActivate
 );
+
+// Stringifying uses arrays and does not have a negligible cost, so cache the results to not let trace logging
+// in and of its own slow things down too much.
+const $stateCache = new Map<State, string>();
+function $state(state: State): string {
+  let str = $stateCache.get(state);
+  if (str === void 0) {
+    $stateCache.set(state, str = stringifyState(state));
+  }
+  return str;
+}
+function stringifyState(state: State): string {
+  const flags: string[] = [];
+
+  if ((state & State.currIsEmpty) === State.currIsEmpty) {
+    flags.push('currIsEmpty');
+  }
+  if ((state & State.currIsActive) === State.currIsActive) {
+    flags.push('currIsActive');
+  }
+  if ((state & State.currCanLeave) === State.currCanLeave) {
+    flags.push('currCanLeave');
+  }
+  if ((state & State.currCanLeaveDone) === State.currCanLeaveDone) {
+    flags.push('currCanLeaveDone');
+  }
+  if ((state & State.currLeave) === State.currLeave) {
+    flags.push('currLeave');
+  }
+  if ((state & State.currLeaveDone) === State.currLeaveDone) {
+    flags.push('currLeaveDone');
+  }
+  if ((state & State.currDeactivate) === State.currDeactivate) {
+    flags.push('currDeactivate');
+  }
+  if ((state & State.nextIsEmpty) === State.nextIsEmpty) {
+    flags.push('nextIsEmpty');
+  }
+  if ((state & State.nextIsScheduled) === State.nextIsScheduled) {
+    flags.push('nextIsScheduled');
+  }
+  if ((state & State.nextCanEnter) === State.nextCanEnter) {
+    flags.push('nextCanEnter');
+  }
+  if ((state & State.nextCanEnterDone) === State.nextCanEnterDone) {
+    flags.push('nextCanEnterDone');
+  }
+  if ((state & State.nextEnter) === State.nextEnter) {
+    flags.push('nextEnter');
+  }
+  if ((state & State.nextEnterDone) === State.nextEnterDone) {
+    flags.push('nextEnterDone');
+  }
+  if ((state & State.nextActivate) === State.nextActivate) {
+    flags.push('nextActivate');
+  }
+
+  return flags.join('|');
+}

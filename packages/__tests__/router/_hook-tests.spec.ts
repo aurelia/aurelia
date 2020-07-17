@@ -108,25 +108,25 @@ describe('router hooks', function () {
         leave: hookSpecsMap.leave.async1,
       }),
     },
-    {
-      kind: 'all-async',
-      hookSpecs: HookSpecs.create({
-        beforeBind: hookSpecsMap.beforeBind.async2,
-        afterBind: hookSpecsMap.afterBind.async2,
-        afterAttach: hookSpecsMap.afterAttach.async2,
-        afterAttachChildren: hookSpecsMap.afterAttachChildren.async2,
+    // {
+    //   kind: 'all-async',
+    //   hookSpecs: HookSpecs.create({
+    //     beforeBind: hookSpecsMap.beforeBind.async2,
+    //     afterBind: hookSpecsMap.afterBind.async2,
+    //     afterAttach: hookSpecsMap.afterAttach.async2,
+    //     afterAttachChildren: hookSpecsMap.afterAttachChildren.async2,
 
-        beforeDetach: hookSpecsMap.beforeDetach.async2,
-        beforeUnbind: hookSpecsMap.beforeUnbind.async2,
-        afterUnbind: hookSpecsMap.afterUnbind.async2,
-        afterUnbindChildren: hookSpecsMap.afterUnbindChildren.async2,
+    //     beforeDetach: hookSpecsMap.beforeDetach.async2,
+    //     beforeUnbind: hookSpecsMap.beforeUnbind.async2,
+    //     afterUnbind: hookSpecsMap.afterUnbind.async2,
+    //     afterUnbindChildren: hookSpecsMap.afterUnbindChildren.async2,
 
-        canEnter: hookSpecsMap.canEnter.async2,
-        enter: hookSpecsMap.enter.async2,
-        canLeave: hookSpecsMap.canLeave.async2,
-        leave: hookSpecsMap.leave.async2,
-      }),
-    },
+    //     canEnter: hookSpecsMap.canEnter.async2,
+    //     enter: hookSpecsMap.enter.async2,
+    //     canLeave: hookSpecsMap.canLeave.async2,
+    //     leave: hookSpecsMap.leave.async2,
+    //   }),
+    // },
   ];
 
   for (const componentSpec of componentSpecs) {

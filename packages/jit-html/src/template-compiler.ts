@@ -487,6 +487,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     if ((symbol.flags & SymbolFlags.hasProjections) === 0) { return null; }
 
+    const dom = this.dom;
     const parts: IProjections = Object.create(null);
     const $projections = symbol.projections;
     const len = $projections.length;
@@ -501,14 +502,14 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       let definition = parts[name];
       if (definition === void 0) {
-        // TODO right now the projections are getting nested. We need to flatten those
-        definition = CustomElementDefinition.create({ name, template: projection.template?.physicalNode, instructions, needsCompile: false });
+        const template = dom.createTemplate() as HTMLTemplateElement;
+        dom.appendChild(template.content, projection.template?.physicalNode!);
+        parts[name] = definition = CustomElementDefinition.create({ name, template, instructions, needsCompile: false });
       } else {
         // consolidate the projections to same slot
-        this.dom.appendChild((definition.template as HTMLElement), (projection.template?.physicalNode! as HTMLElement)); // TODO Provision for template
+        dom.appendChild((definition.template as HTMLTemplateElement).content, projection.template?.physicalNode!); // TODO Provision for template
         (definition.instructions as ITargetedInstruction[][]).push(...instructions);
       }
-      parts[name] = definition;
     }
     return parts;
   }

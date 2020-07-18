@@ -37,6 +37,8 @@ import {
   CustomElementDefinition,
   HydrateElementInstruction,
   Aurelia,
+  IProjections,
+  ITargetedInstruction,
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
 import {
@@ -507,6 +509,8 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         needsCompile: false,
         scopeParts: [],
         enhance: false,
+        projections: [],
+        projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -522,6 +526,8 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       needsCompile: false,
       scopeParts: [],
       enhance: false,
+      projections: [],
+      projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   } else {
@@ -546,6 +552,8 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         needsCompile: false,
         scopeParts: [],
         enhance: false,
+        projections: [],
+        projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -562,6 +570,8 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       needsCompile: false,
       scopeParts: [],
       enhance: false,
+      projections: [],
+      projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   }
@@ -582,7 +592,8 @@ function createCustomElement(
     type: TT.hydrateElement,
     res: tagName,
     instructions: childInstructions,
-    parts: PLATFORM.emptyObject
+    parts: PLATFORM.emptyObject,
+    slotInfo:  null,
   };
   const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
   const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput && childInput.template) || ''}</${tagName}>`;
@@ -602,6 +613,8 @@ function createCustomElement(
     needsCompile: false,
     scopeParts: [],
     enhance: false,
+    projections: [],
+    projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
   };
   return [input, output];
 }
@@ -640,6 +653,8 @@ function createCustomAttribute(
     needsCompile: false,
     scopeParts: [],
     enhance: false,
+    projections: [],
+    projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
   };
   return [input, output];
 }
@@ -758,6 +773,8 @@ describe(`TemplateCompiler - combinations`, function () {
           needsCompile: false,
           scopeParts: [],
           enhance: false,
+          projections: [],
+          projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
         };
 
         const { sut, container } = createFixture(ctx);
@@ -831,6 +848,8 @@ describe(`TemplateCompiler - combinations`, function () {
           needsCompile: false,
           scopeParts: [],
           enhance: false,
+          projections: [],
+          projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
         };
 
         const $def = CustomAttribute.define(def, ctor);
@@ -1097,6 +1116,8 @@ describe(`TemplateCompiler - combinations`, function () {
           needsCompile: false,
           scopeParts: [],
           enhance: false,
+          projections: [],
+          projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);

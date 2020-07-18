@@ -178,6 +178,7 @@ export class ViewportContent {
         host,
         container,
         void 0,
+        null,
         void 0,
       );
       controller.parent = CustomElement.for(element)!;

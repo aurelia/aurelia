@@ -762,6 +762,7 @@ export const AuDOMTest = {
     return new HydrateElementInstruction(
       name,
       bindings.map(([from, to]) => new ToViewBindingInstruction(parseExpression(from), to)),
+      null,
       parts
     );
   },

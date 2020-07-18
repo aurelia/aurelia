@@ -191,7 +191,7 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
 
   private bindView(flags: LifecycleFlags): ILifecycleTask {
     if (this.view != void 0 && (this.$controller.state & (State.isBoundOrBinding)) > 0) {
-      return this.view.bind(flags, this.$controller.scope, this.$controller.part);
+      return this.view.bind(flags, this.$controller.scope, null, this.$controller.part); // Probably we need to fix the null hostScope
     }
     return LifecycleTask.done;
   }

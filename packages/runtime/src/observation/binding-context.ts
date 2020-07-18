@@ -179,7 +179,7 @@ export class Scope implements IScope {
     parentScope: IScope | null,
     bindingContext: IBindingContext,
     overrideContext: IOverrideContext,
-    public providedProjections: WeakMap<ITargetedInstruction, IProjections> | null,
+    public providedProjections: WeakMap<ITargetedInstruction, IProjections>,
     public readonly isComponentScope: boolean,
   ) {
     this.parentScope = parentScope;
@@ -224,14 +224,14 @@ export class Scope implements IScope {
     oc?: IOverrideContext | null,
     isComponentScope: boolean = false
   ): Scope {
-    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc, oc as null) : oc, null, isComponentScope);
+    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc, oc as null) : oc, new WeakMap(), isComponentScope);
   }
 
   public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {
     if (oc == null) {
       throw Reporter.error(RuntimeError.NilOverrideContext);
     }
-    return new Scope(null, oc.bindingContext, oc, null, false);
+    return new Scope(null, oc.bindingContext, oc, new WeakMap(), false);
   }
 
   public static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: object): Scope {

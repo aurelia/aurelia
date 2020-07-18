@@ -780,7 +780,7 @@ describe('ValidationMessageProvider', function () {
   it('appending new custom key and messages is also possible', function () {
 
     const messageKey = 'fooBarFizBaz';
-    const displayName = 'FooBar';
+    const $displayName = 'FooBar';
     const customMessages: ICustomMessage[] = [
       {
         rule: RequiredRule,
@@ -797,8 +797,8 @@ describe('ValidationMessageProvider', function () {
     const $rule2 = new RequiredRule();
     $rule2.messageKey = messageKey;
 
-    const scope1 = Scope.create(LifecycleFlags.none, { displayName, $rule: $rule1 });
-    const scope2 = Scope.create(LifecycleFlags.none, { displayName, $rule: $rule2 });
+    const scope1 = Scope.create(LifecycleFlags.none, { $displayName, $rule: $rule1 });
+    const scope2 = Scope.create(LifecycleFlags.none, { $displayName, $rule: $rule2 });
 
     const actual1 = sut.getMessage($rule1).evaluate(LifecycleFlags.none, scope1, container);
     const actual2 = sut.getMessage($rule2).evaluate(LifecycleFlags.none, scope2, container);

@@ -308,13 +308,13 @@ export class CustomElementRenderer implements IInstructionRenderer {
 
     const lifecycle = context.get(ILifecycle);
     const childController = Controller.forCustomElement(
-      /* viewModel       */component,
-      /* lifecycle       */lifecycle,
-      /* host            */target,
-      /* parentContainer */context,
-      /* parts           */parts,
-      /* projections     */controller.scope?.providedProjections?.get(instruction) ?? null,
-      /* flags           */flags,
+      /* viewModel           */component,
+      /* lifecycle           */lifecycle,
+      /* host                */target,
+      /* parentContainer     */context,
+      /* parts               */parts,
+      /* targetedProjections */controller.scope?.providedProjections?.get(instruction) ?? null,
+      /* flags               */flags,
     );
 
     flags = childController.flags;

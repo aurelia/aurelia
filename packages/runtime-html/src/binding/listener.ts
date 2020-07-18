@@ -23,6 +23,7 @@ export class Listener implements IBinding {
 
   public $state: State = State.none;
   public $scope!: IScope;
+  public $hostScope!: IScope | null | undefined;
   public part?: string;
   public projection?: CustomElementDefinition;
 
@@ -43,7 +44,7 @@ export class Listener implements IBinding {
     const overrideContext = this.$scope.overrideContext;
     overrideContext.$event = event;
 
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator, this.part, this.projection);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator, this.$hostScope, this.part, this.projection);
 
     Reflect.deleteProperty(overrideContext, '$event');
 
@@ -58,7 +59,7 @@ export class Listener implements IBinding {
     this.interceptor.callSource(event);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string, projection?: CustomElementDefinition): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -70,6 +71,7 @@ export class Listener implements IBinding {
     this.$state |= State.isBinding;
 
     this.$scope = scope;
+    this.$hostScope = hostScope;
     this.part = part;
     this.projection = projection;
 

@@ -502,12 +502,16 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       let definition = parts[name];
       if (definition === void 0) {
-        const template = dom.createTemplate() as HTMLTemplateElement;
-        dom.appendChild(template.content, projection.template?.physicalNode!);
+        let template = projection.template?.physicalNode!;
+        if (template.tagName !== 'TEMPLATE') {
+          const _template = dom.createTemplate() as HTMLTemplateElement;
+          dom.appendChild(_template.content, template);
+          template = _template;
+        }
         parts[name] = definition = CustomElementDefinition.create({ name, template, instructions, needsCompile: false });
       } else {
         // consolidate the projections to same slot
-        dom.appendChild((definition.template as HTMLTemplateElement).content, projection.template?.physicalNode!); // TODO Provision for template
+        dom.appendChild((definition.template as HTMLTemplateElement).content, projection.template?.physicalNode!);
         (definition.instructions as ITargetedInstruction[][]).push(...instructions);
       }
     }

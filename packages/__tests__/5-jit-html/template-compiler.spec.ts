@@ -510,7 +510,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         scopeParts: [],
         enhance: false,
         projections: [],
-        projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
+        projectionsMap: new Map<ITargetedInstruction, IProjections>(),
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -527,7 +527,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       scopeParts: [],
       enhance: false,
       projections: [],
-      projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
+      projectionsMap: new Map<ITargetedInstruction, IProjections>(),
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   } else {
@@ -553,7 +553,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         scopeParts: [],
         enhance: false,
         projections: [],
-        projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
+        projectionsMap: new Map<ITargetedInstruction, IProjections>(),
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -571,7 +571,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       scopeParts: [],
       enhance: false,
       projections: [],
-      projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
+      projectionsMap: new Map<ITargetedInstruction, IProjections>(),
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   }
@@ -614,7 +614,7 @@ function createCustomElement(
     scopeParts: [],
     enhance: false,
     projections: [],
-    projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
+    projectionsMap: new Map<ITargetedInstruction, IProjections>(),
   };
   return [input, output];
 }
@@ -654,7 +654,7 @@ function createCustomAttribute(
     scopeParts: [],
     enhance: false,
     projections: [],
-    projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
+    projectionsMap: new Map<ITargetedInstruction, IProjections>(),
   };
   return [input, output];
 }
@@ -774,7 +774,7 @@ describe(`TemplateCompiler - combinations`, function () {
           scopeParts: [],
           enhance: false,
           projections: [],
-          projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
+          projectionsMap: new Map<ITargetedInstruction, IProjections>(),
         };
 
         const { sut, container } = createFixture(ctx);
@@ -849,7 +849,7 @@ describe(`TemplateCompiler - combinations`, function () {
           scopeParts: [],
           enhance: false,
           projections: [],
-          projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
+          projectionsMap: new Map<ITargetedInstruction, IProjections>(),
         };
 
         const $def = CustomAttribute.define(def, ctor);
@@ -1117,7 +1117,7 @@ describe(`TemplateCompiler - combinations`, function () {
           scopeParts: [],
           enhance: false,
           projections: [],
-          projectionsMap: new WeakMap<ITargetedInstruction, IProjections>(),
+          projectionsMap: new Map<ITargetedInstruction, IProjections>(),
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);

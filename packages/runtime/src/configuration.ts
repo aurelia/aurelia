@@ -37,7 +37,7 @@ import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
 import { ViewLocator } from './templating/view';
 import { Now } from '@aurelia/scheduler';
-import { AuSlot } from './resources/custom-elements/au-slot';
+import { AuSlot, ProjectionProvider } from './resources/custom-elements/au-slot';
 
 export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;
@@ -62,6 +62,7 @@ export const DefaultComponents = [
   IStartTaskManagerRegistration,
   IViewLocatorRegistration,
   Now,
+  ProjectionProvider,
 ];
 
 export const FrequentMutationsRegistration = FrequentMutations as unknown as IRegistry;

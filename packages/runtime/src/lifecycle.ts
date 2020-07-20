@@ -366,6 +366,7 @@ export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   readonly parts: PartialCustomElementDefinitionParts | undefined;
   readonly context: IRenderContext<T>;
   readonly contentType: AuSlotContentType | undefined;
+  readonly projectionScope: IScope | null;
   create(flags?: LifecycleFlags): ISyntheticView<T>;
   resolve(requestor: IContainer, parts?: PartialCustomElementDefinitionParts): IViewFactory<T>;
 }

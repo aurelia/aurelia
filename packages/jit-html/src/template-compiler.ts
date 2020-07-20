@@ -37,6 +37,8 @@ import {
   IProjections,
   SlotInfo,
   AuSlotContentType,
+  RegisteredProjections,
+  ProjectionContext,
 } from '@aurelia/runtime';
 import {
   HTMLAttributeInstruction,
@@ -70,7 +72,7 @@ class CustomElementCompilationUnit {
   public readonly scopeParts: string[] = [];
   public readonly projections: CustomElementDefinition[] = [];
   public readonly parts: Record<string, PartialCustomElementDefinition> = {};
-  public readonly projectionsMap: WeakMap<ITargetedInstruction, IProjections> = new WeakMap<ITargetedInstruction, IProjections>();
+  public readonly projectionsMap: Map<ITargetedInstruction, IProjections> = new Map<ITargetedInstruction, IProjections>();
 
   public constructor(
     public readonly partialDefinition: PartialCustomElementDefinition,
@@ -138,7 +140,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   public compile(
     partialDefinition: PartialCustomElementDefinition,
     context: IContainer,
-    targetedProjections: IProjections | null,
+    targetedProjections: RegisteredProjections | null,
   ): CustomElementDefinition {
     const definition = CustomElementDefinition.getOrCreate(partialDefinition);
     if (definition.template === null || definition.template === void 0) {
@@ -190,7 +192,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     instructionRows: ITargetedInstruction[][],
     scopeParts: string[],
     projections: WeakMap<ITargetedInstruction, IProjections>,
-    targetedProjections: IProjections | null,
+    targetedProjections: RegisteredProjections | null,
   ): void {
     if ((parent.flags & SymbolFlags.hasChildNodes) > 0) {
       const childNodes = parent.childNodes;
@@ -222,7 +224,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     instructionRows: ITargetedInstruction[][],
     scopeParts: string[],
     projections: WeakMap<ITargetedInstruction, IProjections>,
-    targetedProjections: IProjections | null,
+    targetedProjections: RegisteredProjections | null,
   ): void {
     const isAuSlot = (symbol.flags & SymbolFlags.isAuSlot) > 0;
     // offset 1 to leave a spot for the hydrate instruction so we don't need to create 2 arrays with a spread etc
@@ -231,10 +233,10 @@ export class TemplateCompiler implements ITemplateCompiler {
     let slotInfo: SlotInfo | null = null;
     if (isAuSlot) {
       // eslint-disable-next-line @typescript-eslint/no-extra-non-null-assertion,@typescript-eslint/no-unnecessary-type-assertion
-      const targetedProjection = targetedProjections?.[slotName!];
+      const targetedProjection = targetedProjections?.projections?.[slotName!];
       slotInfo = targetedProjection !== void 0
-        ? new SlotInfo(slotName, AuSlotContentType.Projection, targetedProjection)
-        : new SlotInfo(slotName, AuSlotContentType.Fallback, this.compileProjectionFallback(symbol, projections, targetedProjections));
+        ? new SlotInfo(slotName, AuSlotContentType.Projection, new ProjectionContext(targetedProjection, targetedProjections?.scope))
+        : new SlotInfo(slotName, AuSlotContentType.Fallback, new ProjectionContext(this.compileProjectionFallback(symbol, projections, targetedProjections)));
     }
     const instruction = instructionRow[0] = new HydrateElementInstruction(
       symbol.res,
@@ -259,7 +261,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     instructionRows: ITargetedInstruction[][],
     scopeParts: string[],
     projections: WeakMap<ITargetedInstruction, IProjections>,
-    targetedProjections: IProjections | null,
+    targetedProjections: RegisteredProjections | null,
   ): void {
     const attributes = this.compileAttributes(symbol, 0);
     if (attributes.length > 0) {
@@ -274,7 +276,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     instructionRows: ITargetedInstruction[][],
     scopeParts: string[],
     projections: WeakMap<ITargetedInstruction, IProjections>,
-    targetedProjections: IProjections | null,
+    targetedProjections: RegisteredProjections | null,
   ): void {
     switch (symbol.flags & SymbolFlags.type) {
       case SymbolFlags.isCustomElement:
@@ -294,7 +296,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     instructionRows: ITargetedInstruction[][],
     scopeParts: string[],
     projections: WeakMap<ITargetedInstruction, IProjections>,
-    targetedProjections: IProjections | null,
+    targetedProjections: RegisteredProjections | null,
   ): void {
     const bindings = this.compileBindings(symbol);
 
@@ -445,7 +447,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     symbol: CustomElementSymbol,
     scopeParts: string[],
     projections: WeakMap<ITargetedInstruction, IProjections>,
-    targetedProjections: IProjections | null,
+    targetedProjections: RegisteredProjections | null,
   ): Record<string, PartialCustomElementDefinition> {
     const parts: Record<string, PartialCustomElementDefinition> = {};
 
@@ -482,7 +484,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   private compileProjections(
     symbol: CustomElementSymbol,
     projections: WeakMap<ITargetedInstruction, IProjections>,
-    targetedProjections: IProjections | null,
+    targetedProjections: RegisteredProjections | null,
   ): IProjections | null {
 
     if ((symbol.flags & SymbolFlags.hasProjections) === 0) { return null; }
@@ -521,7 +523,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   private compileProjectionFallback(
     symbol: CustomElementSymbol,
     projections: WeakMap<ITargetedInstruction, IProjections>,
-    targetedProjections: IProjections | null,
+    targetedProjections: RegisteredProjections | null,
   ): CustomElementDefinition {
     const instructions: ITargetedInstruction[][] = [];
     this.compileChildNodes(symbol, instructions, [], projections, targetedProjections);

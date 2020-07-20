@@ -81,7 +81,7 @@ import {
   ICompiledRenderContext,
 } from './render-context';
 import { ChildrenObserver } from './children';
-import { IProjections } from '../resources/custom-elements/au-slot';
+import { RegisteredProjections } from '../resources/custom-elements/au-slot';
 
 type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
   create(
@@ -218,7 +218,7 @@ export class Controller<
     parentContainer: IContainer,
     parts: PartialCustomElementDefinitionParts | undefined,
     // projections *targeted* for this custom element. these are not the projections *provided* by this custom element.
-    targetedProjections: IProjections | null,
+    targetedProjections: RegisteredProjections | null,
     flags: LifecycleFlags = LifecycleFlags.none,
     // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
     definition: CustomElementDefinition | undefined = void 0,
@@ -310,7 +310,7 @@ export class Controller<
     definition: CustomElementDefinition,
     parentContainer: IContainer,
     parts: PartialCustomElementDefinitionParts | undefined,
-    targetedProjections: IProjections | null,
+    targetedProjections: RegisteredProjections | null,
   ): void {
     const flags = this.flags |= definition.strategy;
     const instance = this.viewModel as ICustomElementViewModel<T>;
@@ -349,7 +349,7 @@ export class Controller<
     const compiledContext = context.compile(targetedProjections);
     const compiledDefinition = compiledContext.compiledDefinition;
 
-    scope.providedProjections = compiledDefinition.projectionsMap;
+    compiledContext.registerProjections(compiledDefinition.projectionsMap, scope);
     this.scopeParts = compiledDefinition.scopeParts;
     this.projections = compiledDefinition.projections;
     this.isStrictBinding = compiledDefinition.isStrictBinding;

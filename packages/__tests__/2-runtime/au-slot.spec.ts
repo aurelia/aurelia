@@ -3,7 +3,7 @@ import { Aurelia, CustomElement, IScheduler, bindable, customElement } from '@au
 import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
 
-describe.only('au-slot', function () {
+describe('au-slot', function () {
   interface TestSetupContext {
     template: string;
     registrations: any[];
@@ -276,7 +276,6 @@ describe.only('au-slot', function () {
         { 'my-element': '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="person.pets" class="au"><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="person.pets" class="au"><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>' },
       );
 
-      // TODO fix
       yield new TestData(
         'indirect transitive projections works',
         `<my-element people.bind="people">
@@ -284,7 +283,7 @@ describe.only('au-slot', function () {
             <div>\${$host.person.firstName}</div>
             <div>\${$host.person.lastName}</div>
             <coll-vwr collection.bind="$host.person.pets">
-              <ul au-slot="colleslawt"><li repeat.for="item of $host.collection">\${item}<li></ul>
+              <ul au-slot="colleslawt"><li repeat.for="item of $host.collection">\${item}</li></ul>
             </coll-vwr>
           </template>
         </my-element>`,
@@ -292,7 +291,7 @@ describe.only('au-slot', function () {
           CollVwr,
           MyElement,
         ],
-        { 'my-element': '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="$host.person.pets" class="au"><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="$host.person.pets" class="au"><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>' },
+        { 'my-element': '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="$host.person.pets" class="au"> <ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="$host.person.pets" class="au"> <ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>' },
       );
     }
     // #endregion

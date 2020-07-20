@@ -57,10 +57,10 @@ import { ObserversLookup } from './observation';
 import { ICompiledRenderContext, getRenderContext } from './templating/render-context';
 import { BindingBehaviorExpression } from './binding/ast';
 import { BindingBehaviorFactory, BindingBehaviorInstance, IInterceptableBinding } from './resources/binding-behavior';
-import { IProjections } from './resources/custom-elements/au-slot';
+import { RegisteredProjections } from './resources/custom-elements/au-slot';
 
 export interface ITemplateCompiler {
-  compile(partialDefinition: PartialCustomElementDefinition, context: IContainer, targetedProjections: IProjections | null): CustomElementDefinition;
+  compile(partialDefinition: PartialCustomElementDefinition, context: IContainer, targetedProjections: RegisteredProjections | null): CustomElementDefinition;
 }
 
 export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler').noDefault();
@@ -292,7 +292,8 @@ export class CustomElementRenderer implements IInstructionRenderer {
 
     const slotInfo = instruction.slotInfo;
     if (slotInfo!==null) {
-      viewFactory = getRenderContext(slotInfo.content, context, parts).getViewFactory(void 0, slotInfo.type);
+      const projectionCtx = slotInfo.projectionContext;
+      viewFactory = getRenderContext(projectionCtx.content, context, parts).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
     }
 
     const factory = context.getComponentFactory(
@@ -313,7 +314,7 @@ export class CustomElementRenderer implements IInstructionRenderer {
       /* host                */target,
       /* parentContainer     */context,
       /* parts               */parts,
-      /* targetedProjections */controller.scope?.providedProjections?.get(instruction) ?? null,
+      /* targetedProjections */context.getProjectionFor(instruction),
       /* flags               */flags,
     );
 

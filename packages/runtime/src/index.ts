@@ -255,6 +255,9 @@ export {
   IProjections,
   SlotInfo,
   AuSlotContentType,
+  RegisteredProjections,
+  IProjectionProvider,
+  ProjectionContext,
 } from './resources/custom-elements/au-slot';
 
 export {

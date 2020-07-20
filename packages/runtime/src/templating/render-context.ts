@@ -30,7 +30,8 @@ import {
 import { IRenderer, ITemplateCompiler } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { ViewFactory } from './view';
-import { IProjections, AuSlotContentType } from '../resources/custom-elements/au-slot';
+import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot';
+import { IScope } from '../observation';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const definitionContainerPartsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<PartialCustomElementDefinitionParts, RenderContext>>>();
@@ -74,7 +75,7 @@ export interface IRenderContext<T extends INode = INode> extends IContainer {
    *
    * @returns The compiled `IRenderContext`.
    */
-  compile(targetedProjections: IProjections | null): ICompiledRenderContext<T>;
+  compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext<T>;
 
   /**
    * Creates an (or returns the cached) `IViewFactory` that can be used to create synthetic view controllers.
@@ -83,14 +84,14 @@ export interface IRenderContext<T extends INode = INode> extends IContainer {
    *
    * @returns Either a new `IViewFactory` (if this is the first call), or a cached one.
    */
-  getViewFactory(name?: string, contentType?: AuSlotContentType): IViewFactory<T>;
+  getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: IScope | null): IViewFactory<T>;
 }
 
 /**
  * A compiled `IRenderContext` that can create instances of `INodeSequence` (based on the template of the compiled definition)
  * and begin a component operation to create new component instances.
  */
-export interface ICompiledRenderContext<T extends INode = INode> extends IRenderContext<T> {
+export interface ICompiledRenderContext<T extends INode = INode> extends IRenderContext<T>, IProjectionProvider {
   /**
    * The compiled `CustomElementDefinition`.
    *
@@ -256,6 +257,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   private factory: IViewFactory<T> | undefined = void 0;
   private isCompiled: boolean = false;
 
+  private readonly projectionProvider: IProjectionProvider;
   public readonly renderer: IRenderer;
   public readonly dom: IDOM<T>;
 
@@ -268,6 +270,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   ) {
     const container = this.container = parentContainer.createChild();
     this.renderer = container.get(IRenderer);
+    this.projectionProvider = container.get(IProjectionProvider);
 
     container.registerResolver(
       IViewFactory,
@@ -350,7 +353,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   // #endregion
 
   // #region IRenderContext api
-  public compile(targetedProjections: IProjections | null): ICompiledRenderContext<T> {
+  public compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext<T> {
     let compiledDefinition: CustomElementDefinition;
     if (this.isCompiled) {
       return this;
@@ -387,14 +390,14 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     return this;
   }
 
-  public getViewFactory(name?: string, contentType?: AuSlotContentType): IViewFactory<T> {
+  public getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: IScope | null): IViewFactory<T> {
     let factory = this.factory;
     if (factory === void 0) {
       if (name === void 0) {
         name = this.definition.name;
       }
       const lifecycle = this.parentContainer.get(ILifecycle);
-      factory = this.factory = new ViewFactory<T>(name, this, lifecycle, this.parts, contentType);
+      factory = this.factory = new ViewFactory<T>(name, this, lifecycle, this.parts, contentType, projectionScope);
     }
     return factory;
   }
@@ -482,6 +485,16 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     this.elementProvider.dispose();
     this.container.disposeResolvers();
 
+  }
+  // #endregion
+
+  // #region IProjectionProvider api
+  public registerProjections(projections: Map<ITargetedInstruction, Record<string, CustomElementDefinition>>, scope: IScope): void {
+    this.projectionProvider.registerProjections(projections, scope);
+  }
+
+  public getProjectionFor(instruction: IHydrateElementInstruction): RegisteredProjections | null {
+    return this.projectionProvider.getProjectionFor(instruction);
   }
   // #endregion
 }

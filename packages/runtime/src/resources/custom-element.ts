@@ -58,7 +58,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly scopeParts?: readonly string[];
   readonly enhance?: boolean;
   readonly projections?: CustomElementDefinition[];
-  readonly projectionsMap?: WeakMap<ITargetedInstruction, IProjections>;
+  readonly projectionsMap?: Map<ITargetedInstruction, IProjections>;
 }>;
 
 export type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, ICustomElementViewModel & (T extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
@@ -215,7 +215,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
     public readonly scopeParts: string[],
     public readonly enhance: boolean,
     public readonly projections: CustomElementDefinition[],
-    public readonly projectionsMap: WeakMap<ITargetedInstruction, IProjections>,
+    public readonly projectionsMap: Map<ITargetedInstruction, IProjections>,
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -275,7 +275,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         mergeArrays(def.scopeParts),
         fromDefinitionOrDefault('enhance', def, () => false),
         mergeArrays(def.projections),
-        fromDefinitionOrDefault('projectionsMap', def as CustomElementDefinition, () => new WeakMap<ITargetedInstruction, IProjections>()),
+        fromDefinitionOrDefault('projectionsMap', def as CustomElementDefinition, () => new Map<ITargetedInstruction, IProjections>()),
       );
     }
 
@@ -315,7 +315,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), Type.scopeParts),
         fromAnnotationOrTypeOrDefault('enhance', Type, () => false),
         mergeArrays(CustomElement.getAnnotation(Type, 'projections'), Type.projections),
-        fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => new WeakMap<ITargetedInstruction, IProjections>()),
+        fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => new Map<ITargetedInstruction, IProjections>()),
       );
     }
 
@@ -360,7 +360,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
       mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), nameOrDef.scopeParts, Type.scopeParts),
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false),
       mergeArrays(CustomElement.getAnnotation(Type, 'projections'), nameOrDef.projections, Type.projections),
-      fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => new WeakMap<ITargetedInstruction, IProjections>()),
+      fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => new Map<ITargetedInstruction, IProjections>()),
     );
   }
 

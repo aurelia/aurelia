@@ -14,6 +14,7 @@ import {
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { Viewport, IViewportOptions } from '../viewport';
+import { ViewportScopeCustomElement } from './viewport-scope';
 
 export interface IRoutingController extends ICustomElementController<Element> {
   routingContainer?: IContainer;
@@ -62,6 +63,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
   public afterCompile(controller: ICompiledCustomElementController) {
     this.controller = controller as IRoutingController;
     this.container = controller.context.get(IContainer);
+
     // console.log('Viewport creating', this.getAttribute('name', this.name), this.container, this.parentViewport, controller, this);
     // this.connect();
   }
@@ -195,5 +197,17 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
       }
     }
     return void 0;
+  }
+
+  private getClosestCustomElement() {
+    let parent: any = this.controller.parent;
+    let customElement = null;
+    while (parent !== null && customElement === null) {
+      if (parent.viewModel instanceof ViewportCustomElement || parent.viewModel instanceof ViewportScopeCustomElement) {
+        customElement = parent.viewModel;
+      }
+      parent = parent.parent;
+    }
+    return customElement;
   }
 }

@@ -651,6 +651,7 @@ export class Router implements IRouter {
    */
   public connectViewport(viewport: Viewport | null, connectionCE: IConnectionCustomElement, name: string, options?: IViewportOptions): Viewport {
     const parentScope = this.findParentScope(connectionCE.container);
+    // console.log('Viewport parentScope', parentScope.toString(), (connectionCE as any).getClosestCustomElement());
     if (viewport === null) {
       viewport = parentScope.addViewport(name, connectionCE, options);
       this.setClosestScope(connectionCE.container, viewport.connectedScope);
@@ -669,22 +670,23 @@ export class Router implements IRouter {
   /**
    * @internal - Called from the viewport scope custom element
    */
-  public connectViewportScope(viewportScope: ViewportScope | null, controller: IRoutingController, name: string, options?: IViewportScopeOptions): ViewportScope {
-    const parentScope = this.findParentScope(controller.routingContainer!);
+  public connectViewportScope(viewportScope: ViewportScope | null, connectionCE: IConnectionCustomElement, name: string, options?: IViewportScopeOptions): ViewportScope {
+    const parentScope = this.findParentScope(connectionCE.container);
+    // console.log('ViewportScope parentScope', parentScope.toString(), (connectionCE as any).getClosestCustomElement());
     if (viewportScope === null) {
-      viewportScope = parentScope.addViewportScope(name, controller, options);
-      this.setClosestScope(controller.routingContainer!, viewportScope.connectedScope);
+      viewportScope = parentScope.addViewportScope(name, connectionCE, options);
+      this.setClosestScope(connectionCE.container, viewportScope.connectedScope);
     }
     return viewportScope;
   }
   /**
    * @internal - Called from the viewport scope custom element
    */
-  public disconnectViewportScope(viewportScope: ViewportScope, controller: IRoutingController): void {
+  public disconnectViewportScope(viewportScope: ViewportScope, connectionCE: IConnectionCustomElement): void {
     if (!viewportScope.connectedScope.parent!.removeViewportScope(viewportScope)) {
       throw new Error("Failed to remove viewport scope: " + viewportScope.path);
     }
-    this.unsetClosestScope(controller.routingContainer!);
+    this.unsetClosestScope(connectionCE.container);
   }
 
   public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
@@ -1011,7 +1013,7 @@ export class Router implements IRouter {
     if (!this.rootScope) {
       const root = this.container.get(Aurelia).root;
       // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
-      this.rootScope = new ViewportScope('rootScope', this, root.controller!, null, true, root.config.component as CustomElementType);
+      this.rootScope = new ViewportScope('rootScope', this, root.viewModel as IConnectionCustomElement, null, true, root.config.component as CustomElementType);
     }
     return this.rootScope!;
   }

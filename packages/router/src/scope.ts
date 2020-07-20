@@ -1,5 +1,4 @@
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
-import { IContainer } from '@aurelia/kernel';
 import { CustomElementType } from '@aurelia/runtime';
 import { IRoute, ComponentAppellation } from './interfaces';
 import { FoundRoute } from './found-route';
@@ -11,7 +10,7 @@ import { arrayRemove } from './utils';
 import { Collection } from './collection';
 import { IConfigurableRoute, RouteRecognizer } from './route-recognizer';
 import { Navigation } from './navigation';
-import { IRoutingController, IConnectionCustomElement } from './resources/viewport';
+import { IConnectionCustomElement } from './resources/viewport';
 
 /**
  * @internal - Shouldn't be used directly
@@ -32,6 +31,7 @@ export interface IScopeOwnerOptions {
  * @internal - Shouldn't be used directly
  */
 export interface IScopeOwner {
+  readonly name: string;
   readonly connectedScope: Scope;
   readonly scope: Scope;
   readonly owningScope: Scope | null;
@@ -82,6 +82,11 @@ export class Scope {
   ) {
     this.owningScope = owningScope ?? this;
     this.scope = this.hasScope ? this : this.owningScope.scope;
+    // console.log('Created scope', this.toString());
+  }
+
+  public toString(): string {
+    return `${this.owningScope !== this ? this.owningScope!.toString() : ''}/${this.isViewport ? 'v' : 'vs'}:${this.owner!.name}`;
   }
 
   public get isViewport(): boolean {
@@ -364,7 +369,7 @@ export class Scope {
       }
     }
     if ((viewport ?? null) === null) {
-      viewport = new Viewport(this.router, name, null, this.scope, !!options.scope, options);
+      viewport = new Viewport(this.router, name, connectionCE, this.scope, !!options.scope, options);
       this.addChild(viewport.connectedScope);
     }
     if ((connectionCE ?? null) !== null) {
@@ -379,8 +384,8 @@ export class Scope {
     }
     return false;
   }
-  public addViewportScope(name: string, controller: IRoutingController | null, options: IViewportScopeOptions = {}): ViewportScope {
-    const viewportScope = new ViewportScope(name, this.router, controller, this.scope, true, null, options);
+  public addViewportScope(name: string, connectionCE: IConnectionCustomElement | null, options: IViewportScopeOptions = {}): ViewportScope {
+    const viewportScope = new ViewportScope(name, this.router, connectionCE, this.scope, true, null, options);
     this.addChild(viewportScope.connectedScope);
     return viewportScope;
   }

@@ -1780,6 +1780,100 @@ describe('Router', function () {
       }
     }
   });
+
+  describe('can use viewport scope', function () {
+    this.timeout(30000);
+
+    async function $setup(config?, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
+      const ctx = TestContext.createHTMLTestContext();
+
+      const { container, scheduler } = ctx;
+
+      const App = CustomElement.define({
+        name: 'app',
+        template: '<au-viewport name="app"></au-viewport>',
+        dependencies
+      }, class {
+        public static routes: IRoute[] = routes;
+      });
+
+      const host = ctx.doc.createElement('div');
+      ctx.doc.body.appendChild(host as any);
+
+      const au = new Aurelia(container)
+        .register(
+          DebugConfiguration,
+          !config ? RouterConfiguration : RouterConfiguration.customize(config),
+          App)
+        .app({ host: host, component: App });
+
+      const router = getModifiedRouter(container);
+      const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
+
+      await au.start().wait();
+
+      async function $teardown() {
+        unspyNavigationStates(router, _pushState, _replaceState);
+        router.stop();
+        await au.stop().wait();
+        ctx.doc.body.removeChild(host);
+      }
+
+      return { ctx, container, scheduler, host, au, router, $teardown, App };
+    }
+
+    function $removeViewport(instructions) {
+      for (const instruction of instructions) {
+        instruction.viewport = null;
+        instruction.viewportName = null;
+        if (Array.isArray(instruction.nextScopeInstructions)) {
+          $removeViewport(instruction.nextScopeInstructions);
+        }
+      }
+    }
+
+    const part = '<au-viewport-scope><a goto="my-one">One</a><a goto="my-two">Two</a>:<au-viewport default="my-zero"></au-viewport></au-viewport-scope>';
+    const Siblings = CustomElement.define({ name: 'my-siblings', template: `!my-siblings!${part}|${part}` }, class { });
+    const Zero = CustomElement.define({ name: 'my-zero', template: '!my-zero!' }, class { });
+    const One = CustomElement.define({ name: 'my-one', template: '!my-one!' }, class { });
+    const Two = CustomElement.define({ name: 'my-two', template: '!my-two!' }, class { });
+
+    const appDependencies = [Siblings, Zero, One, Two];
+
+    let locationPath: string;
+    let browserTitle: string;
+    const locationCallback = (type, data, title, path) => {
+      // console.log(type, data, title, path);
+      locationPath = path;
+      browserTitle = title;
+    };
+
+    const tests = [
+      { anchor: 0, result: '!my-siblings!OneTwo:!my-one!|OneTwo:', url: 'my-siblings/my-one', title: '', name: 'first my-one'},
+      { anchor: 1, result: '!my-siblings!OneTwo:!my-two!|OneTwo:', url: 'my-siblings/my-two', title: '', name: 'first my-two'},
+      { anchor: 2, result: '!my-siblings!OneTwo:|OneTwo:!my-one!', url: 'my-siblings/my-two', title: '', name: 'second my-one'},
+      { anchor: 3, result: '!my-siblings!OneTwo:|OneTwo:!my-two!', url: 'my-siblings/my-two', title: '', name: 'second my-two'},
+    ];
+
+    for (let j = 0; j < tests.length; j++) {
+      const test = tests[j];
+      it.skip(`to load sibling routes ${test.name}`, async function () {
+        const { scheduler, host, router, $teardown } = await $setup({}, appDependencies, [], locationCallback);
+
+        await $goto('/my-siblings', router, scheduler);
+        await scheduler.yieldAll();
+
+        (host.getElementsByTagName('A')[test.anchor] as HTMLElement).click();
+        await scheduler.yieldAll();
+
+        assert.strictEqual(host.textContent, test.result, `host.textContent`);
+        // // assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
+        // // assert.strictEqual(browserTitle, test.title, 'browser.title');
+
+        await $teardown();
+      });
+    }
+  });
 });
 
 let quxCantLeave = 0;

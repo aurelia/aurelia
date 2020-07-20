@@ -5,6 +5,7 @@ import { ViewportInstruction } from './viewport-instruction';
 import { IScopeOwner, IScopeOwnerOptions, Scope } from './scope';
 import { arrayRemove } from './utils';
 import { Navigation } from './navigation';
+import { IConnectionCustomElement } from './resources/viewport';
 
 export interface IViewportScopeOptions extends IScopeOwnerOptions {
   catches?: string | string[];
@@ -30,7 +31,7 @@ export class ViewportScope implements IScopeOwner {
   public constructor(
     public name: string,
     public readonly router: IRouter,
-    public controller: ICustomElementController | null,
+    public connectionCE: IConnectionCustomElement | null,
     owningScope: Scope | null,
     scope: boolean,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it

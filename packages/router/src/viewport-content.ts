@@ -114,7 +114,7 @@ export class ViewportContent {
     // Don't load cached content or instantiated history content
     if (!this.fromCache || !this.fromHistory) {
       const controller = this.contentController(connectionCE);
-      controller.parent = CustomElement.for(connectionCE.element)!;
+      controller.parent = connectionCE.controller; // CustomElement.for(connectionCE.element)!;
     }
   }
 

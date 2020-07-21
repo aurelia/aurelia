@@ -12,8 +12,6 @@ import {
 import { ProxyObserver } from './proxy-observer';
 import { SetterObserver } from './setter-observer';
 import { CustomElementDefinition } from '../resources/custom-element';
-import { ITargetedInstruction } from '../definitions';
-import { IProjections } from '../resources/custom-elements/au-slot';
 
 const enum RuntimeError {
   NilScope = 250,
@@ -94,33 +92,16 @@ export class BindingContext implements IBindingContext {
     return bc;
   }
 
-  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, part?: string, projection?: CustomElementDefinition): IBindingContext | IOverrideContext | IBinding | undefined | null {
-    if (scope == null) {
+  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): IBindingContext | IOverrideContext | IBinding | undefined | null {
+    if (scope == null && hostScope == null) {
       throw Reporter.error(RuntimeError.NilScope);
     }
-    let overrideContext = scope.overrideContext;
 
-    if (ancestor > 0) {
-      // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
-      while (ancestor > 0) {
-        if (overrideContext.parentOverrideContext == null) {
-          return void 0;
-        }
-        ancestor--;
-        overrideContext = overrideContext.parentOverrideContext;
-      }
-
-      return name in overrideContext ? overrideContext : overrideContext.bindingContext;
-    }
-
-    // traverse the context and it's ancestors, searching for a context that has the name.
-    while (overrideContext && !(name in overrideContext) && !(overrideContext.bindingContext && name in overrideContext.bindingContext)) {
-      overrideContext = overrideContext.parentOverrideContext!;
-    }
-
-    if (overrideContext) {
-      // we located a context with the property.  return it.
-      return name in overrideContext ? overrideContext : overrideContext.bindingContext;
+    let context = chooseContext(scope, name, ancestor);
+    if (context !== null) { return context; }
+    if (hostScope !== scope && hostScope != null) {
+      context = chooseContext(hostScope, name, ancestor);
+      if (context !== null) { return context; }
     }
 
     // the name wasn't found. see if parent scope traversal is allowed and if so, try that
@@ -166,6 +147,35 @@ export class BindingContext implements IBindingContext {
     }
     return this.$observers;
   }
+}
+
+function chooseContext(scope: IScope, name: string, ancestor: number) {
+  let overrideContext = scope.overrideContext;
+
+  if (ancestor > 0) {
+    // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
+    while (ancestor > 0) {
+      if (overrideContext.parentOverrideContext == null) {
+        return void 0;
+      }
+      ancestor--;
+      overrideContext = overrideContext.parentOverrideContext;
+    }
+
+    return name in overrideContext ? overrideContext : overrideContext.bindingContext;
+  }
+
+  // traverse the context and it's ancestors, searching for a context that has the name.
+  while (overrideContext && !(name in overrideContext) && !(overrideContext.bindingContext && name in overrideContext.bindingContext)) {
+    overrideContext = overrideContext.parentOverrideContext!;
+  }
+
+  if (overrideContext) {
+    // we located a context with the property.  return it.
+    return name in overrideContext ? overrideContext : overrideContext.bindingContext;
+  }
+
+  return null;
 }
 
 export class Scope implements IScope {

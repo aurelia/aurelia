@@ -110,7 +110,7 @@ export class AuSlot<T extends INode = Node> implements ICustomElementViewModel<T
     // }
 
     this.view.parent = this.$controller;
-    return this.view.bind(flags | LifecycleFlags.allowParentScopeTraversal, this.outerScope ?? this.hostScope, this.hostScope, undefined, this.factory.context.definition);
+    return this.view.bind(flags/*  | LifecycleFlags.allowParentScopeTraversal */, this.outerScope ?? this.hostScope, this.hostScope, undefined, this.factory.context.definition);
   }
 
   public beforeAttach(flags: LifecycleFlags): void {

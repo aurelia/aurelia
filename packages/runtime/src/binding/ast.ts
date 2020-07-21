@@ -407,14 +407,15 @@ export class AccessThisExpression implements IAccessThisExpression {
     if (scope == null) {
       throw Reporter.error(RuntimeError.NilScope, this);
     }
-
-    if ((flags & LifecycleFlags.allowParentScopeTraversal) > 0) {
+    if (this === AccessThisExpression.$host) {
+      scope = chooseScope(true, scope, hostScope);
+    } else if ((flags & LifecycleFlags.allowParentScopeTraversal) > 0) {
       let parent = scope.parentScope;
       while (parent !== null) {
         if (
           !parent.scopeParts.includes(part!) && // TODO: remove
           !parent.projections.includes(projection!)
-          ) {
+        ) {
           parent = parent.parentScope;
         }
       }
@@ -454,7 +455,7 @@ export class AccessScopeExpression implements IAccessScopeExpression {
   ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): IBindingContext | IBinding | IOverrideContext {
-    const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, part, projection) as IBindingContext;
+    const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope, part, projection) as IBindingContext;
     const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (flags & LifecycleFlags.isStrictBindingStrategy) {
       return evaluatedValue;
@@ -463,7 +464,7 @@ export class AccessScopeExpression implements IAccessScopeExpression {
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): unknown {
-    const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, part, projection) as IBindingContext;
+    const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope, part, projection) as IBindingContext;
     if (obj instanceof Object) {
       if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
         obj.$observers[this.name].setValue(value, flags);
@@ -476,7 +477,7 @@ export class AccessScopeExpression implements IAccessScopeExpression {
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, binding: IConnectableBinding, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): void {
-    const context = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, part, projection)!;
+    const context = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope, part, projection)!;
     binding.observeProperty(flags, context, this.name);
   }
 
@@ -584,7 +585,7 @@ export class CallScopeExpression implements ICallScopeExpression {
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): unknown {
     scope = chooseScope(this.accessHostScope, scope, hostScope);
     const args = evalList(flags, scope, locator, this.args, hostScope, part, projection);
-    const context = BindingContext.get(scope, this.name, this.ancestor, flags, part, projection)!;
+    const context = BindingContext.get(scope, this.name, this.ancestor, flags, hostScope, part, projection)!;
     const func = getFunction(flags, context, this.name);
     if (func) {
       return func.apply(context, args as unknown[]);

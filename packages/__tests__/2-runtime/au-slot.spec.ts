@@ -293,6 +293,44 @@ describe('au-slot', function () {
         ],
         { 'my-element': '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="$host.person.pets" class="au"> <ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="$host.person.pets" class="au"> <ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>' },
       );
+
+      yield new TestData(
+        'transitive projections with let-binding works - 1',
+        `<my-element people.bind="people">
+          <template au-slot="content">
+            <let person.bind="$host.person"></let>
+            <div>\${person.firstName}</div>
+            <div>\${person.lastName}</div>
+            <coll-vwr collection.bind="person.pets">
+              <ul au-slot="colleslawt"><li repeat.for="item of $host.collection">\${item}</li></ul>
+            </coll-vwr>
+          </template>
+        </my-element>`,
+        [
+          CollVwr,
+          MyElement,
+        ],
+        { 'my-element': '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="person.pets" class="au"> <ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="person.pets" class="au"> <ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>' },
+      );
+
+      yield new TestData(
+        'transitive projections with let-binding works - 2',
+        `<my-element people.bind="people">
+          <template au-slot="content">
+            <let h.bind="$host"></let>
+            <div>\${h.person.firstName}</div>
+            <div>\${h.person.lastName}</div>
+            <coll-vwr collection.bind="h.person.pets">
+              <ul au-slot="colleslawt"><li repeat.for="item of $host.collection">\${item}</li></ul>
+            </coll-vwr>
+          </template>
+        </my-element>`,
+        [
+          CollVwr,
+          MyElement,
+        ],
+        { 'my-element': '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="h.person.pets" class="au"> <ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="h.person.pets" class="au"> <ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>' },
+      );
     }
     // #endregion
   }

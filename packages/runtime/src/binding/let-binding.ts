@@ -82,7 +82,7 @@ export class LetBinding implements IPartialConnectableBinding {
     this.$hostScope = hostScope;
     this.part = part;
     this.projection = projection;
-    this.target = (this.toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
+    this.target = (this.toBindingContext ? (hostScope ?? scope).bindingContext : (hostScope ?? scope).overrideContext) as IIndexable;
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.bind) {

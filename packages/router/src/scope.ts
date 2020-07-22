@@ -11,6 +11,8 @@ import { Collection } from './collection';
 import { IConfigurableRoute, RouteRecognizer } from './route-recognizer';
 import { Navigation } from './navigation';
 import { IConnectionCustomElement } from './resources/viewport';
+import { NavigationCoordinator } from './navigation-coordinator';
+import { Runner } from './runner';
 
 /**
  * @internal - Shouldn't be used directly
@@ -45,7 +47,8 @@ export interface IScopeOwner {
   isEmpty: boolean;
 
   setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: Navigation): boolean;
-  canLeave(): Promise<boolean>;
+  swap(coordinator: NavigationCoordinator): void;
+  canLeave(): boolean | Promise<boolean>;
   canEnter(): Promise<boolean | ViewportInstruction[]>;
   enter(): Promise<boolean>;
   loadContent(): Promise<boolean>;
@@ -472,13 +475,34 @@ export class Scope {
     return null;
   }
 
-  public async canLeave(): Promise<boolean> {
-    const results = await Promise.all(this.children.map(child =>
-      child.viewport !== null
-        ? child.viewport.canLeave()
-        : child.canLeave()));
-    return !results.some(result => result === false);
+  public canLeave(): boolean | Promise<boolean> {
+    const results = Runner.runAll(
+      this.children.map(child =>
+        child.viewport !== null
+          ? child.viewport.canLeave()
+          : child.canLeave())
+    );
+    if (results instanceof Promise) {
+      return results.then(resolvedResults =>
+        resolvedResults.every(result => result as boolean)
+      );
+    }
+    return results.every(result => result as boolean);
+
+
+    // return Promise.all(this.children.map(child =>
+    //   child.viewport !== null
+    //     ? child.viewport.canLeave()
+    //     : child.canLeave())
+    // ).then(results => !results.some(result => result === false));
   }
+  // public async canLeave(): boolean | Promise<boolean> {
+  //   const results = await Promise.all(this.children.map(child =>
+  //     child.viewport !== null
+  //       ? child.viewport.canLeave()
+  //       : child.canLeave()));
+  //   return !results.some(result => result === false);
+  // }
 
   private findMatchingRouteInRoutes(path: string, routes: IRoute[] | null): FoundRoute | null {
     if (!Array.isArray(routes)) {

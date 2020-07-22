@@ -6,6 +6,8 @@ import { IScopeOwner, IScopeOwnerOptions, Scope } from './scope';
 import { arrayRemove } from './utils';
 import { Navigation } from './navigation';
 import { IConnectionCustomElement } from './resources/viewport';
+import { NavigationCoordinator } from './navigation-coordinator';
+import { Runner } from './runner';
 
 export interface IViewportScopeOptions extends IScopeOwnerOptions {
   catches?: string | string[];
@@ -134,8 +136,22 @@ export class ViewportScope implements IScopeOwner {
     return true;
   }
 
-  public canLeave(): Promise<boolean> {
-    return Promise.resolve(true);
+  public swap(coordinator: NavigationCoordinator): void {
+    console.log('ViewportScope swap', this, coordinator);
+
+    Runner.run(
+      () => coordinator.addEntityState(this, 'couldLeave'),
+      () => coordinator.addEntityState(this, 'couldEnter'),
+      () => coordinator.addEntityState(this, 'entered'),
+      () => coordinator.addEntityState(this, 'left'),
+      () => coordinator.addEntityState(this, 'routed'),
+      () => coordinator.addEntityState(this, 'swapped'),
+      () => coordinator.addEntityState(this, 'completed')
+    );
+  }
+
+  public canLeave(): boolean | Promise<boolean> {
+    return true;
   }
   public canEnter(): Promise<boolean | ViewportInstruction[]> {
     return Promise.resolve(true);

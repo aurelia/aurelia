@@ -62,6 +62,10 @@ export {
 } from './navigator';
 
 export {
+  Runner,
+} from './runner';
+
+export {
   QueueItem,
   IQueueOptions,
   Queue,

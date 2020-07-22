@@ -2,12 +2,14 @@ import { Reporter } from '@aurelia/kernel';
 import { LifecycleFlags, ICompiledRenderContext, ICustomElementController, CustomElement, ICustomElementViewModel } from '@aurelia/runtime';
 import { ComponentAppellation, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType, NavigationInstruction } from './interfaces';
 import { IRouter } from './router';
-import { arrayRemove } from './utils';
+import { arrayRemove, resolvePossiblePromise } from './utils';
 import { ViewportContent } from './viewport-content';
 import { ViewportInstruction } from './viewport-instruction';
 import { IScopeOwner, IScopeOwnerOptions, Scope } from './scope';
 import { Navigation } from './navigation';
 import { IRoutingController, IConnectionCustomElement } from './resources/viewport';
+import { NavigationCoordinator } from './navigation-coordinator';
+import { Runner } from './runner';
 
 export interface IViewportOptions extends IScopeOwnerOptions {
   scope?: boolean;
@@ -239,13 +241,105 @@ export class Viewport implements IScopeOwner {
     return false;
   }
 
-  public async canLeave(): Promise<boolean> {
-    const canLeaveChildren: boolean = await this.connectedScope.canLeave();
+  public swap(coordinator: NavigationCoordinator): void {
+    // console.log('Viewport swap', this, coordinator);
+
+    let run: unknown;
+
+    const canLeave = [
+      () => this.canLeave() as boolean | Promise<boolean>,
+      (canLeaveResult: boolean) => {
+        if (!canLeaveResult) {
+          Runner.cancel(run);
+          coordinator.cancel();
+          return;
+        }
+        coordinator.addEntityState(this, 'couldLeave');
+      }
+    ];
+
+    const canEnter = [
+      () => this.canEnter() as boolean | NavigationInstruction | NavigationInstruction[],
+      (canEnterResult: boolean | NavigationInstruction | NavigationInstruction[]) => {
+        if (typeof canEnterResult === 'boolean') {
+          if (!canEnterResult) {
+            Runner.cancel(run);
+            coordinator.cancel();
+            return;
+          }
+          coordinator.addEntityState(this, 'couldEnter');
+        } else { // Denied and (probably) redirected
+          Runner.run(
+            () => this.router.goto(canEnterResult, { append: true }),
+            () => this.abortContentChange(),
+            // TODO: Abort content change in the viewports
+          );
+        }
+      }
+    ];
+
+    const enter = [
+      () => this.enter(),
+      () => coordinator.addEntityState(this, 'entered'),
+    ];
+
+    const activate = [
+      () => this.activate(),
+    ];
+
+    const deactivate = [
+      () => this.deactivate(),
+    ];
+
+    const leave = [
+      () => this.leave(),
+      () => coordinator.addEntityState(this, 'left'),
+    ];
+
+    const allowSteps = [
+      ...canLeave,
+
+      () => coordinator.syncState('couldLeave'),
+      ...canEnter,
+    ];
+
+    const routingSteps = [
+      () => coordinator.syncState('couldEnter'), // No use case yet?
+      ...enter,
+      () => coordinator.addEntityState(this, 'routed'),
+    ];
+
+    const lifecycleSteps = [
+      () => coordinator.syncState('routed'),
+      // () => coordinator.addEntityState(this, 'bound'),
+      ...activate,
+      ...deactivate,
+      () => coordinator.addEntityState(this, 'swapped'),
+      ...leave,
+    ];
+
+    run = Runner.run(
+      ...allowSteps,
+      ...routingSteps,
+      ...lifecycleSteps,
+      () => coordinator.addEntityState(this, 'completed')
+    );
+  }
+
+  public canLeave(): boolean | Promise<boolean> {
+    const canLeaveChildren = resolvePossiblePromise(this.connectedScope.canLeave()) as boolean;
     if (!canLeaveChildren) {
       return false;
     }
-    return this.content.canLeave(this.nextContent ? this.nextContent.instruction : null);
+    return this.content.canLeave(this.nextContent?.instruction ?? null);
   }
+  // public async canLeave(): Promise<boolean> {
+  //   const canLeaveChildren: boolean = await this.connectedScope.canLeave();
+  //   if (!canLeaveChildren) {
+  //     return false;
+  //   }
+  //   return this.content.canLeave(this.nextContent?.instruction ?? null);
+  // }
 
   public async canEnter(): Promise<boolean | ViewportInstruction[]> {
     if (this.clear) {
@@ -264,8 +358,6 @@ export class Viewport implements IScopeOwner {
   }
 
   public async enter(): Promise<boolean> {
-    Reporter.write(10000, 'Viewport enter', this.name);
-
     if (this.clear) {
       return true;
     }
@@ -275,7 +367,41 @@ export class Viewport implements IScopeOwner {
     }
 
     await this.nextContent.enter(this.content.instruction);
-    await this.nextContent.activateComponent(null, this.connectionCE!.$controller as ICustomElementController<Element, ICustomElementViewModel<Element>>, LifecycleFlags.none, this.connectionCE!);
+    // await this.nextContent.activateComponent(null, this.connectionCE!.$controller as ICustomElementController<Element, ICustomElementViewModel<Element>>, LifecycleFlags.none, this.connectionCE!);
+    return true;
+  }
+
+  public async activate(): Promise<boolean> {
+    if (this.nextContent!.componentInstance) {
+      if (this.content.componentInstance !== this.nextContent!.componentInstance) {
+        await this.nextContent!.activateComponent(null, this.connectionCE!.$controller as IRoutingController, LifecycleFlags.none, this.connectionCE!);
+      } else {
+        this.connectedScope.reenableReplacedChildren();
+      }
+    }
+
+    return true;
+  }
+
+  public async deactivate(): Promise<boolean> {
+    if (this.content.componentInstance &&
+      !this.content.reentry &&
+      this.content.componentInstance !== this.nextContent!.componentInstance) {
+      await this.content!.freeContent(
+        this.connectionCE,
+        this.nextContent!.instruction,
+        this.historyCache,
+        this.router.statefulHistory || this.options.stateful);
+    }
+
+    return true;
+  }
+
+  public async leave(): Promise<boolean> {
+    if (this.content.componentInstance) {
+      await this.content.leave(this.nextContent!.instruction);
+    }
+
     return true;
   }
 
@@ -324,6 +450,16 @@ export class Viewport implements IScopeOwner {
   }
 
   public finalizeContentChange(): void {
+    if (this.nextContent!.componentInstance) {
+      this.content = this.nextContent!;
+      this.content.reentry = false;
+    }
+
+    if (this.clear) {
+      this.content = new ViewportContent(void 0, this.nextContent!.instruction);
+    }
+    this.nextContent = null;
+
     this.previousViewportState = null;
     this.connectedScope.clearReplacedChildren();
   }

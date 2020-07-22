@@ -20,7 +20,7 @@ import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 import { BrowserViewerStore } from './browser-viewer-store';
 import { Navigation } from './navigation';
 import { IRoutingController, IConnectionCustomElement } from './resources/viewport';
-// import { NavigationCoordinator } from './navigation-coordinator';
+import { NavigationCoordinator, NavigationCoordinatorOptions } from './navigation-coordinator';
 
 /**
  * Public API
@@ -133,10 +133,10 @@ export class Router implements IRouter {
       componentPrefix: 'app-',
     }
   };
+  public processingNavigation: Navigation | null = null;
   private isActive: boolean = false;
   private loadedFirst: boolean = false;
 
-  private processingNavigation: Navigation | null = null;
   private lastNavigation: Navigation | null = null;
   private staleChecks: Record<string, ViewportInstruction[]> = {};
 
@@ -354,7 +354,25 @@ export class Router implements IRouter {
     //   clearScopeOwners,
     //   clearViewportScopes,
     // }
-    // const coordinator = NavigationCoordinator.create(this, instruction);
+    const coordinator = NavigationCoordinator.create(this, instruction,
+      { syncStates: ['couldLeave', 'swapped', 'completed'] }) as NavigationCoordinator;
+    // const steps = [
+    //   () => coordinator.syncState('entered'),
+    //   () => { console.log('SyncState entered resolved!', steps); },
+    //   () => coordinator.syncState('swapped'),
+    //   () => { console.log('SyncState swapped resolved!', steps); },
+    //   () => coordinator.syncState('left'),
+    //   () => { console.log('SyncState left resolved!', steps); },
+    // ];
+    // run(...steps);
+
+    // const enteredPromise = ;
+    // if (enteredPromise !== void 0) {
+    //   enteredPromise.then((value: any) => {
+    //     console.log('SyncState entered resolved!', value);
+    //   });
+    // }
+
     let configuredRoute = await this.findInstructions(
       this.rootScope!.scope,
       instruction.instruction,
@@ -407,7 +425,8 @@ export class Router implements IRouter {
 
       const hooked = await this.hookManager.invokeBeforeNavigation(viewportInstructions, instruction);
       if (hooked === false) {
-        return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], instruction);
+        coordinator.cancel();
+        // return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], instruction);
       } else {
         viewportInstructions = hooked as ViewportInstruction[];
       }
@@ -417,6 +436,7 @@ export class Router implements IRouter {
           scopeOwner.path = configuredRoutePath;
           if (scopeOwner.setNextContent(viewportInstruction, instruction)) {
             changedScopeOwners.push(scopeOwner);
+            coordinator.addEntity(scopeOwner);
           }
           arrayRemove(clearScopeOwners, value => value === scopeOwner);
           if (!this.instructionResolver.isClearViewportInstruction(viewportInstruction)
@@ -428,29 +448,37 @@ export class Router implements IRouter {
           }
         }
       }
-      let results = await Promise.all(changedScopeOwners.map((value) => value.canLeave()));
-      if (results.some(result => result === false)) {
-        return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], instruction);
-      }
-      results = await Promise.all(changedScopeOwners.map(async (value) => {
-        const canEnter = await value.canEnter();
-        if (typeof canEnter === 'boolean') {
-          if (canEnter) {
-            return value.enter();
-          } else {
-            return false;
-          }
-        }
-        await this.goto(canEnter, { append: true });
-        await value.abortContentChange();
-        // TODO: Abort content change in the viewports
-        return true;
-      }));
-      if (results.some(result => result === false)) {
-        return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], qInstruction);
-      }
+
+      coordinator.run();
+      await coordinator.syncState('swapped');
+
+      // // eslint-disable-next-line no-await-in-loop
+      // let results = await Promise.all(changedScopeOwners.map((scopeOwner) => scopeOwner.canLeave()));
+      // if (results.some(result => result === false)) {
+      //   return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], instruction);
+      // }
+      // // eslint-disable-next-line no-await-in-loop
+      // results = await Promise.all(changedScopeOwners.map(async (scopeOwner) => {
+      //   const canEnter = await scopeOwner.canEnter();
+      //   if (typeof canEnter === 'boolean') {
+      //     if (canEnter) {
+      //       coordinator.addEntityState(scopeOwner, 'entered');
+      //       return scopeOwner.enter();
+      //     } else {
+      //       return false;
+      //     }
+      //   }
+      //   await this.goto(canEnter, { append: true });
+      //   await scopeOwner.abortContentChange();
+      //   // TODO: Abort content change in the viewports
+      //   return true;
+      // }));
+      // if (results.some(result => result === false)) {
+      //   return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], qInstruction);
+      // }
+
       for (const viewport of changedScopeOwners) {
-        if (updatedScopeOwners.every(value => value !== viewport)) {
+        if (updatedScopeOwners.every(scopeOwner => scopeOwner !== viewport)) {
           updatedScopeOwners.push(viewport);
         }
       }
@@ -536,9 +564,16 @@ export class Router implements IRouter {
       }
     } while (viewportInstructions.length > 0 || remainingInstructions.length > 0);
 
-    // coordinator.finalScopeOwner();
+    coordinator.finalEntity();
 
-    await Promise.all(updatedScopeOwners.map((value) => value.loadContent()));
+    // await Promise.all(updatedScopeOwners.map((value) => value.loadContent()));
+
+    await coordinator.syncState('completed');
+    coordinator.finalize();
+    // updatedScopeOwners.forEach((viewport) => {
+    //   viewport.finalizeContentChange();
+    // });
+
     await this.replacePaths(instruction);
     // this.updateNav();
 
@@ -546,11 +581,11 @@ export class Router implements IRouter {
     if (instruction.navigation!.new && !instruction.navigation!.first && !instruction.repeating && updatedScopeOwners.every(viewport => viewport.options.noHistory)) {
       instruction.untracked = true;
     }
-    updatedScopeOwners.forEach((viewport) => {
-      viewport.finalizeContentChange();
-    });
+    // updatedScopeOwners.forEach((viewport) => {
+    //   viewport.finalizeContentChange();
+    // });
     this.lastNavigation = this.processingNavigation;
-    if (this.lastNavigation.repeating) {
+    if (this.lastNavigation?.repeating ?? false) {
       this.lastNavigation.repeating = false;
     }
     this.processingNavigation = null;

@@ -150,19 +150,25 @@ export class ViewportContent {
     return result as Promise<ViewportInstruction[]>;
   }
 
-  public async canLeave(nextInstruction: Navigation | null): Promise<boolean> {
+  public canLeave(nextInstruction: Navigation | null): boolean | Promise<boolean> {
     if (!this.content.componentInstance || !this.content.componentInstance.canLeave) {
       return true;
     }
 
-    const result = this.content.componentInstance.canLeave(nextInstruction, this.instruction);
-    Reporter.write(10000, 'viewport canLeave', result);
-
-    if (typeof result === 'boolean') {
-      return result;
-    }
-    return result;
+    return this.content.componentInstance.canLeave(nextInstruction, this.instruction);
   }
+  // public async canLeave(nextInstruction: Navigation | null): Promise<boolean> {
+  //   if (!this.content.componentInstance || !this.content.componentInstance.canLeave) {
+  //     return true;
+  //   }
+
+  //   const result = this.content.componentInstance.canLeave(nextInstruction, this.instruction);
+
+  //   if (typeof result === 'boolean') {
+  //     return result;
+  //   }
+  //   return result;
+  // }
 
   public async enter(previousInstruction: Navigation): Promise<void> {
     // if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.entered)) {

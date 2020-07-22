@@ -10,3 +10,13 @@ export function arrayRemove<T>(arr: T[], func: (value: T, index?: number, obj?: 
   }
   return removed;
 }
+
+export function resolvePossiblePromise(value: unknown): unknown {
+  // If we've got a Promise, wait for it's resolve
+  if (value instanceof Promise) {
+    return value.then((resolvedValue) => {
+      return resolvedValue;
+    });
+  }
+  return value;
+}

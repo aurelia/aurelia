@@ -40,7 +40,7 @@ export type TitleFunction = (viewModel: IRouteableComponent, instruction: Naviga
 
 export interface IRouteableComponent<T extends INode = INode> extends ICustomElementViewModel<T> {
   reentryBehavior?: ReentryBehavior;
-  canEnter?(parameters: Record<string, unknown>, nextInstruction: Navigation, instruction: Navigation): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
+  canEnter?(parameters: Record<string, unknown>, nextInstruction: Navigation, instruction: Navigation): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
   enter?(parameters: Record<string, unknown>, nextInstruction: Navigation, instruction: Navigation): void | Promise<void>;
   canLeave?(nextInstruction: Navigation | null, instruction: Navigation): boolean | Promise<boolean>;
   leave?(nextInstruction: Navigation | null, instruction: Navigation): void | Promise<void>;

@@ -50,7 +50,7 @@ export class Runner {
    * ); // result === 'one, two, three'
    *
    */
-  public static run(...steps: unknown[]): unknown | Promise<unknown> {
+  public static run<T = unknown>(...steps: unknown[]): T | Promise<T> {
     const $runner = new Runner();
     const value = Runner.$run($runner, ...steps);
     if (value instanceof Promise) {
@@ -64,7 +64,7 @@ export class Runner {
         // console.log('$runner done', $runner, this.runners);
       }).catch(err => { throw err; });
     }
-    return value;
+    return value as T | Promise<T>;
   }
 
   /**

@@ -1,12 +1,13 @@
 /* eslint-disable no-fallthrough */
-import { IContainer, Reporter } from '@aurelia/kernel';
-import { Controller, IController, INode, LifecycleFlags, ILifecycle, CustomElement, IHydratedController, ICustomElementController, ICustomElementViewModel, ISyntheticView } from '@aurelia/runtime';
-import { IRouteableComponent, RouteableComponentType, ReentryBehavior } from './interfaces';
+import { IContainer } from '@aurelia/kernel';
+import { Controller, LifecycleFlags, ILifecycle, IHydratedController, ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime';
+import { IRouteableComponent, RouteableComponentType, ReentryBehavior, NavigationInstruction } from './interfaces';
 import { parseQuery } from './parser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 import { Navigation } from './navigation';
-import { IRoutingController, IConnectionCustomElement } from './resources/viewport';
+import { IConnectionCustomElement } from './resources/viewport';
+import { Runner } from './runner';
 
 /**
  * @internal - Shouldn't be used directly
@@ -17,11 +18,14 @@ export const enum ContentStatus {
   activated = 3,
 }
 
+export type ContentState = 'created' | 'activated' | 'entered';
+
 /**
  * @internal - Shouldn't be used directly
  */
 export class ViewportContent {
-  public contentStatus: ContentStatus = ContentStatus.none;
+  // public contentStatus: ContentStatus = ContentStatus.none;
+  public contentStates: Set<ContentState> = new Set();
   public entered: boolean = false;
   public fromCache: boolean = false;
   public fromHistory: boolean = false;
@@ -83,7 +87,8 @@ export class ViewportContent {
   }
 
   public createComponent(connectionCE: IConnectionCustomElement, fallback?: string): void {
-    if (this.contentStatus !== ContentStatus.none) {
+    // if (this.contentStatus !== ContentStatus.none) {
+    if (this.contentStates.has('created')) {
       return;
     }
     // Don't load cached content or instantiated history content
@@ -104,10 +109,12 @@ export class ViewportContent {
         }
       }
     }
-    this.contentStatus = ContentStatus.created;
+    this.contentStates.add('created');
+    // this.contentStatus = ContentStatus.created;
 
     // if (this.contentStatus !== ContentStatus.created || !this.entered || !this.content.componentInstance) {
-    if (this.contentStatus !== ContentStatus.created || this.entered || !this.content.componentInstance) {
+    // if (this.contentStatus !== ContentStatus.created || this.entered || !this.content.componentInstance) {
+    if (this.contentStates.has('entered') || !this.content.componentInstance) {
       return;
     }
     // this.contentStatus = ContentStatus.loaded;
@@ -120,14 +127,16 @@ export class ViewportContent {
 
   public destroyComponent(): void {
     // TODO: We might want to do something here eventually, who knows?
-    if (this.contentStatus !== ContentStatus.created) {
+    // if (this.contentStatus !== ContentStatus.created) {
+    if (!this.contentStates.has('created')) {
       return;
     }
     // Don't destroy components when stateful
-    this.contentStatus = ContentStatus.none;
+    // this.contentStatus = ContentStatus.none;
+    this.contentStates.delete('created');
   }
 
-  public async canEnter(viewport: Viewport, previousInstruction: Navigation): Promise<boolean | ViewportInstruction[]> {
+  public canEnter(viewport: Viewport, previousInstruction: Navigation): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
     if (!this.content.componentInstance) {
       return false;
     }
@@ -140,7 +149,6 @@ export class ViewportContent {
     this.instruction.parameters = this.content.toSpecifiedParameters(typeParameters);
     const merged = { ...parseQuery(this.instruction.query), ...this.instruction.parameters };
     const result = this.content.componentInstance.canEnter(merged, this.instruction, previousInstruction);
-    Reporter.write(10000, 'viewport canEnter', result);
     if (typeof result === 'boolean') {
       return result;
     }
@@ -170,70 +178,105 @@ export class ViewportContent {
   //   return result;
   // }
 
-  public async enter(previousInstruction: Navigation): Promise<void> {
+  public enter(previousInstruction: Navigation): void | Promise<void> {
     // if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.entered)) {
-    if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.entered)) {
+    // if (!this.reentry && this.entered) {
+    if (!this.contentStates.has('created') || (this.contentStates.has('entered') && !this.reentry)) {
       return;
     }
+    // this.entered = true;
+    this.contentStates.add('entered');
     if (this.content.componentInstance && this.content.componentInstance.enter) {
       const typeParameters = this.content.componentType ? this.content.componentType.parameters : null;
       this.instruction.parameters = this.content.toSpecifiedParameters(typeParameters);
       const merged = { ...parseQuery(this.instruction.query), ...this.instruction.parameters };
-      await this.content.componentInstance.enter(merged, this.instruction, previousInstruction);
+      return this.content.componentInstance.enter(merged, this.instruction, previousInstruction);
     }
-    this.entered = true;
   }
-  public async leave(nextInstruction: Navigation | null): Promise<void> {
-    if (this.contentStatus !== ContentStatus.activated || !this.entered) {
+  public leave(nextInstruction: Navigation | null): void | Promise<void> {
+    // if (!this.entered) {
+    if (!this.contentStates.has('entered')) {
       return;
     }
+    // this.entered = false;
+    this.contentStates.delete('entered');
     if (this.content.componentInstance && this.content.componentInstance.leave) {
-      await this.content.componentInstance.leave(nextInstruction, this.instruction);
+      return this.content.componentInstance.leave(nextInstruction, this.instruction);
     }
-    this.entered = false;
   }
 
   public unloadComponent(cache: ViewportContent[], stateful: boolean = false): void {
     // TODO: We might want to do something here eventually, who knows?
-    if (this.contentStatus !== ContentStatus.activated) {
+    // if (this.contentStatus !== ContentStatus.activated) {
+    if (!this.contentStates.has('created')) {
       return;
     }
 
     // Don't unload components when stateful
+    // TODO: We're missing stuff here
     if (!stateful) {
-      this.contentStatus = ContentStatus.created;
+      // this.contentStatus = ContentStatus.created;
+      this.contentStates.delete('created');
     } else {
       cache.push(this);
     }
   }
 
-  public async activateComponent(initiator: IHydratedController<Element> | null, parent: ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags, connectionCE: IConnectionCustomElement): Promise<void> {
-    if (this.contentStatus !== ContentStatus.created) {
+  public activateComponent(initiator: IHydratedController<Element> | null, parent: ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags, connectionCE: IConnectionCustomElement): void | Promise<void> {
+    if (this.contentStates.has('activated') || !this.contentStates.has('created')) {
       return;
     }
-    this.contentStatus = ContentStatus.activated;
+    this.contentStates.add('activated');
 
     const contentController = this.contentController(connectionCE);
-    await contentController.activate(initiator ?? contentController, parent!, flags);
-
-    if (this.fromCache || this.fromHistory) {
-      const elements = Array.from(connectionCE.element.getElementsByTagName('*'));
-      for (const el of elements) {
-        const attr = el.getAttribute('au-element-scroll');
-        if (attr) {
-          const [top, left] = attr.split(',');
-          el.removeAttribute('au-element-scroll');
-          el.scrollTo(+left, +top);
+    return Runner.run(
+      () => contentController.activate(initiator ?? contentController, parent!, flags),
+      () => {
+        if (this.fromCache || this.fromHistory) {
+          const elements = Array.from(connectionCE.element.getElementsByTagName('*'));
+          for (const el of elements) {
+            const attr = el.getAttribute('au-element-scroll');
+            if (attr) {
+              const [top, left] = attr.split(',');
+              el.removeAttribute('au-element-scroll');
+              el.scrollTo(+left, +top);
+            }
+          }
         }
-      }
-    }
+      },
+    );
   }
+  // public async activateComponent(initiator: IHydratedController<Element> | null, parent: ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags, connectionCE: IConnectionCustomElement): Promise<void> {
+  //   // if (this.contentStatus !== ContentStatus.created) {
+  //   if (!this.contentStates.has('created')) {
+  //     return;
+  //   }
+  //   // this.contentStatus = ContentStatus.activated;
+  //   this.contentStates.add('activated');
 
-  public async deactivateComponent(initiator: IHydratedController<Element> | null, parent: ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags, connectionCE: IConnectionCustomElement, stateful: boolean = false): Promise<void> {
-    if (this.contentStatus !== ContentStatus.activated) {
+  //   const contentController = this.contentController(connectionCE);
+  //   await contentController.activate(initiator ?? contentController, parent!, flags);
+
+  //   if (this.fromCache || this.fromHistory) {
+  //     const elements = Array.from(connectionCE.element.getElementsByTagName('*'));
+  //     for (const el of elements) {
+  //       const attr = el.getAttribute('au-element-scroll');
+  //       if (attr) {
+  //         const [top, left] = attr.split(',');
+  //         el.removeAttribute('au-element-scroll');
+  //         el.scrollTo(+left, +top);
+  //       }
+  //     }
+  //   }
+  // }
+
+  public deactivateComponent(initiator: IHydratedController<Element> | null, parent: ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags, connectionCE: IConnectionCustomElement, stateful: boolean = false): void | Promise<void> {
+    // if (this.contentStatus !== ContentStatus.activated) {
+    if (!this.contentStates.has('activated')) {
       return;
     }
-    this.contentStatus = ContentStatus.created;
+    // this.contentStatus = ContentStatus.created;
+    this.contentStates.delete('activated');
 
     if (stateful && connectionCE.element !== null) {
       // const contentController = this.content.componentInstance!.$controller!;
@@ -246,18 +289,28 @@ export class ViewportContent {
     }
 
     const contentController = this.contentController(connectionCE);
-    await contentController.deactivate(initiator ?? contentController, parent!, flags);
+    return Runner.run(
+      () => contentController.deactivate(initiator ?? contentController, parent!, flags)
+    );
   }
 
-  public async freeContent(connectionCE: IConnectionCustomElement | null, nextInstruction: Navigation | null, cache: ViewportContent[], stateful: boolean = false): Promise<void> {
-    switch (this.contentStatus) {
-      case ContentStatus.activated:
-        await this.leave(nextInstruction);
-        await this.deactivateComponent(null, connectionCE!.controller, LifecycleFlags.none, connectionCE!, stateful);
-        this.unloadComponent(cache, stateful); // TODO: Hook up to new dispose
-      case ContentStatus.created:
-        this.destroyComponent();
-    }
+  public freeContent(connectionCE: IConnectionCustomElement | null, nextInstruction: Navigation | null, cache: ViewportContent[], stateful: boolean = false): void | Promise<void> {
+    // switch (this.contentStatus) {
+    //   case ContentStatus.activated:
+    //     await this.leave(nextInstruction);
+    //     await this.deactivateComponent(null, connectionCE!.controller, LifecycleFlags.none, connectionCE!, stateful);
+    //     this.unloadComponent(cache, stateful); // TODO: Hook up to new dispose
+    //   case ContentStatus.created:
+    //     this.destroyComponent();
+    // }
+    // TODO: Fix execution order on these
+    // These are all safe to run
+    return Runner.run(
+      () => this.leave(nextInstruction),
+      () => this.deactivateComponent(null, connectionCE!.controller, LifecycleFlags.none, connectionCE!, stateful),
+      () => this.unloadComponent(cache, stateful), // TODO: Hook up to new dispose
+      () => this.destroyComponent(),
+    );
   }
 
   public toComponentName(): string | null {

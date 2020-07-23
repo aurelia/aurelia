@@ -426,6 +426,7 @@ export class Router implements IRouter {
       const hooked = await this.hookManager.invokeBeforeNavigation(viewportInstructions, instruction);
       if (hooked === false) {
         coordinator.cancel();
+        return;
         // return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], instruction);
       } else {
         viewportInstructions = hooked as ViewportInstruction[];

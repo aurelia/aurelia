@@ -149,7 +149,8 @@ export class Viewport implements IScopeOwner {
       this.content.reentry = true;
 
       this.nextContent.content.setComponent(this.content.componentInstance!);
-      this.nextContent.contentStatus = this.content.contentStatus;
+      // this.nextContent.contentStatus = this.content.contentStatus;
+      this.nextContent.contentStates = new Set(this.content.contentStates);
       this.nextContent.reentry = this.content.reentry;
       return true;
     }
@@ -296,6 +297,10 @@ export class Viewport implements IScopeOwner {
       () => coordinator.addEntityState(this, 'left'),
     ];
 
+    const dispose = [
+      () => this.dispose(),
+    ];
+
     const allowSteps = [
       ...canLeave,
 
@@ -316,6 +321,7 @@ export class Viewport implements IScopeOwner {
       ...deactivate,
       () => coordinator.addEntityState(this, 'swapped'),
       ...leave,
+      ...dispose,
     ];
 
     run = Runner.run(
@@ -341,7 +347,7 @@ export class Viewport implements IScopeOwner {
   //   return this.content.canLeave(this.nextContent?.instruction ?? null);
   // }
 
-  public async canEnter(): Promise<boolean | ViewportInstruction[]> {
+  public canEnter(): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
     if (this.clear) {
       return true;
     }
@@ -350,104 +356,154 @@ export class Viewport implements IScopeOwner {
       return false;
     }
 
-    await this.waitForConnection();
-
-    this.nextContent!.createComponent(this.connectionCE!, this.options.fallback);
-
-    return this.nextContent!.canEnter(this, this.content.instruction);
+    return Runner.run(
+      this.waitForConnection(),
+      () => {
+        this.nextContent!.createComponent(this.connectionCE!, this.options.fallback);
+        return this.nextContent!.canEnter(this, this.content.instruction);
+      }
+    );
   }
 
-  public async enter(): Promise<boolean> {
-    if (this.clear) {
-      return true;
+  public enter(): void | Promise<void> {
+    if (this.clear || (this.nextContent?.componentInstance ?? null) === null) {
+      return;
     }
 
-    if (!this.nextContent || !this.nextContent.componentInstance) {
-      return false;
-    }
-
-    await this.nextContent.enter(this.content.instruction);
+    return Runner.run(
+      () => this.nextContent?.enter(this.content.instruction),
+      true
+    );
     // await this.nextContent.activateComponent(null, this.connectionCE!.$controller as ICustomElementController<Element, ICustomElementViewModel<Element>>, LifecycleFlags.none, this.connectionCE!);
-    return true;
+    // return true;
   }
 
-  public async activate(): Promise<boolean> {
+  public activate(): void | Promise<void> {
     if (this.nextContent!.componentInstance) {
       if (this.content.componentInstance !== this.nextContent!.componentInstance) {
-        await this.nextContent!.activateComponent(null, this.connectionCE!.$controller as IRoutingController, LifecycleFlags.none, this.connectionCE!);
+        return this.nextContent!.activateComponent(
+          null,
+          this.connectionCE!.$controller as IRoutingController,
+          LifecycleFlags.none,
+          this.connectionCE!
+        );
       } else {
         this.connectedScope.reenableReplacedChildren();
       }
     }
-
-    return true;
   }
+  // public async activate(): Promise<boolean> {
+  //   if (this.nextContent!.componentInstance) {
+  //     if (this.content.componentInstance !== this.nextContent!.componentInstance) {
+  //       await this.nextContent!.activateComponent(
+  //         null,
+  //         this.connectionCE!.$controller as IRoutingController,
+  //         LifecycleFlags.none,
+  //         this.connectionCE!
+  //       );
+  //     } else {
+  //       this.connectedScope.reenableReplacedChildren();
+  //     }
+  //   }
 
-  public async deactivate(): Promise<boolean> {
+  //   return true;
+  // }
+
+  public deactivate(): void | Promise<void> {
     if (this.content.componentInstance &&
       !this.content.reentry &&
       this.content.componentInstance !== this.nextContent!.componentInstance) {
-      await this.content!.freeContent(
-        this.connectionCE,
-        this.nextContent!.instruction,
-        this.historyCache,
-        this.router.statefulHistory || this.options.stateful);
+      return this.content!.deactivateComponent(
+        null,
+        this.connectionCE!.$controller as IRoutingController,
+        LifecycleFlags.none,
+        this.connectionCE!,
+        this.router.statefulHistory || this.options.stateful
+      );
     }
-
-    return true;
   }
+  // public async deactivate(): Promise<boolean> {
+  //   if (this.content.componentInstance &&
+  //     !this.content.reentry &&
+  //     this.content.componentInstance !== this.nextContent!.componentInstance) {
+  //     await this.content!.deactivateComponent(
+  //       null,
+  //       this.connectionCE!.$controller as IRoutingController,
+  //       LifecycleFlags.none,
+  //       this.connectionCE!,
+  //       this.router.statefulHistory || this.options.stateful
+  //     );
+  //   }
 
-  public async leave(): Promise<boolean> {
+  //   return true;
+  // }
+
+  public leave(): void | Promise<void> {
     if (this.content.componentInstance) {
-      await this.content.leave(this.nextContent!.instruction);
+      return this.content.leave(this.nextContent!.instruction);
     }
-
-    return true;
   }
 
-  public async loadContent(): Promise<boolean> {
-    Reporter.write(10000, 'Viewport loadContent', this.name);
-
-    // No need to wait for next component activation
-    if (this.content.componentInstance && !this.nextContent!.componentInstance) {
-      await this.content.leave(this.nextContent!.instruction);
-      await this.content!.freeContent(
-        this.connectionCE,
-        this.nextContent!.instruction,
-        this.historyCache,
-        this.router.statefulHistory || this.options.stateful);
+  public dispose(): void | Promise<void> {
+    if (this.content.componentInstance &&
+      !this.content.reentry &&
+      this.content.componentInstance !== this.nextContent!.componentInstance) {
+      return Runner.run(
+        () => this.content!.unloadComponent(
+          this.historyCache,
+          this.router.statefulHistory || this.options.stateful),
+        () => this.content!.destroyComponent(),
+      );
+      // await this.content!.freeContent(
+      //   this.connectionCE,
+      //   this.nextContent!.instruction,
+      //   this.historyCache,
+      //   this.router.statefulHistory || this.options.stateful);
     }
-
-    if (this.nextContent!.componentInstance) {
-      if (this.content.componentInstance !== this.nextContent!.componentInstance) {
-        await this.nextContent!.activateComponent(null, this.connectionCE!.$controller as IRoutingController, LifecycleFlags.none, this.connectionCE!);
-      } else {
-        this.connectedScope.reenableReplacedChildren();
-      }
-      // Only when next component activation is done
-      if (this.content.componentInstance) {
-        await this.content.leave(this.nextContent!.instruction);
-        if (!this.content.reentry && this.content.componentInstance !== this.nextContent!.componentInstance) {
-          await this.content!.freeContent(
-            this.connectionCE,
-            this.nextContent!.instruction,
-            this.historyCache,
-            this.router.statefulHistory || this.options.stateful);
-        }
-      }
-
-      this.content = this.nextContent!;
-      this.content.reentry = false;
-    }
-
-    if (this.clear) {
-      this.content = new ViewportContent(void 0, this.nextContent!.instruction);
-    }
-
-    this.nextContent = null;
-
-    return true;
   }
+  // public async loadContent(): Promise<boolean> {
+  //   Reporter.write(10000, 'Viewport loadContent', this.name);
+
+  //   // No need to wait for next component activation
+  //   if (this.content.componentInstance && !this.nextContent!.componentInstance) {
+  //     await this.content.leave(this.nextContent!.instruction);
+  //     await this.content!.freeContent(
+  //       this.connectionCE,
+  //       this.nextContent!.instruction,
+  //       this.historyCache,
+  //       this.router.statefulHistory || this.options.stateful);
+  //   }
+
+  //   if (this.nextContent!.componentInstance) {
+  //     if (this.content.componentInstance !== this.nextContent!.componentInstance) {
+  //       await this.nextContent!.activateComponent(null, this.connectionCE!.$controller as IRoutingController, LifecycleFlags.none, this.connectionCE!);
+  //     } else {
+  //       this.connectedScope.reenableReplacedChildren();
+  //     }
+  //     // Only when next component activation is done
+  //     if (this.content.componentInstance) {
+  //       await this.content.leave(this.nextContent!.instruction);
+  //       if (!this.content.reentry && this.content.componentInstance !== this.nextContent!.componentInstance) {
+  //         await this.content!.freeContent(
+  //           this.connectionCE,
+  //           this.nextContent!.instruction,
+  //           this.historyCache,
+  //           this.router.statefulHistory || this.options.stateful);
+  //       }
+  //     }
+
+  //     this.content = this.nextContent!;
+  //     this.content.reentry = false;
+  //   }
+
+  //   if (this.clear) {
+  //     this.content = new ViewportContent(void 0, this.nextContent!.instruction);
+  //   }
+
+  //   this.nextContent = null;
+
+  //   return true;
+  // }
 
   public finalizeContentChange(): void {
     if (this.nextContent!.componentInstance) {
@@ -587,12 +643,11 @@ export class Viewport implements IScopeOwner {
     this.cache = [];
   }
 
-  private async waitForConnection(): Promise<void> {
-    if (this.connectionCE !== null) {
-      return Promise.resolve();
+  private waitForConnection(): void | Promise<void> {
+    if (this.connectionCE === null) {
+      return new Promise((resolve) => {
+        this.connectionResolve = resolve;
+      });
     }
-    return new Promise((resolve) => {
-      this.connectionResolve = resolve;
-    });
   }
 }

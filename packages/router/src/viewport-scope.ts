@@ -1,5 +1,5 @@
-import { CustomElementType, ICustomElementController } from '@aurelia/runtime';
-import { ComponentAppellation, IRoute, RouteableComponentType } from './interfaces';
+import { CustomElementType } from '@aurelia/runtime';
+import { ComponentAppellation, IRoute, RouteableComponentType, NavigationInstruction } from './interfaces';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
 import { IScopeOwner, IScopeOwnerOptions, Scope } from './scope';
@@ -146,27 +146,34 @@ export class ViewportScope implements IScopeOwner {
       () => coordinator.addEntityState(this, 'left'),
       () => coordinator.addEntityState(this, 'routed'),
       () => coordinator.addEntityState(this, 'swapped'),
-      () => coordinator.addEntityState(this, 'completed')
+      () => {
+        this.content = !this.remove ? this.nextContent : null;
+        this.nextContent = null;
+        coordinator.addEntityState(this, 'completed');
+      }
     );
   }
 
   public canLeave(): boolean | Promise<boolean> {
     return true;
   }
-  public canEnter(): Promise<boolean | ViewportInstruction[]> {
-    return Promise.resolve(true);
+  public canEnter(): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
+    return true;
   }
 
-  public enter(): Promise<boolean> {
-    return Promise.resolve(true);
+  public leave(): void | Promise<void> {
+    return;
+  }
+  public enter(): void | Promise<void> {
+    return;
   }
 
-  public loadContent(): Promise<boolean> {
-    this.content = !this.remove ? this.nextContent : null;
-    this.nextContent = null;
+  // public loadContent(): Promise<boolean> {
+  //   this.content = !this.remove ? this.nextContent : null;
+  //   this.nextContent = null;
 
-    return Promise.resolve(true);
-  }
+  //   return Promise.resolve(true);
+  // }
 
   public finalizeContentChange(): void {
     // console.log('ViewportScope finalizing', this.content);

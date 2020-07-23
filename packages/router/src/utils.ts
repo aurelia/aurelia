@@ -11,12 +11,18 @@ export function arrayRemove<T>(arr: T[], func: (value: T, index?: number, obj?: 
   return removed;
 }
 
-export function resolvePossiblePromise(value: unknown): unknown {
+export function resolvePossiblePromise<T = unknown>(value: T | Promise<T>, callback?: (value: T) => T): T | Promise<T> {
   // If we've got a Promise, wait for it's resolve
   if (value instanceof Promise) {
     return value.then((resolvedValue) => {
+      if (callback !== void 0) {
+        callback(resolvedValue);
+      }
       return resolvedValue;
     });
+  }
+  if (callback !== void 0) {
+    callback(value);
   }
   return value;
 }

@@ -489,6 +489,19 @@ describe('au-slot', function () {
       // );
     }
     // #endregion
+
+    yield new TestData(
+      'works in combination with local template',
+      `<ce-with-au-slot>
+        <div au-slot="x">p</div>
+      </ce-with-au-slot>
+      <template as-custom-element="ce-with-au-slot">
+        <au-slot name="x">d</au-slot>
+      </template>
+      `,
+      [],
+      { '': '<ce-with-au-slot class="au"> <div>p</div> </ce-with-au-slot>' },
+    );
   }
   for (const { spec, template, expectedInnerHtmlMap, registrations } of getTestData()) {
     $it(spec,
@@ -496,7 +509,7 @@ describe('au-slot', function () {
         for (const [selector, expectedInnerHtml] of Object.entries(expectedInnerHtmlMap))
           if (selector) {
             assert.html.innerEqual(selector, expectedInnerHtml, `${selector}.innerHTML`, host);
-          }else {
+          } else {
             assert.html.innerEqual(host, expectedInnerHtml, `root.innerHTML`);
           }
       },

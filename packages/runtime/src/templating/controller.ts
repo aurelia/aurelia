@@ -713,10 +713,10 @@ export class Controller<
       }
     }
 
-    return this.bindControllers(flags, this.scope!);
+    return this.bindControllers(flags, this.scope!, hostScope);
   }
 
-  private bindControllers(flags: LifecycleFlags, scope: IScope): ILifecycleTask {
+  private bindControllers(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): ILifecycleTask {
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask | undefined;
 
@@ -725,7 +725,7 @@ export class Controller<
       const { length } = controllers;
       for (let i = 0; i < length; ++i) {
         controllers[i].parent = this as unknown as IHydratedController<T>;
-        task = controllers[i].bind(flags, scope, null, this.part);
+        task = controllers[i].bind(flags, scope, hostScope, this.part);
         if (!task.done) {
           if (tasks === void 0) {
             tasks = [];

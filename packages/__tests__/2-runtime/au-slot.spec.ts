@@ -109,6 +109,33 @@ describe('au-slot', function () {
       ],
       { 'my-element': `static default <div>p11</div><div>p12</div> <div>p20</div><div>p21</div>` },
     );
+
+    yield new TestData(
+      'au-slot name with space works',
+      `<my-element><div au-slot="slot one">p</div></my-element>`,
+      [
+        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="slot one"></au-slot>` }, class MyElement { }),
+      ],
+      { 'my-element': '<div>p</div>' },
+    );
+
+    yield new TestData(
+      'projection w/o slot name goes to the default slot',
+      `<my-element><div au-slot>p</div></my-element>`,
+      [
+        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot></au-slot><au-slot name="s1">s1fb</au-slot>` }, class MyElement { }),
+      ],
+      { 'my-element': '<div>p</div>s1fb' },
+    );
+
+    yield new TestData(
+      'projection w/o [au-slot] goes to the default slot',
+      `<my-element><div>p</div></my-element>`,
+      [
+        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot></au-slot><au-slot name="s1">s1fb</au-slot>` }, class MyElement { }),
+      ],
+      { 'my-element': '<div>p</div>s1fb' },
+    );
     // #endregion
 
     // #region interpolation
@@ -241,7 +268,7 @@ describe('au-slot', function () {
     }
     // #endregion
 
-    // #region nested templating
+    // #region complex templating
     {
       @customElement({ name: 'coll-vwr', isStrictBinding: true, template: `<au-slot name="colleslawt"><div repeat.for="item of collection">\${item}</div></au-slot>` })
       class CollVwr {
@@ -277,7 +304,7 @@ describe('au-slot', function () {
       );
 
       yield new TestData(
-        'indirect transitive projections works',
+        'transitive projections works',
         `<my-element people.bind="people">
           <template au-slot="content">
             <div>\${$host.person.firstName}</div>
@@ -331,6 +358,135 @@ describe('au-slot', function () {
         ],
         { 'my-element': '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="h.person.pets" class="au"> <ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="h.person.pets" class="au"> <ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>' },
       );
+
+      // tag: nonsense-example
+      yield new TestData(
+        'direct projection attempt for a transitive slot does not work',
+        `<my-element people.bind="people">
+          <ul au-slot="colleslawt"><li repeat.for="item of $host.collection">\${item}</li></ul>
+        </my-element>`,
+        [
+          CollVwr,
+          MyElement,
+        ],
+        { 'my-element': '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr collection.bind="person.pets" class="au"><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr collection.bind="person.pets" class="au"><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>' },
+      );
+
+      yield new TestData(
+        'duplicate slot works',
+        `<my-element></my-element>`,
+        [
+          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot>d1</au-slot>|<au-slot name="s1">s11</au-slot>|<au-slot>d2</au-slot>|<au-slot name="s1">s12</au-slot>` }, class MyElement { }),
+        ],
+        { 'my-element': 'd1|s11|d2|s12' },
+      );
+
+      yield new TestData(
+        'projection to duplicate slots results in repetitions',
+        `<my-element><template au-slot="default">dp</template><template au-slot="s1">s1p</template></my-element>`,
+        [
+          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot>d1</au-slot>|<au-slot name="s1">s11</au-slot>|<au-slot>d2</au-slot>|<au-slot name="s1">s12</au-slot>` }, class MyElement { }),
+        ],
+        { 'my-element': 'dp|s1p|dp|s1p' },
+      );
+
+      yield new TestData(
+        'projection works correctly with nested elements with same slot name',
+        `<my-element-s11>
+          <template au-slot="s1">
+          p1
+          <my-element-s12>
+            <template au-slot="s1">
+              p2
+            </template>
+          </my-element-s12>
+          </template>
+        </my-element-s11>`,
+        [
+          CustomElement.define({ name: 'my-element-s11', isStrictBinding: true, template: `<au-slot name="s1">s11</au-slot>` }, class MyElement { }),
+          CustomElement.define({ name: 'my-element-s12', isStrictBinding: true, template: `<au-slot name="s1">s12</au-slot>` }, class MyElement { }),
+        ],
+        { 'my-element-s11': 'p1 <my-element-s12 class="au"> p2 </my-element-s12>' },
+      );
+
+      // tag: nonsense-example
+      yield new TestData(
+        'projection to a non-existing slot has no effect',
+        `<my-element-s11>
+          <template au-slot="s2">
+          p1
+          </template>
+        </my-element-s11>`,
+        [
+          CustomElement.define({ name: 'my-element-s11', isStrictBinding: true, template: `<au-slot name="s1">s11</au-slot>` }, class MyElement { }),
+          CustomElement.define({ name: 'my-element-s12', isStrictBinding: true, template: `<au-slot name="s1">s12</au-slot>` }, class MyElement { }),
+        ],
+        { 'my-element-s11': 's11' },
+      );
+
+      // tag: nonsense-example
+      yield new TestData(
+        '[au-slot] in <au-slot> is no-op',
+        `<my-element></my-element>`,
+        [
+          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"><div au-slot="s1">no-op</div></au-slot>` }, class MyElement { }),
+        ],
+        { 'my-element': '' },
+      );
+
+      yield new TestData(
+        '<au-slot> in [au-slot] works',
+        `<my-element>
+          <div au-slot="s1">
+            <au-slot name="does-not-matter">
+              projection
+            </au-slot>
+          </div>
+        </my-element>`,
+        [
+          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"></au-slot>` }, class MyElement { }),
+        ],
+        { 'my-element': '<div> projection </div>' },
+      );
+
+      // tag: nonsense-example
+      yield new TestData(
+        'projection does not work using <au-slot>',
+        `<my-element>
+          <au-slot name="s1">
+            not projected
+          </au-slot>
+        </my-element>`,
+        [
+          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"></au-slot>` }, class MyElement { }),
+        ],
+        { '': '<my-element class="au"> </my-element>' },
+      );
+
+      // TODO fix this
+      // tag: nonsense-example
+      // yield new TestData(
+      //   'projection does not work using <au-slot> or to non-existing slot',
+      //   `<parent-element>
+      //     <div au-slot="x">
+      //       <au-slot name="x"> p </au-slot>
+      //     </div>
+      //     <!--<au-slot name="x">
+      //       <div au-slot="x"></div>
+      //     </au-slot>-->
+      //   </parent-element>`,
+      //   [
+      //     CustomElement.define({ name: 'child-element', isStrictBinding: true, template: `<au-slot name="x"></au-slot>` }, class ChildElement { }),
+      //     CustomElement.define({
+      //       name: 'parent-element', isStrictBinding: true,
+      //       template: `<child-element>
+      //         <div au-slot="x"><au-slot name="x">p1</au-slot></div>
+      //         <au-slot name="x"><div au-slot="x">p2</div></au-slot>
+      //       </child-element>`
+      //     }, class ParentElement { }),
+      //   ],
+      //   { '': '<parent-element class="au"> <child-element class="au"> <div> p1 </div></child-element></parent-element>' },
+      // );
     }
     // #endregion
   }
@@ -338,7 +494,11 @@ describe('au-slot', function () {
     $it(spec,
       function ({ host }) {
         for (const [selector, expectedInnerHtml] of Object.entries(expectedInnerHtmlMap))
-          assert.html.innerEqual(selector, expectedInnerHtml, `${selector}.innerHTML`, host);
+          if (selector) {
+            assert.html.innerEqual(selector, expectedInnerHtml, `${selector}.innerHTML`, host);
+          }else {
+            assert.html.innerEqual(host, expectedInnerHtml, `root.innerHTML`);
+          }
       },
       { template, registrations });
   }

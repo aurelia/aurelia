@@ -18,7 +18,6 @@ import {
 } from './flags';
 import {
   PartialCustomElementDefinition,
-  CustomElementDefinition,
 } from './resources/custom-element';
 import { SlotInfo } from './resources/custom-elements/au-slot';
 
@@ -43,58 +42,6 @@ export const enum TargetedInstructionType {
   letBinding = 'ri',
   refBinding = 'rj',
   iteratorBinding = 'rk',
-}
-
-export type PartialCustomElementDefinitionParts = Record<string, PartialCustomElementDefinition>;
-export type CustomElementDefinitionParts = Record<string, CustomElementDefinition>;
-
-const parentPartsOwnPartsLookup = new WeakMap<PartialCustomElementDefinitionParts, WeakMap<PartialCustomElementDefinitionParts, PartialCustomElementDefinitionParts>>();
-
-/**
- * Efficiently merge parts, performing the minimal amount of work / using the minimal amount of memory.
- *
- * If either of the two part records is undefined, the other will simply be returned.
- *
- * If both are undefined, undefined will be returned.
- *
- * If neither are undefined, a new object will be returned where parts of the second value will be written last (and thus may overwrite duplicate named parts).
- *
- * This function is idempotent via a WeakMap cache: results are cached and if the same two variables are provided again, the same object will be returned.
- */
-export function mergeParts(
-  parentParts: PartialCustomElementDefinitionParts | undefined,
-  ownParts: PartialCustomElementDefinitionParts | undefined,
-): PartialCustomElementDefinitionParts | undefined {
-  if (parentParts === ownParts) {
-    return parentParts;
-  }
-  if (parentParts === void 0) {
-    return ownParts;
-  }
-  if (ownParts === void 0) {
-    return parentParts;
-  }
-
-  let ownPartsLookup = parentPartsOwnPartsLookup.get(parentParts);
-  if (ownPartsLookup === void 0) {
-    parentPartsOwnPartsLookup.set(
-      parentParts,
-      ownPartsLookup = new WeakMap(),
-    );
-  }
-
-  let mergedParts = ownPartsLookup.get(ownParts);
-  if (mergedParts === void 0) {
-    ownPartsLookup.set(
-      ownParts,
-      mergedParts = {
-        ...parentParts,
-        ...ownParts,
-      },
-    );
-  }
-
-  return mergedParts;
 }
 
 export type InstructionTypeName = string;
@@ -175,7 +122,6 @@ export interface IHydrateElementInstruction extends IHydrateInstruction {
   type: TargetedInstructionType.hydrateElement;
   res: string;
   instructions: ITargetedInstruction[];
-  parts?: Record<string, PartialCustomElementDefinition>;
   slotInfo: SlotInfo | null;
 }
 
@@ -191,7 +137,6 @@ export interface IHydrateTemplateController extends IHydrateInstruction {
   instructions: ITargetedInstruction[];
   def: PartialCustomElementDefinition;
   link?: boolean;
-  parts?: Record<string, PartialCustomElementDefinition>;
 }
 
 export interface IHydrateLetElementInstruction extends IHydrateInstruction {

@@ -47,7 +47,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public $scheduler: IScheduler;
   public $scope: IScope = null!;
   public $hostScope!: IScope | null | undefined;
-  public part?: string;
   public projection?: CustomElementDefinition;
 
   /**
@@ -105,21 +104,21 @@ export class AttributeBinding implements IPartialConnectableBinding {
       const previousValue = this.targetObserver.getValue();
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.$hostScope, this.part, this.projection);
+        newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.$hostScope, this.projection);
       }
       if (newValue !== previousValue) {
         this.interceptor.updateTarget(newValue, flags);
       }
       if ((this.mode & oneTime) === 0) {
         this.version++;
-        this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.$hostScope, this.part, this.projection);
+        this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.$hostScope, this.projection);
         this.interceptor.unobserve(false);
       }
       return;
     }
 
     if (flags & LifecycleFlags.updateSourceExpression) {
-      if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.$hostScope, this.part, this.projection)) {
+      if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.$hostScope, this.projection)) {
         this.interceptor.updateSource(newValue, flags);
       }
       return;
@@ -128,7 +127,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     throw Reporter.error(15, flags);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, projection?: CustomElementDefinition): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -144,7 +143,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
     this.$scope = scope;
     this.$hostScope = hostScope;
-    this.part = part;
     this.projection = projection;
 
     let sourceExpression = this.sourceExpression;
@@ -170,10 +168,10 @@ export class AttributeBinding implements IPartialConnectableBinding {
     // during bind, binding behavior might have changed sourceExpression
     sourceExpression = this.sourceExpression;
     if (this.mode & toViewOrOneTime) {
-      this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, hostScope, part, projection), flags);
+      this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, hostScope, projection), flags);
     }
     if (this.mode & toView) {
-      sourceExpression.connect(flags, scope, this, hostScope, part, projection);
+      sourceExpression.connect(flags, scope, this, hostScope, projection);
     }
     if (this.mode & fromView) {
       (targetObserver as IBindingTargetObserver & { [key: string]: number })[this.id] |= LifecycleFlags.updateSourceExpression;
@@ -216,7 +214,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public connect(flags: LifecycleFlags): void {
     if (this.$state & State.isBound) {
       flags |= this.persistentFlags;
-      this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this.interceptor, this.$hostScope, this.part, this.projection); // why do we have a connect method here in the first place? will this be called after bind?
+      this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this.interceptor, this.$hostScope, this.projection); // why do we have a connect method here in the first place? will this be called after bind?
     }
   }
 }

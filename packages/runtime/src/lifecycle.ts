@@ -8,7 +8,6 @@ import {
 } from '@aurelia/kernel';
 import {
   HooksDefinition,
-  PartialCustomElementDefinitionParts,
 } from './definitions';
 import {
   INode,
@@ -46,14 +45,8 @@ export interface IBinding {
   interceptor: this;
   readonly locator: IServiceLocator;
   readonly $scope?: IScope;
-  /**
-   * The name of the `replace-part` template that this binding was declared inside of (if any, otherwise this property is `undefined`).
-   *
-   * This property is passed through the AST during evaluation, which allows the scope traversal to go up to the scope of the `replace-part` if a property does not exist inside the `replaceable`.
-   */
-  readonly part?: string;
   readonly $state: State;
-  $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): void;
+  $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, projection?: CustomElementDefinition): void;
   $unbind(flags: LifecycleFlags): void;
 }
 
@@ -189,12 +182,6 @@ export interface ISyntheticView<
    * The compiled render context used for rendering this view. Compilation was done by the `IViewFactory` prior to creating this view.
    */
   readonly context: ICompiledRenderContext<T>;
-  /**
-   * The names of the `replace` parts that were declared in the same scope as this view's template.
-   *
-   * The `replaceable` template controllers with those names will use this view's scope as the outer scope for properties that don't exist on the inner scope.
-   */
-  readonly scopeParts: readonly string[];
   readonly isStrictBinding: boolean;
   /**
    * The physical DOM nodes that will be appended during the `mount()` operation.
@@ -307,12 +294,6 @@ export interface ICompiledCustomElementController<
    * The compiled render context used for hydrating this controller.
    */
   readonly context: ICompiledRenderContext<T>;
-  /**
-   * The names of the `replace` parts that were declared in the same scope as this component's template.
-   *
-   * The `replaceable` template controllers with those names will use this components's scope as the outer scope for properties that don't exist on the inner scope.
-   */
-  readonly scopeParts: readonly string[];
   readonly isStrictBinding: boolean;
   /**
    * The projector used for mounting the `nodes` of this controller. Typically this will be one of:
@@ -363,12 +344,10 @@ export interface IViewCache<T extends INode = INode> {
 
 export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   readonly name: string;
-  readonly parts: PartialCustomElementDefinitionParts | undefined;
   readonly context: IRenderContext<T>;
   readonly contentType: AuSlotContentType | undefined;
   readonly projectionScope: IScope | null;
   create(flags?: LifecycleFlags): ISyntheticView<T>;
-  resolve(requestor: IContainer, parts?: PartialCustomElementDefinitionParts): IViewFactory<T>;
 }
 
 export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();
@@ -397,7 +376,6 @@ export interface ICustomElementViewModel<T extends INode = INode> extends IViewM
     controller: IDryCustomElementController<T, this>,
     parentContainer: IContainer,
     definition: CustomElementDefinition,
-    parts: PartialCustomElementDefinitionParts | undefined,
   ): PartialCustomElementDefinition | void;
   beforeCompile?(
     controller: IContextualCustomElementController<T, this>,

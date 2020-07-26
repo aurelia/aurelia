@@ -91,7 +91,6 @@ export {
   ParentNodeSymbol,
   PlainAttributeSymbol,
   PlainElementSymbol,
-  ReplacePartSymbol,
   ResourceAttributeSymbol,
   SymbolFlags,
   SymbolWithBindings,

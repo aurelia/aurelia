@@ -177,7 +177,6 @@ export class ViewportContent {
         container.get(ILifecycle),
         host,
         container,
-        void 0,
         null,
         void 0,
       );

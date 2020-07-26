@@ -244,9 +244,6 @@ export {
   Repeat
 } from './resources/custom-attributes/repeat';
 export {
-  Replaceable
-} from './resources/custom-attributes/replaceable';
-export {
   With
 } from './resources/custom-attributes/with';
 
@@ -345,7 +342,6 @@ export {
   IfRegistration,
   ElseRegistration,
   RepeatRegistration,
-  ReplaceableRegistration,
   WithRegistration,
 
   SanitizeValueConverterRegistration,
@@ -396,7 +392,6 @@ export {
   NodeInstruction,
   TargetedInstruction,
   TargetedInstructionType,
-  PartialCustomElementDefinitionParts,
   alias,
   registerAliases
 } from './definitions';

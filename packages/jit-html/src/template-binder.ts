@@ -33,9 +33,7 @@ import {
   ParentNodeSymbol,
   PlainAttributeSymbol,
   PlainElementSymbol,
-  ReplacePartSymbol,
   ResourceAttributeSymbol,
-  SymbolWithMarker,
   TemplateControllerSymbol,
   TextSymbol,
   ProjectionSymbol,
@@ -43,12 +41,10 @@ import {
 
 const invalidSurrogateAttribute = Object.assign(Object.create(null), {
   'id': true,
-  'replace': true
 }) as Record<string, boolean | undefined>;
 
 const attributesToIgnore = Object.assign(Object.create(null), {
   'as-element': true,
-  'replace': true
 }) as Record<string, boolean | undefined>;
 
 function hasInlineBindings(rawValue: string): boolean {
@@ -112,28 +108,6 @@ function processTemplateControllers(dom: IDOM, manifestProxy: ParentNodeSymbol, 
     }
     manifestNode.removeAttribute(current.syntax.rawName);
     current = current.template!;
-  }
-}
-
-function processReplacePart(
-  dom: IDOM,
-  replacePart: ReplacePartSymbol,
-  manifestProxy: ParentNodeSymbol | SymbolWithMarker,
-): void {
-  let proxyNode: HTMLElement;
-  let currentTemplate: HTMLTemplateElement;
-  if ((manifestProxy.flags & SymbolFlags.hasMarker) > 0) {
-    proxyNode = (manifestProxy as SymbolWithMarker).marker as unknown as HTMLElement;
-  } else {
-    proxyNode = manifestProxy.physicalNode as HTMLElement;
-  }
-  if (proxyNode.nodeName === 'TEMPLATE') {
-    // if it's a template element, no need to do anything special, just assign it to the replacePart
-    replacePart.physicalNode = proxyNode as HTMLTemplateElement;
-  } else {
-    // otherwise wrap the replace in a template
-    currentTemplate = replacePart.physicalNode = dom.createTemplate() as HTMLTemplateElement;
-    currentTemplate.content.appendChild(proxyNode);
   }
 }
 
@@ -210,7 +184,6 @@ export class TemplateBinder {
       /* manifest           */ surrogate,
       /* manifestRoot       */ null,
       /* parentManifestRoot */ null,
-      /* partName           */ null,
     );
 
     return surrogate;
@@ -223,7 +196,6 @@ export class TemplateBinder {
     manifest: ElementSymbol,
     manifestRoot: CustomElementSymbol | null,
     parentManifestRoot: CustomElementSymbol | null,
-    partName: string | null,
   ): void {
     let isAuSlot = false;
     switch (node.nodeName) {
@@ -240,12 +212,6 @@ export class TemplateBinder {
       case 'AU-SLOT':
         isAuSlot = true;
         break;
-    }
-
-    // get the part name to override the name of the compiled definition
-    partName = node.getAttribute('replaceable');
-    if (partName === '') {
-      partName = 'default';
     }
 
     let name = node.getAttribute('as-element');
@@ -275,7 +241,6 @@ export class TemplateBinder {
       /* manifest           */ manifest,
       /* manifestRoot       */ manifestRoot,
       /* parentManifestRoot */ parentManifestRoot,
-      /* partName           */ partName,
     );
 
     // the parentManifest will receive either the direct child nodes, or the template controllers / replaces
@@ -287,7 +252,6 @@ export class TemplateBinder {
       /* manifest           */ manifest,
       /* manifestRoot       */ manifestRoot,
       /* parentManifestRoot */ parentManifestRoot,
-      /* partName           */ partName,
     );
 
     if (manifestRoot === manifest && manifest.isContainerless) {
@@ -333,7 +297,6 @@ export class TemplateBinder {
     manifest: ElementSymbol,
     manifestRoot: CustomElementSymbol | null,
     parentManifestRoot: CustomElementSymbol | null,
-    partName: string | null,
   ): void {
     // This is the top-level symbol for the current depth.
     // If there are no template controllers or replaces, it is always the manifest itself.
@@ -374,7 +337,6 @@ export class TemplateBinder {
           currentController = manifest.templateController = this.declareTemplateController(
             /* attrSyntax */ attrSyntax,
             /* attrInfo   */ attrInfo,
-            /* partName   */ partName,
           );
 
           // the proxy and the manifest are only identical when we're at the first template controller (since the controller
@@ -417,42 +379,23 @@ export class TemplateBinder {
     }
     processTemplateControllers(this.dom, manifestProxy, manifest);
 
-    let replace = node.getAttribute('replace');
-    if (replace === '' || (replace === null && manifestRoot !== null && manifestRoot.isContainerless && ((parentManifest.flags & SymbolFlags.isCustomElement) > 0))) {
-      replace = 'default';
-    }
     let projection = node.getAttribute('au-slot');
     if (projection === '' || (projection === null && manifestRoot !== null && manifestRoot.isContainerless && ((parentManifest.flags & SymbolFlags.isCustomElement) > 0))) {
       projection = 'default';
     }
 
-    const partOwner: CustomElementSymbol | null = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
+    const projectionOwner: CustomElementSymbol | null = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
 
-    if (replace === null && projection === null || partOwner === null) {
+    if (projection === null || projectionOwner === null) {
       // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
       parentManifest.childNodes.push(manifestProxy);
-    } else {
-      if (replace !== null) {
-        // there is a replace attribute on this node, so add it to the parts collection of the manifestRoot
-        // instead of to the childNodes
-        const replacePart = new ReplacePartSymbol(replace);
-        replacePart.parent = parentManifest;
-        replacePart.template = manifestProxy;
-        partOwner!.parts.push(replacePart);
-
-        if (parentManifest.templateController != null) {
-          parentManifest.templateController.parts.push(replacePart);
-        }
-
-        processReplacePart(this.dom, replacePart, manifestProxy);
-      } else if (projection !== null) {
-        const projectionPart = new ProjectionSymbol(projection);
-        projectionPart.parent = parentManifest;
-        projectionPart.template = manifestProxy;
-        partOwner!.projections.push(projectionPart);
-        parentManifest.physicalNode.removeChild(node);
-        node.removeAttribute('au-slot');
-      }
+    } else if (projection !== null) {
+      const projectionPart = new ProjectionSymbol(projection);
+      projectionPart.parent = parentManifest;
+      projectionPart.template = manifestProxy;
+      projectionOwner!.projections.push(projectionPart);
+      parentManifest.physicalNode.removeChild(node);
+      node.removeAttribute('au-slot');
     }
   }
 
@@ -488,7 +431,6 @@ export class TemplateBinder {
     manifest: ElementSymbol,
     manifestRoot: CustomElementSymbol | null,
     parentManifestRoot: CustomElementSymbol | null,
-    partName: string | null,
   ): void {
     let childNode: ChildNode | null;
     if (node.nodeName === 'TEMPLATE') {
@@ -509,7 +451,6 @@ export class TemplateBinder {
             /* manifest           */ manifest,
             /* manifestRoot       */ manifestRoot,
             /* parentManifestRoot */ parentManifestRoot,
-            /* partName           */ partName,
           );
           childNode = nextChild;
           break;
@@ -553,7 +494,6 @@ export class TemplateBinder {
   private declareTemplateController(
     attrSyntax: AttrSyntax,
     attrInfo: AttrInfo,
-    partName: string | null,
   ): TemplateControllerSymbol {
     let symbol: TemplateControllerSymbol;
     const attrRawValue = attrSyntax.rawValue;
@@ -562,10 +502,10 @@ export class TemplateBinder {
     const isMultiBindings = attrInfo.noMultiBindings === false && command === null && hasInlineBindings(attrRawValue);
 
     if (isMultiBindings) {
-      symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, partName);
+      symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo);
       this.bindMultiAttribute(symbol, attrInfo, attrRawValue);
     } else {
-      symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, partName);
+      symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo);
       const bindingType = command === null ? BindingType.Interpolation : command.bindingType;
       const expr = this.exprParser.parse(attrRawValue, bindingType);
       symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable!, expr, attrRawValue, attrSyntax.target));

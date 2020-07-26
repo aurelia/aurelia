@@ -1,7 +1,6 @@
 import {
   IContainer,
   IIndexable,
-  mergeDistinct,
   nextId,
   Writable,
   Constructable,
@@ -11,7 +10,6 @@ import {
 } from '../binding/property-binding';
 import {
   HooksDefinition,
-  PartialCustomElementDefinitionParts,
 } from '../definitions';
 import {
   INode,
@@ -88,14 +86,12 @@ type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & {
     controller: IController,
     definition: CustomElementDefinition,
     parentContainer: IContainer,
-    parts: PartialCustomElementDefinitionParts | undefined,
     flags: LifecycleFlags,
   ): PartialCustomElementDefinition | void;
   beforeCompile(
     controller: IController,
     definition: CustomElementDefinition,
     container: IContainer,
-    parts: PartialCustomElementDefinitionParts | undefined,
     flags: LifecycleFlags,
   ): void;
   afterCompile(
@@ -153,7 +149,6 @@ export class Controller<
 
   public state: State = State.none;
 
-  public scopeParts: string[] | undefined = void 0;
   public projections: CustomElementDefinition[] = [];
   public isStrictBinding: boolean = false;
 
@@ -216,7 +211,6 @@ export class Controller<
     lifecycle: ILifecycle,
     host: T,
     parentContainer: IContainer,
-    parts: PartialCustomElementDefinitionParts | undefined,
     // projections *targeted* for this custom element. these are not the projections *provided* by this custom element.
     targetedProjections: RegisteredProjections | null,
     flags: LifecycleFlags = LifecycleFlags.none,
@@ -243,7 +237,7 @@ export class Controller<
 
     controllerLookup.set(viewModel, controller as Controller<INode, IViewModel>);
 
-    controller.hydrateCustomElement(definition, parentContainer, parts, targetedProjections);
+    controller.hydrateCustomElement(definition, parentContainer, targetedProjections);
 
     return controller as unknown as ICustomElementController<T, C>;
   }
@@ -301,7 +295,7 @@ export class Controller<
       /* host           */void 0,
     );
 
-    controller.hydrateSynthetic(context, viewFactory.parts);
+    controller.hydrateSynthetic(context);
 
     return controller as Controller<T> & { context: ICompiledRenderContext<T> } as ISyntheticView<T>;
   }
@@ -309,7 +303,6 @@ export class Controller<
   private hydrateCustomElement(
     definition: CustomElementDefinition,
     parentContainer: IContainer,
-    parts: PartialCustomElementDefinitionParts | undefined,
     targetedProjections: RegisteredProjections | null,
   ): void {
     const flags = this.flags |= definition.strategy;
@@ -325,14 +318,13 @@ export class Controller<
         /* controller      */this as unknown as IDryCustomElementController<T, ICustomElementViewModel<T>>,
         /* parentContainer */parentContainer,
         /* definition      */definition,
-        /* parts           */parts,
       );
       if (result !== void 0 && result !== definition) {
         definition = CustomElementDefinition.getOrCreate(result);
       }
     }
 
-    const context = this.context = getRenderContext<T>(definition, parentContainer, parts);
+    const context = this.context = getRenderContext<T>(definition, parentContainer);
     // Support Recursive Components by adding self to own context
     definition.register(context);
     if (definition.injectable !== null) {
@@ -350,7 +342,6 @@ export class Controller<
     const compiledDefinition = compiledContext.compiledDefinition;
 
     compiledContext.registerProjections(compiledDefinition.projectionsMap, scope);
-    this.scopeParts = compiledDefinition.scopeParts;
     this.projections = compiledDefinition.projections;
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
@@ -379,7 +370,6 @@ export class Controller<
       /* targets    */targets,
       /* definition */compiledDefinition,
       /* host       */this.host,
-      /* parts      */parts,
     );
 
     if (hooks.hasAfterCompileChildren) {
@@ -399,13 +389,11 @@ export class Controller<
 
   private hydrateSynthetic(
     context: IRenderContext<T>,
-    parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
     this.context = context;
     const compiledContext = context.compile(null);
     const compiledDefinition = compiledContext.compiledDefinition;
 
-    this.scopeParts = compiledDefinition.scopeParts;
     this.projections = compiledDefinition.projections;
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
@@ -417,7 +405,6 @@ export class Controller<
       /* targets    */targets,
       /* definition */compiledDefinition,
       /* host       */void 0,
-      /* parts      */parts,
     );
   }
 
@@ -612,7 +599,6 @@ export class Controller<
     const $scope = this.scope as Writable<IScope>;
 
     $scope.parentScope = scope === void 0 ? null : scope;
-    $scope.scopeParts = this.scopeParts!;
     $scope.projections = this.projections;
 
     if ((this.state & State.isBound) > 0) {
@@ -673,7 +659,6 @@ export class Controller<
       throw new Error(`Scope is null or undefined`); // TODO: create error code
     }
 
-    (scope as Writable<IScope>).scopeParts = mergeDistinct(scope.scopeParts, this.scopeParts, false);
     (scope as Writable<IScope>).projections = this.projections;
 
     if ((this.state & State.isBound) > 0) {
@@ -709,7 +694,7 @@ export class Controller<
         flags |= LifecycleFlags.isStrictBindingStrategy;
       }
       for (let i = 0; i < length; ++i) {
-        bindings[i].$bind(flags, scope, hostScope, this.part, this.projection);
+        bindings[i].$bind(flags, scope, hostScope, this.projection);
       }
     }
 

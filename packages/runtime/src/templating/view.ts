@@ -14,8 +14,7 @@ import {
 import { Scope } from '../observation/binding-context';
 import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
-import { PartialCustomElementDefinitionParts, mergeParts } from '../definitions';
-import { IRenderContext, getRenderContext } from './render-context';
+import { IRenderContext } from './render-context';
 import { MaybePromiseOrTask } from '../lifecycle-task';
 import { AuSlotContentType } from '../resources/custom-elements/au-slot';
 import { IScope } from '../observation';
@@ -32,7 +31,6 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     public name: string,
     public readonly context: IRenderContext<T>,
     private readonly lifecycle: ILifecycle,
-    public readonly parts: PartialCustomElementDefinitionParts | undefined,
     public readonly contentType: AuSlotContentType | undefined,
     public readonly projectionScope: IScope | null = null,
   ) {}
@@ -84,20 +82,6 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 
     controller = Controller.forSyntheticView(this, this.lifecycle, this.context, flags);
     return controller;
-  }
-
-  public resolve(requestor: IContainer, parts?: PartialCustomElementDefinitionParts): IViewFactory<T> {
-    parts = mergeParts(this.parts, parts);
-    if (parts === void 0) {
-      return this;
-    }
-
-    const part = parts[this.name];
-    if (part === void 0) {
-      return this;
-    }
-
-    return getRenderContext<T>(part, requestor, parts).getViewFactory(this.name);
   }
 }
 
@@ -257,7 +241,6 @@ export class ViewLocator implements IViewLocator {
             controller: IDryCustomElementController<INode, T>,
             parentContainer: IContainer,
             definition: CustomElementDefinition,
-            parts: PartialCustomElementDefinitionParts | undefined,
           ): PartialCustomElementDefinition | void {
             const vm = this.viewModel;
             controller.scope = Scope.fromParent(
@@ -267,7 +250,7 @@ export class ViewLocator implements IViewLocator {
             );
 
             if (vm.create !== void 0) {
-              return vm.create(controller, parentContainer, definition, parts);
+              return vm.create(controller, parentContainer, definition);
             }
           }
         }

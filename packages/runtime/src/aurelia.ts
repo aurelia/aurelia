@@ -168,7 +168,7 @@ export class CompositionRoot<T extends INode = INode> {
 
     const container = this.container;
     const lifecycle = container.get(ILifecycle);
-    this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, null, this.strategy as number, this.enhanceDefinition);
+    this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, null, this.strategy as number, this.enhanceDefinition);
   }
 }
 

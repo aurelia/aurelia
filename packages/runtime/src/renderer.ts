@@ -32,8 +32,6 @@ import {
   ISetPropertyInstruction,
   ITargetedInstruction,
   TargetedInstructionType,
-  PartialCustomElementDefinitionParts,
-  mergeParts
 } from './definitions';
 import { INode } from './dom';
 import { BindingMode, LifecycleFlags } from './flags';
@@ -78,7 +76,6 @@ export interface IInstructionRenderer<
     controller: IRenderableController,
     target: unknown,
     instruction: ITargetedInstruction,
-    parts: PartialCustomElementDefinitionParts | undefined,
   ): void;
 }
 
@@ -92,7 +89,6 @@ export interface IRenderer {
     targets: ArrayLike<INode>,
     templateDefinition: CustomElementDefinition,
     host: INode | null | undefined,
-    parts: PartialCustomElementDefinitionParts | undefined,
   ): void;
 
   renderInstructions(
@@ -101,7 +97,6 @@ export interface IRenderer {
     instructions: readonly ITargetedInstruction[],
     controller: IRenderableController,
     target: unknown,
-    parts: PartialCustomElementDefinitionParts | undefined,
   ): void;
 }
 
@@ -164,7 +159,6 @@ export class Renderer implements IRenderer {
     targets: ArrayLike<INode>,
     definition: CustomElementDefinition,
     host: INode | null | undefined,
-    parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
     const targetInstructions = definition.instructions;
 
@@ -179,7 +173,6 @@ export class Renderer implements IRenderer {
         /* instructions */targetInstructions[i],
         /* controller   */controller,
         /* target       */targets[i],
-        /* parts        */parts,
       );
     }
 
@@ -190,7 +183,6 @@ export class Renderer implements IRenderer {
         /* instructions */definition.surrogates,
         /* controller   */controller,
         /* target       */host,
-        /* parts        */parts,
       );
     }
   }
@@ -201,13 +193,12 @@ export class Renderer implements IRenderer {
     instructions: readonly ITargetedInstruction[],
     controller: IRenderableController,
     target: unknown,
-    parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
     const instructionRenderers = this.instructionRenderers;
     let current: ITargetedInstruction;
     for (let i = 0, ii = instructions.length; i < ii; ++i) {
       current = instructions[i];
-      instructionRenderers[current.type](flags, context, controller, target, current, parts);
+      instructionRenderers[current.type](flags, context, controller, target, current);
     }
   }
 }
@@ -282,18 +273,14 @@ export class CustomElementRenderer implements IInstructionRenderer {
     controller: IRenderableController,
     target: INode,
     instruction: IHydrateElementInstruction,
-    parts: PartialCustomElementDefinitionParts | undefined, // TODO: remove
   ): void {
-    console.group(`CustomElementRenderer#render`);
-    console.log(instruction.res, instruction.instructions, instruction);
-    parts = mergeParts(parts, instruction.parts);
 
     let viewFactory: IViewFactory | undefined;
 
     const slotInfo = instruction.slotInfo;
     if (slotInfo!==null) {
       const projectionCtx = slotInfo.projectionContext;
-      viewFactory = getRenderContext(projectionCtx.content, context, parts).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
+      viewFactory = getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
     }
 
     const factory = context.getComponentFactory(
@@ -313,7 +300,6 @@ export class CustomElementRenderer implements IInstructionRenderer {
       /* lifecycle           */lifecycle,
       /* host                */target,
       /* parentContainer     */context,
-      /* parts               */parts,
       /* targetedProjections */context.getProjectionFor(instruction),
       /* flags               */flags,
     );
@@ -326,14 +312,11 @@ export class CustomElementRenderer implements IInstructionRenderer {
       /* instructions */instruction.instructions,
       /* controller   */controller,
       /* target       */childController,
-      /* parts        */parts,
     );
 
     controller.addController(childController);
 
-    console.log("disposing factory");
     factory.dispose();
-    console.groupEnd();
   }
 }
 
@@ -346,7 +329,6 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
     controller: IRenderableController,
     target: INode,
     instruction: IHydrateAttributeInstruction,
-    parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
     const factory = context.getComponentFactory(
       /* parentController */controller,
@@ -374,7 +356,6 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
       /* instructions */instruction.instructions,
       /* controller   */controller,
       /* target       */childController,
-      /* parts        */parts,
     );
 
     controller.addController(childController);
@@ -392,14 +373,11 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     controller: IRenderableController,
     target: INode,
     instruction: IHydrateTemplateController,
-    parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
-    parts = mergeParts(parts, instruction.parts);
 
-    const viewFactory = getRenderContext(instruction.def, parentContext, parts).getViewFactory();
+    const viewFactory = getRenderContext(instruction.def, parentContext).getViewFactory();
     const renderLocation = parentContext.dom.convertToRenderLocation(target);
 
-    console.group(`TemplateControllerRenderer#render ${instruction.res}`);
     const componentFactory = parentContext.getComponentFactory(
       /* parentController */controller,
       /* host             */target,
@@ -431,13 +409,11 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
       /* instructions */instruction.instructions,
       /* controller   */controller,
       /* target       */childController,
-      /* parts        */parts,
     );
 
     controller.addController(childController);
 
     componentFactory.dispose();
-    console.groupEnd();
   }
 }
 

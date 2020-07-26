@@ -161,7 +161,7 @@ export class BindingMediator<K extends string> implements IConnectableBinding {
   ) {
     connectable.assignIdTo(this);
   }
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, part?: string | undefined, projection?: CustomElementDefinition): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, projection?: CustomElementDefinition): void {
     throw new Error('Method not implemented.');
   }
   public $unbind(flags: LifecycleFlags): void {

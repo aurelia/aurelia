@@ -172,9 +172,6 @@ export class BindingInterceptor implements IInterceptableBinding {
   public get $scope(): IScope | undefined {
     return this.binding.$scope;
   }
-  public get part(): string | undefined {
-    return this.binding.part;
-  }
   public get $state(): State {
     return this.binding.$state;
   }
@@ -204,8 +201,8 @@ export class BindingInterceptor implements IInterceptableBinding {
     this.binding.handleChange!(newValue, previousValue, flags);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, part?: string | undefined, projection?: CustomElementDefinition): void {
-    this.binding.$bind(flags, scope, hostScope, part, projection);
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, projection?: CustomElementDefinition): void {
+    this.binding.$bind(flags, scope, hostScope, projection);
   }
   public $unbind(flags: LifecycleFlags): void {
     this.binding.$unbind(flags);

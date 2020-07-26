@@ -21,7 +21,6 @@ export const enum SymbolFlags {
   hasAttributes        = 0b000100_0000000000,
   hasBindings          = 0b001000_0000000000,
   hasChildNodes        = 0b010000_0000000000,
-  hasParts             = 0b100000_0000000000,
   hasProjections       = 0b100000_0000000000,
 }
 
@@ -37,7 +36,6 @@ export type AnySymbol<TText extends INode = INode, TElement extends INode = INod
   LetElementSymbol<TElement, TMarker> |
   PlainAttributeSymbol |
   PlainElementSymbol<TText, TElement, TMarker> |
-  ReplacePartSymbol<TText, TElement, TMarker> |
   TemplateControllerSymbol<TText, TElement, TMarker> |
   TextSymbol<TText, TMarker>
 );
@@ -63,7 +61,6 @@ export type NodeSymbol<TText extends INode = INode, TElement extends INode = INo
   CustomElementSymbol<TText, TElement, TMarker> |
   LetElementSymbol<TElement, TMarker> |
   PlainElementSymbol<TText, TElement, TMarker> |
-  ReplacePartSymbol<TText, TElement, TMarker> |
   TemplateControllerSymbol<TText, TElement, TMarker> |
   TextSymbol<TText, TMarker>
 );
@@ -80,7 +77,6 @@ export type ElementSymbol<TText extends INode = INode, TElement extends INode = 
 );
 
 export type SymbolWithTemplate<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (
-  ReplacePartSymbol<TText, TElement, TMarker> |
   TemplateControllerSymbol<TText, TElement, TMarker>
 );
 
@@ -96,7 +92,6 @@ export type SymbolWithMarker<TText extends INode = INode, TElement extends INode
  */
 export class TemplateControllerSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> {
   public flags: SymbolFlags = SymbolFlags.isTemplateController | SymbolFlags.hasMarker;
-  public partName: string | null;
   public physicalNode: TElement | null = null;
   public template: ParentNodeSymbol<TText, TElement, TMarker> | null = null;
   public templateController: TemplateControllerSymbol<TText, TElement, TMarker> | null = null;
@@ -111,42 +106,14 @@ export class TemplateControllerSymbol<TText extends INode = INode, TElement exte
     return this._bindings;
   }
 
-  private _parts: ReplacePartSymbol<TText, TElement, TMarker>[] | null = null;
-  public get parts(): ReplacePartSymbol<TText, TElement, TMarker>[] {
-    if (this._parts === null) {
-      this._parts = [];
-      this.flags |= SymbolFlags.hasParts;
-    }
-    return this._parts;
-  }
-
   public constructor(
     dom: IDOM,
     public syntax: AttrSyntax,
     public info: AttrInfo,
-    partName: string | null,
     public res: string = info.name,
   ) {
-    this.partName = info.name === 'replaceable' ? partName : null;
     this.marker = createMarker(dom);
   }
-}
-
-/**
- * Wrapper for an element (with all of its attributes, regardless of the order in which they are declared)
- * that has a replace attribute on it.
- *
- * This element will be lifted from the DOM just like a template controller.
- */
-export class ReplacePartSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> {
-  public flags: SymbolFlags = SymbolFlags.isReplacePart;
-
-  public constructor(
-    public name: string,
-    public physicalNode: TElement | null = null,
-    public parent: ParentNodeSymbol<TText, TElement, TMarker> | null = null,
-    public template: ParentNodeSymbol<TText, TElement, TMarker> | null = null,
-  ) {}
 }
 
 export class ProjectionSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> {
@@ -263,15 +230,6 @@ export class CustomElementSymbol<TText extends INode = INode, TElement extends I
       this.flags |= SymbolFlags.hasChildNodes;
     }
     return this._childNodes;
-  }
-
-  private _parts: ReplacePartSymbol<TText, TElement, TMarker>[] | null = null;
-  public get parts(): ReplacePartSymbol<TText, TElement, TMarker>[] {
-    if (this._parts === null) {
-      this._parts = [];
-      this.flags |= SymbolFlags.hasParts;
-    }
-    return this._parts;
   }
 
   private _projections: ProjectionSymbol<TText, TElement, TMarker>[] | null = null;

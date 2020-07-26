@@ -25,7 +25,6 @@ export class RefBinding implements IBinding {
   public $state: State = State.none;
   public $scope?: IScope = void 0;
   public $hostScope?: IScope | null = null;
-  public part?: string;
   public projection?: CustomElementDefinition;
 
   public constructor(
@@ -34,7 +33,7 @@ export class RefBinding implements IBinding {
     public locator: IServiceLocator,
   ) {}
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, projection?: CustomElementDefinition): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -47,14 +46,13 @@ export class RefBinding implements IBinding {
 
     this.$scope = scope;
     this.$hostScope = hostScope;
-    this.part = part;
     this.projection = projection;
 
     if (hasBind(this.sourceExpression)) {
       this.sourceExpression.bind(flags, scope, this);
     }
 
-    this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, this.target, hostScope, part, projection);
+    this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, this.target, hostScope, projection);
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
@@ -69,8 +67,8 @@ export class RefBinding implements IBinding {
     this.$state |= State.isUnbinding;
 
     let sourceExpression = this.sourceExpression;
-    if (sourceExpression.evaluate(flags, this.$scope!, this.locator, this.$hostScope, this.part, this.projection) === this.target) {
-      sourceExpression.assign!(flags, this.$scope!, this.locator, null, this.$hostScope, this.part, this.projection);
+    if (sourceExpression.evaluate(flags, this.$scope!, this.locator, this.$hostScope, this.projection) === this.target) {
+      sourceExpression.assign!(flags, this.$scope!, this.locator, null, this.$hostScope, this.projection);
     }
 
     // source expression might have been modified durring assign, via a BB

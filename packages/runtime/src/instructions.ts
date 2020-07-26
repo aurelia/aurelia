@@ -17,10 +17,9 @@ import {
   ISetPropertyInstruction,
   ITargetedInstruction,
   TargetedInstructionType,
-  PartialCustomElementDefinitionParts,
 } from './definitions';
 import { BindingMode } from './flags';
-import { PartialCustomElementDefinition, CustomElementDefinition } from './resources/custom-element';
+import { PartialCustomElementDefinition } from './resources/custom-element';
 import { SlotInfo } from './resources/custom-elements/au-slot';
 
 export class InterpolationInstruction implements IInterpolationInstruction {
@@ -125,7 +124,6 @@ export class HydrateElementInstruction implements IHydrateElementInstruction {
     public res: string,
     public instructions: ITargetedInstruction[],
     public slotInfo: SlotInfo | null,
-    public parts?: PartialCustomElementDefinitionParts, // TODO: remove
   ) {}
 }
 
@@ -146,7 +144,6 @@ export class HydrateTemplateController implements IHydrateTemplateController {
     public res: string,
     public instructions: ITargetedInstruction[],
     public link?: boolean,
-    public parts?: PartialCustomElementDefinitionParts,
   ) {}
 }
 

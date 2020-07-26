@@ -9,10 +9,12 @@ import {
   ICustomElementController,
   CustomElementDefinition,
   IDryCustomElementController,
-  PartialCustomElementDefinitionParts,
   PartialCustomElementDefinition,
   IController,
   IHydratedController,
+  ITargetedInstruction,
+  IHydrateElementInstruction,
+  IProjectionProvider,
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IViewportScopeOptions, ViewportScope } from '../viewport-scope';
@@ -38,6 +40,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
   private readonly element: Element;
 
   private isBound: boolean = false;
+  private readonly definition: CustomElementDefinition;
 
   public constructor(
     @IRouter private readonly router: IRouter,
@@ -45,34 +48,35 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
     @IContainer private container: IContainer,
     @ParentViewportScope private readonly parent: ViewportScopeCustomElement,
     @IController private readonly parentController: IHydratedController,
+    @ITargetedInstruction instruction: IHydrateElementInstruction,
+    @IProjectionProvider projectionProvider: IProjectionProvider,
   ) {
     this.element = element as HTMLElement;
+
+    // TODO(fkleuver): describe this somewhere in the docs instead
+    // Under the condition that there is no `replace` attribute on this custom element's declaration,
+    // and this custom element is containerless, its content will be placed in a projection named 'default'
+    // See packages/jit-html/src/template-binder.ts (`projection = 'default'`) for the logic that governs this.
+
+    // We could tidy this up into a formal api in the future. For now, there are two ways to do this:
+    // 1. inject the `@ITargetedInstruction` (IHydrateElementInstruction) and grab .projections['default'] from there, manually creating a view factory from that, etc.
+    // 2. what we're doing right here: grab the 'default' projection from the create hook and return it as the definition, telling the render context to use that projection to compile this element instead
+    // This effectively causes this element to render its declared content as if it was its own template.
+
+    // We do need to set `containerless` to true on the projection definition so that the correct projector is used since projections default to non-containerless.
+    // Otherwise, the controller will try to do `appendChild` on a comment node when it has to do `insertBefore`.
+
+    // Also, in this particular scenario (specific to viewport-scope) we need to clone the projection so as to prevent the resulting compiled definition
+    // from ever being cached. That's the only reason why we're spreading the projection into a new object for `getOrCreate`. If we didn't clone the object, this specific element wouldn't work correctly.
+    this.definition = projectionProvider.getProjectionFor(instruction)?.projections['default']!;
   }
 
   public create(
-    controller: IDryCustomElementController<Element, this>,
-    parentContainer: IContainer,
-    definition: CustomElementDefinition,
-    parts: PartialCustomElementDefinitionParts | undefined,
+    _controller: IDryCustomElementController<Element, this>,
+    _parentContainer: IContainer,
+    _definition: CustomElementDefinition,
   ): PartialCustomElementDefinition {
-    // TODO(fkleuver): describe this somewhere in the docs instead
-    // Under the condition that there is no `replace` attribute on this custom element's declaration,
-    // and this custom element is containerless, its content will be placed in a part named 'default'
-    // See packages/jit-html/src/template-binder.ts line 411 (`replace = 'default';`) for the logic that governs this.
-
-    // We could tidy this up into a formal api in the future. For now, there are two ways to do this:
-    // 1. inject the `@ITargetedInstruction` (IHydrateElementInstruction) and grab .parts['default'] from there, manually creating a view factory from that, etc.
-    // 2. what we're doing right here: grab the 'default' part from the create hook and return it as the definition, telling the render context to use that part to compile this element instead
-    // This effectively causes this element to render its declared content as if it was its own template.
-
-    // We do need to set `containerless` to true on the part definition so that the correct projector is used since parts default to non-containerless.
-    // Otherwise, the controller will try to do `appendChild` on a comment node when it has to do `insertBefore`.
-
-    // Also, in this particular scenario (specific to viewport-scope) we need to clone the part so as to prevent the resulting compiled definition
-    // from ever being cached. That's the only reason why we're spreading the part into a new object for `getOrCreate`. If we didn't clone the object, this specific element wouldn't work correctly.
-
-    const part = parts!['default'];
-    return CustomElementDefinition.getOrCreate({ ...part, containerless: true });
+    return CustomElementDefinition.getOrCreate({ ...this.definition, containerless: true });
   }
 
   public afterCompile(controller: ICompiledCustomElementController) {

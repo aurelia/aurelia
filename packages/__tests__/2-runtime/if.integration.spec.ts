@@ -170,7 +170,6 @@ describe(`If/Else`, function () {
             needsCompile: false,
           }),
           container,
-          void 0,
         );
         const elseContext = getRenderContext<AuNode>(
           CustomElementDefinition.create({
@@ -184,11 +183,10 @@ describe(`If/Else`, function () {
             needsCompile: false,
           }),
           container,
-          void 0,
         );
 
-        const ifFactory = new ViewFactory<AuNode>('if-view', ifContext, lifecycle, void 0, void 0, null);
-        const elseFactory = new ViewFactory<AuNode>('else-view', elseContext, lifecycle, void 0, void 0, null);
+        const ifFactory = new ViewFactory<AuNode>('if-view', ifContext, lifecycle, void 0, null);
+        const elseFactory = new ViewFactory<AuNode>('else-view', elseContext, lifecycle, void 0, null);
         let sut: If<AuNode>;
         let elseSut: Else<AuNode>;
         if (proxies) {

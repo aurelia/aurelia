@@ -65,12 +65,12 @@ describe(spec, function () {
     },
     {
       t: '4',
-      createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container, void 0).getViewFactory(),
+      createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory(),
       expectedText: 'Hello!'
     },
     {
       t: '5',
-      createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container, void 0).getViewFactory().create(),
+      createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory().create(),
       expectedText: 'Hello!'
     },
     {

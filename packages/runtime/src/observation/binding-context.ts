@@ -92,7 +92,7 @@ export class BindingContext implements IBindingContext {
     return bc;
   }
 
-  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): IBindingContext | IOverrideContext | IBinding | undefined | null {
+  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: IScope | null, projection?: CustomElementDefinition): IBindingContext | IOverrideContext | IBinding | undefined | null {
     if (scope == null && hostScope == null) {
       throw Reporter.error(RuntimeError.NilScope);
     }
@@ -104,14 +104,12 @@ export class BindingContext implements IBindingContext {
       if (context !== null) { return context; }
     }
 
+    // TODO remove if for projection via au-slot we don't need the parent scope traversal.
     // the name wasn't found. see if parent scope traversal is allowed and if so, try that
     if ((flags & LifecycleFlags.allowParentScopeTraversal) > 0) {
       let parent = scope.parentScope;
       while (parent !== null) {
-        if (
-          parent.scopeParts.includes(part!) || // TODO remove
-          parent.projections.includes(projection!)
-        ) {
+        if (parent.projections.includes(projection!)) {
           const result = this.get(parent, name, ancestor, flags
             // unset the flag; only allow one level of scope boundary traversal
             & ~LifecycleFlags.allowParentScopeTraversal
@@ -128,7 +126,7 @@ export class BindingContext implements IBindingContext {
       }
 
       if (parent === null) {
-        throw new Error(`No target scope could be found for part "${part}"`);
+        throw new Error(`No target scope could be found for part "${projection?.name}"`);
       }
     }
 
@@ -180,7 +178,6 @@ function chooseContext(scope: IScope, name: string, ancestor: number) {
 
 export class Scope implements IScope {
   public parentScope: IScope | null;
-  public scopeParts: readonly string[];
   public projections: readonly CustomElementDefinition[]; // TODO remove
   public bindingContext: IBindingContext;
   public overrideContext: IOverrideContext;
@@ -192,7 +189,6 @@ export class Scope implements IScope {
     public readonly isComponentScope: boolean,
   ) {
     this.parentScope = parentScope;
-    this.scopeParts = PLATFORM.emptyArray;
     this.projections = PLATFORM.emptyArray;
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext;

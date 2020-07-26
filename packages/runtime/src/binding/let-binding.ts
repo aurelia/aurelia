@@ -58,7 +58,7 @@ export class LetBinding implements IPartialConnectableBinding {
     if (flags & LifecycleFlags.updateTargetInstance) {
       const { target, targetProperty } = this as {target: IIndexable; targetProperty: string};
       const previousValue: unknown = target[targetProperty];
-      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.$hostScope, this.part, this.projection);
+      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.$hostScope, this.projection);
       if (newValue !== previousValue) {
         target[targetProperty] = newValue;
       }
@@ -68,7 +68,7 @@ export class LetBinding implements IPartialConnectableBinding {
     throw Reporter.error(15, flags);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null,  part?: string, projection?: CustomElementDefinition): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null,  projection?: CustomElementDefinition): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -80,7 +80,6 @@ export class LetBinding implements IPartialConnectableBinding {
 
     this.$scope = scope;
     this.$hostScope = hostScope;
-    this.part = part;
     this.projection = projection;
     this.target = (this.toBindingContext ? (hostScope ?? scope).bindingContext : (hostScope ?? scope).overrideContext) as IIndexable;
 
@@ -89,8 +88,8 @@ export class LetBinding implements IPartialConnectableBinding {
       sourceExpression.bind(flags, scope, this.interceptor);
     }
     // sourceExpression might have been changed during bind
-    this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, this.locator, hostScope, part, projection);
-    this.sourceExpression.connect(flags, scope, this.interceptor, hostScope, part, projection);
+    this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, this.locator, hostScope, projection);
+    this.sourceExpression.connect(flags, scope, this.interceptor, hostScope, projection);
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;

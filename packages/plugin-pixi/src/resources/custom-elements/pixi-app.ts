@@ -9,7 +9,7 @@ import {
   Container
 } from 'pixi.js';
 
-@customElement({ name: 'pixi-app', template: '<template><div replaceable="children"></div></template>' })
+@customElement({ name: 'pixi-app', template: '<template><au-slot name="children"></au-slot></template>' })
 export class PixiApp {
   public static readonly inject: readonly Key[] = [Element];
 

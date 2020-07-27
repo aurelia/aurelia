@@ -2,6 +2,7 @@ import {
   Constructable,
   nextId,
   PLATFORM,
+  onResolve,
 } from '@aurelia/kernel';
 import {
   BindingMode,
@@ -107,18 +108,14 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
     this.composing = true;
 
     flags |= $controller.flags;
-    const ret = this.deactivate(this.view, null, flags);
-    if (ret instanceof Promise) {
-      // TODO(fkleuver): handle & test race condition
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      ret.then(() => {
+    const ret = onResolve(
+      this.deactivate(this.view, null, flags),
+      () => {
+        // TODO(fkleuver): handle & test race condition
         return this.compose(void 0, newValue, null, flags);
-      });
-    }
-
-    // TODO(fkleuver): handle & test race condition
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.compose(void 0, newValue, null, flags);
+      },
+    );
+    if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
   }
 
   private compose(
@@ -127,21 +124,16 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
     initiator: IHydratedController<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    if (view === void 0) {
-      if (subject instanceof Promise) {
-        view = subject.then(s => this.resolveView(s, flags));
-      } else {
-        view = this.resolveView(subject, flags);
-      }
-    }
-
-    if (view instanceof Promise) {
-      return view.then(v => {
-        return this.activate(v, initiator, flags);
-      });
-    }
-
-    return this.activate(view, initiator, flags);
+    return onResolve(
+      view === void 0
+      ? onResolve(subject, resolvedSubject => {
+        return this.resolveView(resolvedSubject, flags);
+      })
+      : view,
+      resolvedView => {
+        return this.activate(resolvedView, initiator, flags);
+      },
+    );
   }
 
   private deactivate(
@@ -158,14 +150,12 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
     flags: LifecycleFlags,
   ): void | Promise<void> {
     const { $controller } = this;
-    const ret = view?.activate(initiator ?? view, $controller, flags, $controller.scope, $controller.part);
-    if (ret instanceof Promise) {
-      return ret.then(() => {
+    return onResolve(
+      view?.activate(initiator ?? view, $controller, flags, $controller.scope, $controller.part),
+      () => {
         this.composing = false;
-      });
-    }
-
-    this.composing = false;
+      },
+    );
   }
 
   private resolveView(subject: Subject<T> | undefined, flags: LifecycleFlags): ISyntheticView<T> | undefined {
@@ -211,6 +201,14 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
         ? PLATFORM.emptyArray
         : this.$controller.projector.children
     ).createView(this.$controller.context!);
+  }
+
+  public onCancel(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void {
+    this.view?.cancel(initiator, this.$controller, flags);
   }
 
   public dispose(): void {

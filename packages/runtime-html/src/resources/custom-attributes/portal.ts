@@ -1,5 +1,6 @@
 import {
   nextId,
+  onResolve,
 } from '@aurelia/kernel';
 import {
   bindable,
@@ -109,20 +110,16 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
     }
 
     this.view.setLocation(newTarget, MountStrategy.append);
-    const ret = this.$deactivating(null, newTarget, $controller.flags);
-    if (ret instanceof Promise) {
-      // TODO(fkleuver): fix and test possible race condition
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      ret.then(() => {
-        return this.$activating(null, newTarget, $controller.flags);
-      });
-      return;
-    }
-
     // TODO(fkleuver): fix and test possible race condition
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.$activating(null, newTarget, $controller.flags);
+    const ret = onResolve(
+      this.$deactivating(null, newTarget, $controller.flags),
+      () => {
+        return this.$activating(null, newTarget, $controller.flags);
+      },
+    );
+    if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
   }
+
   private $activating(
     initiator: IHydratedController<T> | null,
     target: T,
@@ -132,14 +129,12 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
 
     view.setLocation(target, MountStrategy.append);
 
-    const ret = activating?.call(callbackContext, target, view);
-    if (ret instanceof Promise) {
-      return ret.then(() => {
+    return onResolve(
+      activating?.call(callbackContext, target, view),
+      () => {
         return this.activate(initiator, target, flags);
-      });
-    }
-
-    return this.activate(initiator, target, flags);
+      },
+    );
   }
 
   private activate(
@@ -152,12 +147,13 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
     if (initiator === null) {
       view.nodes.appendTo(target);
     } else {
-      const ret = view.activate(initiator ?? view, $controller, flags, $controller.scope);
-      if (ret instanceof Promise) {
-        return ret.then(() => {
+      // TODO(fkleuver): fix and test possible race condition
+      return onResolve(
+        view.activate(initiator ?? view, $controller, flags, $controller.scope),
+        () => {
           return this.$activated(target);
-        });
-      }
+        },
+      );
     }
 
     return this.$activated(target);
@@ -178,14 +174,12 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
   ): void | Promise<void> {
     const { deactivating, callbackContext, view } = this;
 
-    const ret = deactivating?.call(callbackContext, target, view);
-    if (ret instanceof Promise) {
-      return ret.then(() => {
+    return onResolve(
+      deactivating?.call(callbackContext, target, view),
+      () => {
         return this.deactivate(initiator, target, flags);
-      });
-    }
-
-    return this.deactivate(initiator, target, flags);
+      },
+    );
   }
 
   private deactivate(
@@ -198,12 +192,12 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
     if (initiator === null) {
       view.nodes.remove();
     } else {
-      const ret = view.deactivate(initiator, $controller, flags);
-      if (ret instanceof Promise) {
-        return ret.then(() => {
+      return onResolve(
+        view.deactivate(initiator, $controller, flags),
+        () => {
           return this.$deactivated(target);
-        });
-      }
+        },
+      );
     }
 
     return this.$deactivated(target);
@@ -248,6 +242,14 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
     }
 
     return target!;
+  }
+
+  public onCancel(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void {
+    this.view?.cancel(initiator, this.$controller, flags);
   }
 
   public dispose(): void {

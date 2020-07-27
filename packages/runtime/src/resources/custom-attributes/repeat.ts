@@ -1,4 +1,4 @@
-import { compareNumber, nextId, IDisposable, PLATFORM } from '@aurelia/kernel';
+import { compareNumber, nextId, IDisposable, onResolve } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { PropertyBinding } from '../../binding/property-binding';
 import { INode, IRenderLocation } from '../../dom';
@@ -98,18 +98,14 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     flags |= LF.updateTargetInstance;
     this.normalizeToArray(flags);
 
-    const ret = this.deactivateAllViews(null, flags);
-    if (ret instanceof Promise) {
-      // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      ret.then(() => {
+    const ret = onResolve(
+      this.deactivateAllViews(null, flags),
+      () => {
+        // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
         return this.activateAllViews(null, flags);
-      });
-    }
-
-    // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.activateAllViews(null, flags);
+      },
+    );
+    if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
   }
 
   // called by a CollectionObserver
@@ -126,36 +122,33 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.normalizeToArray(flags);
 
     if (indexMap === void 0) {
-      const ret = this.deactivateAllViews(null, flags);
-      if (ret instanceof Promise) {
-        // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        ret.then(() => {
+      const ret = onResolve(
+        this.deactivateAllViews(null, flags),
+        () => {
+          // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
           return this.activateAllViews(null, flags);
-        });
-      }
-      // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.activateAllViews(null, flags);
+        },
+      );
+      if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
     } else {
       const oldLength = this.views.length;
       applyMutationsToIndices(indexMap);
       // first detach+unbind+(remove from array) the deleted view indices
       if (indexMap.deletedItems.length > 0) {
         indexMap.deletedItems.sort(compareNumber);
-        const ret = this.deactivateAndRemoveViewsByKey(indexMap, flags);
-        if (ret instanceof Promise) {
-          // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises
-          ret.then(() => {
+        const ret = onResolve(
+          this.deactivateAndRemoveViewsByKey(indexMap, flags),
+          () => {
+            // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
             return this.createAndActivateAndSortViewsByKey(oldLength, indexMap, flags);
-          });
-          return;
-        }
+          },
+        );
+        if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
+      } else {
+        // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.createAndActivateAndSortViewsByKey(oldLength, indexMap, flags);
       }
-      // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.createAndActivateAndSortViewsByKey(oldLength, indexMap, flags);
     }
   }
 
@@ -224,7 +217,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     });
 
     if (promises !== void 0) {
-      return Promise.all(promises).then(PLATFORM.noop);
+      return (promises as Promise<void>[]).length === 1
+        ? promises[0]
+        : Promise.all(promises) as unknown as Promise<void>;
     }
   }
 
@@ -248,7 +243,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
 
     if (promises !== void 0) {
-      return Promise.all(promises).then(PLATFORM.noop);
+      return promises.length === 1
+        ? promises[0]
+        : Promise.all(promises) as unknown as Promise<void>;
     }
   }
 
@@ -282,7 +279,9 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
 
     if (promises !== void 0) {
-      return Promise.all(promises).then(PLATFORM.noop);
+      return promises.length === 1
+        ? promises[0]
+        : Promise.all(promises) as unknown as Promise<void>;
     }
   }
 
@@ -351,8 +350,20 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
 
     if (promises !== void 0) {
-      return Promise.all(promises).then(PLATFORM.noop);
+      return promises.length === 1
+        ? promises[0]
+        : Promise.all(promises) as unknown as Promise<void>;
     }
+  }
+
+  public onCancel(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void {
+    this.views.forEach(view => {
+      view.cancel(initiator, this.$controller, flags);
+    });
   }
 
   public dispose(): void {

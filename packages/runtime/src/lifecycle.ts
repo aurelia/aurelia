@@ -288,6 +288,11 @@ export interface ISyntheticView<
     parent: IHydratedComponentController<T>,
     flags: LifecycleFlags,
   ): void | Promise<void>;
+  cancel(
+    initiator: IHydratedController<T>,
+    parent: IHydratedComponentController<T>,
+    flags: LifecycleFlags,
+  ): void;
 
   /**
    * Lock this view's scope to the provided `IScope`. The scope, which is normally set during `activate()`, will then not change anymore.
@@ -352,6 +357,11 @@ export interface ICustomAttributeController<
     parent: IHydratedParentController<T>,
     flags: LifecycleFlags,
   ): void | Promise<void>;
+  cancel(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void;
 }
 
 /**
@@ -456,6 +466,11 @@ export interface ICustomElementController<
     parent: IHydratedParentController<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void>;
+  cancel(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T> | null,
+    flags: LifecycleFlags,
+  ): void;
 }
 
 export const IController = DI.createInterface<IController>('IController').noDefault();
@@ -525,6 +540,11 @@ export interface IActivationHooks<TParent, T extends INode = INode> {
     flags: LifecycleFlags,
   ): void | Promise<void>;
 
+  onCancel?(
+    initiator: IHydratedController<T>,
+    parent: TParent,
+    flags: LifecycleFlags,
+  ): void;
   dispose?(): void;
   /**
    * If this component controls the instantiation and lifecycles of one or more controllers,

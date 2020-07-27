@@ -10,6 +10,7 @@ import {
   isObject,
   ILogger,
   LogLevel,
+  resolveAll,
 } from '@aurelia/kernel';
 import {
   PropertyBinding,
@@ -145,6 +146,7 @@ export class Controller<
 
   private promise: Promise<void> | undefined = void 0;
   private resolve: (() => void) | undefined = void 0;
+  private reject: ((reason?: unknown) => void) | undefined = void 0;
   private logger: ILogger | null = null;
   private debug: boolean = false;
   private fullyNamed: boolean = false;
@@ -413,6 +415,41 @@ export class Controller<
     );
   }
 
+  private canceling: boolean = false;
+  public cancel(
+    initiator: Controller<T>,
+    parent: Controller<T> | null,
+    flags: LifecycleFlags,
+  ): void {
+    if (this.canceling) {
+      return;
+    }
+    this.canceling = true;
+    if ((this.state & State.activating) === State.activating) {
+      this.state = (this.state ^ State.activating) | State.deactivating;
+      this.bindingContext?.onCancel?.(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags);
+      if (
+        (this.state & State.activateChildrenCalled) === State.activateChildrenCalled &&
+        this.children !== void 0
+      ) {
+        for (const child of this.children) {
+          child.cancel(initiator, parent, flags);
+        }
+      }
+    } else if ((this.state & State.deactivating) === State.deactivating) {
+      this.state = (this.state ^ State.deactivating) | State.activating;
+      this.bindingContext?.onCancel?.(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags);
+      if (
+        (this.state & State.deactivateChildrenCalled) === State.deactivateChildrenCalled &&
+        this.children !== void 0
+      ) {
+        for (const child of this.children) {
+          child.cancel(initiator, parent, flags);
+        }
+      }
+    }
+  }
+
   public activate(
     initiator: Controller<T>,
     parent: Controller<T> | null,
@@ -420,6 +457,7 @@ export class Controller<
     scope?: Writable<IScope>,
     part?: string,
   ): void | Promise<void> {
+    this.canceling = false;
     switch (this.state) {
       case State.none:
       case State.deactivated:
@@ -452,11 +490,10 @@ export class Controller<
             (this.state & State.deactivateChildrenCalled) === State.deactivateChildrenCalled &&
             this.children !== void 0
           ) {
-            const ret = this.$activateChildren(initiator, parent, flags);
-            if (ret instanceof Promise) {
-              this.ensurePromise();
-              return Promise.all([ret, this.promise!]) as unknown as Promise<void>;
-            }
+            return resolveAll(
+              this.onResolve(this.$activateChildren(initiator, parent, flags)),
+              this.promise,
+            );
           }
           return this.promise;
         } else {
@@ -511,17 +548,12 @@ export class Controller<
       this.logger!.trace(`beforeBind()`);
     }
 
-    if (this.hooks.hasBeforeBind) {
-      const ret = this.bindingContext!.beforeBind(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags);
-      if (ret instanceof Promise) {
-        this.ensurePromise();
-        return ret.then(() => {
-          return this.bind(initiator, parent, flags);
-        });
-      }
-    }
-
-    return this.bind(initiator, parent, flags);
+    return this.onResolve(
+      this.bindingContext?.beforeBind?.(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags),
+      () => {
+        return this.bind(initiator, parent, flags);
+      },
+    );
   }
 
   private bind(
@@ -557,17 +589,12 @@ export class Controller<
       this.logger!.trace(`afterBind()`);
     }
 
-    if (this.hooks.hasAfterBind) {
-      const ret = this.bindingContext!.afterBind(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags);
-      if (ret instanceof Promise) {
-        this.ensurePromise();
-        return ret.then(() => {
-          return this.attach(initiator, parent, flags);
-        });
-      }
-    }
-
-    return this.attach(initiator, parent, flags);
+    return this.onResolve(
+      this.bindingContext?.afterBind?.(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags),
+      () => {
+        return this.attach(initiator, parent, flags);
+      },
+    );
   }
 
   private attach(
@@ -611,17 +638,12 @@ export class Controller<
       this.logger!.trace(`afterAttach()`);
     }
 
-    if (this.hooks.hasAfterAttach) {
-      const ret = this.bindingContext!.afterAttach(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags);
-      if (ret instanceof Promise) {
-        this.ensurePromise();
-        return ret.then(() => {
-          return this.activateChildren(initiator, parent, flags);
-        });
-      }
-    }
-
-    return this.activateChildren(initiator, parent, flags);
+    return this.onResolve(
+      this.bindingContext?.afterAttach?.(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags),
+      () => {
+        return this.activateChildren(initiator, parent, flags);
+      },
+    );
   }
 
   private activateChildren(
@@ -635,15 +657,12 @@ export class Controller<
 
     this.state |= State.activateChildrenCalled;
 
-    const ret = this.$activateChildren(initiator, parent, flags);
-    if (ret instanceof Promise) {
-      this.ensurePromise();
-      return ret.then(() => {
+    return this.onResolve(
+      this.$activateChildren(initiator, parent, flags),
+      () => {
         return this.endActivate(initiator, parent, flags);
-      });
-    }
-
-    return this.endActivate(initiator, parent, flags);
+      },
+    );
   }
 
   private $activateChildren(
@@ -651,21 +670,13 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    let promises: Promise<void>[] | undefined = void 0;
-    let ret: void | Promise<void>;
-
     if (this.children !== void 0) {
       const { children, scope, part } = this;
-      for (let i = 0, ii = children.length; i < ii; ++i) {
-        ret = children[i].activate(initiator, this as Controller<T>, flags, scope, part);
-        if (ret instanceof Promise) {
-          (promises ?? (promises = [])).push(ret);
-        }
-      }
-    }
-
-    if (promises !== void 0) {
-      return Promise.all(promises) as unknown as Promise<void>;
+      return resolveAll(
+        ...children.map(child => {
+          return child.activate(initiator, this as Controller<T>, flags, scope, part);
+        }),
+      );
     }
   }
 
@@ -703,25 +714,11 @@ export class Controller<
         let cur = initiator.head;
         initiator.head = initiator.tail = null;
         let next: Controller<T> | null;
+
         do {
-          if (cur.hooks.hasAfterAttachChildren) {
-            ret = cur.bindingContext!.afterAttachChildren(initiator as IHydratedController<T>, flags);
-            if (ret instanceof Promise) {
-              const $cur = cur;
-              (promises ?? (promises = [])).push(ret.then(() => {
-                return $cur.postEndActivate(initiator, parent, flags);
-              }));
-            } else {
-              ret = cur.postEndActivate(initiator, parent, flags);
-              if (ret instanceof Promise) {
-                (promises ?? (promises = [])).push(ret);
-              }
-            }
-          } else {
-            ret = cur.postEndActivate(initiator, parent, flags);
-            if (ret instanceof Promise) {
-              (promises ?? (promises = [])).push(ret);
-            }
+          ret = cur.afterAttachChildren(initiator, parent, flags);
+          if (ret instanceof Promise) {
+            (promises ?? (promises = [])).push(ret);
           }
           next = cur.next;
           cur.next = null;
@@ -729,8 +726,11 @@ export class Controller<
         } while (cur !== null);
 
         if (promises !== void 0) {
-          this.ensurePromise();
-          return Promise.all(promises).then(() => {
+          const promise = promises.length === 1
+            ? promises[0]
+            : Promise.all(promises) as unknown as Promise<void>;
+
+          return promise.then(() => {
             this.resolvePromise();
           });
         }
@@ -740,26 +740,31 @@ export class Controller<
     }
   }
 
-  private postEndActivate(
+  private afterAttachChildren(
     initiator: Controller<T>,
     parent: Controller<T> | null,
     flags: LifecycleFlags,
-  ): void | Promise<void> {
-    if ((this.state & State.deactivating) === State.deactivating) {
-      this.state = State.activated;
-      // If the cancellation of activation was requested once the children were already activating,
-      // then there were no more sensible cancellation points and we had to wait out the remainder of the operation.
-      // Now, after activation finally finished, we can proceed to deactivate.
-      return this.deactivate(this as Controller<T>, parent, flags);
-    }
+  ): Promise<void> | void {
+    return this.onResolve(
+      this.bindingContext?.afterAttachChildren?.(initiator as IHydratedController<T>, flags),
+      () => {
+        if ((this.state & State.deactivating) === State.deactivating) {
+          this.state = State.activated;
+          // If the cancellation of activation was requested once the children were already activating,
+          // then there were no more sensible cancellation points and we had to wait out the remainder of the operation.
+          // Now, after activation finally finished, we can proceed to deactivate.
+          return this.deactivate(this as Controller<T>, parent, flags);
+        }
 
-    this.state = State.activated;
-    if (initiator !== this) {
-      // For the initiator, the promise is resolved at the end of endAactivate because that promise resolution
-      // has to come after all descendant postEndActivate calls resolved. Otherwise, the initiator might resolve
-      // while some of its descendants are still busy.
-      this.resolvePromise();
-    }
+        this.state = State.activated;
+        if (initiator !== this) {
+          // For the initiator, the promise is resolved at the end of endAactivate because that promise resolution
+          // has to come after all descendant postEndActivate calls resolved. Otherwise, the initiator might resolve
+          // while some of its descendants are still busy.
+          this.resolvePromise();
+        }
+      },
+    );
   }
 
   public deactivate(
@@ -767,6 +772,7 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    this.canceling = false;
     switch ((this.state & ~State.released)) {
       case State.activated:
         // We're fully activated, so proceed with normal deactivation.
@@ -791,11 +797,10 @@ export class Controller<
             (this.state & State.activateChildrenCalled) === State.activateChildrenCalled &&
             this.children !== void 0
           ) {
-            const ret = this.$deactivateChildren(initiator, parent, flags);
-            if (ret instanceof Promise) {
-              this.ensurePromise();
-              return Promise.all([ret, this.promise]) as unknown as Promise<void>;
-            }
+            return resolveAll(
+              this.onResolve(this.$deactivateChildren(initiator, parent, flags)),
+              this.promise,
+            );
           }
           return this.promise;
         } else {
@@ -819,17 +824,12 @@ export class Controller<
       this.logger!.trace(`beforeDetach()`);
     }
 
-    if (this.hooks.hasBeforeDetach) {
-      const ret = this.bindingContext!.beforeDetach(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags);
-      if (ret instanceof Promise) {
-        this.ensurePromise();
-        return ret.then(() => {
-          return this.detach(initiator, parent, flags);
-        });
-      }
-    }
-
-    return this.detach(initiator, parent, flags);
+    return this.onResolve(
+      this.bindingContext?.beforeDetach?.(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags),
+      () => {
+        return this.detach(initiator, parent, flags);
+      },
+    );
   }
 
   private detach(
@@ -868,17 +868,12 @@ export class Controller<
       this.logger!.trace(`beforeUnbind()`);
     }
 
-    if (this.hooks.hasBeforeUnbind) {
-      const ret = this.bindingContext!.beforeUnbind(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags);
-      if (ret instanceof Promise) {
-        this.ensurePromise();
-        return ret.then(() => {
-          return this.unbind(initiator, parent, flags);
-        });
-      }
-    }
-
-    return this.unbind(initiator, parent, flags);
+    return this.onResolve(
+      this.bindingContext?.beforeUnbind?.(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags),
+      () => {
+        return this.unbind(initiator, parent, flags);
+      },
+    );
   }
 
   private unbind(
@@ -915,17 +910,12 @@ export class Controller<
       this.logger!.trace(`afterUnbind()`);
     }
 
-    if (this.hooks.hasAfterUnbind) {
-      const ret = this.bindingContext!.afterUnbind(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags);
-      if (ret instanceof Promise) {
-        this.ensurePromise();
-        return ret.then(() => {
-          return this.deactivateChildren(initiator, parent, flags);
-        });
-      }
-    }
-
-    return this.deactivateChildren(initiator, parent, flags);
+    return this.onResolve(
+      this.bindingContext?.afterUnbind?.(initiator as IHydratedController<T>, parent as IHydratedParentController<T>, flags),
+      () => {
+        return this.deactivateChildren(initiator, parent, flags);
+      },
+    );
   }
 
   private deactivateChildren(
@@ -939,15 +929,12 @@ export class Controller<
 
     this.state |= State.deactivateChildrenCalled;
 
-    const ret = this.$deactivateChildren(initiator, parent, flags);
-    if (ret instanceof Promise) {
-      this.ensurePromise();
-      return ret.then(() => {
+    return this.onResolve(
+      this.$deactivateChildren(initiator, parent, flags),
+      () => {
         return this.endDeactivate(initiator, parent, flags);
-      });
-    }
-
-    return this.endDeactivate(initiator, parent, flags);
+      },
+    );
   }
 
   private $deactivateChildren(
@@ -955,21 +942,13 @@ export class Controller<
     parent: Controller<T> | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    let promises: Promise<void>[] | undefined = void 0;
-    let ret: void | Promise<void>;
-
     if (this.children !== void 0) {
       const { children } = this;
-      for (let i = 0, ii = children.length; i < ii; ++i) {
-        ret = children[i].deactivate(initiator, this as Controller<T>, flags);
-        if (ret instanceof Promise) {
-          (promises ?? (promises = [])).push(ret);
-        }
-      }
-    }
-
-    if (promises !== void 0) {
-      return Promise.all(promises) as unknown as Promise<void>;
+      return resolveAll(
+        ...children.map(child => {
+          return child.deactivate(initiator, this as Controller<T>, flags);
+        }),
+      );
     }
   }
 
@@ -1009,25 +988,11 @@ export class Controller<
         let cur = initiator.head;
         initiator.head = initiator.tail = null;
         let next: Controller<T> | null;
+
         do {
-          if (cur.hooks.hasAfterUnbindChildren) {
-            ret = cur.bindingContext!.afterUnbindChildren(initiator as IHydratedController<T>, flags);
-            if (ret instanceof Promise) {
-              const $cur = cur;
-              (promises ?? (promises = [])).push(ret.then(() => {
-                return $cur.postEndDeactivate(initiator, parent, flags);
-              }));
-            } else {
-              ret = cur.postEndDeactivate(initiator, parent, flags);
-              if (ret instanceof Promise) {
-                (promises ?? (promises = [])).push(ret);
-              }
-            }
-          } else {
-            ret = cur.postEndDeactivate(initiator, parent, flags);
-            if (ret instanceof Promise) {
-              (promises ?? (promises = [])).push(ret);
-            }
+          ret = cur.afterUnbindChildren(initiator, parent, flags);
+          if (ret instanceof Promise) {
+            (promises ?? (promises = [])).push(ret);
           }
           next = cur.next;
           cur.next = null;
@@ -1035,8 +1000,11 @@ export class Controller<
         } while (cur !== null);
 
         if (promises !== void 0) {
-          this.ensurePromise();
-          return Promise.all(promises).then(() => {
+          const promise = promises.length === 1
+            ? promises[0]
+            : Promise.all(promises) as unknown as Promise<void>;
+
+          return promise.then(() => {
             this.resolvePromise();
           });
         }
@@ -1046,48 +1014,82 @@ export class Controller<
     }
   }
 
-  private postEndDeactivate(
+  private afterUnbindChildren(
     initiator: Controller<T>,
     parent: Controller<T> | null,
     flags: LifecycleFlags,
-  ): void | Promise<void> {
-    this.parent = null;
+  ): Promise<void> | void {
+    return this.onResolve(
+      this.bindingContext?.afterUnbindChildren?.(initiator as IHydratedController<T>, flags),
+      () => {
+        this.parent = null;
 
-    switch (this.vmKind) {
-      case ViewModelKind.customAttribute:
-        this.scope = void 0;
-        break;
-      case ViewModelKind.synthetic:
-        if (!this.hasLockedScope) {
-          this.scope = void 0;
+        switch (this.vmKind) {
+          case ViewModelKind.customAttribute:
+            this.scope = void 0;
+            break;
+          case ViewModelKind.synthetic:
+            if (!this.hasLockedScope) {
+              this.scope = void 0;
+            }
+
+            if (
+              (this.state & State.released) === State.released &&
+              !this.viewFactory!.tryReturnToCache(this as ISyntheticView<T>)
+            ) {
+              this.dispose();
+            }
+            break;
+          case ViewModelKind.customElement:
+            this.scope!.parentScope = null;
+            break;
         }
 
-        if (
-          (this.state & State.released) === State.released &&
-          !this.viewFactory!.tryReturnToCache(this as ISyntheticView<T>)
-        ) {
+        if ((this.state & State.activating) === State.activating) {
+          this.state = (this.state & State.disposed) | State.deactivated;
+          return this.activate(this as Controller<T>, parent, flags);
+        }
+
+        if ((flags & LifecycleFlags.dispose) === LifecycleFlags.dispose) {
           this.dispose();
         }
-        break;
-      case ViewModelKind.customElement:
-        this.scope!.parentScope = null;
-        break;
+        this.state = (this.state & State.disposed) | State.deactivated;
+        if (initiator !== this) {
+          // For the initiator, the promise is resolved at the end of endDeactivate because that promise resolution
+          // has to come after all descendant postEndDeactivate calls resolved. Otherwise, the initiator might resolve
+          // while some of its descendants are still busy.
+          this.resolvePromise();
+        }
+      },
+    );
+  }
+
+  private onResolve(
+    maybePromise: Promise<void> | void,
+    resolveCallback?: () => Promise<void> | void,
+  ): Promise<void> | void {
+    if (maybePromise instanceof Promise) {
+      if (this.promise === void 0) {
+        this.promise = new Promise((resolve, reject) => {
+          this.resolve = resolve;
+          this.reject = reject;
+        });
+      }
+      maybePromise = maybePromise.catch(err => {
+        this.logger?.error(err);
+        const reject = this.reject;
+        this.promise = this.resolve = this.reject = void 0;
+        reject!(err);
+        throw err;
+      });
+
+      return resolveCallback === void 0
+        ? maybePromise
+        : maybePromise.then(resolveCallback);
     }
 
-    if ((this.state & State.activating) === State.activating) {
-      this.state = (this.state & State.disposed) | State.deactivated;
-      return this.activate(this as Controller<T>, parent, flags);
-    }
-
-    if ((flags & LifecycleFlags.dispose) === LifecycleFlags.dispose) {
-      this.dispose();
-    }
-    this.state = (this.state & State.disposed) | State.deactivated;
-    if (initiator !== this) {
-      // For the initiator, the promise is resolved at the end of endDeactivate because that promise resolution
-      // has to come after all descendant postEndDeactivate calls resolved. Otherwise, the initiator might resolve
-      // while some of its descendants are still busy.
-      this.resolvePromise();
+    if (resolveCallback !== void 0) {
+      return resolveCallback();
     }
   }
 
@@ -1206,16 +1208,10 @@ export class Controller<
     return void 0;
   }
 
-  private ensurePromise(): void {
-    if (this.promise === void 0) {
-      this.promise = new Promise(resolve => this.resolve = resolve);
-    }
-  }
-
   private resolvePromise(): void {
     const resolve = this.resolve;
     if (resolve !== void 0) {
-      this.promise = this.resolve = void 0;
+      this.promise = this.resolve = this.reject = void 0;
       resolve();
     }
   }

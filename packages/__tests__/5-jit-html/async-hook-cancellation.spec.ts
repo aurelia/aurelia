@@ -37,7 +37,7 @@ function createAuFixture<T extends Constructable>(
   const { container } = ctx;
 
   container.register(Registration.instance(Config, config));
-  container.register(LoggerConfiguration.create(console, LogLevel.trace));
+  container.register(LoggerConfiguration.create({ $console: console, level: LogLevel.warn }));
   const calls = container.get(Calls);
   const component = container.get(Component);
 
@@ -58,7 +58,7 @@ function createControllerFixture<T extends Constructable>(
   const { container } = ctx;
 
   container.register(Registration.instance(Config, config));
-  container.register(LoggerConfiguration.create(console, LogLevel.trace));
+  container.register(LoggerConfiguration.create({ $console: console, level: LogLevel.warn }));
   const calls = container.get(Calls);
   const component = container.get(Component);
 

@@ -90,6 +90,7 @@ export class ViewportAgent {
   private nextNode: RouteNode | null = null;
 
   private deferredSwap: ExposedPromise<void> | null = null;
+  private currentTransition: Transition | null = null;
 
   public constructor(
     public readonly viewport: IViewport,
@@ -122,6 +123,8 @@ export class ViewportAgent {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    const tr = this.currentTransition;
+    if (tr !== null) { ensureTransitionHasNotErrored(tr); }
     this.isActive = true;
 
     switch (this.currState) {
@@ -175,6 +178,8 @@ export class ViewportAgent {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    const tr = this.currentTransition;
+    if (tr !== null) { ensureTransitionHasNotErrored(tr); }
     this.isActive = false;
 
     switch (this.currState) {
@@ -335,6 +340,7 @@ export class ViewportAgent {
   }
 
   public canLeave(tr: Transition): void | Promise<void> {
+    if (this.currentTransition === null) { this.currentTransition = tr; }
     ensureTransitionHasNotErrored(tr);
     if (tr.guardsResult !== true) {
       this.logger.trace(`canLeave() - skipping: guardsResult is already non-true`);
@@ -510,6 +516,7 @@ export class ViewportAgent {
   }
 
   public canEnter(tr: Transition): void | Promise<void> {
+    if (this.currentTransition === null) { this.currentTransition = tr; }
     ensureTransitionHasNotErrored(tr);
     if (tr.guardsResult !== true) {
       this.logger.trace(`canEnter() - skipping: guardsResult is already non-true`);
@@ -744,6 +751,7 @@ export class ViewportAgent {
   }
 
   public endTransition(tr: Transition): void {
+    this.currentTransition = null;
     ensureTransitionHasNotErrored(tr);
     switch (this.nextState) {
       case State.nextIsEmpty:

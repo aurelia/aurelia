@@ -137,15 +137,15 @@ export class HookSpecs {
     $this.leave = void 0;
   }
 
-  public toString(): string {
+  public toString(exclude?: string): string {
     const strings: string[] = [];
     for (const k of hookNames) {
       const spec = this[k];
-      if (spec !== hookSpecsMap[k].sync) {
+      if (spec.type !== exclude) {
         strings.push(`${spec.name}.${spec.type}`);
       }
     }
-    return `Hooks(${strings.join(',')})`;
+    return strings.length > 0 ? `Hooks(${strings.join(',')})` : '';
   }
 }
 

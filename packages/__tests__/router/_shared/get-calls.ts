@@ -1,7 +1,7 @@
 /* eslint-disable no-fallthrough */
 import { IRouterOptionsSpec, IComponentSpec } from '../_hook-tests.spec';
 
-function* deactivate(
+export function* deactivate(
   prefix: string,
   component: string,
   afterChildren: boolean,
@@ -19,7 +19,7 @@ function* deactivate(
   }
 }
 
-function* activate(
+export function* activate(
   prefix: string,
   component: string,
   afterChildren: boolean,
@@ -36,7 +36,7 @@ function* activate(
   }
 }
 
-function* interleave(
+export function* interleave(
   ...generators: Generator<string, void>[]
 ) {
   while (generators.length > 0) {
@@ -48,7 +48,10 @@ function* interleave(
         --i;
         --ii;
       } else {
-        yield next.value as string;
+        const value = next.value as string;
+        if (value.length > 0) {
+          yield value;
+        }
       }
     }
   }

@@ -41,7 +41,7 @@ export class HTMLProjectorLocator implements IProjectorLocator<Node> {
       return new ContainerlessProjector(dom, $component, host);
     }
 
-    return new HostProjector($component, host);
+    return new HostProjector($component, host, def.enhance);
   }
 }
 
@@ -150,6 +150,7 @@ export class HostProjector implements IElementProjector<Node> {
   public constructor(
     $controller: ICustomElementController<Node>,
     public host: CustomElementHost<Node>,
+    private readonly enhance: boolean,
   ) {
     Metadata.define(CustomElement.name, $controller, host);
   }
@@ -167,7 +168,7 @@ export class HostProjector implements IElementProjector<Node> {
   }
 
   public project(nodes: INodeSequence<Node>): void {
-    nodes.appendTo(this.host);
+    nodes.appendTo(this.host, this.enhance);
   }
 
   public take(nodes: INodeSequence<Node>): void {

@@ -1857,10 +1857,13 @@ describe('router hooks', function () {
             try {
               await tearDown();
             } catch ($err) {
-              if (($err.message as string).includes('Unexpected state')) {
-                // The router will be in invalid state and the viewport will throw when trying to deactivate, which is okay, we expect this.
-                container.get(ILogger).warn(`suppressing tearDown error: ${$err.message}`);
+              if (($err.message as string).includes('error in')) {
+                // The router should by default "remember" the last error and propagate it once again from the first deactivated viewport
+                // on the next shutdown attempt.
+                // This is the error we expect, so ignore it
               } else {
+                // Re-throw anything else which would not be an expected error (e.g. "unexpected state" shouldn't happen if the router handled
+                // the last error)
                 throw $err;
               }
             }

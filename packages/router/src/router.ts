@@ -338,6 +338,7 @@ export class Transition {
     public readonly resolve: ((success: boolean) => void) | null,
     public readonly reject: ((err: unknown) => void) | null,
     public guardsResult: boolean | ViewportInstructionTree,
+    public error: unknown,
   ) { }
 
   public static create(
@@ -358,6 +359,7 @@ export class Transition {
       input.resolve,
       input.reject,
       input.guardsResult,
+      void 0,
     );
   }
 
@@ -420,6 +422,7 @@ export class Router {
         reject: null,
         promise: null,
         guardsResult: true,
+        error: void 0,
       });
     }
     return currentTr;
@@ -711,6 +714,7 @@ export class Router {
       previousRouteTree: this.routeTree.clone(),
       routeTree: this.routeTree,
       guardsResult: true,
+      error: void 0,
     });
 
     this.logger.debug(`Scheduling transition: %s`, nextTr);
@@ -718,7 +722,7 @@ export class Router {
     if (this.activeNavigation === null) {
       // Catch any errors that might be thrown by `dequeue` and reject the original promise which is awaited down below
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-      this.dequeue(nextTr).catch(err => { nextTr.reject!(err); });
+      this.dequeue(nextTr).catch(err => { nextTr.reject!(nextTr.error = err); });
     }
 
     try {
@@ -995,7 +999,7 @@ export class Router {
           const nextTr = this.nextTr;
           if (nextTr !== null) {
             // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-            this.dequeue(nextTr).catch(reason => { nextTr.reject!(reason);});
+            this.dequeue(nextTr).catch(reason => { nextTr.reject!(nextTr.error = reason);});
           }
         },
       );

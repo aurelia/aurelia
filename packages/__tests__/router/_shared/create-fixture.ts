@@ -40,6 +40,7 @@ export async function createFixture<T extends Constructable>(
 
   return {
     ctx,
+    container,
     au,
     host,
     hia,

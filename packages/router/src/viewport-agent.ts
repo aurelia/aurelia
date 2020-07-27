@@ -335,6 +335,7 @@ export class ViewportAgent {
   }
 
   public canLeave(tr: Transition): void | Promise<void> {
+    ensureTransitionHasNotErrored(tr);
     if (tr.guardsResult !== true) {
       this.logger.trace(`canLeave() - skipping: guardsResult is already non-true`);
       return;
@@ -364,6 +365,7 @@ export class ViewportAgent {
   }
 
   private runCanLeave(tr: Transition, ca: ComponentAgent, nextNode: RouteNode | null): void | Promise<void> {
+    ensureTransitionHasNotErrored(tr);
     this.logger.trace(`runCanLeave() - starting [canLeave]`);
 
     return runSequence(
@@ -382,6 +384,7 @@ export class ViewportAgent {
   }
 
   public leave(tr: Transition): void | Promise<void> {
+    ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(tr);
     switch (this.currState) {
       case State.currCanLeaveDone:
@@ -406,6 +409,7 @@ export class ViewportAgent {
   }
 
   private runLeave(tr: Transition, ca: ComponentAgent, nextNode: RouteNode | null): void | Promise<void> {
+    ensureTransitionHasNotErrored(tr);
     this.logger.trace(`runLeave() - starting [leave]`);
 
     return runSequence(
@@ -418,6 +422,7 @@ export class ViewportAgent {
   }
 
   public deactivateFromRouter(tr: Transition): void | Promise<void> {
+    ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(tr);
     switch (this.currState) {
       case State.currLeaveDone:
@@ -485,6 +490,7 @@ export class ViewportAgent {
   }
 
   private runDeactivate(tr: Transition): void | Promise<void> {
+    ensureTransitionHasNotErrored(tr);
     const ca = this.curCA;
     if (ca === null) {
       this.logger.trace(`runDeactivate() - skipping [deactivate] because no previous component`);
@@ -504,6 +510,7 @@ export class ViewportAgent {
   }
 
   public canEnter(tr: Transition): void | Promise<void> {
+    ensureTransitionHasNotErrored(tr);
     if (tr.guardsResult !== true) {
       this.logger.trace(`canEnter() - skipping: guardsResult is already non-true`);
       return;
@@ -549,6 +556,7 @@ export class ViewportAgent {
   }
 
   private runCanEnter(tr: Transition, ca: ComponentAgent, nextNode: RouteNode): void | Promise<void> {
+    ensureTransitionHasNotErrored(tr);
     this.logger.trace(`runCanEnter() - starting [canEnter]`);
 
     return runSequence(
@@ -567,6 +575,7 @@ export class ViewportAgent {
   }
 
   public enter(tr: Transition): void | Promise<void> {
+    ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(tr);
     switch (this.nextState) {
       case State.nextCanEnterDone:
@@ -593,11 +602,12 @@ export class ViewportAgent {
     }
   }
 
-  private runEnter(transition: Transition, ca: ComponentAgent, nextNode: RouteNode): void | Promise<void> {
+  private runEnter(tr: Transition, ca: ComponentAgent, nextNode: RouteNode): void | Promise<void> {
+    ensureTransitionHasNotErrored(tr);
     this.logger.trace(`runEnter() - starting [enter]`);
     return runSequence(
       () => { return ca.enter(nextNode); },
-      () => {
+      (_) => {
         this.nextState = State.nextEnterDone;
         this.logger.trace(`runEnter() - finished [enter]`);
       },
@@ -605,6 +615,7 @@ export class ViewportAgent {
   }
 
   public activateFromRouter(tr: Transition): void | Promise<void> {
+    ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(tr);
     switch (this.nextState) {
       case State.nextEnterDone:
@@ -669,6 +680,7 @@ export class ViewportAgent {
   }
 
   private runActivate(tr: Transition): void | Promise<void> {
+    ensureTransitionHasNotErrored(tr);
     this.logger.trace(`runActivate() - starting [activate]`);
 
     const ca = this.nextCA!;
@@ -682,6 +694,7 @@ export class ViewportAgent {
   }
 
   private swap(tr: Transition): void | Promise<void> {
+    ensureTransitionHasNotErrored(tr);
     this.logger.trace(`swap(swapStrategy:'${tr.options.swapStrategy}') - starting [swap]`);
 
     return runSequence(
@@ -731,6 +744,7 @@ export class ViewportAgent {
   }
 
   public endTransition(tr: Transition): void {
+    ensureTransitionHasNotErrored(tr);
     switch (this.nextState) {
       case State.nextIsEmpty:
         switch (this.currState) {
@@ -792,6 +806,12 @@ export class ViewportAgent {
 function ensureGuardsResultIsTrue(tr: Transition): void {
   if (tr.guardsResult !== true) {
     throw new Error(`Unexpected guardsResult ${tr.guardsResult}`);
+  }
+}
+
+function ensureTransitionHasNotErrored(tr: Transition): void {
+  if (tr.error !== void 0) {
+    throw tr.error;
   }
 }
 

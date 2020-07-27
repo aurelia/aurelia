@@ -1,13 +1,15 @@
+/* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { customElement } from '@aurelia/runtime';
-import { IRouterOptions, ResolutionStrategy, LifecycleStrategy, SwapStrategy } from '@aurelia/router';
+import { customElement, CustomElement } from '@aurelia/runtime';
+import { IRouterOptions, ResolutionStrategy, LifecycleStrategy, SwapStrategy, IRouter } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
 
-import { IHookInvocationAggregator, IHIAConfig } from './_shared/hook-invocation-tracker';
+import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker';
 import { TestRouteViewModelBase, HookSpecs } from './_shared/view-models';
 import { hookSpecsMap } from './_shared/hook-spec';
 import { getStopPhaseCalls, getCalls, interleave, activate, deactivate } from './_shared/get-calls';
 import { createFixture } from './_shared/create-fixture';
+import { Constructable, IContainer, ILogger } from '@aurelia/kernel';
 
 function vp(count: number): string {
   if (count === 1) {
@@ -1783,6 +1785,149 @@ describe('router hooks', function () {
                 yield `stop.b1.afterUnbindChildren`;
                 break;
             }
+          });
+        }
+      });
+    }
+  });
+
+  describe('error handling', function () {
+    const resolutionStrategies: ResolutionStrategy[] = [
+      'static',
+      'dynamic',
+    ];
+    const lifecycleStrategies: LifecycleStrategy[] = [
+      'phased',
+      'parallel',
+    ];
+    const swapStrategies: SwapStrategy[] = [
+      'parallel',
+      'add-first',
+      'remove-first',
+    ];
+    const routerOptionsSpecs: IRouterOptionsSpec[] = [];
+    for (const resolutionStrategy of resolutionStrategies) {
+      for (const lifecycleStrategy of lifecycleStrategies) {
+        for (const swapStrategy of swapStrategies) {
+          routerOptionsSpecs.push({
+            resolutionStrategy,
+            lifecycleStrategy,
+            swapStrategy,
+            toString() {
+              return `resolutionStrategy:'${resolutionStrategy}',lifecycleStrategy:'${lifecycleStrategy}',swapStrategy:'${swapStrategy}'`;
+            },
+          });
+        }
+      }
+    }
+    interface IErrorSpec {
+      action: (router: IRouter, container: IContainer) => Promise<void>;
+      messageMatcher: RegExp;
+      stackMatcher: RegExp;
+      toString(): string;
+    }
+
+    for (const routerOptionsSpec of routerOptionsSpecs) {
+      const getRouterOptions = (): IRouterOptions => routerOptionsSpec;
+
+      describe(`${routerOptionsSpec}`, function () {
+        function runTest(
+          spec: IErrorSpec,
+        ) {
+          it(`re-throws ${spec}`, async function () {
+            @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
+            class Root {}
+
+            const { router, container, tearDown } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
+
+            let err: Error | undefined = void 0;
+            try {
+              await spec.action(router, container);
+            } catch ($err) {
+              err = $err;
+            }
+
+            if (err === void 0) {
+              assert.fail(`Expected an error, but no error was thrown`);
+            } else {
+              assert.match(err.message, spec.messageMatcher, `Expected message to match`);
+              assert.match(err.stack, spec.stackMatcher, `Expected stack to match`);
+            }
+
+            try {
+              await tearDown();
+            } catch ($err) {
+              if (($err.message as string).includes('Unexpected state')) {
+                // The router will be in invalid state and the viewport will throw when trying to deactivate, which is okay, we expect this.
+                container.get(ILogger).warn(`suppressing tearDown error: ${$err.message}`);
+              } else {
+                throw $err;
+              }
+            }
+          });
+        }
+
+        for (const hookName of [
+          'beforeBind',
+          'afterBind',
+          'afterAttach',
+          'afterAttachChildren',
+          'canEnter',
+          'enter',
+        ] as HookName[]) {
+          runTest({
+            async action(router, container) {
+              const target = CustomElement.define({ name: 'a', template: null }, class Target {
+                public async [hookName]() {
+                  throw new Error(`error in ${hookName}`);
+                }
+              });
+
+              container.register(target);
+              await router.goto(target);
+            },
+            messageMatcher: new RegExp(`error in ${hookName}`),
+            stackMatcher: new RegExp(`Target.${hookName}`),
+            toString() {
+              return String(this.messageMatcher);
+            },
+          });
+        }
+
+        for (const hookName of [
+          'beforeDetach',
+          'beforeUnbind',
+          'afterUnbind',
+          'afterUnbindChildren',
+          'canLeave',
+          'leave',
+        ] as HookName[]) {
+          runTest({
+            async action(router, container) {
+              const target1 = CustomElement.define({ name: 'a', template: null }, class Target1 {
+                public async [hookName]() {
+                  throw new Error(`error in ${hookName}`);
+                }
+              });
+
+              // These shouldn't throw
+              const target2 = CustomElement.define({ name: 'a', template: null }, class Target2 {
+                public async beforeBind() { throw new Error(`error in beforeBind`); }
+                public async afterBind() { throw new Error(`error in afterBind`); }
+                public async afterAttach() { throw new Error(`error in afterAttach`); }
+                public async canEnter() { throw new Error(`error in canEnter`); }
+                public async enter() { throw new Error(`error in enter`); }
+              });
+
+              container.register(target1, target2);
+              await router.goto(target1);
+              await router.goto(target2);
+            },
+            messageMatcher: new RegExp(`error in ${hookName}`),
+            stackMatcher: new RegExp(`Target1.${hookName}`),
+            toString() {
+              return String(this.messageMatcher);
+            },
           });
         }
       });

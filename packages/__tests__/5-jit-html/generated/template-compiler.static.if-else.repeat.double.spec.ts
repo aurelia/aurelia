@@ -4387,14 +4387,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4404,14 +4405,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4421,14 +4423,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4438,14 +4441,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"true\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4455,14 +4459,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4472,14 +4477,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4487,16 +4493,125 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         au.app({ host, component });
         verify(au, host, "aa");
     });
-    it("tag$04 text$03 if$01 repeat$13 variant$01$double _", function () {
+    it("tag$04 text$03 if$01 repeat$12 variant$01$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\"></template><template else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$04 text$03 if$01 repeat$12 variant$02$double _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$04 text$03 if$01 repeat$12 variant$03$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$04 text$03 if$01 repeat$12 variant$03$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$04 text$03 if$01 repeat$12 variant$09$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$04 text$03 if$01 repeat$12 variant$09$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaaaaa");
+    });
+    it("tag$04 text$03 if$01 repeat$13 variant$01$double _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4506,14 +4621,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4523,14 +4639,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4540,14 +4657,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4557,14 +4675,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4574,14 +4693,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4591,14 +4711,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4608,14 +4729,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4625,14 +4747,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4642,14 +4765,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4659,14 +4783,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4676,14 +4801,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4693,14 +4819,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4710,14 +4837,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4727,14 +4855,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4742,16 +4871,179 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$04 text$03 if$02 repeat$13 variant$01$double _", function () {
+    it("tag$04 text$03 if$02 repeat$12 variant$01$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$04 text$03 if$02 repeat$12 variant$02$double _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$04 text$03 if$02 repeat$12 variant$03$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$04 text$03 if$02 repeat$12 variant$03$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$04 text$03 if$02 repeat$12 variant$11$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbbbbb");
+    });
+    it("tag$04 text$03 if$02 repeat$12 variant$11$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$04 text$03 if$02 repeat$12 variant$11$double$03 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$04 text$03 if$02 repeat$12 variant$12$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$04 text$03 if$02 repeat$12 variant$12$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$04 text$03 if$02 repeat$13 variant$01$double _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4761,14 +5053,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4778,14 +5071,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4795,14 +5089,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4812,14 +5107,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4829,14 +5125,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4846,14 +5143,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4863,14 +5161,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4880,14 +5179,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$03 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4897,14 +5197,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4914,14 +5215,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4931,14 +5233,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4948,14 +5251,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"true\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4965,14 +5269,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4982,14 +5287,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -4997,16 +5303,125 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         au.app({ host, component });
         verify(au, host, "aa");
     });
-    it("tag$04 text$04 if$01 repeat$13 variant$01$double _", function () {
+    it("tag$04 text$04 if$01 repeat$12 variant$01$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\"></template><template else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$04 text$04 if$01 repeat$12 variant$02$double _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$04 text$04 if$01 repeat$12 variant$03$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$04 text$04 if$01 repeat$12 variant$03$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$04 text$04 if$01 repeat$12 variant$09$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$04 text$04 if$01 repeat$12 variant$09$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaaaaa");
+    });
+    it("tag$04 text$04 if$01 repeat$13 variant$01$double _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5016,14 +5431,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5033,14 +5449,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5050,14 +5467,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5067,14 +5485,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5084,14 +5503,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5101,14 +5521,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5118,14 +5539,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5135,14 +5557,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5152,14 +5575,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5169,14 +5593,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5186,14 +5611,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5203,14 +5629,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5220,14 +5647,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5237,14 +5665,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5252,16 +5681,179 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$04 text$04 if$02 repeat$13 variant$01$double _", function () {
+    it("tag$04 text$04 if$02 repeat$12 variant$01$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$04 text$04 if$02 repeat$12 variant$02$double _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$04 text$04 if$02 repeat$12 variant$03$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$04 text$04 if$02 repeat$12 variant$03$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$04 text$04 if$02 repeat$12 variant$11$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbbbbb");
+    });
+    it("tag$04 text$04 if$02 repeat$12 variant$11$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$04 text$04 if$02 repeat$12 variant$11$double$03 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$04 text$04 if$02 repeat$12 variant$12$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$04 text$04 if$02 repeat$12 variant$12$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$04 text$04 if$02 repeat$13 variant$01$double _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static containerless = true;
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5271,14 +5863,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5288,14 +5881,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5305,14 +5899,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5322,14 +5917,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5339,14 +5935,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5356,14 +5953,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5373,14 +5971,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5390,14 +5989,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$04 text$04 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
+            static containerless = true;
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -5409,7 +6009,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5427,7 +6027,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5445,7 +6045,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5463,7 +6063,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5481,7 +6081,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5499,7 +6099,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5517,7 +6117,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5535,7 +6135,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5553,7 +6153,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5571,7 +6171,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5589,7 +6189,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5607,7 +6207,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5625,7 +6225,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5643,7 +6243,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5661,7 +6261,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5679,7 +6279,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5697,7 +6297,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5715,7 +6315,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5733,7 +6333,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5751,7 +6351,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5769,7 +6369,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5787,7 +6387,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5805,7 +6405,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5823,7 +6423,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5841,7 +6441,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5859,7 +6459,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5877,7 +6477,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5895,7 +6495,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5913,7 +6513,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5931,7 +6531,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5949,7 +6549,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5967,7 +6567,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -5985,7 +6585,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6003,7 +6603,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6021,7 +6621,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6039,7 +6639,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6057,7 +6657,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6075,7 +6675,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6093,7 +6693,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6111,7 +6711,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6129,7 +6729,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6147,7 +6747,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6165,7 +6765,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6183,7 +6783,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6201,7 +6801,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6219,7 +6819,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6237,7 +6837,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6255,7 +6855,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6273,7 +6873,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6291,7 +6891,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6309,7 +6909,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6327,7 +6927,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6345,7 +6945,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6363,7 +6963,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6381,7 +6981,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6399,7 +6999,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6417,7 +7017,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6435,7 +7035,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6453,7 +7053,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6471,7 +7071,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6489,7 +7089,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6507,7 +7107,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6525,7 +7125,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6543,7 +7143,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6561,7 +7161,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6579,7 +7179,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6597,7 +7197,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6615,7 +7215,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6633,7 +7233,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6651,7 +7251,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6669,7 +7269,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6687,7 +7287,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6705,7 +7305,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6723,7 +7323,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6741,7 +7341,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6759,7 +7359,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6777,7 +7377,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6795,7 +7395,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6813,7 +7413,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6831,7 +7431,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6849,7 +7449,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6867,7 +7467,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6885,7 +7485,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6903,7 +7503,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6921,7 +7521,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6939,7 +7539,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6957,7 +7557,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6975,7 +7575,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -6993,7 +7593,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -7011,7 +7611,7 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "open" };
             msg = "";
             not = "";
             item = "";
@@ -7027,15 +7627,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7045,15 +7645,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7063,15 +7663,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7081,15 +7681,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"true\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7099,15 +7699,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7117,15 +7717,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7133,17 +7733,125 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         au.app({ host, component });
         verify(au, host, "aa");
     });
-    it("tag$06 text$03 if$01 repeat$13 variant$01$double _", function () {
+    it("tag$06 text$03 if$01 repeat$12 variant$01$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\"></template><template else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$06 text$03 if$01 repeat$12 variant$02$double _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$06 text$03 if$01 repeat$12 variant$03$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$06 text$03 if$01 repeat$12 variant$03$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$06 text$03 if$01 repeat$12 variant$09$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$06 text$03 if$01 repeat$12 variant$09$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaaaaa");
+    });
+    it("tag$06 text$03 if$01 repeat$13 variant$01$double _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7153,15 +7861,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7171,15 +7879,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7189,15 +7897,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7207,15 +7915,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7225,15 +7933,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7243,15 +7951,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7261,15 +7969,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7279,15 +7987,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7297,15 +8005,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7315,15 +8023,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7333,15 +8041,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7351,15 +8059,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7369,15 +8077,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7387,15 +8095,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7403,17 +8111,179 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$03 if$02 repeat$13 variant$01$double _", function () {
+    it("tag$06 text$03 if$02 repeat$12 variant$01$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$06 text$03 if$02 repeat$12 variant$02$double _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$06 text$03 if$02 repeat$12 variant$03$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$06 text$03 if$02 repeat$12 variant$03$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$06 text$03 if$02 repeat$12 variant$11$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbbbbb");
+    });
+    it("tag$06 text$03 if$02 repeat$12 variant$11$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$06 text$03 if$02 repeat$12 variant$11$double$03 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$06 text$03 if$02 repeat$12 variant$12$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$06 text$03 if$02 repeat$12 variant$12$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$06 text$03 if$02 repeat$13 variant$01$double _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7423,15 +8293,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7441,15 +8311,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7459,15 +8329,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7477,15 +8347,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7495,15 +8365,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7513,15 +8383,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7531,15 +8401,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7549,15 +8419,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$03 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7567,15 +8437,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$01 repeat$11 variant$01$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7585,15 +8455,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$01 repeat$11 variant$02$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7603,15 +8473,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$01 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7621,15 +8491,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$01 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"true\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7639,15 +8509,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$01 repeat$11 variant$09$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7657,15 +8527,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$01 repeat$11 variant$09$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7673,17 +8543,125 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         au.app({ host, component });
         verify(au, host, "aa");
     });
-    it("tag$06 text$04 if$01 repeat$13 variant$01$double _", function () {
+    it("tag$06 text$04 if$01 repeat$12 variant$01$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\"></template><template else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$06 text$04 if$01 repeat$12 variant$02$double _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$06 text$04 if$01 repeat$12 variant$03$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$06 text$04 if$01 repeat$12 variant$03$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$06 text$04 if$01 repeat$12 variant$09$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaa");
+    });
+    it("tag$06 text$04 if$01 repeat$12 variant$09$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "aaaaaa");
+    });
+    it("tag$06 text$04 if$01 repeat$13 variant$01$double _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7693,15 +8671,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$01 repeat$13 variant$02$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7711,15 +8689,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$01 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7729,15 +8707,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$01 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7747,15 +8725,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$01 repeat$13 variant$09$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7765,15 +8743,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$01 repeat$13 variant$09$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7783,15 +8761,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$11 variant$01$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7801,15 +8779,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$11 variant$02$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7819,15 +8797,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$11 variant$03$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7837,15 +8815,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$11 variant$03$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7855,15 +8833,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$11 variant$11$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7873,15 +8851,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$11 variant$11$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7891,15 +8869,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$11 variant$11$double$03 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7909,15 +8887,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$11 variant$12$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7927,15 +8905,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$11 variant$12$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7943,17 +8921,179 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         au.app({ host, component });
         verify(au, host, "b");
     });
-    it("tag$06 text$04 if$02 repeat$13 variant$01$double _", function () {
+    it("tag$06 text$04 if$02 repeat$12 variant$01$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$06 text$04 if$02 repeat$12 variant$02$double _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$06 text$04 if$02 repeat$12 variant$03$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$06 text$04 if$02 repeat$12 variant$03$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$06 text$04 if$02 repeat$12 variant$11$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbbbbb");
+    });
+    it("tag$06 text$04 if$02 repeat$12 variant$11$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$06 text$04 if$02 repeat$12 variant$11$double$03 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$06 text$04 if$02 repeat$12 variant$12$double$01 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$06 text$04 if$02 repeat$12 variant$12$double$02 _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
+            msg = "a";
+            not = "b";
+        });
+        const component = new App();
+        au.app({ host, component });
+        verify(au, host, "bbb");
+    });
+    it("tag$06 text$04 if$02 repeat$13 variant$01$double _", function () {
+        const { au, host } = createFixture();
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
+            static bindables = ["msg", "not", "item"];
+            static shadowOptions = { mode: "closed" };
+            msg = "";
+            not = "";
+            item = "";
+        });
+        au.register(MyFoo);
+        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7963,15 +9103,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$13 variant$02$double _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7981,15 +9121,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$13 variant$03$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -7999,15 +9139,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$13 variant$03$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8017,15 +9157,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$13 variant$11$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8035,15 +9175,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$13 variant$11$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8053,15 +9193,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$13 variant$11$double$03 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8071,15 +9211,15 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$13 variant$12$double$01 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
+        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
-            static containerless = true;
+            static shadowOptions = { mode: "closed" };
             msg = "";
             not = "";
             item = "";
         });
         au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
+        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });
@@ -8089,3516 +9229,6 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
     });
     it("tag$06 text$04 if$02 repeat$13 variant$12$double$02 _", function () {
         const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static containerless = true;
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$03 if$01 repeat$11 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$07 text$03 if$01 repeat$11 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$07 text$03 if$01 repeat$11 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$07 text$03 if$01 repeat$11 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$07 text$03 if$01 repeat$11 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$07 text$03 if$01 repeat$11 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aa");
-    });
-    it("tag$07 text$03 if$01 repeat$12 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$07 text$03 if$01 repeat$12 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$07 text$03 if$01 repeat$12 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$07 text$03 if$01 repeat$12 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$07 text$03 if$01 repeat$12 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$07 text$03 if$01 repeat$12 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaaaaa");
-    });
-    it("tag$07 text$03 if$01 repeat$13 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$03 if$01 repeat$13 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$03 if$01 repeat$13 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$03 if$01 repeat$13 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$03 if$01 repeat$13 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$03 if$01 repeat$13 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abcabc");
-    });
-    it("tag$07 text$03 if$02 repeat$11 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$07 text$03 if$02 repeat$11 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$07 text$03 if$02 repeat$11 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$07 text$03 if$02 repeat$11 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$07 text$03 if$02 repeat$11 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bb");
-    });
-    it("tag$07 text$03 if$02 repeat$11 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$07 text$03 if$02 repeat$11 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$07 text$03 if$02 repeat$11 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$07 text$03 if$02 repeat$11 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$07 text$03 if$02 repeat$12 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$07 text$03 if$02 repeat$12 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$07 text$03 if$02 repeat$12 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$07 text$03 if$02 repeat$12 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$07 text$03 if$02 repeat$12 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbbbbb");
-    });
-    it("tag$07 text$03 if$02 repeat$12 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$07 text$03 if$02 repeat$12 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$07 text$03 if$02 repeat$12 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$07 text$03 if$02 repeat$12 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$07 text$03 if$02 repeat$13 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$03 if$02 repeat$13 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$03 if$02 repeat$13 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$03 if$02 repeat$13 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$03 if$02 repeat$13 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abcabc");
-    });
-    it("tag$07 text$03 if$02 repeat$13 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$03 if$02 repeat$13 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$03 if$02 repeat$13 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$03 if$02 repeat$13 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$04 if$01 repeat$11 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$07 text$04 if$01 repeat$11 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$07 text$04 if$01 repeat$11 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$07 text$04 if$01 repeat$11 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$07 text$04 if$01 repeat$11 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$07 text$04 if$01 repeat$11 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aa");
-    });
-    it("tag$07 text$04 if$01 repeat$12 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$07 text$04 if$01 repeat$12 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$07 text$04 if$01 repeat$12 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$07 text$04 if$01 repeat$12 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$07 text$04 if$01 repeat$12 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$07 text$04 if$01 repeat$12 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaaaaa");
-    });
-    it("tag$07 text$04 if$01 repeat$13 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$04 if$01 repeat$13 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$04 if$01 repeat$13 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$04 if$01 repeat$13 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$04 if$01 repeat$13 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$04 if$01 repeat$13 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abcabc");
-    });
-    it("tag$07 text$04 if$02 repeat$11 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$07 text$04 if$02 repeat$11 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$07 text$04 if$02 repeat$11 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$07 text$04 if$02 repeat$11 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$07 text$04 if$02 repeat$11 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bb");
-    });
-    it("tag$07 text$04 if$02 repeat$11 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$07 text$04 if$02 repeat$11 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$07 text$04 if$02 repeat$11 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$07 text$04 if$02 repeat$11 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$07 text$04 if$02 repeat$12 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$07 text$04 if$02 repeat$12 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$07 text$04 if$02 repeat$12 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$07 text$04 if$02 repeat$12 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$07 text$04 if$02 repeat$12 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbbbbb");
-    });
-    it("tag$07 text$04 if$02 repeat$12 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$07 text$04 if$02 repeat$12 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$07 text$04 if$02 repeat$12 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$07 text$04 if$02 repeat$12 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$07 text$04 if$02 repeat$13 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$04 if$02 repeat$13 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$04 if$02 repeat$13 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$04 if$02 repeat$13 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$04 if$02 repeat$13 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abcabc");
-    });
-    it("tag$07 text$04 if$02 repeat$13 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$04 if$02 repeat$13 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$04 if$02 repeat$13 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$07 text$04 if$02 repeat$13 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$03 if$01 repeat$11 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$08 text$03 if$01 repeat$11 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$08 text$03 if$01 repeat$11 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$08 text$03 if$01 repeat$11 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"true\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$08 text$03 if$01 repeat$11 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$08 text$03 if$01 repeat$11 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aa");
-    });
-    it("tag$08 text$03 if$01 repeat$13 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\"></template><template else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$03 if$01 repeat$13 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$03 if$01 repeat$13 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$03 if$01 repeat$13 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$03 if$01 repeat$13 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$03 if$01 repeat$13 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abcabc");
-    });
-    it("tag$08 text$03 if$02 repeat$11 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$08 text$03 if$02 repeat$11 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$08 text$03 if$02 repeat$11 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$08 text$03 if$02 repeat$11 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$08 text$03 if$02 repeat$11 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bb");
-    });
-    it("tag$08 text$03 if$02 repeat$11 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$08 text$03 if$02 repeat$11 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$08 text$03 if$02 repeat$11 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$08 text$03 if$02 repeat$11 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$08 text$03 if$02 repeat$13 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$03 if$02 repeat$13 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$03 if$02 repeat$13 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$03 if$02 repeat$13 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$03 if$02 repeat$13 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abcabc");
-    });
-    it("tag$08 text$03 if$02 repeat$13 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$03 if$02 repeat$13 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$03 if$02 repeat$13 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$03 if$02 repeat$13 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$04 if$01 repeat$11 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$08 text$04 if$01 repeat$11 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$08 text$04 if$01 repeat$11 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$08 text$04 if$01 repeat$11 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"true\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$08 text$04 if$01 repeat$11 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$08 text$04 if$01 repeat$11 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aa");
-    });
-    it("tag$08 text$04 if$01 repeat$13 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\"></template><template else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$04 if$01 repeat$13 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$04 if$01 repeat$13 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$04 if$01 repeat$13 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$04 if$01 repeat$13 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$04 if$01 repeat$13 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abcabc");
-    });
-    it("tag$08 text$04 if$02 repeat$11 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$08 text$04 if$02 repeat$11 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$08 text$04 if$02 repeat$11 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$08 text$04 if$02 repeat$11 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$08 text$04 if$02 repeat$11 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bb");
-    });
-    it("tag$08 text$04 if$02 repeat$11 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$08 text$04 if$02 repeat$11 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$08 text$04 if$02 repeat$11 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$08 text$04 if$02 repeat$11 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$08 text$04 if$02 repeat$13 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$04 if$02 repeat$13 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$04 if$02 repeat$13 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$04 if$02 repeat$13 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$04 if$02 repeat$13 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abcabc");
-    });
-    it("tag$08 text$04 if$02 repeat$13 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$04 if$02 repeat$13 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$04 if$02 repeat$13 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$08 text$04 if$02 repeat$13 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "open" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$03 if$01 repeat$11 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$09 text$03 if$01 repeat$11 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$09 text$03 if$01 repeat$11 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$09 text$03 if$01 repeat$11 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$09 text$03 if$01 repeat$11 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$09 text$03 if$01 repeat$11 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aa");
-    });
-    it("tag$09 text$03 if$01 repeat$12 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$09 text$03 if$01 repeat$12 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$09 text$03 if$01 repeat$12 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$09 text$03 if$01 repeat$12 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$09 text$03 if$01 repeat$12 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$09 text$03 if$01 repeat$12 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaaaaa");
-    });
-    it("tag$09 text$03 if$01 repeat$13 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$03 if$01 repeat$13 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$03 if$01 repeat$13 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$03 if$01 repeat$13 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$03 if$01 repeat$13 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$03 if$01 repeat$13 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abcabc");
-    });
-    it("tag$09 text$03 if$02 repeat$11 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$09 text$03 if$02 repeat$11 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$09 text$03 if$02 repeat$11 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$09 text$03 if$02 repeat$11 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$09 text$03 if$02 repeat$11 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bb");
-    });
-    it("tag$09 text$03 if$02 repeat$11 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$09 text$03 if$02 repeat$11 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$09 text$03 if$02 repeat$11 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$09 text$03 if$02 repeat$11 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$09 text$03 if$02 repeat$12 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$09 text$03 if$02 repeat$12 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$09 text$03 if$02 repeat$12 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$09 text$03 if$02 repeat$12 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$09 text$03 if$02 repeat$12 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbbbbb");
-    });
-    it("tag$09 text$03 if$02 repeat$12 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$09 text$03 if$02 repeat$12 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$09 text$03 if$02 repeat$12 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$09 text$03 if$02 repeat$12 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$09 text$03 if$02 repeat$13 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$03 if$02 repeat$13 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$03 if$02 repeat$13 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$03 if$02 repeat$13 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$03 if$02 repeat$13 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abcabc");
-    });
-    it("tag$09 text$03 if$02 repeat$13 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$03 if$02 repeat$13 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$03 if$02 repeat$13 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$03 if$02 repeat$13 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
             static bindables = ["msg", "not", "item"];
             static shadowOptions = { mode: "closed" };
@@ -11608,1896 +9238,6 @@ describe("generated.template-compiler.static.if-else.repeat.double", function ()
         });
         au.register(MyFoo);
         const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$04 if$01 repeat$11 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$09 text$04 if$01 repeat$11 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$09 text$04 if$01 repeat$11 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$09 text$04 if$01 repeat$11 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$09 text$04 if$01 repeat$11 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$09 text$04 if$01 repeat$11 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aa");
-    });
-    it("tag$09 text$04 if$01 repeat$12 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$09 text$04 if$01 repeat$12 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$09 text$04 if$01 repeat$12 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$09 text$04 if$01 repeat$12 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"true\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$09 text$04 if$01 repeat$12 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaa");
-    });
-    it("tag$09 text$04 if$01 repeat$12 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aaaaaa");
-    });
-    it("tag$09 text$04 if$01 repeat$13 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$04 if$01 repeat$13 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$04 if$01 repeat$13 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$04 if$01 repeat$13 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$04 if$01 repeat$13 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$04 if$01 repeat$13 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abcabc");
-    });
-    it("tag$09 text$04 if$02 repeat$11 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$09 text$04 if$02 repeat$11 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$09 text$04 if$02 repeat$11 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$09 text$04 if$02 repeat$11 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$09 text$04 if$02 repeat$11 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bb");
-    });
-    it("tag$09 text$04 if$02 repeat$11 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$09 text$04 if$02 repeat$11 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$09 text$04 if$02 repeat$11 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$09 text$04 if$02 repeat$11 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$09 text$04 if$02 repeat$12 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 3\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$09 text$04 if$02 repeat$12 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$09 text$04 if$02 repeat$12 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$09 text$04 if$02 repeat$12 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 3\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 3\"></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$09 text$04 if$02 repeat$12 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbbbbb");
-    });
-    it("tag$09 text$04 if$02 repeat$12 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$09 text$04 if$02 repeat$12 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"></my-foo></template><template else><template repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$09 text$04 if$02 repeat$12 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\" if.bind=\"false\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$09 text$04 if$02 repeat$12 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"></my-foo></template><template else repeat.for=\"i of 3\"><my-foo not.bind=\"not\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bbb");
-    });
-    it("tag$09 text$04 if$02 repeat$13 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$04 if$02 repeat$13 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$04 if$02 repeat$13 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$04 if$02 repeat$13 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$04 if$02 repeat$13 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abcabc");
-    });
-    it("tag$09 text$04 if$02 repeat$13 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$04 if$02 repeat$13 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$04 if$02 repeat$13 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$09 text$04 if$02 repeat$13 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}${not}${item}</template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$03 if$01 repeat$11 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$10 text$03 if$01 repeat$11 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$10 text$03 if$01 repeat$11 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$10 text$03 if$01 repeat$11 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"true\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$10 text$03 if$01 repeat$11 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$10 text$03 if$01 repeat$11 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aa");
-    });
-    it("tag$10 text$03 if$01 repeat$13 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\"></template><template else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$03 if$01 repeat$13 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$03 if$01 repeat$13 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$03 if$01 repeat$13 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$03 if$01 repeat$13 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$03 if$01 repeat$13 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abcabc");
-    });
-    it("tag$10 text$03 if$02 repeat$11 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$10 text$03 if$02 repeat$11 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$10 text$03 if$02 repeat$11 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$10 text$03 if$02 repeat$11 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$10 text$03 if$02 repeat$11 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bb");
-    });
-    it("tag$10 text$03 if$02 repeat$11 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$10 text$03 if$02 repeat$11 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$10 text$03 if$02 repeat$11 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$10 text$03 if$02 repeat$11 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$10 text$03 if$02 repeat$13 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$03 if$02 repeat$13 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$03 if$02 repeat$13 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$03 if$02 repeat$13 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$03 if$02 repeat$13 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abcabc");
-    });
-    it("tag$10 text$03 if$02 repeat$13 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$03 if$02 repeat$13 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$03 if$02 repeat$13 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$03 if$02 repeat$13 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$04 if$01 repeat$11 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"true\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"true\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\"></template><template else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$10 text$04 if$01 repeat$11 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$10 text$04 if$01 repeat$11 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"true\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$10 text$04 if$01 repeat$11 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"true\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$10 text$04 if$01 repeat$11 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "a");
-    });
-    it("tag$10 text$04 if$01 repeat$11 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "aa");
-    });
-    it("tag$10 text$04 if$01 repeat$13 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\"></template><template else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$04 if$01 repeat$13 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$04 if$01 repeat$13 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$04 if$01 repeat$13 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"true\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"true\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$04 if$01 repeat$13 variant$09$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template if.bind=\"true\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$04 if$01 repeat$13 variant$09$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template if.bind=\"true\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abcabc");
-    });
-    it("tag$10 text$04 if$02 repeat$11 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"i of 1\"><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"></template><template else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$10 text$04 if$02 repeat$11 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$10 text$04 if$02 repeat$11 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$10 text$04 if$02 repeat$11 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"i of 1\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"i of 1\"></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$10 text$04 if$02 repeat$11 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "bb");
-    });
-    it("tag$10 text$04 if$02 repeat$11 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$10 text$04 if$02 repeat$11 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template else><template repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$10 text$04 if$02 repeat$11 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\" if.bind=\"false\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$10 text$04 if$02 repeat$11 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template><template if.bind=\"false\"><my-foo msg.bind=\"msg\"><template replace=\"part1\">${msg}</template></my-foo></template><template else repeat.for=\"i of 1\"><my-foo not.bind=\"not\"><template replace=\"part2\">${not}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "b");
-    });
-    it("tag$10 text$04 if$02 repeat$13 variant$01$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template repeat.for=\"item of ['a', 'b', 'c']\"><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"></template><template else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$04 if$02 repeat$13 variant$02$double _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template></template><template else if.bind=\"false\"><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\"></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$04 if$02 repeat$13 variant$03$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$04 if$02 repeat$13 variant$03$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$04 if$02 repeat$13 variant$11$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abcabc");
-    });
-    it("tag$10 text$04 if$02 repeat$13 variant$11$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$04 if$02 repeat$13 variant$11$double$03 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else></template><template if.bind=\"false\" else><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template else><template repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$04 if$02 repeat$13 variant$12$double$01 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\" if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
-            msg = "a";
-            not = "b";
-        });
-        const component = new App();
-        au.app({ host, component });
-        verify(au, host, "abc");
-    });
-    it("tag$10 text$04 if$02 repeat$13 variant$12$double$02 _", function () {
-        const { au, host } = createFixture();
-        const MyFoo = CustomElement.define({ name: "my-foo", template: "<template><template replaceable=\"part1\"></template><template replaceable=\"part2\"></template></template>" }, class {
-            static bindables = ["msg", "not", "item"];
-            static shadowOptions = { mode: "closed" };
-            msg = "";
-            not = "";
-            item = "";
-        });
-        au.register(MyFoo);
-        const App = CustomElement.define({ name: "app", template: "<template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else if.bind=\"false\" repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template><template if.bind=\"false\"><my-foo item.bind=\"item\"><template replace=\"part1\">${item}</template></my-foo></template><template else repeat.for=\"item of ['a', 'b', 'c']\"><my-foo item.bind=\"item\"><template replace=\"part2\">${item}</template></my-foo></template></template>" }, class {
             msg = "a";
             not = "b";
         });

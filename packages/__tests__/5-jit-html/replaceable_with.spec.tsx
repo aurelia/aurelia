@@ -5,7 +5,7 @@ import { TestContext, HTMLTestContext, hJsx, assert } from '@aurelia/testing';
 //      JSX is used to eliminate space between tags so test result can be easier to manually constructed
 //      if template string can be used to achieve the same effect, it could be converted back
 
-describe('replaceable', function () {
+describe.skip('replaceable', function () {
 
   describe('Difficult cases', function() {
     describe('+ scope altering template controllers', function() {

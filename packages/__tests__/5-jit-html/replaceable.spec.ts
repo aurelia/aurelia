@@ -1,7 +1,7 @@
 import { Aurelia, CustomElement, LifecycleFlags as LF } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
-describe('replaceable', function () {
+describe.skip('replaceable', function () {
   for (const [title, appMarkup, ceMarkup, , , , , , expected] of [
     [
       `single, static`,

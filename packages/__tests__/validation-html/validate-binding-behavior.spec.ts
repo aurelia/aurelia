@@ -1245,8 +1245,9 @@ describe('validate-binding-behavior', function () {
   );
   // #endregion
 
+  // TODO use au-slot instead
   // #region replaceable
-  $it('works with replaceable - replaced part',
+  $it.skip('works with replaceable - replaced part',
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
@@ -1267,7 +1268,7 @@ describe('validate-binding-behavior', function () {
     }
   );
 
-  $it('works with replaceable - non-replaced part',
+  $it.skip('works with replaceable - non-replaced part',
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 

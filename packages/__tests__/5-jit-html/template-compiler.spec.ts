@@ -4,7 +4,6 @@ import {
   Constructable,
   IContainer,
   kebabCase,
-  PLATFORM,
   ISink,
   ILogEvent,
   LoggerConfiguration,
@@ -121,7 +120,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         });
 
         it('throws on attributes that require to be unique', function () {
-          const attrs = ['id', 'replace'];
+          const attrs = ['id'];
           attrs.forEach(attr => {
             assert.throws(
               () => compileWith(`<template ${attr}="${attr}"></template>`, []),

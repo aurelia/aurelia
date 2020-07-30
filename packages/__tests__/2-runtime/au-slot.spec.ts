@@ -3,7 +3,7 @@ import { Aurelia, CustomElement, IScheduler, bindable, customElement } from '@au
 import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
 
-describe('au-slot', function () {
+describe.only('au-slot', function () {
   interface TestSetupContext {
     template: string;
     registrations: any[];
@@ -14,7 +14,8 @@ describe('au-slot', function () {
       public ctx: HTMLTestContext,
       public container: IContainer,
       public host: HTMLElement,
-      public app: App,
+      public app: App | null,
+      public error: Error | null,
     ) { }
     public get scheduler(): IScheduler { return this._scheduler ?? (this._scheduler = this.container.get(IScheduler)); }
   }
@@ -30,19 +31,27 @@ describe('au-slot', function () {
 
     const container = ctx.container;
     const au = new Aurelia(container);
-    await au
-      .register(...registrations)
-      .app({
-        host,
-        component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
-      })
-      .start()
-      .wait();
+    let error: Error | null = null;
+    let app: App | null = null;
+    try {
+      await au
+        .register(...registrations)
+        .app({
+          host,
+          component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
+        })
+        .start()
+        .wait();
+        app = au.root.viewModel as App;
+    } catch (e) {
+      error = e;
+    }
 
-    const app = au.root.viewModel as App;
-    await testFunction(new AuSlotTestExecutionContext(ctx, container, host, app));
+    await testFunction(new AuSlotTestExecutionContext(ctx, container, host, app, error));
 
-    await au.stop().wait();
+    if (error === null) {
+      await au.stop().wait();
+    }
     ctx.doc.body.removeChild(host);
   }
   const $it = createSpecFunction(testAuSlot);
@@ -136,6 +145,16 @@ describe('au-slot', function () {
       ],
       { 'my-element': '<div>p</div>s1fb' },
     );
+
+    yield new TestData(
+      'projections for multiple instances works correctly',
+      `<my-element><div>p1</div></my-element>
+       <my-element><div>p2</div></my-element>`,
+      [
+        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot></au-slot>` }, class MyElement { }),
+      ],
+      { 'my-element': '<div>p1</div>', 'my-element+my-element': '<div>p2</div>' },
+    );
     // #endregion
 
     // #region interpolation
@@ -193,7 +212,7 @@ describe('au-slot', function () {
         [
           MyElement,
         ],
-        { 'my-element': `static default <div>p21</div>`, 'my-element:nth-of-type(2)': `static default <div>p12</div>` },
+        { 'my-element': `static default <div>p21</div>`, 'my-element+my-element': `static default <div>p12</div>` },
       );
     }
 
@@ -449,20 +468,6 @@ describe('au-slot', function () {
         { 'my-element': '<div> projection </div>' },
       );
 
-      // tag: nonsense-example
-      yield new TestData(
-        'projection does not work using <au-slot>',
-        `<my-element>
-          <au-slot name="s1">
-            not projected
-          </au-slot>
-        </my-element>`,
-        [
-          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"></au-slot>` }, class MyElement { }),
-        ],
-        { '': '<my-element class="au"> </my-element>' },
-      );
-
       // TODO fix this
       // tag: nonsense-example
       // yield new TestData(
@@ -505,7 +510,8 @@ describe('au-slot', function () {
   }
   for (const { spec, template, expectedInnerHtmlMap, registrations } of getTestData()) {
     $it(spec,
-      function ({ host }) {
+      function ({ host, error }) {
+        assert.deepEqual(error, null);
         for (const [selector, expectedInnerHtml] of Object.entries(expectedInnerHtmlMap))
           if (selector) {
             assert.html.innerEqual(selector, expectedInnerHtml, `${selector}.innerHTML`, host);
@@ -558,4 +564,34 @@ describe('au-slot', function () {
         { template: `<my-element><button au-slot="default" click.${listener}="fn()">Click</button></my-element>`, registrations: [MyElement] });
     });
   }
+
+  class NegativeTestData {
+    public constructor(
+      public readonly spec: string,
+      public readonly template: string,
+      public readonly registrations: any[],
+      public readonly expectedError: RegExp,
+    ) { }
+  }
+
+  function* getNegativeTestData() {
+    yield new NegativeTestData(
+      'projection attempted using <au-slot> instead of [au-slot]',
+      `<my-element>
+          <au-slot name="s1">
+            not projected
+          </au-slot>
+        </my-element>`,
+      [
+        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"></au-slot>` }, class MyElement { }),
+      ],
+      /Unexpected usage of "<au-slot>" found\. Use the \[au-slot\] attribute instead to project content\./,
+    );
+  }
+
+  for (const { spec, registrations, template, expectedError } of getNegativeTestData())
+    $it(`does not work when ${spec}`, function ({ error }) {
+      assert.notDeepEqual(error, null);
+      assert.match(error.message, expectedError);
+    }, { registrations, template });
 });

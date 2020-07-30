@@ -32,6 +32,7 @@ import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '.
 import { IScope } from '../observation';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
+const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, RenderContext>>>();
 
 const fragmentCache = new WeakMap<CustomElementDefinition, INode | null>();
 
@@ -176,6 +177,7 @@ export interface IComponentFactory<T extends INode = INode> extends ICompiledRen
 export function getRenderContext<T extends INode = INode>(
   partialDefinition: PartialCustomElementDefinition,
   parentContainer: IContainer,
+  projections?: Record<string, CustomElementDefinition> | null,
 ): IRenderContext<T> {
   const definition = CustomElementDefinition.getOrCreate(partialDefinition);
 
@@ -184,18 +186,46 @@ export function getRenderContext<T extends INode = INode>(
     return new RenderContext<T>(definition, parentContainer);
   }
 
-  let containerLookup = definitionContainerLookup.get(definition);
-  if (containerLookup === void 0) {
-    definitionContainerLookup.set(
+  if (projections == null) {
+    let containerLookup = definitionContainerLookup.get(definition);
+    if (containerLookup === void 0) {
+      definitionContainerLookup.set(
+        definition,
+        containerLookup = new WeakMap(),
+      );
+    }
+
+    let context = containerLookup.get(parentContainer);
+    if (context === void 0) {
+      containerLookup.set(
+        parentContainer,
+        context = new RenderContext<T>(definition, parentContainer),
+      );
+    }
+
+    return context as unknown as IRenderContext<T>;
+  }
+
+  let containerPartsLookup = definitionContainerProjectionsLookup.get(definition);
+  if (containerPartsLookup === void 0) {
+    definitionContainerProjectionsLookup.set(
       definition,
-      containerLookup = new WeakMap(),
+      containerPartsLookup = new WeakMap(),
     );
   }
 
-  let context = containerLookup.get(parentContainer);
-  if (context === void 0) {
-    containerLookup.set(
+  let partsLookup = containerPartsLookup.get(parentContainer);
+  if (partsLookup === void 0) {
+    containerPartsLookup.set(
       parentContainer,
+      partsLookup = new WeakMap(),
+    );
+  }
+
+  let context = partsLookup.get(projections);
+  if (context === void 0) {
+    partsLookup.set(
+      projections,
       context = new RenderContext<T>(definition, parentContainer),
     );
   }

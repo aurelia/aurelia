@@ -324,7 +324,7 @@ export class Controller<
       }
     }
 
-    const context = this.context = getRenderContext<T>(definition, parentContainer);
+    const context = this.context = getRenderContext<T>(definition, parentContainer, targetedProjections?.projections);
     // Support Recursive Components by adding self to own context
     definition.register(context);
     if (definition.injectable !== null) {

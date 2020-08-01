@@ -67,9 +67,9 @@ describe('au-slot', function () {
   }
   class Person {
     public constructor(
-      public readonly firstName: string,
-      public readonly lastName: string,
-      public readonly pets: string[],
+      public firstName: string,
+      public lastName: string,
+      public pets: string[],
     ) { }
   }
 
@@ -79,6 +79,7 @@ describe('au-slot', function () {
       public readonly template: string,
       public readonly registrations: any[],
       public readonly expectedInnerHtmlMap: Record<string, string>,
+      public readonly additionalAssertion?: (ctx: AuSlotTestExecutionContext) => void | Promise<void>,
     ) { }
   }
   function* getTestData() {
@@ -196,6 +197,15 @@ describe('au-slot', function () {
           MyElement,
         ],
         { 'my-element': `static default <div>p20</div><div>p21</div>` },
+        async function ({ host, scheduler }) {
+          const el = host.querySelector('my-element');
+          const vm: MyElement = CustomElement.for<Element, MyElement>(el).viewModel;
+
+          vm.showS1 = true;
+          await scheduler.yieldAll(10);
+
+          assert.html.innerEqual(el, `static default <div>p11</div><div>p12</div><div>p20</div><div>p21</div>`, 'my-element.innerHTML');
+        },
       );
     }
 
@@ -214,6 +224,19 @@ describe('au-slot', function () {
           MyElement,
         ],
         { 'my-element': `static default <div>p21</div>`, 'my-element+my-element': `static default <div>p12</div>` },
+        async function ({ host, scheduler }) {
+          const el1 = host.querySelector('my-element');
+          const el2 = host.querySelector('my-element+my-element');
+          const vm1: MyElement = CustomElement.for<Element, MyElement>(el1).viewModel;
+          const vm2: MyElement = CustomElement.for<Element, MyElement>(el2).viewModel;
+
+          vm1.showS1 = !vm1.showS1;
+          vm2.showS1 = !vm2.showS1;
+          await scheduler.yieldAll(10);
+
+          assert.html.innerEqual(el1, `static default <div>p11</div>`, 'my-element.innerHTML');
+          assert.html.innerEqual(el2, `static default <div>p22</div>`, 'my-element+my-element.innerHTML');
+        },
       );
     }
 
@@ -243,6 +266,15 @@ describe('au-slot', function () {
           MyElement,
         ],
         { 'my-element': `<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div>` },
+        async function ({ app, host, scheduler }) {
+          app.people.push(new Person('Jane', 'Doe', []));
+          await scheduler.yieldAll(10);
+          assert.html.innerEqual(
+            'my-element',
+            `<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div> <div>Jane</div> <div>Doe</div>`,
+            'my-element.innerHTML',
+            host);
+        }
       );
 
       yield new TestData(
@@ -283,6 +315,17 @@ describe('au-slot', function () {
         {
           'my-element': `<ul><li>Doe, John</li><li>Mustermann, Max</li></ul>`,
           'my-element:nth-of-type(2)': `<ul><li>Doe, John</li><li>Mustermann, Max</li></ul>`,
+        },
+      );
+
+      yield new TestData(
+        'works with a directly applied repeater',
+        `<my-element></my-element>`,
+        [
+          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot repeat.for="i of 5">\${i}</au-slot>` }, class MyElement { }),
+        ],
+        {
+          'my-element': `01234`,
         },
       );
     }
@@ -538,6 +581,45 @@ describe('au-slot', function () {
         { '': '<parent-element class="au"> <child-element class="au"> <div id="1"> p </div> <div id="3"><div id="1"> p </div></div></child-element></parent-element>' },
       );
     }
+    // #endregion
+
+    // #region value binding
+    yield new TestData(
+      'works with input value binding - $host',
+      `<my-element>
+        <input au-slot type="text" value.two-way="$host.foo">
+      </my-element>`,
+      [CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot></au-slot>` }, class MyElement { public foo: string = "foo"; })],
+      { 'my-element': '<input type="text" value.two-way="$host.foo" class="au">' },
+      async function ({ host, scheduler }) {
+        const el = host.querySelector('my-element');
+        const vm = CustomElement.for(el).viewModel as any;
+        const input = el.querySelector('input');
+        assert.strictEqual(input.value, "foo");
+
+        vm.foo = "bar";
+        await scheduler.yieldAll(10);
+        assert.strictEqual(input.value, "bar");
+      }
+    );
+
+    yield new TestData(
+      'works with input value binding - non $host',
+      `<my-element>
+        <input au-slot type="text" value.two-way="people[0].firstName">
+      </my-element>`,
+      [CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot></au-slot>` }, class MyElement { })],
+      { 'my-element': '<input type="text" value.two-way="people[0].firstName" class="au">' },
+      async function ({ app, host, scheduler }) {
+        const el = host.querySelector('my-element');
+        const input = el.querySelector('input');
+        assert.strictEqual(input.value, app.people[0].firstName);
+
+        app.people[0].firstName = "Jane";
+        await scheduler.yieldAll(10);
+        assert.strictEqual(input.value, "Jane");
+      }
+    );
     // #endregion
 
     yield new TestData(

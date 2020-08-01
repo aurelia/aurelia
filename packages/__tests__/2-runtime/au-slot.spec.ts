@@ -3,7 +3,7 @@ import { Aurelia, CustomElement, IScheduler, bindable, customElement } from '@au
 import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
 
-describe.only('au-slot', function () {
+describe('au-slot', function () {
   interface TestSetupContext {
     template: string;
     registrations: any[];
@@ -42,7 +42,7 @@ describe.only('au-slot', function () {
         })
         .start()
         .wait();
-        app = au.root.viewModel as App;
+      app = au.root.viewModel as App;
     } catch (e) {
       error = e;
     }
@@ -443,6 +443,23 @@ describe.only('au-slot', function () {
         { 'my-element-s11': 's11' },
       );
 
+      // tag: nonsense-example, mis-projection
+      yield new TestData(
+        'projection attempted using <au-slot> instead of [au-slot] results in mis-projection',
+        `<my-element>
+          <au-slot name="s1">
+            mis-projected
+          </au-slot>
+          <au-slot name="foo">
+            bar
+          </au-slot>
+        </my-element>`,
+        [
+          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot>dfb</au-slot>|<au-slot name="s1">s1fb</au-slot>` }, class MyElement { }),
+        ],
+        { 'my-element': 'mis-projected bar dfb|s1fb' },
+      );
+
       // tag: nonsense-example
       yield new TestData(
         '[au-slot] in <au-slot> is no-op',
@@ -468,30 +485,57 @@ describe.only('au-slot', function () {
         { 'my-element': '<div> projection </div>' },
       );
 
-      // TODO fix this
-      // tag: nonsense-example
-      // yield new TestData(
-      //   'projection does not work using <au-slot> or to non-existing slot',
-      //   `<parent-element>
-      //     <div au-slot="x">
-      //       <au-slot name="x"> p </au-slot>
-      //     </div>
-      //     <!--<au-slot name="x">
-      //       <div au-slot="x"></div>
-      //     </au-slot>-->
-      //   </parent-element>`,
-      //   [
-      //     CustomElement.define({ name: 'child-element', isStrictBinding: true, template: `<au-slot name="x"></au-slot>` }, class ChildElement { }),
-      //     CustomElement.define({
-      //       name: 'parent-element', isStrictBinding: true,
-      //       template: `<child-element>
-      //         <div au-slot="x"><au-slot name="x">p1</au-slot></div>
-      //         <au-slot name="x"><div au-slot="x">p2</div></au-slot>
-      //       </child-element>`
-      //     }, class ParentElement { }),
-      //   ],
-      //   { '': '<parent-element class="au"> <child-element class="au"> <div> p1 </div></child-element></parent-element>' },
-      // );
+      // tag: chained-projection
+      yield new TestData(
+        'chain of [au-slot] and <au-slot> can be used to project content to a nested inner CE',
+        `<lvl-one><div au-slot="s1">p</div></lvl-one>`,
+        [
+          CustomElement.define({ name: 'lvl-zero', isStrictBinding: true, template: `<au-slot name="s0"></au-slot>` }, class LvlZero { }),
+          CustomElement.define({ name: 'lvl-one', isStrictBinding: true, template: `<lvl-zero><template au-slot="s0"><au-slot name="s1"><au-slot></template></lvl-zero>` }, class LvlOne { }),
+        ],
+        { '': '<lvl-one class="au"><lvl-zero class="au"><div>p</div></lvl-zero></lvl-one>' },
+      );
+      yield new TestData(
+        'chain of [au-slot] and <au-slot> can be used to project content to a nested inner CE - with same slot name',
+        `<lvl-one><div au-slot="x">p</div></lvl-one>`,
+        [
+          CustomElement.define({ name: 'lvl-zero', isStrictBinding: true, template: `<au-slot name="x"></au-slot>` }, class LvlZero { }),
+          CustomElement.define({ name: 'lvl-one', isStrictBinding: true, template: `<lvl-zero><template au-slot="x"><au-slot name="x"><au-slot></template></lvl-zero>` }, class LvlOne { }),
+        ],
+        { '': '<lvl-one class="au"><lvl-zero class="au"><div>p</div></lvl-zero></lvl-one>' },
+      );
+
+      // tag: nonsense-example, utterly-complex
+      yield new TestData(
+        'projection does not work using <au-slot> or to non-existing slot',
+        `<parent-element>
+          <div id="1" au-slot="x">
+            <au-slot name="x"> p </au-slot>
+          </div>
+          <au-slot id="2" name="x">
+            <div au-slot="x"></div>
+          </au-slot>
+        </parent-element>`,
+        [
+          CustomElement.define({ name: 'child-element', isStrictBinding: true, template: `<au-slot name="x"></au-slot>` }, class ChildElement { }),
+          CustomElement.define({
+            name: 'parent-element', isStrictBinding: true,
+            template: `<child-element>
+              <div id="3" au-slot="x"><au-slot name="x">p1</au-slot></div>
+              <au-slot name="x"><div id="4" au-slot="x">p2</div></au-slot>
+            </child-element>`
+          }, class ParentElement { }),
+        ],
+        /**
+         * Explanation:
+         * - The first `<div id="1"> p </div>` is caused by `mis-projection`.
+         * - The `<div id="3"><div id="1"> p </div></div>` is caused by the `chained-projection`.
+         * See the respective tagged test cases to understand the simpler examples first.
+         * The `ROOT>parent-element>au-slot` in this case is a no-op, as `<au-slot>` cannot be used provide projection.
+         * However if the root instead is used a normal CE in another CE, the same au-slot then advertise projection slot.
+         */
+        { '': '<parent-element class="au"> <child-element class="au"> <div id="1"> p </div> <div id="3"><div id="1"> p </div></div></child-element></parent-element>' },
+      );
     }
     // #endregion
 
@@ -564,34 +608,4 @@ describe.only('au-slot', function () {
         { template: `<my-element><button au-slot="default" click.${listener}="fn()">Click</button></my-element>`, registrations: [MyElement] });
     });
   }
-
-  class NegativeTestData {
-    public constructor(
-      public readonly spec: string,
-      public readonly template: string,
-      public readonly registrations: any[],
-      public readonly expectedError: RegExp,
-    ) { }
-  }
-
-  function* getNegativeTestData() {
-    yield new NegativeTestData(
-      'projection attempted using <au-slot> instead of [au-slot]',
-      `<my-element>
-          <au-slot name="s1">
-            not projected
-          </au-slot>
-        </my-element>`,
-      [
-        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"></au-slot>` }, class MyElement { }),
-      ],
-      /Unexpected usage of "<au-slot>" found\. Use the \[au-slot\] attribute instead to project content\./,
-    );
-  }
-
-  for (const { spec, registrations, template, expectedError } of getNegativeTestData())
-    $it(`does not work when ${spec}`, function ({ error }) {
-      assert.notDeepEqual(error, null);
-      assert.match(error.message, expectedError);
-    }, { registrations, template });
 });

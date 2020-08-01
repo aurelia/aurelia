@@ -380,7 +380,7 @@ export class TemplateBinder {
     processTemplateControllers(this.dom, manifestProxy, manifest);
 
     let projection = node.getAttribute('au-slot');
-    if (projection === '' || (node.tagName !== 'AU-SLOT' && projection === null && manifestRoot !== null && ((parentManifest.flags & SymbolFlags.isCustomElement) > 0))) {
+    if (projection === '') {
       projection = 'default';
     }
 

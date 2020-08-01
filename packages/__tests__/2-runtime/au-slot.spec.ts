@@ -137,13 +137,14 @@ describe('au-slot', function () {
       { 'my-element': '<div>p</div>s1fb' },
     );
 
+    // tag: mis-projection
     yield new TestData(
-      'projection w/o [au-slot] goes to the default slot',
+      'projection w/o [au-slot] causes mis-projection',
       `<my-element><div>p</div></my-element>`,
       [
-        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot></au-slot><au-slot name="s1">s1fb</au-slot>` }, class MyElement { }),
+        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1">s1fb</au-slot>|<au-slot>d</au-slot>` }, class MyElement { }),
       ],
-      { 'my-element': '<div>p</div>s1fb' },
+      { 'my-element': '<div>p</div>s1fb|d' },
     );
 
     yield new TestData(

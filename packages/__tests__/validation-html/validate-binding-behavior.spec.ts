@@ -250,7 +250,7 @@ describe('validate-binding-behavior', function () {
       return;
     }
   }
-  @customElement({ name: 'editor', template: `<div replaceable="content"></div><div>static content</div>` })
+  @customElement({ name: 'editor', template: `<au-slot name="content"></au-slot><div>static content</div>` })
   class Editor {
     public readonly person = new Person(void 0, void 0);
     public constructor(@IValidationRules validationRules: IValidationRules) {
@@ -1245,9 +1245,28 @@ describe('validate-binding-behavior', function () {
   );
   // #endregion
 
-  // TODO use au-slot instead
-  // #region replaceable
-  $it.skip('works with replaceable - replaced part',
+  // #region au-slot
+  $it('works with au-slot - projected part w/o $host',
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
+      const controller = app.controller;
+
+      const target: HTMLInputElement = host.querySelector('editor #target');
+      assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
+
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+      await controller.validate();
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), ['Name is required.']);
+
+      target.value = 'foo';
+      await assertEventHandler(target, 'change', 0, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+    },
+    {
+      template: `<editor><input au-slot="content" id="target" value.two-way="person.name & validate"><editor>`
+    }
+  );
+  $it('works with au-slot - projected part with $host',
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
@@ -1264,11 +1283,11 @@ describe('validate-binding-behavior', function () {
       assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
     },
     {
-      template: `<editor><input id="target" value.two-way="person.name & validate" replace="content"><editor>`
+      template: `<editor><input au-slot="content" id="target" value.two-way="$host.person.name & validate"><editor>`
     }
   );
 
-  $it.skip('works with replaceable - non-replaced part',
+  $it('works with au-slot - mis-projected part',
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 

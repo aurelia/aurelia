@@ -71,6 +71,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   private readonly defaultTrigger: ValidationTrigger;
   private readonly connectedExpressions: IsAssign[] = [];
   private scope!: IScope;
+  private hostScope?: IScope | null;
   private readonly triggerMediator: BindingMediator<'handleTriggerChange'> = new BindingMediator('handleTriggerChange', this, this.observerLocator, this.locator);
   private readonly controllerMediator: BindingMediator<'handleControllerChange'> = new BindingMediator('handleControllerChange', this, this.observerLocator, this.locator);
   private readonly rulesMediator: BindingMediator<'handleRulesChange'> = new BindingMediator('handleRulesChange', this, this.observerLocator, this.locator);
@@ -123,6 +124,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
 
   public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, projection?: CustomElementDefinition) {
     this.scope = scope;
+    this.hostScope = hostScope;
     this.binding.$bind(flags, scope, hostScope, projection);
     this.setTarget();
     const delta = this.processBindingExpressionArgs(flags);
@@ -302,7 +304,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   }
 
   private setBindingInfo(rules: PropertyRule[] | undefined): BindingInfo {
-    return this.bindingInfo = new BindingInfo(this.target, this.scope, rules);
+    return this.bindingInfo = new BindingInfo(this.target, this.scope, this.hostScope, rules);
   }
 }
 

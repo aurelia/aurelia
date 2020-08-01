@@ -123,6 +123,7 @@ export interface IAccessScopeExpression extends IExpression {
   readonly $kind: ExpressionKind.AccessScope;
   readonly name: string;
   readonly ancestor: number;
+  readonly accessHostScope: boolean;
   assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, hostScope?: IScope | null, projection?: CustomElementDefinition): unknown;
 }
 

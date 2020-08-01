@@ -6,8 +6,8 @@ import {
 } from '@aurelia/runtime';
 
 import {
-  GotoCustomAttribute,
-} from './resources/goto';
+  LoadCustomAttribute,
+} from './resources/load';
 import {
   IWindow,
   IMouseEvent,
@@ -78,15 +78,15 @@ export class LinkHandler {
       return info;
     }
 
-    const gotoAttr = CustomAttribute.for<Element, GotoCustomAttribute>(target, 'goto');
-    const goto = (gotoAttr?.viewModel.value ?? null) as string | null;
+    const loadAttr = CustomAttribute.for<Element, LoadCustomAttribute>(target, 'load');
+    const load = (loadAttr?.viewModel.value ?? null) as string | null;
     const href = this.router.options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
-    if ((goto === null || goto.length === 0) && (href === null || href.length === 0)) {
+    if ((load === null || load.length === 0) && (href === null || href.length === 0)) {
       return info;
     }
 
     info.anchor = target;
-    info.instruction = goto ?? href;
+    info.instruction = load ?? href;
 
     const leftButtonClicked: boolean = event.button === 0;
 
@@ -117,7 +117,7 @@ export class LinkHandler {
     if (info.shouldHandleEvent) {
       e.preventDefault();
       // eslint-disable-next-line @typescript-eslint/promise-function-async
-      this.router.goto(info.instruction ?? '', { context: info.anchor }).catch(err => Promise.reject(err));
+      this.router.load(info.instruction ?? '', { context: info.anchor }).catch(err => Promise.reject(err));
     }
   }
 }

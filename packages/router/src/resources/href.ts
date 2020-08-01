@@ -17,7 +17,7 @@ import {
 } from '@aurelia/runtime-html';
 
 import { IRouter } from '../router';
-import { GotoCustomAttribute } from '../configuration';
+import { LoadCustomAttribute } from '../configuration';
 import { ILinkHandler } from '../link-handler';
 import { IElement } from '../interfaces';
 
@@ -42,7 +42,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel<Element> {
   ) {}
 
   public beforeBind(): void {
-    if (this.router.options.useHref && !this.hasGoto()) {
+    if (this.router.options.useHref && !this.hasLoad()) {
       this.eventListener = this.eventManager.addEventListener(
         this.dom,
         this.element,
@@ -65,9 +65,9 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel<Element> {
     this.element.setAttribute('href', this.value as string);
   }
 
-  private hasGoto(): boolean {
+  private hasLoad(): boolean {
     return this.$controller.parent?.children?.some(function (c) {
-      return c.viewModel instanceof GotoCustomAttribute;
+      return c.viewModel instanceof LoadCustomAttribute;
     }) ?? false;
   }
 }

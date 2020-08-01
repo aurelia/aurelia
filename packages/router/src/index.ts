@@ -9,8 +9,8 @@ export {
   DefaultResources,
   ViewportCustomElement,
   ViewportCustomElementRegistration,
-  GotoCustomAttribute,
-  GotoCustomAttributeRegistration,
+  LoadCustomAttribute,
+  LoadCustomAttributeRegistration,
   HrefCustomAttribute,
   HrefCustomAttributeRegistration,
 } from './configuration';

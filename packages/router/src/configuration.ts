@@ -19,8 +19,8 @@ import {
   ViewportCustomElement,
 } from './resources/viewport';
 import {
-  GotoCustomAttribute,
-} from './resources/goto';
+  LoadCustomAttribute,
+} from './resources/load';
 import {
   HrefCustomAttribute,
 } from './resources/href';
@@ -37,22 +37,22 @@ export const DefaultComponents = [
 
 export {
   ViewportCustomElement,
-  GotoCustomAttribute,
+  LoadCustomAttribute,
   HrefCustomAttribute,
 };
 
 export const ViewportCustomElementRegistration = ViewportCustomElement as unknown as IRegistry;
-export const GotoCustomAttributeRegistration = GotoCustomAttribute as unknown as IRegistry;
+export const LoadCustomAttributeRegistration = LoadCustomAttribute as unknown as IRegistry;
 export const HrefCustomAttributeRegistration = HrefCustomAttribute as unknown as IRegistry;
 
 /**
  * Default router resources:
  * - Custom Elements: `au-viewport`
- * - Custom Attributes: `goto`, `href`
+ * - Custom Attributes: `load`, `href`
  */
 export const DefaultResources: IRegistry[] = [
   ViewportCustomElement as unknown as IRegistry,
-  GotoCustomAttribute as unknown as IRegistry,
+  LoadCustomAttribute as unknown as IRegistry,
   HrefCustomAttribute as unknown as IRegistry,
 ];
 

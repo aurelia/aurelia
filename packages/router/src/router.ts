@@ -491,7 +491,7 @@ export class Router {
             historyStrategy: 'replace',
           });
           const instructions = ViewportInstructionTree.create(e.url, options);
-          // The promise will be stored in the transition. However, unlike `goto()`, `start()` does not return this promise in any way.
+          // The promise will be stored in the transition. However, unlike `load()`, `start()` does not return this promise in any way.
           // The router merely guarantees that it will be awaited (or canceled) before the next transition, so a race condition is impossible either way.
           // However, it is possible to get floating promises lingering during non-awaited unit tests, which could have unpredictable side-effects.
           // So we do want to solve this at some point.
@@ -502,7 +502,7 @@ export class Router {
     });
 
     if (!this.navigated && performInitialNavigation) {
-      return this.goto(this.locationMgr.getPath(), { historyStrategy: 'replace' });
+      return this.load(this.locationMgr.getPath(), { historyStrategy: 'replace' });
     }
   }
 
@@ -517,13 +517,13 @@ export class Router {
    * Examples:
    *
    * ```ts
-   * // Use direct routing syntax to goto 'product-detail' with parameter id=37, as a child of the current component, in the next available sibling viewport.
-   * router.goto('+product-detail(id=37)');
+   * // Use direct routing syntax to load 'product-detail' with parameter id=37, as a child of the current component, in the next available sibling viewport.
+   * router.load('+product-detail(id=37)');
    * // Load the route 'product-detail', as a child of the current component, with child route '37'.
-   * router.goto('product-detail/37', { context: this });
+   * router.load('product-detail/37', { context: this });
    * ```
    */
-  public goto(
+  public load(
     path: string,
     options?: INavigationOptions,
   ): Promise<boolean>;
@@ -533,12 +533,12 @@ export class Router {
    * Examples:
    *
    * ```ts
-   * router.goto(['book-detail(20)', 'author-detail(11)']);
-   * router.goto(['category/50/product/20', 'widget/30'], { routingMode: 'configured-only' });
-   * router.goto(['category/50/product/20', 'widget(id=30)]);
+   * router.load(['book-detail(20)', 'author-detail(11)']);
+   * router.load(['category/50/product/20', 'widget/30'], { routingMode: 'configured-only' });
+   * router.load(['category/50/product/20', 'widget(id=30)]);
    * ```
    */
-  public goto(
+  public load(
     paths: readonly string[],
     options?: INavigationOptions,
   ): Promise<boolean>;
@@ -548,11 +548,11 @@ export class Router {
    * Examples:
    *
    * ```ts
-   * router.goto(ProductList);
-   * router.goto(CustomElement.define({ name: 'greeter', template: 'Hello!' }));
+   * router.load(ProductList);
+   * router.load(CustomElement.define({ name: 'greeter', template: 'Hello!' }));
    * ```
    */
-  public goto(
+  public load(
     componentType: RouteType,
     options?: INavigationOptions,
   ): Promise<boolean>;
@@ -562,10 +562,10 @@ export class Router {
    * Examples:
    *
    * ```ts
-   * router.goto([MemberList, OrganizationList]);
+   * router.load([MemberList, OrganizationList]);
    * ```
    */
-  public goto(
+  public load(
     componentTypes: readonly RouteType[],
     options?: INavigationOptions,
   ): Promise<boolean>;
@@ -575,10 +575,10 @@ export class Router {
    * Examples:
    *
    * ```ts
-   * router.goto({ name: 'greeter', template: 'Hello!' });
+   * router.load({ name: 'greeter', template: 'Hello!' });
    * ```
    */
-  public goto(
+  public load(
     componentDefinition: PartialCustomElementDefinition,
     options?: INavigationOptions,
   ): Promise<boolean>;
@@ -591,10 +591,10 @@ export class Router {
    * // Given an already defined custom element named Greeter
    * const greeter = new Greeter();
    * Controller.forCustomElement(greeter, this.lifecycle, null, this.context);
-   * router.goto(greeter);
+   * router.load(greeter);
    * ```
    */
-  public goto(
+  public load(
     componentInstance: IRouteViewModel,
     options?: INavigationOptions,
   ): Promise<boolean>;
@@ -605,16 +605,16 @@ export class Router {
    * Examples:
    *
    * ```ts
-   * router.goto({ component: 'product-detail', parameters: { id: 37 } })
-   * router.goto({ component: ProductDetail, parameters: { id: 37 } })
-   * router.goto({ component: 'category(id=50)', children: ['product(id=20)'] })
-   * router.goto({ component: 'category(id=50)', children: [{ component: 'product', parameters: { id: 20 } }] })
-   * router.goto({
+   * router.load({ component: 'product-detail', parameters: { id: 37 } })
+   * router.load({ component: ProductDetail, parameters: { id: 37 } })
+   * router.load({ component: 'category(id=50)', children: ['product(id=20)'] })
+   * router.load({ component: 'category(id=50)', children: [{ component: 'product', parameters: { id: 20 } }] })
+   * router.load({
    *   component: CustomElement.define({
    *     name: 'greeter',
    *     template: 'Hello, ${name}!'
    *   }, class {
-   *     goto(instruction) {
+   *     load(instruction) {
    *       this.name = instruction.parameters.name;
    *     }
    *   }),
@@ -622,21 +622,21 @@ export class Router {
    * })
    * ```
    */
-  public goto(
+  public load(
     viewportInstruction: IViewportInstruction,
     options?: INavigationOptions,
   ): Promise<boolean>;
-  public goto(
+  public load(
     instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
     options?: INavigationOptions,
   ): Promise<boolean>;
-  public goto(
+  public load(
     instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[],
     options?: INavigationOptions,
   ): Promise<boolean> {
     const instructions = this.createViewportInstructions(instructionOrInstructions, options);
 
-    this.logger.trace('goto(instructions:%s)', instructions);
+    this.logger.trace('load(instructions:%s)', instructions);
 
     return this.enqueue(instructions, 'api', null, null);
   }
@@ -686,7 +686,7 @@ export class Router {
     if (failedTr === null) {
       promise = new Promise(function ($resolve, $reject) { resolve = $resolve; reject = $reject; });
     } else {
-      // Ensure that `await router.goto` only resolves when the transition truly finished, so chain forward on top of
+      // Ensure that `await router.load` only resolves when the transition truly finished, so chain forward on top of
       // any previously failed transition that caused a recovering backwards navigation.
       this.logger.debug(`Reusing promise/resolve/reject from the previously failed transition %s`, failedTr);
       /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */

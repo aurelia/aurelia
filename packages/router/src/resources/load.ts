@@ -22,8 +22,8 @@ import { IRouteContext } from '../route-context';
 import { NavigationInstruction } from '../instructions';
 import { IElement } from '../interfaces';
 
-@customAttribute('goto')
-export class GotoCustomAttribute implements ICustomAttributeViewModel<Element> {
+@customAttribute('load')
+export class LoadCustomAttribute implements ICustomAttributeViewModel<Element> {
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 
@@ -31,7 +31,7 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel<Element> {
   private navigationEndListener: IDisposable | null = null;
   private hasHref: boolean | null = null;
 
-  private readonly activeClass: string = 'goto-active';
+  private readonly activeClass: string = 'load-active';
   public constructor(
     @IDOM private readonly dom: IDOM,
     @INode private readonly element: IElement,

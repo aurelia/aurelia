@@ -183,16 +183,16 @@ describe('router hooks', function () {
                 const t4 = `('${$3}' -> '${$4}')#4`;
 
                 hia.setPhase(t1);
-                await router.goto($1);
+                await router.load($1);
 
                 hia.setPhase(t2);
-                await router.goto($2);
+                await router.load($2);
 
                 hia.setPhase(t3);
-                await router.goto($3);
+                await router.load($3);
 
                 hia.setPhase(t4);
-                await router.goto($4);
+                await router.load($4);
 
                 await tearDown();
 
@@ -281,16 +281,16 @@ describe('router hooks', function () {
                 const t4 = `('${$1}' -> '${$2}')#4`;
 
                 hia.setPhase(t1);
-                await router.goto($1);
+                await router.load($1);
 
                 hia.setPhase(t2);
-                await router.goto($2);
+                await router.load($2);
 
                 hia.setPhase(t3);
-                await router.goto($1);
+                await router.load($1);
 
                 hia.setPhase(t4);
-                await router.goto($2);
+                await router.load($2);
 
                 await tearDown();
 
@@ -369,16 +369,16 @@ describe('router hooks', function () {
                 const t4 = `('${$1}' -> '${$2}')#4`;
 
                 hia.setPhase(t1);
-                await router.goto($1);
+                await router.load($1);
 
                 hia.setPhase(t2);
-                await router.goto($2);
+                await router.load($2);
 
                 hia.setPhase(t3);
-                await router.goto($1);
+                await router.load($1);
 
                 hia.setPhase(t4);
-                await router.goto($2);
+                await router.load($2);
 
                 await tearDown();
 
@@ -520,10 +520,10 @@ describe('router hooks', function () {
             const { router, hia, tearDown } = await createFixture(Root, [A, B, C, D], getDefaultHIAConfig, getRouterOptions);
 
             hia.setPhase(`('' -> 'a/b/c/d')`);
-            await router.goto('a/b/c/d');
+            await router.load('a/b/c/d');
 
             hia.setPhase(`('a/b/c/d' -> 'a')`);
-            await router.goto('a');
+            await router.load('a');
 
             await tearDown();
 
@@ -924,7 +924,7 @@ describe('router hooks', function () {
             const phase1 = `('' -> 'a$0+b$1')`;
 
             hia.setPhase(phase1);
-            await router.goto('a@$0+b@$1');
+            await router.load('a@$0+b@$1');
 
             await tearDown();
 
@@ -1123,7 +1123,7 @@ describe('router hooks', function () {
             const phase1 = `('' -> 'a1/a2')`;
 
             hia.setPhase(phase1);
-            await router.goto('a1/a2');
+            await router.load('a1/a2');
 
             await tearDown();
 
@@ -1296,7 +1296,7 @@ describe('router hooks', function () {
             const phase1 = `('' -> 'a1@$0/a2+b1@$1/b2')`;
 
             hia.setPhase(phase1);
-            await router.goto('a1@$0/a2+b1@$1/b2');
+            await router.load('a1@$0/a2+b1@$1/b2');
 
             await tearDown();
 
@@ -1887,7 +1887,7 @@ describe('router hooks', function () {
               });
 
               container.register(target);
-              await router.goto(target);
+              await router.load(target);
             },
             messageMatcher: new RegExp(`error in ${hookName}`),
             stackMatcher: new RegExp(`Target.${hookName}`),
@@ -1923,8 +1923,8 @@ describe('router hooks', function () {
               });
 
               container.register(target1, target2);
-              await router.goto(target1);
-              await router.goto(target2);
+              await router.load(target1);
+              await router.load(target2);
             },
             messageMatcher: new RegExp(`error in ${hookName}`),
             stackMatcher: new RegExp(`Target1.${hookName}`),

@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IScheduler, bindable, customElement } from '@aurelia/runtime';
+import { Aurelia, CustomElement, IScheduler, bindable, customElement, BindingMode } from '@aurelia/runtime';
 import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
 
@@ -327,6 +327,106 @@ describe('au-slot', function () {
         {
           'my-element': `01234`,
         },
+      );
+    }
+
+    {
+      const createMyElement = (template: string) => CustomElement.define({ name: 'my-element', isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, }, class MyElement { });
+      yield new TestData(
+        'works with "with" on parent',
+        `<my-element people.bind="people"> <div au-slot>\${$host.item.lastName}</div> </my-element>`,
+        [
+          createMyElement(`<div with.bind="{item: people[0]}"><au-slot>\${item.firstName}</au-slot></div>`),
+        ],
+        { 'my-element': `<div><div>Doe</div></div>` }
+      );
+      yield new TestData(
+        'works with "with" on parent - outer scope',
+        `<let item.bind="people[1]"></let><my-element people.bind="people"> <div au-slot>\${item.lastName}</div> </my-element>`,
+        [
+          createMyElement(`<div with.bind="{item: people[0]}"><au-slot>\${item.firstName}</au-slot></div>`),
+        ],
+        { 'my-element': `<div><div>Mustermann</div></div>` }
+      );
+      yield new TestData(
+        'works with "with" on self',
+        `<my-element people.bind="people"> <div au-slot>\${$host.item.lastName}</div> </my-element>`,
+        [
+          createMyElement(`<au-slot with.bind="{item: people[0]}">\${item.firstName}</au-slot>`),
+        ],
+        { 'my-element': `<div>Doe</div>` }
+      );
+      yield new TestData(
+        'works with "with" on self - outer scope',
+        `<let item.bind="people[1]"></let><my-element people.bind="people"> <div au-slot>\${item.lastName}</div> </my-element>`,
+        [
+          createMyElement(`<au-slot with.bind="{item: people[0]}">\${item.firstName}</au-slot>`),
+        ],
+        { 'my-element': `<div>Mustermann</div>` }
+      );
+      yield new TestData(
+        'works replacing div[with]>au-slot[name=s1]>au-slot[name=s2]',
+        `<my-element people.bind="people"> <div au-slot="s2">\${$host.item.firstName}</div> </my-element>`,
+        [
+          createMyElement(`<div with.bind="{item: people[0]}"><au-slot name="s1">\${item.firstName}<au-slot name="s2">\${item.lastName}</au-slot></au-slot></div>`),
+        ],
+        { 'my-element': `<div>John<div>John</div></div>` }
+      );
+      yield new TestData(
+        'works replacing div[with]>au-slot[name=s1]>au-slot[name=s2] - outer scope',
+        `<let item.bind="people[1]"></let><my-element people.bind="people"> <div au-slot="s2">\${item.firstName}</div> </my-element>`,
+        [
+          createMyElement(`<div with.bind="{item: people[0]}"><au-slot name="s1">\${item.firstName}<au-slot name="s2">\${item.lastName}</au-slot></au-slot></div>`),
+        ],
+        { 'my-element': `<div>John<div>Max</div></div>` }
+      );
+      yield new TestData(
+        'works replacing au-slot[name=s1]>div[with]>au-slot[name=s2]',
+        `<my-element people.bind="people"> <div au-slot="s2">\${$host.item.firstName}</div> </my-element>`,
+        [
+          createMyElement(`<au-slot name="s1">\${people[0].firstName}<div with.bind="{item: people[0]}"><au-slot name="s2">\${item.lastName}</au-slot></div></au-slot>`),
+        ],
+        { 'my-element': `John<div><div>John</div></div>` }
+      );
+      yield new TestData(
+        'works replacing au-slot[name=s1]>div[with]>au-slot[name=s2] - outer scope',
+        `<let item.bind="people[1]"></let><my-element people.bind="people"> <div au-slot="s2">\${item.firstName}</div> </my-element>`,
+        [
+          createMyElement(`<au-slot name="s1">\${people[0].firstName}<div with.bind="{item: people[0]}"><au-slot name="s2">\${item.lastName}</au-slot></div></au-slot>`),
+        ],
+        { 'my-element': `John<div><div>Max</div></div>` }
+      );
+      yield new TestData(
+        'works replacing au-slot[name=s1]>au-slot[name=s2][with]',
+        `<my-element people.bind="people"> <div au-slot="s2">\${$host.item.firstName}</div> </my-element>`,
+        [
+          createMyElement(`<au-slot name="s1">\${people[0].firstName}<au-slot name="s2" with.bind="{item: people[0]}">\${item.lastName}</au-slot></au-slot>`),
+        ],
+        { 'my-element': `John<div>John</div>` }
+      );
+      yield new TestData(
+        'works replacing au-slot[name=s1]>au-slot[name=s2][with] - outer scope',
+        `<let item.bind="people[1]"></let><my-element people.bind="people"> <div au-slot="s2">\${item.firstName}</div> </my-element>`,
+        [
+          createMyElement(`<au-slot name="s1">\${people[0].firstName}<au-slot name="s2" with.bind="{item: people[0]}">\${item.lastName}</au-slot></au-slot>`),
+        ],
+        { 'my-element': `John<div>Max</div>` }
+      );
+      yield new TestData(
+        'works replacing div[with]>au-slot,div[with]au-slot',
+        `<my-element people.bind="people"> <template au-slot>\${$host.item.lastName}</template> </my-element>`,
+        [
+          createMyElement(`<div with.bind="{item: people[0]}"><au-slot>\${item.firstName}</au-slot></div><div with.bind="{item: people[1]}"><au-slot>\${item.firstName}</au-slot></div>`),
+        ],
+        { 'my-element': `<div>Doe</div><div>Mustermann</div>` }
+      );
+      yield new TestData(
+        'works replacing au-slot[with],au-slot[with]',
+        `<my-element people.bind="people"> <div au-slot>\${$host.item.lastName}</div> </my-element>`,
+        [
+          createMyElement(`<au-slot with.bind="{item: people[0]}">\${item.firstName}</au-slot><au-slot with.bind="{item: people[1]}">\${item.firstName}</au-slot>`),
+        ],
+        { 'my-element': `<div>Doe</div><div>Mustermann</div>` }
       );
     }
     // #endregion
@@ -824,6 +924,13 @@ describe('au-slot', function () {
         yield new NegativeTestData(
           `repeated projection - with - container: ${container}`,
           `<my-element> <div au-slot repeat.for="i of 1" with.bind="i">dp</div> <div au-slot="s1">s1p</div> </my-element>`,
+          [MyElement],
+          /Unsupported usage of \[au-slot\] along with a template controller \(if, else, repeat\.for etc\.\) found \(example: <some-el au-slot if\.bind="true"><\/some-el>\)\./,
+        );
+
+        yield new NegativeTestData(
+          `with - container: ${container}`,
+          `<my-element> <div au-slot with.bind="{item: 'foo'}">dp</div> <div au-slot="s1">s1p</div> </my-element>`,
           [MyElement],
           /Unsupported usage of \[au-slot\] along with a template controller \(if, else, repeat\.for etc\.\) found \(example: <some-el au-slot if\.bind="true"><\/some-el>\)\./,
         );

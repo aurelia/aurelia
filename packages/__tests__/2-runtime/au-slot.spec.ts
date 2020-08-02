@@ -204,7 +204,7 @@ describe('au-slot', function () {
           vm.showS1 = true;
           await scheduler.yieldAll(10);
 
-          assert.html.innerEqual(el, `static default <div>p11</div><div>p12</div><div>p20</div><div>p21</div>`, 'my-element.innerHTML');
+          assert.html.innerEqual(el, `static default <div>p11</div><div>p12</div> <div>p20</div><div>p21</div>`, 'my-element.innerHTML');
         },
       );
     }
@@ -721,16 +721,21 @@ describe('au-slot', function () {
       { '': '<ce-with-au-slot class="au"> <div>p</div> </ce-with-au-slot>' },
     );
   }
-  for (const { spec, template, expectedInnerHtmlMap, registrations } of getTestData()) {
+  for (const { spec, template, expectedInnerHtmlMap, registrations, additionalAssertion } of getTestData()) {
     $it(spec,
-      function ({ host, error }) {
+      async function (ctx) {
+        const { host, error } = ctx;
         assert.deepEqual(error, null);
-        for (const [selector, expectedInnerHtml] of Object.entries(expectedInnerHtmlMap))
+        for (const [selector, expectedInnerHtml] of Object.entries(expectedInnerHtmlMap)) {
           if (selector) {
             assert.html.innerEqual(selector, expectedInnerHtml, `${selector}.innerHTML`, host);
           } else {
             assert.html.innerEqual(host, expectedInnerHtml, `root.innerHTML`);
           }
+        }
+        if (additionalAssertion != null) {
+          await additionalAssertion(ctx);
+        }
       },
       { template, registrations });
   }

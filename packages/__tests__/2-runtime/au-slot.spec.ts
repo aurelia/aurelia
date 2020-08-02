@@ -529,6 +529,43 @@ describe('au-slot', function () {
         { 'my-element': '<div> projection </div>' },
       );
 
+      // tag: nonsense-example
+      yield new TestData(
+        '[au-slot] -> <au-slot> -> [au-slot](ignored)',
+        `<my-element>
+          <div au-slot="s1">
+            <au-slot name="does-not-matter">
+              projection
+              <span au-slot="s1">ignored</span>
+            </au-slot>
+          </div>
+        </my-element>`,
+        [
+          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"></au-slot>` }, class MyElement { }),
+        ],
+        { 'my-element': '<div> projection </div>' },
+      );
+
+      // tag: nonsense-example
+      yield new TestData(
+        '[au-slot] -> <au-slot> -> [au-slot](ignored) -> <au-slot>(ignored)',
+        `<my-element>
+          <div au-slot="s1">
+            <au-slot name="does-not-matter">
+              projection
+              <span au-slot="s1">
+                ignored
+                <au-slot name="dnc">fb</au-slot>
+              </span>
+            </au-slot>
+          </div>
+        </my-element>`,
+        [
+          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"></au-slot>` }, class MyElement { }),
+        ],
+        { 'my-element': '<div> projection </div>' },
+      );
+
       // tag: chained-projection
       yield new TestData(
         'chain of [au-slot] and <au-slot> can be used to project content to a nested inner CE',

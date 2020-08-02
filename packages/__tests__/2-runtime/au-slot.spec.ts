@@ -580,6 +580,92 @@ describe('au-slot', function () {
          */
         { '': '<parent-element class="au"> <child-element class="au"> <div id="1"> p </div> <div id="3"><div id="1"> p </div></div></child-element></parent-element>' },
       );
+
+      {
+        const createAuSlot = (level: number) => {
+          let currentLevel = 0;
+          let template = '';
+          while (level > currentLevel) {
+            template += `<au-slot name="s${currentLevel + 1}">s${currentLevel + 1}fb`;
+            ++currentLevel;
+          }
+          while (currentLevel > 0) {
+            template += '</au-slot>';
+            --currentLevel;
+          }
+          return template;
+        };
+        const buildExpectedTextContent = (level: number) => {
+          if (level === 1) {
+            return 'p';
+          }
+          let content = '';
+          let i = 1;
+          while (level >= i) {
+            content += i === level ? 'p' : `s${i}fb`;
+            ++i;
+          }
+          return content;
+        };
+
+        for (let i = 1; i < 11; i++) {
+          yield new TestData(
+            `projection works for deeply nested <au-slot>; nesting level: ${i}`,
+            `<my-element><template au-slot="s${i}">p</template></my-element>`,
+            [
+              CustomElement.define({ name: 'my-element', isStrictBinding: true, template: createAuSlot(i) }, class MyElement { }),
+            ],
+            { 'my-element': buildExpectedTextContent(i) },
+          );
+        }
+      }
+
+      {
+        const createAuSlot = (level: number) => {
+          let currentLevel = 0;
+          let template = '';
+          while (level > currentLevel) {
+            template += `<au-slot name="s${currentLevel + 1}">s${currentLevel + 1}fb</au-slot>`;
+            ++currentLevel;
+          }
+          return template;
+        };
+        const buildProjection = (level: number) => {
+          if (level === 1) {
+            return '<template au-slot="s1">p1</template>';
+          }
+          let content = '';
+          let i = 1;
+          while (level >= i) {
+            content += `<template au-slot="s${i}">p${i}</template>`;
+            ++i;
+          }
+          return content;
+        };
+        const buildExpectedTextContent = (level: number) => {
+          if (level === 1) {
+            return 'p1';
+          }
+          let content = '';
+          let i = 1;
+          while (level >= i) {
+            content += `p${i}`;
+            ++i;
+          }
+          return content;
+        };
+
+        for (let i = 1; i < 11; i++) {
+          yield new TestData(
+            `projection works for all non-nested <au-slot>; count: ${i}`,
+            `<my-element>${buildProjection(i)}</my-element>`,
+            [
+              CustomElement.define({ name: 'my-element', isStrictBinding: true, template: createAuSlot(i) }, class MyElement { }),
+            ],
+            { 'my-element': buildExpectedTextContent(i) },
+          );
+        }
+      }
     }
     // #endregion
 

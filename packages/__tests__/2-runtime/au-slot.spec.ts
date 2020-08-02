@@ -691,4 +691,53 @@ describe('au-slot', function () {
         { template: `<my-element><button au-slot="default" click.${listener}="fn()">Click</button></my-element>`, registrations: [MyElement] });
     });
   }
+
+  class NegativeTestData {
+    public constructor(
+      public readonly spec: string,
+      public readonly template: string,
+      public readonly registrations: any[],
+      public readonly errorRe: RegExp,
+    ) { }
+  }
+
+  function* getNegativeTestData() {
+    // #region conditional projection
+    yield new NegativeTestData(
+      'conditional projection - if',
+      `<my-element> <div au-slot if.bind="false">dp</div> <div au-slot="s1">s1p</div> </my-element>`,
+      [
+        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>dfb</au-slot>|<au-slot name="s1">s1fb</au-slot>` }, class MyElement { }),
+      ],
+      /Unsupported usage of \[au-slot\] along with a template controller \(if, else, repeat\.for etc\.\) found \(example: <some-el au-slot if\.bind="true"><\/some-el>\)\./,
+    );
+
+    yield new NegativeTestData(
+      'conditional projection - if-else - 1',
+      `<my-element> <div if.bind="false" au-slot>dp</div> <div else au-slot="s1">s1p</div> </my-element>`,
+      [
+        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>dfb</au-slot>|<au-slot name="s1">s1fb</au-slot>` }, class MyElement { }),
+      ],
+      /Unsupported usage of \[au-slot\] along with a template controller \(if, else, repeat\.for etc\.\) found \(example: <some-el au-slot if\.bind="true"><\/some-el>\)\./,
+    );
+
+    yield new NegativeTestData(
+      'conditional projection - if-else - 2',
+      `<my-element> <div if.bind="true" au-slot>dp</div> <div else au-slot="s1">s1p</div> </my-element>`,
+      [
+        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>dfb</au-slot>|<au-slot name="s1">s1fb</au-slot>` }, class MyElement { }),
+      ],
+      /Unsupported usage of \[au-slot\] along with a template controller \(if, else, repeat\.for etc\.\) found \(example: <some-el au-slot if\.bind="true"><\/some-el>\)\./,
+    );
+    // #endregion
+  }
+
+  for (const { spec, template, errorRe, registrations } of getNegativeTestData()) {
+    $it(`does not work - ${spec}`,
+      function ({ error }) {
+        assert.notEqual(error, null);
+        assert.match(error.message, errorRe);
+      },
+      { template, registrations });
+  }
 });

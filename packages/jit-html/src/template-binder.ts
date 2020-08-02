@@ -377,25 +377,35 @@ export class TemplateBinder {
         this.ensureAttributeOrder(manifest);
       }
     }
-    processTemplateControllers(this.dom, manifestProxy, manifest);
 
     let projection = node.getAttribute('au-slot');
     if (projection === '') {
       projection = 'default';
     }
+    const hasProjection = projection !== null;
+    if (hasProjection && isTemplateControllerOf(manifestProxy, manifest)) {
+      // prevents <some-el au-slot TEMPLATE.CONTROLLER></some-el>.
+      throw new Error('Unsupported usage of [au-slot] along with a template controller (if, else, repeat.for etc.) found (example: <some-el au-slot if.bind="true"></some-el>).');
+      /**
+       * TODO: prevent <template TEMPLATE.CONTROLLER><some-el au-slot></some-el></template>.
+       * But there is not easy way for now, as the attribute binding is done after binding the child nodes.
+       * This means by the time the template controller in the ancestor is processed, the projection is already registered.
+       */
+    }
 
+    processTemplateControllers(this.dom, manifestProxy, manifest);
     const projectionOwner: CustomElementSymbol | null = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
 
-    if (projection === null || projectionOwner === null) {
+    if (!hasProjection || projectionOwner === null) {
       // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
       parentManifest.childNodes.push(manifestProxy);
-    } else if (projection !== null) {
-      const projectionPart = new ProjectionSymbol(projection);
+    } else if (hasProjection) {
+      const projectionPart = new ProjectionSymbol(projection!);
       projectionPart.parent = parentManifest;
       projectionPart.template = manifestProxy;
       projectionOwner!.projections.push(projectionPart);
-      parentManifest.physicalNode.removeChild(node);
       node.removeAttribute('au-slot');
+      node.remove();
     }
   }
 

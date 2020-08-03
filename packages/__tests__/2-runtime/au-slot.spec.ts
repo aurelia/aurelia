@@ -83,6 +83,8 @@ describe('au-slot', function () {
     ) { }
   }
   function* getTestData() {
+    const createMyElement = (template: string) => CustomElement.define({ name: 'my-element', isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, }, class MyElement { });
+
     // #region simple templating
     yield new TestData(
       'shows fallback content',
@@ -240,6 +242,7 @@ describe('au-slot', function () {
       );
     }
 
+    // #region `repeat.for`
     {
       @customElement({
         name: 'my-element', isStrictBinding: true, template: `
@@ -322,16 +325,87 @@ describe('au-slot', function () {
         'works with a directly applied repeater',
         `<my-element></my-element>`,
         [
-          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot repeat.for="i of 5">\${i}</au-slot>` }, class MyElement { }),
+          createMyElement(`<au-slot repeat.for="i of 5">\${i}</au-slot>`),
         ],
-        {
-          'my-element': `01234`,
-        },
+        { 'my-element': `01234`, },
+      );
+
+      yield new TestData(
+        'works with a directly applied repeater - with projection',
+        `<my-element><template au-slot>\${$host.i*2}</template></my-element>`,
+        [
+          createMyElement(`<au-slot repeat.for="i of 5">\${i}</au-slot>`),
+        ],
+        { 'my-element': `02468`, },
+      );
+
+      yield new TestData(
+        'projection works for [repeat]>au-slot,[repeat]>au-slot',
+        `<my-element><template au-slot>\${$host.i*2}</template></my-element>`,
+        [
+          createMyElement(`
+            <template repeat.for="i of 5">
+              <au-slot>\${i}</au-slot>
+            </template>|
+            <template repeat.for="i of 5">
+              <au-slot>\${i + 2}</au-slot>
+            </template>
+            `),
+        ],
+        { 'my-element': `0 2 4 6 8 | 0 2 4 6 8`, },
+      );
+
+      yield new TestData(
+        'projection works for au-slot[repeat],au-slot[repeat]',
+        `<my-element><template au-slot>\${$host.i*2}</template></my-element>`,
+        [
+          createMyElement(`<au-slot repeat.for="i of 5">\${i}</au-slot>|<au-slot repeat.for="i of 5">\${i + 2}</au-slot>`),
+        ],
+        { 'my-element': `02468|02468`, },
+      );
+
+      yield new TestData(
+        'projection works for [repeat]>au-slot[name="s1"]>au-slot[name="s2"],[repeat]>au-slot[name="s1"]>au-slot[name="s2"]',
+        `<my-element><template au-slot="s2">\${$host.i*2}</template></my-element>`,
+        [
+          createMyElement(`
+            <template>
+              <template repeat.for="i of 5">
+                <au-slot name="s1">\${i}<au-slot name="s2">\${i+2}</au-slot></au-slot>
+                <au-slot name="s1">\${i+3}<au-slot name="s2">\${i+4}</au-slot></au-slot>
+              </template>
+            </template>`),
+        ],
+        { 'my-element': `00 30 12 42 24 54 36 66 48 78`, },
+      );
+
+      yield new TestData(
+        'projection works for [repeat]>au-slot with another repeat',
+        `<my-element><template au-slot="s1"><template repeat.for="i of 3">\${i*2}</template></template></my-element>`,
+        [
+          createMyElement(`
+            <template>
+              <template repeat.for="i of 2">
+                <au-slot name="s1">\${i}</au-slot>
+              </template>
+            </template>`),
+        ],
+        { 'my-element': `024 024`, },
+      );
+
+      yield new TestData(
+        'projection works for au-slot[repeat] with another repeat',
+        `<my-element><template au-slot="s1"><template repeat.for="i of 3">\${i*2}</template></template></my-element>`,
+        [
+          createMyElement(`<au-slot name="s1" repeat.for="i of 2">\${i}</au-slot>`),
+        ],
+        { 'my-element': `024024`, },
       );
     }
+    // #endregion
 
+    // #region `with`
     {
-      const createMyElement = (template: string) => CustomElement.define({ name: 'my-element', isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, }, class MyElement { });
       yield new TestData(
         'works with "with" on parent',
         `<my-element people.bind="people"> <div au-slot>\${$host.item.lastName}</div> </my-element>`,
@@ -429,6 +503,7 @@ describe('au-slot', function () {
         { 'my-element': `<div>Doe</div><div>Mustermann</div>` }
       );
     }
+    // #endregion
     // #endregion
 
     // #region complex templating

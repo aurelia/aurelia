@@ -90,7 +90,7 @@ describe('au-slot', function () {
       'shows fallback content',
       `<my-element></my-element>`,
       [
-        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>` }, class MyElement { }),
+        createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
       { 'my-element': 'static default s1 s2' },
     );
@@ -99,7 +99,7 @@ describe('au-slot', function () {
       'shows projected content',
       `<my-element><div au-slot="default">d</div><div au-slot="s1">p1</div></my-element>`,
       [
-        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>` }, class MyElement { }),
+        createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
       { 'my-element': 'static <div>d</div> <div>p1</div> s2' },
     );
@@ -108,7 +108,7 @@ describe('au-slot', function () {
       'shows projected content - with template',
       `<my-element><template au-slot="default">d</template><template au-slot="s1">p1</template></my-element>`,
       [
-        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>` }, class MyElement { }),
+        createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
       { 'my-element': 'static d p1 s2' },
     );
@@ -117,7 +117,7 @@ describe('au-slot', function () {
       'supports n-1 projections',
       `<my-element> <div au-slot="s2">p20</div> <div au-slot="s1">p11</div> <div au-slot="s2">p21</div> <div au-slot="s1">p12</div> </my-element>`,
       [
-        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>` }, class MyElement { }),
+        createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
       { 'my-element': `static default <div>p11</div><div>p12</div> <div>p20</div><div>p21</div>` },
     );
@@ -126,7 +126,7 @@ describe('au-slot', function () {
       'au-slot name with space works',
       `<my-element><div au-slot="slot one">p</div></my-element>`,
       [
-        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="slot one"></au-slot>` }, class MyElement { }),
+        createMyElement(`<au-slot name="slot one"></au-slot>`),
       ],
       { 'my-element': '<div>p</div>' },
     );
@@ -135,7 +135,7 @@ describe('au-slot', function () {
       'projection w/o slot name goes to the default slot',
       `<my-element><div au-slot>p</div></my-element>`,
       [
-        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot></au-slot><au-slot name="s1">s1fb</au-slot>` }, class MyElement { }),
+        createMyElement(`<au-slot></au-slot><au-slot name="s1">s1fb</au-slot>`),
       ],
       { 'my-element': '<div>p</div>s1fb' },
     );
@@ -145,7 +145,7 @@ describe('au-slot', function () {
       'projection w/o [au-slot] causes mis-projection',
       `<my-element><div>p</div></my-element>`,
       [
-        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1">s1fb</au-slot>|<au-slot>d</au-slot>` }, class MyElement { }),
+        createMyElement(`<au-slot name="s1">s1fb</au-slot>|<au-slot>d</au-slot>`),
       ],
       { 'my-element': '<div>p</div>s1fb|d' },
     );
@@ -155,7 +155,7 @@ describe('au-slot', function () {
       `<my-element><div>p1</div></my-element>
        <my-element><div>p2</div></my-element>`,
       [
-        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot></au-slot>` }, class MyElement { }),
+        createMyElement(`<au-slot></au-slot>`),
       ],
       { 'my-element': '<div>p1</div>', 'my-element+my-element': '<div>p2</div>' },
     );
@@ -166,7 +166,7 @@ describe('au-slot', function () {
       'supports interpolations',
       `<my-element> <div au-slot="s2">\${message}</div> <div au-slot="s1">p11</div> <div au-slot="s2">p21</div> <div au-slot="s1">\${message}</div> </my-element>`,
       [
-        CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>` }, class MyElement { }),
+        createMyElement(`static <au-slot>default</au-slot> <au-slot name="s1">s1</au-slot> <au-slot name="s2">s2</au-slot>`),
       ],
       { 'my-element': `static default <div>p11</div><div>root</div> <div>root</div><div>p21</div>` },
     );
@@ -614,7 +614,7 @@ describe('au-slot', function () {
         'duplicate slot works',
         `<my-element></my-element>`,
         [
-          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot>d1</au-slot>|<au-slot name="s1">s11</au-slot>|<au-slot>d2</au-slot>|<au-slot name="s1">s12</au-slot>` }, class MyElement { }),
+          createMyElement(`<au-slot>d1</au-slot>|<au-slot name="s1">s11</au-slot>|<au-slot>d2</au-slot>|<au-slot name="s1">s12</au-slot>`),
         ],
         { 'my-element': 'd1|s11|d2|s12' },
       );
@@ -623,7 +623,7 @@ describe('au-slot', function () {
         'projection to duplicate slots results in repetitions',
         `<my-element><template au-slot="default">dp</template><template au-slot="s1">s1p</template></my-element>`,
         [
-          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot>d1</au-slot>|<au-slot name="s1">s11</au-slot>|<au-slot>d2</au-slot>|<au-slot name="s1">s12</au-slot>` }, class MyElement { }),
+          createMyElement(`<au-slot>d1</au-slot>|<au-slot name="s1">s11</au-slot>|<au-slot>d2</au-slot>|<au-slot name="s1">s12</au-slot>`),
         ],
         { 'my-element': 'dp|s1p|dp|s1p' },
       );
@@ -674,7 +674,7 @@ describe('au-slot', function () {
           </au-slot>
         </my-element>`,
         [
-          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot>dfb</au-slot>|<au-slot name="s1">s1fb</au-slot>` }, class MyElement { }),
+          createMyElement(`<au-slot>dfb</au-slot>|<au-slot name="s1">s1fb</au-slot>`),
         ],
         { 'my-element': 'mis-projected bar dfb|s1fb' },
       );
@@ -684,7 +684,7 @@ describe('au-slot', function () {
         '[au-slot] in <au-slot> is no-op',
         `<my-element></my-element>`,
         [
-          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"><div au-slot="s1">no-op</div></au-slot>` }, class MyElement { }),
+          createMyElement(`<au-slot name="s1"><div au-slot="s1">no-op</div></au-slot>`),
         ],
         { 'my-element': '' },
       );
@@ -699,7 +699,7 @@ describe('au-slot', function () {
           </div>
         </my-element>`,
         [
-          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"></au-slot>` }, class MyElement { }),
+          createMyElement(`<au-slot name="s1"></au-slot>`),
         ],
         { 'my-element': '<div> projection </div>' },
       );
@@ -716,7 +716,7 @@ describe('au-slot', function () {
           </div>
         </my-element>`,
         [
-          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"></au-slot>` }, class MyElement { }),
+          createMyElement(`<au-slot name="s1"></au-slot>`),
         ],
         { 'my-element': '<div> projection </div>' },
       );
@@ -736,7 +736,7 @@ describe('au-slot', function () {
           </div>
         </my-element>`,
         [
-          CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot name="s1"></au-slot>` }, class MyElement { }),
+          createMyElement(`<au-slot name="s1"></au-slot>`),
         ],
         { 'my-element': '<div> projection </div>' },
       );
@@ -906,7 +906,7 @@ describe('au-slot', function () {
       `<my-element>
         <input au-slot type="text" value.two-way="people[0].firstName">
       </my-element>`,
-      [CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot></au-slot>` }, class MyElement { })],
+      [createMyElement(`<au-slot></au-slot>`)],
       { 'my-element': '<input type="text" value.two-way="people[0].firstName" class="au">' },
       async function ({ app, host, scheduler }) {
         const el = host.querySelector('my-element');

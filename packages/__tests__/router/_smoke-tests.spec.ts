@@ -134,7 +134,7 @@ describe('router (smoke tests)', function () {
 
     @customElement({ name: name(B01), template: `${name(B01)}${vp(0)}` })
     class B01 {
-      public async canLeave(
+      public async canUnload(
         next: RouteNode | null,
         current: RouteNode,
       ): Promise<true> {
@@ -144,7 +144,7 @@ describe('router (smoke tests)', function () {
     }
     @customElement({ name: name(B02), template: `${name(B02)}${vp(0)}` })
     class B02 {
-      public async canLeave(
+      public async canUnload(
         next: RouteNode | null,
         current: RouteNode,
       ): Promise<false> {
@@ -156,7 +156,7 @@ describe('router (smoke tests)', function () {
 
     @customElement({ name: name(B11), template: `${name(B11)}${vp(1)}` })
     class B11 {
-      public async canLeave(
+      public async canUnload(
         next: RouteNode | null,
         current: RouteNode,
       ): Promise<true> {
@@ -166,7 +166,7 @@ describe('router (smoke tests)', function () {
     }
     @customElement({ name: name(B12), template: `${name(B12)}${vp(1)}` })
     class B12 {
-      public async canLeave(
+      public async canUnload(
         next: RouteNode | null,
         current: RouteNode,
       ): Promise<false> {
@@ -267,7 +267,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root1)} correctly handles canLeave with load ${name(B01)},${name(A01)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with load ${name(B01)},${name(A01)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z);
 
       let result = await router.load(B01);
@@ -281,7 +281,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root1)} correctly handles canLeave with load ${name(B02)},${name(A01)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with load ${name(B02)},${name(A01)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z);
 
       let result = await router.load(B02);
@@ -295,7 +295,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root1)} correctly handles canLeave with load ${name(B02)},${name(A01)},${name(A02)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with load ${name(B02)},${name(A01)},${name(A02)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z);
 
       let result = await router.load(B02);
@@ -313,7 +313,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root1)} correctly handles canLeave with load ${name(B11)}/${name(B02)},${name(B11)}/${name(A02)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with load ${name(B11)}/${name(B02)},${name(B11)}/${name(A02)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z);
 
       let result = await router.load(`${name(B11)}/${name(B02)}`);
@@ -327,7 +327,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root1)} correctly handles canLeave with load ${name(B12)}/${name(B01)},${name(B11)}/${name(B01)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with load ${name(B12)}/${name(B01)},${name(B11)}/${name(B01)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z);
 
       let result = await router.load(`${name(B12)}/${name(B01)}`);
@@ -341,7 +341,7 @@ describe('router (smoke tests)', function () {
       await tearDown();
     });
 
-    it(`${name(Root1)} correctly handles canLeave with load ${name(B12)}/${name(B01)},${name(B12)}/${name(A01)} in order`, async function () {
+    it(`${name(Root1)} correctly handles canUnload with load ${name(B12)}/${name(B01)},${name(B12)}/${name(A01)} in order`, async function () {
       const { router, host, tearDown } = await createFixture(Root1, Z);
 
       let result = await router.load(`${name(B12)}/${name(B01)}`);

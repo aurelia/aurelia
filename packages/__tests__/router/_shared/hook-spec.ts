@@ -190,8 +190,8 @@ export const hookSpecsMap = {
 
   dispose: getHookSpecs('dispose').sync,
 
-  canEnter: getHookSpecs('canEnter'),
-  enter: getHookSpecs('enter'),
-  canLeave: getHookSpecs('canLeave'),
-  leave: getHookSpecs('leave'),
+  canLoad: getHookSpecs('canLoad'),
+  load: getHookSpecs('load'),
+  canUnload: getHookSpecs('canUnload'),
+  unload: getHookSpecs('unload'),
 };

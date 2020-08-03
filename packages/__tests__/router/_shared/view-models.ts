@@ -48,21 +48,21 @@ export interface ITestRouteViewModel extends IRouteViewModel {
     flags: LifecycleFlags,
   ): void | Promise<void>;
 
-  canEnter(
+  canLoad(
     params: Params,
     next: RouteNode,
     current: RouteNode | null,
   ): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
-  enter(
+  load(
     params: Params,
     next: RouteNode,
     current: RouteNode | null,
   ): void | Promise<void>;
-  canLeave(
+  canUnload(
     next: RouteNode | null,
     current: RouteNode,
   ): boolean | Promise<boolean>;
-  leave(
+  unload(
     next: RouteNode | null,
     current: RouteNode,
   ): void | Promise<void>;
@@ -86,10 +86,10 @@ export class HookSpecs {
 
     public readonly $dispose: IHookSpec<'dispose'>,
 
-    public readonly canEnter: IHookSpec<'canEnter'>,
-    public readonly enter: IHookSpec<'enter'>,
-    public readonly canLeave: IHookSpec<'canLeave'>,
-    public readonly leave: IHookSpec<'leave'>,
+    public readonly canLoad: IHookSpec<'canLoad'>,
+    public readonly load: IHookSpec<'load'>,
+    public readonly canUnload: IHookSpec<'canUnload'>,
+    public readonly unload: IHookSpec<'unload'>,
   ) {}
 
   public static create(
@@ -109,10 +109,10 @@ export class HookSpecs {
 
       hookSpecsMap.dispose,
 
-      input.canEnter || hookSpecsMap.canEnter.sync,
-      input.enter || hookSpecsMap.enter.sync,
-      input.canLeave || hookSpecsMap.canLeave.sync,
-      input.leave || hookSpecsMap.leave.sync,
+      input.canLoad || hookSpecsMap.canLoad.sync,
+      input.load || hookSpecsMap.load.sync,
+      input.canUnload || hookSpecsMap.canUnload.sync,
+      input.unload || hookSpecsMap.unload.sync,
     );
   }
 
@@ -131,10 +131,10 @@ export class HookSpecs {
 
     $this.$dispose = void 0;
 
-    $this.canEnter = void 0;
-    $this.enter = void 0;
-    $this.canLeave = void 0;
-    $this.leave = void 0;
+    $this.canLoad = void 0;
+    $this.load = void 0;
+    $this.canUnload = void 0;
+    $this.unload = void 0;
   }
 
   public toString(exclude?: string): string {
@@ -160,10 +160,10 @@ const hookNames = [
   'afterUnbind',
   'afterUnbindChildren',
 
-  'canEnter',
-  'enter',
-  'canLeave',
-  'leave',
+  'canLoad',
+  'load',
+  'canUnload',
+  'unload',
 ] as const;
 
 export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
@@ -298,56 +298,56 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     );
   }
 
-  public canEnter(
+  public canLoad(
     params: Params,
     next: RouteNode,
     current: RouteNode | null,
   ): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
-    return this.specs.canEnter.invoke(
+    return this.specs.canLoad.invoke(
       this,
       () => {
-        this.hia.canEnter.notify(this.name);
-        return this.$canEnter(params, next, current);
+        this.hia.canLoad.notify(this.name);
+        return this.$canLoad(params, next, current);
       },
     );
   }
 
-  public enter(
+  public load(
     params: Params,
     next: RouteNode,
     current: RouteNode | null,
   ): void | Promise<void> {
-    return this.specs.enter.invoke(
+    return this.specs.load.invoke(
       this,
       () => {
-        this.hia.enter.notify(this.name);
-        return this.$enter(params, next, current);
+        this.hia.load.notify(this.name);
+        return this.$load(params, next, current);
       },
     );
   }
 
-  public canLeave(
+  public canUnload(
     next: RouteNode | null,
     current: RouteNode,
   ): boolean | Promise<boolean> {
-    return this.specs.canLeave.invoke(
+    return this.specs.canUnload.invoke(
       this,
       () => {
-        this.hia.canLeave.notify(this.name);
-        return this.$canLeave(next, current);
+        this.hia.canUnload.notify(this.name);
+        return this.$canUnload(next, current);
       },
     );
   }
 
-  public leave(
+  public unload(
     next: RouteNode | null,
     current: RouteNode,
   ): void | Promise<void> {
-    return this.specs.leave.invoke(
+    return this.specs.unload.invoke(
       this,
       () => {
-        this.hia.leave.notify(this.name);
-        return this.$leave(next, current);
+        this.hia.unload.notify(this.name);
+        return this.$unload(next, current);
       },
     );
   }
@@ -414,7 +414,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     // do nothing
   }
 
-  protected $canEnter(
+  protected $canLoad(
     _params: Params,
     _next: RouteNode,
     _current: RouteNode | null,
@@ -422,7 +422,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     return true;
   }
 
-  protected $enter(
+  protected $load(
     _params: Params,
     _next: RouteNode,
     _current: RouteNode | null,
@@ -430,14 +430,14 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     // do nothing
   }
 
-  protected $canLeave(
+  protected $canUnload(
     _next: RouteNode | null,
     _current: RouteNode,
   ): boolean | Promise<boolean> {
     return true;
   }
 
-  protected $leave(
+  protected $unload(
     _next: RouteNode | null,
     _current: RouteNode,
   ): void | Promise<void> {

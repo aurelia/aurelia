@@ -5,10 +5,10 @@ export function* deactivate(
   prefix: string,
   component: string,
   afterChildren: boolean,
-  leave: boolean,
+  unload: boolean,
 ) {
-  if (leave) {
-    yield `${prefix}.${component}.leave`;
+  if (unload) {
+    yield `${prefix}.${component}.unload`;
   }
   yield `${prefix}.${component}.beforeDetach`;
   yield `${prefix}.${component}.beforeUnbind`;
@@ -23,10 +23,10 @@ export function* activate(
   prefix: string,
   component: string,
   afterChildren: boolean,
-  enter: boolean,
+  load: boolean,
 ) {
-  if (enter) {
-    yield `${prefix}.${component}.enter`;
+  if (load) {
+    yield `${prefix}.${component}.load`;
   }
   yield `${prefix}.${component}.beforeBind`;
   yield `${prefix}.${component}.afterBind`;
@@ -114,14 +114,14 @@ export const getAsyncCalls = {
     prefix: string,
     $x: string,
   ) {
-    yield `${prefix}.${$x}.canLeave`;
+    yield `${prefix}.${$x}.canUnload`;
     yield* deactivate(prefix, $x, true, true);
   },
   *'"" -> $x'(
     prefix: string,
     $x: string,
   ) {
-    yield `${prefix}.${$x}.canEnter`;
+    yield `${prefix}.${$x}.canLoad`;
     yield* activate(prefix, $x, true, true);
   },
   *'$1 -> $2'(
@@ -134,28 +134,28 @@ export const getAsyncCalls = {
     if ($1.length === 0) { return yield* getAsyncCalls['"" -> $x'](prefix, $2); }
     if ($2.length === 0) { return yield* getAsyncCalls['$x -> ""'](prefix, $1); }
 
-    yield `${prefix}.${$1}.canLeave`;
-    yield `${prefix}.${$2}.canEnter`;
+    yield `${prefix}.${$1}.canUnload`;
+    yield `${prefix}.${$2}.canLoad`;
 
     switch (opts.lifecycleStrategy) {
       case 'phased':
-        yield `${prefix}.${$1}.leave`;
-        yield `${prefix}.${$2}.enter`;
+        yield `${prefix}.${$1}.unload`;
+        yield `${prefix}.${$2}.load`;
         break;
       case 'parallel':
         // Note: in parallel mode, the swapStrategy does affect the order in which the router hooks are invoked, but this is not necessarily part of
         // the "contract" that is fulfilled by the swapStrategy. It's just an effect of the way it's implemented, which happens to make it look like
-        // the router hooks are part of the swap, but they aren't. This can easily be demonstrated by having the enter and leave hooks wait a different
+        // the router hooks are part of the swap, but they aren't. This can easily be demonstrated by having the load and unload hooks wait a different
         // amount of time: the activate/deactivate invocations will still be aligned.
         switch (opts.swapStrategy) {
           case 'parallel':
           case 'add-first':
-            yield `${prefix}.${$2}.enter`;
-            yield `${prefix}.${$1}.leave`;
+            yield `${prefix}.${$2}.load`;
+            yield `${prefix}.${$1}.unload`;
             break;
           case 'remove-first':
-            yield `${prefix}.${$1}.leave`;
-            yield `${prefix}.${$2}.enter`;
+            yield `${prefix}.${$1}.unload`;
+            yield `${prefix}.${$2}.load`;
             break;
         }
     }
@@ -187,8 +187,8 @@ export const getAsyncCalls = {
     if ($x$0.length === 0) { return yield* getAsyncCalls['"" -> $x'](prefix, $x$1); }
     if ($x$1.length === 0) { return yield* getAsyncCalls['"" -> $x'](prefix, $x$0); }
 
-    yield `${prefix}.${$x$0}.canEnter`;
-    yield `${prefix}.${$x$1}.canEnter`;
+    yield `${prefix}.${$x$0}.canLoad`;
+    yield `${prefix}.${$x$1}.canLoad`;
     yield* interleave(
       activate(prefix, $x$0, true, true),
       activate(prefix, $x$1, true, true),
@@ -204,8 +204,8 @@ export const getAsyncCalls = {
     if ($x$0.length === 0) { return yield* getAsyncCalls['$x -> ""'](prefix, $x$1); }
     if ($x$1.length === 0) { return yield* getAsyncCalls['$x -> ""'](prefix, $x$0); }
 
-    yield `${prefix}.${$x$0}.canLeave`;
-    yield `${prefix}.${$x$1}.canLeave`;
+    yield `${prefix}.${$x$0}.canUnload`;
+    yield `${prefix}.${$x$1}.canUnload`;
     yield* interleave(
       deactivate(prefix, $x$0, false, true),
       deactivate(prefix, $x$1, false, true),
@@ -233,32 +233,32 @@ export const getAsyncCalls = {
       return yield* getAsyncCalls['$1 -> $2'](prefix, $1$0, $2$1, opts, comp);
     }
 
-    if ($1$0.length > 0) { yield `${prefix}.${$1$0}.canLeave`; }
-    if ($1$1.length > 0) { yield `${prefix}.${$1$1}.canLeave`; }
-    if ($2$0.length > 0) { yield `${prefix}.${$2$0}.canEnter`; }
-    if ($2$1.length > 0) { yield `${prefix}.${$2$1}.canEnter`; }
+    if ($1$0.length > 0) { yield `${prefix}.${$1$0}.canUnload`; }
+    if ($1$1.length > 0) { yield `${prefix}.${$1$1}.canUnload`; }
+    if ($2$0.length > 0) { yield `${prefix}.${$2$0}.canLoad`; }
+    if ($2$1.length > 0) { yield `${prefix}.${$2$1}.canLoad`; }
 
     switch (opts.lifecycleStrategy) {
       case 'phased':
-        if ($1$0.length > 0) { yield `${prefix}.${$1$0}.leave`; }
-        if ($1$1.length > 0) { yield `${prefix}.${$1$1}.leave`; }
-        if ($2$0.length > 0) { yield `${prefix}.${$2$0}.enter`; }
-        if ($2$1.length > 0) { yield `${prefix}.${$2$1}.enter`; }
+        if ($1$0.length > 0) { yield `${prefix}.${$1$0}.unload`; }
+        if ($1$1.length > 0) { yield `${prefix}.${$1$1}.unload`; }
+        if ($2$0.length > 0) { yield `${prefix}.${$2$0}.load`; }
+        if ($2$1.length > 0) { yield `${prefix}.${$2$1}.load`; }
         break;
       case 'parallel':
         switch (opts.swapStrategy) {
           case 'parallel':
           case 'add-first':
-            if ($2$0.length > 0) { yield `${prefix}.${$2$0}.enter`; }
-            if ($2$1.length > 0) { yield `${prefix}.${$2$1}.enter`; }
-            if ($1$0.length > 0) { yield `${prefix}.${$1$0}.leave`; }
-            if ($1$1.length > 0) { yield `${prefix}.${$1$1}.leave`; }
+            if ($2$0.length > 0) { yield `${prefix}.${$2$0}.load`; }
+            if ($2$1.length > 0) { yield `${prefix}.${$2$1}.load`; }
+            if ($1$0.length > 0) { yield `${prefix}.${$1$0}.unload`; }
+            if ($1$1.length > 0) { yield `${prefix}.${$1$1}.unload`; }
             break;
           case 'remove-first':
-            if ($1$0.length > 0) { yield `${prefix}.${$1$0}.leave`; }
-            if ($1$1.length > 0) { yield `${prefix}.${$1$1}.leave`; }
-            if ($2$0.length > 0) { yield `${prefix}.${$2$0}.enter`; }
-            if ($2$1.length > 0) { yield `${prefix}.${$2$1}.enter`; }
+            if ($1$0.length > 0) { yield `${prefix}.${$1$0}.unload`; }
+            if ($1$1.length > 0) { yield `${prefix}.${$1$1}.unload`; }
+            if ($2$0.length > 0) { yield `${prefix}.${$2$0}.load`; }
+            if ($2$1.length > 0) { yield `${prefix}.${$2$1}.load`; }
             break;
         }
     }
@@ -385,32 +385,32 @@ export const getAsyncCalls = {
       case 'static':
         switch (opts.lifecycleStrategy) {
           case 'phased':
-            yield `${prefix}.${$x$p}.canEnter`;
-            yield `${prefix}.${$x$c}.canEnter`;
-            yield `${prefix}.${$x$p}.enter`;
-            yield `${prefix}.${$x$c}.enter`;
+            yield `${prefix}.${$x$p}.canLoad`;
+            yield `${prefix}.${$x$c}.canLoad`;
+            yield `${prefix}.${$x$p}.load`;
+            yield `${prefix}.${$x$c}.load`;
 
             yield* activate(prefix, $x$p, false, false);
             yield* activate(prefix, $x$c, true, false);
             yield `${prefix}.${$x$p}.afterAttachChildren`;
             break;
           case 'parallel':
-            yield `${prefix}.${$x$p}.canEnter`;
-            yield `${prefix}.${$x$c}.canEnter`;
+            yield `${prefix}.${$x$p}.canLoad`;
+            yield `${prefix}.${$x$c}.canLoad`;
 
             yield* activate(prefix, $x$p, false, true);
 
-            yield `${prefix}.${$x$c}.enter`;
+            yield `${prefix}.${$x$c}.load`;
             yield* activate(prefix, $x$c, true, false);
             yield `${prefix}.${$x$p}.afterAttachChildren`;
             break;
         }
         break;
       case 'dynamic':
-        yield `${prefix}.${$x$p}.canEnter`;
+        yield `${prefix}.${$x$p}.canLoad`;
         yield* activate(prefix, $x$p, true, true);
 
-        yield `${prefix}.${$x$c}.canEnter`;
+        yield `${prefix}.${$x$c}.canLoad`;
         yield* activate(prefix, $x$c, true, true);
         break;
     }
@@ -430,18 +430,18 @@ export const getAsyncCalls = {
       case 'static':
         switch (opts.lifecycleStrategy) {
           case 'phased':
-            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canLeave`; }
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canUnload`; }
 
-            yield `${prefix}.${$1$p}.canLeave`;
-            yield `${prefix}.${$2$p}.canEnter`;
+            yield `${prefix}.${$1$p}.canUnload`;
+            yield `${prefix}.${$2$p}.canLoad`;
 
-            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
-            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.leave`; }
+            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canLoad`; }
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.unload`; }
 
-            yield `${prefix}.${$1$p}.leave`;
-            yield `${prefix}.${$2$p}.enter`;
+            yield `${prefix}.${$1$p}.unload`;
+            yield `${prefix}.${$2$p}.load`;
 
-            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.enter`; }
+            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.load`; }
 
             switch (opts.swapStrategy) {
               // resolution: static, lifecycle: phased, swap: parallel
@@ -484,21 +484,21 @@ export const getAsyncCalls = {
             }
             break;
           case 'parallel':
-            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canLeave`; }
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canUnload`; }
 
-            yield `${prefix}.${$1$p}.canLeave`;
-            yield `${prefix}.${$2$p}.canEnter`;
+            yield `${prefix}.${$1$p}.canUnload`;
+            yield `${prefix}.${$2$p}.canLoad`;
 
-            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canLoad`; }
 
             switch (opts.swapStrategy) {
               // resolution: static, lifecycle: parallel, swap: parallel
               case 'parallel':
-                yield `${prefix}.${$2$p}.enter`;
+                yield `${prefix}.${$2$p}.load`;
 
                 if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, true); }
 
-                yield `${prefix}.${$1$p}.leave`;
+                yield `${prefix}.${$1$p}.unload`;
                 yield* interleave(
                   deactivate(prefix, $1$p, true, false),
                   (function* () {
@@ -513,13 +513,13 @@ export const getAsyncCalls = {
               // resolution: static, lifecycle: parallel, swap: remove-first
               case 'remove-first':
                 if ($1$c.length > 0) {
-                  yield `${prefix}.${$1$c}.leave`;
-                  yield `${prefix}.${$2$p}.enter`;
+                  yield `${prefix}.${$1$c}.unload`;
+                  yield `${prefix}.${$2$p}.load`;
                   yield* deactivate(prefix, $1$c, true, false);
-                  yield `${prefix}.${$1$p}.leave`;
+                  yield `${prefix}.${$1$p}.unload`;
                 } else {
-                  yield `${prefix}.${$1$p}.leave`;
-                  yield `${prefix}.${$2$p}.enter`;
+                  yield `${prefix}.${$1$p}.unload`;
+                  yield `${prefix}.${$2$p}.load`;
                 }
 
                 yield* deactivate(prefix, $1$p, true, false);
@@ -531,11 +531,11 @@ export const getAsyncCalls = {
                 break;
               // resolution: static, lifecycle: parallel, swap: add-first
               case 'add-first':
-                yield `${prefix}.${$2$p}.enter`;
+                yield `${prefix}.${$2$p}.load`;
 
                 if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, true); }
 
-                yield `${prefix}.${$1$p}.leave`;
+                yield `${prefix}.${$1$p}.unload`;
                 yield* activate(prefix, $2$p, false, false);
 
                 if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
@@ -550,15 +550,15 @@ export const getAsyncCalls = {
       case 'dynamic':
         switch (opts.lifecycleStrategy) {
           case 'phased':
-            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canLeave`; }
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canUnload`; }
 
-            yield `${prefix}.${$1$p}.canLeave`;
-            yield `${prefix}.${$2$p}.canEnter`;
+            yield `${prefix}.${$1$p}.canUnload`;
+            yield `${prefix}.${$2$p}.canLoad`;
 
-            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.leave`; }
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.unload`; }
 
-            yield `${prefix}.${$1$p}.leave`;
-            yield `${prefix}.${$2$p}.enter`;
+            yield `${prefix}.${$1$p}.unload`;
+            yield `${prefix}.${$2$p}.load`;
 
             switch (opts.swapStrategy) {
               // resolution: dynamic, lifecycle: phased, swap: parallel
@@ -570,7 +570,7 @@ export const getAsyncCalls = {
                   activate(prefix, $2$p, true, false),
                 );
 
-                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canLoad`; }
                 if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
                 break;
               // resolution: dynamic, lifecycle: phased, swap: remove-first
@@ -580,7 +580,7 @@ export const getAsyncCalls = {
                 yield* deactivate(prefix, $1$p, true, false);
                 yield* activate(prefix, $2$p, true, false);
 
-                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canLoad`; }
                 if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
                 break;
               // resolution: dynamic, lifecycle: phased, swap: add-first
@@ -590,63 +590,63 @@ export const getAsyncCalls = {
                 yield* activate(prefix, $2$p, true, false);
                 yield* deactivate(prefix, $1$p, true, false);
 
-                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canLoad`; }
                 if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
                 break;
             }
             break;
           case 'parallel':
-            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canLeave`; }
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canUnload`; }
 
-            yield `${prefix}.${$1$p}.canLeave`;
-            yield `${prefix}.${$2$p}.canEnter`;
+            yield `${prefix}.${$1$p}.canUnload`;
+            yield `${prefix}.${$2$p}.canLoad`;
 
             switch (opts.swapStrategy) {
               // resolution: dynamic, lifecycle: parallel, swap: parallel
               case 'parallel':
-                yield `${prefix}.${$2$p}.enter`;
+                yield `${prefix}.${$2$p}.load`;
 
                 if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, true); }
 
-                yield `${prefix}.${$1$p}.leave`;
+                yield `${prefix}.${$1$p}.unload`;
 
                 yield* interleave(
                   deactivate(prefix, $1$p, true, false),
                   activate(prefix, $2$p, true, false),
                 );
 
-                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canLoad`; }
                 if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
                 break;
               // resolution: dynamic, lifecycle: parallel, swap: remove-first
               case 'remove-first':
                 if ($1$c.length > 0) {
-                  yield `${prefix}.${$1$c}.leave`;
-                  yield `${prefix}.${$2$p}.enter`;
+                  yield `${prefix}.${$1$c}.unload`;
+                  yield `${prefix}.${$2$p}.load`;
                   yield* deactivate(prefix, $1$c, true, false);
-                  yield `${prefix}.${$1$p}.leave`;
+                  yield `${prefix}.${$1$p}.unload`;
                 } else {
-                  yield `${prefix}.${$1$p}.leave`;
-                  yield `${prefix}.${$2$p}.enter`;
+                  yield `${prefix}.${$1$p}.unload`;
+                  yield `${prefix}.${$2$p}.load`;
                 }
 
                 yield* deactivate(prefix, $1$p, true, false);
                 yield* activate(prefix, $2$p, true, false);
 
-                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canLoad`; }
                 if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
                 break;
               // resolution: dynamic, lifecycle: parallel, swap: add-first
               case 'add-first':
-                yield `${prefix}.${$2$p}.enter`;
+                yield `${prefix}.${$2$p}.load`;
 
                 if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, true); }
 
-                yield `${prefix}.${$1$p}.leave`;
+                yield `${prefix}.${$1$p}.unload`;
                 yield* activate(prefix, $2$p, true, false);
                 yield* deactivate(prefix, $1$p, true, false);
 
-                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canLoad`; }
                 if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
                 break;
             }
@@ -662,14 +662,14 @@ export const getSyncCalls = {
     prefix: string,
     $x: string,
   ) {
-    yield `${prefix}.${$x}.canLeave`;
+    yield `${prefix}.${$x}.canUnload`;
     yield* deactivate(prefix, $x, true, true);
   },
   *'"" -> $x'(
     prefix: string,
     $x: string,
   ) {
-    yield `${prefix}.${$x}.canEnter`;
+    yield `${prefix}.${$x}.canLoad`;
     yield* activate(prefix, $x, true, true);
   },
   *'$1 -> $2'(
@@ -682,13 +682,13 @@ export const getSyncCalls = {
     if ($1.length === 0) { return yield* getSyncCalls['"" -> $x'](prefix, $2); }
     if ($2.length === 0) { return yield* getSyncCalls['$x -> ""'](prefix, $1); }
 
-    yield `${prefix}.${$1}.canLeave`;
-    yield `${prefix}.${$2}.canEnter`;
+    yield `${prefix}.${$1}.canUnload`;
+    yield `${prefix}.${$2}.canLoad`;
 
     switch (opts.lifecycleStrategy) {
       case 'phased':
-        yield `${prefix}.${$1}.leave`;
-        yield `${prefix}.${$2}.enter`;
+        yield `${prefix}.${$1}.unload`;
+        yield `${prefix}.${$2}.load`;
 
         switch (opts.swapStrategy) {
           case 'parallel':
@@ -704,17 +704,17 @@ export const getSyncCalls = {
       case 'parallel':
         // Note: in parallel mode, the swapStrategy does affect the order in which the router hooks are invoked, but this is not necessarily part of
         // the "contract" that is fulfilled by the swapStrategy. It's just an effect of the way it's implemented, which happens to make it look like
-        // the router hooks are part of the swap, but they aren't. This can easily be demonstrated by having the enter and leave hooks wait a different
+        // the router hooks are part of the swap, but they aren't. This can easily be demonstrated by having the load and unload hooks wait a different
         // amount of time: the activate/deactivate invocations will still be aligned.
         switch (opts.swapStrategy) {
           case 'parallel':
-            yield `${prefix}.${$2}.enter`;
+            yield `${prefix}.${$2}.load`;
             yield* deactivate(prefix, $1, true, true);
             yield* activate(prefix, $2, true, false);
             return;
           case 'add-first':
             yield* activate(prefix, $2, true, true);
-            yield `${prefix}.${$1}.leave`;
+            yield `${prefix}.${$1}.unload`;
             yield* deactivate(prefix, $1, true, false);
             return;
           case 'remove-first':
@@ -736,17 +736,17 @@ export const getSyncCalls = {
 
     switch (opts.lifecycleStrategy) {
       case 'phased':
-        yield `${prefix}.${$x$0}.canEnter`;
-        yield `${prefix}.${$x$1}.canEnter`;
-        yield `${prefix}.${$x$0}.enter`;
-        yield `${prefix}.${$x$1}.enter`;
+        yield `${prefix}.${$x$0}.canLoad`;
+        yield `${prefix}.${$x$1}.canLoad`;
+        yield `${prefix}.${$x$0}.load`;
+        yield `${prefix}.${$x$1}.load`;
 
         yield* activate(prefix, $x$0, true, false);
         yield* activate(prefix, $x$1, true, false);
         break;
       case 'parallel':
-        yield `${prefix}.${$x$0}.canEnter`;
-        yield `${prefix}.${$x$1}.canEnter`;
+        yield `${prefix}.${$x$0}.canLoad`;
+        yield `${prefix}.${$x$1}.canLoad`;
 
         yield* activate(prefix, $x$0, true, true);
         yield* activate(prefix, $x$1, true, true);
@@ -775,17 +775,17 @@ export const getSyncCalls = {
       if ($1$0.length === 0) { return yield* getSyncCalls['"" -> $x$0+$x$1'](prefix, $2$0, $2$1, opts, comp); }
     }
 
-    if ($1$0.length > 0) { yield `${prefix}.${$1$0}.canLeave`; }
-    if ($1$1.length > 0) { yield `${prefix}.${$1$1}.canLeave`; }
-    if ($2$0.length > 0) { yield `${prefix}.${$2$0}.canEnter`; }
-    if ($2$1.length > 0) { yield `${prefix}.${$2$1}.canEnter`; }
+    if ($1$0.length > 0) { yield `${prefix}.${$1$0}.canUnload`; }
+    if ($1$1.length > 0) { yield `${prefix}.${$1$1}.canUnload`; }
+    if ($2$0.length > 0) { yield `${prefix}.${$2$0}.canLoad`; }
+    if ($2$1.length > 0) { yield `${prefix}.${$2$1}.canLoad`; }
 
     switch (opts.lifecycleStrategy) {
       case 'phased':
-        if ($1$0.length > 0) { yield `${prefix}.${$1$0}.leave`; }
-        if ($1$1.length > 0) { yield `${prefix}.${$1$1}.leave`; }
-        if ($2$0.length > 0) { yield `${prefix}.${$2$0}.enter`; }
-        if ($2$1.length > 0) { yield `${prefix}.${$2$1}.enter`; }
+        if ($1$0.length > 0) { yield `${prefix}.${$1$0}.unload`; }
+        if ($1$1.length > 0) { yield `${prefix}.${$1$1}.unload`; }
+        if ($2$0.length > 0) { yield `${prefix}.${$2$0}.load`; }
+        if ($2$1.length > 0) { yield `${prefix}.${$2$1}.load`; }
 
         switch (opts.swapStrategy) {
           case 'parallel':
@@ -819,27 +819,27 @@ export const getSyncCalls = {
           case 'parallel':
             if ($1$0.length === 0) {
               yield* activate(prefix, $2$0, true, true);
-              yield `${prefix}.${$2$1}.enter`;
+              yield `${prefix}.${$2$1}.load`;
               yield* deactivate(prefix, $1$1, true, true);
               yield* activate(prefix, $2$1, true, false);
             } else if ($1$1.length === 0) {
-              yield `${prefix}.${$2$0}.enter`;
+              yield `${prefix}.${$2$0}.load`;
               yield* activate(prefix, $2$1, true, true);
               yield* deactivate(prefix, $1$0, true, true);
               yield* activate(prefix, $2$0, true, false);
             } else if ($2$0.length === 0) {
-              yield `${prefix}.${$2$1}.enter`;
+              yield `${prefix}.${$2$1}.load`;
               yield* deactivate(prefix, $1$0, true, true);
               yield* deactivate(prefix, $1$1, true, true);
               yield* activate(prefix, $2$1, true, false);
             } else if ($2$1.length === 0) {
-              yield `${prefix}.${$2$0}.enter`;
+              yield `${prefix}.${$2$0}.load`;
               yield* deactivate(prefix, $1$0, true, true);
               yield* activate(prefix, $2$0, true, false);
               yield* deactivate(prefix, $1$1, true, true);
             } else {
-              yield `${prefix}.${$2$0}.enter`;
-              yield `${prefix}.${$2$1}.enter`;
+              yield `${prefix}.${$2$0}.load`;
+              yield `${prefix}.${$2$1}.load`;
               yield* deactivate(prefix, $1$0, true, true);
               yield* activate(prefix, $2$0, true, false);
               yield* deactivate(prefix, $1$1, true, true);
@@ -875,18 +875,18 @@ export const getSyncCalls = {
       case 'static':
         switch (opts.lifecycleStrategy) {
           case 'phased':
-            yield `${prefix}.${$x$p}.canEnter`;
-            yield `${prefix}.${$x$c}.canEnter`;
-            yield `${prefix}.${$x$p}.enter`;
-            yield `${prefix}.${$x$c}.enter`;
+            yield `${prefix}.${$x$p}.canLoad`;
+            yield `${prefix}.${$x$c}.canLoad`;
+            yield `${prefix}.${$x$p}.load`;
+            yield `${prefix}.${$x$c}.load`;
 
             yield* activate(prefix, $x$p, false, false);
             yield* activate(prefix, $x$c, true, false);
             yield `${prefix}.${$x$p}.afterAttachChildren`;
             break;
           case 'parallel':
-            yield `${prefix}.${$x$p}.canEnter`;
-            yield `${prefix}.${$x$c}.canEnter`;
+            yield `${prefix}.${$x$p}.canLoad`;
+            yield `${prefix}.${$x$c}.canLoad`;
 
             yield* activate(prefix, $x$p, false, true);
             yield* activate(prefix, $x$c, true, true);
@@ -895,10 +895,10 @@ export const getSyncCalls = {
         }
         break;
       case 'dynamic':
-        yield `${prefix}.${$x$p}.canEnter`;
+        yield `${prefix}.${$x$p}.canLoad`;
         yield* activate(prefix, $x$p, true, true);
 
-        yield `${prefix}.${$x$c}.canEnter`;
+        yield `${prefix}.${$x$c}.canLoad`;
         yield* activate(prefix, $x$c, true, true);
         break;
     }
@@ -912,10 +912,10 @@ export const getSyncCalls = {
   ) {
     if ($x$c.length === 0) { return yield* getSyncCalls['$x -> ""'](prefix, $x$p); }
 
-    yield `${prefix}.${$x$c}.canLeave`;
-    yield `${prefix}.${$x$p}.canLeave`;
-    yield `${prefix}.${$x$c}.leave`;
-    yield `${prefix}.${$x$p}.leave`;
+    yield `${prefix}.${$x$c}.canUnload`;
+    yield `${prefix}.${$x$p}.canUnload`;
+    yield `${prefix}.${$x$c}.unload`;
+    yield `${prefix}.${$x$p}.unload`;
 
     yield* deactivate(prefix, $x$c, true, false);
     yield* deactivate(prefix, $x$p, true, false);
@@ -935,18 +935,18 @@ export const getSyncCalls = {
       case 'static':
         switch (opts.lifecycleStrategy) {
           case 'phased':
-            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canLeave`; }
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canUnload`; }
 
-            yield `${prefix}.${$1$p}.canLeave`;
-            yield `${prefix}.${$2$p}.canEnter`;
+            yield `${prefix}.${$1$p}.canUnload`;
+            yield `${prefix}.${$2$p}.canLoad`;
 
-            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
-            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.leave`; }
+            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canLoad`; }
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.unload`; }
 
-            yield `${prefix}.${$1$p}.leave`;
-            yield `${prefix}.${$2$p}.enter`;
+            yield `${prefix}.${$1$p}.unload`;
+            yield `${prefix}.${$2$p}.load`;
 
-            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.enter`; }
+            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.load`; }
 
             switch (opts.swapStrategy) {
               case 'parallel':
@@ -973,16 +973,16 @@ export const getSyncCalls = {
             }
             break;
           case 'parallel':
-            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canLeave`; }
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canUnload`; }
 
-            yield `${prefix}.${$1$p}.canLeave`;
-            yield `${prefix}.${$2$p}.canEnter`;
+            yield `${prefix}.${$1$p}.canUnload`;
+            yield `${prefix}.${$2$p}.canLoad`;
 
-            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+            if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canLoad`; }
 
             switch (opts.swapStrategy) {
               case 'parallel':
-                yield `${prefix}.${$2$p}.enter`;
+                yield `${prefix}.${$2$p}.load`;
 
                 if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, true); }
 
@@ -1004,11 +1004,11 @@ export const getSyncCalls = {
                 yield `${prefix}.${$2$p}.afterAttachChildren`;
                 break;
               case 'add-first':
-                yield `${prefix}.${$2$p}.enter`;
+                yield `${prefix}.${$2$p}.load`;
 
                 if ($1$c.length > 0) {
                   yield* deactivate(prefix, $1$c, true, true);
-                  yield `${prefix}.${$1$p}.leave`;
+                  yield `${prefix}.${$1$p}.unload`;
                   yield* activate(prefix, $2$p, false, false);
 
                   if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
@@ -1031,15 +1031,15 @@ export const getSyncCalls = {
       case 'dynamic':
         switch (opts.lifecycleStrategy) {
           case 'phased':
-            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canLeave`; }
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canUnload`; }
 
-            yield `${prefix}.${$1$p}.canLeave`;
-            yield `${prefix}.${$2$p}.canEnter`;
+            yield `${prefix}.${$1$p}.canUnload`;
+            yield `${prefix}.${$2$p}.canLoad`;
 
-            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.leave`; }
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.unload`; }
 
-            yield `${prefix}.${$1$p}.leave`;
-            yield `${prefix}.${$2$p}.enter`;
+            yield `${prefix}.${$1$p}.unload`;
+            yield `${prefix}.${$2$p}.load`;
 
             switch (opts.swapStrategy) {
               case 'parallel':
@@ -1049,7 +1049,7 @@ export const getSyncCalls = {
                 yield* deactivate(prefix, $1$p, true, false);
                 yield* activate(prefix, $2$p, true, false);
 
-                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canLoad`; }
                 if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
                 break;
               case 'add-first':
@@ -1058,44 +1058,44 @@ export const getSyncCalls = {
                 yield* activate(prefix, $2$p, true, false);
                 yield* deactivate(prefix, $1$p, true, false);
 
-                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canLoad`; }
                 if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
                 break;
             }
             break;
           case 'parallel':
-            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canLeave`; }
-            yield `${prefix}.${$1$p}.canLeave`;
-            yield `${prefix}.${$2$p}.canEnter`;
+            if ($1$c.length > 0) { yield `${prefix}.${$1$c}.canUnload`; }
+            yield `${prefix}.${$1$p}.canUnload`;
+            yield `${prefix}.${$2$p}.canLoad`;
 
             switch (opts.swapStrategy) {
               case 'parallel':
-                yield `${prefix}.${$2$p}.enter`;
+                yield `${prefix}.${$2$p}.load`;
 
                 if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, true); }
 
                 yield* deactivate(prefix, $1$p, true, true);
                 yield* activate(prefix, $2$p, true, false);
 
-                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canLoad`; }
                 if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
                 break;
               case 'remove-first':
-                if ($1$c.length > 0) { yield `${prefix}.${$1$c}.leave`; }
+                if ($1$c.length > 0) { yield `${prefix}.${$1$c}.unload`; }
                 if ($1$c.length > 0) { yield* deactivate(prefix, $1$c, true, false); }
 
                 yield* deactivate(prefix, $1$p, true, true);
                 yield* activate(prefix, $2$p, true, true);
 
-                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canLoad`; }
                 if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
                 break;
               case 'add-first':
-                yield `${prefix}.${$2$p}.enter`;
+                yield `${prefix}.${$2$p}.load`;
 
                 if ($1$c.length > 0) {
                   yield* deactivate(prefix, $1$c, true, true);
-                  yield `${prefix}.${$1$p}.leave`;
+                  yield `${prefix}.${$1$p}.unload`;
                   yield* activate(prefix, $2$p, true, false);
                   yield* deactivate(prefix, $1$p, true, false);
                 } else {
@@ -1103,7 +1103,7 @@ export const getSyncCalls = {
                   yield* deactivate(prefix, $1$p, true, true);
                 }
 
-                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canEnter`; }
+                if ($2$c.length > 0) { yield `${prefix}.${$2$c}.canLoad`; }
                 if ($2$c.length > 0) { yield* activate(prefix, $2$c, true, true); }
                 break;
             }

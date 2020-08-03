@@ -56,12 +56,12 @@
 //       // public created() {
 //       //   console.log('created', 'closest viewport', this.router.getClosestViewport(this));
 //       // }
-//       // public canEnter() {
-//       //   console.log('canEnter', 'closest viewport', this.router.getClosestViewport(this));
+//       // public canLoad() {
+//       //   console.log('canLoad', 'closest viewport', this.router.getClosestViewport(this));
 //       //   return true;
 //       // }
-//       public enter(params) {
-//         // console.log('enter', 'closest viewport', this.router.getClosestViewport(this));
+//       public load(params) {
+//         // console.log('load', 'closest viewport', this.router.getClosestViewport(this));
 //         if (params.id) { this.id = params.id; }
 //         if (params.name) { this.name = params.name; }
 //       }
@@ -72,26 +72,26 @@
 //     const Baz = CustomElement.define({ name: 'baz', template: `<template>Viewport: baz Parameter id: [\${id}] <au-viewport name="baz"></au-viewport></template>` }, class {
 //       public static parameters = ['id'];
 //       public id = 'no id';
-//       public enter(params) { if (params.id) { this.id = params.id; } }
+//       public load(params) { if (params.id) { this.id = params.id; } }
 //     });
 //     const Qux = CustomElement.define({ name: 'qux', template: '<template>Viewport: qux<au-viewport name="qux"></au-viewport></template>' }, class {
-//       public canEnter() { return true; }
-//       public canLeave() {
-//         if (quxCantLeave > 0) {
-//           quxCantLeave--;
+//       public canLoad() { return true; }
+//       public canUnload() {
+//         if (quxCantUnload > 0) {
+//           quxCantUnload--;
 //           return false;
 //         } else {
 //           return true;
 //         }
 //       }
-//       public enter() { return true; }
-//       public leave() { return true; }
+//       public load() { return true; }
+//       public unload() { return true; }
 //     });
 //     const Quux = CustomElement.define({ name: 'quux', template: '<template>Viewport: quux<au-viewport name="quux" scope></au-viewport></template>' });
 //     const Corge = CustomElement.define({ name: 'corge', template: '<template>Viewport: corge<au-viewport name="corge" used-by="baz"></au-viewport>Viewport: dummy<au-viewport name="dummy"></au-viewport></template>' });
 
 //     const Uier = CustomElement.define({ name: 'uier', template: '<template>Viewport: uier</template>' }, class {
-//       public async canEnter() {
+//       public async canLoad() {
 //         await wait(500);
 //         return true;
 //       }
@@ -124,7 +124,7 @@
 //         public param: number;
 //         public entry: number = 0;
 //         public reentryBehavior: string = 'default';
-//         public enter(params) {
+//         public load(params) {
 //           this.param = +params[0];
 //           this.entry++;
 //           this.reentryBehavior = plughReentryBehavior;
@@ -332,10 +332,10 @@
 //     await tearDown();
 //   });
 
-//   it('cancels if not canLeave', async function () {
+//   it('cancels if not canUnload', async function () {
 //     const { scheduler, host, router, tearDown } = await createFixture();
 
-//     quxCantLeave = 1;
+//     quxCantUnload = 1;
 
 //     await $load('baz@left+qux@right', router, scheduler);
 //     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
@@ -350,10 +350,10 @@
 //     await tearDown();
 //   });
 
-//   it('cancels if not child canLeave', async function () {
+//   it('cancels if not child canUnload', async function () {
 //     const { scheduler, host, router, tearDown } = await createFixture();
 
-//     quxCantLeave = 1;
+//     quxCantUnload = 1;
 
 //     await $load('foo@left/qux@foo+uier@right', router, scheduler);
 //     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
@@ -410,7 +410,7 @@
 //       public static parameters = ['id', 'name'];
 //       public id = 'no id';
 //       public name = 'no name';
-//       public enter(params) {
+//       public load(params) {
 //         if (params.id) { this.id = params.id; }
 //         if (params.name) { this.name = params.name; }
 //       }
@@ -628,7 +628,7 @@
 //   it('uses overriding reentry behavior', async function () {
 //     const { scheduler, host, router, tearDown } = await createFixture();
 
-//     plughReentryBehavior = 'enter'; // Affects navigation AFTER this one
+//     plughReentryBehavior = 'load'; // Affects navigation AFTER this one
 //     await $load('plugh(123)@left', router, scheduler);
 //     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
 //     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
@@ -643,7 +643,7 @@
 //     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
 //     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
-//     plughReentryBehavior = 'enter'; // Affects navigation AFTER this one
+//     plughReentryBehavior = 'load'; // Affects navigation AFTER this one
 //     await $load('plugh(456)@left', router, scheduler);
 //     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
 //     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
@@ -1136,7 +1136,7 @@
 //       dependencies.push(CustomElement.define({ name, template }, class {
 //         public static parameters = ['id'];
 //         public param: string;
-//         public enter(params) {
+//         public load(params) {
 //           if (params.id !== void 0) {
 //             this.param = params.id;
 //           }
@@ -1280,7 +1280,7 @@
 //         { path: 'grandchild-config', instructions: [{ component: 'grandchild', viewport: 'child' }] },
 //       ];
 //       public param: string;
-//       public enter(params) {
+//       public load(params) {
 //         if (params.id !== void 0) {
 //           this.param = params.id;
 //         }
@@ -1292,7 +1292,7 @@
 //       ];
 //       public static parameters = ['id'];
 //       public param: string;
-//       public enter(params) {
+//       public load(params) {
 //         if (params.id !== void 0) {
 //           this.param = params.id;
 //         }
@@ -1465,7 +1465,7 @@
 //   });
 // });
 
-// let quxCantLeave = 0;
+// let quxCantUnload = 0;
 // let plughReentryBehavior = 'default';
 
 // const $load = async (path: string, router: IRouter, scheduler: IScheduler) => {

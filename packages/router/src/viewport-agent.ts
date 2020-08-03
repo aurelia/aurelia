@@ -132,22 +132,22 @@ export class ViewportAgent {
         this.logger.trace(`activateFromViewport() - activating existing componentAgent at %s`, this);
         return this.curCA!.activate(initiator, parent, flags);
       case State.currIsEmpty:
-      case State.currLeaveDone:
+      case State.currUnloadDone:
         switch (this.nextState) {
           case State.nextIsEmpty:
             this.logger.trace(`activateFromViewport() - nothing to activate at %s`, this);
             return;
-          case State.nextCanEnterDone:
+          case State.nextCanLoadDone:
             if (this.$resolution === 'static' && this.$lifecycle === 'parallel') {
               this.logger.trace(`activateFromViewport() - activating nextCA at %s`, this);
               this.nextState = State.nextActivate;
               return runSequence(
-                () => { return this.nextCA!.enter(this.nextNode!); },
+                () => { return this.nextCA!.load(this.nextNode!); },
                 () => { return this.nextCA!.activate(initiator, parent, flags); },
               );
             }
             this.unexpectedState('activateFromViewport 1');
-          case State.nextEnterDone:
+          case State.nextLoadDone:
             switch (this.$resolution) {
               case 'static':
                 this.logger.trace(`activateFromViewport() - activating nextCA at %s`, this);
@@ -193,7 +193,7 @@ export class ViewportAgent {
         this.logger.trace(`deactivateFromViewport() - already deactivating at %s`, this);
         return;
       case State.currIsActive:
-      case State.currLeaveDone:
+      case State.currUnloadDone:
         this.logger.trace(`deactivateFromViewport() - deactivating curCA at %s`, this);
         this.currState = State.currDeactivate;
         return this.curCA!.deactivate(initiator, parent, flags);
@@ -314,11 +314,11 @@ export class ViewportAgent {
       case State.currIsEmpty:
       case State.currIsActive:
         break;
-      case State.currCanLeave:
-      case State.currCanLeaveDone:
+      case State.currCanUnload:
+      case State.currCanUnloadDone:
         this.currState = State.currIsActive;
         break;
-      case State.currLeave:
+      case State.currUnload:
       case State.currDeactivate:
         // TODO: should schedule an 'undo' action
         break;
@@ -327,23 +327,23 @@ export class ViewportAgent {
     switch (this.nextState) {
       case State.nextIsEmpty:
       case State.nextIsScheduled:
-      case State.nextCanEnter:
-      case State.nextCanEnterDone:
+      case State.nextCanLoad:
+      case State.nextCanLoadDone:
         this.nextNode = null;
         this.nextState = State.nextIsEmpty;
         break;
-      case State.nextEnter:
+      case State.nextLoad:
       case State.nextActivate:
         // TODO: should schedule an 'undo' action
         break;
     }
   }
 
-  public canLeave(tr: Transition): void | Promise<void> {
+  public canUnload(tr: Transition): void | Promise<void> {
     if (this.currentTransition === null) { this.currentTransition = tr; }
     ensureTransitionHasNotErrored(tr);
     if (tr.guardsResult !== true) {
-      this.logger.trace(`canLeave() - skipping: guardsResult is already non-true`);
+      this.logger.trace(`canUnload() - skipping: guardsResult is already non-true`);
       return;
     }
 
@@ -351,78 +351,78 @@ export class ViewportAgent {
       case State.currIsActive:
         switch (this.$plan) {
           case 'none':
-            this.currState = State.currCanLeaveDone;
-            this.logger.trace(`canLeave() - skipping: %s`, this);
+            this.currState = State.currCanUnloadDone;
+            this.logger.trace(`canUnload() - skipping: %s`, this);
             return;
           case 'invoke-lifecycles':
           case 'replace':
-            this.currState = State.currCanLeave;
-            return this.runCanLeave(tr, this.curCA!, this.nextNode);
+            this.currState = State.currCanUnload;
+            return this.runCanUnload(tr, this.curCA!, this.nextNode);
         }
       case State.currIsEmpty:
-      case State.currCanLeave:
-      case State.currCanLeaveDone:
+      case State.currCanUnload:
+      case State.currCanUnloadDone:
       case State.currDeactivate:
-        this.logger.trace(`canLeave() - skipping: %s`, this);
+        this.logger.trace(`canUnload() - skipping: %s`, this);
         return;
       default:
-        this.unexpectedState('canLeave 1');
+        this.unexpectedState('canUnload 1');
     }
   }
 
-  private runCanLeave(tr: Transition, ca: ComponentAgent, nextNode: RouteNode | null): void | Promise<void> {
+  private runCanUnload(tr: Transition, ca: ComponentAgent, nextNode: RouteNode | null): void | Promise<void> {
     ensureTransitionHasNotErrored(tr);
-    this.logger.trace(`runCanLeave() - starting [canLeave]`);
+    this.logger.trace(`runCanUnload() - starting [canUnload]`);
 
     return runSequence(
-      () => { return ca.canLeave(nextNode); },
+      () => { return ca.canUnload(nextNode); },
       (_, result) => {
-        this.currState = State.currCanLeaveDone;
+        this.currState = State.currCanUnloadDone;
         // Check again, because the value might have been assigned by a parallel hook
         if (tr.guardsResult === true && result !== true) {
-          this.logger.trace(`runCanLeave() - finished [canLeave], %s.canLeave returned %s, assigning to guardsResult`, ca, result);
+          this.logger.trace(`runCanUnload() - finished [canUnload], %s.canUnload returned %s, assigning to guardsResult`, ca, result);
           tr.guardsResult = result;
         } else {
-          this.logger.trace(`runCanLeave() - finished [canLeave], %s.canLeave returned %s, ignoring`, ca, result);
+          this.logger.trace(`runCanUnload() - finished [canUnload], %s.canUnload returned %s, ignoring`, ca, result);
         }
       },
     );
   }
 
-  public leave(tr: Transition): void | Promise<void> {
+  public unload(tr: Transition): void | Promise<void> {
     ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(tr);
     switch (this.currState) {
-      case State.currCanLeaveDone:
+      case State.currCanUnloadDone:
         switch (this.$plan) {
           case 'none':
-            this.currState = State.currLeaveDone;
-            this.logger.trace(`leave() - skipping: %s`, this);
+            this.currState = State.currUnloadDone;
+            this.logger.trace(`unload() - skipping: %s`, this);
             return;
           case 'invoke-lifecycles':
           case 'replace':
-            this.currState = State.currLeave;
-            return this.runLeave(tr, this.curCA!, this.nextNode);
+            this.currState = State.currUnload;
+            return this.runUnload(tr, this.curCA!, this.nextNode);
         }
       case State.currIsEmpty:
-      case State.currLeave:
+      case State.currUnload:
       case State.currDeactivate:
-        this.logger.trace(`leave() - skipping: %s`, this);
+        this.logger.trace(`unload() - skipping: %s`, this);
         return;
       default:
-        this.unexpectedState('leave 1');
+        this.unexpectedState('unload 1');
     }
   }
 
-  private runLeave(tr: Transition, ca: ComponentAgent, nextNode: RouteNode | null): void | Promise<void> {
+  private runUnload(tr: Transition, ca: ComponentAgent, nextNode: RouteNode | null): void | Promise<void> {
     ensureTransitionHasNotErrored(tr);
-    this.logger.trace(`runLeave() - starting [leave]`);
+    this.logger.trace(`runUnload() - starting [unload]`);
 
     return runSequence(
-      () => { return ca.leave(nextNode); },
+      () => { return ca.unload(nextNode); },
       () => {
-        this.currState = State.currLeaveDone;
-        this.logger.trace(`runLeave() - finished [leave`);
+        this.currState = State.currUnloadDone;
+        this.logger.trace(`runUnload() - finished [unload`);
       },
     );
   }
@@ -431,7 +431,7 @@ export class ViewportAgent {
     ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(tr);
     switch (this.currState) {
-      case State.currLeaveDone:
+      case State.currUnloadDone:
         this.currState = State.currDeactivate;
         switch (this.$plan) {
           case 'none':
@@ -440,23 +440,23 @@ export class ViewportAgent {
             return;
           case 'replace':
             switch (this.nextState) {
-              case State.nextCanEnterDone:
+              case State.nextCanLoadDone:
                 if (this.$lifecycle === 'parallel' && this.$swap === 'remove-first') {
                   return this.runDeactivate(tr);
                 }
                 // falls through
-              case State.nextCanEnter:
+              case State.nextCanLoad:
                 if (this.$lifecycle === 'parallel') {
                   this.logger.trace(`deactivateFromRouter() - deferring swap operation 1: %s`, this);
                   return this.deferredSwap = createExposedPromise();
                 }
                 this.unexpectedState('deactivateFromRouter 1');
-              case State.nextEnterDone:
+              case State.nextLoadDone:
                 if (this.$swap === 'remove-first') {
                   return this.runDeactivate(tr);
                 }
                 // falls through
-              case State.nextEnter:
+              case State.nextLoad:
                 this.logger.trace(`deactivateFromRouter() - deferring swap operation 2: %s`, this);
                 return this.deferredSwap = createExposedPromise();
               case State.nextIsEmpty:
@@ -466,21 +466,21 @@ export class ViewportAgent {
                 this.unexpectedState('deactivateFromRouter 2');
             }
         }
-      case State.currCanLeaveDone:
+      case State.currCanUnloadDone:
         switch (this.$lifecycle) {
           case 'phased':
             this.unexpectedState('deactivateFromRouter 3');
           case 'parallel':
             switch (this.nextState) {
-              case State.nextCanEnter:
-              case State.nextCanEnterDone:
-              case State.nextEnter:
-              case State.nextEnterDone:
+              case State.nextCanLoad:
+              case State.nextCanLoadDone:
+              case State.nextLoad:
+              case State.nextLoadDone:
                 this.logger.trace(`deactivateFromRouter() - deferring swap operation 3: %s`, this);
                 return this.deferredSwap = createExposedPromise();
               case State.nextIsEmpty:
               case State.nextActivate:
-                // TODO: leave?
+                // TODO: unload?
                 return this.swap(tr);
               default:
                 this.unexpectedState('deactivateFromRouter 4');
@@ -515,11 +515,11 @@ export class ViewportAgent {
     }
   }
 
-  public canEnter(tr: Transition): void | Promise<void> {
+  public canLoad(tr: Transition): void | Promise<void> {
     if (this.currentTransition === null) { this.currentTransition = tr; }
     ensureTransitionHasNotErrored(tr);
     if (tr.guardsResult !== true) {
-      this.logger.trace(`canEnter() - skipping: guardsResult is already non-true`);
+      this.logger.trace(`canLoad() - skipping: guardsResult is already non-true`);
       return;
     }
 
@@ -527,14 +527,14 @@ export class ViewportAgent {
       case State.nextIsScheduled:
         switch (this.$plan) {
           case 'none':
-            this.nextState = State.nextCanEnterDone;
-            this.logger.trace(`canEnter() - skipping: %s`, this);
+            this.nextState = State.nextCanLoadDone;
+            this.logger.trace(`canLoad() - skipping: %s`, this);
             return;
           case 'invoke-lifecycles':
-            this.nextState = State.nextCanEnter;
-            return this.runCanEnter(tr, this.curCA!, this.nextNode!);
+            this.nextState = State.nextCanLoad;
+            return this.runCanLoad(tr, this.curCA!, this.nextNode!);
           case 'replace': {
-            this.nextState = State.nextCanEnter;
+            this.nextState = State.nextCanLoad;
             const next = this.nextNode!;
             switch (this.$resolution) {
               case 'static': {
@@ -548,75 +548,75 @@ export class ViewportAgent {
               }
             }
             const ca = this.nextCA!;
-            return this.runCanEnter(tr, ca, next);
+            return this.runCanLoad(tr, ca, next);
           }
         }
       case State.nextIsEmpty:
-      case State.nextCanEnter:
-      case State.nextCanEnterDone:
+      case State.nextCanLoad:
+      case State.nextCanLoadDone:
       case State.nextActivate:
-        this.logger.trace(`canEnter() - skipping: %s`, this);
+        this.logger.trace(`canLoad() - skipping: %s`, this);
         return;
       default:
-        this.unexpectedState('canEnter 1');
+        this.unexpectedState('canLoad 1');
     }
   }
 
-  private runCanEnter(tr: Transition, ca: ComponentAgent, nextNode: RouteNode): void | Promise<void> {
+  private runCanLoad(tr: Transition, ca: ComponentAgent, nextNode: RouteNode): void | Promise<void> {
     ensureTransitionHasNotErrored(tr);
-    this.logger.trace(`runCanEnter() - starting [canEnter]`);
+    this.logger.trace(`runCanLoad() - starting [canLoad]`);
 
     return runSequence(
-      () => { return ca.canEnter(nextNode); },
+      () => { return ca.canLoad(nextNode); },
       (_, result) => {
-        this.nextState = State.nextCanEnterDone;
+        this.nextState = State.nextCanLoadDone;
         // Check again, because the value might have been assigned by a parallel hook
         if (tr.guardsResult === true && result !== true) {
-          this.logger.trace(`runCanEnter() - finished [canEnter], %s.canEnter returned %s, assigning to guardsResult`, ca, result);
+          this.logger.trace(`runCanLoad() - finished [canLoad], %s.canLoad returned %s, assigning to guardsResult`, ca, result);
           tr.guardsResult = result;
         } else {
-          this.logger.trace(`runCanEnter() - finished [canEnter], %s.canEnter returned %s, ignoring`, ca, result);
+          this.logger.trace(`runCanLoad() - finished [canLoad], %s.canLoad returned %s, ignoring`, ca, result);
         }
       },
     );
   }
 
-  public enter(tr: Transition): void | Promise<void> {
+  public load(tr: Transition): void | Promise<void> {
     ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(tr);
     switch (this.nextState) {
-      case State.nextCanEnterDone:
+      case State.nextCanLoadDone:
         switch (this.$plan) {
           case 'none':
-            this.nextState = State.nextEnterDone;
-            this.logger.trace(`enter() - skipping: %s`, this);
+            this.nextState = State.nextLoadDone;
+            this.logger.trace(`load() - skipping: %s`, this);
             return;
           case 'invoke-lifecycles':
-            this.nextState = State.nextEnter;
-            return this.runEnter(tr, this.curCA!, this.nextNode!);
+            this.nextState = State.nextLoad;
+            return this.runLoad(tr, this.curCA!, this.nextNode!);
           case 'replace':
-            this.nextState = State.nextEnter;
-            return this.runEnter(tr, this.nextCA!, this.nextNode!);
+            this.nextState = State.nextLoad;
+            return this.runLoad(tr, this.nextCA!, this.nextNode!);
         }
       case State.nextIsEmpty:
-      case State.nextEnter:
-      case State.nextEnterDone:
+      case State.nextLoad:
+      case State.nextLoadDone:
       case State.nextActivate:
-        this.logger.trace(`enter() - skipping: %s`, this);
+        this.logger.trace(`load() - skipping: %s`, this);
         return;
       default:
-        this.unexpectedState('enter 1');
+        this.unexpectedState('load 1');
     }
   }
 
-  private runEnter(tr: Transition, ca: ComponentAgent, nextNode: RouteNode): void | Promise<void> {
+  private runLoad(tr: Transition, ca: ComponentAgent, nextNode: RouteNode): void | Promise<void> {
     ensureTransitionHasNotErrored(tr);
-    this.logger.trace(`runEnter() - starting [enter]`);
+    this.logger.trace(`runLoad() - starting [load]`);
     return runSequence(
-      () => { return ca.enter(nextNode); },
+      () => { return ca.load(nextNode); },
       (_) => {
-        this.nextState = State.nextEnterDone;
-        this.logger.trace(`runEnter() - finished [enter]`);
+        this.nextState = State.nextLoadDone;
+        this.logger.trace(`runLoad() - finished [load]`);
       },
     );
   }
@@ -625,7 +625,7 @@ export class ViewportAgent {
     ensureTransitionHasNotErrored(tr);
     ensureGuardsResultIsTrue(tr);
     switch (this.nextState) {
-      case State.nextEnterDone:
+      case State.nextLoadDone:
         this.nextState = State.nextActivate;
         switch (this.$plan) {
           case 'none':
@@ -634,23 +634,23 @@ export class ViewportAgent {
             return;
           case 'replace':
             switch (this.currState) {
-              case State.currCanLeaveDone:
+              case State.currCanUnloadDone:
                 if (this.$lifecycle === 'parallel' && this.$swap === 'add-first' && this.curCA!.routeNode.children.length === 0) {
                   return this.runActivate(tr);
                 }
                 // falls through
-              case State.currCanLeave:
+              case State.currCanUnload:
                 if (this.$lifecycle === 'parallel') {
                   this.logger.trace(`activateFromRouter() - deferring swap operation 4: %s`, this);
                   return this.deferredSwap = createExposedPromise();
                 }
                 this.unexpectedState('activateFromRouter 1');
-              case State.currLeaveDone:
+              case State.currUnloadDone:
                 if (this.$swap === 'add-first' && this.curCA!.routeNode.children.length === 0) {
                   return this.runActivate(tr);
                 }
                 // falls through
-              case State.currLeave:
+              case State.currUnload:
                 this.logger.trace(`activateFromRouter() - deferring swap operation 5: %s`, this);
                 return this.deferredSwap = createExposedPromise();
               case State.currIsEmpty:
@@ -660,14 +660,14 @@ export class ViewportAgent {
                 this.unexpectedState('activateFromRouter 2');
             }
         }
-      case State.nextCanEnterDone:
+      case State.nextCanLoadDone:
         switch (this.$lifecycle) {
           case 'phased':
             this.unexpectedState('activateFromRouter 3');
           case 'parallel':
             switch (this.currState) {
-              case State.currCanLeave:
-              case State.currLeave:
+              case State.currCanUnload:
+              case State.currUnload:
                 this.logger.trace(`activateFromRouter() - deferring swap operation 6: %s`, this);
                 return this.deferredSwap = createExposedPromise();
               case State.currIsEmpty:
@@ -827,18 +827,18 @@ const enum State {
   curr                = 0b1111111_0000000,
   currIsEmpty         = 0b1000000_0000000,
   currIsActive        = 0b0100000_0000000,
-  currCanLeave        = 0b0010000_0000000,
-  currCanLeaveDone    = 0b0001000_0000000,
-  currLeave           = 0b0000100_0000000,
-  currLeaveDone       = 0b0000010_0000000,
+  currCanUnload        = 0b0010000_0000000,
+  currCanUnloadDone    = 0b0001000_0000000,
+  currUnload           = 0b0000100_0000000,
+  currUnloadDone       = 0b0000010_0000000,
   currDeactivate      = 0b0000001_0000000,
   next                = 0b0000000_1111111,
   nextIsEmpty         = 0b0000000_1000000,
   nextIsScheduled     = 0b0000000_0100000,
-  nextCanEnter        = 0b0000000_0010000,
-  nextCanEnterDone    = 0b0000000_0001000,
-  nextEnter           = 0b0000000_0000100,
-  nextEnterDone       = 0b0000000_0000010,
+  nextCanLoad        = 0b0000000_0010000,
+  nextCanLoadDone    = 0b0000000_0001000,
+  nextLoad           = 0b0000000_0000100,
+  nextLoadDone       = 0b0000000_0000010,
   nextActivate        = 0b0000000_0000001,
   bothAreEmpty        = 0b1000000_1000000,
 }
@@ -846,20 +846,20 @@ const enum State {
 type CurrState = (
   State.currIsEmpty |
   State.currIsActive |
-  State.currCanLeave |
-  State.currCanLeaveDone |
-  State.currLeave |
-  State.currLeaveDone |
+  State.currCanUnload |
+  State.currCanUnloadDone |
+  State.currUnload |
+  State.currUnloadDone |
   State.currDeactivate
 );
 
 type NextState = (
   State.nextIsEmpty |
   State.nextIsScheduled |
-  State.nextCanEnter |
-  State.nextCanEnterDone |
-  State.nextEnter |
-  State.nextEnterDone |
+  State.nextCanLoad |
+  State.nextCanLoadDone |
+  State.nextLoad |
+  State.nextLoadDone |
   State.nextActivate
 );
 
@@ -882,17 +882,17 @@ function stringifyState(state: State): string {
   if ((state & State.currIsActive) === State.currIsActive) {
     flags.push('currIsActive');
   }
-  if ((state & State.currCanLeave) === State.currCanLeave) {
-    flags.push('currCanLeave');
+  if ((state & State.currCanUnload) === State.currCanUnload) {
+    flags.push('currCanUnload');
   }
-  if ((state & State.currCanLeaveDone) === State.currCanLeaveDone) {
-    flags.push('currCanLeaveDone');
+  if ((state & State.currCanUnloadDone) === State.currCanUnloadDone) {
+    flags.push('currCanUnloadDone');
   }
-  if ((state & State.currLeave) === State.currLeave) {
-    flags.push('currLeave');
+  if ((state & State.currUnload) === State.currUnload) {
+    flags.push('currUnload');
   }
-  if ((state & State.currLeaveDone) === State.currLeaveDone) {
-    flags.push('currLeaveDone');
+  if ((state & State.currUnloadDone) === State.currUnloadDone) {
+    flags.push('currUnloadDone');
   }
   if ((state & State.currDeactivate) === State.currDeactivate) {
     flags.push('currDeactivate');
@@ -903,17 +903,17 @@ function stringifyState(state: State): string {
   if ((state & State.nextIsScheduled) === State.nextIsScheduled) {
     flags.push('nextIsScheduled');
   }
-  if ((state & State.nextCanEnter) === State.nextCanEnter) {
-    flags.push('nextCanEnter');
+  if ((state & State.nextCanLoad) === State.nextCanLoad) {
+    flags.push('nextCanLoad');
   }
-  if ((state & State.nextCanEnterDone) === State.nextCanEnterDone) {
-    flags.push('nextCanEnterDone');
+  if ((state & State.nextCanLoadDone) === State.nextCanLoadDone) {
+    flags.push('nextCanLoadDone');
   }
-  if ((state & State.nextEnter) === State.nextEnter) {
-    flags.push('nextEnter');
+  if ((state & State.nextLoad) === State.nextLoad) {
+    flags.push('nextLoad');
   }
-  if ((state & State.nextEnterDone) === State.nextEnterDone) {
-    flags.push('nextEnterDone');
+  if ((state & State.nextLoadDone) === State.nextLoadDone) {
+    flags.push('nextLoadDone');
   }
   if ((state & State.nextActivate) === State.nextActivate) {
     flags.push('nextActivate');

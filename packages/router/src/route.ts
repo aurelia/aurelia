@@ -71,7 +71,7 @@ export class RouteConfig {
      * How to behave when this component scheduled to be loaded again in the same viewport:
      *
      * - `replace`: completely removes the current component and creates a new one, behaving as if the component changed.
-     * - `invoke-lifecycles`: calls `canLeave`, `canEnter`, `leave` and `enter` (default if only the parameters have changed)
+     * - `invoke-lifecycles`: calls `canUnload`, `canLoad`, `unload` and `load` (default if only the parameters have changed)
      * - `none`: does nothing (default if nothing has changed for the viewport)
      *
      * By default, calls the router lifecycle hooks only if the parameters have changed, otherwise does nothing.

@@ -86,10 +86,10 @@ describe('router hooks', function () {
           afterUnbind: hookSpecsMap.afterUnbind.sync,
           afterUnbindChildren: hookSpecsMap.afterUnbindChildren.sync,
 
-          canEnter: hookSpecsMap.canEnter.sync,
-          enter: hookSpecsMap.enter.sync,
-          canLeave: hookSpecsMap.canLeave.sync,
-          leave: hookSpecsMap.leave.sync,
+          canLoad: hookSpecsMap.canLoad.sync,
+          load: hookSpecsMap.load.sync,
+          canUnload: hookSpecsMap.canUnload.sync,
+          unload: hookSpecsMap.unload.sync,
         }),
       },
       {
@@ -453,16 +453,16 @@ describe('router hooks', function () {
       describe(`${routerOptionsSpec}`, function () {
         for (const hookSpec of [
           HookSpecs.create({
-            canLeave: hookSpecsMap.canLeave.setTimeout_0,
+            canUnload: hookSpecsMap.canUnload.setTimeout_0,
           }),
           HookSpecs.create({
-            leave: hookSpecsMap.leave.setTimeout_0,
+            unload: hookSpecsMap.unload.setTimeout_0,
           }),
           HookSpecs.create({
-            canEnter: hookSpecsMap.canEnter.setTimeout_0,
+            canLoad: hookSpecsMap.canLoad.setTimeout_0,
           }),
           HookSpecs.create({
-            enter: hookSpecsMap.enter.setTimeout_0,
+            load: hookSpecsMap.load.setTimeout_0,
           }),
 
           HookSpecs.create({
@@ -539,41 +539,41 @@ describe('router hooks', function () {
                         `start.root.afterAttach`,
                         `start.root.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').a.canEnter`,
-                        `('' -> 'a/b/c/d').a.enter`,
+                        `('' -> 'a/b/c/d').a.canLoad`,
+                        `('' -> 'a/b/c/d').a.load`,
                         `('' -> 'a/b/c/d').a.beforeBind`,
                         `('' -> 'a/b/c/d').a.afterBind`,
                         `('' -> 'a/b/c/d').a.afterAttach`,
                         `('' -> 'a/b/c/d').a.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').b.canEnter`,
-                        `('' -> 'a/b/c/d').b.enter`,
+                        `('' -> 'a/b/c/d').b.canLoad`,
+                        `('' -> 'a/b/c/d').b.load`,
                         `('' -> 'a/b/c/d').b.beforeBind`,
                         `('' -> 'a/b/c/d').b.afterBind`,
                         `('' -> 'a/b/c/d').b.afterAttach`,
                         `('' -> 'a/b/c/d').b.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').c.canEnter`,
-                        `('' -> 'a/b/c/d').c.enter`,
+                        `('' -> 'a/b/c/d').c.canLoad`,
+                        `('' -> 'a/b/c/d').c.load`,
                         `('' -> 'a/b/c/d').c.beforeBind`,
                         `('' -> 'a/b/c/d').c.afterBind`,
                         `('' -> 'a/b/c/d').c.afterAttach`,
                         `('' -> 'a/b/c/d').c.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').d.canEnter`,
-                        `('' -> 'a/b/c/d').d.enter`,
+                        `('' -> 'a/b/c/d').d.canLoad`,
+                        `('' -> 'a/b/c/d').d.load`,
                         `('' -> 'a/b/c/d').d.beforeBind`,
                         `('' -> 'a/b/c/d').d.afterBind`,
                         `('' -> 'a/b/c/d').d.afterAttach`,
                         `('' -> 'a/b/c/d').d.afterAttachChildren`,
 
-                        `('a/b/c/d' -> 'a').d.canLeave`,
-                        `('a/b/c/d' -> 'a').c.canLeave`,
-                        `('a/b/c/d' -> 'a').b.canLeave`,
+                        `('a/b/c/d' -> 'a').d.canUnload`,
+                        `('a/b/c/d' -> 'a').c.canUnload`,
+                        `('a/b/c/d' -> 'a').b.canUnload`,
 
-                        `('a/b/c/d' -> 'a').d.leave`,
-                        `('a/b/c/d' -> 'a').c.leave`,
-                        `('a/b/c/d' -> 'a').b.leave`,
+                        `('a/b/c/d' -> 'a').d.unload`,
+                        `('a/b/c/d' -> 'a').c.unload`,
+                        `('a/b/c/d' -> 'a').b.unload`,
 
                         `('a/b/c/d' -> 'a').d.beforeDetach`,
                         `('a/b/c/d' -> 'a').d.beforeUnbind`,
@@ -614,15 +614,15 @@ describe('router hooks', function () {
                         `start.root.afterAttach`,
                         `start.root.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').a.canEnter`,
-                        `('' -> 'a/b/c/d').b.canEnter`,
-                        `('' -> 'a/b/c/d').c.canEnter`,
-                        `('' -> 'a/b/c/d').d.canEnter`,
+                        `('' -> 'a/b/c/d').a.canLoad`,
+                        `('' -> 'a/b/c/d').b.canLoad`,
+                        `('' -> 'a/b/c/d').c.canLoad`,
+                        `('' -> 'a/b/c/d').d.canLoad`,
 
-                        `('' -> 'a/b/c/d').a.enter`,
-                        `('' -> 'a/b/c/d').b.enter`,
-                        `('' -> 'a/b/c/d').c.enter`,
-                        `('' -> 'a/b/c/d').d.enter`,
+                        `('' -> 'a/b/c/d').a.load`,
+                        `('' -> 'a/b/c/d').b.load`,
+                        `('' -> 'a/b/c/d').c.load`,
+                        `('' -> 'a/b/c/d').d.load`,
 
                         `('' -> 'a/b/c/d').a.beforeBind`,
                         `('' -> 'a/b/c/d').a.afterBind`,
@@ -641,13 +641,13 @@ describe('router hooks', function () {
                         `('' -> 'a/b/c/d').b.afterAttachChildren`,
                         `('' -> 'a/b/c/d').a.afterAttachChildren`,
 
-                        `('a/b/c/d' -> 'a').d.canLeave`,
-                        `('a/b/c/d' -> 'a').c.canLeave`,
-                        `('a/b/c/d' -> 'a').b.canLeave`,
+                        `('a/b/c/d' -> 'a').d.canUnload`,
+                        `('a/b/c/d' -> 'a').c.canUnload`,
+                        `('a/b/c/d' -> 'a').b.canUnload`,
 
-                        `('a/b/c/d' -> 'a').d.leave`,
-                        `('a/b/c/d' -> 'a').c.leave`,
-                        `('a/b/c/d' -> 'a').b.leave`,
+                        `('a/b/c/d' -> 'a').d.unload`,
+                        `('a/b/c/d' -> 'a').c.unload`,
+                        `('a/b/c/d' -> 'a').b.unload`,
 
                         `('a/b/c/d' -> 'a').d.beforeDetach`,
                         `('a/b/c/d' -> 'a').d.beforeUnbind`,
@@ -693,53 +693,53 @@ describe('router hooks', function () {
                         `start.root.afterAttach`,
                         `start.root.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').a.canEnter`,
-                        `('' -> 'a/b/c/d').a.enter`,
+                        `('' -> 'a/b/c/d').a.canLoad`,
+                        `('' -> 'a/b/c/d').a.load`,
                         `('' -> 'a/b/c/d').a.beforeBind`,
                         `('' -> 'a/b/c/d').a.afterBind`,
                         `('' -> 'a/b/c/d').a.afterAttach`,
                         `('' -> 'a/b/c/d').a.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').b.canEnter`,
-                        `('' -> 'a/b/c/d').b.enter`,
+                        `('' -> 'a/b/c/d').b.canLoad`,
+                        `('' -> 'a/b/c/d').b.load`,
                         `('' -> 'a/b/c/d').b.beforeBind`,
                         `('' -> 'a/b/c/d').b.afterBind`,
                         `('' -> 'a/b/c/d').b.afterAttach`,
                         `('' -> 'a/b/c/d').b.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').c.canEnter`,
-                        `('' -> 'a/b/c/d').c.enter`,
+                        `('' -> 'a/b/c/d').c.canLoad`,
+                        `('' -> 'a/b/c/d').c.load`,
                         `('' -> 'a/b/c/d').c.beforeBind`,
                         `('' -> 'a/b/c/d').c.afterBind`,
                         `('' -> 'a/b/c/d').c.afterAttach`,
                         `('' -> 'a/b/c/d').c.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').d.canEnter`,
-                        `('' -> 'a/b/c/d').d.enter`,
+                        `('' -> 'a/b/c/d').d.canLoad`,
+                        `('' -> 'a/b/c/d').d.load`,
                         `('' -> 'a/b/c/d').d.beforeBind`,
                         `('' -> 'a/b/c/d').d.afterBind`,
                         `('' -> 'a/b/c/d').d.afterAttach`,
                         `('' -> 'a/b/c/d').d.afterAttachChildren`,
 
-                        `('a/b/c/d' -> 'a').d.canLeave`,
-                        `('a/b/c/d' -> 'a').c.canLeave`,
-                        `('a/b/c/d' -> 'a').b.canLeave`,
+                        `('a/b/c/d' -> 'a').d.canUnload`,
+                        `('a/b/c/d' -> 'a').c.canUnload`,
+                        `('a/b/c/d' -> 'a').b.canUnload`,
 
-                        `('a/b/c/d' -> 'a').d.leave`,
+                        `('a/b/c/d' -> 'a').d.unload`,
                         `('a/b/c/d' -> 'a').d.beforeDetach`,
                         `('a/b/c/d' -> 'a').d.beforeUnbind`,
                         `('a/b/c/d' -> 'a').d.afterUnbind`,
                         `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
                         `('a/b/c/d' -> 'a').d.dispose`,
 
-                        `('a/b/c/d' -> 'a').c.leave`,
+                        `('a/b/c/d' -> 'a').c.unload`,
                         `('a/b/c/d' -> 'a').c.beforeDetach`,
                         `('a/b/c/d' -> 'a').c.beforeUnbind`,
                         `('a/b/c/d' -> 'a').c.afterUnbind`,
                         `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
                         `('a/b/c/d' -> 'a').c.dispose`,
 
-                        `('a/b/c/d' -> 'a').b.leave`,
+                        `('a/b/c/d' -> 'a').b.unload`,
                         `('a/b/c/d' -> 'a').b.beforeDetach`,
                         `('a/b/c/d' -> 'a').b.beforeUnbind`,
                         `('a/b/c/d' -> 'a').b.afterUnbind`,
@@ -769,27 +769,27 @@ describe('router hooks', function () {
                         `start.root.afterAttach`,
                         `start.root.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').a.canEnter`,
-                        `('' -> 'a/b/c/d').b.canEnter`,
-                        `('' -> 'a/b/c/d').c.canEnter`,
-                        `('' -> 'a/b/c/d').d.canEnter`,
+                        `('' -> 'a/b/c/d').a.canLoad`,
+                        `('' -> 'a/b/c/d').b.canLoad`,
+                        `('' -> 'a/b/c/d').c.canLoad`,
+                        `('' -> 'a/b/c/d').d.canLoad`,
 
-                        `('' -> 'a/b/c/d').a.enter`,
+                        `('' -> 'a/b/c/d').a.load`,
                         `('' -> 'a/b/c/d').a.beforeBind`,
                         `('' -> 'a/b/c/d').a.afterBind`,
                         `('' -> 'a/b/c/d').a.afterAttach`,
 
-                        `('' -> 'a/b/c/d').b.enter`,
+                        `('' -> 'a/b/c/d').b.load`,
                         `('' -> 'a/b/c/d').b.beforeBind`,
                         `('' -> 'a/b/c/d').b.afterBind`,
                         `('' -> 'a/b/c/d').b.afterAttach`,
 
-                        `('' -> 'a/b/c/d').c.enter`,
+                        `('' -> 'a/b/c/d').c.load`,
                         `('' -> 'a/b/c/d').c.beforeBind`,
                         `('' -> 'a/b/c/d').c.afterBind`,
                         `('' -> 'a/b/c/d').c.afterAttach`,
 
-                        `('' -> 'a/b/c/d').d.enter`,
+                        `('' -> 'a/b/c/d').d.load`,
                         `('' -> 'a/b/c/d').d.beforeBind`,
                         `('' -> 'a/b/c/d').d.afterBind`,
                         `('' -> 'a/b/c/d').d.afterAttach`,
@@ -798,25 +798,25 @@ describe('router hooks', function () {
                         `('' -> 'a/b/c/d').b.afterAttachChildren`,
                         `('' -> 'a/b/c/d').a.afterAttachChildren`,
 
-                        `('a/b/c/d' -> 'a').d.canLeave`,
-                        `('a/b/c/d' -> 'a').c.canLeave`,
-                        `('a/b/c/d' -> 'a').b.canLeave`,
+                        `('a/b/c/d' -> 'a').d.canUnload`,
+                        `('a/b/c/d' -> 'a').c.canUnload`,
+                        `('a/b/c/d' -> 'a').b.canUnload`,
 
-                        `('a/b/c/d' -> 'a').d.leave`,
+                        `('a/b/c/d' -> 'a').d.unload`,
                         `('a/b/c/d' -> 'a').d.beforeDetach`,
                         `('a/b/c/d' -> 'a').d.beforeUnbind`,
                         `('a/b/c/d' -> 'a').d.afterUnbind`,
                         `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
                         `('a/b/c/d' -> 'a').d.dispose`,
 
-                        `('a/b/c/d' -> 'a').c.leave`,
+                        `('a/b/c/d' -> 'a').c.unload`,
                         `('a/b/c/d' -> 'a').c.beforeDetach`,
                         `('a/b/c/d' -> 'a').c.beforeUnbind`,
                         `('a/b/c/d' -> 'a').c.afterUnbind`,
                         `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
                         `('a/b/c/d' -> 'a').c.dispose`,
 
-                        `('a/b/c/d' -> 'a').b.leave`,
+                        `('a/b/c/d' -> 'a').b.unload`,
                         `('a/b/c/d' -> 'a').b.beforeDetach`,
                         `('a/b/c/d' -> 'a').b.beforeUnbind`,
                         `('a/b/c/d' -> 'a').b.afterUnbind`,
@@ -935,7 +935,7 @@ describe('router hooks', function () {
           });
         }
 
-        for (const [aCanEnter, bCanEnter, aEnter, bEnter] of [
+        for (const [aCanLoad, bCanLoad, aLoad, bLoad] of [
           [1, 1,  1,  2],
           [1, 1,  1,  3],
           [1, 1,  1,  4],
@@ -966,33 +966,33 @@ describe('router hooks', function () {
           runTest({
             a: HookSpecs.create({
               ...getAllAsyncSpecs(1),
-              canEnter: hookSpecsMap.canEnter.async(aCanEnter),
-              enter: hookSpecsMap.enter.async(aEnter),
+              canLoad: hookSpecsMap.canLoad.async(aCanLoad),
+              load: hookSpecsMap.load.async(aLoad),
             }),
             b: HookSpecs.create({
               ...getAllAsyncSpecs(1),
-              canEnter: hookSpecsMap.canEnter.async(bCanEnter),
-              enter: hookSpecsMap.enter.async(bEnter),
+              canLoad: hookSpecsMap.canLoad.async(bCanLoad),
+              load: hookSpecsMap.load.async(bLoad),
             }),
           }, function* (spec, phase1) {
             yield* activate(`start`, 'root', true, false);
 
-            if (aCanEnter <= bCanEnter) {
-              yield `${phase1}.a.canEnter`;
-              yield `${phase1}.b.canEnter`;
+            if (aCanLoad <= bCanLoad) {
+              yield `${phase1}.a.canLoad`;
+              yield `${phase1}.b.canLoad`;
             } else {
-              yield `${phase1}.b.canEnter`;
-              yield `${phase1}.a.canEnter`;
+              yield `${phase1}.b.canLoad`;
+              yield `${phase1}.a.canLoad`;
             }
 
             switch (routerOptionsSpec.lifecycleStrategy) {
               case 'phased':
-                if (aEnter < bEnter) {
-                  yield `${phase1}.a.enter`;
-                  yield `${phase1}.b.enter`;
+                if (aLoad < bLoad) {
+                  yield `${phase1}.a.load`;
+                  yield `${phase1}.b.load`;
                 } else {
-                  yield `${phase1}.b.enter`;
-                  yield `${phase1}.a.enter`;
+                  yield `${phase1}.b.load`;
+                  yield `${phase1}.a.load`;
                 }
 
                 yield* interleave(
@@ -1012,21 +1012,21 @@ describe('router hooks', function () {
               case 'parallel': {
                 yield* interleave(
                   (function* () {
-                    if (aEnter > 7) { yield ''; }
-                    if (aEnter > 4) { yield ''; }
-                    if (aEnter > 1) { yield ''; }
-                    yield `${phase1}.a.enter`;
-                    if (aEnter > 5) { yield ''; }
-                    if (aEnter > 2) { yield ''; }
+                    if (aLoad > 7) { yield ''; }
+                    if (aLoad > 4) { yield ''; }
+                    if (aLoad > 1) { yield ''; }
+                    yield `${phase1}.a.load`;
+                    if (aLoad > 5) { yield ''; }
+                    if (aLoad > 2) { yield ''; }
                     yield* activate(phase1, 'a', true, false);
                   })(),
                   (function* () {
-                    if (bEnter > 9) { yield ''; }
-                    if (bEnter > 6) { yield ''; }
-                    if (bEnter > 3) { yield ''; }
-                    yield `${phase1}.b.enter`;
-                    if (bEnter > 5) { yield ''; }
-                    if (bEnter > 2) { yield ''; }
+                    if (bLoad > 9) { yield ''; }
+                    if (bLoad > 6) { yield ''; }
+                    if (bLoad > 3) { yield ''; }
+                    yield `${phase1}.b.load`;
+                    if (bLoad > 5) { yield ''; }
+                    if (bLoad > 2) { yield ''; }
                     yield* activate(phase1, 'b', true, false);
                   })(),
                 );
@@ -1134,7 +1134,7 @@ describe('router hooks', function () {
           });
         }
 
-        for (const [a1CanEnter, a2CanEnter, a1Enter, a2Enter] of [
+        for (const [a1CanLoad, a2CanLoad, a1Load, a2Load] of [
           [1, 5,  1,  5],
           [1, 5,  5,  1],
           [5, 1,  1,  5],
@@ -1143,26 +1143,26 @@ describe('router hooks', function () {
           runTest({
             a1: HookSpecs.create({
               ...getAllAsyncSpecs(1),
-              canEnter: hookSpecsMap.canEnter.async(a1CanEnter),
-              enter: hookSpecsMap.enter.async(a1Enter),
+              canLoad: hookSpecsMap.canLoad.async(a1CanLoad),
+              load: hookSpecsMap.load.async(a1Load),
             }),
             a2: HookSpecs.create({
               ...getAllAsyncSpecs(1),
-              canEnter: hookSpecsMap.canEnter.async(a2CanEnter),
-              enter: hookSpecsMap.enter.async(a2Enter),
+              canLoad: hookSpecsMap.canLoad.async(a2CanLoad),
+              load: hookSpecsMap.load.async(a2Load),
             }),
           }, function* (spec, phase1) {
             yield* activate(`start`, 'root', true, false);
 
             switch (routerOptionsSpec.resolutionStrategy) {
               case 'dynamic':
-                yield `${phase1}.a1.canEnter`;
-                yield `${phase1}.a1.enter`;
+                yield `${phase1}.a1.canLoad`;
+                yield `${phase1}.a1.load`;
                 yield* activate(phase1, 'a1', false, false);
                 yield `${phase1}.a1.afterAttachChildren`;
 
-                yield `${phase1}.a2.canEnter`;
-                yield `${phase1}.a2.enter`;
+                yield `${phase1}.a2.canLoad`;
+                yield `${phase1}.a2.load`;
                 yield* activate(phase1, 'a2', false, false);
                 yield `${phase1}.a2.afterAttachChildren`;
 
@@ -1174,18 +1174,18 @@ describe('router hooks', function () {
                 yield `stop.a1.afterUnbindChildren`;
                 break;
               case 'static':
-                yield `${phase1}.a1.canEnter`;
-                yield `${phase1}.a2.canEnter`;
+                yield `${phase1}.a1.canLoad`;
+                yield `${phase1}.a2.canLoad`;
                 switch (routerOptionsSpec.lifecycleStrategy) {
                   case 'parallel':
-                    yield `${phase1}.a1.enter`;
+                    yield `${phase1}.a1.load`;
                     yield* activate(phase1, 'a1', false, false);
-                    yield `${phase1}.a2.enter`;
+                    yield `${phase1}.a2.load`;
                     yield* activate(phase1, 'a2', false, false);
                     break;
                   case 'phased':
-                    yield `${phase1}.a1.enter`;
-                    yield `${phase1}.a2.enter`;
+                    yield `${phase1}.a1.load`;
+                    yield `${phase1}.a2.load`;
                     yield* activate(phase1, 'a1', false, false);
                     yield* activate(phase1, 'a2', false, false);
                     break;
@@ -1308,10 +1308,10 @@ describe('router hooks', function () {
         }
 
         for (const [
-          a1CanEnter, a2CanEnter, b1CanEnter, b2CanEnter,
-          a1Enter, a2Enter, b1Enter, b2Enter,
+          a1CanLoad, a2CanLoad, b1CanLoad, b2CanLoad,
+          a1Load, a2Load, b1Load, b2Load,
         ] of [
-          // canEnter variations
+          // canLoad variations
           [
             2, 1, 1, 1,
             1, 1, 1, 1,
@@ -1384,7 +1384,7 @@ describe('router hooks', function () {
             1, 1, 10, 1,
             1, 1, 1, 1,
           ],
-          // enter variations
+          // load variations
           [
             1, 1, 1, 1,
             2, 1, 1, 1,
@@ -1461,23 +1461,23 @@ describe('router hooks', function () {
           runTest({
             a1: HookSpecs.create({
               ...getAllAsyncSpecs(1),
-              canEnter: hookSpecsMap.canEnter.async(a1CanEnter),
-              enter: hookSpecsMap.enter.async(a1Enter),
+              canLoad: hookSpecsMap.canLoad.async(a1CanLoad),
+              load: hookSpecsMap.load.async(a1Load),
             }),
             a2: HookSpecs.create({
               ...getAllAsyncSpecs(1),
-              canEnter: hookSpecsMap.canEnter.async(a2CanEnter),
-              enter: hookSpecsMap.enter.async(a2Enter),
+              canLoad: hookSpecsMap.canLoad.async(a2CanLoad),
+              load: hookSpecsMap.load.async(a2Load),
             }),
             b1: HookSpecs.create({
               ...getAllAsyncSpecs(1),
-              canEnter: hookSpecsMap.canEnter.async(b1CanEnter),
-              enter: hookSpecsMap.enter.async(b1Enter),
+              canLoad: hookSpecsMap.canLoad.async(b1CanLoad),
+              load: hookSpecsMap.load.async(b1Load),
             }),
             b2: HookSpecs.create({
               ...getAllAsyncSpecs(1),
-              canEnter: hookSpecsMap.canEnter.async(b2CanEnter),
-              enter: hookSpecsMap.enter.async(b2Enter),
+              canLoad: hookSpecsMap.canLoad.async(b2CanLoad),
+              load: hookSpecsMap.load.async(b2Load),
             }),
           }, function* (spec, phase1) {
             yield* activate(`start`, 'root', true, false);
@@ -1486,28 +1486,28 @@ describe('router hooks', function () {
               case 'dynamic':
                 yield* interleave(
                   (function* () {
-                    if (a1CanEnter > 1) { yield ''; }
-                    if (a1CanEnter > 9) { yield ''; }
-                    yield `${phase1}.a1.canEnter`;
+                    if (a1CanLoad > 1) { yield ''; }
+                    if (a1CanLoad > 9) { yield ''; }
+                    yield `${phase1}.a1.canLoad`;
                   })(),
                   (function* () {
-                    if (b1CanEnter > 4) { yield ''; }
-                    yield `${phase1}.b1.canEnter`;
+                    if (b1CanLoad > 4) { yield ''; }
+                    yield `${phase1}.b1.canLoad`;
                   })(),
                 );
                 switch (routerOptionsSpec.lifecycleStrategy) {
                   case 'phased':
                     yield* interleave(
                       (function* () {
-                        if (a1Enter > 1) { yield ''; }
-                        if (a1Enter > 4) { yield ''; }
-                        if (a1Enter > 9) { yield ''; }
-                        yield `${phase1}.a1.enter`;
+                        if (a1Load > 1) { yield ''; }
+                        if (a1Load > 4) { yield ''; }
+                        if (a1Load > 9) { yield ''; }
+                        yield `${phase1}.a1.load`;
                       })(),
                       (function* () {
-                        if (b1Enter > 3) { yield ''; }
-                        if (b1Enter > 4) { yield ''; }
-                        yield `${phase1}.b1.enter`;
+                        if (b1Load > 3) { yield ''; }
+                        if (b1Load > 4) { yield ''; }
+                        yield `${phase1}.b1.load`;
                       })(),
                     );
                     yield* interleave(
@@ -1517,19 +1517,19 @@ describe('router hooks', function () {
                         yield `${phase1}.a1.afterAttach`;
                         yield `${phase1}.a1.afterAttachChildren`;
 
-                        if (a2CanEnter > 1) { yield ''; }
-                        yield `${phase1}.a2.canEnter`;
-                        if (a2CanEnter > 3) { yield ''; }
-                        if (a2Enter > 1) { yield ''; }
-                        yield `${phase1}.a2.enter`;
-                        if (a2CanEnter > 2) { yield ''; }
-                        if (a2CanEnter > 4) { yield ''; }
-                        if (a2Enter > 2) { yield ''; }
-                        if (a2Enter > 4) { yield ''; }
+                        if (a2CanLoad > 1) { yield ''; }
+                        yield `${phase1}.a2.canLoad`;
+                        if (a2CanLoad > 3) { yield ''; }
+                        if (a2Load > 1) { yield ''; }
+                        yield `${phase1}.a2.load`;
+                        if (a2CanLoad > 2) { yield ''; }
+                        if (a2CanLoad > 4) { yield ''; }
+                        if (a2Load > 2) { yield ''; }
+                        if (a2Load > 4) { yield ''; }
                         yield `${phase1}.a2.beforeBind`;
                         yield `${phase1}.a2.afterBind`;
                         yield `${phase1}.a2.afterAttach`;
-                        if (b2CanEnter > 4) { yield ''; }
+                        if (b2CanLoad > 4) { yield ''; }
                         yield `${phase1}.a2.afterAttachChildren`;
                       })(),
                       (function* () {
@@ -1538,16 +1538,16 @@ describe('router hooks', function () {
                         yield `${phase1}.b1.afterAttach`;
                         yield `${phase1}.b1.afterAttachChildren`;
 
-                        yield `${phase1}.b2.canEnter`;
-                        if (b2CanEnter > 3) { yield ''; }
-                        if (b2CanEnter > 4) { yield ''; }
-                        yield `${phase1}.b2.enter`;
-                        if (b2CanEnter > 2) { yield ''; }
-                        if (b2Enter > 2) { yield ''; }
-                        if (b2Enter > 3) { yield ''; }
+                        yield `${phase1}.b2.canLoad`;
+                        if (b2CanLoad > 3) { yield ''; }
+                        if (b2CanLoad > 4) { yield ''; }
+                        yield `${phase1}.b2.load`;
+                        if (b2CanLoad > 2) { yield ''; }
+                        if (b2Load > 2) { yield ''; }
+                        if (b2Load > 3) { yield ''; }
                         yield `${phase1}.b2.beforeBind`;
                         yield `${phase1}.b2.afterBind`;
-                        if (a2CanEnter > 3) { yield ''; }
+                        if (a2CanLoad > 3) { yield ''; }
                         yield `${phase1}.b2.afterAttach`;
                         yield `${phase1}.b2.afterAttachChildren`;
                       })(),
@@ -1556,61 +1556,61 @@ describe('router hooks', function () {
                   case 'parallel':
                     yield* interleave(
                       (function* () {
-                        if (a1Enter > 9) { yield ''; }
-                        if (a1Enter > 4) { yield ''; }
-                        if (a1Enter > 1) { yield ''; }
-                        yield `${phase1}.a1.enter`;
-                        if (a1Enter > 2) { yield ''; }
+                        if (a1Load > 9) { yield ''; }
+                        if (a1Load > 4) { yield ''; }
+                        if (a1Load > 1) { yield ''; }
+                        yield `${phase1}.a1.load`;
+                        if (a1Load > 2) { yield ''; }
                         yield `${phase1}.a1.beforeBind`;
                         yield `${phase1}.a1.afterBind`;
                         yield `${phase1}.a1.afterAttach`;
                         yield `${phase1}.a1.afterAttachChildren`;
 
-                        if (b1Enter > 2) { yield ''; }
-                        if (b1Enter > 3) { yield ''; }
-                        if (b1Enter > 4) { yield ''; }
-                        if (b1Enter > 9) { yield ''; }
-                        if (a2CanEnter > 1) { yield ''; }
-                        yield `${phase1}.a2.canEnter`;
-                        if (a2CanEnter > 2) { yield ''; }
-                        if (b2CanEnter > 2) { yield ''; }
-                        if (a2CanEnter > 4) { yield ''; }
-                        if (a2Enter > 1) { yield ''; }
-                        if (a2Enter > 4) { yield ''; }
-                        if (b1Enter > 9) { yield ''; }
-                        yield `${phase1}.a2.enter`;
-                        if (b2Enter > 1) { yield ''; }
-                        if (a2Enter > 2) { yield ''; }
+                        if (b1Load > 2) { yield ''; }
+                        if (b1Load > 3) { yield ''; }
+                        if (b1Load > 4) { yield ''; }
+                        if (b1Load > 9) { yield ''; }
+                        if (a2CanLoad > 1) { yield ''; }
+                        yield `${phase1}.a2.canLoad`;
+                        if (a2CanLoad > 2) { yield ''; }
+                        if (b2CanLoad > 2) { yield ''; }
+                        if (a2CanLoad > 4) { yield ''; }
+                        if (a2Load > 1) { yield ''; }
+                        if (a2Load > 4) { yield ''; }
+                        if (b1Load > 9) { yield ''; }
+                        yield `${phase1}.a2.load`;
+                        if (b2Load > 1) { yield ''; }
+                        if (a2Load > 2) { yield ''; }
                         yield `${phase1}.a2.beforeBind`;
                         yield `${phase1}.a2.afterBind`;
                         yield `${phase1}.a2.afterAttach`;
                         yield `${phase1}.a2.afterAttachChildren`;
                       })(),
                       (function* () {
-                        if (b1Enter > 9) { yield ''; }
-                        if (b1Enter > 9) { yield ''; }
-                        if (b1Enter > 3) { yield ''; }
-                        yield `${phase1}.b1.enter`;
-                        if (b1Enter > 2) { yield ''; }
+                        if (b1Load > 9) { yield ''; }
+                        if (b1Load > 9) { yield ''; }
+                        if (b1Load > 3) { yield ''; }
+                        yield `${phase1}.b1.load`;
+                        if (b1Load > 2) { yield ''; }
                         yield `${phase1}.b1.beforeBind`;
                         yield `${phase1}.b1.afterBind`;
                         yield `${phase1}.b1.afterAttach`;
                         yield `${phase1}.b1.afterAttachChildren`;
 
-                        if (a1Enter > 1) { yield ''; }
-                        if (a1Enter > 2) { yield ''; }
-                        if (a1Enter > 4) { yield ''; }
-                        if (a1Enter > 9) { yield ''; }
-                        if ((b2Enter - a1Enter) > 2) { yield ''; }
-                        if (b1Enter > 4) { yield ''; }
-                        if (b2CanEnter > 2) { yield ''; }
-                        yield `${phase1}.b2.canEnter`;
-                        if (b2CanEnter > 2) { yield ''; }
-                        if (b2CanEnter > 3) { yield ''; }
-                        if (b2Enter > 1) { yield ''; }
-                        if (b2Enter > 3) { yield ''; }
-                        yield `${phase1}.b2.enter`;
-                        if (b2Enter > 2) { yield ''; }
+                        if (a1Load > 1) { yield ''; }
+                        if (a1Load > 2) { yield ''; }
+                        if (a1Load > 4) { yield ''; }
+                        if (a1Load > 9) { yield ''; }
+                        if ((b2Load - a1Load) > 2) { yield ''; }
+                        if (b1Load > 4) { yield ''; }
+                        if (b2CanLoad > 2) { yield ''; }
+                        yield `${phase1}.b2.canLoad`;
+                        if (b2CanLoad > 2) { yield ''; }
+                        if (b2CanLoad > 3) { yield ''; }
+                        if (b2Load > 1) { yield ''; }
+                        if (b2Load > 3) { yield ''; }
+                        yield `${phase1}.b2.load`;
+                        if (b2Load > 2) { yield ''; }
                         yield `${phase1}.b2.beforeBind`;
                         yield `${phase1}.b2.afterBind`;
                         yield `${phase1}.b2.afterAttach`;
@@ -1638,36 +1638,36 @@ describe('router hooks', function () {
               case 'static':
                 yield* interleave(
                   (function* () {
-                    if (a1CanEnter > 1) { yield ''; }
-                    if (a1CanEnter > 9) { yield ''; }
-                    yield `${phase1}.a1.canEnter`;
-                    if (a2CanEnter > 4) { yield ''; }
-                    yield `${phase1}.a2.canEnter`;
+                    if (a1CanLoad > 1) { yield ''; }
+                    if (a1CanLoad > 9) { yield ''; }
+                    yield `${phase1}.a1.canLoad`;
+                    if (a2CanLoad > 4) { yield ''; }
+                    yield `${phase1}.a2.canLoad`;
                   })(),
                   (function* () {
-                    if (b1CanEnter > 4) { yield ''; }
-                    yield `${phase1}.b1.canEnter`;
-                    yield `${phase1}.b2.canEnter`;
+                    if (b1CanLoad > 4) { yield ''; }
+                    yield `${phase1}.b1.canLoad`;
+                    yield `${phase1}.b2.canLoad`;
                   })(),
                 );
                 switch (routerOptionsSpec.lifecycleStrategy) {
                   case 'phased':
                     yield* interleave(
                       (function* () {
-                        if (a1Enter > 1) { yield ''; }
-                        if (a1Enter > 4) { yield ''; }
-                        if (a1Enter > 9) { yield ''; }
-                        yield `${phase1}.a1.enter`;
-                        if (a2Enter > 3) { yield ''; }
-                        if (a2Enter > 4) { yield ''; }
-                        yield `${phase1}.a2.enter`;
+                        if (a1Load > 1) { yield ''; }
+                        if (a1Load > 4) { yield ''; }
+                        if (a1Load > 9) { yield ''; }
+                        yield `${phase1}.a1.load`;
+                        if (a2Load > 3) { yield ''; }
+                        if (a2Load > 4) { yield ''; }
+                        yield `${phase1}.a2.load`;
                       })(),
                       (function* () {
-                        if (b1Enter > 3) { yield ''; }
-                        if (b1Enter > 4) { yield ''; }
-                        yield `${phase1}.b1.enter`;
-                        if (b2Enter > 4) { yield ''; }
-                        yield `${phase1}.b2.enter`;
+                        if (b1Load > 3) { yield ''; }
+                        if (b1Load > 4) { yield ''; }
+                        yield `${phase1}.b1.load`;
+                        if (b2Load > 4) { yield ''; }
+                        yield `${phase1}.b2.load`;
                       })(),
                     );
                     yield* interleave(
@@ -1687,80 +1687,80 @@ describe('router hooks', function () {
                     // TODO(fkleuver): clean this up (urgently)
                     yield* interleave(
                       (function* () {
-                        if (a1Enter > 1) { yield ''; }
-                        if (a1Enter > 4) { yield ''; }
-                        if (a1Enter > 9) { yield ''; }
-                        yield `${phase1}.a1.enter`;
-                        if (a1Enter > 2) { yield ''; }
-                        if (a1Enter > 9) { yield ''; }
-                        if (a1Enter > 9) { yield ''; }
-                        if (a1Enter > 9) { yield ''; }
-                        if (a1Enter > 9) { yield ''; }
-                        if (a1Enter > 9) { yield ''; }
+                        if (a1Load > 1) { yield ''; }
+                        if (a1Load > 4) { yield ''; }
+                        if (a1Load > 9) { yield ''; }
+                        yield `${phase1}.a1.load`;
+                        if (a1Load > 2) { yield ''; }
+                        if (a1Load > 9) { yield ''; }
+                        if (a1Load > 9) { yield ''; }
+                        if (a1Load > 9) { yield ''; }
+                        if (a1Load > 9) { yield ''; }
+                        if (a1Load > 9) { yield ''; }
                         yield `${phase1}.a1.beforeBind`;
                         yield `${phase1}.a1.afterBind`;
-                        if (a1Enter > 3) { yield ''; }
+                        if (a1Load > 3) { yield ''; }
                         yield `${phase1}.a1.afterAttach`;
-                        if (a2Enter > 2) { yield ''; }
-                        if (a2Enter > 4) { yield ''; }
-                        yield `${phase1}.a2.enter`;
-                        if (a1Enter > 4) { yield ''; }
-                        if (a2Enter > 1) { yield ''; }
-                        if (a2Enter > 3) { yield ''; }
-                        if (a2Enter > 4) { yield ''; }
+                        if (a2Load > 2) { yield ''; }
+                        if (a2Load > 4) { yield ''; }
+                        yield `${phase1}.a2.load`;
+                        if (a1Load > 4) { yield ''; }
+                        if (a2Load > 1) { yield ''; }
+                        if (a2Load > 3) { yield ''; }
+                        if (a2Load > 4) { yield ''; }
                         yield `${phase1}.a2.beforeBind`;
-                        if (b1Enter > 1) { yield ''; }
+                        if (b1Load > 1) { yield ''; }
                         yield `${phase1}.a2.afterBind`;
-                        if (b2Enter > 4) { yield ''; }
+                        if (b2Load > 4) { yield ''; }
                         yield `${phase1}.a2.afterAttach`;
-                        if (a1Enter > 1) { yield ''; }
-                        if (b1Enter > 2) { yield ''; }
-                        if (b1Enter > 3) { yield ''; }
-                        if (b1Enter > 4) { yield ''; }
-                        if (b1Enter > 4) { yield ''; }
+                        if (a1Load > 1) { yield ''; }
+                        if (b1Load > 2) { yield ''; }
+                        if (b1Load > 3) { yield ''; }
+                        if (b1Load > 4) { yield ''; }
+                        if (b1Load > 4) { yield ''; }
                         yield `${phase1}.a2.afterAttachChildren`;
                         yield `${phase1}.a1.afterAttachChildren`;
                       })(),
                       (function* () {
-                        if (b1Enter > 3) { yield ''; }
-                        if (b1Enter > 9) { yield ''; }
-                        if (b1Enter > 9) { yield ''; }
-                        yield `${phase1}.b1.enter`;
-                        if (b1Enter > 2) { yield ''; }
-                        if (b1Enter > 9) { yield ''; }
-                        if (b1Enter > 9) { yield ''; }
-                        if (b1Enter > 9) { yield ''; }
+                        if (b1Load > 3) { yield ''; }
+                        if (b1Load > 9) { yield ''; }
+                        if (b1Load > 9) { yield ''; }
+                        yield `${phase1}.b1.load`;
+                        if (b1Load > 2) { yield ''; }
+                        if (b1Load > 9) { yield ''; }
+                        if (b1Load > 9) { yield ''; }
+                        if (b1Load > 9) { yield ''; }
                         yield `${phase1}.b1.beforeBind`;
-                        if (b1Enter > 4) { yield ''; }
+                        if (b1Load > 4) { yield ''; }
                         yield `${phase1}.b1.afterBind`;
-                        if (b1Enter > 4) { yield ''; }
+                        if (b1Load > 4) { yield ''; }
                         yield `${phase1}.b1.afterAttach`;
-                        if (b1Enter > 1) { yield ''; }
-                        if (b2Enter > 2) { yield ''; }
-                        if (b2Enter > 3) { yield ''; }
-                        yield `${phase1}.b2.enter`;
-                        if (b2Enter > 1) { yield ''; }
-                        if (b2Enter > 4) { yield ''; }
-                        if (b2Enter > 4) { yield ''; }
+                        if (b1Load > 1) { yield ''; }
+                        if (b2Load > 2) { yield ''; }
+                        if (b2Load > 3) { yield ''; }
+                        yield `${phase1}.b2.load`;
+                        if (b2Load > 1) { yield ''; }
+                        if (b2Load > 4) { yield ''; }
+                        if (b2Load > 4) { yield ''; }
                         yield `${phase1}.b2.beforeBind`;
-                        if (a1Enter > 4) { yield ''; }
-                        if (a2Enter > 1) { yield ''; }
+                        if (a1Load > 4) { yield ''; }
+                        if (a2Load > 1) { yield ''; }
                         yield `${phase1}.b2.afterBind`;
-                        if (a1Enter > 3) { yield ''; }
+                        if (a1Load > 3) { yield ''; }
                         yield `${phase1}.b2.afterAttach`;
-                        if (b1Enter > 1) { yield ''; }
-                        if (a1Enter > 2) { yield ''; }
-                        if (a1Enter > 4) { yield ''; }
-                        if (b2Enter > 1) { yield ''; }
-                        if (b2Enter > 1) { yield ''; }
-                        if (a2Enter > 2) { yield ''; }
-                        if (a2Enter > 3) { yield ''; }
-                        if (a2Enter > 4) { yield ''; }
-                        if (a2Enter > 4) { yield ''; }
-                        if (a1CanEnter > 1) { yield ''; }
-                        if (b1CanEnter > 1) { yield ''; }
-                        if (a1Enter > 9) { yield ''; }
-                        if (a1Enter > 9) { yield ''; }
+                        if (b1Load > 1) { yield ''; }
+                        if (a1Load > 2) { yield ''; }
+                        if (a1Load > 4) { yield ''; }
+                        if (b2Load > 1) { yield ''; }
+                        if (b2Load > 1) { yield ''; }
+                        if (a2Load > 2) { yield ''; }
+                        if (a2Load > 3) { yield ''; }
+                        if (a2Load > 4) { yield ''; }
+                        if (a2Load > 4) { yield ''; }
+                        if (a1CanLoad > 1) { yield ''; }
+                        if (b1CanLoad > 1) { yield ''; }
+                        if (a1Load > 9) { yield ''; }
+                        if (a1Load > 9) { yield ''; }
                         yield `${phase1}.b2.afterAttachChildren`;
                         yield `${phase1}.b1.afterAttachChildren`;
                       })(),
@@ -1875,8 +1875,8 @@ describe('router hooks', function () {
           'afterBind',
           'afterAttach',
           'afterAttachChildren',
-          'canEnter',
-          'enter',
+          'canLoad',
+          'load',
         ] as HookName[]) {
           runTest({
             async action(router, container) {
@@ -1902,8 +1902,8 @@ describe('router hooks', function () {
           'beforeUnbind',
           'afterUnbind',
           'afterUnbindChildren',
-          'canLeave',
-          'leave',
+          'canUnload',
+          'unload',
         ] as HookName[]) {
           runTest({
             async action(router, container) {
@@ -1918,8 +1918,8 @@ describe('router hooks', function () {
                 public async beforeBind() { throw new Error(`error in beforeBind`); }
                 public async afterBind() { throw new Error(`error in afterBind`); }
                 public async afterAttach() { throw new Error(`error in afterAttach`); }
-                public async canEnter() { throw new Error(`error in canEnter`); }
-                public async enter() { throw new Error(`error in enter`); }
+                public async canLoad() { throw new Error(`error in canLoad`); }
+                public async load() { throw new Error(`error in load`); }
               });
 
               container.register(target1, target2);
@@ -1956,9 +1956,9 @@ function getAllAsyncSpecs(count: number): HookSpecs {
     afterUnbind: hookSpecsMap.afterUnbind.async(count),
     afterUnbindChildren: hookSpecsMap.afterUnbindChildren.async(count),
 
-    canEnter: hookSpecsMap.canEnter.async(count),
-    enter: hookSpecsMap.enter.async(count),
-    canLeave: hookSpecsMap.canLeave.async(count),
-    leave: hookSpecsMap.leave.async(count),
+    canLoad: hookSpecsMap.canLoad.async(count),
+    load: hookSpecsMap.load.async(count),
+    canUnload: hookSpecsMap.canUnload.async(count),
+    unload: hookSpecsMap.unload.async(count),
   });
 }

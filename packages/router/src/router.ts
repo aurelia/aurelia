@@ -118,7 +118,7 @@ export class RouterOptions {
      * conditionally rendered viewports will only be available on next navigation after the one where they were created.
      *
      * - `dynamic` enables the full feature set of the v2 router with viewport property bindings and
-     * dynamically added & conditionally rendered viewports, but child route `canEnter` guards will run only after the parent already activated. This means
+     * dynamically added & conditionally rendered viewports, but child route `canLoad` guards will run only after the parent already activated. This means
      * that canceling/disallowing a navigation from a child component will not prevent side-effects from occurring, so global guards may need to be used instead
      * when that's not desirable.
      */
@@ -848,7 +848,7 @@ export class Router {
   }
 
   /**
-   * See if there is any residue, and recurse through them invoking canEnter -> enter -> Controller.activate, if applicable
+   * See if there is any residue, and recurse through them invoking canLoad -> load -> Controller.activate, if applicable
    *
    * NOTE: this method is called in one of two ways:
    * - Lazily by the router after activating the next component (for resolutionStrategy `dynamic`)
@@ -879,16 +879,16 @@ export class Router {
     };
 
     return runSequence(
-      () => { return traverse('bottom-up', prev, vp => { return vp.canLeave(tr); }); },
+      () => { return traverse('bottom-up', prev, vp => { return vp.canUnload(tr); }); },
       abortIfNeeded,
-      () => { return traverse('top-down', next, vp => { return vp.canEnter(tr); }); },
+      () => { return traverse('top-down', next, vp => { return vp.canLoad(tr); }); },
       abortIfNeeded,
       () => {
         switch (tr.options.lifecycleStrategy) {
           case 'phased':
             return runSequence(
-              () => { return traverse('bottom-up', prev, vp => { return vp.leave(tr); }); },
-              () => { return traverse('top-down', next, vp => { return vp.enter(tr); }); },
+              () => { return traverse('bottom-up', prev, vp => { return vp.unload(tr); }); },
+              () => { return traverse('top-down', next, vp => { return vp.load(tr); }); },
               () => {
                 switch (tr.options.swapStrategy) {
                   case 'add-first':
@@ -916,13 +916,13 @@ export class Router {
                 return resolveAll([
                   traverse('top-down', next, vp => {
                     return runSequence(
-                      () => { return vp.enter(tr); },
+                      () => { return vp.load(tr); },
                       () => { return vp.activateFromRouter(tr); },
                     );
                   }),
                   traverse('bottom-up', prev, vp => {
                     return runSequence(
-                      () => { return vp.leave(tr); },
+                      () => { return vp.unload(tr); },
                       () => { return vp.deactivateFromRouter(tr); },
                     );
                   }),
@@ -931,13 +931,13 @@ export class Router {
                 return resolveAll([
                   traverse('bottom-up', prev, vp => {
                     return runSequence(
-                      () => { return vp.leave(tr); },
+                      () => { return vp.unload(tr); },
                       () => { return vp.deactivateFromRouter(tr); },
                     );
                   }),
                   traverse('top-down', next, vp => {
                     return runSequence(
-                      () => { return vp.enter(tr); },
+                      () => { return vp.load(tr); },
                       () => { return vp.activateFromRouter(tr); },
                     );
                   }),

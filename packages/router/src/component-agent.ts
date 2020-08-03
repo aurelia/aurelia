@@ -31,21 +31,21 @@ import {
 } from './util';
 
 export interface IRouteViewModel extends ICustomElementViewModel<HTMLElement> {
-  canEnter?(
+  canLoad?(
     params: Params,
     next: RouteNode,
     current: RouteNode | null,
   ): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
-  enter?(
+  load?(
     params: Params,
     next: RouteNode,
     current: RouteNode | null,
   ): void | Promise<void>;
-  canLeave?(
+  canUnload?(
     next: RouteNode | null,
     current: RouteNode,
   ): boolean | Promise<boolean>;
-  leave?(
+  unload?(
     next: RouteNode | null,
     current: RouteNode,
   ): void | Promise<void>;
@@ -56,10 +56,10 @@ const componentAgentLookup: WeakMap<object, ComponentAgent> = new WeakMap();
 export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   private readonly logger: ILogger;
 
-  public readonly hasCanEnter: boolean;
-  public readonly hasEnter: boolean;
-  public readonly hasCanLeave: boolean;
-  public readonly hasLeave: boolean;
+  public readonly hasCanLoad: boolean;
+  public readonly hasLoad: boolean;
+  public readonly hasCanUnload: boolean;
+  public readonly hasUnload: boolean;
 
   public constructor(
     public readonly instance: T,
@@ -72,10 +72,10 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
     this.logger.trace(`constructor()`);
 
-    this.hasCanEnter = 'canEnter' in instance;
-    this.hasEnter = 'enter' in instance;
-    this.hasCanLeave = 'canLeave' in instance;
-    this.hasLeave = 'leave' in instance;
+    this.hasCanLoad = 'canLoad' in instance;
+    this.hasLoad = 'load' in instance;
+    this.hasCanUnload = 'canUnload' in instance;
+    this.hasUnload = 'unload' in instance;
   }
 
   public static for<T extends IRouteViewModel>(
@@ -131,11 +131,11 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     this.controller.dispose();
   }
 
-  public canEnter(next: RouteNode): boolean | ViewportInstructionTree | Promise<boolean | ViewportInstructionTree> {
-    if (this.hasCanEnter) {
-      this.logger.trace(`canEnter(next:%s) - invoking hook on component`, next);
+  public canLoad(next: RouteNode): boolean | ViewportInstructionTree | Promise<boolean | ViewportInstructionTree> {
+    if (this.hasCanLoad) {
+      this.logger.trace(`canLoad(next:%s) - invoking hook on component`, next);
       return runSequence(
-        () => { return this.instance.canEnter!(next.params, next, this.routeNode); },
+        () => { return this.instance.canLoad!(next.params, next, this.routeNode); },
         (_, result) => {
           if (typeof result === 'boolean') {
             return result;
@@ -146,36 +146,36 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
       );
     }
 
-    this.logger.trace(`canEnter(next:%s) - component does not implement this hook, so skipping`, next);
+    this.logger.trace(`canLoad(next:%s) - component does not implement this hook, so skipping`, next);
     return true;
   }
 
-  public enter(next: RouteNode): void | Promise<void> {
-    if (this.hasEnter) {
-      this.logger.trace(`enter(next:%s) - invoking hook on component`, next);
-      return this.instance.enter!(next.params, next, this.routeNode);
+  public load(next: RouteNode): void | Promise<void> {
+    if (this.hasLoad) {
+      this.logger.trace(`load(next:%s) - invoking hook on component`, next);
+      return this.instance.load!(next.params, next, this.routeNode);
     }
 
-    this.logger.trace(`enter(next:%s) - component does not implement this hook, so skipping`, next);
+    this.logger.trace(`load(next:%s) - component does not implement this hook, so skipping`, next);
   }
 
-  public canLeave(next: RouteNode | null): boolean | Promise<boolean> {
-    if (this.hasCanLeave) {
-      this.logger.trace(`canLeave(next:%s) - invoking hook on component`, next);
-      return this.instance.canLeave!(next, this.routeNode);
+  public canUnload(next: RouteNode | null): boolean | Promise<boolean> {
+    if (this.hasCanUnload) {
+      this.logger.trace(`canUnload(next:%s) - invoking hook on component`, next);
+      return this.instance.canUnload!(next, this.routeNode);
     }
 
-    this.logger.trace(`canLeave(next:%s) - component does not implement this hook, so skipping`, next);
+    this.logger.trace(`canUnload(next:%s) - component does not implement this hook, so skipping`, next);
     return true;
   }
 
-  public leave(next: RouteNode | null): void | Promise<void> {
-    if (this.hasLeave) {
-      this.logger.trace(`leave(next:%s) - invoking hook on component`, next);
-      return this.instance.leave!(next, this.routeNode);
+  public unload(next: RouteNode | null): void | Promise<void> {
+    if (this.hasUnload) {
+      this.logger.trace(`unload(next:%s) - invoking hook on component`, next);
+      return this.instance.unload!(next, this.routeNode);
     }
 
-    this.logger.trace(`leave(next:%s) - component does not implement this hook, so skipping`, next);
+    this.logger.trace(`unload(next:%s) - component does not implement this hook, so skipping`, next);
   }
 
   public toString(): string {

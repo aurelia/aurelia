@@ -252,7 +252,7 @@ class Candidate {
     }
 
     // This should only be possible with a single pattern with multiple consecutive star segments.
-    // TODO: probably want to warn or even throw here, but leave it be for now.
+    // TODO: probably want to warn or even throw here, but unload it be for now.
     return 0;
   }
 }

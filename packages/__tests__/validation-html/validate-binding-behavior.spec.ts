@@ -29,7 +29,7 @@ import {
   ValidationHtmlConfiguration,
   ValidationTrigger,
 } from '@aurelia/validation-html';
-import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../util';
+import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter, $TestSetupContext } from '../util';
 import { Organization, Person } from '../validation/_test-resources';
 
 describe('validate-binding-behavior', function () {
@@ -261,7 +261,7 @@ describe('validate-binding-behavior', function () {
         .withMessage('Not foo');
     }
   }
-  interface TestSetupContext {
+  interface TestSetupContext extends $TestSetupContext {
     template: string;
     customDefaultTrigger?: ValidationTrigger;
     observeCollection?: boolean;
@@ -509,7 +509,7 @@ describe('validate-binding-behavior', function () {
       target.value = Math.random().toString();
       await assertEventHandler(target, 'change', 0, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
     },
-    { template: `<input id="target" type="text" value.two-way="person.name & validate:trigger">` }
+    { template: `<input id="target" type="text" value.two-way="person.name & validate:trigger">`, timeout: 6000 }
   );
   // #endregion
 

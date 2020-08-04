@@ -46,7 +46,7 @@ export interface IBinding {
   readonly locator: IServiceLocator;
   readonly $scope?: IScope;
   readonly $state: State;
-  $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, projection?: CustomElementDefinition): void;
+  $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null): void;
   $unbind(flags: LifecycleFlags): void;
 }
 
@@ -73,6 +73,7 @@ export interface IController<
   readonly flags: LifecycleFlags;
   readonly state: State;
   scope: IScope | undefined;
+  hostScope: IScope | null;
 
   parent?: IHydratedController<T>;
 
@@ -80,9 +81,7 @@ export interface IController<
   readonly hooks: HooksDefinition;
   readonly vmKind: ViewModelKind;
 
-  part: string | undefined;
-
-  bind(flags: LifecycleFlags, scope?: IScope, hostScope?: IScope | null, partName?: string, projection?: CustomElementDefinition): ILifecycleTask;
+  bind(flags: LifecycleFlags, scope?: IScope, hostScope?: IScope | null): ILifecycleTask;
   unbind(flags: LifecycleFlags): ILifecycleTask;
   attach(flags: LifecycleFlags): void;
   detach(flags: LifecycleFlags): void;

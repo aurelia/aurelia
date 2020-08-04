@@ -122,10 +122,10 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, projection?: CustomElementDefinition) {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null) {
     this.scope = scope;
     this.hostScope = hostScope;
-    this.binding.$bind(flags, scope, hostScope, projection);
+    this.binding.$bind(flags, scope, hostScope);
     this.setTarget();
     const delta = this.processBindingExpressionArgs(flags);
     this.processDelta(delta);

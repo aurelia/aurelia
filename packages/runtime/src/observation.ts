@@ -343,7 +343,6 @@ export interface IOverrideContext {
 
 export interface IScope {
   readonly parentScope: IScope | null;
-  readonly projections: readonly CustomElementDefinition[];
   readonly bindingContext: IBindingContext;
   readonly overrideContext: IOverrideContext;
   readonly isComponentScope: boolean;

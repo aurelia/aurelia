@@ -201,8 +201,8 @@ export class BindingInterceptor implements IInterceptableBinding {
     this.binding.handleChange!(newValue, previousValue, flags);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, projection?: CustomElementDefinition): void {
-    this.binding.$bind(flags, scope, hostScope, projection);
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null): void {
+    this.binding.$bind(flags, scope, hostScope);
   }
   public $unbind(flags: LifecycleFlags): void {
     this.binding.$unbind(flags);

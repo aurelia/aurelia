@@ -95,22 +95,8 @@ export class AuSlot<T extends INode = Node> implements ICustomElementViewModel<T
 
   public beforeBind(flags: LifecycleFlags): ILifecycleTask {
     this.hostScope = this.$controller.scope.parentScope!;
-    // if (this.isProjection) {
-    //   let scope: IScope | null = this.hostScope;
-    //   let found = false;
-    //   while (!found) {
-    //     scope = scope?.parentScope ?? null;
-    //     if (scope === null) {
-    //       found = true;
-    //     } else if (scope.isComponentScope) {
-    //       found = true;
-    //       this.outerScope = scope;
-    //     }
-    //   }
-    // }
-
     this.view.parent = this.$controller;
-    return this.view.bind(flags/*  | LifecycleFlags.allowParentScopeTraversal */, this.outerScope ?? this.hostScope, this.hostScope, undefined, this.factory.context.definition);
+    return this.view.bind(flags, this.outerScope ?? this.hostScope, this.hostScope);
   }
 
   public beforeAttach(flags: LifecycleFlags): void {

@@ -149,12 +149,10 @@ export class Controller<
 
   public state: State = State.none;
 
-  public projections: CustomElementDefinition[] = [];
   public isStrictBinding: boolean = false;
 
   public scope: IScope | undefined = void 0;
-  public part: string | undefined = void 0;
-  public projection: CustomElementDefinition | undefined = void 0;
+  public hostScope: IScope | null = null;
   public projector: IElementProjector | undefined = void 0;
 
   public nodes: INodeSequence<T> | undefined = void 0;
@@ -342,7 +340,6 @@ export class Controller<
     const compiledDefinition = compiledContext.compiledDefinition;
 
     compiledContext.registerProjections(compiledDefinition.projectionsMap, scope);
-    this.projections = compiledDefinition.projections;
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
     const projectorLocator = parentContainer.get(IProjectorLocator);
@@ -394,7 +391,6 @@ export class Controller<
     const compiledContext = context.compile(null);
     const compiledDefinition = compiledContext.compiledDefinition;
 
-    this.projections = compiledDefinition.projections;
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
     const nodes = this.nodes = compiledContext.createNodes();
@@ -460,9 +456,8 @@ export class Controller<
     return this.unmountSynthetic(flags);
   }
 
-  public bind(flags: LifecycleFlags, scope?: IScope, hostScope?: IScope | null, part?: string, projection?: CustomElementDefinition): ILifecycleTask {
-    this.part = part;
-    this.projection = projection;
+  public bind(flags: LifecycleFlags, scope?: IScope, hostScope?: IScope | null): ILifecycleTask {
+    this.hostScope = hostScope ?? null;
     // TODO: benchmark which of these techniques is fastest:
     // - the current one (enum with switch)
     // - set the name of the method in the constructor, e.g. this.bindMethod = 'bindCustomElement'
@@ -599,7 +594,6 @@ export class Controller<
     const $scope = this.scope as Writable<IScope>;
 
     $scope.parentScope = scope === void 0 ? null : scope;
-    $scope.projections = this.projections;
 
     if ((this.state & State.isBound) > 0) {
       return LifecycleTask.done;
@@ -659,8 +653,6 @@ export class Controller<
       throw new Error(`Scope is null or undefined`); // TODO: create error code
     }
 
-    (scope as Writable<IScope>).projections = this.projections;
-
     if ((this.state & State.isBound) > 0) {
       if (this.scope === scope || (this.state & State.hasLockedScope) > 0) {
         return LifecycleTask.done;
@@ -694,7 +686,7 @@ export class Controller<
         flags |= LifecycleFlags.isStrictBindingStrategy;
       }
       for (let i = 0; i < length; ++i) {
-        bindings[i].$bind(flags, scope, hostScope, this.projection);
+        bindings[i].$bind(flags, scope, hostScope);
       }
     }
 
@@ -710,7 +702,7 @@ export class Controller<
       const { length } = controllers;
       for (let i = 0; i < length; ++i) {
         controllers[i].parent = this as unknown as IHydratedController<T>;
-        task = controllers[i].bind(flags, scope, hostScope, this.part);
+        task = controllers[i].bind(flags, scope, hostScope);
         if (!task.done) {
           if (tasks === void 0) {
             tasks = [];

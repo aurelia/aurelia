@@ -170,7 +170,7 @@ export class If<T extends INode = INode> implements ICustomAttributeViewModel<T>
   private bindView(flags: LifecycleFlags): ILifecycleTask {
     if (this.view !== void 0 && (this.$controller.state & State.isBoundOrBinding) > 0) {
       this.view.parent = this.$controller;
-      return this.view.bind(flags, this.$controller.scope, null, this.$controller.part);
+      return this.view.bind(flags, this.$controller.scope, this.$controller.hostScope);
     }
     return LifecycleTask.done;
   }

@@ -325,7 +325,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
     lifecycle.afterBind.begin();
 
-    const part = $controller.part;
     const factory = this.factory;
     const local = this.local;
     const items = this.items;
@@ -346,8 +345,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       task = view.bind(
         flags,
         viewScope,
-        null,
-        part,
+        this.$controller.hostScope,
       );
 
       if (!task.done) {
@@ -388,7 +386,6 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
     lifecycle.afterBind.begin();
 
-    const part = $controller.part;
     const mapLen = indexMap.length;
 
     for (let i = 0; i < mapLen; ++i) {
@@ -407,8 +404,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         task = view.bind(
           flags,
           viewScope,
-          null,
-          part,
+          this.$controller.hostScope,
         );
         views.splice(i, 0, view);
 

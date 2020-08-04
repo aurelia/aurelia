@@ -1,4 +1,4 @@
-import { IIndexable, PLATFORM, Reporter, StrictPrimitive } from '@aurelia/kernel';
+import { IIndexable, Reporter, StrictPrimitive } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IBinding, ILifecycle } from '../lifecycle';
 import {
@@ -11,7 +11,6 @@ import {
 } from '../observation';
 import { ProxyObserver } from './proxy-observer';
 import { SetterObserver } from './setter-observer';
-import { CustomElementDefinition } from '../resources/custom-element';
 
 const enum RuntimeError {
   NilScope = 250,
@@ -92,7 +91,7 @@ export class BindingContext implements IBindingContext {
     return bc;
   }
 
-  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: IScope | null, projection?: CustomElementDefinition): IBindingContext | IOverrideContext | IBinding | undefined | null {
+  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: IScope | null): IBindingContext | IOverrideContext | IBinding | undefined | null {
     if (scope == null && hostScope == null) {
       throw Reporter.error(RuntimeError.NilScope);
     }
@@ -102,32 +101,6 @@ export class BindingContext implements IBindingContext {
     if (hostScope !== scope && hostScope != null) {
       context = chooseContext(hostScope, name, ancestor);
       if (context !== null) { return context; }
-    }
-
-    // TODO remove if for projection via au-slot we don't need the parent scope traversal.
-    // the name wasn't found. see if parent scope traversal is allowed and if so, try that
-    if ((flags & LifecycleFlags.allowParentScopeTraversal) > 0) {
-      let parent = scope.parentScope;
-      while (parent !== null) {
-        if (parent.projections.includes(projection!)) {
-          const result = this.get(parent, name, ancestor, flags
-            // unset the flag; only allow one level of scope boundary traversal
-            & ~LifecycleFlags.allowParentScopeTraversal
-            // tell the scope to return null if the name could not be found
-            | LifecycleFlags.isTraversingParentScope);
-          if (result === marker) {
-            return scope.bindingContext || scope.overrideContext;
-          } else {
-            return result;
-          }
-        } else {
-          parent = parent.parentScope;
-        }
-      }
-
-      if (parent === null) {
-        throw new Error(`No target scope could be found for part "${projection?.name}"`);
-      }
     }
 
     // still nothing found. return the root binding context (or null
@@ -178,7 +151,6 @@ function chooseContext(scope: IScope, name: string, ancestor: number) {
 
 export class Scope implements IScope {
   public parentScope: IScope | null;
-  public projections: readonly CustomElementDefinition[]; // TODO remove
   public bindingContext: IBindingContext;
   public overrideContext: IOverrideContext;
 
@@ -189,7 +161,6 @@ export class Scope implements IScope {
     public readonly isComponentScope: boolean,
   ) {
     this.parentScope = parentScope;
-    this.projections = PLATFORM.emptyArray;
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext;
   }

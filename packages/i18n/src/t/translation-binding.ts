@@ -19,7 +19,6 @@ import {
   State,
   INode,
   IRenderableController,
-  CustomElementDefinition,
 } from '@aurelia/runtime';
 import i18next from 'i18next';
 import { I18N } from '../i18n';
@@ -60,7 +59,6 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private translationParameters!: i18next.TOptions;
   private scope!: IScope;
   private hostScope!: IScope | null;
-  private projection?: CustomElementDefinition;
   private isInterpolatedSourceExpr!: boolean;
   private readonly targetObservers: Set<IBindingTargetAccessor>;
 
@@ -111,25 +109,24 @@ export class TranslationBinding implements IPartialConnectableBinding {
     return binding;
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, projection?: CustomElementDefinition): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null): void {
     if (!this.expr) { throw new Error('key expression is missing'); } // TODO replace with error code
     this.scope = scope;
     this.hostScope = hostScope ?? null;
-    this.projection = projection;
     this.isInterpolatedSourceExpr = this.expr instanceof Interpolation;
 
-    this.keyExpression = this.expr.evaluate(flags, scope, this.locator, hostScope, projection) as string;
+    this.keyExpression = this.expr.evaluate(flags, scope, this.locator, hostScope) as string;
     this.ensureKeyExpression();
     if (this.parametersExpr) {
       const parametersFlags = flags | LifecycleFlags.secondaryExpression;
-      this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, this.locator, hostScope, projection) as i18next.TOptions;
-      this.parametersExpr.connect(parametersFlags, scope, this as any, hostScope, projection);
+      this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, this.locator, hostScope) as i18next.TOptions;
+      this.parametersExpr.connect(parametersFlags, scope, this as any, hostScope);
     }
 
     const expressions = !(this.expr instanceof CustomExpression) ? this.isInterpolatedSourceExpr ? (this.expr as Interpolation).expressions : [this.expr] : [];
 
     for (const expr of expressions) {
-      expr.connect(flags, scope, this as any, hostScope, projection);
+      expr.connect(flags, scope, this as any, hostScope);
     }
 
     this.updateTranslations(flags);
@@ -161,7 +158,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
       this.translationParameters = this.parametersExpr!.evaluate(flags, this.scope, this.locator) as i18next.TOptions;
     } else {
       this.keyExpression = this.isInterpolatedSourceExpr
-        ? this.expr.evaluate(flags, this.scope, this.locator, this.hostScope, this.projection) as string
+        ? this.expr.evaluate(flags, this.scope, this.locator, this.hostScope) as string
         : newValue as string;
       this.ensureKeyExpression();
     }

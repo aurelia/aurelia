@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.7.0"></a>
+# 0.7.0 (2020-05-08)
+
+### Bug Fixes:
+
+* ***:** remove deleted export ([6a562ff](https://github.com/aurelia/aurelia/commit/6a562ff))
+
+
+### Refactorings:
+
+* ***:** rename isNumeric to isArrayIndex ([2fab646](https://github.com/aurelia/aurelia/commit/2fab646))
+* **router:** clean up ([a3a4d5b](https://github.com/aurelia/aurelia/commit/a3a4d5b))
+
 <a name="0.6.0"></a>
 # 0.6.0 (2019-12-18)
 

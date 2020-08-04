@@ -5,6 +5,9 @@ import { parseQuery } from './parser';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export const enum ContentStatus {
   none = 0,
   created = 1,
@@ -13,6 +16,9 @@ export const enum ContentStatus {
   added = 4,
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class ViewportContent {
   public contentStatus: ContentStatus = ContentStatus.none;
   public entered: boolean = false;

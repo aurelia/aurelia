@@ -1,6 +1,6 @@
 {
-  "name": "router-doc-example",
-  "version": "0.1.1",
+  "name": "test-navigation-skeleton",
+  "version": "0.7.0",
   "private": true,
   "scripts": {
     "e2e": "cypress open",
@@ -12,7 +12,7 @@
     "@types/node": "^12.12.21",
     "cypress": "^3.8.0",
     "ts-loader": "^6.2.1",
-    "typescript": "^3.7.4",
+    "typescript": "^3.8.3",
     "webpack": "^4.41.4"
   }
 }

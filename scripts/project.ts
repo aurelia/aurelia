@@ -1,7 +1,6 @@
 import { join, resolve } from 'path';
 import * as lernaJson from '../lerna.json';
 import * as packageJson from '../package.json';
-import { camelCase } from '../packages/kernel/src/index';
 
 // TODO: generate this file automatically
 
@@ -14,6 +13,11 @@ const testApps = [
   'jit-webpack-conventions-ts',
   'jit-webpack-vanilla-ts'
 ];
+
+function camelCase(input: string): string {
+  const parts = input.split('-');
+  return `${parts[0]}${parts.slice(1).map(x => `${x[0].toUpperCase()}${x.slice(1)}`).join('')}`;
+}
 
 export default {
   'path': rootPath,

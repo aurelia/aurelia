@@ -4,7 +4,10 @@ import { GotoCustomAttribute } from '../configuration';
 import { IEventManager } from '@aurelia/runtime-html';
 import { IDisposable } from '@aurelia/kernel';
 
-@customAttribute('href')
+@customAttribute({
+  name: 'href',
+  noMultiBindings: true
+})
 export class HrefCustomAttribute implements ICustomAttributeViewModel<HTMLElement> {
   @bindable({ mode: BindingMode.toView })
   public value: string | undefined;

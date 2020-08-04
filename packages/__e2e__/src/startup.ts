@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { I18nConfiguration } from '@aurelia/i18n';
+import { I18nConfiguration, I18nInitOptions } from '@aurelia/i18n';
 import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
 import { Aurelia } from '@aurelia/runtime';
 import Fetch from 'i18next-fetch-backend';
@@ -32,19 +32,19 @@ Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
         if (fetchResource) {
           plugins.push(Fetch);
         }
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
         options.initOptions = {
           plugins,
           resources: !fetchResource ? resources : undefined,
           backend: fetchResource
-            ? {
-              loadPath: '/locales/{{lng}}/{{ns}}.json',
-            }
+            ? { loadPath: '/locales/{{lng}}/{{ns}}.json', }
             : undefined,
           skipTranslationOnMissingKey: !!searchParams.get('skipkey')
-        };
-      })
+        } as I18nInitOptions;
+      }),
+      SutI18N,
+      CustomMessage,
     );
-  au.container.register(SutI18N, CustomMessage);
   au.app({ host, component });
 
   await au.start().wait();

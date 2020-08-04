@@ -215,12 +215,14 @@ export class Controller<
     parentContainer: IContainer,
     parts: PartialCustomElementDefinitionParts | undefined,
     flags: LifecycleFlags = LifecycleFlags.none,
+    // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
+    definition: CustomElementDefinition | undefined = void 0,
   ): ICustomElementController<T, C> {
     if (controllerLookup.has(viewModel)) {
       return controllerLookup.get(viewModel) as unknown as ICustomElementController<T, C>;
     }
 
-    const definition = CustomElement.getDefinition(viewModel.constructor as Constructable);
+    definition = definition ?? CustomElement.getDefinition(viewModel.constructor as Constructable);
     flags |= definition.strategy;
 
     const controller = new Controller<T, C>(
@@ -234,7 +236,7 @@ export class Controller<
       /* host           */host,
     );
 
-    controllerLookup.set(viewModel, controller);
+    controllerLookup.set(viewModel, controller as Controller<INode, IViewModel>);
 
     controller.hydrateCustomElement(definition, parentContainer, parts);
 
@@ -247,6 +249,7 @@ export class Controller<
   >(
     viewModel: C,
     lifecycle: ILifecycle,
+    host: T,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): ICustomAttributeController<T, C> {
     if (controllerLookup.has(viewModel)) {
@@ -264,14 +267,14 @@ export class Controller<
       /* viewFactory    */void 0,
       /* viewModel      */viewModel,
       /* bindingContext */getBindingContext<T, C>(flags, viewModel),
-      /* host           */void 0,
+      /* host           */host
     );
 
-    controllerLookup.set(viewModel, controller);
+    controllerLookup.set(viewModel, controller as Controller<INode, IViewModel>);
 
     controller.hydrateCustomAttribute(definition);
 
-    return controller as ICustomAttributeController<T, C>;
+    return controller as unknown as ICustomAttributeController<T, C>;
   }
 
   public static forSyntheticView<

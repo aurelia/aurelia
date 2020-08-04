@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.7.0"></a>
+# 0.7.0 (2020-05-08)
+
+### Refactorings:
+
+* **all:** fixup scheduler bootstrapping code, cleanup deprecated stuff ([acf66f2](https://github.com/aurelia/aurelia/commit/acf66f2))
+* **scheduler:** move scheduler to separate package and simplify a few things ([cf33b1a](https://github.com/aurelia/aurelia/commit/cf33b1a))
+
 <a name="0.6.0"></a>
 # 0.6.0 (2019-12-18)
 

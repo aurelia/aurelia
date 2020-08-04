@@ -1,11 +1,34 @@
-import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
-import { PartialCustomElementDefinitionParts, ITargetedInstruction, IHydrateInstruction, mergeParts } from '../definitions';
-import { IContainer, InstanceProvider, Key, Resolved, IResolver, Constructable, IFactory, Transformer, Reporter, IDisposable } from '@aurelia/kernel';
-import { IController, IViewFactory, ICustomElementViewModel, ILifecycle, IRenderableController, ICustomAttributeViewModel } from '../lifecycle';
-import { IDOM, INode, IRenderLocation, INodeSequence } from '../dom';
-import { IRenderer, ITemplateCompiler } from '../renderer';
-import { ViewFactory } from './view';
+import {
+    Constructable,
+    IContainer,
+    IDisposable,
+    IFactory,
+    InstanceProvider,
+    IResolver,
+    Key,
+    Reporter,
+    Resolved,
+    Transformer,
+} from '@aurelia/kernel';
+import {
+    IHydrateInstruction,
+    ITargetedInstruction,
+    mergeParts,
+    PartialCustomElementDefinitionParts,
+} from '../definitions';
+import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { LifecycleFlags } from '../flags';
+import {
+    IController,
+    ICustomAttributeViewModel,
+    ICustomElementViewModel,
+    ILifecycle,
+    IRenderableController,
+    IViewFactory,
+} from '../lifecycle';
+import { IRenderer, ITemplateCompiler } from '../renderer';
+import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
+import { ViewFactory } from './view';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const definitionContainerPartsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<PartialCustomElementDefinitionParts, RenderContext>>>();
@@ -247,18 +270,22 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     container.registerResolver(
       IViewFactory,
       this.factoryProvider = new ViewFactoryProvider(),
+      true,
     );
     container.registerResolver(
       IController,
       this.parentControllerProvider = new InstanceProvider(),
+      true,
     );
     container.registerResolver(
       ITargetedInstruction,
       this.instructionProvider = new InstanceProvider<ITargetedInstruction>(),
+      true,
     );
     container.registerResolver(
       IRenderLocation,
       this.renderLocationProvider = new InstanceProvider<IRenderLocation>(),
+      true,
     );
 
     (this.dom = container.get<IDOM<T>>(IDOM)).registerElementResolver(
@@ -303,10 +330,17 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     return this.container.getFactory(key);
   }
 
+  public registerFactory<K extends Constructable>(key: K, factory: IFactory<K>): void {
+    this.container.registerFactory(key, factory);
+  }
+
   public createChild(): IContainer {
     return this.container.createChild();
   }
 
+  public disposeResolvers() {
+    this.container.disposeResolvers();
+  }
   // #endregion
 
   // #region IRenderContext api
@@ -339,7 +373,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
       } else {
         fragmentCache.set(
           compiledDefinition,
-          this.fragment = this.dom.createDocumentFragment(template),
+          this.fragment = this.definition.enhance ? template as T : this.dom.createDocumentFragment(template),
         );
       }
     }
@@ -379,7 +413,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   // #region ICompiledRenderContext api
 
   public createNodes(): INodeSequence<T> {
-    return this.dom.createNodeSequence(this.fragment);
+    return this.dom.createNodeSequence(this.fragment, !this.definition.enhance);
   }
 
   // TODO: split up into 2 methods? getComponentFactory + getSyntheticFactory or something
@@ -440,11 +474,9 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   }
 
   public dispose(): void {
-    this.factoryProvider.dispose();
-    this.parentControllerProvider.dispose();
-    this.instructionProvider.dispose();
     this.elementProvider.dispose();
-    this.renderLocationProvider.dispose();
+    this.container.disposeResolvers();
+
   }
   // #endregion
 }
@@ -456,6 +488,7 @@ export class ViewFactoryProvider<T extends INode = INode> implements IResolver {
   public prepare(factory: IViewFactory<T>): void {
     this.factory = factory;
   }
+  public get $isResolver(): true {return true; }
 
   public resolve(handler: IContainer, requestor: IContainer): IViewFactory<T> {
     const factory = this.factory;

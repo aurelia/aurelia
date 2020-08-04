@@ -15,7 +15,8 @@
 [![Test Coverage](https://api.codeclimate.com/v1/badges/5ac0e13689735698073a/test_coverage)](https://codeclimate.com/github/aurelia/aurelia/test_coverage)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 
-[![Backers on Open Collective](https://opencollective.com/aurelia/backers/badge.svg)](#backers) [![Sponsors on Open Collective](https://opencollective.com/aurelia/sponsors/badge.svg)](#sponsors)
+[![Backers on Open Collective](https://opencollective.com/aurelia/backers/badge.svg)](#backers) [![Sponsors on Open Collective](https://opencollective.com/aurelia/sponsors/badge.svg)](#sponsors) 
+[![Discord Chat](https://img.shields.io/discord/448698263508615178.svg)](https://discord.gg/RBtyM6u)
 
 # Aurelia 2
 
@@ -83,7 +84,7 @@ If you are interested in contributing to Aurelia, please see [our contributor do
 
 ## Staying Up-to-Date
 
-To keep up to date on [Aurelia](http://www.aurelia.io/), please visit and subscribe to [the official blog](http://blog.aurelia.io/) and [our email list](http://eepurl.com/ces50j). We also invite you to [follow us on twitter](https://twitter.com/aureliaeffect). If you have questions, have a look around our [Discourse forum](https://discourse.aurelia.io/). For chat on Aurelia 2, [join our new Aurelia 2 community on Discord](https://discord.gg/fh72aCn). If you'd like to join the growing list of Aurelia sponsors, please [back us on Open Collective](https://opencollective.com/aurelia).
+To keep up to date on [Aurelia](http://www.aurelia.io/), please visit and subscribe to [the official blog](http://blog.aurelia.io/) and [our email list](http://eepurl.com/ces50j). We also invite you to [follow us on twitter](https://twitter.com/aureliaeffect). If you have questions, have a look around our [Discourse forum](https://discourse.aurelia.io/). For chat on Aurelia 2, [join our new Aurelia 2 community on Discord](https://discord.gg/RBtyM6u). If you'd like to join the growing list of Aurelia sponsors, please [back us on Open Collective](https://opencollective.com/aurelia).
 
 ## License
 

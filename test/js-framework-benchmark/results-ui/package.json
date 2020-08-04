@@ -1,6 +1,6 @@
 {
   "name": "results-ui",
-  "version": "1.0.0",
+  "version": "0.7.0",
   "description": "js-framework-benchmark results ui",
   "main": "index.js",
   "scripts": {

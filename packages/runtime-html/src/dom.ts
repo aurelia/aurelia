@@ -72,7 +72,7 @@ export class HTMLDOM implements IDOM {
   }
 
   public static register(container: IContainer): IResolver<IDOM> {
-    return Registration.alias(IDOM, this).register(container);
+    return Registration.aliasTo(IDOM, this).register(container);
   }
 
   public addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void {
@@ -127,11 +127,11 @@ export class HTMLDOM implements IDOM {
     return this.createTemplate(markupOrNode).content;
   }
 
-  public createNodeSequence(fragment: DocumentFragment | null): FragmentNodeSequence {
+  public createNodeSequence(fragment: DocumentFragment | null, cloneNode: boolean = true): FragmentNodeSequence {
     if (fragment === null) {
       return this.emptyNodes;
     }
-    return new FragmentNodeSequence(this, fragment.cloneNode(true) as DocumentFragment);
+    return new FragmentNodeSequence(this, cloneNode ? fragment.cloneNode(true) as DocumentFragment : fragment);
   }
 
   public createElement(name: string): HTMLElement {
@@ -412,7 +412,7 @@ export class FragmentNodeSequence implements INodeSequence {
     }
   }
 
-  public appendTo(parent: Node): void {
+  public appendTo(parent: Node, enhance: boolean = false): void {
     if (this.isMounted) {
       let current = this.firstChild;
       const end = this.lastChild;
@@ -430,7 +430,9 @@ export class FragmentNodeSequence implements INodeSequence {
       }
     } else {
       this.isMounted = true;
-      parent.appendChild(this.fragment);
+      if (!enhance) {
+        parent.appendChild(this.fragment);
+      }
     }
   }
 

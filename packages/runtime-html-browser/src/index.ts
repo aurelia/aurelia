@@ -1,7 +1,7 @@
 import { DI, IContainer, IRegistry, IResolver, Registration } from '@aurelia/kernel';
-import { IDOM, IDOMInitializer, ISinglePageApp, IScheduler, DOM  } from '@aurelia/runtime';
+import { IDOM, IDOMInitializer, ISinglePageApp, IScheduler  } from '@aurelia/runtime';
 import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
-import { BrowserScheduler } from './browser-scheduler';
+import { createDOMScheduler } from '@aurelia/scheduler-dom';
 
 class BrowserDOMInitializer implements IDOMInitializer {
   public constructor(
@@ -56,19 +56,13 @@ class BrowserDOMInitializer implements IDOMInitializer {
       );
     }
     Registration.instance(IDOM, dom).register(this.container);
-
-    if (DOM.scheduler === void 0) {
-      this.container.register(BrowserScheduler);
-    } else {
-      Registration.instance(IScheduler, DOM.scheduler).register(this.container);
-    }
+    Registration.instance(IScheduler, createDOMScheduler(this.container, window)).register(this.container);
 
     return dom;
   }
 }
 
 export const IDOMInitializerRegistration = BrowserDOMInitializer as IRegistry;
-export const IBrowserSchedulerRegistration = BrowserScheduler as IRegistry;
 
 /**
  * Default HTML-specific, browser-specific implementations for the following interfaces:
@@ -76,7 +70,6 @@ export const IBrowserSchedulerRegistration = BrowserScheduler as IRegistry;
  */
 export const DefaultComponents = [
   IDOMInitializerRegistration,
-  IBrowserSchedulerRegistration,
 ];
 
 /**
@@ -103,5 +96,4 @@ export const RuntimeHtmlBrowserConfiguration = {
 
 export {
   BrowserDOMInitializer,
-  BrowserScheduler,
 };

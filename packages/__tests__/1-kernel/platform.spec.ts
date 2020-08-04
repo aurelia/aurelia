@@ -97,7 +97,7 @@ describe(`The PLATFORM object`, function () {
   describe(`toArray()`, function () {
     for (const input of [
       [1, 2, 3, 4, 5],
-      { length: 5, [1]: 1, [2]: 2, [3]: 3, [4]: 4, [5]: 5 }
+      { length: 5, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 }
     ] as ArrayLike<any>[]) {
       it(_`converts ${input} to array`, function () {
         const expected = Array.from(input);

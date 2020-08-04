@@ -3,6 +3,40 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.7.0"></a>
+# 0.7.0 (2020-05-08)
+
+### Features:
+
+* **di:** allow configuration of Container ([a3e5319](https://github.com/aurelia/aurelia/commit/a3e5319))
+* **@lazy:** stop lazy caching, let container control lifecycle ([bfb7391](https://github.com/aurelia/aurelia/commit/bfb7391))
+* ***:** add caching for callbacks ([b5086ad](https://github.com/aurelia/aurelia/commit/b5086ad))
+* **validation:** started deserialization support ([4296f9d](https://github.com/aurelia/aurelia/commit/4296f9d))
+* **kernel:** export format ([aca18ae](https://github.com/aurelia/aurelia/commit/aca18ae))
+
+
+### Bug Fixes:
+
+* **di:** should have a return type ([61266da](https://github.com/aurelia/aurelia/commit/61266da))
+* **di:** improve error checking for DI.createInterface() ([2c73033](https://github.com/aurelia/aurelia/commit/2c73033))
+* ***:** don't jitRegister intrinsic types. resolves #840 ([4f5d7e8](https://github.com/aurelia/aurelia/commit/4f5d7e8))
+* ***:** validation controller factory fix ([e2e5da4](https://github.com/aurelia/aurelia/commit/e2e5da4))
+* **is-arry-index:** properly check for 0 vs 0xx ([400ff0d](https://github.com/aurelia/aurelia/commit/400ff0d))
+
+
+### Performance Improvements:
+
+* **logger:** cache scoped loggers with the same name ([110b30e](https://github.com/aurelia/aurelia/commit/110b30e))
+
+
+### Refactorings:
+
+* **metadata:** make the polyfill application more foolproof and dedupe helper fns ([9c94ae1](https://github.com/aurelia/aurelia/commit/9c94ae1))
+* ***:** rename alias to aliasto for readability and consistency ([f3904fe](https://github.com/aurelia/aurelia/commit/f3904fe))
+* **kernel:** move metadata to separate package ([471b77d](https://github.com/aurelia/aurelia/commit/471b77d))
+* **di:** make ResolverBuilder into a class ([0854f38](https://github.com/aurelia/aurelia/commit/0854f38))
+* ***:** rename isNumeric to isArrayIndex ([2fab646](https://github.com/aurelia/aurelia/commit/2fab646))
+
 <a name="0.6.0"></a>
 # 0.6.0 (2019-12-18)
 

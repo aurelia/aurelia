@@ -1,6 +1,9 @@
+import { all, DI, IContainer, ignore, IRegistry, optional, Registration } from './di';
 import { toLookup } from './functions';
-import { DI, all, IRegistry, IContainer, Registration } from './di';
 import { LogLevel } from './reporter';
+import { Class, Constructable } from './interfaces';
+import { Protocol } from './resource';
+import { Metadata } from '@aurelia/metadata';
 
 /**
  * Flags to enable/disable color usage in the logging output.
@@ -30,6 +33,11 @@ export interface ILogConfig {
    * The global log level. Only log calls with the same level or higher are emitted.
    */
   level: LogLevel;
+}
+
+interface ILoggingConfigurationOptions extends ILogConfig {
+  $console: IConsoleLike;
+  sinks: Class<ISink>[];
 }
 
 /**
@@ -103,11 +111,11 @@ export interface ILogEventFactory {
  */
 export interface ISink {
   /**
-   * Emit the provided `ILogEvent` to the output interface wrapped by this sink.
+   * Handle the provided `ILogEvent` to the output interface wrapped by this sink.
    *
    * @param event - The event object to emit. Built-in sinks will call `.toString()` on the event object but custom sinks can do anything they like with the event.
    */
-  emit(event: ILogEvent): void;
+  handleEvent(event: ILogEvent): void;
 }
 
 /**
@@ -296,6 +304,27 @@ export const ILogConfig = DI.createInterface<ILogConfig>('ILogConfig').withDefau
 export const ISink = DI.createInterface<ISink>('ISink').noDefault();
 export const ILogEventFactory = DI.createInterface<ILogEventFactory>('ILogEventFactory').withDefault(x => x.singleton(DefaultLogEventFactory));
 export const ILogger = DI.createInterface<ILogger>('ILogger').withDefault(x => x.singleton(DefaultLogger));
+export const ILogScopes = DI.createInterface<string[]>('ILogScope').noDefault();
+
+interface SinkDefinition {
+  handles: Exclude<LogLevel, LogLevel.none>[];
+}
+
+export const LoggerSink = Object.freeze({
+  key: Protocol.annotation.keyFor('logger-sink-handles'),
+  define<TSink extends ISink>(target: Constructable<TSink>, definition: SinkDefinition) {
+    Metadata.define(this.key, definition.handles, target.prototype);
+    return target;
+  },
+  getHandles<TSink extends ISink>(target: Constructable<TSink> | TSink) {
+    return Metadata.get(this.key, target) as LogLevel[] | undefined;
+  },
+});
+export function sink(definition: SinkDefinition) {
+  return function <TSink extends ISink>(target: Constructable<TSink>): Constructable<TSink> {
+    return LoggerSink.define(target, definition);
+  };
+}
 
 export interface IConsoleLike {
   debug(message: string, ...optionalParams: unknown[]): void;
@@ -436,10 +465,10 @@ export class DefaultLogEventFactory implements ILogEventFactory {
 }
 
 export class ConsoleSink implements ISink {
-  public readonly emit: (event: ILogEvent) => void;
+  public readonly handleEvent: (event: ILogEvent) => void;
 
   public constructor($console: IConsoleLike) {
-    this.emit = function emit(event: ILogEvent): void {
+    this.handleEvent = function emit(event: ILogEvent): void {
       const optionalParams = event.optionalParams;
       if (optionalParams === void 0 || optionalParams.length === 0) {
         switch (event.severity) {
@@ -473,8 +502,20 @@ export class ConsoleSink implements ISink {
 }
 
 export class DefaultLogger implements ILogger {
-  public readonly root: ILogger;
-  public readonly parent: ILogger;
+  public readonly root: DefaultLogger;
+  public readonly parent: DefaultLogger;
+  /** @internal */
+  public readonly traceSinks: ISink[];
+  /** @internal */
+  public readonly debugSinks: ISink[];
+  /** @internal */
+  public readonly infoSinks: ISink[];
+  /** @internal */
+  public readonly warnSinks: ISink[];
+  /** @internal */
+  public readonly errorSinks: ISink[];
+  /** @internal */
+  public readonly fatalSinks: ISink[];
 
   public readonly trace: (...args: unknown[]) => void;
   public readonly debug: (...args: unknown[]) => void;
@@ -488,62 +529,100 @@ export class DefaultLogger implements ILogger {
   public constructor(
     @ILogConfig public readonly config: ILogConfig,
     @ILogEventFactory private readonly factory: ILogEventFactory,
-    @all(ISink) private readonly sinks: ISink[],
-    public readonly scope: string[] = [],
-    parent: ILogger | null = null,
+    @all(ISink) sinks: readonly ISink[],
+    @optional(ILogScopes) public readonly scope: string[] = [],
+    @ignore parent: DefaultLogger | null = null,
   ) {
+    let traceSinks: ISink[];
+    let debugSinks: ISink[];
+    let infoSinks: ISink[];
+    let warnSinks: ISink[];
+    let errorSinks: ISink[];
+    let fatalSinks: ISink[];
     if (parent === null) {
       this.root = this;
       this.parent = this;
+
+      traceSinks = this.traceSinks = [];
+      debugSinks = this.debugSinks = [];
+      infoSinks = this.infoSinks = [];
+      warnSinks = this.warnSinks = [];
+      errorSinks = this.errorSinks = [];
+      fatalSinks = this.fatalSinks = [];
+      for (const $sink of sinks) {
+        const handles = LoggerSink.getHandles($sink);
+        if (handles?.includes(LogLevel.trace) ?? true) {
+          traceSinks.push($sink);
+        }
+        if (handles?.includes(LogLevel.debug) ?? true) {
+          debugSinks.push($sink);
+        }
+        if (handles?.includes(LogLevel.info) ?? true) {
+          infoSinks.push($sink);
+        }
+        if (handles?.includes(LogLevel.warn) ?? true) {
+          warnSinks.push($sink);
+        }
+        if (handles?.includes(LogLevel.error) ?? true) {
+          errorSinks.push($sink);
+        }
+        if (handles?.includes(LogLevel.fatal) ?? true) {
+          fatalSinks.push($sink);
+        }
+      }
     } else {
       this.root = parent.root;
       this.parent = parent;
+
+      traceSinks = this.traceSinks = parent.traceSinks;
+      debugSinks = this.debugSinks = parent.debugSinks;
+      infoSinks = this.infoSinks = parent.infoSinks;
+      warnSinks = this.warnSinks = parent.warnSinks;
+      errorSinks = this.errorSinks = parent.errorSinks;
+      fatalSinks = this.fatalSinks = parent.fatalSinks;
     }
 
-    const sinksLen = sinks.length;
-    let i = 0;
-
-    const emit = (level: LogLevel, msgOrGetMsg: unknown, optionalParams: unknown[]): void => {
+    const emit = ($sinks: ISink[], level: LogLevel, msgOrGetMsg: unknown, optionalParams: unknown[]): void => {
       const message = typeof msgOrGetMsg === 'function' ? msgOrGetMsg() : msgOrGetMsg;
       const event = factory.createLogEvent(this, level, message, optionalParams);
-      for (i = 0; i < sinksLen; ++i) {
-        sinks[i].emit(event);
+      for (let i = 0, ii = $sinks.length; i < ii; ++i) {
+        $sinks[i].handleEvent(event);
       }
     };
 
     this.trace = function trace(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
       if (config.level <= LogLevel.trace) {
-        emit(LogLevel.trace, messageOrGetMessage, optionalParams);
+        emit(traceSinks, LogLevel.trace, messageOrGetMessage, optionalParams);
       }
     };
 
     this.debug = function debug(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
       if (config.level <= LogLevel.debug) {
-        emit(LogLevel.debug, messageOrGetMessage, optionalParams);
+        emit(debugSinks, LogLevel.debug, messageOrGetMessage, optionalParams);
       }
     };
 
     this.info = function info(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
       if (config.level <= LogLevel.info) {
-        emit(LogLevel.info, messageOrGetMessage, optionalParams);
+        emit(infoSinks, LogLevel.info, messageOrGetMessage, optionalParams);
       }
     };
 
     this.warn = function warn(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
       if (config.level <= LogLevel.warn) {
-        emit(LogLevel.warn, messageOrGetMessage, optionalParams);
+        emit(warnSinks, LogLevel.warn, messageOrGetMessage, optionalParams);
       }
     };
 
     this.error = function error(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
       if (config.level <= LogLevel.error) {
-        emit(LogLevel.error, messageOrGetMessage, optionalParams);
+        emit(errorSinks, LogLevel.error, messageOrGetMessage, optionalParams);
       }
     };
 
     this.fatal = function fatal(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
       if (config.level <= LogLevel.fatal) {
-        emit(LogLevel.fatal, messageOrGetMessage, optionalParams);
+        emit(fatalSinks, LogLevel.fatal, messageOrGetMessage, optionalParams);
       }
     };
   }
@@ -552,7 +631,7 @@ export class DefaultLogger implements ILogger {
     const scopedLoggers = this.scopedLoggers;
     let scopedLogger = scopedLoggers[name];
     if (scopedLogger === void 0) {
-      scopedLogger = scopedLoggers[name] = new DefaultLogger(this.config, this.factory, this.sinks, this.scope.concat(name), this);
+      scopedLogger = scopedLoggers[name] = new DefaultLogger(this.config, this.factory, (void 0)!, this.scope.concat(name), this);
     }
     return scopedLogger;
   }
@@ -563,23 +642,26 @@ export class DefaultLogger implements ILogger {
  *
  * NOTE: You *must* register the return value of `.create` with the container / au instance, not this `LoggerConfiguration` object itself.
  *
+ * @example
  * ```ts
- * // GOOD
- * container.register(LoggerConfiguration.create(console))
- * // GOOD
- * container.register(LoggerConfiguration.create(console, LogLevel.debug))
- * // GOOD
- * container.register(LoggerConfiguration.create({
- *   debug: PLATFORM.noop,
- *   info: PLATFORM.noop,
- *   warn: PLATFORM.noop,
- *   error: msg => {
- *     throw new Error(msg);
- *   }
- * }, LogLevel.debug))
+ * container.register(LoggerConfiguration.create());
  *
- * // BAD
- * container.register(LoggerConfiguration)
+ * container.register(LoggerConfiguration.create({$console: console}))
+ *
+ * container.register(LoggerConfiguration.create({$console: console, level: LogLevel.debug}))
+ *
+ * container.register(LoggerConfiguration.create({
+ *  $console: {
+ *     debug: PLATFORM.noop,
+ *     info: PLATFORM.noop,
+ *     warn: PLATFORM.noop,
+ *     error: msg => {
+ *       throw new Error(msg);
+ *     }
+ *  },
+ *  level: LogLevel.debug
+ * }))
+ *
  * ```
  */
 export const LoggerConfiguration = toLookup({
@@ -589,16 +671,29 @@ export const LoggerConfiguration = toLookup({
    * @param colorOptions - Whether to use colors or not. Defaults to `noColors`. Colors are especially nice in nodejs environments but don't necessarily work (well) in all environments, such as browsers.
    */
   create(
-    $console: IConsoleLike,
-    level: LogLevel = LogLevel.warn,
-    colorOptions = ColorOptions.noColors,
+    {
+      $console,
+      level = LogLevel.warn,
+      colorOptions = ColorOptions.noColors,
+      sinks = [],
+    }: Partial<ILoggingConfigurationOptions> = {}
   ): IRegistry {
     return toLookup({
       register(container: IContainer): IContainer {
-        return container.register(
+        container.register(
           Registration.instance(ILogConfig, new LogConfig(colorOptions, level)),
-          Registration.instance(ISink, new ConsoleSink($console)),
         );
+        if ($console !== void 0 && $console !== null) {
+          container.register(
+            Registration.instance(ISink, new ConsoleSink($console))
+          );
+        }
+        for (const $sink of sinks) {
+          container.register(
+            Registration.singleton(ISink, $sink)
+          );
+        }
+        return container;
       },
     });
   },

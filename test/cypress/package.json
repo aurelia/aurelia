@@ -1,6 +1,6 @@
 {
-  "name": "cypress-e2e",
-  "version": "1.0.0",
+  "name": "test-cypress",
+  "version": "0.7.0",
   "description": "The Cypress integration tests.",
   "private": true,
   "main": "index.js",

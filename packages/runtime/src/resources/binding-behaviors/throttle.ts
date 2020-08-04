@@ -1,14 +1,14 @@
 import { LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
 import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../binding-behavior';
-import { ITask, IScheduler, ITaskQueue, QueueTaskOptions, IClock } from '../../scheduler';
+import { ITask, IScheduler, ITaskQueue, QueueTaskOptions, Now } from '@aurelia/scheduler';
 import { BindingBehaviorExpression } from '../../binding/ast';
 import { IsAssign } from '../../ast';
 
 @bindingBehavior('throttle')
 export class ThrottleBindingBehavior extends BindingInterceptor {
   private readonly taskQueue: ITaskQueue;
-  private readonly clock: IClock;
+  private readonly now: Now;
   private readonly opts: QueueTaskOptions = { delay: 0 };
   private readonly firstArg: IsAssign | null = null;
   private task: ITask | null = null;
@@ -20,7 +20,7 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
   ) {
     super(binding, expr);
     this.taskQueue = binding.locator.get(IScheduler).getPostRenderTaskQueue();
-    this.clock = binding.locator.get(IClock);
+    this.now = binding.locator.get(Now);
     if (expr.args.length > 0) {
       this.firstArg = expr.args[0];
     }
@@ -37,8 +37,8 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
 
   private queueTask(callback: () => void): void {
     const opts = this.opts;
-    const clock = this.clock;
-    const nextDelay = this.lastCall + opts.delay! - clock.now();
+    const now = this.now;
+    const nextDelay = this.lastCall + opts.delay! - now();
 
     if (nextDelay > 0) {
       if (this.task !== null) {
@@ -47,11 +47,11 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
 
       opts.delay = nextDelay;
       this.task = this.taskQueue.queueTask(() => {
-        this.lastCall = clock.now();
+        this.lastCall = now();
         callback();
       }, opts);
     } else {
-      this.lastCall = clock.now();
+      this.lastCall = now();
       callback();
     }
   }

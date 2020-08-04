@@ -12,6 +12,7 @@ export {
   Key,
   lazy,
   optional,
+  ignore,
   RegisterSelf,
   Registration,
   ResolveCallback,
@@ -22,6 +23,11 @@ export {
   InstanceProvider,
   Resolved,
   Transformer,
+  newInstanceForScope,
+  newInstanceOf,
+  DefaultContainerConfiguration,
+  DefaultResolver,
+  IContainerConfiguration,
 } from './di';
 export {
   Class,
@@ -63,7 +69,10 @@ export {
 export {
   metadata,
   Metadata,
-} from './metadata';
+  isNullOrUndefined,
+  isObject,
+  applyMetadataPolyfill,
+} from '@aurelia/metadata';
 export {
   IConsoleLike,
   ColorOptions,
@@ -79,13 +88,11 @@ export {
   ConsoleSink,
   LoggerConfiguration,
   format,
+  sink,
 } from './logger';
 export {
   relativeToFile,
   join,
-  buildQueryString,
-  parseQueryString,
-  IQueryParams
 } from './path';
 export { PLATFORM } from './platform';
 export {
@@ -131,7 +138,5 @@ export {
   mergeObjects,
   firstDefined,
   getPrototypeChain,
-  isObject,
-  isNullOrUndefined,
   isNativeFunction,
 } from './functions';

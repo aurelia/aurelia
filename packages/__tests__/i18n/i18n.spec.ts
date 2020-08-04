@@ -1,8 +1,8 @@
-import { I18nInitOptions, I18nModule, I18nService, Signals } from '@aurelia/i18n';
+import { I18nInitOptions, I18nService, Signals } from '@aurelia/i18n';
 import { EventAggregator } from '@aurelia/kernel';
 import { assert, MockSignaler } from '@aurelia/testing';
 import i18next from 'i18next';
-import { Spy } from './Spy';
+import { Spy } from '../Spy';
 
 const translation = {
   simple: {
@@ -59,14 +59,14 @@ describe('I18N', function () {
         {
           type: 'postProcessor',
           name: 'custom1',
-          process: function (value) { return value; }
+          process: function (value: string, _key: string, _options: any, _translator: any) { return value; }
         },
         {
           type: 'postProcessor',
           name: 'custom2',
-          process: function (value) { return value; }
+          process: function (value: string, _key: string, _options: any, _translator: any) { return value; }
         }
-      ] as I18nModule[]
+      ] as i18next.PostProcessorModule[]
     };
     const { i18nextSpy } = await createFixture(customization);
 
@@ -284,6 +284,12 @@ describe('I18N', function () {
             input.setMonth(0);
             input.setDate(31);
             sut['now'] = () => new Date(input.getFullYear(), 0, 1).getTime();
+          } else if (input.getMonth() === 2 && multiplier < 0 && value === 1) {
+            input.setMonth(0);
+            input.setDate(1);
+            input.setHours(0);
+            input.setMinutes(0);
+            sut['now'] = () => new Date(input.getFullYear(), 0, 31, 23, 59).getTime();
           } else {
             input.setMonth(input.getMonth() + multiplier * value);
           }

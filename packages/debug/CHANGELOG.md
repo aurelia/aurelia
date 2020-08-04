@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.7.0"></a>
+# 0.7.0 (2020-05-08)
+
+### Features:
+
+* **validation:** started deserialization support ([4296f9d](https://github.com/aurelia/aurelia/commit/4296f9d))
+* **validation:** serialization support ([a14fb0a](https://github.com/aurelia/aurelia/commit/a14fb0a))
+* ***:** AST hydration ([92125d6](https://github.com/aurelia/aurelia/commit/92125d6))
+
+
+### Bug Fixes:
+
+* **debug:** skipped escaping ' for serialization ([dc7437a](https://github.com/aurelia/aurelia/commit/dc7437a))
+
+
+### Refactorings:
+
+* ***:** moved ast hydration to debug package ([691a63f](https://github.com/aurelia/aurelia/commit/691a63f))
+
 <a name="0.6.0"></a>
 # 0.6.0 (2019-12-18)
 

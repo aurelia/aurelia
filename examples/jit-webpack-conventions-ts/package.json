@@ -1,30 +1,44 @@
 {
-  "name": "jit-webpack-conventions-ts",
+  "name": "@examples/jit-webpack-conventions-ts",
   "license": "MIT",
   "private": true,
   "engines": {
     "node": ">=10.16.0",
     "npm": ">=6.1.0"
   },
-  "version": "0.3.0",
+  "version": "0.7.0",
   "scripts": {
     "watch": "webpack-dev-server --no-inline",
     "build": "rimraf dist && webpack",
-    "serve": "http-server -c-1 -p 9000 dist"
+    "serve": "au-http-server au.conf.js"
   },
   "dependencies": {
+    "@aurelia/debug": "dev",
+    "@aurelia/fetch-client": "dev",
+    "@aurelia/jit-html-browser": "dev",
+    "@aurelia/jit-html": "dev",
+    "@aurelia/jit": "dev",
+    "@aurelia/kernel": "dev",
+    "@aurelia/metadata": "dev",
+    "@aurelia/route-recognizer": "dev",
+    "@aurelia/router": "dev",
+    "@aurelia/runtime-html-browser": "dev",
+    "@aurelia/runtime-html": "dev",
+    "@aurelia/runtime": "dev",
+    "@aurelia/scheduler-dom": "dev",
+    "@aurelia/scheduler": "dev",
     "aurelia": "dev"
   },
   "devDependencies": {
+    "@aurelia/http-server": "dev",
     "rimraf": "^3.0.0",
     "webpack": "^4.41.4",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.10.1",
     "html-webpack-plugin": "^3.2.0",
-    "http-server": "0.9.0",
     "@aurelia/webpack-loader": "dev",
     "ts-loader": "^6.2.1",
     "@types/node": "^12.12.21",
-    "typescript": "^3.7.4"
+    "typescript": "^3.8.3"
   }
 }

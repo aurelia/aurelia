@@ -1,5 +1,5 @@
+
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
-import { RouteRecognizer, RouteHandler, ConfigurableRoute, RecognizeResult } from './route-recognizer';
 import { IContainer } from '@aurelia/kernel';
 import { CustomElementType } from '@aurelia/runtime';
 import { IRoute, ComponentAppellation, INavigatorInstruction } from './interfaces';
@@ -10,16 +10,26 @@ import { NavigationInstructionResolver } from './type-resolvers';
 import { Viewport, IViewportOptions } from './viewport';
 import { arrayRemove } from './utils';
 import { Collection } from './collection';
+import { IConfigurableRoute, RouteRecognizer } from './route-recognizer';
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface IFindViewportsResult {
   foundViewports: ViewportInstruction[];
   remainingInstructions: ViewportInstruction[];
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface IScopeOwnerOptions {
   noHistory?: boolean;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface IScopeOwner {
   connectedScope: Scope;
   scope: Scope;
@@ -44,6 +54,9 @@ export interface IScopeOwner {
   getRoutes(): IRoute[] | null;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class Scope {
   public id: string = '.';
   public scope: Scope;
@@ -465,29 +478,37 @@ export class Scope {
     }
 
     routes = routes.map(route => this.ensureProperRoute(route));
-    const recognizableRoutes: ConfigurableRoute[] = routes.map(route => ({ path: route.path, handler: { name: route.id, route } }));
-    for (let i: number = 0, ilen: number = recognizableRoutes.length; i < ilen; i++) {
-      const newRoute: ConfigurableRoute = { ...recognizableRoutes[i] };
-      newRoute.path += '/*remainingPath';
-      recognizableRoutes.push(newRoute);
+    const cRoutes: IConfigurableRoute[] = routes.map(route => ({
+      path: route.path,
+      handler: route,
+    }));
+    for (let i = 0, ii = cRoutes.length; i < ii; ++i) {
+      const cRoute = cRoutes[i];
+      cRoutes.push({
+        ...cRoute,
+        path: `${cRoute.path}/*remainingPath`,
+      });
     }
+
     const found: FoundRoute = new FoundRoute();
     let params: Record<string, unknown> = {};
     if (path.startsWith('/') || path.startsWith('+')) {
       path = path.slice(1);
     }
-    const recognizer: RouteRecognizer = new RouteRecognizer();
-    recognizer.add(recognizableRoutes);
-    const result: RecognizeResult[] = recognizer.recognize(path);
-    if (result !== void 0 && result.length > 0) {
-      found.match = (result[0].handler as RouteHandler & { route: IRoute }).route;
+    const recognizer = new RouteRecognizer();
+
+    recognizer.add(cRoutes);
+    const result = recognizer.recognize(path);
+    if (result !== null) {
+      found.match = result.endpoint.route.handler;
       found.matching = path;
-      params = result[0].params;
-      if (params.remainingPath !== void 0 && (params.remainingPath as string).length > 0) {
-        found.remaining = params.remainingPath as string;
-        Reflect.deleteProperty(params, 'remainingPath');
+      const $params = { ...result.params };
+      if ($params.remainingPath !== void 0) {
+        found.remaining = $params.remainingPath;
+        Reflect.deleteProperty($params, 'remainingPath');
         found.matching = found.matching.slice(0, found.matching.indexOf(found.remaining));
       }
+      params = $params;
     }
     if (found.foundConfiguration) {
       // clone it so config doesn't get modified

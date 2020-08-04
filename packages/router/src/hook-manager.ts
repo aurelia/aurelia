@@ -3,23 +3,50 @@ import { INavigatorInstruction, ComponentAppellation, IComponentAndOrViewportOrN
 import { ViewportInstruction } from './viewport-instruction';
 import { Viewport } from './viewport';
 
+/**
+ * Public API
+ */
 export const enum HookTypes {
   BeforeNavigation = 'beforeNavigation',
   TransformFromUrl = 'transformFromUrl',
   TransformToUrl = 'transformToUrl',
 }
+/**
+ * Public API
+ */
 export type BeforeNavigationHookFunction = (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) => Promise<boolean | ViewportInstruction[]>;
+/**
+ * Public API
+ */
 export type TransformFromUrlHookFunction = (url: string, navigationInstruction: INavigatorInstruction) => Promise<string | ViewportInstruction[]>;
+/**
+ * Public API
+ */
 export type TransformToUrlHookFunction = (state: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction) => Promise<string | ViewportInstruction[]>;
 
+/**
+ * @internal
+ */
 export type HookFunction = BeforeNavigationHookFunction | TransformFromUrlHookFunction | TransformToUrlHookFunction;
+/**
+ * @internal
+ */
 export type HookParameter = string | ViewportInstruction[];
+/**
+ * @internal
+ */
 export type HookResult = boolean | string | ViewportInstruction[];
 
 export type HookTarget = ComponentAppellation | IComponentAndOrViewportOrNothing;
 
+/**
+ * Public API
+ */
 export type HookIdentity = number;
 
+/**
+ * Public API
+ */
 export interface IHookOptions {
   /**
    * What event/when to hook. Defaults to BeforeNavigation
@@ -35,11 +62,17 @@ export interface IHookOptions {
   exclude?: HookTarget[];
 }
 
+/**
+ * Public API
+ */
 export interface IHookDefinition {
   hook: HookFunction;
   options: IHookOptions;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class HookManager {
   public hooks: Record<HookTypes, Hook[]> = {
     beforeNavigation: [],

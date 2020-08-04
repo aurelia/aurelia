@@ -26,6 +26,7 @@ export {
   eachCartesianJoinFactory,
   eachCartesianJoin,
   eachCartesianJoinAsync,
+  generateCartesianProduct,
 } from './each-cartesian-join';
 export {
   h,
@@ -65,7 +66,7 @@ export {
   TestConfiguration,
 } from './resources';
 export {
-  verifyASTEqual,
+  // verifyASTEqual,
   verifyBindingInstructionsEqual,
   verifyEqual,
   getVisibleText,

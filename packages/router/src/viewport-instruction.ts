@@ -8,6 +8,9 @@ import { IComponentParameter, InstructionResolver } from './instruction-resolver
 import { Scope, IScopeOwner } from './scope';
 import { ViewportScope } from './viewport-scope';
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export const enum ParametersType {
   none = 'none',
   string = 'string',
@@ -15,6 +18,9 @@ export const enum ParametersType {
   object = 'object',
 }
 
+/**
+ * Public API - The viewport instructions are the core of the router's navigations
+ */
 export class ViewportInstruction {
   public componentName: string | null = null;
   public componentType: RouteableComponentType | null = null;

@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.7.0"></a>
+# 0.7.0 (2020-05-08)
+
+### Features:
+
+* **di:** allow configuration of Container ([a3e5319](https://github.com/aurelia/aurelia/commit/a3e5319))
+
+
+### Refactorings:
+
+* **all:** fixup scheduler bootstrapping code, cleanup deprecated stuff ([acf66f2](https://github.com/aurelia/aurelia/commit/acf66f2))
+* ***:** rename isNumeric to isArrayIndex ([2fab646](https://github.com/aurelia/aurelia/commit/2fab646))
+* **testing:** rename setup to createFixture ([6af10d7](https://github.com/aurelia/aurelia/commit/6af10d7))
+
 <a name="0.6.0"></a>
 # 0.6.0 (2019-12-18)
 

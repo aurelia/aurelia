@@ -41,7 +41,7 @@ describe('df', function () {
       hour12: false
     };
     const { sut } = createFixture();
-    assert.equal(sut.toView(new Date(2000, 0, 17, 0, 0, 1), options), '01/17/2000, 00:00:01');
+    assert.equal(sut.toView(new Date(2000, 0, 17, 17, 0, 1), options), '01/17/2000, 17:00:01');
   });
 
   it('can handle datetime as ISO 8601 string', function () {

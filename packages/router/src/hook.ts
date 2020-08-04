@@ -4,6 +4,9 @@ import { ComponentAppellationResolver, ViewportHandleResolver } from './type-res
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class Hook {
   public type: HookTypes = HookTypes.BeforeNavigation;
   public includeTargets: Target[] = [];

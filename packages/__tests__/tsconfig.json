@@ -5,8 +5,6 @@
     "declarationDir": "dist",
     "outDir": "dist/esnext",
     "lib": ["esnext", "dom"],
-
-
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": false,
     "strict": false,

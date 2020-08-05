@@ -27,7 +27,6 @@ export class MultiInterpolationBinding implements IBinding {
 
   public $state: State = State.none;;
   public $scope?: IScope = void 0;
-  public part?: string;
 
   public parts: InterpolationBinding[];
 
@@ -88,7 +87,6 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public id!: number;
   public $scope?: IScope;
   public $hostScope?: IScope | null = null;
-  public part?: string;
   public $state: State = State.none;
 
   public targetObserver: IBindingTargetAccessor;

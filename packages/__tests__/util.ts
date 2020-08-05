@@ -18,7 +18,7 @@ export function createSpecFunction<TTestContext extends TestExecutionContext<any
 
   function $it(title: string, testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) {
     it(title, async function () {
-      if (setupContext.timeout !== void 0) {
+      if (setupContext?.timeout !== void 0) {
         this.timeout(setupContext.timeout);
       }
       await wrap(testFunction, setupContext);

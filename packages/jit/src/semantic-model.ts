@@ -6,7 +6,6 @@ import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';
 export const enum SymbolFlags {
   type                 = 0b000000_1111111111,
   isTemplateController = 0b000000_0000000001,
-  isReplacePart        = 0b000000_0000000010,
   isProjection         = 0b000000_0000000010,
   isCustomAttribute    = 0b000000_0000000100,
   isPlainAttribute     = 0b000000_0000001000,

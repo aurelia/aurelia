@@ -154,7 +154,6 @@ export class TranslationBinding implements IPartialConnectableBinding {
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
     if (flags & LifecycleFlags.secondaryExpression) {
-      // @ToDo, @Fixme: where do we get "part" from (last argument for evaluate)?
       this.translationParameters = this.parametersExpr!.evaluate(flags, this.scope, this.locator) as i18next.TOptions;
     } else {
       this.keyExpression = this.isInterpolatedSourceExpr

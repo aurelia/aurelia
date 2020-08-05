@@ -509,7 +509,7 @@ describe('validate-binding-behavior', function () {
       target.value = Math.random().toString();
       await assertEventHandler(target, 'change', 0, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
     },
-    { template: `<input id="target" type="text" value.two-way="person.name & validate:trigger">`, timeout: 6000 }
+    { template: `<input id="target" type="text" value.two-way="person.name & validate:trigger">`, timeout: 10000 }
   );
   // #endregion
 

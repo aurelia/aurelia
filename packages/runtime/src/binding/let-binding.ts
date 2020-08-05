@@ -33,7 +33,6 @@ export class LetBinding implements IPartialConnectableBinding {
   public $lifecycle: ILifecycle;
   public $scope?: IScope = void 0;
   public $hostScope?: IScope | null = null;
-  public part?: string;
 
   public target: (IObservable & IIndexable) | null = null;
 

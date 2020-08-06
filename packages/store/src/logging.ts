@@ -4,7 +4,6 @@ export enum LogLevel {
   trace = 'trace',
   debug = 'debug',
   info = 'info',
-  log = 'log',
   warn = 'warn',
   error = 'error'
 }
@@ -15,7 +14,7 @@ export interface LogDefinitions {
   devToolsStatus?: LogLevel;
 }
 
-export type GenericLogger = { [key in keyof typeof LogLevel]: (...args: unknown[]) => {} };
+export type GenericLogger = { [key in keyof typeof LogLevel]: (message: unknown, ...optionalParams: unknown[]) => void };
 
 export function getLogType(
   options: Partial<StoreOptions>,

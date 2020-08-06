@@ -1,4 +1,4 @@
-import { IContainer, PLATFORM, Reporter } from '@aurelia/kernel';
+import { IContainer, PLATFORM, Reporter, ILogger } from '@aurelia/kernel';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 import { jump, applyLimits, HistoryOptions, isStateHistory } from './history';
@@ -39,7 +39,6 @@ interface DispatchQueueItem<T> {
   reject: any;
 }
 
-/** @internal */
 export const STORE: { container: IContainer } = {
   container: null!
 };
@@ -53,7 +52,7 @@ export class UnregisteredActionError<T, P extends any[]> extends Error {
 export class Store<T> {
   public readonly state: Observable<T>;
   // TODO: need an alternative for the Reporter which supports multiple log levels
-  private readonly logger = Reporter as unknown as GenericLogger;
+  private readonly logger: GenericLogger;
   private devToolsAvailable: boolean = false;
   private devTools: any;
   private readonly actions: Map<Reducer<T>, Action<string>> = new Map();
@@ -62,8 +61,9 @@ export class Store<T> {
   private readonly options: Partial<StoreOptions>;
   private readonly dispatchQueue: DispatchQueueItem<T>[] = [];
 
-  public constructor(private readonly initialState: T, options?: Partial<StoreOptions>) {
+  public constructor(private readonly initialState: T, @ILogger logger: ILogger, options?: Partial<StoreOptions>) {
     this.options = options || {};
+    this.logger = logger;
     const isUndoable = this.options?.history?.undoable === true;
     this._state = new BehaviorSubject<T>(initialState);
     this.state = this._state.asObservable();
@@ -350,7 +350,9 @@ export class Store<T> {
             throw new Error("No action arguments provided");
           }
 
-          this.dispatch(action, ...message.payload.args.slice(1).map((arg: string) => JSON.parse(arg)));
+          this.dispatch(action, ...message.payload.args.slice(1).map((arg: string) => JSON.parse(arg))).catch((e) => {
+            throw new Error("Issue when trying to dispatch an action through devtools");
+           });
           return;
         }
 

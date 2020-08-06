@@ -337,7 +337,6 @@ export interface IOverrideContext {
   readonly $synthetic?: true;
   readonly $observers?: ObserversLookup;
   readonly bindingContext: IBindingContext;
-  readonly parentOverrideContext: IOverrideContext | null;
   getObservers(flags: LifecycleFlags): ObserversLookup;
 }
 

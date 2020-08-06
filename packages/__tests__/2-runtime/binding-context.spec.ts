@@ -12,7 +12,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, undefined, `actual.bindingContext`);
       assert.instanceOf(actual.overrideContext, Object, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, undefined, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, null, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope, null, `actual.parentScope`);
     });
 
     it('undefined, null', function () {
@@ -20,7 +20,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, undefined, `actual.bindingContext`);
       assert.instanceOf(actual.overrideContext, Object, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, undefined, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, null, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope, null, `actual.parentScope`);
     });
 
     it('undefined, {}', function () {
@@ -29,7 +29,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, undefined, `actual.bindingContext`);
       assert.strictEqual(actual.overrideContext, overrideContext, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, undefined, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, undefined, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope, null, `actual.parentScope`);
     });
 
     it('undefined, { bindingContext }', function () {
@@ -39,7 +39,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, null, `actual.bindingContext`);
       assert.strictEqual(actual.overrideContext, overrideContext, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, bindingContext, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, undefined, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope, null, `actual.parentScope`);
     });
 
     it('null, undefined', function () {
@@ -47,7 +47,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, null, `actual.bindingContext`);
       assert.instanceOf(actual.overrideContext, Object, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, null, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, null, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope, null, `actual.parentScope`);
     });
 
     it('null, null', function () {
@@ -55,7 +55,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, null, `actual.bindingContext`);
       assert.instanceOf(actual.overrideContext, Object, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, null, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, null, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope, null, `actual.parentScope`);
     });
 
     it('null, {}', function () {
@@ -64,7 +64,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, null, `actual.bindingContext`);
       assert.strictEqual(actual.overrideContext, overrideContext, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, undefined, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, undefined, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope, null, `actual.parentScope`);
     });
 
     it('null, { bindingContext }', function () {
@@ -74,7 +74,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, null, `actual.bindingContext`);
       assert.strictEqual(actual.overrideContext, overrideContext, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, bindingContext, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, undefined, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope, null, `actual.parentScope`);
     });
 
     it('{}, undefined', function () {
@@ -83,7 +83,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, bindingContext, `actual.bindingContext`);
       assert.instanceOf(actual.overrideContext, Object, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, bindingContext, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, null, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope, null, `actual.parentScope`);
     });
 
     it('{}, null', function () {
@@ -92,7 +92,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, bindingContext, `actual.bindingContext`);
       assert.instanceOf(actual.overrideContext, Object, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, bindingContext, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, null, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope, null, `actual.parentScope`);
     });
 
     it('{}, {}', function () {
@@ -102,7 +102,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, bindingContext, `actual.bindingContext`);
       assert.strictEqual(actual.overrideContext, overrideContext, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, undefined, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, undefined, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope, null, `actual.parentScope`);
     });
 
     it('{}, { bindingContext }', function () {
@@ -112,7 +112,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, bindingContext, `actual.bindingContext`);
       assert.strictEqual(actual.overrideContext, overrideContext, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, bindingContext, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, undefined, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope, null, `actual.parentScope`);
     });
 
     it('{}, { bindingContext2 }', function () {
@@ -123,7 +123,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, bindingContext, `actual.bindingContext`);
       assert.strictEqual(actual.overrideContext, overrideContext, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, bindingContext2, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, undefined, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope, null, `actual.parentScope`);
     });
   });
 
@@ -142,7 +142,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, undefined, `actual.bindingContext`);
       assert.strictEqual(actual.overrideContext, overrideContext, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, undefined, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, undefined, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope, null, `actual.parentScope`);
     });
 
     it('{ bindingContext }', function () {
@@ -152,7 +152,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, bindingContext, `actual.bindingContext`);
       assert.strictEqual(actual.overrideContext, overrideContext, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, bindingContext, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, undefined, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope, null, `actual.parentScope`);
     });
   });
 
@@ -171,7 +171,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, undefined, `actual.bindingContext`);
       assert.instanceOf(actual.overrideContext, Object, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, undefined, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, null, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope.overrideContext, undefined, `actual.parentScope.overrideContext`);
     });
 
     it('{}, null', function () {
@@ -180,7 +180,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, null, `actual.bindingContext`);
       assert.instanceOf(actual.overrideContext, Object, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, null, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, null, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope.overrideContext, undefined, `actual.parentScope.overrideContext`);
     });
 
     it('{}, {}', function () {
@@ -190,7 +190,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, bindingContext, `actual.bindingContext`);
       assert.instanceOf(actual.overrideContext, Object, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, bindingContext, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, null, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope.overrideContext, undefined, `actual.parentScope.overrideContext`);
     });
 
     it('{}, { overrideContext }', function () {
@@ -201,7 +201,7 @@ describe('Scope', function () {
       assert.strictEqual(actual.bindingContext, bindingContext, `actual.bindingContext`);
       assert.instanceOf(actual.overrideContext, Object, `actual.overrideContext`);
       assert.strictEqual(actual.overrideContext.bindingContext, bindingContext, `actual.overrideContext.bindingContext`);
-      assert.strictEqual(actual.overrideContext.parentOverrideContext, overrideContext, `actual.overrideContext.parentOverrideContext`);
+      assert.strictEqual(actual.parentScope.overrideContext, overrideContext, `actual.parentScope.overrideContext`);
     });
   });
 });

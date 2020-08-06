@@ -1292,7 +1292,7 @@ describe('AccessScopeExpression', function () {
 
   it('evaluates defined property on first ancestor overrideContext', function () {
     const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
-    scope.overrideContext.parentOverrideContext.foo = 'bar';
+    scope.parentScope.overrideContext.foo = 'bar';
     assert.strictEqual(foo.evaluate(LF.none, scope, null), 'bar', `foo.evaluate(LF.none, scope, null)`);
     assert.strictEqual($parentfoo.evaluate(LF.none, scope, null), 'bar', `$parentfoo.evaluate(LF.none, scope, null)`);
   });
@@ -1300,18 +1300,18 @@ describe('AccessScopeExpression', function () {
   it('assigns defined property on first ancestor bindingContext', function () {
     const scope = createScopeForTest({ abc: 'xyz' }, { foo: 'bar' });
     foo.assign(LF.none, scope, null, 'baz');
-    assert.strictEqual(scope.overrideContext.parentOverrideContext.bindingContext.foo, 'baz', `scope.overrideContext.parentOverrideContext.bindingContext.foo`);
+    assert.strictEqual(scope.parentScope.overrideContext.bindingContext.foo, 'baz', `scope.parentScope.overrideContext.bindingContext.foo`);
     $parentfoo.assign(LF.none, scope, null, 'beep');
-    assert.strictEqual(scope.overrideContext.parentOverrideContext.bindingContext.foo, 'beep', `scope.overrideContext.parentOverrideContext.bindingContext.foo`);
+    assert.strictEqual(scope.parentScope.overrideContext.bindingContext.foo, 'beep', `scope.parentScope.overrideContext.bindingContext.foo`);
   });
 
   it('assigns defined property on first ancestor overrideContext', function () {
     const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
-    scope.overrideContext.parentOverrideContext.foo = 'bar';
+    scope.parentScope.overrideContext.foo = 'bar';
     foo.assign(LF.none, scope, null, 'baz');
-    assert.strictEqual(scope.overrideContext.parentOverrideContext.foo, 'baz', `scope.overrideContext.parentOverrideContext.foo`);
+    assert.strictEqual(scope.parentScope.overrideContext.foo, 'baz', `scope.parentScope.overrideContext.foo`);
     $parentfoo.assign(LF.none, scope, null, 'beep');
-    assert.strictEqual(scope.overrideContext.parentOverrideContext.foo, 'beep', `scope.overrideContext.parentOverrideContext.foo`);
+    assert.strictEqual(scope.parentScope.overrideContext.foo, 'beep', `scope.parentScope.overrideContext.foo`);
   });
 
   it('connects defined property on first ancestor bindingContext', function () {
@@ -1319,33 +1319,33 @@ describe('AccessScopeExpression', function () {
     let binding = new MockBinding();
     foo.connect(LF.none, scope, binding);
     assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-    assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.overrideContext.parentOverrideContext.bindingContext, 'foo'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.parentScope.overrideContext.bindingContext, 'foo'], 'binding.calls[0]');
     binding = new MockBinding();
     $parentfoo.connect(LF.none, scope, binding);
     assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-    assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.overrideContext.parentOverrideContext.bindingContext, 'foo'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.parentScope.overrideContext.bindingContext, 'foo'], 'binding.calls[0]');
   });
 
   it('connects defined property on first ancestor overrideContext', function () {
     const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
-    scope.overrideContext.parentOverrideContext.foo = 'bar';
+    scope.parentScope.overrideContext.foo = 'bar';
     let binding = new MockBinding();
     foo.connect(LF.none, scope, binding);
     assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-    assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.overrideContext.parentOverrideContext, 'foo'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.parentScope.overrideContext, 'foo'], 'binding.calls[0]');
     binding = new MockBinding();
     $parentfoo.connect(LF.none, scope, binding);
     assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-    assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.overrideContext.parentOverrideContext, 'foo'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.parentScope.overrideContext, 'foo'], 'binding.calls[0]');
   });
 
   it('connects undefined property on first ancestor bindingContext', function () {
     const scope = createScopeForTest({ abc: 'xyz' }, {});
-    (scope.overrideContext.parentOverrideContext as Writable<IOverrideContext>).parentOverrideContext = OverrideContext.create(LF.none, { foo: 'bar' }, null);
+    (scope.parentScope as Writable<IScope>).parentScope = Scope.create(LF.none, undefined, OverrideContext.create(LF.none, { foo: 'bar' }));
     const binding = new MockBinding();
     $parentfoo.connect(LF.none, scope, binding);
     assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-    assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.overrideContext.parentOverrideContext.bindingContext, 'foo'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.parentScope.overrideContext.bindingContext, 'foo'], 'binding.calls[0]');
   });
 });
 
@@ -1357,22 +1357,22 @@ describe('AccessThisExpression', function () {
   it('evaluates undefined bindingContext', function () {
     const coc = OverrideContext.create;
 
-    let scope = { overrideContext: coc(LF.none, undefined, null) };
+    let scope = { overrideContext: coc(LF.none, undefined), parentScope: null };
     assert.strictEqual($parent2.evaluate(LF.none, scope as any, null), undefined, `$parent2.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent$parent.evaluate(LF.none, scope as any, null)`);
 
-    scope = { overrideContext: coc(LF.none, undefined, coc(LF.none, undefined, null)) };
+    scope = { overrideContext: coc(LF.none, undefined), parentScope: { overrideContext: coc(LF.none, undefined), parentScope: null } };
     assert.strictEqual($parent2.evaluate(LF.none, scope as any, null), undefined, `$parent2.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent$parent.evaluate(LF.none, scope as any, null)`);
 
-    scope = { overrideContext: coc(LF.none, undefined, coc(LF.none, undefined, coc(LF.none, undefined, null))) };
+    scope = { overrideContext: coc(LF.none, undefined), parentScope: { overrideContext: coc(LF.none, undefined), parentScope: { overrideContext: coc(LF.none, undefined), parentScope: null } } };
     assert.strictEqual($parent2.evaluate(LF.none, scope as any, null), undefined, `$parent2.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent$parent.evaluate(LF.none, scope as any, null)`);
 
-    scope = { overrideContext: coc(LF.none, undefined, coc(LF.none, undefined, coc(LF.none, undefined, coc(LF.none, undefined, null)))) };
+    scope = { overrideContext: coc(LF.none, undefined), parentScope: {overrideContext: coc(LF.none, undefined), parentScope: { overrideContext: coc(LF.none, undefined), parentScope: { overrideContext: coc(LF.none, undefined), parentScope: null } } } };
     assert.strictEqual($parent2.evaluate(LF.none, scope as any, null), undefined, `$parent2.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent$parent.evaluate(LF.none, scope as any, null)`);
@@ -1381,22 +1381,22 @@ describe('AccessThisExpression', function () {
   it('evaluates null bindingContext', function () {
     const coc = OverrideContext.create;
 
-    let scope = { overrideContext: coc(LF.none, null, null) };
+    let scope = { overrideContext: coc(LF.none, null), parentScope: null };
     assert.strictEqual($parent.evaluate(LF.none, scope as any, null), undefined, `$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent$parent.evaluate(LF.none, scope as any, null)`);
 
-    scope = { overrideContext: coc(LF.none, null, coc(LF.none, null, null)) };
+    scope = { overrideContext: coc(LF.none, null), parentScope: { overrideContext: coc(LF.none, null), parentScope: null } };
     assert.strictEqual($parent.evaluate(LF.none, scope as any, null), null, `$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent$parent.evaluate(LF.none, scope as any, null)`);
 
-    scope = { overrideContext: coc(LF.none, null, coc(LF.none, null, coc(LF.none, null, null))) };
+    scope = { overrideContext: coc(LF.none, null), parentScope: { overrideContext: coc(LF.none, null), parentScope: { overrideContext: coc(LF.none, null), parentScope: null } } };
     assert.strictEqual($parent.evaluate(LF.none, scope as any, null), null, `$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent.evaluate(LF.none, scope as any, null), null, `$parent$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent$parent.evaluate(LF.none, scope as any, null)`);
 
-    scope = { overrideContext: coc(LF.none, null, coc(LF.none, null, coc(LF.none, null, coc(LF.none, null, null)))) };
+    scope = { overrideContext: coc(LF.none, null), parentScope: { overrideContext: coc(LF.none, null), parentScope: { overrideContext: coc(LF.none, null), parentScope: { overrideContext: coc(LF.none, null), parentScope: null } } } };
     assert.strictEqual($parent.evaluate(LF.none, scope as any, null), null, `$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent.evaluate(LF.none, scope as any, null), null, `$parent$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent$parent.evaluate(LF.none, scope as any, null), null, `$parent$parent$parent.evaluate(LF.none, scope as any, null)`);
@@ -1408,22 +1408,22 @@ describe('AccessThisExpression', function () {
     const b = { b: 'b' };
     const c = { c: 'c' };
     const d = { d: 'd' };
-    let scope = { overrideContext: coc(LF.none, a, null) };
+    let scope = { overrideContext: coc(LF.none, a), parentScope: null };
     assert.strictEqual($parent.evaluate(LF.none, scope as any, null), undefined, `$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent$parent.evaluate(LF.none, scope as any, null)`);
 
-    scope = { overrideContext: coc(LF.none, a, coc(LF.none, b, null)) };
+    scope = { overrideContext: coc(LF.none, a), parentScope: { overrideContext: coc(LF.none, b), parentScope: null } };
     assert.strictEqual($parent.evaluate(LF.none, scope as any, null), b, `$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent$parent.evaluate(LF.none, scope as any, null)`);
 
-    scope = { overrideContext: coc(LF.none, a, coc(LF.none, b, coc(LF.none, c, null))) };
+    scope = { overrideContext: coc(LF.none, a), parentScope: {overrideContext: coc(LF.none, b), parentScope: { overrideContext: coc(LF.none, c), parentScope: null } } };
     assert.strictEqual($parent.evaluate(LF.none, scope as any, null), b, `$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent.evaluate(LF.none, scope as any, null), c, `$parent$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent$parent.evaluate(LF.none, scope as any, null), undefined, `$parent$parent$parent.evaluate(LF.none, scope as any, null)`);
 
-    scope = { overrideContext: coc(LF.none, a, coc(LF.none, b, coc(LF.none, c, coc(LF.none, d, null)))) };
+    scope = { overrideContext: coc(LF.none, a), parentScope: { overrideContext: coc(LF.none, b), parentScope: { overrideContext: coc(LF.none, c), parentScope: { overrideContext:  coc(LF.none, d), parentScope: null } } } };
     assert.strictEqual($parent.evaluate(LF.none, scope as any, null), b, `$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent.evaluate(LF.none, scope as any, null), c, `$parent$parent.evaluate(LF.none, scope as any, null)`);
     assert.strictEqual($parent$parent$parent.evaluate(LF.none, scope as any, null), d, `$parent$parent$parent.evaluate(LF.none, scope as any, null)`);
@@ -1802,9 +1802,9 @@ describe('CallScopeExpression', function () {
 
   it('evaluates defined property on first ancestor overrideContext', function () {
     const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
-    scope.overrideContext.parentOverrideContext.foo = () => 'bar';
-    scope.overrideContext.parentOverrideContext.hello = arg => arg;
-    scope.overrideContext.parentOverrideContext.arg = 'world';
+    scope.parentScope.overrideContext.foo = () => 'bar';
+    scope.parentScope.overrideContext.hello = arg => arg;
+    scope.parentScope.overrideContext.arg = 'world';
     assert.strictEqual(foo.evaluate(LF.none, scope, null), 'bar', `foo.evaluate(LF.none, scope, null)`);
     assert.strictEqual(hello.evaluate(LF.none, scope, null), 'world', `hello.evaluate(LF.none, scope, null)`);
   });
@@ -1816,20 +1816,20 @@ describe('CallScopeExpression', function () {
     assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 0, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
     hello.connect(LF.none, scope, binding);
     assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-    assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.overrideContext.parentOverrideContext.bindingContext, 'arg'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.parentScope.overrideContext.bindingContext, 'arg'], 'binding.calls[0]');
   });
 
   it('connects defined property on first ancestor overrideContext', function () {
     const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
     const binding = new MockBinding();
-    scope.overrideContext.parentOverrideContext.foo = () => 'bar';
-    scope.overrideContext.parentOverrideContext.hello = arg => arg;
-    scope.overrideContext.parentOverrideContext.arg = 'world';
+    scope.parentScope.overrideContext.foo = () => 'bar';
+    scope.parentScope.overrideContext.hello = arg => arg;
+    scope.parentScope.overrideContext.arg = 'world';
     foo.connect(LF.none, scope, binding);
     assert.strictEqual(binding.calls.filter(c => c[0] === 'observeProperty').length, 0, `binding.calls.filter(c => c[0] === 'observeProperty').length`);
     hello.connect(LF.none, scope, binding);
     assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-    assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.overrideContext.parentOverrideContext, 'arg'], 'binding.calls[0]');
+    assert.deepStrictEqual(binding.calls[0], ['observeProperty', LF.none, scope.parentScope.overrideContext, 'arg'], 'binding.calls[0]');
   });
 });
 

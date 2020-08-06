@@ -121,24 +121,27 @@ export class BindingContext implements IBindingContext {
 }
 
 function chooseContext(scope: IScope, name: string, ancestor: number) {
-  let overrideContext = scope.overrideContext;
+  let overrideContext: IOverrideContext | null = scope.overrideContext;
+  let currentScope: IScope | null = scope;
 
   if (ancestor > 0) {
     // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
     while (ancestor > 0) {
-      if (overrideContext.parentOverrideContext == null) {
+      ancestor--;
+      currentScope = currentScope.parentScope;
+      if (currentScope?.overrideContext == null) {
         return void 0;
       }
-      ancestor--;
-      overrideContext = overrideContext.parentOverrideContext;
     }
 
+    overrideContext = currentScope!.overrideContext;
     return name in overrideContext ? overrideContext : overrideContext.bindingContext;
   }
 
   // traverse the context and it's ancestors, searching for a context that has the name.
   while (overrideContext && !(name in overrideContext) && !(overrideContext.bindingContext && name in overrideContext.bindingContext)) {
-    overrideContext = overrideContext.parentOverrideContext!;
+    currentScope = currentScope!.parentScope ?? null;
+    overrideContext = currentScope?.overrideContext ?? null;
   }
 
   if (overrideContext) {
@@ -180,7 +183,7 @@ export class Scope implements IScope {
    * @param bc - The `BindingContext` to back the `Scope` with.
    * @param oc - The `OverrideContext` to back the `Scope` with.
    * If a binding expression attempts to access a property that does not exist on the `BindingContext`
-   * during binding, it will traverse up via the `parentOverrideContext` of the `OverrideContext` until
+   * during binding, it will traverse up via the `parentScope` of the scope until
    * it finds the property.
    */
   public static create(flags: LifecycleFlags, bc: object, oc: IOverrideContext, isComponentScope?: boolean): Scope;
@@ -200,7 +203,7 @@ export class Scope implements IScope {
     oc?: IOverrideContext | null,
     isComponentScope: boolean = false
   ): Scope {
-    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc, oc as null) : oc, isComponentScope);
+    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc) : oc, isComponentScope);
   }
 
   public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {
@@ -214,7 +217,7 @@ export class Scope implements IScope {
     if (ps == null) {
       throw Reporter.error(RuntimeError.NilParentScope);
     }
-    return new Scope(ps, bc as IBindingContext, OverrideContext.create(flags, bc, ps.overrideContext), false);
+    return new Scope(ps, bc as IBindingContext, OverrideContext.create(flags, bc), false);
   }
 }
 
@@ -224,16 +227,14 @@ export class OverrideContext implements IOverrideContext {
   public readonly $synthetic: true;
   public $observers?: ObserversLookup;
   public bindingContext: IBindingContext;
-  public parentOverrideContext: IOverrideContext | null;
 
-  private constructor(bindingContext: IBindingContext, parentOverrideContext: IOverrideContext | null) {
+  private constructor(bindingContext: IBindingContext) {
     this.$synthetic = true;
     this.bindingContext = bindingContext;
-    this.parentOverrideContext = parentOverrideContext;
   }
 
-  public static create(flags: LifecycleFlags, bc: object, poc: IOverrideContext | null): OverrideContext {
-    return new OverrideContext(bc as IBindingContext, poc === void 0 ? null : poc);
+  public static create(flags: LifecycleFlags, bc: object): OverrideContext {
+    return new OverrideContext(bc as IBindingContext);
   }
 
   public getObservers(): ObserversLookup {

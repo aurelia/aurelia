@@ -411,9 +411,11 @@ export class AccessThisExpression implements IAccessThisExpression {
       scope = chooseScope(true, scope, hostScope);
     }
     let oc: IOverrideContext | null = scope.overrideContext;
+    let currentScope: IScope | null = scope;
     let i = this.ancestor;
     while (i-- && oc) {
-      oc = oc.parentOverrideContext;
+      currentScope = currentScope!.parentScope;
+      oc = currentScope?.overrideContext ?? null;
     }
     return i < 1 && oc ? oc.bindingContext : void 0;
   }

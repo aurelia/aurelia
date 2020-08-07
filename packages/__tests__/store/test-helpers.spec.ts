@@ -1,91 +1,80 @@
-import { expect } from 'chai';
-import { stub } from 'sinon';
-import { executeSteps } from './helpers';
-import { Reporter } from '@aurelia/kernel';
+import { executeSteps } from "@aurelia/store";
+import { assert } from "@aurelia/testing";
+
 import {
   createTestStore,
   testState
-} from './helpers';
+} from "./helpers";
 
-describe('test helpers', () => {
-  it('should provide easy means to test sequences', async () => {
+describe("test helpers", function () {
+  it("should provide easy means to test sequences", async function () {
     const { store } = createTestStore();
 
-    const actionA = (_: testState) => Promise.resolve({ foo: 'A' });
-    const actionB = (_: testState) => Promise.resolve({ foo: 'B' });
-    const actionC = (_: testState) => Promise.resolve({ foo: 'C' });
-    store.registerAction('Action A', actionA);
-    store.registerAction('Action B', actionB);
-    store.registerAction('Action C', actionC);
+    const actionA = async (_: testState) => Promise.resolve({ foo: "A" });
+    const actionB = async (_: testState) => Promise.resolve({ foo: "B" });
+    const actionC = async (_: testState) => Promise.resolve({ foo: "C" });
+    store.registerAction("Action A", actionA);
+    store.registerAction("Action B", actionB);
+    store.registerAction("Action C", actionC);
 
     await executeSteps(
       store,
       false,
-      () => store.dispatch(actionA),
-      (res) => {
-        expect(res.foo).to.equal('A');
-        store.dispatch(actionB);
-      },
-      (res) => {
-        expect(res.foo).to.equal('B');
-        store.dispatch(actionC); },
-      (res) => expect(res.foo).to.equal('C')
+      async () => store.dispatch(actionA),
+      (res) => { assert.equal(res.foo, "A"); store.dispatch(actionB).catch(() => { /**/ }); },
+      (res) => { assert.equal(res.foo, "B"); store.dispatch(actionC).catch(() => { /**/ }); },
+      (res) => assert.equal(res.foo, "C")
     );
   });
 
-  it('should reject with error if step fails', async () => {
+  it("should reject with error if step fails", async function () {
     const { store } = createTestStore();
 
-    const actionA = (_: testState) => Promise.resolve({ foo: 'A' });
-    const actionB = (_: testState) => Promise.resolve({ foo: 'B' });
-    const actionC = (_: testState) => Promise.resolve({ foo: 'C' });
-    store.registerAction('Action A', actionA);
-    store.registerAction('Action B', actionB);
-    store.registerAction('Action C', actionC);
+    const actionA = async (_: testState) => Promise.resolve({ foo: "A" });
+    const actionB = async (_: testState) => Promise.resolve({ foo: "B" });
+    const actionC = async (_: testState) => Promise.resolve({ foo: "C" });
+    store.registerAction("Action A", actionA);
+    store.registerAction("Action B", actionB);
+    store.registerAction("Action C", actionC);
 
     await executeSteps(
       store,
       false,
-      () => store.dispatch(actionA),
-      (res) => {
-        expect(res.foo).to.equal('A');
-        store.dispatch(actionB); },
-      (res) => {
-        expect(res.foo).to.equal('B');
-        store.dispatch(actionC);
-        throw Error('on purpose');
-      },
-      (res) => expect(res.foo).to.equal('C')
+      async () => store.dispatch(actionA),
+      (res) => { assert.equal(res.foo, "A"); store.dispatch(actionB).catch(() => { /**/ }); },
+      (res) => { assert.equal(res.foo, "B"); store.dispatch(actionC).catch(() => { /**/ }); throw Error("on purpose"); },
+      (res) => assert.equal(res.foo, "C")
     ).catch((e: Error) => {
-      expect(e.message).to.equal('on purpose');
+      assert.equal(e.message, "on purpose");
     });
   });
 
-  it('should set values during executeSteps', async () => {
+  it("should provide console information during executeSteps", async function () {
     const { store } = createTestStore();
+    const origConsole = {};
+    ["log", "group", "groupEnd"].forEach((fct) => {
+      origConsole[fct] = (global.console as any)[fct];
+      (global.console as any)[fct] = () => { /**/ };
+    });
 
-    stub(Reporter, 'write');
-
-    const actionA = (_: testState) => Promise.resolve({ foo: 'A' });
-    const actionB = (_: testState) => Promise.resolve({ foo: 'B' });
-    const actionC = (_: testState) => Promise.resolve({ foo: 'C' });
-    store.registerAction('Action A', actionA);
-    store.registerAction('Action B', actionB);
-    store.registerAction('Action C', actionC);
+    const actionA = async (_: testState) => Promise.resolve({ foo: "A" });
+    const actionB = async (_: testState) => Promise.resolve({ foo: "B" });
+    const actionC = async (_: testState) => Promise.resolve({ foo: "C" });
+    store.registerAction("Action A", actionA);
+    store.registerAction("Action B", actionB);
+    store.registerAction("Action C", actionC);
 
     await executeSteps(
       store,
       true,
-      () => store.dispatch(actionA),
-      (res) => {
-        expect(res.foo).to.equal('A');
-        store.dispatch(actionB);
-      },
-      (res) => {
-        expect(res.foo).to.equal('B');
-        store.dispatch(actionC);
-      },
-      (res) => expect(res.foo).to.equal('C')
+      async () => store.dispatch(actionA),
+      (res) => { assert.equal(res.foo, "A"); store.dispatch(actionB).catch(() => { /**/ }); },
+      (res) => { assert.equal(res.foo, "B"); store.dispatch(actionC).catch(() => { /**/ }); },
+      (res) => assert.equal(res.foo, "C")
     );
+
+    ["log", "group", "groupEnd"].forEach((fct) => {
+      (global.console as any)[fct] = origConsole[fct];
+    });
   });
 });

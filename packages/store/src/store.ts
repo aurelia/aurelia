@@ -120,7 +120,7 @@ export class Store<T> {
     this._state.next(state);
   }
 
-  public dispatch<P extends any[]>(reducer: Reducer<T, P> | string, ...params: P): Promise<void> {
+  public async dispatch<P extends any[]>(reducer: Reducer<T, P> | string, ...params: P): Promise<void> {
     const action = this.lookupAction(reducer as Reducer<T> | string);
     if (!action) {
       return Promise.reject(new UnregisteredActionError(reducer));
@@ -233,6 +233,7 @@ export class Store<T> {
 
     let result: T | false = beforeMiddleswaresResult;
     for (const action of pipedActions) {
+      // eslint-disable-next-line no-await-in-loop
       result = await action.reducer(result, ...action.params);
       if (result === false) {
         PLATFORM.performance.clearMarks();
@@ -263,8 +264,7 @@ export class Store<T> {
     }
 
     if (isStateHistory(resultingState) &&
-      this.options.history &&
-      this.options.history.limit) {
+      this.options.history?.limit) {
       resultingState = applyLimits(resultingState, this.options.history.limit);
     }
 
@@ -389,7 +389,7 @@ export class Store<T> {
   }
 
   private registerHistoryMethods() {
-    this.registerAction("jump", jump as Reducer<T>);
+    this.registerAction("jump", jump as Reducer<any>);
   }
 }
 

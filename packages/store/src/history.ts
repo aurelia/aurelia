@@ -9,13 +9,13 @@ export interface HistoryOptions {
   limit?: number;
 }
 
-export function jump<T>(state: T, n: number) {
+export function jump<T>(state: StateHistory<T>, n: number): StateHistory<T> {
   if (!isStateHistory(state)) {
-    return state;
+    throw Error("Provided state is not of type StateHistory");
   }
 
-  if (n > 0) return jumpToFuture(state, n - 1);
-  if (n < 0) return jumpToPast(state, state.past.length + n);
+  if (n > 0) return jumpToFuture<T>(state, n - 1);
+  if (n < 0) return jumpToPast<T>(state, state.past.length + n);
 
   return state;
 }

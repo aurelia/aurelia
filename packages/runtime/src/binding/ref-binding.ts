@@ -23,7 +23,7 @@ export class RefBinding implements IBinding {
 
   public $state: State = State.none;
   public $scope?: IScope = void 0;
-  public $hostScope?: IScope | null = null;
+  public $hostScope: IScope | null = null;
 
   public constructor(
     public sourceExpression: IsBindingBehavior,
@@ -31,7 +31,7 @@ export class RefBinding implements IBinding {
     public locator: IServiceLocator,
   ) {}
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -46,10 +46,10 @@ export class RefBinding implements IBinding {
     this.$hostScope = hostScope;
 
     if (hasBind(this.sourceExpression)) {
-      this.sourceExpression.bind(flags, scope, this);
+      this.sourceExpression.bind(flags, scope, hostScope, this);
     }
 
-    this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, this.target, hostScope);
+    this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, hostScope, this.locator, this.target);
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
@@ -64,14 +64,14 @@ export class RefBinding implements IBinding {
     this.$state |= State.isUnbinding;
 
     let sourceExpression = this.sourceExpression;
-    if (sourceExpression.evaluate(flags, this.$scope!, this.locator, this.$hostScope) === this.target) {
-      sourceExpression.assign!(flags, this.$scope!, this.locator, null, this.$hostScope);
+    if (sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator) === this.target) {
+      sourceExpression.assign!(flags, this.$scope!, this.$hostScope, this.locator, null);
     }
 
     // source expression might have been modified durring assign, via a BB
     sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
-      sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+      sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
 
     this.$scope = void 0;

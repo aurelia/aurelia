@@ -39,9 +39,9 @@ export class DebounceBindingBehavior extends BindingInterceptor {
     this.task = this.taskQueue.queueTask(callback, this.opts);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
     if (this.firstArg !== null) {
-      const delay = Number(this.firstArg.evaluate(flags, scope, this.locator, hostScope));
+      const delay = Number(this.firstArg.evaluate(flags, scope, hostScope, this.locator));
       if (!isNaN(delay)) {
         this.opts.delay = delay;
       }

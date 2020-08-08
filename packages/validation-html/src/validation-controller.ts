@@ -106,7 +106,7 @@ export class BindingInfo {
   public constructor(
     public target: Element,
     public scope: IScope,
-    public hostScope?: IScope | null,
+    public hostScope: IScope | null,
     public rules?: PropertyRule[],
     public propertyInfo: PropertyInfo | undefined = void 0,
   ) { }
@@ -146,7 +146,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
         if (toCachePropertyName) {
           toCachePropertyName = keyExpr.$kind === ExpressionKind.PrimitiveLiteral;
         }
-        memberName = `[${(keyExpr.evaluate(flags, scope, locator, hostScope) as any).toString()}]`;
+        memberName = `[${(keyExpr.evaluate(flags, scope, hostScope, locator) as any).toString()}]`;
         break;
       }
       default:
@@ -164,7 +164,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
     propertyName = expression.name;
     object = expression.accessHostScope ? hostScope?.bindingContext : scope.bindingContext;
   } else {
-    object = expression.evaluate(flags, scope, locator, hostScope);
+    object = expression.evaluate(flags, scope, hostScope, locator);
   }
   if (object === null || object === void 0) {
     return (void 0);

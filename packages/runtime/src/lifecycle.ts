@@ -46,7 +46,7 @@ export interface IBinding {
   readonly locator: IServiceLocator;
   readonly $scope?: IScope;
   readonly $state: State;
-  $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null): void;
+  $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
   $unbind(flags: LifecycleFlags): void;
 }
 

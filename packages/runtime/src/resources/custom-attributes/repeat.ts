@@ -64,7 +64,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         break;
       }
     }
-    this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope!, null) as string;
+    this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope!, null, null) as string;
     this.normalizeToArray(flags);
     this.processViewsKeyed(void 0, flags);
     return this.task;

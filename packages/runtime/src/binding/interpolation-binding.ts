@@ -49,7 +49,7 @@ export class MultiInterpolationBinding implements IBinding {
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -86,7 +86,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
   public id!: number;
   public $scope?: IScope;
-  public $hostScope?: IScope | null = null;
+  public $hostScope: IScope | null = null;
   public $state: State = State.none;
 
   public targetObserver: IBindingTargetAccessor;
@@ -116,19 +116,19 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     }
 
     const previousValue = this.targetObserver.getValue();
-    const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.$hostScope);
+    const newValue = this.interpolation.evaluate(flags, this.$scope!, this.$hostScope, this.locator);
     if (newValue !== previousValue) {
       this.interceptor.updateTarget(newValue, flags);
     }
 
     if ((this.mode & oneTime) === 0) {
       this.version++;
-      this.sourceExpression.connect(flags, this.$scope!, this.interceptor, this.$hostScope);
+      this.sourceExpression.connect(flags, this.$scope!, this.$hostScope, this.interceptor);
       this.interceptor.unobserve(false);
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -142,7 +142,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.bind) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+      sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
     if (this.mode !== BindingMode.oneTime && this.targetObserver.bind) {
       this.targetObserver.bind(flags);
@@ -151,10 +151,10 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     // since the interpolation already gets the whole value, we only need to let the first
     // text binding do the update if there are multiple
     if (this.isFirst) {
-      this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, hostScope), flags);
+      this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, hostScope, this.locator), flags);
     }
     if (this.mode & toView) {
-      sourceExpression.connect(flags, scope, this.interceptor, hostScope);
+      sourceExpression.connect(flags, scope, hostScope, this.interceptor);
     }
   }
 
@@ -166,7 +166,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {
-      sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+      sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
     if (this.targetObserver.unbind) {
       this.targetObserver.unbind(flags);

@@ -67,11 +67,11 @@ export interface IVisitor<T = unknown> {
 export interface IExpression {
   readonly $kind: ExpressionKind;
   accept<T>(visitor: IVisitor<T>): T;
-  connect(flags: LifecycleFlags, scope: IScope, binding: IConnectable, hostScope?: IScope | null): void;
-  evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, hostScope?: IScope | null): unknown;
-  assign?(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator | null, value: unknown, hostScope?: IScope | null): unknown;
-  bind?(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
-  unbind?(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
+  connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectable): void;
+  evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator | null): unknown;
+  assign?(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator | null, value: unknown): unknown;
+  bind?(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectable): void;
+  unbind?(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectable): void;
 }
 
 export interface IConnectable {
@@ -85,9 +85,9 @@ export interface IBindingBehaviorExpression extends IExpression {
   readonly name: string;
   readonly args: readonly IsAssign[];
   readonly behaviorKey: string;
-  assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, hostScope?: IScope | null): unknown;
-  bind(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
-  unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
+  assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown;
+  bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectable): void;
+  unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectable): void;
 }
 
 export interface IValueConverterExpression extends IExpression {
@@ -96,15 +96,15 @@ export interface IValueConverterExpression extends IExpression {
   readonly name: string;
   readonly args: readonly IsAssign[];
   readonly converterKey: string;
-  assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, hostScope?: IScope | null): unknown;
-  unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
+  assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown;
+  unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectable): void;
 }
 
 export interface IAssignExpression extends IExpression {
   readonly $kind: ExpressionKind.Assign;
   readonly target: IsAssignable;
   readonly value: IsAssign;
-  assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, hostScope?: IScope | null): unknown;
+  assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown;
 }
 
 export interface IConditionalExpression extends IExpression {
@@ -124,21 +124,21 @@ export interface IAccessScopeExpression extends IExpression {
   readonly name: string;
   readonly ancestor: number;
   readonly accessHostScope: boolean;
-  assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, hostScope?: IScope | null): unknown;
+  assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown;
 }
 
 export interface IAccessMemberExpression extends IExpression {
   readonly $kind: ExpressionKind.AccessMember;
   readonly object: IsLeftHandSide;
   readonly name: string;
-  assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, hostScope?: IScope | null): unknown;
+  assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown;
 }
 
 export interface IAccessKeyedExpression extends IExpression {
   readonly $kind: ExpressionKind.AccessKeyed;
   readonly object: IsLeftHandSide;
   readonly key: IsAssign;
-  assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, hostScope?: IScope | null): unknown;
+  assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown;
 }
 
 export interface ICallScopeExpression extends IExpression {
@@ -236,8 +236,8 @@ export interface IForOfStatement extends IExpression {
 
   count(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined): number;
   iterate(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void;
-  bind(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
-  unbind(flags: LifecycleFlags, scope: IScope, binding: IConnectable): void;
+  bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectable): void;
+  unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectable): void;
 }
 
 export interface IInterpolationExpression extends IExpression {

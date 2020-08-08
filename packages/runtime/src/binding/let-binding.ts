@@ -32,7 +32,7 @@ export class LetBinding implements IPartialConnectableBinding {
   public $state: State = State.none;
   public $lifecycle: ILifecycle;
   public $scope?: IScope = void 0;
-  public $hostScope?: IScope | null = null;
+  public $hostScope: IScope | null = null;
 
   public target: (IObservable & IIndexable) | null = null;
 
@@ -55,7 +55,7 @@ export class LetBinding implements IPartialConnectableBinding {
     if (flags & LifecycleFlags.updateTargetInstance) {
       const { target, targetProperty } = this as {target: IIndexable; targetProperty: string};
       const previousValue: unknown = target[targetProperty];
-      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.$hostScope);
+      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator);
       if (newValue !== previousValue) {
         target[targetProperty] = newValue;
       }
@@ -65,7 +65,7 @@ export class LetBinding implements IPartialConnectableBinding {
     throw Reporter.error(15, flags);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -81,11 +81,11 @@ export class LetBinding implements IPartialConnectableBinding {
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.bind) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+      sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
     // sourceExpression might have been changed during bind
-    this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, this.locator, hostScope);
-    this.sourceExpression.connect(flags, scope, this.interceptor, hostScope);
+    this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, hostScope, this.locator);
+    this.sourceExpression.connect(flags, scope, hostScope, this.interceptor);
 
     // add isBound flag and remove isBinding flag
     this.$state |= State.isBound;
@@ -101,7 +101,7 @@ export class LetBinding implements IPartialConnectableBinding {
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {
-      sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+      sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
     this.$scope = void 0;
     this.interceptor.unobserve(true);

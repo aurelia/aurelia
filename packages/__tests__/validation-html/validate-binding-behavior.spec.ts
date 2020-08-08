@@ -243,10 +243,10 @@ describe('validate-binding-behavior', function () {
   }
   @bindingBehavior('vanilla')
   class VanillaBindingBehavior implements BindingBehaviorInstance {
-    public bind(_flags: LifecycleFlags, _scope: IScope, _binding: IBinding): void {
+    public bind(_flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, _binding: IBinding): void {
       return;
     }
-    public unbind(_flags: LifecycleFlags, _scope: IScope, _binding: IBinding): void {
+    public unbind(_flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, _binding: IBinding): void {
       return;
     }
   }

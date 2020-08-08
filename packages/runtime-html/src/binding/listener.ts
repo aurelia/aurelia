@@ -10,7 +10,6 @@ import {
   IScope,
   LifecycleFlags,
   State,
-  CustomElementDefinition
 } from '@aurelia/runtime';
 import { IEventManager } from '../observation/event-manager';
 
@@ -23,7 +22,7 @@ export class Listener implements IBinding {
 
   public $state: State = State.none;
   public $scope!: IScope;
-  public $hostScope!: IScope | null | undefined;
+  public $hostScope: IScope | null = null;
 
   private handler!: IDisposable;
 
@@ -42,7 +41,7 @@ export class Listener implements IBinding {
     const overrideContext = this.$scope.overrideContext;
     overrideContext.$event = event;
 
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator, this.$hostScope);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.$hostScope, this.locator);
 
     Reflect.deleteProperty(overrideContext, '$event');
 
@@ -57,7 +56,7 @@ export class Listener implements IBinding {
     this.interceptor.callSource(event);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -73,7 +72,7 @@ export class Listener implements IBinding {
 
     const sourceExpression = this.sourceExpression;
     if (hasBind(sourceExpression)) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+      sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
     this.handler = this.eventManager.addEventListener(
@@ -98,7 +97,7 @@ export class Listener implements IBinding {
 
     const sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
-      sourceExpression.unbind(flags, this.$scope, this.interceptor);
+      sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
     }
 
     this.$scope = null!;

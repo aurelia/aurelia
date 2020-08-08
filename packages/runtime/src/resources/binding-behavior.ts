@@ -22,15 +22,14 @@ import { IBinding } from '../lifecycle';
 import { connectable, IConnectableBinding } from '../binding/connectable';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IBindingBehaviorExpression } from '../ast';
-import { CustomElementDefinition } from './custom-element';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
   strategy?: BindingBehaviorStrategy;
 }>;
 
 export type BindingBehaviorInstance<T extends {} = {}> = {
-  bind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
-  unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
+  bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IBinding, ...args: T[]): void;
+  unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IBinding, ...args: T[]): void;
 } & T;
 
 export const enum BindingBehaviorStrategy {
@@ -201,7 +200,7 @@ export class BindingInterceptor implements IInterceptableBinding {
     this.binding.handleChange!(newValue, previousValue, flags);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
     this.binding.$bind(flags, scope, hostScope);
   }
   public $unbind(flags: LifecycleFlags): void {

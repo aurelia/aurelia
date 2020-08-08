@@ -45,7 +45,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
   public $state: State = State.none;
   public $lifecycle: ILifecycle;
   public $scope?: IScope = void 0;
-  public $hostScope?: IScope | null = null;
+  public $hostScope: IScope | null = null;
 
   public targetObserver?: AccessorOrObserver = void 0;;
 
@@ -70,7 +70,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.sourceExpression.assign!(flags, this.$scope!, this.locator, value, this.$hostScope);
+    this.sourceExpression.assign!(flags, this.$scope!, this.$hostScope, this.locator, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -84,21 +84,21 @@ export class PropertyBinding implements IPartialConnectableBinding {
       const previousValue = this.targetObserver!.getValue();
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.$hostScope);
+        newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator);
       }
       if (newValue !== previousValue) {
         this.interceptor.updateTarget(newValue, flags);
       }
       if ((this.mode & oneTime) === 0) {
         this.version++;
-        this.sourceExpression.connect(flags, this.$scope!, this.interceptor, this.$hostScope);
+        this.sourceExpression.connect(flags, this.$scope!, this.$hostScope, this.interceptor);
         this.interceptor.unobserve(false);
       }
       return;
     }
 
     if ((flags & LifecycleFlags.updateSourceExpression) > 0) {
-      if (newValue !== this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.$hostScope)) {
+      if (newValue !== this.sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator)) {
         this.interceptor.updateSource(newValue, flags);
       }
       return;
@@ -107,7 +107,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     throw Reporter.error(15, flags);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
     if (this.$state & State.isBound) {
       if (this.$scope === scope) {
         return;
@@ -128,7 +128,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
     let sourceExpression = this.sourceExpression;
     if (hasBind(sourceExpression)) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+      sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
     let targetObserver = this.targetObserver as IBindingTargetObserver | undefined;
@@ -146,10 +146,10 @@ export class PropertyBinding implements IPartialConnectableBinding {
     // during bind, binding behavior might have changed sourceExpression
     sourceExpression = this.sourceExpression;
     if (this.mode & toViewOrOneTime) {
-      this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, hostScope), flags);
+      this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, hostScope, this.locator), flags);
     }
     if (this.mode & toView) {
-      sourceExpression.connect(flags, scope, this.interceptor, hostScope);
+      sourceExpression.connect(flags, scope, hostScope, this.interceptor);
     }
     if (this.mode & fromView) {
       targetObserver.subscribe(this.interceptor);
@@ -175,7 +175,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     this.persistentFlags = LifecycleFlags.none;
 
     if (hasUnbind(this.sourceExpression)) {
-      this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+      this.sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
     this.$scope = void 0;
 

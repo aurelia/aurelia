@@ -1,5 +1,5 @@
 import { inject } from '@aurelia/kernel';
-import { INavRoute, IRouter } from '@aurelia/router';
+import { INavRoute, IRouter, NavRoute } from '@aurelia/router';
 import { customElement, IObserverLocator, IViewModel, LifecycleFlags } from '@aurelia/runtime';
 
 import { Article } from './components/article/article';
@@ -47,10 +47,10 @@ export class App implements IViewModel {
     this.router.addHook(
       () => {
         if (this.state.isAuthenticated) {
-          return true;
+          return Promise.resolve(true);
         }
         this.router.goto(`auth(type=login)`).catch((error: Error) => { throw error; });
-        return [];
+        return Promise.resolve([]);
       },
       {
         include: [
@@ -86,30 +86,30 @@ export class App implements IViewModel {
         title: 'Home',
       },
       {
-        condition: this.authenticated,
+        condition: (route: NavRoute) => this.authenticated(),
         route: `editor(type=new)`,
         title: '<i class="ion-compose"></i>&nbsp;New Post',
       },
       {
-        condition: this.authenticated,
+        condition: (route: NavRoute) => this.authenticated(),
         route: Settings,
         title: '<i class="ion-gear-a"></i>&nbsp;Settings',
       },
       {
         compareParameters: true,
-        condition: this.notAuthenticated,
+        condition: (route: NavRoute) => this.notAuthenticated(),
         route: `auth(type=login)`,
         title: 'Sign in',
       },
       {
         compareParameters: true,
-        condition: this.notAuthenticated,
+        condition: (route: NavRoute) => this.notAuthenticated(),
         route: `auth(type=register)`,
         title: 'Sign up',
       },
       {
         compareParameters: true,
-        condition: this.authenticated,
+        condition: (route: NavRoute) => this.authenticated(),
         route: `profile(${this.state.currentUser.username})`,
         title: `${this.state.currentUser.username}`,
       },

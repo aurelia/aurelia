@@ -1,7 +1,8 @@
 import {
   BindingContext,
   LifecycleFlags as LF,
-  Scope
+  Scope,
+  OverrideContext
 } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
@@ -685,6 +686,40 @@ describe('BindingContext', function () {
       const scope4 = Scope.fromParent(LF.none, scope3, bindingContext4);
       const actual = BindingContext.get(scope4, 'foo', 4, LF.none);
       assert.strictEqual(actual, undefined, `actual`);
+    });
+
+    it('hostScope fallback given property not in scope - BC.get(s, p, 0, LF.none, hs)', function () {
+      const hsbc = { foo: "bar" } as any;
+      const hostScope = Scope.create(LF.none, hsbc);
+      const scope = Scope.create(LF.none, {});
+      const actual = BindingContext.get(scope, 'foo', 0, LF.none, hostScope);
+      assert.strictEqual(actual, hsbc, 'hsbc');
+    });
+
+    it('hostScope fallback given property not in scope - BC.get(s, p, 0, LF.none, hs) - obc', function () {
+      const hsbc = { } as any;
+      const hsobc = OverrideContext.create(LF.none, hsbc);
+      hsobc["foo"] = "bar";
+      const hostScope = Scope.create(LF.none, hsbc, hsobc);
+      const scope = Scope.create(LF.none, {});
+      const actual = BindingContext.get(scope, 'foo', 0, LF.none, hostScope);
+      assert.strictEqual(actual, hsobc, 'hsobc');
+    });
+
+    it('hostScope fallback given property not in scope - BC.get(hs, p, 0, LF.none, hs)', function () {
+      const hsbc = { foo: "bar" } as any;
+      const hostScope = Scope.create(LF.none, hsbc);
+      const actual = BindingContext.get(hostScope, 'foo', 0, LF.none, hostScope);
+      assert.strictEqual(actual, hsbc, 'hsbc');
+    });
+
+    it('hostScope fallback given property not in scope - BC.get(hs, p, 0, LF.none, hs) - obc', function () {
+      const hsbc = { } as any;
+      const hsobc = OverrideContext.create(LF.none, hsbc);
+      hsobc["foo"] = "bar";
+      const hostScope = Scope.create(LF.none, hsbc, hsobc);
+      const actual = BindingContext.get(hostScope, 'foo', 0, LF.none, hostScope);
+      assert.strictEqual(actual, hsobc, 'hsobc');
     });
   });
 });

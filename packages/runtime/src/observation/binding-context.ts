@@ -96,6 +96,16 @@ export class BindingContext implements IBindingContext {
       throw Reporter.error(RuntimeError.NilScope);
     }
 
+    /**
+     * This fallback is needed to support the following case:
+     * <div au-slot="s1">
+     *  <let outer-host.bind="$host"></let>
+     *  ${outerHost.prop}
+     * </div>
+     * To enable the `let` binding for 'hostScope', the property is added to `hostScope.overrideContext`. That enables us to use such let binding also inside a repeater.
+     * However, as the expression `${outerHost.prop}` does not start with `$host`, it is considered that to evaluate this expression, we don't need the access to hostScope.
+     * This artifact raises the need for this fallback.
+     */
     let context = chooseContext(scope, name, ancestor);
     if (context !== null) { return context; }
     if (hostScope !== scope && hostScope != null) {

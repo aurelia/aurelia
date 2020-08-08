@@ -18,8 +18,6 @@ function createLogger() {
 
 export function createTestStore() {
   const initialState = { foo: "bar" };
-
-
   const store: Store<testState> = new Store(initialState, createLogger());
 
   return { initialState, store };

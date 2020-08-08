@@ -52,9 +52,11 @@ describe("test helpers", function () {
   it("should provide console information during executeSteps", async function () {
     const { store } = createTestStore();
     const origConsole = {};
+    const callTracker = {};
+
     ["log", "group", "groupEnd"].forEach((fct) => {
       origConsole[fct] = (global.console as any)[fct];
-      (global.console as any)[fct] = () => { /**/ };
+      (global.console as any)[fct] = () => { callTracker[fct] = callTracker[fct] + 1 || 1; };
     });
 
     const actionA = async (_: testState) => Promise.resolve({ foo: "A" });
@@ -74,6 +76,7 @@ describe("test helpers", function () {
     );
 
     ["log", "group", "groupEnd"].forEach((fct) => {
+      assert.greaterThanOrEqualTo(callTracker[fct], 1);
       (global.console as any)[fct] = origConsole[fct];
     });
   });

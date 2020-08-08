@@ -161,7 +161,6 @@ export class Scope implements IScope {
     parentScope: IScope | null,
     bindingContext: IBindingContext,
     overrideContext: IOverrideContext,
-    public readonly isComponentScope: boolean,
   ) {
     this.parentScope = parentScope;
     this.bindingContext = bindingContext;
@@ -186,7 +185,7 @@ export class Scope implements IScope {
    * during binding, it will traverse up via the `parentScope` of the scope until
    * it finds the property.
    */
-  public static create(flags: LifecycleFlags, bc: object, oc: IOverrideContext, isComponentScope?: boolean): Scope;
+  public static create(flags: LifecycleFlags, bc: object, oc: IOverrideContext): Scope;
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
    *
@@ -196,28 +195,27 @@ export class Scope implements IScope {
    * @param bc - The `BindingContext` to back the `Scope` with.
    * @param oc - null. This overload is functionally equivalent to not passing this argument at all.
    */
-  public static create(flags: LifecycleFlags, bc: object, oc: null, isComponentScope?: boolean): Scope;
+  public static create(flags: LifecycleFlags, bc: object, oc: null): Scope;
   public static create(
     flags: LifecycleFlags,
     bc: object,
     oc?: IOverrideContext | null,
-    isComponentScope: boolean = false
   ): Scope {
-    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc) : oc, isComponentScope);
+    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc) : oc);
   }
 
   public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {
     if (oc == null) {
       throw Reporter.error(RuntimeError.NilOverrideContext);
     }
-    return new Scope(null, oc.bindingContext, oc, false);
+    return new Scope(null, oc.bindingContext, oc);
   }
 
   public static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: object): Scope {
     if (ps == null) {
       throw Reporter.error(RuntimeError.NilParentScope);
     }
-    return new Scope(ps, bc as IBindingContext, OverrideContext.create(flags, bc), false);
+    return new Scope(ps, bc as IBindingContext, OverrideContext.create(flags, bc));
   }
 }
 

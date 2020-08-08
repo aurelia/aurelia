@@ -344,7 +344,6 @@ export interface IScope {
   readonly parentScope: IScope | null;
   readonly bindingContext: IBindingContext;
   readonly overrideContext: IOverrideContext;
-  readonly isComponentScope: boolean;
 }
 
 export type ObserversLookup = IIndexable<{

@@ -67,6 +67,7 @@ const $tpl = TemplateExpression.$empty;
 const $arr = ArrayLiteralExpression.$empty;
 const $obj = ObjectLiteralExpression.$empty;
 const $this = AccessThisExpression.$this;
+const $host = AccessThisExpression.$host;
 const $parent = AccessThisExpression.$parent;
 
 const $a = new AccessScopeExpression('a');
@@ -173,13 +174,15 @@ describe('ExpressionParser', function () {
   // 1. parsePrimaryExpression.this
   const AccessThisList: [string, any][] = [
     [`$this`,             $this],
+    [`$host`,             $host],
     [`$parent`,           $parent],
     [`$parent.$parent`,   new AccessThisExpression(2)]
   ];
   // 2. parsePrimaryExpression.IdentifierName
   const AccessScopeList: [string, any][] = [
-    ...AccessThisList.map(([input, expr]) => [`${input}.a`, new AccessScopeExpression('a', expr.ancestor)] as [string, any]),
+    ...AccessThisList.map(([input, expr]) => [`${input}.a`, new AccessScopeExpression('a', expr.ancestor, input === '$host')] as [string, any]),
     [`$this.$parent`,     new AccessScopeExpression('$parent')],
+    [`$host.$parent`,     new AccessScopeExpression('$parent', undefined, true)],
     [`$parent.$this`,     new AccessScopeExpression('$this', 1)],
     [`a`,                 $a]
   ];
@@ -275,7 +278,7 @@ describe('ExpressionParser', function () {
   // 2. parseCallExpression.MemberExpression Arguments
   const SimpleCallScopeList: [string, any][] = [
     ...[...AccessScopeList]
-      .map(([input, expr]) => [`${input}()`, new CallScopeExpression(expr.name, [], expr.ancestor)] as [string, any])
+      .map(([input, expr]) => [`${input}()`, new CallScopeExpression(expr.name, [], expr.ancestor, input.startsWith('$host'))] as [string, any])
   ];
   // 3. parseCallExpression.MemberExpression Arguments
   const SimpleCallMemberList: [string, any][] = [

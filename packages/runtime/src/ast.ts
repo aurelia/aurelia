@@ -146,6 +146,7 @@ export interface ICallScopeExpression extends IExpression {
   readonly name: string;
   readonly args: readonly IsAssign[];
   readonly ancestor: number;
+  readonly accessHostScope: boolean;
 }
 
 export interface ICallMemberExpression extends IExpression {

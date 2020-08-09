@@ -139,7 +139,7 @@ export function isPureLiteral(expr: IsExpressionOrStatement): expr is IsLiteral 
   return false;
 }
 
-function chooseScope(accessHostScope: boolean, scope: IScope, hostScope: IScope | null | undefined){
+function chooseScope(accessHostScope: boolean, scope: IScope, hostScope: IScope | null){
   if (accessHostScope) {
     if (hostScope === null || hostScope === void 0) { throw new Error('Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?'); }
     return hostScope;

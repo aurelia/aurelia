@@ -2258,97 +2258,248 @@ class Test {
 }
 
 describe('LiteralTemplate', function () {
-  const tests: { expr: TemplateExpression | TaggedTemplateExpression; expected: string; ctx: any }[] = [
-    { expr: $tpl, expected: '', ctx: {} },
-    { expr: new TemplateExpression(['foo']), expected: 'foo', ctx: {} },
-    { expr: new TemplateExpression(['foo', 'baz'], [new PrimitiveLiteralExpression('bar')]), expected: 'foobarbaz', ctx: {} },
-    {
-      expr: new TemplateExpression(
+  class TestData {
+    public constructor(
+      public readonly expr: TemplateExpression | TaggedTemplateExpression,
+      public readonly expected: string,
+      public readonly ctx: any = {},
+      public readonly hsCtx: any = null,
+    ) { }
+
+    public get scope() { return createScopeForTest(this.ctx); }
+    public get hostScope() { return this.hsCtx !== null ? createScopeForTest(this.hsCtx) : null; }
+  }
+  function* getTestData() {
+    yield new TestData($tpl, '');
+    yield new TestData(new TemplateExpression(['foo']), 'foo');
+    yield new TestData(new TemplateExpression(['foo', 'baz'], [new PrimitiveLiteralExpression('bar')]), 'foobarbaz');
+    yield new TestData(
+      new TemplateExpression(
         ['a', 'c', 'e', 'g'],
         [new PrimitiveLiteralExpression('b'), new PrimitiveLiteralExpression('d'), new PrimitiveLiteralExpression('f')]
       ),
-      expected: 'abcdefg',
-      ctx: {}
-    },
-    {
-      expr: new TemplateExpression(['a', 'c', 'e'], [new AccessScopeExpression('b', 0), new AccessScopeExpression('d', 0)]),
-      expected: 'a1c2e',
-      ctx: { b: 1, d: 2 }
-    },
-    {
-      expr: new TaggedTemplateExpression(
+      'abcdefg',
+    );
+    yield new TestData(
+      new TemplateExpression(['a', 'c', 'e'], [new AccessScopeExpression('b', 0), new AccessScopeExpression('d', 0)]),
+      'a1c2e',
+      { b: 1, d: 2 }
+    );
+    yield new TestData(
+      new TemplateExpression(['a', 'c', 'e'], [new AccessScopeExpression('b', 0, true), new AccessScopeExpression('d', 0, true)]),
+      'a1c2e',
+      {},
+      { b: 1, d: 2 }
+    );
+    yield new TestData(
+      new TemplateExpression(['a', 'c', 'e'], [new AccessScopeExpression('b', 0), new AccessScopeExpression('d', 0, true)]),
+      'a42c84e',
+      { b: 42 },
+      { d: 84 }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
         [''],
         [],
         new AccessScopeExpression('foo', 0)
       ),
-      expected: 'foo',
-      ctx: { foo: () => 'foo' }
-    },
-    {
-      expr: new TaggedTemplateExpression(
+      'foo',
+      { foo: () => 'foo' }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
+        [''],
+        [],
+        new AccessScopeExpression('foo', 0, true)
+      ),
+      'foo',
+      {},
+      { foo: () => 'foo' }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
         ['foo'],
         ['bar'],
         new AccessScopeExpression('baz', 0)
       ),
-      expected: 'foobar',
-      ctx: { baz: cooked => `${cooked[0]}${cooked.raw[0]}` }
-    },
-    {
-      expr: new TaggedTemplateExpression(
+      'foobar',
+      { baz: cooked => `${cooked[0]}${cooked.raw[0]}` }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
+        ['foo'],
+        ['bar'],
+        new AccessScopeExpression('baz', 0, true)
+      ),
+      'foobar',
+      {},
+      { baz: cooked => `${cooked[0]}${cooked.raw[0]}` }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
         ['1', '2'],
         [],
         new AccessScopeExpression('makeString', 0),
         [new PrimitiveLiteralExpression('foo')]
       ),
-      expected: '1foo2',
-      ctx: { makeString: (cooked, foo) => `${cooked[0]}${foo}${cooked[1]}` }
-    },
-    {
-      expr: new TaggedTemplateExpression(
+      '1foo2',
+      { makeString: (cooked, foo) => `${cooked[0]}${foo}${cooked[1]}` }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
+        ['1', '2'],
+        [],
+        new AccessScopeExpression('makeString', 0, true),
+        [new PrimitiveLiteralExpression('foo')]
+      ),
+      '1foo2',
+      {},
+      { makeString: (cooked, foo) => `${cooked[0]}${foo}${cooked[1]}` }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
         ['1', '2'],
         [],
         new AccessScopeExpression('makeString', 0),
         [new AccessScopeExpression('foo', 0)]
       ),
-      expected: '1bar2',
-      ctx: { foo: 'bar', makeString: (cooked, foo) => `${cooked[0]}${foo}${cooked[1]}` }
-    },
-    {
-      expr: new TaggedTemplateExpression(
+      '1bar2',
+      { foo: 'bar', makeString: (cooked, foo) => `${cooked[0]}${foo}${cooked[1]}` }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
+        ['1', '2'],
+        [],
+        new AccessScopeExpression('makeString', 0, true),
+        [new AccessScopeExpression('foo', 0, true)]
+      ),
+      '1bar2',
+      {},
+      { foo: 'bar', makeString: (cooked, foo) => `${cooked[0]}${foo}${cooked[1]}` }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
+        ['1', '2'],
+        [],
+        new AccessScopeExpression('makeString', 0, true),
+        [new AccessScopeExpression('foo', 0)]
+      ),
+      '1baz2',
+      { foo: 'baz' },
+      { foo: 'bar', makeString: (cooked, foo) => `${cooked[0]}${foo}${cooked[1]}` }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
+        ['1', '2'],
+        [],
+        new AccessScopeExpression('makeString', 0),
+        [new AccessScopeExpression('foo', 0, true)]
+      ),
+      '1bar2',
+      { foo: 'baz', makeString: (cooked, foo) => `${cooked[0]}${foo}${cooked[1]}` },
+      { foo: 'bar' }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
         ['1', '2', '3'],
         [],
         new AccessScopeExpression('makeString', 0),
         [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0)]
       ),
-      expected: 'bazqux',
-      ctx: { foo: 'baz', bar: 'qux', makeString: (cooked, foo, bar) => `${foo}${bar}` }
-    },
-    {
-      expr: new TaggedTemplateExpression(
+      'bazqux',
+      { foo: 'baz', bar: 'qux', makeString: (cooked, foo, bar) => `${foo}${bar}` }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
+        ['1', '2', '3'],
+        [],
+        new AccessScopeExpression('makeString', 0, true),
+        [new AccessScopeExpression('foo', 0, true), new AccessScopeExpression('bar', 0, true)]
+      ),
+      'bazqux',
+      {},
+      { foo: 'baz', bar: 'qux', makeString: (cooked, foo, bar) => `${foo}${bar}` }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
+        ['1', '2', '3'],
+        [],
+        new AccessScopeExpression('makeString', 0, true),
+        [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0)]
+      ),
+      'fizfuz',
+      { foo: 'fiz', bar: 'fuz'},
+      { foo: 'baz', bar: 'qux', makeString: (cooked, foo, bar) => `${foo}${bar}` }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
+        ['1', '2', '3'],
+        [],
+        new AccessScopeExpression('makeString', 0),
+        [new AccessScopeExpression('foo', 0, true), new AccessScopeExpression('bar', 0, true)]
+      ),
+      'bazqux',
+      { foo: 'fiz', bar: 'fuz', makeString: (cooked, foo, bar) => `${foo}${bar}` },
+      { foo: 'baz', bar: 'qux'}
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
+        ['1', '2', '3'],
+        [],
+        new AccessScopeExpression('makeString', 0),
+        [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0, true)]
+      ),
+      'fizqux',
+      { foo: 'fiz', bar: 'fuz', makeString: (cooked, foo, bar) => `${foo}${bar}` },
+      { foo: 'baz', bar: 'qux'}
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
         ['1', '2', '3'],
         [],
         new AccessMemberExpression(new AccessScopeExpression('test', 0), 'makeString'),
         [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0)]
       ),
-      expected: '1baz2qux3foo',
-      ctx: { foo: 'baz', bar: 'qux', test: new Test() }
-    },
-    {
-      expr: new TaggedTemplateExpression(
+      '1baz2qux3foo',
+      { foo: 'baz', bar: 'qux', test: new Test() }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
+        ['1', '2', '3'],
+        [],
+        new AccessMemberExpression(new AccessScopeExpression('test', 0, true), 'makeString'),
+        [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0)]
+      ),
+      '1baz2qux3foo',
+      { foo: 'baz', bar: 'qux' },
+      { test: new Test() }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
         ['1', '2', '3'],
         [],
         new AccessKeyedExpression(new AccessScopeExpression('test', 0), new PrimitiveLiteralExpression('makeString')),
         [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0)]
       ),
-      expected: '1baz2qux3foo',
-      ctx: { foo: 'baz', bar: 'qux', test: new Test() }
-    }
-  ];
+      '1baz2qux3foo',
+      { foo: 'baz', bar: 'qux', test: new Test() }
+    );
+    yield new TestData(
+      new TaggedTemplateExpression(
+        ['1', '2', '3'],
+        [],
+        new AccessKeyedExpression(new AccessScopeExpression('test', 0, true), new PrimitiveLiteralExpression('makeString')),
+        [new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0)]
+      ),
+      '1baz2qux3foo',
+      { foo: 'baz', bar: 'qux' },
+      { test: new Test() }
+    );
+  }
 
-  for (const { expr, expected, ctx } of tests) {
-    it(`evaluates ${expected}`, function () {
-      const scope = createScopeForTest(ctx);
-      assert.strictEqual(expr.evaluate(LF.none, scope, null, null), expected, `expr.evaluate(LF.none, scope, null)`);
+  for (const item of getTestData()) {
+    it(`${Unparser.unparse(item.expr)} evaluates ${item.expected}`, function () {
+      assert.strictEqual(item.expr.evaluate(LF.none, item.scope, item.hostScope, null), item.expected, `expr.evaluate(LF.none, scope, hs, null)`);
     });
   }
 });
@@ -2413,7 +2564,7 @@ describe('UnaryExpression', function () {
 describe('BindingBehaviorExpression', function () {
   type $1 = [/* title */string, /* flags */LF];
   type $2 = [/* title */string, /* $kind */ExpressionKind];
-  type $3 = [/* title */string, /* scope */IScope, /* sut */BindingBehaviorExpression, /* mock */MockBindingBehavior, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[]];
+  type $3 = [/* title */string, /* scope */IScope, /* hostScope */IScope | null, /* sut */BindingBehaviorExpression, /* mock */MockBindingBehavior, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[]];
 
   const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LF],
   [
@@ -2429,12 +2580,12 @@ describe('BindingBehaviorExpression', function () {
     () => [`hasBind|hasUnbind`, ExpressionKind.HasBind | ExpressionKind.HasUnbind]
   ];
 
-  const inputVariations: (($1: $1, $2: $2) => $3)[] = // [/*title*/string, /*scope*/IScope, /*sut*/BindingBehaviorExpression, /*mock*/MockBindingBehavior, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[]],
-  [
+  const inputVariations: (($1: $1, $2: $2) => $3)[] = // [/*title*/string, /*scope*/IScope, /*hostScope*/IScope|null, /*sut*/BindingBehaviorExpression, /*mock*/MockBindingBehavior, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[]],
+  [true, false].flatMap((isHostScoped) =>  [
     // test without arguments
-    (_$1, [_t2, $kind]) => {
+    (_$1: $1, [_t2, $kind]: $2) => {
       const value = {};
-      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
+      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0, isHostScoped));
       expr.$kind = $kind;
       const args = [];
       const sut = new BindingBehaviorExpression(expr as any, 'mock', args);
@@ -2444,16 +2595,21 @@ describe('BindingBehaviorExpression', function () {
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(LF.none, { foo: value }, null);
-      return [`foo&mock`, scope, sut, mock, locator, binding, value, []];
+      let scope = Scope.create(LF.none, { foo: value }, null);
+      let hs: IScope | null = null;
+      if(isHostScoped) {
+        hs = scope;
+        scope = createScopeForTest();
+      }
+      return [`foo&mock`, scope, hs, sut, mock, locator, binding, value, []] as $3;
     },
     // test with 1 argument
-    (_$1, [_t2, $kind]) => {
+    (_$1: $1, [_t2, $kind]: $2) => {
       const value = {};
       const arg1 = {};
-      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
+      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0, isHostScoped));
       expr.$kind = $kind;
-      const args = [new MockTracingExpression(new AccessScopeExpression('a', 0))];
+      const args = [new MockTracingExpression(new AccessScopeExpression('a', 0, isHostScoped))];
       const sut = new BindingBehaviorExpression(expr as any, 'mock', args as any);
 
       const mock = new MockBindingBehavior();
@@ -2461,21 +2617,26 @@ describe('BindingBehaviorExpression', function () {
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(LF.none, { foo: value, a: arg1 }, null);
-      return [`foo&mock:a`, scope, sut, mock, locator, binding, value, [arg1]];
+      let scope = Scope.create(LF.none, { foo: value, a: arg1 }, null);
+      let hs: IScope | null = null;
+      if(isHostScoped) {
+        hs = scope;
+        scope = createScopeForTest();
+      }
+      return [`foo&mock:a`, scope, hs, sut, mock, locator, binding, value, [arg1]] as $3;
     },
     // test with 3 arguments
-    (_$1, [_t2, $kind]) => {
+    (_$1: $1, [_t2, $kind]: $2) => {
       const value = {};
       const arg1 = {};
       const arg2 = {};
       const arg3 = {};
-      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
+      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0, isHostScoped));
       expr.$kind = $kind;
       const args = [
-        new MockTracingExpression(new AccessScopeExpression('a', 0)),
-        new MockTracingExpression(new AccessScopeExpression('b', 0)),
-        new MockTracingExpression(new AccessScopeExpression('c', 0))
+        new MockTracingExpression(new AccessScopeExpression('a', 0, isHostScoped)),
+        new MockTracingExpression(new AccessScopeExpression('b', 0, isHostScoped)),
+        new MockTracingExpression(new AccessScopeExpression('c', 0, isHostScoped))
       ];
       const sut = new BindingBehaviorExpression(expr as any, 'mock', args as any);
 
@@ -2484,17 +2645,22 @@ describe('BindingBehaviorExpression', function () {
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(LF.none, { foo: value, a: arg1, b: arg2, c: arg3 }, null);
-      return [`foo&mock:a:b:c`, scope, sut, mock, locator, binding, value, [arg1, arg2, arg3]];
+      let scope = Scope.create(LF.none, { foo: value, a: arg1, b: arg2, c: arg3 }, null);
+      let hs: IScope | null = null;
+      if(isHostScoped) {
+        hs = scope;
+        scope = createScopeForTest();
+      }
+      return [`foo&mock:a:b:c`, scope, hs, sut, mock, locator, binding, value, [arg1, arg2, arg3]] as $3;
     }
-  ];
+  ]);
 
   const bindVariations: (($1: $1, $2: $2, $3: $3) => /* bind */() => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
+    ([t1, flags], [t2, $kind], [t3, scope, hs, sut, mock, locator, binding, value, argValues]) => () => {
       assert.strictEqual(binding['au:resource:binding-behavior:mock'], undefined, `binding['au:resource:binding-behavior:mock']`);
 
       // act
-      sut.bind(flags, scope, null, binding as any);
+      sut.bind(flags, scope, hs, binding as any);
 
       // assert
       assert.strictEqual(binding['au:resource:binding-behavior:mock'], mock, `binding['au:resource:binding-behavior:mock']`);
@@ -2506,7 +2672,7 @@ describe('BindingBehaviorExpression', function () {
       assert.strictEqual(mock.calls[0][0], 'bind', `mock.calls[0][0]`);
       assert.strictEqual(mock.calls[0][1], flags, `mock.calls[0][1]`);
       assert.strictEqual(mock.calls[0][2], scope, `mock.calls[0][2]`);
-      assert.strictEqual(mock.calls[0][3], null, `mock.calls[0][3]`);
+      assert.strictEqual(mock.calls[0][3], hs, `mock.calls[0][3]`);
       assert.strictEqual(mock.calls[0][4], binding, `mock.calls[0][4]`);
       for (let i = 0, ii = args.length; i < ii; ++i) {
         const arg = args[i];
@@ -2518,7 +2684,7 @@ describe('BindingBehaviorExpression', function () {
         assert.strictEqual(arg.calls[0][0], 'evaluate', `arg.calls[0][0]`);
         assert.strictEqual(arg.calls[0][1], flags, `arg.calls[0][1]`);
         assert.strictEqual(arg.calls[0][2], scope, `arg.calls[0][2]`);
-        assert.strictEqual(arg.calls[0][3], null, `arg.calls[0][3]`);
+        assert.strictEqual(arg.calls[0][3], hs, `arg.calls[0][3]`);
         assert.strictEqual(arg.calls[0][4], locator, `arg.calls[0][4]`);
       }
 
@@ -2528,7 +2694,7 @@ describe('BindingBehaviorExpression', function () {
         assert.strictEqual(expr.calls[0][0], 'bind', `expr.calls[0][0]`);
         assert.strictEqual(expr.calls[0][1], flags, `expr.calls[0][1]`);
         assert.strictEqual(expr.calls[0][2], scope, `expr.calls[0][2]`);
-        assert.strictEqual(expr.calls[0][3], null, `expr.calls[0][3]`);
+        assert.strictEqual(expr.calls[0][3], hs, `expr.calls[0][3]`);
         assert.strictEqual(expr.calls[0][4], binding, `expr.calls[0][4]`);
       } else {
         assert.strictEqual(expr.calls.length, 0, `expr.calls.length`);
@@ -2537,9 +2703,9 @@ describe('BindingBehaviorExpression', function () {
   ];
 
   const evaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */() => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
+    ([t1, flags], [t2, $kind], [t3, scope, hs, sut, mock, locator, binding, value, argValues]) => () => {
       // act
-      const actual = sut.evaluate(flags, scope, null, binding.locator);
+      const actual = sut.evaluate(flags, scope, hs, binding.locator);
 
       // assert
       assert.strictEqual(actual, value, `actual`);
@@ -2554,17 +2720,17 @@ describe('BindingBehaviorExpression', function () {
       assert.strictEqual(expr.calls[callCount - 1][0], 'evaluate', `expr.calls[callCount - 1][0]`);
       assert.strictEqual(expr.calls[callCount - 1][1], flags, `expr.calls[callCount - 1][1]`);
       assert.strictEqual(expr.calls[callCount - 1][2], scope, `expr.calls[callCount - 1][2]`);
-      assert.strictEqual(expr.calls[callCount - 1][3], null, `expr.calls[callCount - 1][3]`);
+      assert.strictEqual(expr.calls[callCount - 1][3], hs, `expr.calls[callCount - 1][3]`);
       assert.strictEqual(expr.calls[callCount - 1][4], binding.locator, `expr.calls[callCount - 1][4]`);
     }
   ];
 
   const connectVariations: (($1: $1, $2: $2, $3: $3) => /* connect */() => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
+    ([t1, flags], [t2, $kind], [t3, scope, hs, sut, mock, locator, binding, value, argValues]) => () => {
       assert.strictEqual(binding.observerSlots, undefined, `binding.observerSlots`);
 
       // act
-      sut.connect(flags, scope, null, binding);
+      sut.connect(flags, scope, hs, binding);
 
       // assert
       assert.strictEqual(binding.observerSlots, 1, `binding.observerSlots`);
@@ -2579,17 +2745,17 @@ describe('BindingBehaviorExpression', function () {
       assert.strictEqual(expr.calls[callCount - 1][0], 'connect', `expr.calls[callCount - 1][0]`);
       assert.strictEqual(expr.calls[callCount - 1][1], flags, `expr.calls[callCount - 1][1]`);
       assert.strictEqual(expr.calls[callCount - 1][2], scope, `expr.calls[callCount - 1][2]`);
-      assert.strictEqual(expr.calls[callCount - 1][3], null, `expr.calls[callCount - 1][3]`);
+      assert.strictEqual(expr.calls[callCount - 1][3], hs, `expr.calls[callCount - 1][3]`);
       assert.strictEqual(expr.calls[callCount - 1][4], binding, `expr.calls[callCount - 1][4]`);
     }
   ];
 
   const assignVariations: (($1: $1, $2: $2, $3: $3) => /* assign */() => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
+    ([t1, flags], [t2, $kind], [t3, scope, hs, sut, mock, locator, binding, value, argValues]) => () => {
       const newValue = {};
 
       // act
-      const actual = sut.assign(flags, scope, null, binding.locator, newValue);
+      const actual = sut.assign(flags, scope, hs, binding.locator, newValue);
 
       // assert
       assert.strictEqual(actual, newValue, `actual`);
@@ -2603,7 +2769,7 @@ describe('BindingBehaviorExpression', function () {
       assert.strictEqual(expr.calls[callCount - 1][0], 'assign', `expr.calls[callCount - 1][0]`);
       assert.strictEqual(expr.calls[callCount - 1][1], flags, `expr.calls[callCount - 1][1]`);
       assert.strictEqual(expr.calls[callCount - 1][2], scope, `expr.calls[callCount - 1][2]`);
-      assert.strictEqual(expr.calls[callCount - 1][3], null, `expr.calls[callCount - 1][3]`);
+      assert.strictEqual(expr.calls[callCount - 1][3], hs, `expr.calls[callCount - 1][3]`);
       assert.strictEqual(expr.calls[callCount - 1][4], binding.locator, `expr.calls[callCount - 1][4]`);
       assert.strictEqual(expr.calls[callCount - 1][5], newValue, `expr.calls[callCount - 1][5]`);
 
@@ -2612,9 +2778,9 @@ describe('BindingBehaviorExpression', function () {
   ];
 
   const $2ndEvaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */(value: any) => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => (newValue) => {
+    ([t1, flags], [t2, $kind], [t3, scope, hs, sut, mock, locator, binding, value, argValues]) => (newValue) => {
       // act
-      const actual = sut.evaluate(flags, scope, null, binding.locator);
+      const actual = sut.evaluate(flags, scope, hs, binding.locator);
 
       // assert
       assert.strictEqual(actual, newValue, `actual`);
@@ -2629,17 +2795,17 @@ describe('BindingBehaviorExpression', function () {
       assert.strictEqual(expr.calls[callCount - 1][0], 'evaluate', `expr.calls[callCount - 1][0]`);
       assert.strictEqual(expr.calls[callCount - 1][1], flags, `expr.calls[callCount - 1][1]`);
       assert.strictEqual(expr.calls[callCount - 1][2], scope, `expr.calls[callCount - 1][2]`);
-      assert.strictEqual(expr.calls[callCount - 1][3], null, `expr.calls[callCount - 1][3]`);
+      assert.strictEqual(expr.calls[callCount - 1][3], hs, `expr.calls[callCount - 1][3]`);
       assert.strictEqual(expr.calls[callCount - 1][4], binding.locator, `expr.calls[callCount - 1][4]`);
     }
   ];
 
   const unbindVariations: (($1: $1, $2: $2, $3: $3) => /* unbind */() => void)[] = [
-    ([t1, flags], [t2, $kind], [t3, scope, sut, mock, locator, binding, value, argValues]) => () => {
+    ([t1, flags], [t2, $kind], [t3, scope, hs, sut, mock, locator, binding, value, argValues]) => () => {
       assert.strictEqual(binding['au:resource:binding-behavior:mock'], mock, `binding['au:resource:binding-behavior:mock']`);
 
       // act
-      sut.unbind(flags, scope, null, binding as any);
+      sut.unbind(flags, scope, hs, binding as any);
 
       // assert
       assert.strictEqual(binding['au:resource:binding-behavior:mock'], void 0, `binding['au:resource:binding-behavior:mock']`);
@@ -2649,7 +2815,7 @@ describe('BindingBehaviorExpression', function () {
       assert.strictEqual(mock.calls[1][0], 'unbind', `mock.calls[1][0]`);
       assert.strictEqual(mock.calls[1][1], flags, `mock.calls[1][1]`);
       assert.strictEqual(mock.calls[1][2], scope, `mock.calls[1][2]`);
-      assert.strictEqual(mock.calls[1][3], null, `mock.calls[1][3]`);
+      assert.strictEqual(mock.calls[1][3], hs, `mock.calls[1][3]`);
       assert.strictEqual(mock.calls[1][4], binding, `mock.calls[1][4]`);
 
       const expr = sut.expression as any as MockTracingExpression;
@@ -2661,7 +2827,7 @@ describe('BindingBehaviorExpression', function () {
         assert.strictEqual(expr.calls[callCount - 1][0], 'unbind', `expr.calls[callCount - 1][0]`);
         assert.strictEqual(expr.calls[callCount - 1][1], flags, `expr.calls[callCount - 1][1]`);
         assert.strictEqual(expr.calls[callCount - 1][2], scope, `expr.calls[callCount - 1][2]`);
-        assert.strictEqual(expr.calls[callCount - 1][3], null, `expr.calls[callCount - 1][3]`);
+        assert.strictEqual(expr.calls[callCount - 1][3], hs, `expr.calls[callCount - 1][3]`);
         assert.strictEqual(expr.calls[callCount - 1][4], binding, `expr.calls[callCount - 1][4]`);
       } else {
         assert.strictEqual(expr.calls.length, callCount - 1, `expr.calls.length`);
@@ -2688,7 +2854,7 @@ describe('BindingBehaviorExpression', function () {
 describe('ValueConverterExpression', function () {
   type $1 = [/* title */string, /* flags */LF];
   type $2 = [/* title */string, /* signals */string[], /* signaler */MockSignaler];
-  type $3 = [/* title */string, /* scope */IScope, /* sut */ValueConverterExpression, /* mock */MockValueConverter, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[], /* methods */string[]];
+  type $3 = [/* title */string, /* scope */IScope, /* hostScope */IScope | null, /* sut */ValueConverterExpression, /* mock */MockValueConverter, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[], /* methods */string[]];
 
   const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LF],
   [
@@ -2704,11 +2870,11 @@ describe('ValueConverterExpression', function () {
     () => [`['a','b','c']`, ['a', 'b', 'c'], new MockSignaler()]
   ];
 
-  const inputVariations: (($1: $1, $2: $2) => $3)[] = [
+  const inputVariations: (($1: $1, $2: $2) => $3)[] = [true, false].flatMap((isHostScoped) => [
     // test without arguments, no toView, no fromView
-    (_$1, [_t2, signals, signaler]) => {
+    (_$1: $1, [_t2, signals, signaler]: $2) => {
       const value = {};
-      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
+      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0, isHostScoped));
       const args = [];
       const sut = new ValueConverterExpression(expr as any, 'mock', args);
 
@@ -2719,13 +2885,18 @@ describe('ValueConverterExpression', function () {
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(LF.none, { foo: value }, null);
-      return [`foo|mock`, scope, sut, mock, locator, binding, value, [], methods];
+      let scope = Scope.create(LF.none, { foo: value }, null);
+      let hs: IScope | null = null;
+      if(isHostScoped) {
+        hs = scope;
+        scope = createScopeForTest();
+      }
+      return [`foo|mock`, scope, hs, sut, mock, locator, binding, value, [], methods] as $3;
     },
     // test without arguments, no fromView
-    (_$1, [_t2, signals, signaler]) => {
+    (_$1: $1, [_t2, signals, signaler]: $2) => {
       const value = {};
-      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
+      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0, isHostScoped));
       const args = [];
       const sut = new ValueConverterExpression(expr as any, 'mock', args);
 
@@ -2736,13 +2907,18 @@ describe('ValueConverterExpression', function () {
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(LF.none, { foo: value }, null);
-      return [`foo|mock`, scope, sut, mock, locator, binding, value, [], methods];
+      let scope = Scope.create(LF.none, { foo: value }, null);
+      let hs: IScope | null = null;
+      if(isHostScoped) {
+        hs = scope;
+        scope = createScopeForTest();
+      }
+      return [`foo|mock`, scope, hs, sut, mock, locator, binding, value, [], methods] as $3;
     },
     // test without arguments, no toView
-    (_$1, [_t2, signals, signaler]) => {
+    (_$1: $1, [_t2, signals, signaler]: $2) => {
       const value = {};
-      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
+      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0, isHostScoped));
       const args = [];
       const sut = new ValueConverterExpression(expr as any, 'mock', args);
 
@@ -2753,13 +2929,18 @@ describe('ValueConverterExpression', function () {
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(LF.none, { foo: value }, null);
-      return [`foo|mock`, scope, sut, mock, locator, binding, value, [], methods];
+      let scope = Scope.create(LF.none, { foo: value }, null);
+      let hs: IScope | null = null;
+      if(isHostScoped) {
+        hs = scope;
+        scope = createScopeForTest();
+      }
+      return [`foo|mock`, scope, hs, sut, mock, locator, binding, value, [], methods] as $3;
     },
     // test without arguments
-    (_$1, [_t2, signals, signaler]) => {
+    (_$1: $1, [_t2, signals, signaler]: $2) => {
       const value = {};
-      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
+      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0, isHostScoped));
       const args = [];
       const sut = new ValueConverterExpression(expr as any, 'mock', args);
 
@@ -2770,15 +2951,20 @@ describe('ValueConverterExpression', function () {
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(LF.none, { foo: value }, null);
-      return [`foo|mock`, scope, sut, mock, locator, binding, value, [], methods];
+      let scope = Scope.create(LF.none, { foo: value }, null);
+      let hs: IScope | null = null;
+      if(isHostScoped) {
+        hs = scope;
+        scope = createScopeForTest();
+      }
+      return [`foo|mock`, scope, hs, sut, mock, locator, binding, value, [], methods] as $3;
     },
     // test with 1 argument
-    (_$1, [_t2, signals, signaler]) => {
+    (_$1: $1, [_t2, signals, signaler]: $2) => {
       const value = {};
       const arg1 = {};
-      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
-      const args = [new MockTracingExpression(new AccessScopeExpression('a', 0))];
+      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0, isHostScoped));
+      const args = [new MockTracingExpression(new AccessScopeExpression('a', 0, isHostScoped))];
       const sut = new ValueConverterExpression(expr as any, 'mock', args as any);
 
       const methods = ['toView', 'fromView'];
@@ -2788,20 +2974,25 @@ describe('ValueConverterExpression', function () {
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(LF.none, { foo: value, a: arg1 }, null);
-      return [`foo|mock:a`, scope, sut, mock, locator, binding, value, [arg1], methods];
+      let scope = Scope.create(LF.none, { foo: value, a: arg1 }, null);
+      let hs: IScope | null = null;
+      if(isHostScoped) {
+        hs = scope;
+        scope = createScopeForTest();
+      }
+      return [`foo|mock:a`, scope, hs, sut, mock, locator, binding, value, [arg1], methods] as $3;
     },
     // test with 3 arguments
-    (_$1, [_t2, signals, signaler]) => {
+    (_$1: $1, [_t2, signals, signaler]: $2) => {
       const value = {};
       const arg1 = {};
       const arg2 = {};
       const arg3 = {};
-      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
+      const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0, isHostScoped));
       const args = [
-        new MockTracingExpression(new AccessScopeExpression('a', 0)),
-        new MockTracingExpression(new AccessScopeExpression('b', 0)),
-        new MockTracingExpression(new AccessScopeExpression('c', 0))
+        new MockTracingExpression(new AccessScopeExpression('a', 0, isHostScoped)),
+        new MockTracingExpression(new AccessScopeExpression('b', 0, isHostScoped)),
+        new MockTracingExpression(new AccessScopeExpression('c', 0, isHostScoped))
       ];
       const sut = new ValueConverterExpression(expr as any, 'mock', args as any);
 
@@ -2812,15 +3003,20 @@ describe('ValueConverterExpression', function () {
       const observerLocator = createObserverLocator();
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
-      const scope = Scope.create(LF.none, { foo: value, a: arg1, b: arg2, c: arg3 }, null);
-      return [`foo|mock:a:b:c`, scope, sut, mock, locator, binding, value, [arg1, arg2, arg3], methods];
+      let scope = Scope.create(LF.none, { foo: value, a: arg1, b: arg2, c: arg3 }, null);
+      let hs: IScope | null = null;
+      if(isHostScoped) {
+        hs = scope;
+        scope = createScopeForTest();
+      }
+      return [`foo|mock:a:b:c`, scope, hs, sut, mock, locator, binding, value, [arg1, arg2, arg3], methods] as $3;
     }
-  ];
+  ]);
 
   const evaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */() => void)[] = [
-    ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
+    ([t1, flags], [t2, signals, signaler], [t3, scope, hs, sut, mock, locator, binding, value, argValues, methods]) => () => {
       // act
-      const actual = sut.evaluate(flags, scope, null, binding.locator);
+      const actual = sut.evaluate(flags, scope, hs, binding.locator);
 
       // assert
       assert.strictEqual(actual, value, `actual`);
@@ -2845,7 +3041,7 @@ describe('ValueConverterExpression', function () {
       assert.strictEqual(expr.calls[0][0], 'evaluate', `expr.calls[0][0]`);
       assert.strictEqual(expr.calls[0][1], flags, `expr.calls[0][1]`);
       assert.strictEqual(expr.calls[0][2], scope, `expr.calls[0][2]`);
-      assert.strictEqual(expr.calls[0][3], null, `expr.calls[0][3]`);
+      assert.strictEqual(expr.calls[0][3], hs, `expr.calls[0][3]`);
       assert.strictEqual(expr.calls[0][4], binding.locator, `expr.calls[0][4]`);
 
       for (let i = 0, ii = args.length; i < ii; ++i) {
@@ -2856,7 +3052,7 @@ describe('ValueConverterExpression', function () {
           assert.strictEqual(arg.calls[0][0], 'evaluate', `arg.calls[0][0]`);
           assert.strictEqual(arg.calls[0][1], flags, `arg.calls[0][1]`);
           assert.strictEqual(arg.calls[0][2], scope, `arg.calls[0][2]`);
-          assert.strictEqual(arg.calls[0][3], null, `arg.calls[0][3]`);
+          assert.strictEqual(arg.calls[0][3], hs, `arg.calls[0][3]`);
           assert.strictEqual(arg.calls[0][4], binding.locator, `arg.calls[0][4]`);
         } else {
           assert.strictEqual(arg.calls.length, 0, `arg.calls.length`);
@@ -2866,11 +3062,11 @@ describe('ValueConverterExpression', function () {
   ];
 
   const connectVariations: (($1: $1, $2: $2, $3: $3) => /* connect */() => void)[] = [
-    ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
+    ([t1, flags], [t2, signals, signaler], [t3, scope, hs, sut, mock, locator, binding, value, argValues, methods]) => () => {
       assert.strictEqual(binding.observerSlots, undefined, `binding.observerSlots`);
 
       // act
-      sut.connect(flags, scope, null, binding);
+      sut.connect(flags, scope, hs, binding);
 
       // assert
       assert.strictEqual(binding.observerSlots, 1 + argValues.length, `binding.observerSlots`);
@@ -2885,7 +3081,7 @@ describe('ValueConverterExpression', function () {
       assert.strictEqual(expr.calls[1][0], 'connect', `expr.calls[1][0]`);
       assert.strictEqual(expr.calls[1][1], flags, `expr.calls[1][1]`);
       assert.strictEqual(expr.calls[1][2], scope, `expr.calls[1][2]`);
-      assert.strictEqual(expr.calls[1][3], null, `expr.calls[1][3]`);
+      assert.strictEqual(expr.calls[1][3], hs, `expr.calls[1][3]`);
       assert.strictEqual(expr.calls[1][4], binding, `expr.calls[1][4]`);
 
       const args = sut.args as any as MockTracingExpression[];
@@ -2897,7 +3093,7 @@ describe('ValueConverterExpression', function () {
         assert.strictEqual(arg.calls[offset][0], 'connect', `arg.calls[offset][0]`);
         assert.strictEqual(arg.calls[offset][1], flags, `arg.calls[offset][1]`);
         assert.strictEqual(arg.calls[offset][2], scope, `arg.calls[offset][2]`);
-        assert.strictEqual(arg.calls[offset][3], null, `arg.calls[offset][3]`);
+        assert.strictEqual(arg.calls[offset][3], hs, `arg.calls[offset][3]`);
         assert.strictEqual(arg.calls[offset][4], binding, `arg.calls[offset][4]`);
       }
 
@@ -2916,11 +3112,11 @@ describe('ValueConverterExpression', function () {
   ];
 
   const assignVariations: (($1: $1, $2: $2, $3: $3) => /* assign */() => void)[] = [
-    ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
+    ([t1, flags], [t2, signals, signaler], [t3, scope, hs, sut, mock, locator, binding, value, argValues, methods]) => () => {
       const newValue = {};
 
       // act
-      const actual = sut.assign(flags, scope, null, binding.locator, newValue);
+      const actual = sut.assign(flags, scope, hs, binding.locator, newValue);
 
       // assert
       assert.strictEqual(actual, newValue, `actual`);
@@ -2946,7 +3142,7 @@ describe('ValueConverterExpression', function () {
       assert.strictEqual(expr.calls[2][0], 'assign', `expr.calls[2][0]`);
       assert.strictEqual(expr.calls[2][1], flags, `expr.calls[2][1]`);
       assert.strictEqual(expr.calls[2][2], scope, `expr.calls[2][2]`);
-      assert.strictEqual(expr.calls[2][3], null, `expr.calls[2][3]`);
+      assert.strictEqual(expr.calls[2][3], hs, `expr.calls[2][3]`);
       assert.strictEqual(expr.calls[2][4], binding.locator, `expr.calls[2][4]`);
       assert.strictEqual(expr.calls[2][5], newValue, `expr.calls[2][5]`);
 
@@ -2958,7 +3154,7 @@ describe('ValueConverterExpression', function () {
         assert.strictEqual(arg.calls[callCount - 1][0], 'evaluate', `arg.calls[callCount - 1][0]`);
         assert.strictEqual(arg.calls[callCount - 1][1], flags, `arg.calls[callCount - 1][1]`);
         assert.strictEqual(arg.calls[callCount - 1][2], scope, `arg.calls[callCount - 1][2]`);
-        assert.strictEqual(arg.calls[callCount - 1][3], null, `arg.calls[callCount - 1][3]`);
+        assert.strictEqual(arg.calls[callCount - 1][3], hs, `arg.calls[callCount - 1][3]`);
         assert.strictEqual(arg.calls[callCount - 1][4], binding.locator, `arg.calls[callCount - 1][4]`);
       }
 
@@ -2967,9 +3163,9 @@ describe('ValueConverterExpression', function () {
   ];
 
   const $2ndEvaluateVariations: (($1: $1, $2: $2, $3: $3) => /* evaluate */(value: any) => void)[] = [
-    ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => (newValue) => {
+    ([t1, flags], [t2, signals, signaler], [t3, scope, hs, sut, mock, locator, binding, value, argValues, methods]) => (newValue) => {
       // act
-      const actual = sut.evaluate(flags, scope, null, binding.locator);
+      const actual = sut.evaluate(flags, scope, hs, binding.locator);
 
       // assert
       assert.strictEqual(actual, newValue, `actual`);
@@ -2998,7 +3194,7 @@ describe('ValueConverterExpression', function () {
           assert.strictEqual(arg.calls[callCount - 1][0], 'evaluate', `arg.calls[callCount - 1][0]`);
           assert.strictEqual(arg.calls[callCount - 1][1], flags, `arg.calls[callCount - 1][1]`);
           assert.strictEqual(arg.calls[callCount - 1][2], scope, `arg.calls[callCount - 1][2]`);
-          assert.strictEqual(arg.calls[callCount - 1][3], null, `arg.calls[callCount - 1][3]`);
+          assert.strictEqual(arg.calls[callCount - 1][3], hs, `arg.calls[callCount - 1][3]`);
           assert.strictEqual(arg.calls[callCount - 1][4], binding.locator, `arg.calls[callCount - 1][4]`);
         }
       }
@@ -3008,15 +3204,15 @@ describe('ValueConverterExpression', function () {
       assert.strictEqual(expr.calls[3][0], 'evaluate', `expr.calls[3][0]`);
       assert.strictEqual(expr.calls[3][1], flags, `expr.calls[3][1]`);
       assert.strictEqual(expr.calls[3][2], scope, `expr.calls[3][2]`);
-      assert.strictEqual(expr.calls[3][3], null, `expr.calls[3][3]`);
+      assert.strictEqual(expr.calls[3][3], hs, `expr.calls[3][3]`);
       assert.strictEqual(expr.calls[3][4], binding.locator, `expr.calls[3][4]`);
     }
   ];
 
   const unbindVariations: (($1: $1, $2: $2, $3: $3) => /* unbind */() => void)[] = [
-    ([t1, flags], [t2, signals, signaler], [t3, scope, sut, mock, locator, binding, value, argValues, methods]) => () => {
+    ([t1, flags], [t2, signals, signaler], [t3, scope, hs, sut, mock, locator, binding, value, argValues, methods]) => () => {
       // act
-      sut.unbind(flags, scope, null, binding);
+      sut.unbind(flags, scope, hs, binding);
 
       // assert
       // const offset = methods.length;

@@ -30,10 +30,10 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
   };
 
   function getSource(selector: (((store: Store<T>) => Observable<R>))): Observable<any> {
-    // if for some reason getSource is invoked before setup (bind lifecycle, typically)
+    // if for some reason getSource is invoked before setup (beforeBind lifecycle, typically)
     // then we have no choice but to get the store instance from global container instance
     // otherwise, assume that $store variable in the closure would be already assigned the right
-    // value from created callback
+    // value from create callback
     // Could also be in situation where it doesn't come from custom element, or some exotic setups/scenarios
     const store = $store || ($store = STORE.container.get(Store) as Store<T>);
     const source = selector(store);
@@ -68,29 +68,25 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function (target: any) {
-    const originalCreated = target.prototype.created;
+    const originalCreate = target.prototype.create;
     const originalSetup = typeof settings === 'object' && settings.setup
       ? target.prototype[settings.setup]
-      : target.prototype.bind;
+      : target.prototype.beforeBind;
     const originalTeardown = typeof settings === 'object' && settings.teardown
       ? target.prototype[settings.teardown]
-      : target.prototype.unbind;
+      : target.prototype.beforeUnbind;
 
     // only override if prototype callback is a function
-    if (typeof originalCreated === 'function' || originalCreated === undefined) {
-      target.prototype.created = function created(): void {
-        // here we relies on the fact that the class Store
-        // has not been registered somewhere in one of child containers, instead of root container
-        // if there is any issue with this approach, needs to walk all the way up to resolve from root
-        // typically like invoking from global Container.instance
+    if (typeof originalCreate === 'function' || originalCreate === undefined) {
+      target.prototype.create = function create(): void {
         $store = this.$context.get(Store);
-        if (originalCreated !== undefined) {
-          return originalCreated.call(this);
+        if (originalCreate !== undefined) {
+          return originalCreate.call(this);
         }
       };
     }
 
-    target.prototype[typeof settings === 'object' && settings.setup !== undefined ? settings.setup : 'bind'] = function () {
+    target.prototype[typeof settings === 'object' && settings.setup !== undefined ? settings.setup : 'beforeBind'] = function () {
       if (typeof settings === 'object' &&
         typeof settings.onChanged === 'string' &&
         !(settings.onChanged in this)) {
@@ -120,7 +116,7 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
       }
     };
 
-    target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'unbind'] = function () {
+    target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'beforeUnbind'] = function () {
       if (this._stateSubscriptions && Array.isArray(this._stateSubscriptions)) {
         this._stateSubscriptions.forEach((sub: Subscription) => {
           if (sub instanceof Subscription && sub.closed === false) {

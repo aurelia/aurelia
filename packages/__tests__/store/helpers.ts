@@ -44,13 +44,10 @@ export function createStoreWithStateAndOptions<T>(state: T, options: Partial<Sto
   return new Store<T>(state, createLogger(), options);
 }
 
-export type Spied<T> = {
-  [Method in keyof T]: T[Method];
-};
-
 export function createCallCounter(object: any, forMethod: string, callThrough = true) {
   const spyObj = {
     callCounter: 0,
+    lastArgs: undefined,
     reset() {
       object[forMethod] = origMethod;
       spyObj.callCounter = 0;
@@ -60,9 +57,10 @@ export function createCallCounter(object: any, forMethod: string, callThrough = 
 
   object[forMethod] = (...args) => {
     spyObj.callCounter++;
+    spyObj.lastArgs = args;
 
     if (callThrough) {
-      origMethod(...args);
+      origMethod.apply(object, ...args);
     }
   };
 

@@ -222,8 +222,8 @@ describe("using decorators", function () {
     assert.equal(sut.test, "foobar");
   });
 
-  describe("the beforeUnbind lifecycle-method", function () {
-    it("should apply original beforeUnbind method after patch", function () {
+  describe("the afterUnbind lifecycle-method", function () {
+    it("should apply original afterUnbind method after patch", function () {
       const { initialState } = arrange();
 
       @connectTo()
@@ -231,7 +231,7 @@ describe("using decorators", function () {
         public state: DemoState;
         public test: string = "";
 
-        public beforeUnbind() {
+        public afterUnbind() {
           this.test = "foobar";
         }
       }
@@ -242,12 +242,12 @@ describe("using decorators", function () {
 
       assert.equal(sut.state, initialState);
 
-      (sut as any).beforeUnbind();
+      (sut as any).afterUnbind();
 
       assert.equal(sut.test, "foobar");
     });
 
-    it("should automatically unsubscribe when beforeUnbind is called", function () {
+    it("should automatically unsubscribe when afterUnbind is called", function () {
       const { initialState } = arrange();
 
       @connectTo()
@@ -267,14 +267,14 @@ describe("using decorators", function () {
       assert.equal(sut.state, initialState);
       assert.equal(subscription.closed, false);
 
-      (sut as any).beforeUnbind();
+      (sut as any).afterUnbind();
 
       assert.notEqual(subscription, undefined);
       assert.equal(subscription.closed, true);
       assert.greaterThanOrEqualTo(spyObj.callCounter, 1);
     });
 
-    it("should automatically unsubscribe from all sources when beforeUnbind is called", function () {
+    it("should automatically unsubscribe from all sources when afterUnbind is called", function () {
       arrange();
 
       @connectTo({
@@ -299,7 +299,7 @@ describe("using decorators", function () {
       assert.equal(subscriptions[0].closed, false);
       assert.equal(subscriptions[1].closed, false);
 
-      (sut as any).beforeUnbind();
+      (sut as any).afterUnbind();
 
       assert.notEqual(subscriptions[0], undefined);
       assert.notEqual(subscriptions[1], undefined);
@@ -331,7 +331,7 @@ describe("using decorators", function () {
 
       const { spyObj } = createCallCounter(subscription, "unsubscribe");
 
-      (sut as any).beforeUnbind();
+      (sut as any).afterUnbind();
 
       assert.notEqual(subscription, undefined);
       assert.equal(spyObj.callCounter, 0);
@@ -355,7 +355,7 @@ describe("using decorators", function () {
         const subscription = subscriptions[0];
         const { spyObj } = createCallCounter(subscription, "unsubscribe");
 
-        (sut as any).beforeUnbind();
+        (sut as any).afterUnbind();
 
         assert.notEqual(subscription, undefined);
         assert.equal(spyObj.callCounter, 0);
@@ -368,7 +368,7 @@ describe("using decorators", function () {
       arrange();
 
       const expectedBeforeBindResult = "foo";
-      const expectedBeforeUnbindResult = "bar";
+      const expectedafterUnbindResult = "bar";
 
       @connectTo<DemoState>({
         selector: (store) => store.state
@@ -380,15 +380,15 @@ describe("using decorators", function () {
           return expectedBeforeBindResult;
         }
 
-        public beforeUnbind() {
-          return expectedBeforeUnbindResult;
+        public afterUnbind() {
+          return expectedafterUnbindResult;
         }
       }
 
       const sut = new DemoStoreConsumer();
 
       assert.equal(sut.beforeBind(), expectedBeforeBindResult);
-      assert.equal(sut.beforeUnbind(), expectedBeforeUnbindResult);
+      assert.equal(sut.afterUnbind(), expectedafterUnbindResult);
     });
 
     it("should allow to specify a lifecycle hook for the subscription", function () {

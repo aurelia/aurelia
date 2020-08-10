@@ -74,7 +74,7 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
       : target.prototype.beforeBind;
     const originalTeardown = typeof settings === 'object' && settings.teardown
       ? target.prototype[settings.teardown]
-      : target.prototype.beforeUnbind;
+      : target.prototype.afterUnbind;
 
     // only override if prototype callback is a function
     if (typeof originalCreate === 'function' || originalCreate === undefined) {
@@ -116,7 +116,7 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
       }
     };
 
-    target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'beforeUnbind'] = function () {
+    target.prototype[typeof settings === 'object' && settings.teardown ? settings.teardown : 'afterUnbind'] = function () {
       if (this._stateSubscriptions && Array.isArray(this._stateSubscriptions)) {
         this._stateSubscriptions.forEach((sub: Subscription) => {
           if (sub instanceof Subscription && sub.closed === false) {

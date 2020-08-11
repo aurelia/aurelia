@@ -309,7 +309,7 @@ describe('au-slot', function () {
         </my-element>
         <my-element people.bind="people">
           <template au-slot="grid">
-            <ul><li repeat.for="person of $host.people">\${person.lastName}, \${person.firstName}</li></ul>
+            <ul><li repeat.for="person of $host.people">\${person.firstName} \${person.lastName}</li></ul>
           </template>
         </my-element>`,
         [
@@ -317,7 +317,7 @@ describe('au-slot', function () {
         ],
         {
           'my-element': `<ul><li>Doe, John</li><li>Mustermann, Max</li></ul>`,
-          'my-element:nth-of-type(2)': `<ul><li>Doe, John</li><li>Mustermann, Max</li></ul>`,
+          'my-element:nth-of-type(2)': `<ul><li>John Doe</li><li>Max Mustermann</li></ul>`,
         },
       );
 

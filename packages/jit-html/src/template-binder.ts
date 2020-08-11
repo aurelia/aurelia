@@ -400,10 +400,7 @@ export class TemplateBinder {
       // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
       parentManifest.childNodes.push(manifestProxy);
     } else if (hasProjection) {
-      const $projection = new ProjectionSymbol(projection!);
-      $projection.parent = parentManifest;
-      $projection.template = manifestProxy;
-      projectionOwner!.projections.push($projection);
+      projectionOwner!.projections.push(new ProjectionSymbol(projection!, manifestProxy));
       node.removeAttribute('au-slot');
       node.remove();
     }

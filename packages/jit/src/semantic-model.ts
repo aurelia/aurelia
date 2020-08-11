@@ -120,9 +120,7 @@ export class ProjectionSymbol<TText extends INode = INode, TElement extends INod
 
   public constructor(
     public name: string,
-    public physicalNode: TElement | null = null,
-    public parent: ParentNodeSymbol<TText, TElement, TMarker> | null = null,
-    public template: ParentNodeSymbol<TText, TElement, TMarker> | null = null,
+    public template: ParentNodeSymbol<TText, TElement, TMarker> | null,
   ) {}
 }
 

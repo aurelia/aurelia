@@ -64,6 +64,8 @@ export class UnregisteredActionError<T, P extends any[]> extends Error {
 }
 
 export class DevToolsRemoteDispatchError extends Error {}
+export class ActionRegistrationError extends Error {}
+export class ReducerNoStateError extends Error {}
 
 export class Store<T> {
   public readonly state: Observable<T>;
@@ -115,7 +117,7 @@ export class Store<T> {
   public registerAction(name: string, reducer: Reducer<T>) {
     if (reducer.length === 0) {
       // The reducer is expected to have one or more parameters, where the first will be the present state
-      Reporter.error(508);
+      throw new ActionRegistrationError("The reducer is expected to have one or more parameters, where the first will be the present state");
     }
 
     this.actions.set(reducer, { type: name });
@@ -264,7 +266,7 @@ export class Store<T> {
       PLATFORM.performance.mark(`dispatch-after-reducer-${action.type}`);
 
       if (!result && typeof result !== "object") {
-        throw new Error("The reducer has to return a new state");
+        throw new ReducerNoStateError("The reducer has to return a new state");
       }
     }
 

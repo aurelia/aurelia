@@ -1,10 +1,11 @@
-import { IContainer, PLATFORM, Reporter, ILogger } from '@aurelia/kernel';
+import { IContainer, PLATFORM, Reporter, ILogger, DI } from '@aurelia/kernel';
+import { HTMLDOM } from "@aurelia/runtime-html";
 import { BehaviorSubject, Observable } from 'rxjs';
 
 import { jump, applyLimits, HistoryOptions, isStateHistory } from './history';
 import { Middleware, MiddlewarePlacement, CallingAction } from './middleware';
-import { LogDefinitions, LogLevel, getLogType, GenericLogger } from './logging';
-import { DevToolsOptions, Action } from './devtools';
+import { LogDefinitions, LogLevel, getLogType } from './logging';
+import { DevToolsOptions, Action, DevToolsExtension, DevTools } from './devtools';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Reducer<T, P extends any[] = any[]> = (state: T, ...params: P) => T | false | Promise<T | false>;
@@ -43,32 +44,50 @@ export const STORE: { container: IContainer } = {
   container: null!
 };
 
+// TODO: @Fred IGlobal.Kernel as abstraction for PLATFORM.global
+export const IStoreWindow = DI.createInterface<IStoreWindow>('IStoreWindow')
+  .withDefault(x => x.callback(handler => {
+    if (handler.has(HTMLDOM, true)) {
+      return handler.get(HTMLDOM).window;
+    }
+    return {} as unknown as IStoreWindow;
+  }));
+export interface IStoreWindow extends Window {
+  devToolsExtension?: DevToolsExtension;
+  __REDUX_DEVTOOLS_EXTENSION__?: DevToolsExtension;
+}
+
 export class UnregisteredActionError<T, P extends any[]> extends Error {
   public constructor(reducer?: string | Reducer<T, P>) {
     super(`Tried to dispatch an unregistered action ${reducer && (typeof reducer === "string" ? reducer : reducer.name)}`);
   }
 }
 
+export class DevToolsRemoteDispatchError extends Error {}
+
 export class Store<T> {
   public readonly state: Observable<T>;
   // TODO: need an alternative for the Reporter which supports multiple log levels
-  private readonly logger: GenericLogger;
   private devToolsAvailable: boolean = false;
-  private devTools: any;
+  private devTools?: DevTools<T>;
   private readonly actions: Map<Reducer<T>, Action<string>> = new Map();
   private readonly middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement; settings?: any }> = new Map();
   private readonly _state: BehaviorSubject<T>;
   private readonly options: Partial<StoreOptions>;
   private readonly dispatchQueue: DispatchQueueItem<T>[] = [];
 
-  public constructor(private readonly initialState: T, @ILogger logger: ILogger, options?: Partial<StoreOptions>) {
+  public constructor(
+    private readonly initialState: T,
+    @ILogger private readonly logger: ILogger,
+    @IStoreWindow private readonly window: IStoreWindow,
+    options?: Partial<StoreOptions>
+  ) {
     this.options = options || {};
-    this.logger = logger;
     const isUndoable = this.options?.history?.undoable === true;
     this._state = new BehaviorSubject<T>(initialState);
     this.state = this._state.asObservable();
 
-    if (!this.options?.devToolsOptions?.disable !== true) {
+    if (this.options?.devToolsOptions?.disable !== true) {
       this.setupDevTools();
     }
 
@@ -326,11 +345,11 @@ export class Store<T> {
 
   private setupDevTools() {
     // TODO: needs a better solution for global override
-    if ((PLATFORM.global as any).devToolsExtension) {
+    if (this.window.__REDUX_DEVTOOLS_EXTENSION__) {
       this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)]("DevTools are available");
       this.devToolsAvailable = true;
-    // TODO: needs a better solution for global override
-      this.devTools = (PLATFORM.global as any).__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
+      // TODO: needs a better solution for global override
+      this.devTools = this.window.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
       this.devTools.init(this.initialState);
 
       this.devTools.subscribe((message: any) => {
@@ -343,16 +362,16 @@ export class Store<T> {
           const action = this.lookupAction(message.payload.name) || byName && byName[0];
 
           if (!action) {
-            throw new Error("Tried to remotely dispatch an unregistered action");
+            throw new DevToolsRemoteDispatchError("Tried to remotely dispatch an unregistered action");
           }
 
           if (!message.payload.args || message.payload.args.length < 1) {
-            throw new Error("No action arguments provided");
+            throw new DevToolsRemoteDispatchError("No action arguments provided");
           }
 
           this.dispatch(action, ...message.payload.args.slice(1).map((arg: string) => JSON.parse(arg))).catch((e) => {
-            throw new Error("Issue when trying to dispatch an action through devtools");
-           });
+            throw new DevToolsRemoteDispatchError("Issue when trying to dispatch an action through devtools");
+          });
           return;
         }
 
@@ -363,17 +382,17 @@ export class Store<T> {
               this._state.next(JSON.parse(message.state));
               return;
             case "COMMIT":
-              this.devTools.init(this._state.getValue());
+              this.devTools!.init(this._state.getValue());
               return;
             case "RESET":
-              this.devTools.init(this.initialState);
+              this.devTools!.init(this.initialState);
               this.resetToState(this.initialState);
               return;
             case "ROLLBACK": {
               const parsedState = JSON.parse(message.state);
 
               this.resetToState(parsedState);
-              this.devTools.init(parsedState);
+              this.devTools!.init(parsedState);
               return;
             }
           }
@@ -384,7 +403,7 @@ export class Store<T> {
 
   private updateDevToolsState(action: Action<string>, state: T) {
     if (this.devToolsAvailable) {
-      this.devTools.send(action, state);
+      this.devTools!.send(action, state);
     }
   }
 

@@ -5,6 +5,16 @@ export interface Action<T = any> {
 
 export type ActionCreator<T> = (...args: unknown[]) => T;
 
+export interface DevToolsExtension {
+  connect: (options?: DevToolsOptions) => DevTools<any>;
+}
+
+export interface DevTools<T> {
+  init: (initialState: T) => void;
+  subscribe: (message: any) => void;
+  send: (action: Action<string>, state: T) => void;
+}
+
 export interface DevToolsOptions {
   /**
    * If disable is true, devtools monitoring

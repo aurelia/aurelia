@@ -1,6 +1,6 @@
 import { IContainer, Registration, Reporter, ILogger } from '@aurelia/kernel';
 import { isStateHistory } from './history';
-import { Store, STORE, StoreOptions } from './store';
+import { Store, STORE, StoreOptions, IStoreWindow } from './store';
 
 export interface StorePluginOptions<T> extends StoreOptions {
   initialState: T;
@@ -28,6 +28,7 @@ export const StoreConfiguration: IConfigure = {
     const state = Reflect.get(this, 'state') || {};
     const options: Partial<StorePluginOptions<unknown>> = Reflect.get(this, 'options');
     const logger = container.get(ILogger);
+    const window = container.get(IStoreWindow);
 
     if (!options || !state) {
       Reporter.error(506);
@@ -41,7 +42,7 @@ export const StoreConfiguration: IConfigure = {
 
     Reflect.deleteProperty(this, 'initialState');
 
-    Registration.instance(Store, new Store(initState, logger, options)).register(container);
+    Registration.instance(Store, new Store(initState, logger, window, options)).register(container);
 
     return container;
   }

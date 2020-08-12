@@ -2,10 +2,10 @@ import { Subscription } from 'rxjs';
 import { distinctUntilChanged, pluck } from 'rxjs/operators';
 import { customElement } from '@aurelia/runtime';
 import { assert } from "@aurelia/testing";
-import { DI, Registration, ILogger } from '@aurelia/kernel';
+import { DI, Registration } from '@aurelia/kernel';
 import { STORE, Store, connectTo } from '@aurelia/store';
 
-import { createCallCounter } from "./helpers";
+import { createCallCounter, createDI } from "./helpers";
 
 interface DemoState {
   foo: string;
@@ -15,8 +15,8 @@ interface DemoState {
 function arrange() {
   const initialState = { foo: 'Lorem', bar: 'Ipsum' };
   const container = DI.createContainer();
-  const logger = container.get(ILogger);
-  const store: Store<DemoState> = new Store(initialState, logger);
+  const { logger, storeWindow } = createDI();
+  const store: Store<DemoState> = new Store(initialState, logger, storeWindow);
   container.register(Registration.instance(Store, store));
 
   STORE.container = container;

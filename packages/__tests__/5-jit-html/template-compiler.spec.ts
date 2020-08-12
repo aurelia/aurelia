@@ -38,6 +38,8 @@ import {
   Aurelia,
   IProjections,
   ITargetedInstruction,
+  getRenderContext,
+  CustomElementType,
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
 import {
@@ -1598,4 +1600,43 @@ describe('TemplateCompiler - local templates', function () {
     );
   });
 
+});
+
+describe('TemplateCompiler - au-slot', function () {
+  function createFixture() {
+    const ctx = TestContext.createHTMLTestContext();
+    const container = ctx.container;
+    const sut = ctx.templateCompiler;
+    return { ctx, container, sut };
+  }
+  function createCustomElement(template: string, name: string = 'my-element') {
+    return CustomElement.define({ name, isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, }, class MyElement { });
+  }
+  class TestData {
+    public constructor(
+      public readonly template: string,
+      public readonly customElements: CustomElementType[],
+      public readonly verifyProjectionMap: (projectionMap: Map<ITargetedInstruction, Record<string, CustomElementDefinition>>) => void,
+    ) { }
+  }
+  function* getTestData() {
+    yield new TestData(
+      `<div au-slot></div>`,
+      [],
+      (pm) => {
+        assert.strictEqual(pm.size, 0, JSON.stringify(pm, undefined, 2));
+      }
+    );
+  }
+  for (const { customElements, template, verifyProjectionMap } of getTestData()) {
+    it(`compiles - ${template}`, function () {
+      const { sut, container } = createFixture();
+      container.register(...customElements);
+      const partialDefinition = CustomElement.define({ name: 'my-ce', template });
+      const projections = undefined;
+      const targetedProjections = null;
+      const compiledDefinition = sut.compile(partialDefinition, getRenderContext(partialDefinition, container, projections), targetedProjections);
+      verifyProjectionMap(compiledDefinition.projectionsMap);
+    });
+  }
 });

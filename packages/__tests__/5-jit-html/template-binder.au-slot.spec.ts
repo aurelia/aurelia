@@ -211,30 +211,6 @@ describe('template-binder.au-slot', function () {
       [createElement('')]
     );
     yield new TestData(
-      '<my-element><div au-slot="s1"><div au-slot="s2"></div></div></my-element>',
-      (mfr, dom) => {
-        const ce = (mfr.childNodes[0] as CustomElementSymbol);
-        assert.instanceOf(ce, CustomElementSymbol);
-        assert.includes(ce.res, 'my-element');
-        assert.deepStrictEqual(
-          ce.projections,
-          [
-            // because attribute binding is done after the children nodes binding
-            new ProjectionSymbol(
-              "s2",
-              new PlainElementSymbol(dom, dom.createElement('div'))
-            ),
-            new ProjectionSymbol(
-              "s1",
-              new PlainElementSymbol(dom, dom.createElement('div'))
-            ),
-          ]);
-      },
-      [
-        createElement(''),
-      ]
-    );
-    yield new TestData(
       '<my-element1><div au-slot="s1"><my-element2><div au-slot="s1"></div></my-element2></div></my-element1>',
       (mfr, dom, factory, resources) => {
         const ce = (mfr.childNodes[0] as CustomElementSymbol);
@@ -301,25 +277,38 @@ describe('template-binder.au-slot', function () {
     });
   }
 
-  const invalidMarkup = [
-    `<my-element> <div au-slot if.bind="false">dp</div> <div au-slot="s1">s1p</div> </my-element>`,
-    `<my-element> <div if.bind="false" au-slot>dp</div> <div else au-slot="s1">s1p</div> </my-element>`,
-    `<my-element> <div if.bind="true" au-slot>dp</div> <div else au-slot="s1">s1p</div> </my-element>`,
-    `<my-element> <div au-slot repeat.for="i of 1">dp</div> <div au-slot="s1">s1p</div> </my-element>`,
-    `<my-element> <div au-slot repeat.for="i of 1" with.bind="i">dp</div> <div au-slot="s1">s1p</div> </my-element>`,
-    `<my-element> <div au-slot with.bind="{item: 'foo'}">dp</div> <div au-slot="s1">s1p</div> </my-element>`,
-    ...['infrequent-mutations', 'frequent-mutations', 'observe-shallow']
-      .map((flags) => `<my-element> <div au-slot ${flags}>dp</div> <div au-slot="s1">s1p</div> </my-element>`),
-  ];
-  for (const markup of invalidMarkup) {
+  class InvalidMarkupTestData {
+    public constructor(
+      public readonly markup: string,
+      public readonly errorRe: RegExp,
+    ) { }
+  }
+
+  function* getInvalidMarkupTestData() {
+    const re1 = /Unsupported usage of \[au-slot=".+"\] along with a template controller \(if, else, repeat\.for etc\.\) found \(example: <some-el au-slot if\.bind="true"><\/some-el>\)\./;
+    yield new InvalidMarkupTestData(`<my-element> <div au-slot if.bind="false">dp</div> <div au-slot="s1">s1p</div> </my-element>`, re1);
+    yield new InvalidMarkupTestData(`<my-element> <div if.bind="false" au-slot>dp</div> <div else au-slot="s1">s1p</div> </my-element>`, re1);
+    yield new InvalidMarkupTestData(`<my-element> <div if.bind="true" au-slot>dp</div> <div else au-slot="s1">s1p</div> </my-element>`, re1);
+    yield new InvalidMarkupTestData(`<my-element> <div au-slot repeat.for="i of 1">dp</div> <div au-slot="s1">s1p</div> </my-element>`, re1);
+    yield new InvalidMarkupTestData(`<my-element> <div au-slot repeat.for="i of 1" with.bind="i">dp</div> <div au-slot="s1">s1p</div> </my-element>`, re1);
+    yield new InvalidMarkupTestData(`<my-element> <div au-slot with.bind="{item: 'foo'}">dp</div> <div au-slot="s1">s1p</div> </my-element>`, re1);
+    yield* ['infrequent-mutations', 'frequent-mutations', 'observe-shallow']
+      .map((flags) => new InvalidMarkupTestData(`<my-element> <div au-slot ${flags}>dp</div> <div au-slot="s1">s1p</div> </my-element>`, re1));
+
+    const re2 = /Unsupported usage of \[au-slot=".+"\]. It seems that projection is attempted, but not for a custom element./;
+    yield new InvalidMarkupTestData('<div au-slot></div>', re2);
+    yield new InvalidMarkupTestData('<template><div au-slot></div></template>', re2);
+    yield new InvalidMarkupTestData('<my-element><div><div au-slot></div></div><my-element>', re2);
+    yield new InvalidMarkupTestData('<my-element><div au-slot="s1"><div au-slot="s2"></div></div></my-element>', re2);
+  }
+
+  for (const { markup, errorRe } of getInvalidMarkupTestData()) {
     it(`throws binding ${markup}`, function () {
       const ctx = setup([createElement('')]);
       const factory = ctx.factory;
       const template = factory.createTemplate(markup) as HTMLTemplateElement;
 
-      assert.throws(() => {
-        ctx.binder.bind(template);
-      }, /Unsupported usage of \[au-slot\] along with a template controller \(if, else, repeat\.for etc\.\) found \(example: <some-el au-slot if\.bind="true"><\/some-el>\)\./);
+      assert.throws(() => { ctx.binder.bind(template); }, errorRe);
     });
   }
 });

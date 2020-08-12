@@ -340,7 +340,7 @@ export class Controller<
     const compiledDefinition = compiledContext.compiledDefinition;
 
     compiledContext.registerProjections(compiledDefinition.projectionsMap, scope);
-    compiledDefinition.projectionsMap.clear();
+    compiledDefinition.projectionsMap.clear(); // once the projections are registered, we can cleanup the projection map to prevent memory leaks.
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
     const projectorLocator = parentContainer.get(IProjectorLocator);

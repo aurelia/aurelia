@@ -385,12 +385,25 @@ export class TemplateBinder {
     const hasProjection = projection !== null;
     if (hasProjection && isTemplateControllerOf(manifestProxy, manifest)) {
       // prevents <some-el au-slot TEMPLATE.CONTROLLER></some-el>.
-      throw new Error('Unsupported usage of [au-slot] along with a template controller (if, else, repeat.for etc.) found (example: <some-el au-slot if.bind="true"></some-el>).');
+      throw new Error(`Unsupported usage of [au-slot="${projection}"] along with a template controller (if, else, repeat.for etc.) found (example: <some-el au-slot if.bind="true"></some-el>).`);
       /**
        * TODO: prevent <template TEMPLATE.CONTROLLER><some-el au-slot></some-el></template>.
        * But there is not easy way for now, as the attribute binding is done after binding the child nodes.
        * This means by the time the template controller in the ancestor is processed, the projection is already registered.
        */
+    }
+    const parentName = node.parentNode?.nodeName.toLowerCase();
+    if (hasProjection
+      && (manifestRoot === null
+        || parentName === void 0
+        || this.resources.getElementInfo(parentName!) === null)) {
+      /**
+       * Prevents the following cases:
+       * - <template><div au-slot></div></template>
+       * - <my-ce><div><div au-slot></div></div></my-ce>
+       * - <my-ce><div au-slot="s1"><div au-slot="s2"></div></div></my-ce>
+       */
+      throw new Error(`Unsupported usage of [au-slot="${projection}"]. It seems that projection is attempted, but not for a custom element.`);
     }
 
     processTemplateControllers(this.dom, manifestProxy, manifest);

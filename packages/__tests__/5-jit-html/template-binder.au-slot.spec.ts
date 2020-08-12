@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-hooks, mocha/no-sibling-hooks */
 import { CustomElementSymbol, IAttributeParser, PlainElementSymbol, ProjectionSymbol, ResourceModel, SymbolFlags, TemplateControllerSymbol } from '@aurelia/jit';
 import { IAttrSyntaxTransformer, ITemplateElementFactory, TemplateBinder } from '@aurelia/jit-html';
 import { AuSlot, CustomElement, CustomElementType, IDOM, IExpressionParser, INode } from '@aurelia/runtime';
@@ -11,6 +12,14 @@ describe('template-binder.au-slot', function () {
       public readonly customElements: CustomElementType[] = [],
     ) { }
   }
+  class AuSlotTestContext {
+    public constructor(
+      public readonly binder: TemplateBinder,
+      public readonly factory: ITemplateElementFactory,
+      public readonly dom: IDOM,
+      public readonly resources: ResourceModel,
+    ) { }
+  }
   function createElement(template: string, name: string = 'my-element') {
     return CustomElement.define({ name, isStrictBinding: true, template }, class MyElement { });
   }
@@ -18,6 +27,25 @@ describe('template-binder.au-slot', function () {
     assert.instanceOf(ce, CustomElementSymbol);
     assert.greaterThan(ce.flags | SymbolFlags.isAuSlot, 0);
     assert.strictEqual(ce.slotName, expectedSlotName);
+  }
+  function setup(customElements: CustomElementType[] = []) {
+    const ctx = TestContext.createHTMLTestContext();
+    const { dom, container } = ctx;
+
+    container.register(AuSlot, ...customElements);
+
+    const resources = new ResourceModel(container);
+
+    const attrParser = container.get(IAttributeParser);
+    const exprParser = container.get(IExpressionParser);
+    const transformer = container.get(IAttrSyntaxTransformer);
+
+    return new AuSlotTestContext(
+      new TemplateBinder(dom, resources, attrParser, exprParser, transformer),
+      container.get(ITemplateElementFactory),
+      dom,
+      resources,
+    );
   }
   function* getTestData() {
     // #region <au-slot>
@@ -265,22 +293,33 @@ describe('template-binder.au-slot', function () {
   }
   for (const { markup, verify, customElements } of getTestData()) {
     it(markup, function () {
-      const ctx = TestContext.createHTMLTestContext();
-      const { dom, container } = ctx;
-
-      container.register(AuSlot, ...customElements);
-
-      const resources = new ResourceModel(container);
-
-      const attrParser = container.get(IAttributeParser);
-      const exprParser = container.get(IExpressionParser);
-      const transformer = container.get(IAttrSyntaxTransformer);
-      const factory = container.get(ITemplateElementFactory);
-
-      const sut = new TemplateBinder(dom, resources, attrParser, exprParser, transformer);
+      const ctx = setup(customElements);
+      const factory = ctx.factory;
       const template = factory.createTemplate(markup) as HTMLTemplateElement;
 
-      verify(sut.bind(template), dom, factory, resources);
+      verify(ctx.binder.bind(template), ctx.dom, factory, ctx.resources);
+    });
+  }
+
+  const invalidMarkup = [
+    `<my-element> <div au-slot if.bind="false">dp</div> <div au-slot="s1">s1p</div> </my-element>`,
+    `<my-element> <div if.bind="false" au-slot>dp</div> <div else au-slot="s1">s1p</div> </my-element>`,
+    `<my-element> <div if.bind="true" au-slot>dp</div> <div else au-slot="s1">s1p</div> </my-element>`,
+    `<my-element> <div au-slot repeat.for="i of 1">dp</div> <div au-slot="s1">s1p</div> </my-element>`,
+    `<my-element> <div au-slot repeat.for="i of 1" with.bind="i">dp</div> <div au-slot="s1">s1p</div> </my-element>`,
+    `<my-element> <div au-slot with.bind="{item: 'foo'}">dp</div> <div au-slot="s1">s1p</div> </my-element>`,
+    ...['infrequent-mutations', 'frequent-mutations', 'observe-shallow']
+      .map((flags) => `<my-element> <div au-slot ${flags}>dp</div> <div au-slot="s1">s1p</div> </my-element>`),
+  ];
+  for (const markup of invalidMarkup) {
+    it(`throws binding ${markup}`, function () {
+      const ctx = setup([createElement('')]);
+      const factory = ctx.factory;
+      const template = factory.createTemplate(markup) as HTMLTemplateElement;
+
+      assert.throws(() => {
+        ctx.binder.bind(template);
+      }, /Unsupported usage of \[au-slot\] along with a template controller \(if, else, repeat\.for etc\.\) found \(example: <some-el au-slot if\.bind="true"><\/some-el>\)\./);
     });
   }
 });

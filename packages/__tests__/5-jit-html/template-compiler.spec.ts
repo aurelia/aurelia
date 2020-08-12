@@ -507,7 +507,6 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         instructions: [[childInstr]],
         needsCompile: false,
         enhance: false,
-        projections: [],
         projectionsMap: new Map<ITargetedInstruction, IProjections>(),
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
@@ -523,7 +522,6 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       instructions: [[instruction]],
       needsCompile: false,
       enhance: false,
-      projections: [],
       projectionsMap: new Map<ITargetedInstruction, IProjections>(),
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
@@ -548,7 +546,6 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         instructions,
         needsCompile: false,
         enhance: false,
-        projections: [],
         projectionsMap: new Map<ITargetedInstruction, IProjections>(),
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
@@ -565,7 +562,6 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       instructions: [[instruction]],
       needsCompile: false,
       enhance: false,
-      projections: [],
       projectionsMap: new Map<ITargetedInstruction, IProjections>(),
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
@@ -606,7 +602,6 @@ function createCustomElement(
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
     enhance: false,
-    projections: [],
     projectionsMap: new Map<ITargetedInstruction, IProjections>(),
   };
   return [input, output];
@@ -645,7 +640,6 @@ function createCustomAttribute(
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
     enhance: false,
-    projections: [],
     projectionsMap: new Map<ITargetedInstruction, IProjections>(),
   };
   return [input, output];
@@ -764,7 +758,6 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
           needsCompile: false,
           enhance: false,
-          projections: [],
           projectionsMap: new Map<ITargetedInstruction, IProjections>(),
         };
 
@@ -838,7 +831,6 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
           needsCompile: false,
           enhance: false,
-          projections: [],
           projectionsMap: new Map<ITargetedInstruction, IProjections>(),
         };
 
@@ -1105,7 +1097,6 @@ describe(`TemplateCompiler - combinations`, function () {
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
           needsCompile: false,
           enhance: false,
-          projections: [],
           projectionsMap: new Map<ITargetedInstruction, IProjections>(),
         };
         // enableTracing();

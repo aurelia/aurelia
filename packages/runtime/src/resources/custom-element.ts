@@ -56,7 +56,6 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly strategy?: BindingStrategy;
   readonly hooks?: Readonly<HooksDefinition>;
   readonly enhance?: boolean;
-  readonly projections?: CustomElementDefinition[];
   readonly projectionsMap?: Map<ITargetedInstruction, IProjections>;
 }>;
 
@@ -212,7 +211,6 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
     public readonly strategy: BindingStrategy,
     public readonly hooks: Readonly<HooksDefinition>,
     public readonly enhance: boolean,
-    public readonly projections: CustomElementDefinition[],
     public readonly projectionsMap: Map<ITargetedInstruction, IProjections>,
   ) {}
 
@@ -271,7 +269,6 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         fromDefinitionOrDefault('strategy', def, () => BindingStrategy.getterSetter),
         fromDefinitionOrDefault('hooks', def, () => HooksDefinition.none),
         fromDefinitionOrDefault('enhance', def, () => false),
-        mergeArrays(def.projections),
         fromDefinitionOrDefault('projectionsMap', def as CustomElementDefinition, () => new Map<ITargetedInstruction, IProjections>()),
       );
     }
@@ -310,7 +307,6 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
         fromAnnotationOrTypeOrDefault('enhance', Type, () => false),
-        mergeArrays(CustomElement.getAnnotation(Type, 'projections'), Type.projections),
         fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => new Map<ITargetedInstruction, IProjections>()),
       );
     }
@@ -354,7 +350,6 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false),
-      mergeArrays(CustomElement.getAnnotation(Type, 'projections'), nameOrDef.projections, Type.projections),
       fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => new Map<ITargetedInstruction, IProjections>()),
     );
   }

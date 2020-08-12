@@ -68,7 +68,6 @@ import {
 class CustomElementCompilationUnit {
   public readonly instructions: ITargetedInstruction[][] = [];
   public readonly surrogates: ITargetedInstruction[] = [];
-  public readonly projections: CustomElementDefinition[] = [];
   public readonly projectionsMap: Map<ITargetedInstruction, IProjections> = new Map<ITargetedInstruction, IProjections>();
 
   public constructor(
@@ -84,7 +83,6 @@ class CustomElementCompilationUnit {
       ...def,
       instructions: mergeArrays(def.instructions, this.instructions),
       surrogates: mergeArrays(def.surrogates, this.surrogates),
-      projections: this.projections,
       template: this.template,
       needsCompile: false,
       hasSlots: this.surrogate.hasSlots,

@@ -340,6 +340,7 @@ export class Controller<
     const compiledDefinition = compiledContext.compiledDefinition;
 
     compiledContext.registerProjections(compiledDefinition.projectionsMap, scope);
+    compiledDefinition.projectionsMap.clear();
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
     const projectorLocator = parentContainer.get(IProjectorLocator);

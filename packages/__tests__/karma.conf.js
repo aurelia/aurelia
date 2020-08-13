@@ -1,4 +1,5 @@
 const path = require('path');
+const { DefinePlugin } = require('webpack');
 
 const basePath = path.resolve(__dirname);
 
@@ -28,6 +29,7 @@ module.exports = function (config) {
     browsers = ['Chrome'];
   }
 
+  const pkgArg = process.argv.find((arg) => new RegExp(/--pkg=(.*)/).exec(arg));
   const setup = 'setup-browser' + (config.package ? '-' + config.package : '');
   const options = {
     basePath,
@@ -53,6 +55,9 @@ module.exports = function (config) {
     },
     webpack: {
       mode: 'none',
+      plugins: [
+        new DefinePlugin({ PKG_TO_TEST: JSON.stringify("./" + new RegExp(/--pkg=(.*)/).exec(pkgArg)[1]  + "/") || "" })
+      ],
       resolve: {
         extensions: [
           '.js',

@@ -43,18 +43,24 @@ function importAll(r) {
   r.keys().forEach(r);
 }
 
-// Explicitly add to browser test
-importAll(require.context('./1-kernel/', true, /\.spec\.js$/));
-importAll(require.context('./2-runtime/', true, /\.spec\.js$/));
-importAll(require.context('./3-runtime-html/', true, /\.spec\.js$/));
-importAll(require.context('./4-jit/', true, /\.spec\.js$/));
-importAll(require.context('./5-jit-html/', true, /\.spec\.js$/));
+declare let PKG_TO_TEST: string;
 
-importAll(require.context('./web-components/', true, /\.spec\.js$/));
-importAll(require.context('./fetch-client/', true, /\.spec\.js$/));
-importAll(require.context('./i18n/', true, /\.spec\.js$/));
-importAll(require.context('./integration/', true, /\.spec\.js$/));
-importAll(require.context('./router/', true, /\.spec\.js$/));
-importAll(require.context('./validation/', true, /\.spec\.js$/));
-importAll(require.context('./validation-html/', true, /\.spec\.js$/));
-importAll(require.context('./validation-i18n/', true, /\.spec\.js$/));
+if (PKG_TO_TEST !== "") {
+  importAll(require.context(PKG_TO_TEST, true, /\.spec\.js$/));
+} else {
+  // Explicitly add to browser test
+  importAll(require.context('./1-kernel/', true, /\.spec\.js$/));
+  importAll(require.context('./2-runtime/', true, /\.spec\.js$/));
+  importAll(require.context('./3-runtime-html/', true, /\.spec\.js$/));
+  importAll(require.context('./4-jit/', true, /\.spec\.js$/));
+  importAll(require.context('./5-jit-html/', true, /\.spec\.js$/));
+
+  importAll(require.context('./web-components/', true, /\.spec\.js$/));
+  importAll(require.context('./fetch-client/', true, /\.spec\.js$/));
+  importAll(require.context('./i18n/', true, /\.spec\.js$/));
+  importAll(require.context('./integration/', true, /\.spec\.js$/));
+  importAll(require.context('./router/', true, /\.spec\.js$/));
+  importAll(require.context('./validation/', true, /\.spec\.js$/));
+  importAll(require.context('./validation-html/', true, /\.spec\.js$/));
+  importAll(require.context('./validation-i18n/', true, /\.spec\.js$/));
+}

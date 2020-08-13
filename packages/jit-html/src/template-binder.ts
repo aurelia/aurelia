@@ -41,6 +41,7 @@ import {
 
 const invalidSurrogateAttribute = Object.assign(Object.create(null), {
   'id': true,
+  'au-slot': true,
 }) as Record<string, boolean | undefined>;
 
 const attributesToIgnore = Object.assign(Object.create(null), {

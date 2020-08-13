@@ -295,11 +295,13 @@ describe('template-binder.au-slot', function () {
     yield* ['infrequent-mutations', 'frequent-mutations', 'observe-shallow']
       .map((flags) => new InvalidMarkupTestData(`<my-element> <div au-slot ${flags}>dp</div> <div au-slot="s1">s1p</div> </my-element>`, re1));
 
-    const re2 = /Unsupported usage of \[au-slot=".+"\]. It seems that projection is attempted, but not for a custom element./;
+    const re2 = /Unsupported usage of \[au-slot=".+"\]\. It seems that projection is attempted, but not for a custom element./;
     yield new InvalidMarkupTestData('<div au-slot></div>', re2);
     yield new InvalidMarkupTestData('<template><div au-slot></div></template>', re2);
     yield new InvalidMarkupTestData('<my-element><div><div au-slot></div></div><my-element>', re2);
     yield new InvalidMarkupTestData('<my-element><div au-slot="s1"><div au-slot="s2"></div></div></my-element>', re2);
+
+    yield new InvalidMarkupTestData('<template au-slot></template>', /Invalid surrogate attribute: au-slot/);
   }
 
   for (const { markup, errorRe } of getInvalidMarkupTestData()) {

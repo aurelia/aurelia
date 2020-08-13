@@ -40,8 +40,6 @@ export const StoreConfiguration: IConfigure = {
       initState = { past: [], present: state, future: [] };
     }
 
-    Reflect.deleteProperty(this, 'initialState');
-
     Registration.instance(Store, new Store(initState, logger, window, options)).register(container);
 
     return container;

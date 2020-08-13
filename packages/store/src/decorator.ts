@@ -1,4 +1,5 @@
 import { Reporter } from '@aurelia/kernel';
+import { Controller } from "@aurelia/runtime";
 import { Observable, Subscription } from 'rxjs';
 
 import { Store, STORE } from './store';
@@ -29,13 +30,7 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
     ...settings
   };
 
-  function getSource(selector: (((store: Store<T>) => Observable<R>))): Observable<any> {
-    // if for some reason getSource is invoked before setup (beforeBind lifecycle, typically)
-    // then we have no choice but to get the store instance from global container instance
-    // otherwise, assume that $store variable in the closure would be already assigned the right
-    // value from create callback
-    // Could also be in situation where it doesn't come from custom element, or some exotic setups/scenarios
-    const store = $store || ($store = STORE.container.get(Store) as Store<T>);
+  function getSource(store: Store<T>, selector: (((store: Store<T>) => Observable<R>))): Observable<any> {
     const source = selector(store);
 
     if (source instanceof Observable) {
@@ -68,23 +63,12 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function (target: any) {
-    const originalCreate = target.prototype.create;
     const originalSetup = typeof settings === 'object' && settings.setup
       ? target.prototype[settings.setup]
       : target.prototype.beforeBind;
     const originalTeardown = typeof settings === 'object' && settings.teardown
       ? target.prototype[settings.teardown]
       : target.prototype.afterUnbind;
-
-    // only override if prototype callback is a function
-    if (typeof originalCreate === 'function' || originalCreate === undefined) {
-      target.prototype.create = function create(): void {
-        $store = this.$context.get(Store);
-        if (originalCreate !== undefined) {
-          return originalCreate.call(this);
-        }
-      };
-    }
 
     target.prototype[typeof settings === 'object' && settings.setup !== undefined ? settings.setup : 'beforeBind'] = function () {
       if (typeof settings === 'object' &&
@@ -94,7 +78,11 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
         throw Reporter.error(510);
       }
 
-      this._stateSubscriptions = createSelectors().map(s => getSource(s.selector).subscribe((state: any) => {
+      const store = Controller.getCached(this)
+        ? Controller.getCached(this)!.context.get<Store<T>>(Store)
+        : STORE.container.get<Store<T>>(Store); // TODO: need to get rid of this helper for classic unit tests
+
+      this._stateSubscriptions = createSelectors().map(s => getSource(store, s.selector).subscribe((state: any) => {
         const lastTargetIdx = s.targets.length - 1;
         const oldState = s.targets.reduce((accu = {}, curr) => accu[curr], this);
 

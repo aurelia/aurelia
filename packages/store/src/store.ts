@@ -1,4 +1,4 @@
-import { IContainer, PLATFORM, Reporter, ILogger, DI } from '@aurelia/kernel';
+import { IContainer, PLATFORM, ILogger, DI } from '@aurelia/kernel';
 import { HTMLDOM } from "@aurelia/runtime-html";
 import { BehaviorSubject, Observable } from 'rxjs';
 

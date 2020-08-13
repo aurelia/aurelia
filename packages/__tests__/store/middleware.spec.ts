@@ -18,6 +18,13 @@ import {
   createCallCounter
 } from "./helpers";
 
+function mockLocalStorage(patch: unknown) {
+  Object.defineProperty(PLATFORM.global, "localStorage", {
+    value: patch,
+    configurable: true
+  });
+}
+
 describe("middlewares", function () {
   interface TestState {
     counter: number;
@@ -560,7 +567,7 @@ describe("middlewares", function () {
     it("should provide a localStorage middleware", function (done) {
       const store = createStoreWithState(initialState);
 
-      (PLATFORM.global as any).localStorage = {
+      mockLocalStorage({
         store: { foo: "bar" },
         getItem(key: string) {
           return this.store[key] || null;
@@ -568,7 +575,7 @@ describe("middlewares", function () {
         setItem(key: string, value: string) {
           this.store[key] = value;
         }
-      };
+      });
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
 
@@ -587,7 +594,7 @@ describe("middlewares", function () {
     it("should provide a localStorage middleware supporting a custom key", function (done) {
       const store = createStoreWithState(initialState);
       const storageKey = "foobar";
-      (PLATFORM.global as any).localStorage = {
+      mockLocalStorage({
         store: { foo: "bar" },
         getItem(key: string) {
           return this.store[key] || null;
@@ -595,7 +602,7 @@ describe("middlewares", function () {
         setItem(key: string, value: string) {
           this.store[key] = value;
         }
-      };
+      });
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After, { key: storageKey });
 
@@ -614,14 +621,14 @@ describe("middlewares", function () {
     it("should rehydrate state from localStorage", function (done) {
       const store = createStoreWithState(initialState);
 
-      (PLATFORM.global as any).localStorage = {
+      mockLocalStorage({
         getItem() {
           const storedState = { ...initialState };
           storedState.counter = 1000;
 
           return JSON.stringify(storedState);
         }
-      };
+      });
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
@@ -639,14 +646,14 @@ describe("middlewares", function () {
       const store = createStoreWithState(initialState);
       const key = "foobar";
 
-      (PLATFORM.global as any).localStorage = {
+      mockLocalStorage({
         getItem() {
           const storedState = { ...initialState };
           storedState.counter = 1000;
 
           return JSON.stringify(storedState);
         }
-      };
+      });
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After, { key });
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
@@ -663,7 +670,7 @@ describe("middlewares", function () {
     it("should rehydrate from previous state if localStorage is not available", function (done) {
       const store = createStoreWithState(initialState);
 
-      (PLATFORM.global as any).localStorage = undefined;
+      mockLocalStorage(undefined);
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
@@ -680,11 +687,11 @@ describe("middlewares", function () {
     it("should rehydrate from previous state if localStorage is empty", function (done) {
       const store = createStoreWithState(initialState);
 
-      (PLATFORM.global as any).localStorage = {
+      mockLocalStorage({
         getItem() {
           return null;
         }
-      };
+      });
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
@@ -701,14 +708,14 @@ describe("middlewares", function () {
     it("should rehydrate from history state", function (done) {
       const store = createStoreWithState(initialHistoryState, true);
 
-      (PLATFORM.global as any).localStorage = {
+      mockLocalStorage({
         getItem() {
           const storedState = { ...initialState };
           storedState.counter = 1000;
 
           return JSON.stringify({ past: [], present: storedState, future: [] });
         }
-      };
+      });
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);
@@ -725,11 +732,11 @@ describe("middlewares", function () {
     it("should return the previous state if localStorage state cannot be parsed", function (done) {
       const store = createStoreWithState(initialState);
 
-      (PLATFORM.global as any).localStorage = {
+      mockLocalStorage({
         getItem() {
           return global;
         }
-      };
+      });
 
       store.registerMiddleware(localStorageMiddleware, MiddlewarePlacement.After);
       store.registerAction("Rehydrate", rehydrateFromLocalStorage);

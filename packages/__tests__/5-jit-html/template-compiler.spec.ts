@@ -38,8 +38,12 @@ import {
   Aurelia,
   IProjections,
   ITargetedInstruction,
-  getRenderContext,
   CustomElementType,
+  AuSlot,
+  RegisteredProjections,
+  TargetedInstructionType,
+  AuSlotContentType,
+  IScope,
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
 import {
@@ -49,7 +53,9 @@ import {
   TestContext,
   verifyBindingInstructionsEqual,
   generateCartesianProduct,
+  createScopeForTest,
 } from '@aurelia/testing';
+import { ITemplateElementFactory } from '@aurelia/jit-html';
 
 export function createAttribute(name: string, value: string): Attr {
   const attr = document.createAttribute(name);
@@ -585,7 +591,7 @@ function createCustomElement(
     type: TT.hydrateElement,
     res: tagName,
     instructions: childInstructions,
-    slotInfo:  null,
+    slotInfo: null,
   };
   const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
   const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput && childInput.template) || ''}</${tagName}>`;
@@ -1612,31 +1618,91 @@ describe('TemplateCompiler - au-slot', function () {
   function createCustomElement(template: string, name: string = 'my-element') {
     return CustomElement.define({ name, isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, }, class MyElement { });
   }
+  type ProjectionMap = Map<ITargetedInstruction, Record<string, CustomElementDefinition>>;
+
+  class ExpectedSlotInfo {
+    public constructor(
+      public readonly slotName: string,
+      public readonly contentType: AuSlotContentType,
+      public readonly content: string,
+      public readonly scope: IScope | null = null,
+    ) { }
+  }
   class TestData {
     public constructor(
       public readonly template: string,
       public readonly customElements: CustomElementType[],
-      public readonly verifyProjectionMap: (projectionMap: Map<ITargetedInstruction, Record<string, CustomElementDefinition>>) => void,
+      public readonly targetedProjections: RegisteredProjections | null,
+      public readonly expectedProjections: [string, Record<string, string>][],
+      public readonly expectedSlotInfos: ExpectedSlotInfo[],
     ) { }
   }
   function* getTestData() {
     yield new TestData(
-      `<div au-slot></div>`,
+      `<my-element><div au-slot></div></my-element>`,
+      [createCustomElement('')],
+      null,
+      [['my-element', { 'default': '<div></div>' }]],
       [],
-      (pm) => {
-        assert.strictEqual(pm.size, 0, JSON.stringify(pm, undefined, 2));
-      }
+    );
+    yield new TestData(
+      `<my-element><div au-slot="s1">p1</div><div au-slot="s2">p2</div></my-element>`,
+      [createCustomElement('')],
+      null,
+      [['my-element', { 's1': '<div>p1</div>', 's2': '<div>p2</div>' }]],
+      [],
+    );
+    const s1 = createScopeForTest();
+    yield new TestData(
+      `<au-slot name="s1">s1fb</au-slot><au-slot name="s2"><div>s2fb</div></au-slot>`,
+      [],
+      null,
+      [],
+      [
+        new ExpectedSlotInfo('s1', AuSlotContentType.Fallback, 's1fb'),
+        new ExpectedSlotInfo('s2', AuSlotContentType.Fallback, '<div>s2fb</div>'),
+      ],
     );
   }
-  for (const { customElements, template, verifyProjectionMap } of getTestData()) {
+  for (const { customElements, template, targetedProjections, expectedProjections, expectedSlotInfos } of getTestData()) {
     it(`compiles - ${template}`, function () {
       const { sut, container } = createFixture();
-      container.register(...customElements);
-      const partialDefinition = CustomElement.define({ name: 'my-ce', template });
-      const projections = undefined;
-      const targetedProjections = null;
-      const compiledDefinition = sut.compile(partialDefinition, getRenderContext(partialDefinition, container, projections), targetedProjections);
-      verifyProjectionMap(compiledDefinition.projectionsMap);
+      container.register(AuSlot, ...customElements);
+      const factory = container.get(ITemplateElementFactory);
+
+      const compiledDefinition = sut.compile(
+        CustomElementDefinition.create({ name: 'my-ce', template }, class MyCe { }),
+        container,
+        targetedProjections
+      );
+
+      const actual = Array.from(compiledDefinition.projectionsMap);
+      const ii = actual.length;
+      assert.strictEqual(ii, expectedProjections.length, 'actual.size');
+      for (let i = 0; i < ii; i++) {
+        const [ceName, ep] = expectedProjections[i];
+        const [instruction, ap] = actual[i];
+        assert.includes((instruction as HydrateElementInstruction).res, ceName);
+        assert.deepStrictEqual(Object.keys(ap), Object.keys(ep));
+        for (const [key, { template: actualTemplate }] of Object.entries(ap)) {
+          assert.deepStrictEqual(actualTemplate, factory.createTemplate(ep[key]));
+        }
+      }
+
+      const allInstructions = compiledDefinition.instructions.flat();
+      for (const expectedSlotInfo of expectedSlotInfos) {
+        const actualInstruction = allInstructions.find((i) =>
+          i.type === TargetedInstructionType.hydrateElement
+          && (i as HydrateElementInstruction).res.includes('au-slot')
+          && (i as HydrateElementInstruction).slotInfo.name === expectedSlotInfo.slotName
+        ) as HydrateElementInstruction;
+        assert.notEqual(actualInstruction, void 0, 'instruction');
+        const actualSlotInfo = actualInstruction.slotInfo;
+        assert.strictEqual(actualSlotInfo.type, expectedSlotInfo.contentType, 'content type');
+        const pCtx = actualSlotInfo.projectionContext;
+        assert.deepStrictEqual(pCtx.scope, expectedSlotInfo.scope, 'scope');
+        assert.deepStrictEqual(pCtx.content.template, factory.createTemplate(expectedSlotInfo.content), 'content');
+      }
     });
   }
 });

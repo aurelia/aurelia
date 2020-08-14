@@ -23,6 +23,7 @@ describe('I18N', function () {
       mockSignaler
     );
     await sut.task.wait();
+    await sut.setLocale('en');
     return { i18nextSpy, sut, eaSpy, mockSignaler };
   }
 
@@ -220,7 +221,7 @@ describe('I18N', function () {
     it('formats a given number considering it as UNIX timestamp', async function () {
       const { sut } = await createFixture();
 
-      assert.equal(sut.df(0), new Date(0).toLocaleDateString());
+      assert.equal(sut.df(0), new Date(0).toLocaleDateString('en'));
     });
   });
 

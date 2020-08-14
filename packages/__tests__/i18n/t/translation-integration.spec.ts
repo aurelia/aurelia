@@ -84,6 +84,7 @@ describe('translation-integration', function () {
       .start()
       .wait();
     const i18n = au.container.get(I18N);
+    await i18n.setLocale('en');
 
     return {
       en: translation, de: deTranslation, container: au.container, i18n, ctx, tearDown: async () => {
@@ -1048,10 +1049,10 @@ describe('translation-integration', function () {
 
   describe('`df` value-converter', function () {
     const cases = [
-      { name: 'works for date object', input: new Date(2019, 7, 20), output: new Date('8/20/2019').toLocaleDateString() },
-      { name: 'works for ISO 8601 date string', input: new Date(2019, 7, 20).toISOString(), output: new Date('8/20/2019').toLocaleDateString() },
-      { name: 'works for integer', input: 0, output: new Date(0).toLocaleDateString() },
-      { name: 'works for integer string', input: '0', output: new Date(0).toLocaleDateString() },
+      { name: 'works for date object', input: new Date(2019, 7, 20), output: new Date('8/20/2019').toLocaleDateString('en') },
+      { name: 'works for ISO 8601 date string', input: new Date(2019, 7, 20).toISOString(), output: new Date('8/20/2019').toLocaleDateString('en') },
+      { name: 'works for integer', input: 0, output: new Date(0).toLocaleDateString('en') },
+      { name: 'works for integer string', input: '0', output: new Date(0).toLocaleDateString('en') },
       { name: 'returns undefined for undefined', input: undefined, output: undefined },
       { name: 'returns null for null', input: null, output: null },
       { name: 'returns empty string for empty string', input: '', output: '' },
@@ -1117,10 +1118,10 @@ describe('translation-integration', function () {
 
   describe('`df` binding-behavior', function () {
     const cases = [
-      { name: 'works for date object', input: new Date(2019, 7, 20), output: new Date('8/20/2019').toLocaleDateString() },
-      { name: 'works for ISO 8601 date string', input: new Date(2019, 7, 20).toISOString(), output: new Date('8/20/2019').toLocaleDateString() },
-      { name: 'works for integer', input: 0, output: new Date(0).toLocaleDateString() },
-      { name: 'works for integer string', input: '0', output: new Date(0).toLocaleDateString() },
+      { name: 'works for date object', input: new Date(2019, 7, 20), output: new Date('8/20/2019').toLocaleDateString('en') },
+      { name: 'works for ISO 8601 date string', input: new Date(2019, 7, 20).toISOString(), output: new Date('8/20/2019').toLocaleDateString('en') },
+      { name: 'works for integer', input: 0, output: new Date(0).toLocaleDateString('en') },
+      { name: 'works for integer string', input: '0', output: new Date(0).toLocaleDateString('en') },
       { name: 'returns undefined for undefined', input: undefined, output: undefined },
       { name: 'returns null for null', input: null, output: null },
       { name: 'returns empty string for empty string', input: '', output: '' },

@@ -11,7 +11,6 @@ import {
   IScope,
   ObservedCollection
 } from './observation';
-import { CustomElementDefinition } from './resources/custom-element';
 
 export type IsPrimary = IAccessThisExpression | IAccessScopeExpression | IArrayLiteralExpression | IObjectLiteralExpression | IPrimitiveLiteralExpression | ITemplateExpression;
 export type IsLiteral = IArrayLiteralExpression | IObjectLiteralExpression | IPrimitiveLiteralExpression | ITemplateExpression;

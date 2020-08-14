@@ -1,9 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from './flags';
 import { ILifecycle } from './lifecycle';
-import { CustomElementDefinition } from './resources/custom-element';
-import { IProjections } from './resources/custom-elements/au-slot';
-import { ITargetedInstruction } from './definitions';
 
 /** @internal */
 export const enum SubscriberFlags {

@@ -1,5 +1,4 @@
 import { I18N, I18nConfiguration, Signals } from '@aurelia/i18n';
-import { IRegistration } from '@aurelia/kernel';
 import { Aurelia, bindable, customElement, CustomElement, DOM, INode, ISignaler } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 

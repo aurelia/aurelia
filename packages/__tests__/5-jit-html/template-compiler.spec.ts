@@ -1730,7 +1730,7 @@ describe('TemplateCompiler - au-slot', function () {
         assert.includes((instruction as HydrateElementInstruction).res, ceName);
         assert.deepStrictEqual(Object.keys(ap), Object.keys(ep));
         for (const [key, { template: actualTemplate }] of Object.entries(ap)) {
-          assert.deepStrictEqual(actualTemplate, factory.createTemplate(ep[key]));
+          assert.deepStrictEqual((actualTemplate as HTMLTemplateElement).outerHTML, `<template>${ep[key]}</template>`, 'projections');
         }
       }
 
@@ -1746,7 +1746,7 @@ describe('TemplateCompiler - au-slot', function () {
         assert.strictEqual(actualSlotInfo.type, expectedSlotInfo.contentType, 'content type');
         const pCtx = actualSlotInfo.projectionContext;
         assert.deepStrictEqual(pCtx.scope, expectedSlotInfo.scope, 'scope');
-        assert.deepStrictEqual(pCtx.content.template, factory.createTemplate(expectedSlotInfo.content), 'content');
+        assert.deepStrictEqual((pCtx.content.template as HTMLElement).outerHTML, `<template>${expectedSlotInfo.content}</template>`, 'content');
         assert.deepStrictEqual(pCtx.content.needsCompile, false, 'needsCompile');
       }
     });

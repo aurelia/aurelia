@@ -104,6 +104,8 @@ describe('I18N', function () {
 
   it('setLocale changes the active language of i18next', async function () {
     const { sut, eaSpy, mockSignaler } = await createFixture();
+    eaSpy.clearCallRecords();
+    mockSignaler.calls.splice(0);
 
     await sut.setLocale('de');
 

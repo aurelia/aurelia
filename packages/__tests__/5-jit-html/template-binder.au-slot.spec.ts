@@ -156,17 +156,13 @@ describe('template-binder.au-slot', function () {
     );
     yield new TestData(
       '<au-slot name="s1"><div au-slot></div></au-slot>',
-      (mfr, dom) => {
+      (mfr) => {
         const node = (mfr.childNodes[0] as CustomElementSymbol);
         verifyAuSlot(node, "s1");
+        // comparing DOM directly fails in node and FF
         assert.deepStrictEqual(
-          node.projections,
-          [
-            new ProjectionSymbol(
-              "default",
-              new PlainElementSymbol(dom, dom.createElement('div'))
-            )
-          ]);
+          node.projections.map((p) => [p.name, (p.template.physicalNode as HTMLElement).outerHTML]),
+          [["default", '<div></div>']]);
       }
     );
     // #endregion
@@ -174,39 +170,25 @@ describe('template-binder.au-slot', function () {
     // #region [au-slot]
     yield new TestData(
       '<my-element><div au-slot></div></my-element>',
-      (mfr, dom) => {
+      (mfr) => {
         const ce = (mfr.childNodes[0] as CustomElementSymbol);
         assert.instanceOf(ce, CustomElementSymbol);
         assert.includes(ce.res, 'my-element');
         assert.deepStrictEqual(
-          ce.projections,
-          [
-            new ProjectionSymbol(
-              "default",
-              new PlainElementSymbol(dom, dom.createElement('div'))
-            )
-          ]);
+          ce.projections.map((p) => [p.name, (p.template.physicalNode as HTMLElement).outerHTML]),
+          [["default", '<div></div>']]);
       },
       [createElement('')]
     );
     yield new TestData(
       '<my-element><div au-slot="s1"></div><div au-slot="s2"></div></my-element>',
-      (mfr, dom) => {
+      (mfr) => {
         const ce = (mfr.childNodes[0] as CustomElementSymbol);
         assert.instanceOf(ce, CustomElementSymbol);
         assert.includes(ce.res, 'my-element');
         assert.deepStrictEqual(
-          ce.projections,
-          [
-            new ProjectionSymbol(
-              "s1",
-              new PlainElementSymbol(dom, dom.createElement('div'))
-            ),
-            new ProjectionSymbol(
-              "s2",
-              new PlainElementSymbol(dom, dom.createElement('div'))
-            )
-          ]);
+          ce.projections.map((p) => [p.name, (p.template.physicalNode as HTMLElement).outerHTML]),
+          [["s1", '<div></div>'], ["s2", '<div></div>']]);
       },
       [createElement('')]
     );
@@ -227,7 +209,7 @@ describe('template-binder.au-slot', function () {
             mel1
           ),
         ];
-        assert.deepStrictEqual(ce.projections, expected);
+        assert.deepStrictEqual(JSON.parse(JSON.stringify(ce.projections)), JSON.parse(JSON.stringify(expected)));
       },
       [
         createElement('', 'my-element1'),
@@ -236,29 +218,19 @@ describe('template-binder.au-slot', function () {
     );
     yield new TestData(
       '<my-element1><div au-slot="s1"></div></my-element1><my-element2><div au-slot="s1"></div></my-element2>',
-      (mfr, dom) => {
+      (mfr) => {
         const ce1 = (mfr.childNodes[0] as CustomElementSymbol);
         assert.instanceOf(ce1, CustomElementSymbol);
         assert.includes(ce1.res, 'my-element1');
         assert.deepStrictEqual(
-          ce1.projections,
-          [
-            new ProjectionSymbol(
-              "s1",
-              new PlainElementSymbol(dom, dom.createElement('div'))
-            )
-          ]);
+          ce1.projections.map((p) => [p.name, (p.template.physicalNode as HTMLElement).outerHTML]),
+          [["s1", '<div></div>']]);
         const ce2 = (mfr.childNodes[1] as CustomElementSymbol);
         assert.instanceOf(ce2, CustomElementSymbol);
         assert.includes(ce2.res, 'my-element2');
         assert.deepStrictEqual(
-          ce2.projections,
-          [
-            new ProjectionSymbol(
-              "s1",
-              new PlainElementSymbol(dom, dom.createElement('div'))
-            )
-          ]);
+          ce2.projections.map((p) => [p.name, (p.template.physicalNode as HTMLElement).outerHTML]),
+          [["s1", '<div></div>']]);
       },
       [
         createElement('', 'my-element1'),

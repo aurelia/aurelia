@@ -261,6 +261,17 @@ describe('validate-binding-behavior', function () {
         .withMessage('Not foo');
     }
   }
+  @customElement({ name: 'editor1', template: `<au-slot name="content"><input id="target" value.bind="person.name & validate"></au-slot>` })
+  class Editor1 {
+    public readonly person = new Person(void 0, void 0);
+    public constructor(@IValidationRules validationRules: IValidationRules) {
+      validationRules
+        .on(this.person)
+        .ensure('name')
+        .satisfies((name) => name === 'foo')
+        .withMessage('Not foo');
+    }
+  }
   interface TestSetupContext extends $TestSetupContext {
     template: string;
     customDefaultTrigger?: ValidationTrigger;
@@ -291,6 +302,7 @@ describe('validate-binding-behavior', function () {
         InterceptorBindingBehavior,
         VanillaBindingBehavior,
         Editor,
+        Editor1,
         Registration.instance(IObserveCollection, observeCollection),
       )
       .app({
@@ -1263,7 +1275,7 @@ describe('validate-binding-behavior', function () {
       assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
     },
     {
-      template: `<editor><input au-slot="content" id="target" value.two-way="person.name & validate"><editor>`
+      template: `<editor><input au-slot="content" id="target" value.two-way="person.name & validate"></editor>`
     }
   );
   $it('works with au-slot - projected part with $host',
@@ -1283,7 +1295,27 @@ describe('validate-binding-behavior', function () {
       assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
     },
     {
-      template: `<editor><input au-slot="content" id="target" value.two-way="$host.person.name & validate"><editor>`
+      template: `<editor><input au-slot="content" id="target" value.two-way="$host.person.name & validate"></editor>`
+    }
+  );
+  $it('works with au-slot - non-projected part',
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
+      const controller = app.controller;
+
+      const target: HTMLInputElement = host.querySelector('editor1 #target');
+      assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
+
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+      await controller.validate();
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), ['Not foo']);
+
+      target.value = 'foo';
+      await assertEventHandler(target, 'change', 0, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+    },
+    {
+      template: `<editor1></editor1>`
     }
   );
 
@@ -1304,7 +1336,7 @@ describe('validate-binding-behavior', function () {
       assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
     },
     {
-      template: `<editor><input id="target" value.two-way="person.name & validate"><editor>`
+      template: `<editor><input id="target" value.two-way="person.name & validate"></editor>`
     }
   );
   // #endregion

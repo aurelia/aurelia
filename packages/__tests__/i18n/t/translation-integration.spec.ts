@@ -8,6 +8,11 @@ describe('translation-integration', function () {
   class CustomMessage {
     @bindable public message: string;
   }
+  @customElement({ name: 'foo-bar', template: `<au-slot><span t="status" t-params.bind="{context: status, date: date}"></span></au-slot>`, isStrictBinding: true })
+  class FooBar {
+    @bindable public status: string;
+    @bindable public date: string;
+  }
 
   async function createFixture(host: INode, component: unknown, aliases?: string[], skipTranslationOnMissingKey = false) {
     /* eslint-disable @typescript-eslint/camelcase */
@@ -74,7 +79,7 @@ describe('translation-integration', function () {
         };
         config.translationAttributeAliases = aliases;
       }))
-      .register(CustomMessage as unknown as IRegistration)
+      .register(CustomMessage, FooBar)
       .app({ host, component })
       .start()
       .wait();
@@ -1612,5 +1617,39 @@ describe('translation-integration', function () {
       await createFixture(host, new App(), undefined, true);
       assertTextContent(host, 'span', text);
     });
+  });
+
+  describe('works with au-slot', function () {
+    it('w/o projection', async function () {
+      @customElement({ name: 'app', template: `<foo-bar status="delivered" date="1971-12-25"></foo-bar>`, isStrictBinding: true })
+      class App { }
+
+      const host = DOM.createElement('app');
+      await createFixture(host, new App());
+      assertTextContent(host, 'span', 'delivered on 1971-12-25');
+    });
+    it('with projection', async function () {
+      @customElement({ name: 'app', template: `<foo-bar status="delivered" date="1971-12-25"><div au-slot t="status" t-params.bind="{context: status, date: date}"></div></foo-bar>`, isStrictBinding: true })
+      class App {
+        private readonly status: string = 'dispatched';
+        private readonly date: string = '1972-12-26';
+      }
+
+      const host = DOM.createElement('app');
+      await createFixture(host, new App());
+      assertTextContent(host, 'div', 'dispatched on 1972-12-26');
+    });
+    it('with projection - mixed', async function () {
+      @customElement({ name: 'app', template: `<foo-bar status="delivered" date="1971-12-25"><div au-slot t="status" t-params.bind="{context: status, date: $host.date}"></div></foo-bar>`, isStrictBinding: true })
+      class App {
+        private readonly status: string = 'dispatched';
+        private readonly date: string = '1972-12-26';
+      }
+
+      const host = DOM.createElement('app');
+      await createFixture(host, new App());
+      assertTextContent(host, 'div', 'dispatched on 1971-12-25');
+    });
+
   });
 });

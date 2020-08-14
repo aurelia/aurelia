@@ -1647,7 +1647,7 @@ describe('TemplateCompiler - au-slot', function () {
         scope,
         Object.entries(projections)
           .reduce((acc: Record<string, CustomElementDefinition>, [key, template]) => {
-            acc[key] = CustomElementDefinition.create({ name: CustomElement.generateName(), template: factory.createTemplate(template), needsCompile: false })
+            acc[key] = CustomElementDefinition.create({ name: CustomElement.generateName(), template: factory.createTemplate(template), needsCompile: false });
             return acc;
           }, Object.create(null))
       );

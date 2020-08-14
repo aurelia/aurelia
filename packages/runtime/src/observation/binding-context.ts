@@ -96,6 +96,7 @@ export class BindingContext implements IBindingContext {
       throw Reporter.error(RuntimeError.NilScope);
     }
 
+    /* eslint-disable jsdoc/check-indentation */
     /**
      * This fallback is needed to support the following case:
      * <div au-slot="s1">
@@ -106,6 +107,7 @@ export class BindingContext implements IBindingContext {
      * However, as the expression `${outerHost.prop}` does not start with `$host`, it is considered that to evaluate this expression, we don't need the access to hostScope.
      * This artifact raises the need for this fallback.
      */
+    /* eslint-enable jsdoc/check-indentation */
     let context = chooseContext(scope, name, ancestor);
     if (context !== null) { return context; }
     if (hostScope !== scope && hostScope != null) {

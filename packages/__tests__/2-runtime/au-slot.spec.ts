@@ -242,6 +242,24 @@ describe('au-slot', function () {
       );
     }
 
+    {
+      @customElement({ name: 'my-element', isStrictBinding: true, template: `<ul if.bind="someCondition"><au-slot></au-slot></ul> <div else><au-slot></au-slot></div>` })
+      class MyElement {
+        @bindable public someCondition: boolean = true;
+      }
+      yield new TestData(
+        'works with template controller - if-else - same slot name',
+        `
+        <my-element some-condition.bind="true"> <template au-slot><li>1</li><li>2</li></template> </my-element>
+        <my-element some-condition.bind="false"> <template au-slot><span>1</span><span>2</span></template> </my-element>
+        `,
+        [
+          MyElement,
+        ],
+        { 'my-element': `<ul><li>1</li><li>2</li></ul>`, 'my-element+my-element': `<div><span>1</span><span>2</span></div>` },
+      );
+    }
+
     // #region `repeat.for`
     {
       @customElement({

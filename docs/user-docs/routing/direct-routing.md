@@ -38,7 +38,7 @@ As you will see, the direct routing approach requires no configuration. We impor
 <import from="./test-component.html"></import>
 
 <ul>
-    <li><a goto="test-component">Test Component</a></li>
+    <li><a goto="/test-component">Test Component</a></li>
 </ul>
 
 <au-viewport></au-viewport>
@@ -66,7 +66,7 @@ To access parameters from the route, we can get those from the router lifecycle 
 <import from="./test-component"></import>
 
 <ul>
-    <li><a goto="test-component(hello)">Test Component</a></li>
+    <li><a goto="/test-component(hello)">Test Component</a></li>
 </ul>
 
 <au-viewport></au-viewport>
@@ -104,7 +104,7 @@ You can name your route parameters inline by specifying the name inside of the `
 <import from="./test-component"></import>
 
 <ul>
-    <li><a goto="test-component(named=hello)">Test Component</a></li>
+    <li><a goto="/test-component(named=hello)">Test Component</a></li>
 </ul>
 
 <au-viewport></au-viewport>
@@ -142,7 +142,7 @@ While you can name them inline, specifying them inside of your component makes i
 <import from="./test-component"></import>
 
 <ul>
-    <li><a goto="test-component(hello)">Test Component</a></li>
+    <li><a goto="/test-component(hello)">Test Component</a></li>
 </ul>
 
 <au-viewport></au-viewport>

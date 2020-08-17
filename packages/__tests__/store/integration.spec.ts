@@ -1,12 +1,13 @@
 import { Subscription } from 'rxjs';
 import { INode, Aurelia, customElement, DOM } from '@aurelia/runtime';
 import { TestContext, assert } from '@aurelia/testing';
-import { StoreConfiguration, Store, connectTo } from "@aurelia/store";
+import { StoreConfiguration, Store, connectTo, StoreOptions } from "@aurelia/store";
 import { Constructable } from '@aurelia/kernel';
 
 import { testState } from './helpers';
 
-async function createFixture(host: INode, component: Constructable) {
+
+async function createFixture(host: INode, component: Constructable, options?: StoreOptions) {
   const initialState: testState = {
     foo: "bar",
     bar: "whatever"
@@ -15,7 +16,7 @@ async function createFixture(host: INode, component: Constructable) {
   const ctx = TestContext.createHTMLTestContext();
   const au = new Aurelia(ctx.container);
 
-  await au.register(StoreConfiguration.initialState(initialState))
+  await au.register(StoreConfiguration.withInitialState(initialState).withOptions(options))
     .app({ host, component })
     .start()
     .wait();
@@ -25,6 +26,7 @@ async function createFixture(host: INode, component: Constructable) {
   return {
     container: au.container,
     ctx,
+    initialState,
     store,
     tearDown: async () => {
       await au.stop().wait();
@@ -67,6 +69,22 @@ describe("when using the store in an aurelia app", function () {
 
     assert.equal((host as Element).querySelector("#sut").textContent, "bar");
     assert.equal((store as any)._state.getValue().foo, "bar");
+
+    await tearDown();
+  });
+
+  it("should create a proper default state history if option enabled but simple state given", async function () {
+    @customElement({ name: 'app', template: `<span id="sut">\${state.present.foo}</span>`, isStrictBinding: true })
+    @connectTo()
+    class App { }
+
+    const host = DOM.createElement('app');
+    const { initialState, store, tearDown } = await createFixture(host, App, { history: { undoable: true }});
+
+    assert.equal((host as Element).querySelector("#sut").textContent, "bar");
+    assert.deepEqual((store as any)._state.getValue(), {
+      past: [], present: initialState, future: []
+    });
 
     await tearDown();
   });

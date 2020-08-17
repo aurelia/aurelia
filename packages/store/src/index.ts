@@ -7,17 +7,17 @@ export interface StorePluginOptions<T> extends StoreOptions {
 }
 
 export interface IConfigure {
-  initialState(state: unknown): IConfigure;
-  options(options: Partial<StorePluginOptions<unknown>>): IConfigure;
+  withInitialState(state: unknown): IConfigure;
+  withOptions(options: Partial<StorePluginOptions<unknown>>): IConfigure;
   register(container: IContainer): IContainer;
 }
 
 export const StoreConfiguration: IConfigure = {
-  initialState(state: unknown): IConfigure {
+  withInitialState(state: unknown): IConfigure {
     Reflect.set(this, 'state', state);
     return this;
   },
-  options(options: Partial<StorePluginOptions<unknown>>): IConfigure {
+  withOptions(options: Partial<StorePluginOptions<unknown>>): IConfigure {
     Reflect.set(this, 'options', options);
     return this;
   },

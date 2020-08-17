@@ -6,17 +6,24 @@ import { Constructable } from '@aurelia/kernel';
 
 import { testState } from './helpers';
 
-
-async function createFixture(host: INode, component: Constructable, options?: StoreOptions) {
-  const initialState: testState = {
-    foo: "bar",
-    bar: "whatever"
-  };
-
+async function createFixture({ host, component, options, initialState }: {
+  host: INode;
+  component: Constructable;
+  options?: StoreOptions;
+  initialState?: testState;
+}) {
   const ctx = TestContext.createHTMLTestContext();
   const au = new Aurelia(ctx.container);
+  const actualState = typeof initialState === "undefined"
+    ? {
+      foo: "bar",
+      bar: "whatever"
+    }
+    : initialState;
 
-  await au.register(StoreConfiguration.withInitialState(initialState).withOptions(options))
+  await au.register(
+    StoreConfiguration.withInitialState(actualState)
+      .withOptions(options))
     .app({ host, component })
     .start()
     .wait();
@@ -26,7 +33,7 @@ async function createFixture(host: INode, component: Constructable, options?: St
   return {
     container: au.container,
     ctx,
-    initialState,
+    initialState: actualState,
     store,
     tearDown: async () => {
       await au.stop().wait();
@@ -51,12 +58,21 @@ describe("when using the store in an aurelia app", function () {
     }
 
     const host = DOM.createElement('app');
-    const { store, tearDown } = await createFixture(host, App);
+    const { store, tearDown } = await createFixture({ host, component: App });
 
     assert.equal((host as Element).querySelector("#sut").textContent, "bar");
     assert.equal((store as any)._state.getValue().foo, "bar");
 
     await tearDown();
+  });
+
+  it("should throw if no initial state was provided", function () {
+    @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>`, isStrictBinding: true })
+    class App { }
+
+    const host = DOM.createElement('app');
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    assert.rejects(async () => createFixture({ host, component: App, initialState: null }));
   });
 
   it("should inject the proper store for connectTo", async function () {
@@ -65,7 +81,7 @@ describe("when using the store in an aurelia app", function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const { store, tearDown } = await createFixture(host, App);
+    const { store, tearDown } = await createFixture({ host, component: App });
 
     assert.equal((host as Element).querySelector("#sut").textContent, "bar");
     assert.equal((store as any)._state.getValue().foo, "bar");
@@ -79,7 +95,11 @@ describe("when using the store in an aurelia app", function () {
     class App { }
 
     const host = DOM.createElement('app');
-    const { initialState, store, tearDown } = await createFixture(host, App, { history: { undoable: true }});
+    const { initialState, store, tearDown } = await createFixture({
+      host,
+      component: App,
+      options: { history: { undoable: true } }
+    });
 
     assert.equal((host as Element).querySelector("#sut").textContent, "bar");
     assert.deepEqual((store as any)._state.getValue(), {

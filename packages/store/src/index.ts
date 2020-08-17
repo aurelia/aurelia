@@ -1,4 +1,4 @@
-import { IContainer, Registration, Reporter, ILogger } from '@aurelia/kernel';
+import { IContainer, Registration, ILogger } from '@aurelia/kernel';
 import { isStateHistory } from './history';
 import { Store, STORE, StoreOptions, IStoreWindow } from './store';
 
@@ -30,8 +30,8 @@ export const StoreConfiguration: IConfigure = {
     const logger = container.get(ILogger);
     const window = container.get(IStoreWindow);
 
-    if (!options || !state) {
-      Reporter.error(506);
+    if (!state) {
+      throw new Error("initialState must be provided via withInitialState builder method");
     }
 
     let initState: unknown = state;

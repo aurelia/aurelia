@@ -122,14 +122,17 @@ describe('au-slot', function () {
       { 'my-element': `static default <div>p11</div><div>p12</div> <div>p20</div><div>p21</div>` },
     );
 
-    yield new TestData(
-      'au-slot name with space works',
-      `<my-element><div au-slot="slot one">p</div></my-element>`,
-      [
-        createMyElement(`<au-slot name="slot one"></au-slot>`),
-      ],
-      { 'my-element': '<div>p</div>' },
-    );
+    for (const sep of [' ', '~', '`', '!', '@', '#', '$', '%', '^', '&', '*', '[', '{', '(', ')', '}', ']', '<', '>', '-', '_', '+', '=', '.', ',', '/', '\\\\', '|', '?', ':', ';', '&quot;']) {
+      const slotName = `slot${sep}one`;
+      yield new TestData(
+        `au-slot name with space works - ${slotName}`,
+        `<my-element><div au-slot="${slotName}">p</div></my-element>`,
+        [
+          createMyElement(`<au-slot name="${slotName}"></au-slot>`),
+        ],
+        { 'my-element': '<div>p</div>' },
+      );
+    }
 
     yield new TestData(
       'projection w/o slot name goes to the default slot',

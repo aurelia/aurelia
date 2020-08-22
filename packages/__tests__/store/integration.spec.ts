@@ -28,7 +28,7 @@ async function createFixture({ host, component, options, initialState }: {
     .start()
     .wait();
 
-  const store = au.container.get(Store);
+  const store = au.container.get<Store<typeof actualState>>(Store);
 
   return {
     container: au.container,

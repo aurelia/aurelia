@@ -1,7 +1,7 @@
 import { Subscription } from 'rxjs';
 import { INode, Aurelia, customElement, DOM } from '@aurelia/runtime';
 import { TestContext, assert } from '@aurelia/testing';
-import { StoreConfiguration, Store, connectTo, StoreOptions } from "@aurelia/store";
+import { StoreConfiguration, Store, connectTo, StoreOptions, dispatchify } from "@aurelia/store";
 import { Constructable } from '@aurelia/kernel';
 
 import { testState } from './helpers';
@@ -105,6 +105,46 @@ describe("when using the store in an aurelia app", function () {
     assert.deepEqual((store as any)._state.getValue(), {
       past: [], present: initialState, future: []
     });
+
+    await tearDown();
+  });
+
+  it("should be possible to quickly create dispatchable actions with dispatchify", async function () {
+    const changeFoo = (state: testState, newFoo: string) => {
+      return { ...state, foo: newFoo };
+    };
+
+    @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>`, isStrictBinding: true })
+    class App {
+      public state: testState;
+      private readonly storeSubscription: Subscription;
+
+      public constructor(private readonly store: Store<testState>) {
+        this.storeSubscription = this.store.state.subscribe((state) => this.state = state);
+        this.store.registerAction("changeFoo", changeFoo);
+      }
+
+      public async changeFoo() {
+        await dispatchify(changeFoo)("foobar");
+      }
+
+      private afterUnbind() {
+        this.storeSubscription.unsubscribe();
+      }
+    }
+
+    const host = DOM.createElement('app');
+    const { store, ctx, tearDown } = await createFixture({ host, component: App });
+
+    assert.equal((host as Element).querySelector("#sut").textContent, "bar");
+    assert.equal((store as any)._state.getValue().foo, "bar");
+
+    const sut = ctx.container.get(App);
+    await sut.changeFoo();
+    ctx.scheduler.getRenderTaskQueue().flush();
+
+    assert.equal((host as Element).querySelector("#sut").textContent, "foobar");
+    assert.equal((store as any)._state.getValue().foo, "foobar");
 
     await tearDown();
   });

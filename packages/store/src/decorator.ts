@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { Reporter } from '@aurelia/kernel';
 import { Controller } from "@aurelia/runtime";
 import { Observable, Subscription } from 'rxjs';
@@ -22,15 +23,13 @@ const defaultSelector = <T>(store: Store<T>) => store.state;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observable<R>) | ConnectToSettings<T, R>) {
-  let $store: Store<T>;
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const _settings: ConnectToSettings<T, any> = {
     selector: typeof settings === 'function' ? settings : defaultSelector,
     ...settings
   };
 
-  function getSource(store: Store<T>, selector: (((store: Store<T>) => Observable<R>))): Observable<any> {
+  function getSource(store: Store<T>, selector: (((store: Store<T>) => Observable<R>))): Observable<unknown> {
     const source = selector(store);
 
     if (source instanceof Observable) {
@@ -46,7 +45,9 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
       [_settings.target || 'state']: _settings.selector || defaultSelector
     };
 
+    // eslint-disable-next-line compat/compat
     return Object.entries({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...((isSelectorObj ? _settings.selector : fallbackSelector) as MultipleSelector<T, any>)
     }).map(([target, selector]) => ({
       targets: _settings.target && isSelectorObj ? [_settings.target, target] : [target],
@@ -56,7 +57,7 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
       changeHandlers: {
         [_settings.onChanged || '']: 1,
         [`${_settings.target || target}Changed`]: _settings.target ? 0 : 1,
-        ['propertyChanged']: 0
+        propertyChanged: 0
       }
     }));
   }
@@ -82,10 +83,12 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
         ? Controller.getCached(this)!.context.get<Store<T>>(Store)
         : STORE.container.get<Store<T>>(Store); // TODO: need to get rid of this helper for classic unit tests
 
-      this._stateSubscriptions = createSelectors().map(s => getSource(store, s.selector).subscribe((state: any) => {
+      this._stateSubscriptions = createSelectors().map(s => getSource(store, s.selector).subscribe((state: unknown) => {
         const lastTargetIdx = s.targets.length - 1;
+        // eslint-disable-next-line default-param-last
         const oldState = s.targets.reduce((accu = {}, curr) => accu[curr], this);
 
+        // eslint-disable-next-line compat/compat
         Object.entries(s.changeHandlers).forEach(([handlerName, args]) => {
           if (handlerName in this) {
             this[handlerName](...[ s.targets[lastTargetIdx], state, oldState ].slice(args, 3));

@@ -23,13 +23,15 @@ export const StoreConfiguration: IConfigure = {
   },
   register(container: IContainer): IContainer {
     // Stores a reference of the DI container for internal use
+    // TODO: get rid of this workaround for unit tests
     STORE.container = container;
 
-    const state = Reflect.get(this, 'state') || {};
+    const state = Reflect.get(this, 'state');
     const options: Partial<StorePluginOptions<unknown>> = Reflect.get(this, 'options');
     const logger = container.get(ILogger);
     const window = container.get(IStoreWindow);
 
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!state) {
       throw new Error("initialState must be provided via withInitialState builder method");
     }

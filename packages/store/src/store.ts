@@ -1,3 +1,5 @@
+/* eslint-disable compat/compat */
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { IContainer, PLATFORM, ILogger, DI } from '@aurelia/kernel';
 import { HTMLDOM } from "@aurelia/runtime-html";
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -7,8 +9,7 @@ import { Middleware, MiddlewarePlacement, CallingAction } from './middleware';
 import { LogDefinitions, LogLevel, getLogType } from './logging';
 import { DevToolsOptions, Action, DevToolsExtension, DevTools } from './devtools';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Reducer<T, P extends any[] = any[]> = (state: T, ...params: P) => T | false | Promise<T | false>;
+export type Reducer<T, P extends unknown[] = unknown[]> = (state: T, ...params: P) => T | false | Promise<T | false>;
 
 export enum PerformanceMeasurement {
   StartEnd = 'startEnd',
@@ -25,19 +26,19 @@ export interface StoreOptions {
 }
 
 export interface PipedDispatch<T> {
-  pipe: <P extends any[]>(reducer: Reducer<T, P> | string, ...params: P) => PipedDispatch<T>;
+  pipe: <P extends unknown[]>(reducer: Reducer<T, P> | string, ...params: P) => PipedDispatch<T>;
   dispatch: () => Promise<void>;
 }
 
 interface DispatchAction<T> {
   reducer: Reducer<T>;
-  params: any[];
+  params: unknown[];
 }
 
 interface DispatchQueueItem<T> {
   actions: DispatchAction<T>[];
-  resolve: any;
-  reject: any;
+  resolve: (value?: void | PromiseLike<void> | undefined) => void;
+  reject: (reason?: unknown) => void;
 }
 
 export const STORE: { container: IContainer } = {
@@ -57,7 +58,7 @@ export interface IStoreWindow extends Window {
   __REDUX_DEVTOOLS_EXTENSION__?: DevToolsExtension;
 }
 
-export class UnregisteredActionError<T, P extends any[]> extends Error {
+export class UnregisteredActionError<T, P extends unknown[]> extends Error {
   public constructor(reducer?: string | Reducer<T, P>) {
     super(`Tried to dispatch an unregistered action ${reducer && (typeof reducer === "string" ? reducer : reducer.name)}`);
   }
@@ -73,7 +74,7 @@ export class Store<T> {
   private devToolsAvailable: boolean = false;
   private devTools?: DevTools<T>;
   private readonly actions: Map<Reducer<T>, Action<string>> = new Map();
-  private readonly middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement; settings?: any }> = new Map();
+  private readonly middlewares: Map<Middleware<T>, { placement: MiddlewarePlacement; settings?: unknown }> = new Map();
   private readonly _state: BehaviorSubject<T>;
   private readonly options: Partial<StoreOptions>;
   private readonly dispatchQueue: DispatchQueueItem<T>[] = [];
@@ -99,6 +100,7 @@ export class Store<T> {
   }
 
   public registerMiddleware<S extends undefined>(reducer: Middleware<T, undefined>, placement: MiddlewarePlacement): void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public registerMiddleware<S extends NonNullable<any>>(reducer: Middleware<T, S>, placement: MiddlewarePlacement, settings: S): void;
   public registerMiddleware<S>(reducer: Middleware<T, S>, placement: MiddlewarePlacement, settings?: S) {
     this.middlewares.set(reducer, { placement, settings });
@@ -141,7 +143,7 @@ export class Store<T> {
     this._state.next(state);
   }
 
-  public async dispatch<P extends any[]>(reducer: Reducer<T, P> | string, ...params: P): Promise<void> {
+  public async dispatch<P extends unknown[]>(reducer: Reducer<T, P> | string, ...params: P): Promise<void> {
     const action = this.lookupAction(reducer as Reducer<T> | string);
     if (!action) {
       return Promise.reject(new UnregisteredActionError(reducer));
@@ -153,12 +155,12 @@ export class Store<T> {
     }]);
   }
 
-  public pipe<P extends any[]>(reducer: Reducer<T, P> | string, ...params: P): PipedDispatch<T> {
+  public pipe<P extends unknown[]>(reducer: Reducer<T, P> | string, ...params: P): PipedDispatch<T> {
     const pipeline: DispatchAction<T>[] = [];
 
     const dispatchPipe: PipedDispatch<T> = {
-      dispatch: () => this.queueDispatch(pipeline),
-      pipe: <NextP extends any[]>(nextReducer: Reducer<T, NextP> | string, ...nextParams: NextP) => {
+      dispatch: async () => this.queueDispatch(pipeline),
+      pipe: <NextP extends unknown[]>(nextReducer: Reducer<T, NextP> | string, ...nextParams: NextP) => {
         const action = this.lookupAction(nextReducer as Reducer<T> | string);
         if (!action) {
           throw new UnregisteredActionError(reducer);
@@ -227,7 +229,7 @@ export class Store<T> {
 
     const callingAction: CallingAction = {
       name: pipedActions.map((a) => a.type).join("->"),
-      params: pipedActions.reduce<any[]>((p, a) => p.concat(a.params), []),
+      params: pipedActions.reduce<unknown[]>((p, a) => p.concat(a.params), []),
       pipedActions: pipedActions.map((a) => ({
         name: a.type,
         params: a.params
@@ -301,6 +303,7 @@ export class Store<T> {
 
       const measures = PLATFORM.performance.getEntriesByName("startEndDispatchDuration");
       this.logger[getLogType(this.options, "performanceLog", LogLevel.info)](
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `Total duration ${measures[0].duration} of dispatched action ${callingAction.name}:`,
         measures
       );
@@ -322,6 +325,7 @@ export class Store<T> {
   private executeMiddlewares(state: T, placement: MiddlewarePlacement, action: CallingAction): T | false {
     return Array.from(this.middlewares)
       .filter((middleware) => middleware[1].placement === placement)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .reduce(async (prev: any, curr, _) => {
         try {
           const result = await curr[0](await prev, this._state.getValue(), curr[1].settings, action);
@@ -354,14 +358,14 @@ export class Store<T> {
       this.devTools = this.window.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
       this.devTools.init(this.initialState);
 
-      this.devTools.subscribe((message: any) => {
+      this.devTools.subscribe((message) => {
         this.logger[getLogType(this.options, "devToolsStatus", LogLevel.debug)](`DevTools sent change ${message.type}`);
 
-        if (message.type === "ACTION" && message.payload) {
+        if (message.type === "ACTION" && message.payload !== undefined) {
           const byName = Array.from(this.actions).find(function ([reducer]) {
-            return reducer.name === message.payload.name;
+            return reducer.name === message.payload?.name;
           });
-          const action = this.lookupAction(message.payload.name) || byName && byName[0];
+          const action = this.lookupAction(message.payload?.name) || byName?.[0];
 
           if (!action) {
             throw new DevToolsRemoteDispatchError("Tried to remotely dispatch an unregistered action");
@@ -371,13 +375,14 @@ export class Store<T> {
             throw new DevToolsRemoteDispatchError("No action arguments provided");
           }
 
-          this.dispatch(action, ...message.payload.args.slice(1).map((arg: string) => JSON.parse(arg))).catch((e) => {
+          this.dispatch(action, ...message.payload.args.slice(1).map((arg: string) => JSON.parse(arg))).catch(() => {
             throw new DevToolsRemoteDispatchError("Issue when trying to dispatch an action through devtools");
           });
           return;
         }
 
         if (message.type === "DISPATCH" && message.payload) {
+          /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
           switch (message.payload.type) {
             case "JUMP_TO_STATE":
             case "JUMP_TO_ACTION":
@@ -398,26 +403,27 @@ export class Store<T> {
               return;
             }
           }
+          /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
         }
       });
     }
   }
 
   private updateDevToolsState(action: Action<string>, state: T) {
-    if (this.devToolsAvailable) {
-      this.devTools!.send(action, state);
+    if (this.devToolsAvailable && this.devTools) {
+      this.devTools.send(action, state);
     }
   }
 
   private registerHistoryMethods() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.registerAction("jump", jump as Reducer<any>);
   }
 }
 
-export function dispatchify<T, P extends any[]>(action: Reducer<T, P> | string) {
+export function dispatchify<T, P extends unknown[]>(action: Reducer<T, P> | string) {
   const store = STORE.container.get<Store<T>>(Store);
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   return async function (...params: P): Promise<void> {
     return store.dispatch(action, ...params);
   };

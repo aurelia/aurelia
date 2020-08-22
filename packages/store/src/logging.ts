@@ -19,9 +19,10 @@ export function getLogType(
   definition: keyof LogDefinitions,
   defaultLevel: LogLevel
 ): LogLevel {
-  if (definition &&
-    options.logDefinitions?.hasOwnProperty(definition) &&
+  if (options.logDefinitions?.hasOwnProperty(definition) &&
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     options.logDefinitions[definition] &&
+    // eslint-disable-next-line compat/compat
     Object.values(LogLevel).includes(options.logDefinitions[definition]!)) {
     return options.logDefinitions[definition]!;
   }

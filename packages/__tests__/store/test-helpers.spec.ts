@@ -56,6 +56,7 @@ describe("test helpers", function () {
 
     ["log", "group", "groupEnd"].forEach((fct) => {
       origConsole[fct] = (global.console as any)[fct];
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/strict-boolean-expressions
       (global.console as any)[fct] = () => { callTracker[fct] = callTracker[fct] + 1 || 1; };
     });
 

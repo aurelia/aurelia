@@ -9,7 +9,7 @@ function arrange() {
   const container = DI.createContainer();
   const { store } = createTestStore();
 
-  const fakeAction = (currentState: testState, param1: number, param2: number) => {
+  const fakeAction = (currentState: testState, param1: string, param2: string) => {
     return { ...currentState, foo: param1 + param2 };
   };
 
@@ -22,15 +22,15 @@ describe('dispatchify', function () {
   it('should help create dispatchifyable functions', function (done) {
     const { store, container, fakeAction } = arrange();
 
-    store.registerAction('FakeAction', fakeAction as any);
+    store.registerAction('FakeAction', fakeAction);
     container.register(Registration.instance(Store, store));
 
-    dispatchify((fakeAction as any))(1, 2).catch(() => { /**/ });
+    dispatchify(fakeAction)("Hello", "World").catch(() => { /**/ });
 
     store.state.pipe(
       skip(1)
     ).subscribe((state: any) => {
-      assert.equal(state.foo, 3);
+      assert.equal(state.foo, "HelloWorld");
       done();
     });
   });
@@ -38,10 +38,10 @@ describe('dispatchify', function () {
   it('should return the promise from dispatched calls', async function () {
     const { store, container, fakeAction } = arrange();
 
-    store.registerAction('FakeAction', fakeAction as any);
+    store.registerAction('FakeAction', fakeAction);
     container.register(Registration.instance(Store, store));
 
-    const result = dispatchify((fakeAction as any))(1, 2);
+    const result = dispatchify(fakeAction)("Hello", "World");
     assert.notEqual(result.then, undefined);
 
     await result;
@@ -52,7 +52,7 @@ describe('dispatchify', function () {
 
     const fakeActionRegisteredName = 'FakeAction';
 
-    store.registerAction(fakeActionRegisteredName, fakeAction as any);
+    store.registerAction(fakeActionRegisteredName, fakeAction);
     container.register(Registration.instance(Store, store));
 
     dispatchify(fakeActionRegisteredName)('A', 'B').catch(() => { /**/ });
@@ -66,17 +66,10 @@ describe('dispatchify', function () {
   });
 
   it('should throw if any string given that doesn\'t reflect a registered action name', async function () {
-    const container = DI.createContainer();
-    const { store } = createTestStore();
-
-    STORE.container = container;
-
-    const fakeAction = (currentState: testState, param1: number, param2: number) => {
-      return { ...currentState, foo: param1 + param2 };
-    };
+    const { store, container, fakeAction } = arrange();
     const fakeActionRegisteredName = 'FakeAction';
 
-    store.registerAction(fakeActionRegisteredName, fakeAction as any);
+    store.registerAction(fakeActionRegisteredName, fakeAction);
     container.register(Registration.instance(Store, store));
 
     try {

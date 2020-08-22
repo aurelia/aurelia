@@ -5,18 +5,18 @@ import { Store } from './store';
 export type StepFn<T> = (res: T) => void;
 
 export async function executeSteps<T>(store: Store<T>, shouldLogResults: boolean, ...steps: StepFn<T>[]) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const logStep = (step: StepFn<T>, stepIdx: number) => (res: T) => {
     if (shouldLogResults) {
+      /* eslint-disable no-console, no-undef */
       console.group(`Step ${stepIdx}`);
       console.log(res);
       console.groupEnd();
+      /* eslint-enable no-console, no-undef */
     }
     step(res);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const tryStep = (step: StepFn<T>, reject: (reason?: any) => void) =>
+  const tryStep = (step: StepFn<T>, reject: (reason?: unknown) => void) =>
     (res: T) => {
       try {
         step(res);

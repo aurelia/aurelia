@@ -570,6 +570,7 @@ describe("middlewares", function () {
       mockLocalStorage({
         store: { foo: "bar" },
         getItem(key: string) {
+          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           return this.store[key] || null;
         },
         setItem(key: string, value: string) {
@@ -597,6 +598,7 @@ describe("middlewares", function () {
       mockLocalStorage({
         store: { foo: "bar" },
         getItem(key: string) {
+          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           return this.store[key] || null;
         },
         setItem(key: string, value: string) {

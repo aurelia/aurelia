@@ -1,17 +1,27 @@
-export interface Action<T = any> {
+export interface Action<T = unknown> {
   type: T;
-  params?: any[];
+  params?: unknown[];
 }
 
 export type ActionCreator<T> = (...args: unknown[]) => T;
 
 export interface DevToolsExtension {
-  connect: (options?: DevToolsOptions) => DevTools<any>;
+  connect: (options?: DevToolsOptions) => DevTools<unknown>;
+}
+
+export interface DevToolsMessage {
+  type: "ACTION" | "DISPATCH";
+  payload?: {
+    name: string;
+    args?: string[];
+    type: "JUMP_TO_STATE" | "JUMP_TO_ACTION" | "COMMIT" | "RESET" | "ROLLBACK";
+  };
+  state: string;
 }
 
 export interface DevTools<T> {
   init: (initialState: T) => void;
-  subscribe: (message: any) => void;
+  subscribe: (cb: (message: DevToolsMessage) => void) => void;
   send: (action: Action<string>, state: T) => void;
 }
 

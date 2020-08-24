@@ -1,12 +1,13 @@
-import { Metadata, isObject, applyMetadataPolyfill } from '@aurelia/metadata';
+import { Class, Constructable } from './interfaces';
+import { Metadata, applyMetadataPolyfill, isObject } from '@aurelia/metadata';
+import { isArrayIndex, isNativeFunction } from './functions';
+
+import { ILogger } from './logger';
+import { PLATFORM } from './platform';
+import { Protocol } from './resource';
+import { Reporter } from './reporter';
 
 applyMetadataPolyfill(Reflect);
-
-import { isArrayIndex, isNativeFunction } from './functions';
-import { Class, Constructable } from './interfaces';
-import { PLATFORM } from './platform';
-import { Reporter } from './reporter';
-import { Protocol } from './resource';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -45,6 +46,7 @@ export interface IFactory<T extends Constructable = any> {
 }
 
 export interface IServiceLocator {
+  name: string;
   has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean;
   get<K extends Key>(key: K): Resolved<K>;
   get<K extends Key>(key: Key): Resolved<K>;
@@ -59,6 +61,7 @@ export interface IRegistry {
 }
 
 export interface IContainer extends IServiceLocator {
+  getContainerPath(): string;
   register(...params: any[]): IContainer;
   registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
@@ -144,8 +147,23 @@ function cloneArrayWithPossibleProps<T>(source: readonly T[]): T[] {
   return clone;
 }
 
+/**
+ * @internal
+ */
+export type IContainerDomainProbeContext<K extends Key> = {
+  key: K;
+  container: IContainer;
+};
+
+export interface IContainerDomainProbe {
+  registeringIn<K extends Key>(ctx: IContainerDomainProbeContext<K>, handler: IContainer): void;
+  attemptToGet<K extends Key>(ctx: IContainerDomainProbeContext<K>): void;
+  got<K extends Key>(ctx: IContainerDomainProbeContext<K>, impl: Resolved<K>): void;
+}
+
 export interface IContainerConfiguration {
   defaultResolver(key: Key, handler: IContainer): IResolver;
+  name?: string;
 }
 
 export const DefaultResolver = {
@@ -887,18 +905,22 @@ export class Container implements IContainer {
 
   private readonly disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
 
+  public readonly name: string;
+
   public constructor(
     private readonly parent: Container | null,
     private readonly config: IContainerConfiguration = DefaultContainerConfiguration,
   ) {
     if (parent === null) {
       this.root = this;
+      this.name = 'root';
 
       this.resolvers = new Map();
 
       this.resourceResolvers = Object.create(null);
     } else {
       this.root = parent.root;
+      this.name = config.name ?? 'child';
 
       this.resolvers = new Map();
 
@@ -906,6 +928,10 @@ export class Container implements IContainer {
     }
 
     this.resolvers.set(IContainer, containerResolver);
+  }
+
+  public getContainerPath(): string {
+    return this.parent === null ? `${this.name}` : `${this.getContainerPath()} > ${this.name}`;
   }
 
   public register(...params: any[]): IContainer {
@@ -1026,7 +1052,9 @@ export class Container implements IContainer {
 
       if (resolver == null) {
         if (current.parent == null) {
-          const handler = (isRegisterInRequester(key as unknown as RegisterSelf<Constructable>)) ? this : current;
+          const isRegisteringInRequester = isRegisterInRequester(key as unknown as RegisterSelf<Constructable>);
+          const handler = isRegisteringInRequester ? this : current;
+          this.get(IContainerDomainProbe).registeringIn({ container: this, key }, handler);
           return autoRegister ? this.jitRegister(key, handler) : null;
         }
 
@@ -1048,6 +1076,10 @@ export class Container implements IContainer {
   }
 
   public get<K extends Key>(key: K): Resolved<K> {
+    const dpResolver = this.resolvers.get(IContainerDomainProbe);
+    const domainProbe = dpResolver?.resolve(this, this) as IContainerDomainProbe ?? new NoopDomainProbe();
+    const context = { container: this, key };
+    domainProbe.attemptToGet(context);
     validateKey(key);
 
     if ((key as IResolver).$isResolver) {
@@ -1063,13 +1095,17 @@ export class Container implements IContainer {
       if (resolver == null) {
         if (current.parent == null) {
           const handler = (isRegisterInRequester(key as unknown as RegisterSelf<Constructable>)) ? this : current;
+          domainProbe.registeringIn(context, handler);
           resolver = this.jitRegister(key, handler);
-          return resolver.resolve(current, this);
+          const got = resolver.resolve(current, this);
+          domainProbe.got(context, got);
+          return got;
         }
-
         current = current.parent;
       } else {
-        return resolver.resolve(current, this);
+        const got = resolver.resolve(current, this);
+        domainProbe.got(context, got);
+        return got;
       }
     }
 
@@ -1333,7 +1369,7 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
 /** @internal */
 export function validateKey(key: any): void {
   if (key === null || key === void 0) {
-    throw Reporter.error(5);
+    throw new Error('key cannot be null or undefined');
   }
 }
 
@@ -1352,3 +1388,18 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
 
   return [resolver.resolve(handler, requestor)];
 }
+
+class NoopDomainProbe implements IContainerDomainProbe {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  public registeringIn<K extends Key>(): void {
+  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  public attemptToGet<K extends Key>(): void {
+  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  public got<K extends Key>(): void {
+  }
+}
+
+const IContainerDomainProbe = DI.createInterface<IContainerDomainProbe>('IContainerDomainProbe')
+  .withDefault(x => x.singleton(NoopDomainProbe));

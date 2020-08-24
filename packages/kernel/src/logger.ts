@@ -1,4 +1,4 @@
-import { all, DI, IContainer, ignore, IRegistry, optional, Registration } from './di';
+import { all, DI, IContainer, ignore, IRegistry, optional, Registration, IContainerDomainProbe, Key, IContainerDomainProbeContext, Resolved } from './di';
 import { toLookup } from './functions';
 import { LogLevel } from './reporter';
 import { Class, Constructable } from './interfaces';
@@ -698,3 +698,18 @@ export const LoggerConfiguration = toLookup({
     });
   },
 });
+
+export class ContainerTracer implements IContainerDomainProbe {
+  public constructor(@ILogger private readonly log: ILogger) {
+  }
+  public registeringIn<K extends Key>(ctx: IContainerDomainProbeContext<K>, handler: IContainer): void {
+    this.log.trace(`${ctx.container.getContainerPath()} registering with ${handler.getContainerPath()}`, ctx.key);
+  }
+  public attemptToGet<K extends Key>(ctx: IContainerDomainProbeContext<K>): void {
+    this.log.trace(`getting from ${ctx.container.getContainerPath()}`);
+  }
+  public got<K extends Key>(ctx: IContainerDomainProbeContext<K>, impl: Resolved<K>): void {
+    this.log.trace(`got from ${ctx.container.getContainerPath()}`, impl);
+  }
+
+}

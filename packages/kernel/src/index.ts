@@ -28,6 +28,7 @@ export {
   DefaultContainerConfiguration,
   DefaultResolver,
   IContainerConfiguration,
+  IContainerDomainProbe,
 } from './di';
 export {
   Class,
@@ -89,6 +90,7 @@ export {
   LoggerConfiguration,
   format,
   sink,
+  ContainerTracer,
 } from './logger';
 export {
   relativeToFile,

@@ -3,21 +3,14 @@ import {
     IContainer,
     IDisposable,
     IFactory,
-    InstanceProvider,
     IResolver,
+    InstanceProvider,
     Key,
     Reporter,
     Resolved,
     Transformer,
 } from '@aurelia/kernel';
-import {
-    IHydrateInstruction,
-    ITargetedInstruction,
-    mergeParts,
-    PartialCustomElementDefinitionParts,
-} from '../definitions';
-import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
-import { LifecycleFlags } from '../flags';
+import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import {
     IController,
     ICustomAttributeViewModel,
@@ -26,8 +19,16 @@ import {
     IRenderableController,
     IViewFactory,
 } from '../lifecycle';
+import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
+import {
+    IHydrateInstruction,
+    ITargetedInstruction,
+    PartialCustomElementDefinitionParts,
+    mergeParts,
+} from '../definitions';
 import { IRenderer, ITemplateCompiler } from '../renderer';
-import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
+
+import { LifecycleFlags } from '../flags';
 import { ViewFactory } from './view';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
@@ -258,12 +259,14 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   public readonly dom: IDOM<T>;
 
   public compiledDefinition: CustomElementDefinition = (void 0)!;
+  public readonly name: string;
 
   public constructor(
     public readonly definition: CustomElementDefinition,
     public readonly parentContainer: IContainer,
     public readonly parts: PartialCustomElementDefinitionParts | undefined,
   ) {
+    this.name = this.constructor.name;
     const container = this.container = parentContainer.createChild();
     this.renderer = container.get(IRenderer);
 
@@ -293,6 +296,10 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
       this.elementProvider = new InstanceProvider(),
     );
     container.register(...definition.dependencies);
+  }
+
+  public getContainerPath() {
+    return `${this.container.getContainerPath()} > ${this.name}`;
   }
 
   // #region IServiceLocator api

@@ -25,7 +25,6 @@ export {
   Transformer,
   newInstanceForScope,
   newInstanceOf,
-  DefaultContainerConfiguration,
   DefaultResolver,
   IContainerConfiguration,
 } from './di';
@@ -89,6 +88,7 @@ export {
   LoggerConfiguration,
   format,
   sink,
+  ContainerTracer,
 } from './logger';
 export {
   relativeToFile,

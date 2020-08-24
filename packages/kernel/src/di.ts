@@ -1,12 +1,14 @@
-import { Metadata, isObject, applyMetadataPolyfill } from '@aurelia/metadata';
+import { Class, Constructable } from './interfaces';
+import { Metadata, applyMetadataPolyfill, isObject } from '@aurelia/metadata';
+import { isArrayIndex, isNativeFunction } from './functions';
+
+import { Except } from 'type-fest';
+import { PLATFORM } from './platform';
+import { Protocol } from './resource';
+import { Reporter } from './reporter';
+import { merge } from 'merge-anything';
 
 applyMetadataPolyfill(Reflect);
-
-import { isArrayIndex, isNativeFunction } from './functions';
-import { Class, Constructable } from './interfaces';
-import { PLATFORM } from './platform';
-import { Reporter } from './reporter';
-import { Protocol } from './resource';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -45,6 +47,7 @@ export interface IFactory<T extends Constructable = any> {
 }
 
 export interface IServiceLocator {
+  name: string;
   has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean;
   get<K extends Key>(key: K): Resolved<K>;
   get<K extends Key>(key: Key): Resolved<K>;
@@ -59,6 +62,7 @@ export interface IRegistry {
 }
 
 export interface IContainer extends IServiceLocator {
+  getContainerPath(): string;
   register(...params: any[]): IContainer;
   registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
@@ -144,23 +148,28 @@ function cloneArrayWithPossibleProps<T>(source: readonly T[]): T[] {
   return clone;
 }
 
-export interface IContainerConfiguration {
-  defaultResolver(key: Key, handler: IContainer): IResolver;
-}
-
 export const DefaultResolver = {
   none(key: Key): IResolver {throw Error(`${key.toString()} not registered, did you forget to add @singleton()?`);},
   singleton(key: Key): IResolver {return new Resolver(key, ResolverStrategy.singleton, key);},
-  transient(key: Key): IResolver {return new Resolver(key, ResolverStrategy.transient, key);},
 };
 
-export const DefaultContainerConfiguration: IContainerConfiguration = {
+export interface IContainerConfiguration {
+  defaultResolver?(key: Key, handler: IContainer): IResolver;
+  name?: string;
+  tracer?: Constructable<IContainer>;
+}
+
+type ContainerConfiguration = Except<Required<IContainerConfiguration>, 'tracer'>;
+
+const DefaultContainerConfiguration: ContainerConfiguration = {
   defaultResolver: DefaultResolver.singleton,
+  name: 'root',
 };
 
 export const DI = {
-  createContainer(config: IContainerConfiguration = DefaultContainerConfiguration): IContainer {
-      return new Container(null, config);
+  createContainer(config: IContainerConfiguration = {}): IContainer {
+    const rootContainer = new Container(null, merge(DefaultContainerConfiguration, config));
+    return config.tracer === undefined ? rootContainer: new config.tracer(rootContainer);
   },
   getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
     return Metadata.getOwn('design:paramtypes', Type);
@@ -887,18 +896,22 @@ export class Container implements IContainer {
 
   private readonly disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
 
+  public readonly name: string;
+
   public constructor(
     private readonly parent: Container | null,
-    private readonly config: IContainerConfiguration = DefaultContainerConfiguration,
+    private readonly config: ContainerConfiguration,
   ) {
     if (parent === null) {
       this.root = this;
+      this.name = 'root';
 
       this.resolvers = new Map();
 
       this.resourceResolvers = Object.create(null);
     } else {
       this.root = parent.root;
+      this.name = config.name ?? 'child';
 
       this.resolvers = new Map();
 
@@ -906,6 +919,10 @@ export class Container implements IContainer {
     }
 
     this.resolvers.set(IContainer, containerResolver);
+  }
+
+  public getContainerPath(): string {
+    return this.parent === null ? `${this.name}` : `${this.getContainerPath()} > ${this.name}`;
   }
 
   public register(...params: any[]): IContainer {
@@ -1026,7 +1043,8 @@ export class Container implements IContainer {
 
       if (resolver == null) {
         if (current.parent == null) {
-          const handler = (isRegisterInRequester(key as unknown as RegisterSelf<Constructable>)) ? this : current;
+          const isRegisteringInRequester = isRegisterInRequester(key as unknown as RegisterSelf<Constructable>);
+          const handler = isRegisteringInRequester ? this : current;
           return autoRegister ? this.jitRegister(key, handler) : null;
         }
 
@@ -1066,7 +1084,6 @@ export class Container implements IContainer {
           resolver = this.jitRegister(key, handler);
           return resolver.resolve(current, this);
         }
-
         current = current.parent;
       } else {
         return resolver.resolve(current, this);
@@ -1113,8 +1130,9 @@ export class Container implements IContainer {
     Protocol.annotation.appendTo(key, factoryAnnotationKey);
   }
 
-  public createChild(config?: IContainerConfiguration): IContainer {
-    return new Container(this, config ?? this.config);
+  public createChild(config: IContainerConfiguration = { name: 'child' }): IContainer {
+    const container = new Container(this, merge(this.config, config));
+    return config.tracer === undefined ? container : new config.tracer(container);
   }
 
   public disposeResolvers() {
@@ -1332,8 +1350,8 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
 
 /** @internal */
 export function validateKey(key: any): void {
-  if (key === null || key === void 0) {
-    throw Reporter.error(5);
+  if (key === null || key === undefined) {
+    throw new Error('key cannot be null or undefined');
   }
 }
 

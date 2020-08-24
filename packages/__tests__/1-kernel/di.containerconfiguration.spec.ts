@@ -1,4 +1,5 @@
-import { DefaultContainerConfiguration, DefaultResolver, DI, IContainer } from '@aurelia/kernel';
+import { ContainerTracer, DI, DefaultResolver, IContainer, LogLevel, LoggerConfiguration, singleton } from '@aurelia/kernel';
+
 import { assert } from '@aurelia/testing';
 
 describe('IContainerConfiguration', function () {
@@ -6,13 +7,17 @@ describe('IContainerConfiguration', function () {
   let container1: IContainer;
   let container2: IContainer;
   describe('child', function () {
-    describe('defaultResolver - transient', function () {
+    describe('defaultResolver - none', function () {
+      class Alfa {
+        public test(): string {
+          return 'hello';
+        }
+      }
       describe('root container', function () {
         // eslint-disable-next-line mocha/no-hooks
         beforeEach(function () {
           container0 = DI.createContainer({
-            ...DefaultContainerConfiguration,
-            defaultResolver: DefaultResolver.transient
+            defaultResolver: DefaultResolver.none
           });
 
           container1 = container0.createChild();
@@ -20,49 +25,73 @@ describe('IContainerConfiguration', function () {
         });
 
         it('class', function () {
-          class Foo {
-            public test(): string {
-              return 'hello';
-            }
-          }
-          const foo1 = container1.get(Foo);
-          const foo2 = container2.get(Foo);
-          assert.strictEqual(foo1.test(), 'hello', 'foo1');
-          assert.strictEqual(foo2.test(), 'hello', 'foo2');
-          assert.notStrictEqual(container1.get(Foo), foo1, 'same child is different instance');
-          assert.notStrictEqual(foo1, foo2, 'different child is different instance');
-          assert.strictEqual(container0.has(Foo, true), true, 'root should not have');
+          assert.throws(() => container1.get(Alfa), Error, '1');
+          assert.throws(() => container2.get(Alfa), Error, '2');
+          assert.throws(() => container0.get(Alfa), Error, '0'); // do last so it's not registered in root
+
         });
       });
 
-      describe('one child container', function () {
+      describe('two child container', function () {
         // eslint-disable-next-line mocha/no-hooks
         beforeEach(function () {
           container0 = DI.createContainer();
 
           container1 = container0.createChild({
-            ...DefaultContainerConfiguration,
-            defaultResolver: DefaultResolver.transient
+            defaultResolver: DefaultResolver.none
           });
           container2 = container0.createChild();
         });
 
         it('class', function () {
-          class Foo {
-            public test(): string {
-              return 'hello';
-            }
-          }
-
-          const foo1 = container1.get(Foo);
-          const foo2 = container2.get(Foo);
-          assert.strictEqual(foo2.test(), 'hello', 'foo0');
-          assert.strictEqual(foo1.test(), 'hello', 'foo1');
-          assert.notStrictEqual(container1.get(Foo), foo2, 'same child is same instance');
-          assert.notStrictEqual(foo1, foo2, 'different child is different instance');
-          assert.strictEqual(container0.has(Foo, true), true, 'root should have');
+          assert.throws(() => container1.get(Alfa), '1');
+          assert.strictEqual(container2.get(Alfa).test(), 'hello', '2');
+          assert.strictEqual(container0.has(Alfa, true), true, '0');
         });
       });
+    });
+  });
+
+  describe('ContainerTracer', function () {
+    const container = DI.createContainer({ tracer: ContainerTracer });
+    container.register(LoggerConfiguration.create({ level: LogLevel.trace, $console: console }));
+
+    @singleton
+    class Alfa {
+    }
+
+    @singleton
+    class Bravo {
+      public constructor(public alfa: Alfa) {
+      }
+    }
+
+    @singleton
+    class Charlie {
+      public constructor(public bravo: Bravo) {
+      }
+    }
+
+    it('container', function () {
+      assert.instanceOf(container, ContainerTracer);
+    });
+
+    it('single class', function () {
+      assert.instanceOf(container.get(Alfa), Alfa);
+    });
+
+    it('single dependency', function () {
+      const got = container.get(Bravo);
+      assert.instanceOf(got, Bravo);
+      assert.instanceOf(got.alfa, Alfa);
+    });
+
+    it('thrice nested', function () {
+      const got = container.get(Charlie);
+      assert.instanceOf(got, Charlie);
+
+      assert.instanceOf(got.bravo, Bravo);
+      assert.instanceOf(got.bravo.alfa, Alfa);
     });
   });
 });

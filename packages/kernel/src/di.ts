@@ -6,6 +6,7 @@ import { Except } from 'type-fest';
 import { PLATFORM } from './platform';
 import { Protocol } from './resource';
 import { Reporter } from './reporter';
+import { TraceContainer } from './TraceContainer';
 import { merge } from 'merge-anything';
 
 applyMetadataPolyfill(Reflect);
@@ -156,20 +157,22 @@ export const DefaultResolver = {
 export interface IContainerConfiguration {
   defaultResolver?(key: Key, handler: IContainer): IResolver;
   name?: string;
-  tracer?: Constructable<IContainer>;
+  trace?: boolean;
 }
 
-type ContainerConfiguration = Except<Required<IContainerConfiguration>, 'tracer'>;
+/** @internal */
+export type ContainerConfiguration = Required<IContainerConfiguration>;
 
 const DefaultContainerConfiguration: ContainerConfiguration = {
   defaultResolver: DefaultResolver.singleton,
   name: 'root',
+  trace: false,
 };
 
 export const DI = {
   createContainer(config: IContainerConfiguration = {}): IContainer {
-    const rootContainer = new Container(null, merge(DefaultContainerConfiguration, config));
-    return config.tracer === undefined ? rootContainer: new config.tracer(rootContainer);
+    const Type = config.trace ? TraceContainer : Container;
+    return new Type(null, merge(DefaultContainerConfiguration, config));
   },
   getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
     return Metadata.getOwn('design:paramtypes', Type);
@@ -1131,8 +1134,8 @@ export class Container implements IContainer {
   }
 
   public createChild(config: IContainerConfiguration = { name: 'child' }): IContainer {
-    const container = new Container(this, merge(this.config, config));
-    return config.tracer === undefined ? container : new config.tracer(container);
+    const Type = config.trace ? TraceContainer : Container;
+    return new Type(null, merge(this.config, config));
   }
 
   public disposeResolvers() {

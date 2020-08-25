@@ -88,7 +88,6 @@ export {
   LoggerConfiguration,
   format,
   sink,
-  ContainerTracer,
 } from './logger';
 export {
   relativeToFile,
@@ -140,3 +139,6 @@ export {
   getPrototypeChain,
   isNativeFunction,
 } from './functions';
+export {
+  TraceContainer
+} from './TraceContainer';

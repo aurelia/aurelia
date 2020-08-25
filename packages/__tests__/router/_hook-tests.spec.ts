@@ -1,15 +1,15 @@
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { customElement, CustomElement } from '@aurelia/runtime';
-import { IRouterOptions, ResolutionStrategy, LifecycleStrategy, SwapStrategy, IRouter } from '@aurelia/router';
+import { CustomElement, customElement } from '@aurelia/runtime';
+import { IRouterOptions, DeferralJuncture, SwapStrategy, IRouter } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
 
 import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker';
 import { TestRouteViewModelBase, HookSpecs } from './_shared/view-models';
 import { hookSpecsMap } from './_shared/hook-spec';
-import { getStopPhaseCalls, getCalls, interleave, activate, deactivate } from './_shared/get-calls';
 import { createFixture } from './_shared/create-fixture';
-import { Constructable, IContainer, ILogger } from '@aurelia/kernel';
+import { IContainer } from '@aurelia/kernel';
 
 function vp(count: number): string {
   if (count === 1) {
@@ -29,9 +29,67 @@ function getDefaultHIAConfig(): IHIAConfig {
   };
 }
 
+export function* prepend(
+  prefix: string,
+  component: string,
+  ...calls: (HookName | '')[]
+) {
+  for (const call of calls) {
+    if (call === '') {
+      yield '';
+    } else {
+      yield `${prefix}.${component}.${call}`;
+    }
+  }
+}
+
+export function* prependDeferrable(
+  prefix: string,
+  component: string,
+  deferUntil: DeferralJuncture,
+  ...calls: (HookName | '')[]
+) {
+  switch (deferUntil) {
+    case 'none':
+      yield `${prefix}.${component}.canLoad`;
+      yield `${prefix}.${component}.load`;
+      break;
+    case 'guard-hooks':
+      yield `${prefix}.${component}.load`;
+      break;
+  }
+
+  for (const call of calls) {
+    if (call === '') {
+      yield '';
+    } else {
+      yield `${prefix}.${component}.${call}`;
+    }
+  }
+}
+
+export function* interleave(
+  ...generators: Generator<string, void>[]
+) {
+  while (generators.length > 0) {
+    for (let i = 0, ii = generators.length; i < ii; ++i) {
+      const gen = generators[i];
+      const next = gen.next();
+      if (next.done) {
+        generators.splice(i, 1);
+        --i;
+        --ii;
+      } else {
+        const value = next.value as string;
+        if (value) {
+          yield value;
+        }
+      }
+    }
+  }
+}
 export interface IRouterOptionsSpec {
-  resolutionStrategy: ResolutionStrategy;
-  lifecycleStrategy: LifecycleStrategy;
+  deferUntil: DeferralJuncture;
   swapStrategy: SwapStrategy;
   toString(): string;
 }
@@ -43,32 +101,26 @@ export interface IComponentSpec {
 
 describe('router hooks', function () {
   describe('monomorphic timings', function () {
-    const resolutionStrategies: ResolutionStrategy[] = [
-      'static',
-      'dynamic',
-    ];
-    const lifecycleStrategies: LifecycleStrategy[] = [
-      'phased',
-      'parallel',
+    const deferUntils: DeferralJuncture[] = [
+      'none',
+      'guard-hooks',
+      'load-hooks',
     ];
     const swapStrategies: SwapStrategy[] = [
-      'parallel',
-      'add-first',
-      'remove-first',
+      'parallel-remove-first',
+      'sequential-add-first',
+      'sequential-remove-first',
     ];
     const routerOptionsSpecs: IRouterOptionsSpec[] = [];
-    for (const resolutionStrategy of resolutionStrategies) {
-      for (const lifecycleStrategy of lifecycleStrategies) {
-        for (const swapStrategy of swapStrategies) {
-          routerOptionsSpecs.push({
-            resolutionStrategy,
-            lifecycleStrategy,
-            swapStrategy,
-            toString() {
-              return `resolutionStrategy:'${resolutionStrategy}',lifecycleStrategy:'${lifecycleStrategy}',swapStrategy:'${swapStrategy}'`;
-            },
-          });
-        }
+    for (const deferUntil of deferUntils) {
+      for (const swapStrategy of swapStrategies) {
+        routerOptionsSpecs.push({
+          deferUntil,
+          swapStrategy,
+          toString() {
+            return `deferUntil:'${deferUntil}',swapStrategy:'${swapStrategy}'`;
+          },
+        });
       }
     }
 
@@ -169,248 +221,658 @@ describe('router hooks', function () {
           const getRouterOptions = (): IRouterOptions => routerOptionsSpec;
 
           describe(`${routerOptionsSpec}`, function () {
-            for (const [$1, $2, $3, $4] of [
-              ['a01', 'a02', 'a01', 'a02'],
-              ['a01', 'a02', 'a03', 'a01'],
-              ['a01', 'a02', 'a01', 'a04'],
-            ]) {
-              it(`'${$1}' -> '${$2}' -> '${$3}' -> '${$4}'`, async function () {
-                const { router, hia, tearDown } = await createFixture(Root1, A, getDefaultHIAConfig, getRouterOptions);
+            describe('single', function () {
+              interface ISpec {
+                t1: string;
+                t2: string;
+                t3: string;
+                t4: string;
+              }
 
-                const t1 = `('' -> '${$1}')#1`;
-                const t2 = `('${$1}' -> '${$2}')#2`;
-                const t3 = `('${$2}' -> '${$3}')#3`;
-                const t4 = `('${$3}' -> '${$4}')#4`;
+              function runTest(spec: ISpec) {
+                const { t1, t2, t3, t4 } = spec;
+                it(`'${t1}' -> '${t2}' -> '${t3}' -> '${t4}'`, async function () {
+                  const { router, hia, tearDown } = await createFixture(Root2, A, getDefaultHIAConfig, getRouterOptions);
 
-                hia.setPhase(t1);
-                await router.load($1);
+                  const phase1 = `('' -> '${t1}')#1`;
+                  const phase2 = `('${t1}' -> '${t2}')#2`;
+                  const phase3 = `('${t2}' -> '${t3}')#3`;
+                  const phase4 = `('${t3}' -> '${t4}')#4`;
 
-                hia.setPhase(t2);
-                await router.load($2);
+                  hia.setPhase(phase1);
+                  await router.load(t1);
 
-                hia.setPhase(t3);
-                await router.load($3);
+                  hia.setPhase(phase2);
+                  await router.load(t2);
 
-                hia.setPhase(t4);
-                await router.load($4);
+                  hia.setPhase(phase3);
+                  await router.load(t3);
 
-                await tearDown();
+                  hia.setPhase(phase4);
+                  await router.load(t4);
 
-                assert.deepStrictEqual(
-                  hia.notifyHistory,
-                  [
-                    `start.root1.beforeBind`,
-                    `start.root1.afterBind`,
-                    `start.root1.afterAttach`,
-                    `start.root1.afterAttachChildren`,
+                  await tearDown();
 
-                    ...getCalls[componentSpec.kind]['"" -> $x'](t1, $1),
+                  const expected = [...(function* () {
+                    yield `start.root2.beforeBind`;
+                    yield `start.root2.afterBind`;
+                    yield `start.root2.afterAttach`;
+                    yield `start.root2.afterAttachChildren`;
 
-                    ...getCalls[componentSpec.kind]['$1 -> $2'](t2, $1, $2, routerOptionsSpec, componentSpec),
+                    yield* prepend(phase1, t1, 'canLoad', 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
 
-                    ...getCalls[componentSpec.kind]['$1 -> $2'](t3, $2, $3, routerOptionsSpec, componentSpec),
+                    for (const [phase, { $t1, $t2 }] of [
+                      [phase2, { $t1: t1, $t2: t2 }],
+                      [phase3, { $t1: t2, $t2: t3 }],
+                      [phase4, { $t1: t3, $t2: t4 }],
+                    ] as const) {
+                      yield `${phase}.${$t1}.canUnload`;
+                      yield `${phase}.${$t2}.canLoad`;
+                      yield `${phase}.${$t1}.unload`;
+                      yield `${phase}.${$t2}.load`;
 
-                    ...getCalls[componentSpec.kind]['$1 -> $2'](t4, $3, $4, routerOptionsSpec, componentSpec),
+                      switch (routerOptionsSpec.swapStrategy) {
+                        case 'parallel-remove-first':
+                          switch (componentSpec.kind) {
+                            case 'all-sync':
+                              yield* prepend(phase, $t1, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                              yield* prepend(phase, $t2, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                              break;
+                            case 'all-async':
+                              yield* interleave(
+                                prepend(phase, $t1, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'),
+                                prepend(phase, $t2, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'),
+                              );
+                              break;
+                          }
+                          break;
+                        case 'sequential-remove-first':
+                          yield* prepend(phase, $t1, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                          yield* prepend(phase, $t2, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                          break;
+                        case 'sequential-add-first':
+                          yield* prepend(phase, $t2, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                          yield* prepend(phase, $t1, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                          break;
+                      }
+                    }
 
-                    `stop.root1.beforeDetach`,
-                    `stop.root1.beforeUnbind`,
-                    `stop.root1.afterUnbind`,
+                    yield `stop.root2.beforeDetach`;
+                    yield `stop.root2.beforeUnbind`;
+                    yield `stop.root2.afterUnbind`;
 
-                    ...getStopPhaseCalls['$x -> ""'](`stop`, $4),
+                    yield* prepend('stop', t4, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren');
 
-                    `stop.root1.afterUnbindChildren`,
-                  ],
-                );
+                    yield `stop.root2.afterUnbindChildren`;
+                  })()];
+                  assert.deepStrictEqual(hia.notifyHistory, expected);
 
-                hia.dispose();
-              });
-            }
+                  hia.dispose();
+                });
+              }
 
-            for (const [[$1$0, $1$1], [$2$0, $2$1]] of [
-              // Only $0 changes with every nav
-              [['a01', 'a02'], ['a03', 'a02']],
-              [[''   , 'a02'], ['a03', 'a02']],
-              [['a01', 'a02'], [''   , 'a02']],
+              const specs: ISpec[] = [
+                { t1: 'a01', t2: 'a02', t3: 'a01', t4: 'a02' },
+                { t1: 'a01', t2: 'a02', t3: 'a03', t4: 'a01' },
+                { t1: 'a01', t2: 'a02', t3: 'a01', t4: 'a04' },
+              ];
 
-              [['a01', 'a02'], ['a02', 'a02']],
-              [[''   , 'a02'], ['a02', 'a02']],
-              [['a01', 'a02'], [''   , 'a02']],
+              for (const spec of specs) {
+                runTest(spec);
+              }
+            });
 
-              [['a02', 'a02'], ['a01', 'a02']],
-              [[''   , 'a02'], ['a01', 'a02']],
-              [['a02', 'a02'], [''   , 'a02']],
-              // Only $1 changes with every nav
-              [['a01', 'a02'], ['a01', 'a03']],
-              [['a01', ''   ], ['a01', 'a03']],
-              [['a01', 'a02'], ['a01', ''   ]],
+            describe('siblings', function () {
+              interface ISpec {
+                t1: {
+                  vp0: string;
+                  vp1: string;
+                };
+                t2: {
+                  vp0: string;
+                  vp1: string;
+                };
+              }
 
-              [['a01', 'a02'], ['a01', 'a01']],
-              [['a01', ''   ], ['a01', 'a01']],
-              [['a01', 'a02'], ['a01', ''   ]],
+              function runTest(spec: ISpec) {
+                const { t1, t2 } = spec;
+                const instr1 = join('+', `${t1.vp0}@$0`, `${t1.vp1}@$1`);
+                const instr2 = join('+', `${t2.vp0}@$0`, `${t2.vp1}@$1`);
+                it(`${instr1}' -> '${instr2}' -> '${instr1}' -> '${instr2}'`, async function () {
+                  const { router, hia, tearDown } = await createFixture(Root2, A, getDefaultHIAConfig, getRouterOptions);
 
-              [['a01', 'a01'], ['a01', 'a02']],
-              [['a01', ''   ], ['a01', 'a02']],
-              [['a01', 'a01'], ['a01', ''   ]],
-              // Both $0 and $1 change with every nav
-              [['a01', 'a02'], ['a03', 'a04']],
-              [[''   , 'a02'], ['a03', 'a04']],
-              [['a01', ''   ], ['a03', 'a04']],
-              [['a01', 'a02'], [''   , 'a04']],
-              [['a01', 'a02'], ['a03', ''   ]],
+                  const phase1 = `('' -> '${instr1}')#1`;
+                  const phase2 = `('${instr1}' -> '${instr2}')#2`;
+                  const phase3 = `('${instr2}' -> '${instr1}')#3`;
+                  const phase4 = `('${instr1}' -> '${instr2}')#4`;
 
-              [['a01', 'a02'], ['a02', 'a01']],
-              [[''   , 'a02'], ['a02', 'a01']],
-              [['a01', ''   ], ['a02', 'a01']],
-              [['a01', 'a02'], [''   , 'a01']],
-              [['a01', 'a02'], ['a02', ''   ]],
+                  hia.setPhase(phase1);
+                  await router.load(instr1);
 
-              [['a01', 'a02'], ['a04', 'a01']],
-              [[''   , 'a02'], ['a04', 'a01']],
-              [['a01', ''   ], ['a04', 'a01']],
-              [['a01', 'a02'], [''   , 'a01']],
-              [['a01', 'a02'], ['a04', ''   ]],
-            ]) {
-              const $1 = join('+', `${$1$0}@$0`, `${$1$1}@$1`);
-              const $2 = join('+', `${$2$0}@$0`, `${$2$1}@$1`);
-              it(`${$1}' -> '${$2}' -> '${$1}' -> '${$2}'`, async function () {
-                const { router, hia, tearDown } = await createFixture(Root2, A, getDefaultHIAConfig, getRouterOptions);
+                  hia.setPhase(phase2);
+                  await router.load(instr2);
 
-                const t1 = `('' -> '${$1}')#1`;
-                const t2 = `('${$1}' -> '${$2}')#2`;
-                const t3 = `('${$2}' -> '${$1}')#3`;
-                const t4 = `('${$1}' -> '${$2}')#4`;
+                  hia.setPhase(phase3);
+                  await router.load(instr1);
 
-                hia.setPhase(t1);
-                await router.load($1);
+                  hia.setPhase(phase4);
+                  await router.load(instr2);
 
-                hia.setPhase(t2);
-                await router.load($2);
+                  await tearDown();
 
-                hia.setPhase(t3);
-                await router.load($1);
+                  const expected = [...(function* () {
+                    yield `start.root2.beforeBind`;
+                    yield `start.root2.afterBind`;
+                    yield `start.root2.afterAttach`;
+                    yield `start.root2.afterAttachChildren`;
 
-                hia.setPhase(t4);
-                await router.load($2);
+                    switch (componentSpec.kind) {
+                      case 'all-async':
+                        yield* interleave(
+                          (function* () {
+                            if (t1.vp0) { yield* prepend(phase1, t1.vp0, 'canLoad', 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                          })(),
+                          (function* () {
+                            if (t1.vp1) { yield* prepend(phase1, t1.vp1, 'canLoad', 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                          })(),
+                        );
+                        break;
+                      case 'all-sync':
+                        if (t1.vp0) { yield `${phase1}.${t1.vp0}.canLoad`; }
+                        if (t1.vp1) { yield `${phase1}.${t1.vp1}.canLoad`; }
+                        if (t1.vp0) { yield `${phase1}.${t1.vp0}.load`; }
+                        if (t1.vp1) { yield `${phase1}.${t1.vp1}.load`; }
+                        if (t1.vp0) { yield* prepend(phase1, t1.vp0, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                        if (t1.vp1) { yield* prepend(phase1, t1.vp1, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                        break;
+                    }
 
-                await tearDown();
+                    for (const [phase, { $t1, $t2 }] of [
+                      [phase2, { $t1: t1, $t2: t2 }],
+                      [phase3, { $t1: t2, $t2: t1 }],
+                      [phase4, { $t1: t1, $t2: t2 }],
+                    ] as const) {
+                      if ($t1.vp0 && ($t1.vp0 !== $t2.vp0)) { yield `${phase}.${$t1.vp0}.canUnload`; }
+                      if ($t1.vp1 && ($t1.vp1 !== $t2.vp1)) { yield `${phase}.${$t1.vp1}.canUnload`; }
 
-                assert.deepStrictEqual(
-                  hia.notifyHistory,
-                  [
-                    `start.root2.beforeBind`,
-                    `start.root2.afterBind`,
-                    `start.root2.afterAttach`,
-                    `start.root2.afterAttachChildren`,
+                      if ($t2.vp0 && ($t1.vp0 !== $t2.vp0)) { yield `${phase}.${$t2.vp0}.canLoad`; }
+                      if ($t2.vp1 && ($t1.vp1 !== $t2.vp1)) { yield `${phase}.${$t2.vp1}.canLoad`; }
 
-                    ...getCalls[componentSpec.kind]['"" -> $x$0+$x$1'](t1, $1$0, $1$1, routerOptionsSpec, componentSpec),
+                      if ($t1.vp0 && ($t1.vp0 !== $t2.vp0)) { yield `${phase}.${$t1.vp0}.unload`; }
+                      if ($t1.vp1 && ($t1.vp1 !== $t2.vp1)) { yield `${phase}.${$t1.vp1}.unload`; }
 
-                    ...getCalls[componentSpec.kind]['$1$0+$1$1 -> $2$0+$2$1'](t2, $1$0, $1$1, $2$0, $2$1, routerOptionsSpec, componentSpec),
+                      if ($t2.vp0 && ($t1.vp0 !== $t2.vp0)) { yield `${phase}.${$t2.vp0}.load`; }
+                      if ($t2.vp1 && ($t1.vp1 !== $t2.vp1)) { yield `${phase}.${$t2.vp1}.load`; }
 
-                    ...getCalls[componentSpec.kind]['$1$0+$1$1 -> $2$0+$2$1'](t3, $2$0, $2$1, $1$0, $1$1, routerOptionsSpec, componentSpec),
+                      switch (routerOptionsSpec.swapStrategy) {
+                        case 'parallel-remove-first':
+                          switch (componentSpec.kind) {
+                            case 'all-async':
+                              yield* interleave(
+                                (function* () {
+                                  if ($t1.vp0 && ($t1.vp0 !== $t2.vp0)) { yield* prepend(phase, $t1.vp0, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                                })(),
+                                (function* () {
+                                  if ($t2.vp0 && ($t1.vp0 !== $t2.vp0)) { yield* prepend(phase, $t2.vp0, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                })(),
+                                (function* () {
+                                  if ($t1.vp1 && ($t1.vp1 !== $t2.vp1)) { yield* prepend(phase, $t1.vp1, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                                })(),
+                                (function* () {
+                                  if ($t2.vp1 && ($t1.vp1 !== $t2.vp1)) { yield* prepend(phase, $t2.vp1, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                })(),
+                              );
+                              break;
+                            case 'all-sync':
+                              if ($t1.vp0 && ($t1.vp0 !== $t2.vp0)) { yield* prepend(phase, $t1.vp0, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                              if ($t2.vp0 && ($t1.vp0 !== $t2.vp0)) { yield* prepend(phase, $t2.vp0, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                              if ($t1.vp1 && ($t1.vp1 !== $t2.vp1)) { yield* prepend(phase, $t1.vp1, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                              if ($t2.vp1 && ($t1.vp1 !== $t2.vp1)) { yield* prepend(phase, $t2.vp1, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                              break;
+                          }
+                          break;
+                        case 'sequential-remove-first':
+                          switch (componentSpec.kind) {
+                            case 'all-async':
+                              yield* interleave(
+                                (function* () {
+                                  if ($t1.vp0 && ($t1.vp0 !== $t2.vp0)) { yield* prepend(phase, $t1.vp0, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                                  if ($t2.vp0 && ($t1.vp0 !== $t2.vp0)) { yield* prepend(phase, $t2.vp0, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                })(),
+                                (function* () {
+                                  if ($t1.vp1 && ($t1.vp1 !== $t2.vp1)) { yield* prepend(phase, $t1.vp1, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                                  if ($t2.vp1 && ($t1.vp1 !== $t2.vp1)) { yield* prepend(phase, $t2.vp1, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                })(),
+                              );
+                              break;
+                            case 'all-sync':
+                              if ($t1.vp0 && ($t1.vp0 !== $t2.vp0)) { yield* prepend(phase, $t1.vp0, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                              if ($t2.vp0 && ($t1.vp0 !== $t2.vp0)) { yield* prepend(phase, $t2.vp0, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                              if ($t1.vp1 && ($t1.vp1 !== $t2.vp1)) { yield* prepend(phase, $t1.vp1, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                              if ($t2.vp1 && ($t1.vp1 !== $t2.vp1)) { yield* prepend(phase, $t2.vp1, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                              break;
+                          }
+                          break;
+                        case 'sequential-add-first':
+                          switch (componentSpec.kind) {
+                            case 'all-async':
+                              if ($t1.vp1 && !$t2.vp1 && $t1.vp0 !== $t2.vp0) {
+                                // TODO: figure out why this one specific case has a minor timing deviation with `dispose` and remove this special condition
+                                yield* interleave(
+                                  prepend(phase, $t2.vp0, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'),
+                                  prepend(phase, $t1.vp1, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'),
+                                );
+                                yield* prepend(phase, $t1.vp0, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                              } else {
+                                yield* interleave(
+                                  (function* () {
+                                    if ($t2.vp0 && ($t1.vp0 !== $t2.vp0)) { yield* prepend(phase, $t2.vp0, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                    if ($t1.vp0 && ($t1.vp0 !== $t2.vp0)) { yield* prepend(phase, $t1.vp0, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                                  })(),
+                                  (function* () {
+                                    if ($t2.vp1 && ($t1.vp1 !== $t2.vp1)) { yield* prepend(phase, $t2.vp1, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                    if ($t1.vp1 && ($t1.vp1 !== $t2.vp1)) { yield* prepend(phase, $t1.vp1, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                                  })(),
+                                );
+                              }
+                              break;
+                            case 'all-sync':
+                              if ($t2.vp0 && ($t1.vp0 !== $t2.vp0)) { yield* prepend(phase, $t2.vp0, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                              if ($t1.vp0 && ($t1.vp0 !== $t2.vp0)) { yield* prepend(phase, $t1.vp0, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                              if ($t2.vp1 && ($t1.vp1 !== $t2.vp1)) { yield* prepend(phase, $t2.vp1, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                              if ($t1.vp1 && ($t1.vp1 !== $t2.vp1)) { yield* prepend(phase, $t1.vp1, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                              break;
+                          }
+                          break;
+                      }
+                    }
 
-                    ...getCalls[componentSpec.kind]['$1$0+$1$1 -> $2$0+$2$1'](t4, $1$0, $1$1, $2$0, $2$1, routerOptionsSpec, componentSpec),
+                    yield `stop.root2.beforeDetach`;
+                    yield `stop.root2.beforeUnbind`;
+                    yield `stop.root2.afterUnbind`;
 
-                    `stop.root2.beforeDetach`,
-                    `stop.root2.beforeUnbind`,
-                    `stop.root2.afterUnbind`,
+                    switch (componentSpec.kind) {
+                      case 'all-async':
+                        yield* interleave(
+                          (function* () {
+                            if (t2.vp0) { yield* prepend('stop', t2.vp0, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren'); }
+                          })(),
+                          (function* () {
+                            if (t2.vp1) { yield* prepend('stop', t2.vp1, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren'); }
+                          })(),
+                        );
+                        break;
+                      case 'all-sync':
+                        if (t2.vp0) { yield* prepend('stop', t2.vp0, 'beforeDetach', 'beforeUnbind', 'afterUnbind'); }
+                        if (t2.vp1) { yield* prepend('stop', t2.vp1, 'beforeDetach', 'beforeUnbind', 'afterUnbind'); }
+                        if (t2.vp0) { yield `stop.${t2.vp0}.afterUnbindChildren`; }
+                        if (t2.vp1) { yield `stop.${t2.vp1}.afterUnbindChildren`; }
+                        break;
+                    }
 
-                    ...getStopPhaseCalls['$x$0+$x$1 -> ""'](`stop`, $2$0, $2$1, componentSpec),
+                    yield `stop.root2.afterUnbindChildren`;
+                  })()];
+                  assert.deepStrictEqual(hia.notifyHistory, expected);
 
-                    `stop.root2.afterUnbindChildren`,
-                  ],
-                );
+                  hia.dispose();
+                });
+              }
 
-                hia.dispose();
-              });
-            }
+              const specs: ISpec[] = [
+                // Only $0 changes with every nav
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: 'a03', vp1: 'a02' } },
+                { t1: { vp0: ''   , vp1: 'a02' }, t2: { vp0: 'a03', vp1: 'a02' } },
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: ''   , vp1: 'a02' } },
 
-            for (const [[$1p, $1c], [$2p, $2c]] of [
-              // Only parent changes with every nav
-              [['a11', 'a12'], ['a13', 'a12']],
-              [['a11', 'a12'], ['a12', 'a12']],
-              [['a12', 'a12'], ['a11', 'a12']],
-              // Only child changes with every nav
-              [['a11', 'a01'], ['a11', 'a02']],
-              [['a11', ''   ], ['a11', 'a02']],
-              [['a11', 'a01'], ['a11', ''   ]],
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: 'a02', vp1: 'a02' } },
+                { t1: { vp0: ''   , vp1: 'a02' }, t2: { vp0: 'a02', vp1: 'a02' } },
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: ''   , vp1: 'a02' } },
 
-              [['a11', 'a11'], ['a11', 'a02']],
-              [['a11', 'a11'], ['a11', ''   ]],
+                { t1: { vp0: 'a02', vp1: 'a02' }, t2: { vp0: 'a01', vp1: 'a02' } },
+                { t1: { vp0: ''   , vp1: 'a02' }, t2: { vp0: 'a01', vp1: 'a02' } },
+                { t1: { vp0: 'a02', vp1: 'a02' }, t2: { vp0: ''   , vp1: 'a02' } },
+                // Only $1 changes with every nav
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: 'a01', vp1: 'a03' } },
+                { t1: { vp0: 'a01', vp1: ''    }, t2: { vp0: 'a01', vp1: 'a03' } },
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: 'a01', vp1: ''    } },
 
-              [['a11', 'a01'], ['a11', 'a11']],
-              [['a11', ''   ], ['a11', 'a11']],
-              // Both parent and child change with every nav
-              [['a11', 'a01'], ['a12', 'a02']],
-              [['a11', ''   ], ['a12', 'a02']],
-              [['a11', 'a01'], ['a12', ''   ]],
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: 'a01', vp1: 'a01' } },
+                { t1: { vp0: 'a01', vp1: ''    }, t2: { vp0: 'a01', vp1: 'a01' } },
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: 'a01', vp1: ''    } },
 
-              [['a11', 'a11'], ['a12', 'a02']],
-              [['a11', 'a11'], ['a12', 'a12']],
-              [['a11', 'a11'], ['a12', ''   ]],
+                { t1: { vp0: 'a01', vp1: 'a01' }, t2: { vp0: 'a01', vp1: 'a02' } },
+                { t1: { vp0: 'a01', vp1: ''    }, t2: { vp0: 'a01', vp1: 'a02' } },
+                { t1: { vp0: 'a01', vp1: 'a01' }, t2: { vp0: 'a01', vp1: ''    } },
+                // Both $0 and $1 change with every nav
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: 'a03', vp1: 'a04' } },
+                { t1: { vp0: ''   , vp1: 'a02' }, t2: { vp0: 'a03', vp1: 'a04' } },
+                { t1: { vp0: 'a01', vp1: ''    }, t2: { vp0: 'a03', vp1: 'a04' } },
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: ''   , vp1: 'a04' } },
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: 'a03', vp1: ''    } },
 
-              [['a12', 'a02'], ['a11', 'a11']],
-              [['a12', 'a12'], ['a11', 'a11']],
-              [['a12', ''   ], ['a11', 'a11']],
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: 'a02', vp1: 'a01' } },
+                { t1: { vp0: ''   , vp1: 'a02' }, t2: { vp0: 'a02', vp1: 'a01' } },
+                { t1: { vp0: 'a01', vp1: ''    }, t2: { vp0: 'a02', vp1: 'a01' } },
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: ''   , vp1: 'a01' } },
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: 'a02', vp1: ''    } },
 
-              [['a11', 'a12'], ['a13', 'a14']],
-              [['a11', 'a12'], ['a13', 'a11']],
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: 'a04', vp1: 'a01' } },
+                { t1: { vp0: ''   , vp1: 'a02' }, t2: { vp0: 'a04', vp1: 'a01' } },
+                { t1: { vp0: 'a01', vp1: ''    }, t2: { vp0: 'a04', vp1: 'a01' } },
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: ''   , vp1: 'a01' } },
+                { t1: { vp0: 'a01', vp1: 'a02' }, t2: { vp0: 'a04', vp1: ''    } },
+              ];
 
-              [['a13', 'a14'], ['a11', 'a12']],
-              [['a13', 'a11'], ['a11', 'a12']],
-            ]) {
-              const $1 = join('/', $1p, $1c);
-              const $2 = join('/', $2p, $2c);
-              it(`'${$1}' -> '${$2}' -> '${$1}' -> '${$2}'`, async function () {
-                const { router, hia, tearDown } = await createFixture(Root1, A, getDefaultHIAConfig, getRouterOptions);
+              for (const spec of specs) {
+                runTest(spec);
+              }
+            });
 
-                const t1 = `('' -> '${$1}')#1`;
-                const t2 = `('${$1}' -> '${$2}')#2`;
-                const t3 = `('${$2}' -> '${$1}')#3`;
-                const t4 = `('${$1}' -> '${$2}')#4`;
+            describe('parent-child', function () {
+              interface ISpec {
+                t1: {
+                  p: string;
+                  c: string;
+                };
+                t2: {
+                  p: string;
+                  c: string;
+                };
+              }
 
-                hia.setPhase(t1);
-                await router.load($1);
+              function runTest(spec: ISpec) {
+                const { t1, t2 } = spec;
+                const instr1 = join('/', t1.p, t1.c);
+                const instr2 = join('/', t2.p, t2.c);
+                it(`${instr1}' -> '${instr2}' -> '${instr1}' -> '${instr2}'`, async function () {
+                  const { router, hia, tearDown } = await createFixture(Root2, A, getDefaultHIAConfig, getRouterOptions);
 
-                hia.setPhase(t2);
-                await router.load($2);
+                  const phase1 = `('' -> '${instr1}')#1`;
+                  const phase2 = `('${instr1}' -> '${instr2}')#2`;
+                  const phase3 = `('${instr2}' -> '${instr1}')#3`;
+                  const phase4 = `('${instr1}' -> '${instr2}')#4`;
 
-                hia.setPhase(t3);
-                await router.load($1);
+                  hia.setPhase(phase1);
+                  await router.load(instr1);
 
-                hia.setPhase(t4);
-                await router.load($2);
+                  hia.setPhase(phase2);
+                  await router.load(instr2);
 
-                await tearDown();
+                  hia.setPhase(phase3);
+                  await router.load(instr1);
 
-                assert.deepStrictEqual(
-                  hia.notifyHistory,
-                  [
-                    `start.root1.beforeBind`,
-                    `start.root1.afterBind`,
-                    `start.root1.afterAttach`,
-                    `start.root1.afterAttachChildren`,
+                  hia.setPhase(phase4);
+                  await router.load(instr2);
 
-                    ...getCalls[componentSpec.kind]['"" -> $x$p/$x$c'](t1, $1p, $1c, routerOptionsSpec, componentSpec),
+                  await tearDown();
 
-                    ...getCalls[componentSpec.kind]['$1$p/$1$c -> $2$p/$2$c'](t2, $1p, $1c, $2p, $2c, routerOptionsSpec, componentSpec),
+                  const expected = [...(function* () {
+                    yield `start.root2.beforeBind`;
+                    yield `start.root2.afterBind`;
+                    yield `start.root2.afterAttach`;
+                    yield `start.root2.afterAttachChildren`;
 
-                    ...getCalls[componentSpec.kind]['$1$p/$1$c -> $2$p/$2$c'](t3, $2p, $2c, $1p, $1c, routerOptionsSpec, componentSpec),
+                    switch (routerOptionsSpec.deferUntil) {
+                      case 'none':
+                        yield* prepend(phase1, t1.p, 'canLoad', 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                        if (t1.c) { yield* prepend(phase1, t1.c, 'canLoad', 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                        break;
+                      case 'guard-hooks':
+                        yield `${phase1}.${t1.p}.canLoad`;
+                        if (t1.c) { yield `${phase1}.${t1.c}.canLoad`; }
 
-                    ...getCalls[componentSpec.kind]['$1$p/$1$c -> $2$p/$2$c'](t4, $1p, $1c, $2p, $2c, routerOptionsSpec, componentSpec),
+                        yield* prepend(phase1, t1.p, 'load', 'beforeBind', 'afterBind', 'afterAttach');
+                        if (t1.c) { yield* prepend(phase1, t1.c, 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                        yield `${phase1}.${t1.p}.afterAttachChildren`;
+                        break;
+                      case 'load-hooks':
+                        yield `${phase1}.${t1.p}.canLoad`;
+                        if (t1.c) { yield `${phase1}.${t1.c}.canLoad`; }
+                        yield `${phase1}.${t1.p}.load`;
+                        if (t1.c) { yield `${phase1}.${t1.c}.load`; }
 
-                    `stop.root1.beforeDetach`,
-                    `stop.root1.beforeUnbind`,
-                    `stop.root1.afterUnbind`,
+                        yield* prepend(phase1, t1.p, 'beforeBind', 'afterBind', 'afterAttach');
+                        if (t1.c) { yield* prepend(phase1, t1.c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                        yield `${phase1}.${t1.p}.afterAttachChildren`;
+                        break;
+                    }
 
-                    ...getStopPhaseCalls['$x$p/$x$c -> ""'](`stop`, $2p, $2c),
+                    for (const [phase, { $t1, $t2 }] of [
+                      [phase2, { $t1: t1, $t2: t2 }],
+                      [phase3, { $t1: t2, $t2: t1 }],
+                      [phase4, { $t1: t1, $t2: t2 }],
+                    ] as const) {
+                      // When parents are equal, this becomes like an ordinary single component transition
+                      if ($t1.p === $t2.p) {
+                        if ($t1.c) { yield `${phase}.${$t1.c}.canUnload`; }
+                        if ($t2.c) { yield `${phase}.${$t2.c}.canLoad`; }
+                        if ($t1.c) { yield `${phase}.${$t1.c}.unload`; }
+                        if ($t2.c) { yield `${phase}.${$t2.c}.load`; }
+                        switch (routerOptionsSpec.swapStrategy) {
+                          case 'parallel-remove-first':
+                            switch (componentSpec.kind) {
+                              case 'all-async':
+                                yield* interleave(
+                                  (function* () {
+                                    if ($t1.c) { yield* prepend(phase, $t1.c, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                                  })(),
+                                  (function* () {
+                                    if ($t2.c) { yield* prepend(phase, $t2.c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                  })(),
+                                );
+                                break;
+                              case 'all-sync':
+                                if ($t1.c) { yield* prepend(phase, $t1.c, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                                if ($t2.c) { yield* prepend(phase, $t2.c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                break;
+                            }
+                            break;
+                          case 'sequential-remove-first':
+                            if ($t1.c) { yield* prepend(phase, $t1.c, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                            if ($t2.c) { yield* prepend(phase, $t2.c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                            break;
+                          case 'sequential-add-first':
+                            if ($t2.c) { yield* prepend(phase, $t2.c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                            if ($t1.c) { yield* prepend(phase, $t1.c, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                            break;
+                        }
+                      } else {
+                        switch (routerOptionsSpec.deferUntil) {
+                          case 'none':
+                            if ($t1.c) { yield `${phase}.${$t1.c}.canUnload`; }
+                            yield `${phase}.${$t1.p}.canUnload`;
+                            yield `${phase}.${$t2.p}.canLoad`;
+                            if ($t1.c) { yield `${phase}.${$t1.c}.unload`; }
+                            yield `${phase}.${$t1.p}.unload`;
+                            yield `${phase}.${$t2.p}.load`;
 
-                    `stop.root1.afterUnbindChildren`,
-                  ],
-                );
+                            switch (routerOptionsSpec.swapStrategy) {
+                              case 'parallel-remove-first':
+                                if ($t1.c) { yield* prepend(phase, $t1.c, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                                switch (componentSpec.kind) {
+                                  case 'all-async':
+                                    yield* interleave(
+                                      prepend(phase, $t1.p, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'),
+                                      prepend(phase, $t2.p, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'),
+                                    );
+                                    if ($t2.c) { yield* prepend(phase, $t2.c, 'canLoad', 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                    break;
+                                  case 'all-sync':
+                                    yield* prepend(phase, $t1.p, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                                    yield* prepend(phase, $t2.p, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                                    if ($t2.c) { yield* prepend(phase, $t2.c, 'canLoad', 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                    break;
+                                }
+                                break;
+                              case 'sequential-remove-first':
+                                if ($t1.c) { yield* prepend(phase, $t1.c, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                                yield* prepend(phase, $t1.p, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                                yield* prepend(phase, $t2.p, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                                if ($t2.c) { yield* prepend(phase, $t2.c, 'canLoad', 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                break;
+                              case 'sequential-add-first':
+                                if ($t1.c) { yield* prepend(phase, $t1.c, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                                yield* prepend(phase, $t2.p, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                                yield* prepend(phase, $t1.p, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                                if ($t2.c) { yield* prepend(phase, $t2.c, 'canLoad', 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                break;
+                            }
+                            break;
+                          case 'guard-hooks':
+                            if ($t1.c) { yield `${phase}.${$t1.c}.canUnload`; }
+                            yield `${phase}.${$t1.p}.canUnload`;
+                            yield `${phase}.${$t2.p}.canLoad`;
+                            if ($t2.c) { yield `${phase}.${$t2.c}.canLoad`; }
+                            if ($t1.c) { yield `${phase}.${$t1.c}.unload`; }
+                            yield `${phase}.${$t1.p}.unload`;
+                            yield `${phase}.${$t2.p}.load`;
 
-                hia.dispose();
-              });
-            }
+                            if ($t1.c) { yield* prepend(phase, $t1.c, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                            switch (routerOptionsSpec.swapStrategy) {
+                              case 'parallel-remove-first':
+                                switch (componentSpec.kind) {
+                                  case 'all-async':
+                                    yield* interleave(
+                                      (function* () {
+                                        yield* prepend(phase, $t1.p, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                                      })(),
+                                      (function* () {
+                                        yield* prepend(phase, $t2.p, 'beforeBind', 'afterBind', 'afterAttach');
+                                        if ($t2.c) { yield* prepend(phase, $t2.c, 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                        yield `${phase}.${$t2.p}.afterAttachChildren`;
+                                      })(),
+                                    );
+                                    break;
+                                  case 'all-sync':
+                                    yield* prepend(phase, $t1.p, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                                    yield* prepend(phase, $t2.p, 'beforeBind', 'afterBind', 'afterAttach');
+                                    if ($t2.c) { yield* prepend(phase, $t2.c, 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                    yield `${phase}.${$t2.p}.afterAttachChildren`;
+                                    break;
+                                }
+                                break;
+                              case 'sequential-remove-first':
+                                yield* prepend(phase, $t1.p, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                                yield* prepend(phase, $t2.p, 'beforeBind', 'afterBind', 'afterAttach');
+                                if ($t2.c) { yield* prepend(phase, $t2.c, 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                yield `${phase}.${$t2.p}.afterAttachChildren`;
+                                break;
+                              case 'sequential-add-first':
+                                yield* prepend(phase, $t2.p, 'beforeBind', 'afterBind', 'afterAttach');
+                                if ($t2.c) { yield* prepend(phase, $t2.c, 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                yield `${phase}.${$t2.p}.afterAttachChildren`;
+                                yield* prepend(phase, $t1.p, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                                break;
+                            }
+                            break;
+                          case 'load-hooks':
+                            if ($t1.c) { yield `${phase}.${$t1.c}.canUnload`; }
+                            yield `${phase}.${$t1.p}.canUnload`;
+                            yield `${phase}.${$t2.p}.canLoad`;
+                            if ($t2.c) { yield `${phase}.${$t2.c}.canLoad`; }
+                            if ($t1.c) { yield `${phase}.${$t1.c}.unload`; }
+                            yield `${phase}.${$t1.p}.unload`;
+                            yield `${phase}.${$t2.p}.load`;
+                            if ($t2.c) { yield `${phase}.${$t2.c}.load`; }
+
+                            if ($t1.c) { yield* prepend(phase, $t1.c, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose'); }
+                            switch (routerOptionsSpec.swapStrategy) {
+                              case 'parallel-remove-first':
+                                switch (componentSpec.kind) {
+                                  case 'all-async':
+                                    yield* interleave(
+                                      (function* () {
+                                        yield* prepend(phase, $t1.p, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                                      })(),
+                                      (function* () {
+                                        yield* prepend(phase, $t2.p, 'beforeBind', 'afterBind', 'afterAttach');
+                                        if ($t2.c) { yield* prepend(phase, $t2.c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                        yield `${phase}.${$t2.p}.afterAttachChildren`;
+                                      })(),
+                                    );
+                                    break;
+                                  case 'all-sync':
+                                    yield* prepend(phase, $t1.p, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                                    yield* prepend(phase, $t2.p, 'beforeBind', 'afterBind', 'afterAttach');
+                                    if ($t2.c) { yield* prepend(phase, $t2.c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                    yield `${phase}.${$t2.p}.afterAttachChildren`;
+                                    break;
+                                }
+                                break;
+                              case 'sequential-remove-first':
+                                yield* prepend(phase, $t1.p, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                                yield* prepend(phase, $t2.p, 'beforeBind', 'afterBind', 'afterAttach');
+                                if ($t2.c) { yield* prepend(phase, $t2.c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                yield `${phase}.${$t2.p}.afterAttachChildren`;
+                                break;
+                              case 'sequential-add-first':
+                                yield* prepend(phase, $t2.p, 'beforeBind', 'afterBind', 'afterAttach');
+                                if ($t2.c) { yield* prepend(phase, $t2.c, 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'); }
+                                yield `${phase}.${$t2.p}.afterAttachChildren`;
+                                yield* prepend(phase, $t1.p, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren', 'dispose');
+                                break;
+                            }
+                            break;
+                        }
+                      }
+                    }
+
+                    yield `stop.root2.beforeDetach`;
+                    yield `stop.root2.beforeUnbind`;
+                    yield `stop.root2.afterUnbind`;
+
+                    yield* prepend('stop', t2.p, 'beforeDetach', 'beforeUnbind', 'afterUnbind');
+                    if (t2.c) { yield* prepend('stop', t2.c, 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren'); }
+                    yield `stop.${t2.p}.afterUnbindChildren`;
+                    yield `stop.root2.afterUnbindChildren`;
+                  })()];
+                  assert.deepStrictEqual(hia.notifyHistory, expected);
+
+                  hia.dispose();
+                });
+              }
+
+              const specs: ISpec[] = [
+                // Only parent changes with every nav
+                { t1: { p: 'a11', c: 'a12' }, t2: { p: 'a13', c: 'a12' } },
+                { t1: { p: 'a11', c: 'a12' }, t2: { p: 'a12', c: 'a12' } },
+                { t1: { p: 'a12', c: 'a12' }, t2: { p: 'a11', c: 'a12' } },
+
+                // Only child changes with every nav
+                { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a11', c: 'a02' } },
+                { t1: { p: 'a11', c: ''    }, t2: { p: 'a11', c: 'a02' } },
+                { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a11', c: ''    } },
+
+                { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a11', c: 'a02' } },
+                { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a11', c: ''    } },
+
+                { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a11', c: 'a11' } },
+                { t1: { p: 'a11', c: ''    }, t2: { p: 'a11', c: 'a11' } },
+
+                // Both parent and child change with every nav
+                { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a12', c: 'a02' } },
+                { t1: { p: 'a11', c: ''    }, t2: { p: 'a12', c: 'a02' } },
+                { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a12', c: ''    } },
+
+                { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: 'a02' } },
+                { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: 'a12' } },
+                { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: ''    } },
+
+                { t1: { p: 'a12', c: 'a02' }, t2: { p: 'a11', c: 'a11' } },
+                { t1: { p: 'a12', c: 'a12' }, t2: { p: 'a11', c: 'a11' } },
+                { t1: { p: 'a12', c: ''    }, t2: { p: 'a11', c: 'a11' } },
+
+                { t1: { p: 'a11', c: 'a12' }, t2: { p: 'a13', c: 'a14' } },
+                { t1: { p: 'a11', c: 'a12' }, t2: { p: 'a13', c: 'a11' } },
+
+                { t1: { p: 'a13', c: 'a14' }, t2: { p: 'a11', c: 'a12' } },
+                { t1: { p: 'a13', c: 'a11' }, t2: { p: 'a11', c: 'a12' } },
+              ];
+
+              for (const spec of specs) {
+                runTest(spec);
+              }
+            });
           });
         }
       });
@@ -418,32 +880,26 @@ describe('router hooks', function () {
   });
 
   describe('parent-child timings', function () {
-    const resolutionStrategies: ResolutionStrategy[] = [
-      'static',
-      'dynamic',
-    ];
-    const lifecycleStrategies: LifecycleStrategy[] = [
-      'phased',
-      'parallel',
+    const deferUntils: DeferralJuncture[] = [
+      'none',
+      'guard-hooks',
+      'load-hooks',
     ];
     const swapStrategies: SwapStrategy[] = [
-      'parallel',
-      'add-first',
-      'remove-first',
+      'parallel-remove-first',
+      'sequential-add-first',
+      'sequential-remove-first',
     ];
     const routerOptionsSpecs: IRouterOptionsSpec[] = [];
-    for (const resolutionStrategy of resolutionStrategies) {
-      for (const lifecycleStrategy of lifecycleStrategies) {
-        for (const swapStrategy of swapStrategies) {
-          routerOptionsSpecs.push({
-            resolutionStrategy,
-            lifecycleStrategy,
-            swapStrategy,
-            toString() {
-              return `resolutionStrategy:'${resolutionStrategy}',lifecycleStrategy:'${lifecycleStrategy}',swapStrategy:'${swapStrategy}'`;
-            },
-          });
-        }
+    for (const deferUntil of deferUntils) {
+      for (const swapStrategy of swapStrategies) {
+        routerOptionsSpecs.push({
+          deferUntil,
+          swapStrategy,
+          toString() {
+            return `deferUntil:'${deferUntil}',swapStrategy:'${swapStrategy}'`;
+          },
+        });
       }
     }
 
@@ -527,317 +983,228 @@ describe('router hooks', function () {
 
             await tearDown();
 
-            switch (routerOptionsSpec.lifecycleStrategy) {
-              case 'phased': {
-                switch (routerOptionsSpec.resolutionStrategy) {
-                  case 'dynamic': {
-                    assert.deepStrictEqual(
-                      hia.notifyHistory,
-                      [
-                        `start.root.beforeBind`,
-                        `start.root.afterBind`,
-                        `start.root.afterAttach`,
-                        `start.root.afterAttachChildren`,
+            switch (routerOptionsSpec.deferUntil) {
+              case 'none': {
+                assert.deepStrictEqual(
+                  hia.notifyHistory,
+                  [
+                    `start.root.beforeBind`,
+                    `start.root.afterBind`,
+                    `start.root.afterAttach`,
+                    `start.root.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').a.canLoad`,
-                        `('' -> 'a/b/c/d').a.load`,
-                        `('' -> 'a/b/c/d').a.beforeBind`,
-                        `('' -> 'a/b/c/d').a.afterBind`,
-                        `('' -> 'a/b/c/d').a.afterAttach`,
-                        `('' -> 'a/b/c/d').a.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').a.canLoad`,
+                    `('' -> 'a/b/c/d').a.load`,
+                    `('' -> 'a/b/c/d').a.beforeBind`,
+                    `('' -> 'a/b/c/d').a.afterBind`,
+                    `('' -> 'a/b/c/d').a.afterAttach`,
+                    `('' -> 'a/b/c/d').a.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').b.canLoad`,
-                        `('' -> 'a/b/c/d').b.load`,
-                        `('' -> 'a/b/c/d').b.beforeBind`,
-                        `('' -> 'a/b/c/d').b.afterBind`,
-                        `('' -> 'a/b/c/d').b.afterAttach`,
-                        `('' -> 'a/b/c/d').b.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').b.canLoad`,
+                    `('' -> 'a/b/c/d').b.load`,
+                    `('' -> 'a/b/c/d').b.beforeBind`,
+                    `('' -> 'a/b/c/d').b.afterBind`,
+                    `('' -> 'a/b/c/d').b.afterAttach`,
+                    `('' -> 'a/b/c/d').b.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').c.canLoad`,
-                        `('' -> 'a/b/c/d').c.load`,
-                        `('' -> 'a/b/c/d').c.beforeBind`,
-                        `('' -> 'a/b/c/d').c.afterBind`,
-                        `('' -> 'a/b/c/d').c.afterAttach`,
-                        `('' -> 'a/b/c/d').c.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').c.canLoad`,
+                    `('' -> 'a/b/c/d').c.load`,
+                    `('' -> 'a/b/c/d').c.beforeBind`,
+                    `('' -> 'a/b/c/d').c.afterBind`,
+                    `('' -> 'a/b/c/d').c.afterAttach`,
+                    `('' -> 'a/b/c/d').c.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').d.canLoad`,
-                        `('' -> 'a/b/c/d').d.load`,
-                        `('' -> 'a/b/c/d').d.beforeBind`,
-                        `('' -> 'a/b/c/d').d.afterBind`,
-                        `('' -> 'a/b/c/d').d.afterAttach`,
-                        `('' -> 'a/b/c/d').d.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').d.canLoad`,
+                    `('' -> 'a/b/c/d').d.load`,
+                    `('' -> 'a/b/c/d').d.beforeBind`,
+                    `('' -> 'a/b/c/d').d.afterBind`,
+                    `('' -> 'a/b/c/d').d.afterAttach`,
+                    `('' -> 'a/b/c/d').d.afterAttachChildren`,
 
-                        `('a/b/c/d' -> 'a').d.canUnload`,
-                        `('a/b/c/d' -> 'a').c.canUnload`,
-                        `('a/b/c/d' -> 'a').b.canUnload`,
+                    `('a/b/c/d' -> 'a').d.canUnload`,
+                    `('a/b/c/d' -> 'a').c.canUnload`,
+                    `('a/b/c/d' -> 'a').b.canUnload`,
 
-                        `('a/b/c/d' -> 'a').d.unload`,
-                        `('a/b/c/d' -> 'a').c.unload`,
-                        `('a/b/c/d' -> 'a').b.unload`,
+                    `('a/b/c/d' -> 'a').d.unload`,
+                    `('a/b/c/d' -> 'a').c.unload`,
+                    `('a/b/c/d' -> 'a').b.unload`,
 
-                        `('a/b/c/d' -> 'a').d.beforeDetach`,
-                        `('a/b/c/d' -> 'a').d.beforeUnbind`,
-                        `('a/b/c/d' -> 'a').d.afterUnbind`,
-                        `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
-                        `('a/b/c/d' -> 'a').d.dispose`,
-                        `('a/b/c/d' -> 'a').c.beforeDetach`,
-                        `('a/b/c/d' -> 'a').c.beforeUnbind`,
-                        `('a/b/c/d' -> 'a').c.afterUnbind`,
-                        `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
-                        `('a/b/c/d' -> 'a').c.dispose`,
-                        `('a/b/c/d' -> 'a').b.beforeDetach`,
-                        `('a/b/c/d' -> 'a').b.beforeUnbind`,
-                        `('a/b/c/d' -> 'a').b.afterUnbind`,
-                        `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
-                        `('a/b/c/d' -> 'a').b.dispose`,
+                    `('a/b/c/d' -> 'a').d.beforeDetach`,
+                    `('a/b/c/d' -> 'a').d.beforeUnbind`,
+                    `('a/b/c/d' -> 'a').d.afterUnbind`,
+                    `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').d.dispose`,
+                    `('a/b/c/d' -> 'a').c.beforeDetach`,
+                    `('a/b/c/d' -> 'a').c.beforeUnbind`,
+                    `('a/b/c/d' -> 'a').c.afterUnbind`,
+                    `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').c.dispose`,
+                    `('a/b/c/d' -> 'a').b.beforeDetach`,
+                    `('a/b/c/d' -> 'a').b.beforeUnbind`,
+                    `('a/b/c/d' -> 'a').b.afterUnbind`,
+                    `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').b.dispose`,
 
-                        `stop.root.beforeDetach`,
-                        `stop.root.beforeUnbind`,
-                        `stop.root.afterUnbind`,
+                    `stop.root.beforeDetach`,
+                    `stop.root.beforeUnbind`,
+                    `stop.root.afterUnbind`,
 
-                        `stop.a.beforeDetach`,
-                        `stop.a.beforeUnbind`,
-                        `stop.a.afterUnbind`,
-                        `stop.a.afterUnbindChildren`,
+                    `stop.a.beforeDetach`,
+                    `stop.a.beforeUnbind`,
+                    `stop.a.afterUnbind`,
+                    `stop.a.afterUnbindChildren`,
 
-                        `stop.root.afterUnbindChildren`,
-                      ],
-                    );
-                    break;
-                  }
-                  case 'static': {
-                    assert.deepStrictEqual(
-                      hia.notifyHistory,
-                      [
-                        `start.root.beforeBind`,
-                        `start.root.afterBind`,
-                        `start.root.afterAttach`,
-                        `start.root.afterAttachChildren`,
-
-                        `('' -> 'a/b/c/d').a.canLoad`,
-                        `('' -> 'a/b/c/d').b.canLoad`,
-                        `('' -> 'a/b/c/d').c.canLoad`,
-                        `('' -> 'a/b/c/d').d.canLoad`,
-
-                        `('' -> 'a/b/c/d').a.load`,
-                        `('' -> 'a/b/c/d').b.load`,
-                        `('' -> 'a/b/c/d').c.load`,
-                        `('' -> 'a/b/c/d').d.load`,
-
-                        `('' -> 'a/b/c/d').a.beforeBind`,
-                        `('' -> 'a/b/c/d').a.afterBind`,
-                        `('' -> 'a/b/c/d').a.afterAttach`,
-                        `('' -> 'a/b/c/d').b.beforeBind`,
-                        `('' -> 'a/b/c/d').b.afterBind`,
-                        `('' -> 'a/b/c/d').b.afterAttach`,
-                        `('' -> 'a/b/c/d').c.beforeBind`,
-                        `('' -> 'a/b/c/d').c.afterBind`,
-                        `('' -> 'a/b/c/d').c.afterAttach`,
-                        `('' -> 'a/b/c/d').d.beforeBind`,
-                        `('' -> 'a/b/c/d').d.afterBind`,
-                        `('' -> 'a/b/c/d').d.afterAttach`,
-                        `('' -> 'a/b/c/d').d.afterAttachChildren`,
-                        `('' -> 'a/b/c/d').c.afterAttachChildren`,
-                        `('' -> 'a/b/c/d').b.afterAttachChildren`,
-                        `('' -> 'a/b/c/d').a.afterAttachChildren`,
-
-                        `('a/b/c/d' -> 'a').d.canUnload`,
-                        `('a/b/c/d' -> 'a').c.canUnload`,
-                        `('a/b/c/d' -> 'a').b.canUnload`,
-
-                        `('a/b/c/d' -> 'a').d.unload`,
-                        `('a/b/c/d' -> 'a').c.unload`,
-                        `('a/b/c/d' -> 'a').b.unload`,
-
-                        `('a/b/c/d' -> 'a').d.beforeDetach`,
-                        `('a/b/c/d' -> 'a').d.beforeUnbind`,
-                        `('a/b/c/d' -> 'a').d.afterUnbind`,
-                        `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
-                        `('a/b/c/d' -> 'a').d.dispose`,
-                        `('a/b/c/d' -> 'a').c.beforeDetach`,
-                        `('a/b/c/d' -> 'a').c.beforeUnbind`,
-                        `('a/b/c/d' -> 'a').c.afterUnbind`,
-                        `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
-                        `('a/b/c/d' -> 'a').c.dispose`,
-                        `('a/b/c/d' -> 'a').b.beforeDetach`,
-                        `('a/b/c/d' -> 'a').b.beforeUnbind`,
-                        `('a/b/c/d' -> 'a').b.afterUnbind`,
-                        `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
-                        `('a/b/c/d' -> 'a').b.dispose`,
-
-                        `stop.root.beforeDetach`,
-                        `stop.root.beforeUnbind`,
-                        `stop.root.afterUnbind`,
-
-                        `stop.a.beforeDetach`,
-                        `stop.a.beforeUnbind`,
-                        `stop.a.afterUnbind`,
-                        `stop.a.afterUnbindChildren`,
-
-                        `stop.root.afterUnbindChildren`,
-                      ],
-                    );
-                    break;
-                  }
-                }
+                    `stop.root.afterUnbindChildren`,
+                  ],
+                );
                 break;
               }
-              case 'parallel': {
-                switch (routerOptionsSpec.resolutionStrategy) {
-                  case 'dynamic': {
-                    assert.deepStrictEqual(
-                      hia.notifyHistory,
-                      [
-                        `start.root.beforeBind`,
-                        `start.root.afterBind`,
-                        `start.root.afterAttach`,
-                        `start.root.afterAttachChildren`,
+              case 'guard-hooks': {
+                assert.deepStrictEqual(
+                  hia.notifyHistory,
+                  [
+                    `start.root.beforeBind`,
+                    `start.root.afterBind`,
+                    `start.root.afterAttach`,
+                    `start.root.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').a.canLoad`,
-                        `('' -> 'a/b/c/d').a.load`,
-                        `('' -> 'a/b/c/d').a.beforeBind`,
-                        `('' -> 'a/b/c/d').a.afterBind`,
-                        `('' -> 'a/b/c/d').a.afterAttach`,
-                        `('' -> 'a/b/c/d').a.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').a.canLoad`,
+                    `('' -> 'a/b/c/d').b.canLoad`,
+                    `('' -> 'a/b/c/d').c.canLoad`,
+                    `('' -> 'a/b/c/d').d.canLoad`,
 
-                        `('' -> 'a/b/c/d').b.canLoad`,
-                        `('' -> 'a/b/c/d').b.load`,
-                        `('' -> 'a/b/c/d').b.beforeBind`,
-                        `('' -> 'a/b/c/d').b.afterBind`,
-                        `('' -> 'a/b/c/d').b.afterAttach`,
-                        `('' -> 'a/b/c/d').b.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').a.load`,
+                    `('' -> 'a/b/c/d').a.beforeBind`,
+                    `('' -> 'a/b/c/d').a.afterBind`,
+                    `('' -> 'a/b/c/d').a.afterAttach`,
+                    `('' -> 'a/b/c/d').b.load`,
+                    `('' -> 'a/b/c/d').b.beforeBind`,
+                    `('' -> 'a/b/c/d').b.afterBind`,
+                    `('' -> 'a/b/c/d').b.afterAttach`,
+                    `('' -> 'a/b/c/d').c.load`,
+                    `('' -> 'a/b/c/d').c.beforeBind`,
+                    `('' -> 'a/b/c/d').c.afterBind`,
+                    `('' -> 'a/b/c/d').c.afterAttach`,
+                    `('' -> 'a/b/c/d').d.load`,
+                    `('' -> 'a/b/c/d').d.beforeBind`,
+                    `('' -> 'a/b/c/d').d.afterBind`,
+                    `('' -> 'a/b/c/d').d.afterAttach`,
+                    `('' -> 'a/b/c/d').d.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').c.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').b.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').a.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').c.canLoad`,
-                        `('' -> 'a/b/c/d').c.load`,
-                        `('' -> 'a/b/c/d').c.beforeBind`,
-                        `('' -> 'a/b/c/d').c.afterBind`,
-                        `('' -> 'a/b/c/d').c.afterAttach`,
-                        `('' -> 'a/b/c/d').c.afterAttachChildren`,
+                    `('a/b/c/d' -> 'a').d.canUnload`,
+                    `('a/b/c/d' -> 'a').c.canUnload`,
+                    `('a/b/c/d' -> 'a').b.canUnload`,
 
-                        `('' -> 'a/b/c/d').d.canLoad`,
-                        `('' -> 'a/b/c/d').d.load`,
-                        `('' -> 'a/b/c/d').d.beforeBind`,
-                        `('' -> 'a/b/c/d').d.afterBind`,
-                        `('' -> 'a/b/c/d').d.afterAttach`,
-                        `('' -> 'a/b/c/d').d.afterAttachChildren`,
+                    `('a/b/c/d' -> 'a').d.unload`,
+                    `('a/b/c/d' -> 'a').c.unload`,
+                    `('a/b/c/d' -> 'a').b.unload`,
 
-                        `('a/b/c/d' -> 'a').d.canUnload`,
-                        `('a/b/c/d' -> 'a').c.canUnload`,
-                        `('a/b/c/d' -> 'a').b.canUnload`,
+                    `('a/b/c/d' -> 'a').d.beforeDetach`,
+                    `('a/b/c/d' -> 'a').d.beforeUnbind`,
+                    `('a/b/c/d' -> 'a').d.afterUnbind`,
+                    `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').d.dispose`,
+                    `('a/b/c/d' -> 'a').c.beforeDetach`,
+                    `('a/b/c/d' -> 'a').c.beforeUnbind`,
+                    `('a/b/c/d' -> 'a').c.afterUnbind`,
+                    `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').c.dispose`,
+                    `('a/b/c/d' -> 'a').b.beforeDetach`,
+                    `('a/b/c/d' -> 'a').b.beforeUnbind`,
+                    `('a/b/c/d' -> 'a').b.afterUnbind`,
+                    `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').b.dispose`,
 
-                        `('a/b/c/d' -> 'a').d.unload`,
-                        `('a/b/c/d' -> 'a').d.beforeDetach`,
-                        `('a/b/c/d' -> 'a').d.beforeUnbind`,
-                        `('a/b/c/d' -> 'a').d.afterUnbind`,
-                        `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
-                        `('a/b/c/d' -> 'a').d.dispose`,
+                    `stop.root.beforeDetach`,
+                    `stop.root.beforeUnbind`,
+                    `stop.root.afterUnbind`,
 
-                        `('a/b/c/d' -> 'a').c.unload`,
-                        `('a/b/c/d' -> 'a').c.beforeDetach`,
-                        `('a/b/c/d' -> 'a').c.beforeUnbind`,
-                        `('a/b/c/d' -> 'a').c.afterUnbind`,
-                        `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
-                        `('a/b/c/d' -> 'a').c.dispose`,
+                    `stop.a.beforeDetach`,
+                    `stop.a.beforeUnbind`,
+                    `stop.a.afterUnbind`,
+                    `stop.a.afterUnbindChildren`,
 
-                        `('a/b/c/d' -> 'a').b.unload`,
-                        `('a/b/c/d' -> 'a').b.beforeDetach`,
-                        `('a/b/c/d' -> 'a').b.beforeUnbind`,
-                        `('a/b/c/d' -> 'a').b.afterUnbind`,
-                        `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
-                        `('a/b/c/d' -> 'a').b.dispose`,
+                    `stop.root.afterUnbindChildren`,
+                  ],
+                );
+                break;
+              }
+              case 'load-hooks': {
+                assert.deepStrictEqual(
+                  hia.notifyHistory,
+                  [
+                    `start.root.beforeBind`,
+                    `start.root.afterBind`,
+                    `start.root.afterAttach`,
+                    `start.root.afterAttachChildren`,
 
-                        `stop.root.beforeDetach`,
-                        `stop.root.beforeUnbind`,
-                        `stop.root.afterUnbind`,
+                    `('' -> 'a/b/c/d').a.canLoad`,
+                    `('' -> 'a/b/c/d').b.canLoad`,
+                    `('' -> 'a/b/c/d').c.canLoad`,
+                    `('' -> 'a/b/c/d').d.canLoad`,
 
-                        `stop.a.beforeDetach`,
-                        `stop.a.beforeUnbind`,
-                        `stop.a.afterUnbind`,
-                        `stop.a.afterUnbindChildren`,
+                    `('' -> 'a/b/c/d').a.load`,
+                    `('' -> 'a/b/c/d').b.load`,
+                    `('' -> 'a/b/c/d').c.load`,
+                    `('' -> 'a/b/c/d').d.load`,
 
-                        `stop.root.afterUnbindChildren`,
-                      ],
-                    );
-                    break;
-                  }
-                  case 'static': {
-                    assert.deepStrictEqual(
-                      hia.notifyHistory,
-                      [
-                        `start.root.beforeBind`,
-                        `start.root.afterBind`,
-                        `start.root.afterAttach`,
-                        `start.root.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').a.beforeBind`,
+                    `('' -> 'a/b/c/d').a.afterBind`,
+                    `('' -> 'a/b/c/d').a.afterAttach`,
+                    `('' -> 'a/b/c/d').b.beforeBind`,
+                    `('' -> 'a/b/c/d').b.afterBind`,
+                    `('' -> 'a/b/c/d').b.afterAttach`,
+                    `('' -> 'a/b/c/d').c.beforeBind`,
+                    `('' -> 'a/b/c/d').c.afterBind`,
+                    `('' -> 'a/b/c/d').c.afterAttach`,
+                    `('' -> 'a/b/c/d').d.beforeBind`,
+                    `('' -> 'a/b/c/d').d.afterBind`,
+                    `('' -> 'a/b/c/d').d.afterAttach`,
+                    `('' -> 'a/b/c/d').d.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').c.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').b.afterAttachChildren`,
+                    `('' -> 'a/b/c/d').a.afterAttachChildren`,
 
-                        `('' -> 'a/b/c/d').a.canLoad`,
-                        `('' -> 'a/b/c/d').b.canLoad`,
-                        `('' -> 'a/b/c/d').c.canLoad`,
-                        `('' -> 'a/b/c/d').d.canLoad`,
+                    `('a/b/c/d' -> 'a').d.canUnload`,
+                    `('a/b/c/d' -> 'a').c.canUnload`,
+                    `('a/b/c/d' -> 'a').b.canUnload`,
 
-                        `('' -> 'a/b/c/d').a.load`,
-                        `('' -> 'a/b/c/d').a.beforeBind`,
-                        `('' -> 'a/b/c/d').a.afterBind`,
-                        `('' -> 'a/b/c/d').a.afterAttach`,
+                    `('a/b/c/d' -> 'a').d.unload`,
+                    `('a/b/c/d' -> 'a').c.unload`,
+                    `('a/b/c/d' -> 'a').b.unload`,
 
-                        `('' -> 'a/b/c/d').b.load`,
-                        `('' -> 'a/b/c/d').b.beforeBind`,
-                        `('' -> 'a/b/c/d').b.afterBind`,
-                        `('' -> 'a/b/c/d').b.afterAttach`,
+                    `('a/b/c/d' -> 'a').d.beforeDetach`,
+                    `('a/b/c/d' -> 'a').d.beforeUnbind`,
+                    `('a/b/c/d' -> 'a').d.afterUnbind`,
+                    `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').d.dispose`,
+                    `('a/b/c/d' -> 'a').c.beforeDetach`,
+                    `('a/b/c/d' -> 'a').c.beforeUnbind`,
+                    `('a/b/c/d' -> 'a').c.afterUnbind`,
+                    `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').c.dispose`,
+                    `('a/b/c/d' -> 'a').b.beforeDetach`,
+                    `('a/b/c/d' -> 'a').b.beforeUnbind`,
+                    `('a/b/c/d' -> 'a').b.afterUnbind`,
+                    `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
+                    `('a/b/c/d' -> 'a').b.dispose`,
 
-                        `('' -> 'a/b/c/d').c.load`,
-                        `('' -> 'a/b/c/d').c.beforeBind`,
-                        `('' -> 'a/b/c/d').c.afterBind`,
-                        `('' -> 'a/b/c/d').c.afterAttach`,
+                    `stop.root.beforeDetach`,
+                    `stop.root.beforeUnbind`,
+                    `stop.root.afterUnbind`,
 
-                        `('' -> 'a/b/c/d').d.load`,
-                        `('' -> 'a/b/c/d').d.beforeBind`,
-                        `('' -> 'a/b/c/d').d.afterBind`,
-                        `('' -> 'a/b/c/d').d.afterAttach`,
-                        `('' -> 'a/b/c/d').d.afterAttachChildren`,
-                        `('' -> 'a/b/c/d').c.afterAttachChildren`,
-                        `('' -> 'a/b/c/d').b.afterAttachChildren`,
-                        `('' -> 'a/b/c/d').a.afterAttachChildren`,
+                    `stop.a.beforeDetach`,
+                    `stop.a.beforeUnbind`,
+                    `stop.a.afterUnbind`,
+                    `stop.a.afterUnbindChildren`,
 
-                        `('a/b/c/d' -> 'a').d.canUnload`,
-                        `('a/b/c/d' -> 'a').c.canUnload`,
-                        `('a/b/c/d' -> 'a').b.canUnload`,
-
-                        `('a/b/c/d' -> 'a').d.unload`,
-                        `('a/b/c/d' -> 'a').d.beforeDetach`,
-                        `('a/b/c/d' -> 'a').d.beforeUnbind`,
-                        `('a/b/c/d' -> 'a').d.afterUnbind`,
-                        `('a/b/c/d' -> 'a').d.afterUnbindChildren`,
-                        `('a/b/c/d' -> 'a').d.dispose`,
-
-                        `('a/b/c/d' -> 'a').c.unload`,
-                        `('a/b/c/d' -> 'a').c.beforeDetach`,
-                        `('a/b/c/d' -> 'a').c.beforeUnbind`,
-                        `('a/b/c/d' -> 'a').c.afterUnbind`,
-                        `('a/b/c/d' -> 'a').c.afterUnbindChildren`,
-                        `('a/b/c/d' -> 'a').c.dispose`,
-
-                        `('a/b/c/d' -> 'a').b.unload`,
-                        `('a/b/c/d' -> 'a').b.beforeDetach`,
-                        `('a/b/c/d' -> 'a').b.beforeUnbind`,
-                        `('a/b/c/d' -> 'a').b.afterUnbind`,
-                        `('a/b/c/d' -> 'a').b.afterUnbindChildren`,
-                        `('a/b/c/d' -> 'a').b.dispose`,
-
-                        `stop.root.beforeDetach`,
-                        `stop.root.beforeUnbind`,
-                        `stop.root.afterUnbind`,
-
-                        `stop.a.beforeDetach`,
-                        `stop.a.beforeUnbind`,
-                        `stop.a.afterUnbind`,
-                        `stop.a.afterUnbindChildren`,
-
-                        `stop.root.afterUnbindChildren`,
-                      ],
-                    );
-                    break;
-                  }
-                }
+                    `stop.root.afterUnbindChildren`,
+                  ],
+                );
+                break;
               }
             }
 
@@ -850,32 +1217,26 @@ describe('router hooks', function () {
   });
 
   describe('single incoming sibling transition', function () {
-    const resolutionStrategies: ResolutionStrategy[] = [
-      'static',
-      'dynamic',
-    ];
-    const lifecycleStrategies: LifecycleStrategy[] = [
-      'phased',
-      'parallel',
+    const deferUntils: DeferralJuncture[] = [
+      'none',
+      'guard-hooks',
+      'load-hooks',
     ];
     const swapStrategies: SwapStrategy[] = [
-      'parallel',
-      'add-first',
-      'remove-first',
+      'parallel-remove-first',
+      'sequential-add-first',
+      'sequential-remove-first',
     ];
     const routerOptionsSpecs: IRouterOptionsSpec[] = [];
-    for (const resolutionStrategy of resolutionStrategies) {
-      for (const lifecycleStrategy of lifecycleStrategies) {
-        for (const swapStrategy of swapStrategies) {
-          routerOptionsSpecs.push({
-            resolutionStrategy,
-            lifecycleStrategy,
-            swapStrategy,
-            toString() {
-              return `resolutionStrategy:'${resolutionStrategy}',lifecycleStrategy:'${lifecycleStrategy}',swapStrategy:'${swapStrategy}'`;
-            },
-          });
-        }
+    for (const deferUntil of deferUntils) {
+      for (const swapStrategy of swapStrategies) {
+        routerOptionsSpecs.push({
+          deferUntil,
+          swapStrategy,
+          toString() {
+            return `deferUntil:'${deferUntil}',swapStrategy:'${swapStrategy}'`;
+          },
+        });
       }
     }
 
@@ -975,73 +1336,19 @@ describe('router hooks', function () {
               load: hookSpecsMap.load.async(bLoad),
             }),
           }, function* (spec, phase1) {
-            yield* activate(`start`, 'root', true, false);
+            yield* prepend(`start`, 'root', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
 
-            if (aCanLoad <= bCanLoad) {
-              yield `${phase1}.a.canLoad`;
-              yield `${phase1}.b.canLoad`;
-            } else {
-              yield `${phase1}.b.canLoad`;
-              yield `${phase1}.a.canLoad`;
-            }
+            yield* interleave(
+              prepend(phase1, 'a', 'canLoad', 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'),
+              prepend(phase1, 'b', 'canLoad', 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'),
+            );
 
-            switch (routerOptionsSpec.lifecycleStrategy) {
-              case 'phased':
-                if (aLoad < bLoad) {
-                  yield `${phase1}.a.load`;
-                  yield `${phase1}.b.load`;
-                } else {
-                  yield `${phase1}.b.load`;
-                  yield `${phase1}.a.load`;
-                }
-
-                yield* interleave(
-                  activate(phase1, 'a', true, false),
-                  activate(phase1, 'b', true, false),
-                );
-
-                yield* deactivate(`stop`, 'root', false, false);
-                yield* interleave(
-                  deactivate(`stop`, 'a', false, false),
-                  deactivate(`stop`, 'b', false, false),
-                );
-                yield `stop.root.afterUnbindChildren`;
-                yield `stop.a.afterUnbindChildren`;
-                yield `stop.b.afterUnbindChildren`;
-                break;
-              case 'parallel': {
-                yield* interleave(
-                  (function* () {
-                    if (aLoad > 7) { yield ''; }
-                    if (aLoad > 4) { yield ''; }
-                    if (aLoad > 1) { yield ''; }
-                    yield `${phase1}.a.load`;
-                    if (aLoad > 5) { yield ''; }
-                    if (aLoad > 2) { yield ''; }
-                    yield* activate(phase1, 'a', true, false);
-                  })(),
-                  (function* () {
-                    if (bLoad > 9) { yield ''; }
-                    if (bLoad > 6) { yield ''; }
-                    if (bLoad > 3) { yield ''; }
-                    yield `${phase1}.b.load`;
-                    if (bLoad > 5) { yield ''; }
-                    if (bLoad > 2) { yield ''; }
-                    yield* activate(phase1, 'b', true, false);
-                  })(),
-                );
-
-                yield* deactivate(`stop`, 'root', false, false);
-                yield* interleave(
-                  deactivate(`stop`, 'a', false, false),
-                  deactivate(`stop`, 'b', false, false),
-                );
-                yield `stop.root.afterUnbindChildren`;
-                yield `stop.a.afterUnbindChildren`;
-                yield `stop.b.afterUnbindChildren`;
-                break;
-              }
-            }
+            yield* prepend(`stop`, 'root', 'beforeDetach', 'beforeUnbind', 'afterUnbind');
+            yield* interleave(
+              prepend(`stop`, 'a', 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren'),
+              prepend(`stop`, 'b', 'beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren'),
+            );
+            yield `stop.root.afterUnbindChildren`;
           });
         }
       });
@@ -1049,32 +1356,26 @@ describe('router hooks', function () {
   });
 
   describe('single incoming parent-child transition', function () {
-    const resolutionStrategies: ResolutionStrategy[] = [
-      'static',
-      'dynamic',
-    ];
-    const lifecycleStrategies: LifecycleStrategy[] = [
-      'phased',
-      'parallel',
+    const deferUntils: DeferralJuncture[] = [
+      'none',
+      'guard-hooks',
+      'load-hooks',
     ];
     const swapStrategies: SwapStrategy[] = [
-      'parallel',
-      'add-first',
-      'remove-first',
+      'parallel-remove-first',
+      'sequential-add-first',
+      'sequential-remove-first',
     ];
     const routerOptionsSpecs: IRouterOptionsSpec[] = [];
-    for (const resolutionStrategy of resolutionStrategies) {
-      for (const lifecycleStrategy of lifecycleStrategies) {
-        for (const swapStrategy of swapStrategies) {
-          routerOptionsSpecs.push({
-            resolutionStrategy,
-            lifecycleStrategy,
-            swapStrategy,
-            toString() {
-              return `resolutionStrategy:'${resolutionStrategy}',lifecycleStrategy:'${lifecycleStrategy}',swapStrategy:'${swapStrategy}'`;
-            },
-          });
-        }
+    for (const deferUntil of deferUntils) {
+      for (const swapStrategy of swapStrategies) {
+        routerOptionsSpecs.push({
+          deferUntil,
+          swapStrategy,
+          toString() {
+            return `deferUntil:'${deferUntil}',swapStrategy:'${swapStrategy}'`;
+          },
+        });
       }
     }
 
@@ -1152,55 +1453,42 @@ describe('router hooks', function () {
               load: hookSpecsMap.load.async(a2Load),
             }),
           }, function* (spec, phase1) {
-            yield* activate(`start`, 'root', true, false);
+            yield* prepend(`start`, 'root', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
 
-            switch (routerOptionsSpec.resolutionStrategy) {
-              case 'dynamic':
-                yield `${phase1}.a1.canLoad`;
-                yield `${phase1}.a1.load`;
-                yield* activate(phase1, 'a1', false, false);
-                yield `${phase1}.a1.afterAttachChildren`;
-
-                yield `${phase1}.a2.canLoad`;
-                yield `${phase1}.a2.load`;
-                yield* activate(phase1, 'a2', false, false);
-                yield `${phase1}.a2.afterAttachChildren`;
-
-                yield* deactivate(`stop`, 'root', false, false);
-                yield* deactivate(`stop`, 'a1', false, false);
-                yield* deactivate(`stop`, 'a2', false, false);
-                yield `stop.root.afterUnbindChildren`;
-                yield `stop.a2.afterUnbindChildren`;
-                yield `stop.a1.afterUnbindChildren`;
+            switch (routerOptionsSpec.deferUntil) {
+              case 'none':
+                yield* prepend(phase1, 'a1', 'canLoad', 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                yield* prepend(phase1, 'a2', 'canLoad', 'load', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
                 break;
-              case 'static':
+              case 'guard-hooks':
                 yield `${phase1}.a1.canLoad`;
                 yield `${phase1}.a2.canLoad`;
-                switch (routerOptionsSpec.lifecycleStrategy) {
-                  case 'parallel':
-                    yield `${phase1}.a1.load`;
-                    yield* activate(phase1, 'a1', false, false);
-                    yield `${phase1}.a2.load`;
-                    yield* activate(phase1, 'a2', false, false);
-                    break;
-                  case 'phased':
-                    yield `${phase1}.a1.load`;
-                    yield `${phase1}.a2.load`;
-                    yield* activate(phase1, 'a1', false, false);
-                    yield* activate(phase1, 'a2', false, false);
-                    break;
-                }
+
+                yield* prepend(phase1, 'a1', 'load', 'beforeBind', 'afterBind', 'afterAttach');
+                yield* prepend(phase1, 'a2', 'load', 'beforeBind', 'afterBind', 'afterAttach');
                 yield `${phase1}.a2.afterAttachChildren`;
                 yield `${phase1}.a1.afterAttachChildren`;
+                break;
+              case 'load-hooks':
+                yield `${phase1}.a1.canLoad`;
+                yield `${phase1}.a2.canLoad`;
 
-                yield* deactivate(`stop`, 'root', false, false);
-                yield* deactivate(`stop`, 'a1', false, false);
-                yield* deactivate(`stop`, 'a2', false, false);
-                yield `stop.root.afterUnbindChildren`;
-                yield `stop.a2.afterUnbindChildren`;
-                yield `stop.a1.afterUnbindChildren`;
+                yield `${phase1}.a1.load`;
+                yield `${phase1}.a2.load`;
+
+                yield* prepend(phase1, 'a1', 'beforeBind', 'afterBind', 'afterAttach');
+                yield* prepend(phase1, 'a2', 'beforeBind', 'afterBind', 'afterAttach');
+                yield `${phase1}.a2.afterAttachChildren`;
+                yield `${phase1}.a1.afterAttachChildren`;
                 break;
             }
+
+            yield* prepend(`stop`, 'root', 'beforeDetach', 'beforeUnbind', 'afterUnbind');
+            yield* prepend(`stop`, 'a1', 'beforeDetach', 'beforeUnbind', 'afterUnbind');
+            yield* prepend(`stop`, 'a2', 'beforeDetach', 'beforeUnbind', 'afterUnbind');
+            yield `stop.a2.afterUnbindChildren`;
+            yield `stop.a1.afterUnbindChildren`;
+            yield `stop.root.afterUnbindChildren`;
           });
         }
       });
@@ -1208,32 +1496,26 @@ describe('router hooks', function () {
   });
 
   describe('single incoming parentsiblings-childsiblings transition', function () {
-    const resolutionStrategies: ResolutionStrategy[] = [
-      'static',
-      'dynamic',
-    ];
-    const lifecycleStrategies: LifecycleStrategy[] = [
-      'phased',
-      'parallel',
+    const deferUntils: DeferralJuncture[] = [
+      'none',
+      'guard-hooks',
+      'load-hooks',
     ];
     const swapStrategies: SwapStrategy[] = [
-      'parallel',
-      'add-first',
-      'remove-first',
+      'parallel-remove-first',
+      'sequential-add-first',
+      'sequential-remove-first',
     ];
     const routerOptionsSpecs: IRouterOptionsSpec[] = [];
-    for (const resolutionStrategy of resolutionStrategies) {
-      for (const lifecycleStrategy of lifecycleStrategies) {
-        for (const swapStrategy of swapStrategies) {
-          routerOptionsSpecs.push({
-            resolutionStrategy,
-            lifecycleStrategy,
-            swapStrategy,
-            toString() {
-              return `resolutionStrategy:'${resolutionStrategy}',lifecycleStrategy:'${lifecycleStrategy}',swapStrategy:'${swapStrategy}'`;
-            },
-          });
-        }
+    for (const deferUntil of deferUntils) {
+      for (const swapStrategy of swapStrategies) {
+        routerOptionsSpecs.push({
+          deferUntil,
+          swapStrategy,
+          toString() {
+            return `deferUntil:'${deferUntil}',swapStrategy:'${swapStrategy}'`;
+          },
+        });
       }
     }
 
@@ -1480,311 +1762,150 @@ describe('router hooks', function () {
               load: hookSpecsMap.load.async(b2Load),
             }),
           }, function* (spec, phase1) {
-            yield* activate(`start`, 'root', true, false);
+            yield* prepend(`start`, 'root', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
 
-            switch (routerOptionsSpec.resolutionStrategy) {
-              case 'dynamic':
+            switch (routerOptionsSpec.deferUntil) {
+              case 'none':
+                yield `${phase1}.a1.canLoad`;
+                yield `${phase1}.b1.canLoad`;
+
+                yield `${phase1}.a1.load`;
+                yield `${phase1}.b1.load`;
+
                 yield* interleave(
                   (function* () {
-                    if (a1CanLoad > 1) { yield ''; }
-                    if (a1CanLoad > 9) { yield ''; }
-                    yield `${phase1}.a1.canLoad`;
-                  })(),
-                  (function* () {
-                    if (b1CanLoad > 4) { yield ''; }
-                    yield `${phase1}.b1.canLoad`;
-                  })(),
-                );
-                switch (routerOptionsSpec.lifecycleStrategy) {
-                  case 'phased':
-                    yield* interleave(
-                      (function* () {
-                        if (a1Load > 1) { yield ''; }
-                        if (a1Load > 4) { yield ''; }
-                        if (a1Load > 9) { yield ''; }
-                        yield `${phase1}.a1.load`;
-                      })(),
-                      (function* () {
-                        if (b1Load > 3) { yield ''; }
-                        if (b1Load > 4) { yield ''; }
-                        yield `${phase1}.b1.load`;
-                      })(),
-                    );
-                    yield* interleave(
-                      (function* () {
-                        yield `${phase1}.a1.beforeBind`;
-                        yield `${phase1}.a1.afterBind`;
-                        yield `${phase1}.a1.afterAttach`;
-                        yield `${phase1}.a1.afterAttachChildren`;
-
-                        if (a2CanLoad > 1) { yield ''; }
-                        yield `${phase1}.a2.canLoad`;
-                        if (a2CanLoad > 3) { yield ''; }
-                        if (a2Load > 1) { yield ''; }
-                        yield `${phase1}.a2.load`;
-                        if (a2CanLoad > 2) { yield ''; }
-                        if (a2CanLoad > 4) { yield ''; }
-                        if (a2Load > 2) { yield ''; }
-                        if (a2Load > 4) { yield ''; }
-                        yield `${phase1}.a2.beforeBind`;
-                        yield `${phase1}.a2.afterBind`;
-                        yield `${phase1}.a2.afterAttach`;
-                        if (b2CanLoad > 4) { yield ''; }
-                        yield `${phase1}.a2.afterAttachChildren`;
-                      })(),
-                      (function* () {
-                        yield `${phase1}.b1.beforeBind`;
-                        yield `${phase1}.b1.afterBind`;
-                        yield `${phase1}.b1.afterAttach`;
-                        yield `${phase1}.b1.afterAttachChildren`;
-
-                        yield `${phase1}.b2.canLoad`;
-                        if (b2CanLoad > 3) { yield ''; }
-                        if (b2CanLoad > 4) { yield ''; }
-                        yield `${phase1}.b2.load`;
-                        if (b2CanLoad > 2) { yield ''; }
-                        if (b2Load > 2) { yield ''; }
-                        if (b2Load > 3) { yield ''; }
-                        yield `${phase1}.b2.beforeBind`;
-                        yield `${phase1}.b2.afterBind`;
-                        if (a2CanLoad > 3) { yield ''; }
-                        yield `${phase1}.b2.afterAttach`;
-                        yield `${phase1}.b2.afterAttachChildren`;
-                      })(),
-                    );
-                    break;
-                  case 'parallel':
-                    yield* interleave(
-                      (function* () {
-                        if (a1Load > 9) { yield ''; }
-                        if (a1Load > 4) { yield ''; }
-                        if (a1Load > 1) { yield ''; }
-                        yield `${phase1}.a1.load`;
-                        if (a1Load > 2) { yield ''; }
-                        yield `${phase1}.a1.beforeBind`;
-                        yield `${phase1}.a1.afterBind`;
-                        yield `${phase1}.a1.afterAttach`;
-                        yield `${phase1}.a1.afterAttachChildren`;
-
-                        if (b1Load > 2) { yield ''; }
-                        if (b1Load > 3) { yield ''; }
-                        if (b1Load > 4) { yield ''; }
-                        if (b1Load > 9) { yield ''; }
-                        if (a2CanLoad > 1) { yield ''; }
-                        yield `${phase1}.a2.canLoad`;
-                        if (a2CanLoad > 2) { yield ''; }
-                        if (b2CanLoad > 2) { yield ''; }
-                        if (a2CanLoad > 4) { yield ''; }
-                        if (a2Load > 1) { yield ''; }
-                        if (a2Load > 4) { yield ''; }
-                        if (b1Load > 9) { yield ''; }
-                        yield `${phase1}.a2.load`;
-                        if (b2Load > 1) { yield ''; }
-                        if (a2Load > 2) { yield ''; }
-                        yield `${phase1}.a2.beforeBind`;
-                        yield `${phase1}.a2.afterBind`;
-                        yield `${phase1}.a2.afterAttach`;
-                        yield `${phase1}.a2.afterAttachChildren`;
-                      })(),
-                      (function* () {
-                        if (b1Load > 9) { yield ''; }
-                        if (b1Load > 9) { yield ''; }
-                        if (b1Load > 3) { yield ''; }
-                        yield `${phase1}.b1.load`;
-                        if (b1Load > 2) { yield ''; }
-                        yield `${phase1}.b1.beforeBind`;
-                        yield `${phase1}.b1.afterBind`;
-                        yield `${phase1}.b1.afterAttach`;
-                        yield `${phase1}.b1.afterAttachChildren`;
-
-                        if (a1Load > 1) { yield ''; }
-                        if (a1Load > 2) { yield ''; }
-                        if (a1Load > 4) { yield ''; }
-                        if (a1Load > 9) { yield ''; }
-                        if ((b2Load - a1Load) > 2) { yield ''; }
-                        if (b1Load > 4) { yield ''; }
-                        if (b2CanLoad > 2) { yield ''; }
-                        yield `${phase1}.b2.canLoad`;
-                        if (b2CanLoad > 2) { yield ''; }
-                        if (b2CanLoad > 3) { yield ''; }
-                        if (b2Load > 1) { yield ''; }
-                        if (b2Load > 3) { yield ''; }
-                        yield `${phase1}.b2.load`;
-                        if (b2Load > 2) { yield ''; }
-                        yield `${phase1}.b2.beforeBind`;
-                        yield `${phase1}.b2.afterBind`;
-                        yield `${phase1}.b2.afterAttach`;
-                        yield `${phase1}.b2.afterAttachChildren`;
-                      })(),
-                    );
-                    break;
-                }
-
-                yield* deactivate(`stop`, 'root', false, false);
-                yield* interleave(
-                  deactivate(`stop`, 'a1', false, false),
-                  deactivate(`stop`, 'b1', false, false),
-                );
-                yield* interleave(
-                  deactivate(`stop`, 'a2', false, false),
-                  deactivate(`stop`, 'b2', false, false),
-                );
-                yield `stop.root.afterUnbindChildren`;
-                yield `stop.a2.afterUnbindChildren`;
-                yield `stop.b2.afterUnbindChildren`;
-                yield `stop.a1.afterUnbindChildren`;
-                yield `stop.b1.afterUnbindChildren`;
-                break;
-              case 'static':
-                yield* interleave(
-                  (function* () {
-                    if (a1CanLoad > 1) { yield ''; }
-                    if (a1CanLoad > 9) { yield ''; }
-                    yield `${phase1}.a1.canLoad`;
+                    yield* prepend(phase1, 'a1', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                    yield `${phase1}.a2.canLoad`;
+                    if (a2CanLoad > 1) { yield ''; }
+                    if (a2CanLoad > 2) { yield ''; }
                     if (a2CanLoad > 4) { yield ''; }
+                    yield `${phase1}.a2.load`;
+                    if (a2Load > 1) { yield ''; }
+                    if (a2Load > 2) { yield ''; }
+                    if (a2Load > 4) { yield ''; }
+                    yield* prepend(phase1, 'a2', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                  })(),
+                  (function* () {
+                    yield* prepend(phase1, 'b1', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                    yield `${phase1}.b2.canLoad`;
+                    if (b2CanLoad > 2) { yield ''; }
+                    if (b2CanLoad > 3) { yield ''; }
+                    yield `${phase1}.b2.load`;
+                    if (b2Load > 2) { yield ''; }
+                    if (b2Load > 3) { yield ''; }
+                    yield* prepend(phase1, 'b2', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                  })(),
+                );
+                break;
+              case 'guard-hooks':
+                yield `${phase1}.a1.canLoad`;
+                yield `${phase1}.b1.canLoad`;
+
+                yield* interleave(
+                  (function* () {
+                    if (a1CanLoad > 1) { yield ''; }
+                    if (a1CanLoad > 2) { yield ''; }
+                    if (a1CanLoad > 4) { yield ''; }
                     yield `${phase1}.a2.canLoad`;
                   })(),
                   (function* () {
-                    if (b1CanLoad > 4) { yield ''; }
-                    yield `${phase1}.b1.canLoad`;
+                    if (b1CanLoad > 2) { yield ''; }
+                    if (b1CanLoad > 3) { yield ''; }
                     yield `${phase1}.b2.canLoad`;
                   })(),
                 );
-                switch (routerOptionsSpec.lifecycleStrategy) {
-                  case 'phased':
-                    yield* interleave(
-                      (function* () {
-                        if (a1Load > 1) { yield ''; }
-                        if (a1Load > 4) { yield ''; }
-                        if (a1Load > 9) { yield ''; }
-                        yield `${phase1}.a1.load`;
-                        if (a2Load > 3) { yield ''; }
-                        if (a2Load > 4) { yield ''; }
-                        yield `${phase1}.a2.load`;
-                      })(),
-                      (function* () {
-                        if (b1Load > 3) { yield ''; }
-                        if (b1Load > 4) { yield ''; }
-                        yield `${phase1}.b1.load`;
-                        if (b2Load > 4) { yield ''; }
-                        yield `${phase1}.b2.load`;
-                      })(),
-                    );
-                    yield* interleave(
-                      activate(phase1, 'a1', false, false),
-                      activate(phase1, 'b1', false, false),
-                    );
-                    yield* interleave(
-                      activate(phase1, 'a2', false, false),
-                      activate(phase1, 'b2', false, false),
-                    );
-                    yield `${phase1}.a2.afterAttachChildren`;
-                    yield `${phase1}.a1.afterAttachChildren`;
-                    yield `${phase1}.b2.afterAttachChildren`;
-                    yield `${phase1}.b1.afterAttachChildren`;
-                    break;
-                  case 'parallel': {
-                    // TODO(fkleuver): clean this up (urgently)
-                    yield* interleave(
-                      (function* () {
-                        if (a1Load > 1) { yield ''; }
-                        if (a1Load > 4) { yield ''; }
-                        if (a1Load > 9) { yield ''; }
-                        yield `${phase1}.a1.load`;
-                        if (a1Load > 2) { yield ''; }
-                        if (a1Load > 9) { yield ''; }
-                        if (a1Load > 9) { yield ''; }
-                        if (a1Load > 9) { yield ''; }
-                        if (a1Load > 9) { yield ''; }
-                        if (a1Load > 9) { yield ''; }
-                        yield `${phase1}.a1.beforeBind`;
-                        yield `${phase1}.a1.afterBind`;
-                        if (a1Load > 3) { yield ''; }
-                        yield `${phase1}.a1.afterAttach`;
-                        if (a2Load > 2) { yield ''; }
-                        if (a2Load > 4) { yield ''; }
-                        yield `${phase1}.a2.load`;
-                        if (a1Load > 4) { yield ''; }
-                        if (a2Load > 1) { yield ''; }
-                        if (a2Load > 3) { yield ''; }
-                        if (a2Load > 4) { yield ''; }
-                        yield `${phase1}.a2.beforeBind`;
-                        if (b1Load > 1) { yield ''; }
-                        yield `${phase1}.a2.afterBind`;
-                        if (b2Load > 4) { yield ''; }
-                        yield `${phase1}.a2.afterAttach`;
-                        if (a1Load > 1) { yield ''; }
-                        if (b1Load > 2) { yield ''; }
-                        if (b1Load > 3) { yield ''; }
-                        if (b1Load > 4) { yield ''; }
-                        if (b1Load > 4) { yield ''; }
-                        yield `${phase1}.a2.afterAttachChildren`;
-                        yield `${phase1}.a1.afterAttachChildren`;
-                      })(),
-                      (function* () {
-                        if (b1Load > 3) { yield ''; }
-                        if (b1Load > 9) { yield ''; }
-                        if (b1Load > 9) { yield ''; }
-                        yield `${phase1}.b1.load`;
-                        if (b1Load > 2) { yield ''; }
-                        if (b1Load > 9) { yield ''; }
-                        if (b1Load > 9) { yield ''; }
-                        if (b1Load > 9) { yield ''; }
-                        yield `${phase1}.b1.beforeBind`;
-                        if (b1Load > 4) { yield ''; }
-                        yield `${phase1}.b1.afterBind`;
-                        if (b1Load > 4) { yield ''; }
-                        yield `${phase1}.b1.afterAttach`;
-                        if (b1Load > 1) { yield ''; }
-                        if (b2Load > 2) { yield ''; }
-                        if (b2Load > 3) { yield ''; }
-                        yield `${phase1}.b2.load`;
-                        if (b2Load > 1) { yield ''; }
-                        if (b2Load > 4) { yield ''; }
-                        if (b2Load > 4) { yield ''; }
-                        yield `${phase1}.b2.beforeBind`;
-                        if (a1Load > 4) { yield ''; }
-                        if (a2Load > 1) { yield ''; }
-                        yield `${phase1}.b2.afterBind`;
-                        if (a1Load > 3) { yield ''; }
-                        yield `${phase1}.b2.afterAttach`;
-                        if (b1Load > 1) { yield ''; }
-                        if (a1Load > 2) { yield ''; }
-                        if (a1Load > 4) { yield ''; }
-                        if (b2Load > 1) { yield ''; }
-                        if (b2Load > 1) { yield ''; }
-                        if (a2Load > 2) { yield ''; }
-                        if (a2Load > 3) { yield ''; }
-                        if (a2Load > 4) { yield ''; }
-                        if (a2Load > 4) { yield ''; }
-                        if (a1CanLoad > 1) { yield ''; }
-                        if (b1CanLoad > 1) { yield ''; }
-                        if (a1Load > 9) { yield ''; }
-                        if (a1Load > 9) { yield ''; }
-                        yield `${phase1}.b2.afterAttachChildren`;
-                        yield `${phase1}.b1.afterAttachChildren`;
-                      })(),
-                    );
-                    break;
-                  }
-                }
 
-                yield* deactivate(`stop`, 'root', false, false);
+                yield `${phase1}.a1.load`;
+                yield `${phase1}.b1.load`;
+
                 yield* interleave(
-                  deactivate(`stop`, 'a1', false, false),
-                  deactivate(`stop`, 'b1', false, false),
+                  (function* () {
+                    yield* prepend(phase1, 'a1', 'beforeBind', 'afterBind', 'afterAttach');
+                    yield `${phase1}.a2.load`;
+                    if (a2Load > 1) { yield ''; }
+                    if (a2Load > 2) { yield ''; }
+                    if (a2Load > 4) { yield ''; }
+                    yield* prepend(phase1, 'a2', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                    if (b2Load > 2) { yield ''; }
+                    if (b2Load > 3) { yield ''; }
+                    yield `${phase1}.a1.afterAttachChildren`;
+                  })(),
+                  (function* () {
+                    yield* prepend(phase1, 'b1', 'beforeBind', 'afterBind', 'afterAttach');
+                    yield `${phase1}.b2.load`;
+                    if (b2Load > 2) { yield ''; }
+                    if (b2Load > 3) { yield ''; }
+                    yield* prepend(phase1, 'b2', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                    if (a2Load > 2) { yield ''; }
+                    if (a2Load > 4) { yield ''; }
+                    yield `${phase1}.b1.afterAttachChildren`;
+                  })(),
                 );
+                break;
+              case 'load-hooks':
+                yield `${phase1}.a1.canLoad`;
+                yield `${phase1}.b1.canLoad`;
+
                 yield* interleave(
-                  deactivate(`stop`, 'a2', false, false),
-                  deactivate(`stop`, 'b2', false, false),
+                  (function* () {
+                    if (a1CanLoad > 1) { yield ''; }
+                    if (a1CanLoad > 2) { yield ''; }
+                    if (a1CanLoad > 4) { yield ''; }
+                    yield `${phase1}.a2.canLoad`;
+                  })(),
+                  (function* () {
+                    if (b1CanLoad > 2) { yield ''; }
+                    if (b1CanLoad > 3) { yield ''; }
+                    yield `${phase1}.b2.canLoad`;
+                  })(),
                 );
-                yield `stop.root.afterUnbindChildren`;
-                yield `stop.a2.afterUnbindChildren`;
-                yield `stop.b2.afterUnbindChildren`;
-                yield `stop.a1.afterUnbindChildren`;
-                yield `stop.b1.afterUnbindChildren`;
+
+                yield `${phase1}.a1.load`;
+                yield `${phase1}.b1.load`;
+
+                yield* interleave(
+                  (function* () {
+                    if (a1Load > 1) { yield ''; }
+                    if (a1Load > 2) { yield ''; }
+                    if (a1Load > 4) { yield ''; }
+                    yield `${phase1}.a2.load`;
+                  })(),
+                  (function* () {
+                    if (b1Load > 2) { yield ''; }
+                    if (b1Load > 3) { yield ''; }
+                    yield `${phase1}.b2.load`;
+                  })(),
+                );
+
+                yield* interleave(
+                  (function* () {
+                    yield* prepend(phase1, 'a1', 'beforeBind', 'afterBind', 'afterAttach');
+                    yield* prepend(phase1, 'a2', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                    yield `${phase1}.a1.afterAttachChildren`;
+                  })(),
+                  (function* () {
+                    yield* prepend(phase1, 'b1', 'beforeBind', 'afterBind', 'afterAttach');
+                    yield* prepend(phase1, 'b2', 'beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren');
+                    yield `${phase1}.b1.afterAttachChildren`;
+                  })(),
+                );
                 break;
             }
+
+            yield* prepend(`stop`, 'root', 'beforeDetach', 'beforeUnbind', 'afterUnbind');
+            yield* interleave(
+              prepend(`stop`, 'a1', 'beforeDetach', 'beforeUnbind', 'afterUnbind'),
+              prepend(`stop`, 'b1', 'beforeDetach', 'beforeUnbind', 'afterUnbind'),
+            );
+            yield* interleave(
+              prepend(`stop`, 'a2', 'beforeDetach', 'beforeUnbind', 'afterUnbind'),
+              prepend(`stop`, 'b2', 'beforeDetach', 'beforeUnbind', 'afterUnbind'),
+            );
+            yield `stop.a2.afterUnbindChildren`;
+            yield `stop.b2.afterUnbindChildren`;
+            yield `stop.a1.afterUnbindChildren`;
+            yield `stop.b1.afterUnbindChildren`;
+            yield `stop.root.afterUnbindChildren`;
           });
         }
       });
@@ -1792,34 +1913,29 @@ describe('router hooks', function () {
   });
 
   describe('error handling', function () {
-    const resolutionStrategies: ResolutionStrategy[] = [
-      'static',
-      'dynamic',
-    ];
-    const lifecycleStrategies: LifecycleStrategy[] = [
-      'phased',
-      'parallel',
+    const deferUntils: DeferralJuncture[] = [
+      'none',
+      'guard-hooks',
+      'load-hooks',
     ];
     const swapStrategies: SwapStrategy[] = [
-      'parallel',
-      'add-first',
-      'remove-first',
+      'parallel-remove-first',
+      'sequential-add-first',
+      'sequential-remove-first',
     ];
     const routerOptionsSpecs: IRouterOptionsSpec[] = [];
-    for (const resolutionStrategy of resolutionStrategies) {
-      for (const lifecycleStrategy of lifecycleStrategies) {
-        for (const swapStrategy of swapStrategies) {
-          routerOptionsSpecs.push({
-            resolutionStrategy,
-            lifecycleStrategy,
-            swapStrategy,
-            toString() {
-              return `resolutionStrategy:'${resolutionStrategy}',lifecycleStrategy:'${lifecycleStrategy}',swapStrategy:'${swapStrategy}'`;
-            },
-          });
-        }
+    for (const deferUntil of deferUntils) {
+      for (const swapStrategy of swapStrategies) {
+        routerOptionsSpecs.push({
+          deferUntil,
+          swapStrategy,
+          toString() {
+            return `deferUntil:'${deferUntil}',swapStrategy:'${swapStrategy}'`;
+          },
+        });
       }
     }
+
     interface IErrorSpec {
       action: (router: IRouter, container: IContainer) => Promise<void>;
       messageMatcher: RegExp;
@@ -1940,7 +2056,7 @@ describe('router hooks', function () {
 
 function join(sep: string, ...parts: string[]): string {
   return parts.filter(function (x) {
-    return x.length > 0 && x.split('@')[0].length > 0;
+    return x && x.split('@')[0];
   }).join(sep);
 }
 

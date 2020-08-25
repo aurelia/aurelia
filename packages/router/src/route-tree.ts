@@ -15,8 +15,7 @@ import {
 } from './route-context';
 import {
   RoutingMode,
-  ResolutionStrategy,
-  LifecycleStrategy,
+  DeferralJuncture,
   SwapStrategy,
 } from './router';
 import {
@@ -288,8 +287,7 @@ export class RouteTree {
 export class RouteTreeCompiler {
   private readonly logger: ILogger;
   private readonly mode: RoutingMode;
-  private readonly resolutionStrategy: ResolutionStrategy;
-  private readonly lifecycleStrategy: LifecycleStrategy;
+  private readonly deferUntil: DeferralJuncture;
   private readonly swapStrategy: SwapStrategy;
 
   public constructor(
@@ -298,8 +296,7 @@ export class RouteTreeCompiler {
     private readonly ctx: IRouteContext,
   ) {
     this.mode = instructions.options.getRoutingMode(instructions);
-    this.resolutionStrategy = instructions.options.resolutionStrategy;
-    this.lifecycleStrategy = instructions.options.lifecycleStrategy;
+    this.deferUntil = instructions.options.deferUntil;
     this.swapStrategy = instructions.options.swapStrategy;
     this.logger = ctx.get(ILogger).scopeTo('RouteTreeBuilder');
   }
@@ -399,7 +396,7 @@ export class RouteTreeCompiler {
             const childNode = this.resolve(instruction, depth, append);
             this.compileResidue(childNode, depth + 1);
             ctx.node.appendChild(childNode);
-            childNode.context.vpa.scheduleUpdate(this.resolutionStrategy, this.lifecycleStrategy, this.swapStrategy, childNode);
+            childNode.context.vpa.scheduleUpdate(this.deferUntil, this.swapStrategy, childNode);
           }
         }
         break;
@@ -409,7 +406,7 @@ export class RouteTreeCompiler {
         const childNode = this.resolve(instruction, depth, append);
         this.compileResidue(childNode, depth + 1);
         ctx.node.appendChild(childNode);
-        childNode.context.vpa.scheduleUpdate(this.resolutionStrategy, this.lifecycleStrategy, this.swapStrategy, childNode);
+        childNode.context.vpa.scheduleUpdate(this.deferUntil, this.swapStrategy, childNode);
         break;
       }
     }
@@ -432,7 +429,7 @@ export class RouteTreeCompiler {
     this.logger.trace(`updateOrCompile(node:%s)`, node);
 
     if (!node.context.isRoot) {
-      node.context.vpa.scheduleUpdate(this.resolutionStrategy, this.lifecycleStrategy, this.swapStrategy, node);
+      node.context.vpa.scheduleUpdate(this.deferUntil, this.swapStrategy, node);
     }
     node.queryParams = instructions.queryParams;
     node.fragment = instructions.fragment;
@@ -509,7 +506,7 @@ export class RouteTreeCompiler {
       viewportName: endpoint.route.viewport,
       componentName: endpoint.route.component.name,
       append,
-      resolutionStrategy: this.resolutionStrategy,
+      deferUntil: this.deferUntil,
     }));
 
     const childCtx = RouteContext.getOrCreate(
@@ -573,7 +570,7 @@ export class RouteTreeCompiler {
       viewportName,
       componentName: component.name,
       append,
-      resolutionStrategy: this.resolutionStrategy,
+      deferUntil: this.deferUntil,
     }));
 
     const childCtx = RouteContext.getOrCreate(

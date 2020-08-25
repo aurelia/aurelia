@@ -31,12 +31,13 @@ function getHookSpecs<T extends HookName>(name: T) {
         type: `async${count}`,
         ticks: count,
         invoke(_vm, getValue) {
+          const value = getValue();
           let i = -1;
           function next() {
             if (++i < count) {
               return Promise.resolve().then(next);
             }
-            return getValue();
+            return value;
           }
           return next();
         },

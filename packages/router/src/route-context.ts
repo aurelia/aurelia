@@ -344,59 +344,59 @@ export class RouteContext implements IContainer {
 
   // #region IServiceLocator api
   public has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean {
-    this.logger.trace(`has(key:${String(key)},searchAncestors:${searchAncestors})`);
+    // this.logger.trace(`has(key:${String(key)},searchAncestors:${searchAncestors})`);
     return this.container.has(key, searchAncestors);
   }
 
   public get<K extends Key>(key: K | Key): Resolved<K> {
-    this.logger.trace(`get(key:${String(key)})`);
+    // this.logger.trace(`get(key:${String(key)})`);
     return this.container.get(key);
   }
 
   public getAll<K extends Key>(key: K | Key): readonly Resolved<K>[] {
-    this.logger.trace(`getAll(key:${String(key)})`);
+    // this.logger.trace(`getAll(key:${String(key)})`);
     return this.container.getAll(key);
   }
   // #endregion
 
   // #region IContainer api
   public register(...params: unknown[]): IContainer {
-    this.logger.trace(`register(params:[${params.map(String).join(',')}])`);
+    // this.logger.trace(`register(params:[${params.map(String).join(',')}])`);
     return this.container.register(...params);
   }
 
   public registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>): IResolver<T> {
-    this.logger.trace(`registerResolver(key:${String(key)})`);
+    // this.logger.trace(`registerResolver(key:${String(key)})`);
     return this.container.registerResolver(key, resolver);
   }
 
   public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
-    this.logger.trace(`registerTransformer(key:${String(key)})`);
+    // this.logger.trace(`registerTransformer(key:${String(key)})`);
     return this.container.registerTransformer(key, transformer);
   }
 
   public getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null {
-    this.logger.trace(`getResolver(key:${String(key)})`);
+    // this.logger.trace(`getResolver(key:${String(key)})`);
     return this.container.getResolver(key, autoRegister);
   }
 
   public getFactory<T extends Constructable>(key: T): IFactory<T> | null {
-    this.logger.trace(`getFactory(key:${String(key)})`);
+    // this.logger.trace(`getFactory(key:${String(key)})`);
     return this.container.getFactory(key);
   }
 
   public registerFactory<K extends Constructable>(key: K, factory: IFactory<K>): void {
-    this.logger.trace(`registerFactory(key:${String(key)})`);
+    // this.logger.trace(`registerFactory(key:${String(key)})`);
     this.container.registerFactory(key, factory);
   }
 
   public createChild(): IContainer {
-    this.logger.trace(`createChild()`);
+    // this.logger.trace(`createChild()`);
     return this.container.createChild();
   }
 
   public disposeResolvers() {
-    this.logger.trace(`disposeResolvers()`);
+    // this.logger.trace(`disposeResolvers()`);
     this.container.disposeResolvers();
   }
 
@@ -404,7 +404,7 @@ export class RouteContext implements IContainer {
     TType extends ResourceType,
     TDef extends ResourceDefinition,
   >(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
-    this.logger.trace(`findResource(kind:${kind.name},name:'${name}')`);
+    // this.logger.trace(`findResource(kind:${kind.name},name:'${name}')`);
     return this.container.findResource(kind, name);
   }
 
@@ -412,7 +412,7 @@ export class RouteContext implements IContainer {
     TType extends ResourceType,
     TDef extends ResourceDefinition,
   >(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
-    this.logger.trace(`createResource(kind:${kind.name},name:'${name}')`);
+    // this.logger.trace(`createResource(kind:${kind.name},name:'${name}')`);
     return this.container.createResource(kind, name);
   }
   // #endregion
@@ -441,7 +441,7 @@ export class RouteContext implements IContainer {
     hostController: ICustomElementController<HTMLElement>,
     routeNode: RouteNode,
   ): ComponentAgent {
-    this.logger.trace(`createComponentAgent(hostController:%s,routeNode:%s)`, hostController, routeNode);
+    this.logger.trace(`createComponentAgent(routeNode:%s)`, routeNode);
 
     this.hostControllerProvider.prepare(hostController);
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion

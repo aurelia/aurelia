@@ -6,6 +6,7 @@ import {
   isObject,
   DI,
   IDisposable,
+  onResolve,
 } from '@aurelia/kernel';
 import {
   IScheduler,
@@ -44,10 +45,13 @@ import {
   Params,
 } from './instructions';
 import {
+  mergeDistinct,
   resolveAll,
-  traverse,
   runSequence,
 } from './util';
+import {
+  ViewportAgent,
+} from './viewport-agent';
 
 export const AuNavId = 'au-nav-id' as const;
 export type AuNavId = typeof AuNavId;
@@ -68,9 +72,8 @@ export function toManagedState(state: {} | null, navId: number): ManagedState {
 }
 
 export type RoutingMode = 'direct-only' | 'configured-only' | 'direct-first' | 'configured-first';
-export type ResolutionStrategy = 'static' | 'dynamic';
-export type SwapStrategy = 'add-first' | 'remove-first' | 'parallel';
-export type LifecycleStrategy = 'phased' | 'parallel';
+export type SwapStrategy = 'sequential-add-first' | 'sequential-remove-first' | 'parallel-remove-first';
+export type DeferralJuncture = 'guard-hooks' | 'load-hooks' | 'none';
 export type QueryParamsStrategy = 'overwrite' | 'preserve' | 'merge';
 export type FragmentStrategy = 'overwrite' | 'preserve';
 export type HistoryStrategy = 'none' | 'replace' | 'push';
@@ -105,26 +108,8 @@ export class RouterOptions {
      * Default: `configured-first`
      */
     public readonly routingMode: ValueOrFunc<RoutingMode>,
-    /**
-     * The operating mode of the router that determines at which point in the lifecycle viewports and child routes can be resolved.
-     *
-     * - `static`: viewports and child routes that are registered during template compilation, can be resolved immediately.
-     * - `dynamic`: viewports and child routes can only be resolved after their parent has been activated. (default)
-     *
-     * Default: `dynamic`
-     *
-     * @description
-     * - `static` allows hooks of child routes to be invoked in a phased manner, similar to Aurelia v1, but dynamic viewport property bindings and
-     * conditionally rendered viewports will only be available on next navigation after the one where they were created.
-     *
-     * - `dynamic` enables the full feature set of the v2 router with viewport property bindings and
-     * dynamically added & conditionally rendered viewports, but child route `canLoad` guards will run only after the parent already activated. This means
-     * that canceling/disallowing a navigation from a child component will not prevent side-effects from occurring, so global guards may need to be used instead
-     * when that's not desirable.
-     */
-    public readonly resolutionStrategy: ResolutionStrategy,
     public readonly swapStrategy: SwapStrategy,
-    public readonly lifecycleStrategy: LifecycleStrategy,
+    public readonly deferUntil: DeferralJuncture,
     /**
      * The strategy to use for determining the query parameters when both the previous and the new url has a query string.
      *
@@ -177,9 +162,8 @@ export class RouterOptions {
       input.useHref ?? true,
       input.statefulHistoryLength ?? 0,
       input.routingMode ?? 'configured-first',
-      input.resolutionStrategy ?? 'dynamic',
-      input.swapStrategy ?? 'add-first',
-      input.lifecycleStrategy ?? 'parallel',
+      input.swapStrategy ?? 'sequential-add-first',
+      input.deferUntil ?? 'none',
       input.queryParamsStrategy ?? 'overwrite',
       input.fragmentStrategy ?? 'overwrite',
       input.historyStrategy ?? 'push',
@@ -210,9 +194,8 @@ export class RouterOptions {
   protected stringifyProperties(): string {
     return ([
       ['routingMode', 'mode'],
-      ['resolutionStrategy', 'resolution'],
       ['swapStrategy', 'swap'],
-      ['lifecycleStrategy', 'lifecycle'],
+      ['deferUntil', 'defer'],
       ['queryParamsStrategy', 'queryParams'],
       ['fragmentStrategy', 'fragment'],
       ['historyStrategy', 'history'],
@@ -266,9 +249,8 @@ export class NavigationOptions extends RouterOptions {
       routerOptions.useHref,
       routerOptions.statefulHistoryLength,
       routerOptions.routingMode,
-      routerOptions.resolutionStrategy,
       routerOptions.swapStrategy,
-      routerOptions.lifecycleStrategy,
+      routerOptions.deferUntil,
       routerOptions.queryParamsStrategy,
       routerOptions.fragmentStrategy,
       routerOptions.historyStrategy,
@@ -322,9 +304,102 @@ export class Navigation {
   }
 }
 
+export class VPAStateTracker {
+  private readonly queue: Set<ViewportAgent>;
+  private readonly running: Set<ViewportAgent>;
+  private readonly done: Set<ViewportAgent>;
+
+  public constructor(
+    private readonly logger: ILogger,
+    public readonly hook: 'canUnload' | 'canLoad' | 'unload' | 'load' | 'swap',
+  ) {
+    this.queue = new Set();
+    this.running = new Set();
+    this.done = new Set();
+  }
+
+  public isQueued(vpa: ViewportAgent): boolean {
+    return this.queue.has(vpa);
+  }
+
+  public isRunning(vpa: ViewportAgent): boolean {
+    return this.running.has(vpa);
+  }
+
+  public isDone(vpa: ViewportAgent): boolean {
+    return this.done.has(vpa);
+  }
+
+  public enqueue(vpa: ViewportAgent): void {
+    if (this.isQueued(vpa)) {
+      throw new Error(`${vpa}.${this.hook} is already queued`);
+    }
+    this.logger.trace(`StateTracker.enqueue(vpa:%s,hook:${this.hook})`, vpa);
+    this.queue.add(vpa);
+  }
+
+  public cancel(vpa: ViewportAgent): void {
+    if (!this.isQueued(vpa)) {
+      throw new Error(`${vpa}.${this.hook} is not queued`);
+    }
+    this.logger.trace(`StateTracker.cancel(vpa:%s,hook:${this.hook})`, vpa);
+    this.queue.delete(vpa);
+  }
+
+  public run(vpa: ViewportAgent, invoke: () => void | Promise<void>): void | Promise<void> {
+    this.start(vpa);
+    return onResolve(invoke(), () => {
+      this.finish(vpa);
+    });
+  }
+
+  public start(vpa: ViewportAgent): void {
+    if (this.isRunning(vpa)) {
+      throw new Error(`${vpa}.${this.hook} has already started`);
+    }
+    if (!this.isQueued(vpa)) {
+      throw new Error(`${vpa}.${this.hook} is not queued`);
+    }
+    this.logger.trace(`StateTracker.start(vpa:%s,hook:${this.hook})`, vpa);
+    this.queue.delete(vpa);
+    this.running.add(vpa);
+  }
+
+  public finish(vpa: ViewportAgent): void {
+    if (this.isDone(vpa)) {
+      throw new Error(`${vpa}.${this.hook} has already finished`);
+    }
+    if (!this.isRunning(vpa)) {
+      throw new Error(`${vpa}.${this.hook} has not started`);
+    }
+    this.logger.trace(`StateTracker.finish(vpa:%s,hook:${this.hook})`, vpa);
+    this.running.delete(vpa);
+    this.done.add(vpa);
+  }
+}
+
+export class VPALifecycleCoordinator {
+  public readonly canUnload: VPAStateTracker;
+  public readonly canLoad: VPAStateTracker;
+  public readonly unload: VPAStateTracker;
+  public readonly load: VPAStateTracker;
+  public readonly swap: VPAStateTracker;
+
+  public constructor(
+    private readonly logger: ILogger,
+  ) {
+    this.canUnload = new VPAStateTracker(logger, 'canUnload');
+    this.canLoad = new VPAStateTracker(logger, 'canLoad');
+    this.unload = new VPAStateTracker(logger, 'unload');
+    this.load = new VPAStateTracker(logger, 'load');
+    this.swap = new VPAStateTracker(logger, 'swap');
+  }
+}
+
 export class Transition {
   private constructor(
     public readonly id: number,
+    public readonly coordinator: VPALifecycleCoordinator,
     public readonly prevInstructions: ViewportInstructionTree,
     public readonly instructions: ViewportInstructionTree,
     public finalInstructions: ViewportInstructionTree,
@@ -342,10 +417,11 @@ export class Transition {
   ) { }
 
   public static create(
-    input: Transition,
+    input: Omit<Transition, 'abortIfNeeded'>,
   ): Transition {
     return new Transition(
       input.id,
+      input.coordinator,
       input.prevInstructions,
       input.instructions,
       input.finalInstructions,
@@ -361,6 +437,14 @@ export class Transition {
       input.guardsResult,
       void 0,
     );
+  }
+
+  public abortIfNeeded() {
+    return (abort: () => void) => {
+      if (this.guardsResult !== true) {
+        abort();
+      }
+    };
   }
 
   public toString(): string {
@@ -409,6 +493,7 @@ export class Router {
     if (currentTr === null) {
       currentTr = this._currentTr = Transition.create({
         id: 0,
+        coordinator: new VPALifecycleCoordinator(this.logger),
         prevInstructions: this.instructions,
         instructions: this.instructions,
         finalInstructions: this.instructions,
@@ -701,6 +786,7 @@ export class Router {
     // This is consistent with the runtime's controller behavior, where if you rapidly call async activate -> deactivate -> activate (for example), then the deactivate is canceled.
     const nextTr = this.nextTr = Transition.create({
       id: ++this.navigationId,
+      coordinator: new VPALifecycleCoordinator(this.logger),
       trigger,
       managedState: state,
       prevInstructions: lastTr.finalInstructions,
@@ -805,33 +891,28 @@ export class Router {
     RouteTreeCompiler.compileRoot(this.routeTree, tr.finalInstructions, navigationContext);
     this.instructions = tr.finalInstructions;
 
+    const abortIfNeeded = (abort: () => void) => {
+      if (tr.guardsResult !== true) {
+        abort();
+        return this.cancelNavigation(tr);
+      }
+    };
     const prev = tr.previousRouteTree.root.children;
     const next = tr.routeTree.root.children;
+    const all = mergeDistinct(prev, next);
     return runSequence(
-      () => { return this.runLifecycles(tr, prev, next); },
+      () => { return resolveAll(prev.map(p => { return p.context.vpa.canUnload(tr); })); },
+      abortIfNeeded,
+      () => { return resolveAll(next.map(n => { return n.context.vpa.canLoad(tr); })); },
+      abortIfNeeded,
+      () => { return resolveAll(prev.map(p => { return p.context.vpa.unload(tr); })); },
+      () => { return resolveAll(next.map(n => { return n.context.vpa.load(tr); })); },
+      () => { return resolveAll(all.map(x => { return x.context.vpa.swap(tr); })); },
       () => {
-        switch (tr.options.resolutionStrategy) {
-          case 'static':
-            next.forEach(function visit(x) {
-              if (x.residue.length > 0) {
-                // In static mode there *should* never be a residue, so just in case, check the tree and throw if there is, so we don't
-                // get potential weird silent failures (indeed that's all we do here - the residue processing itself happens in the ViewportAgent during scheduleUpdate)
-                throw new Error(`Unexpected residue: ${x}`);
-              } else {
-                x.children.forEach(visit);
-              }
-            });
-            break;
-          case 'dynamic':
-            return resolveAll(next.map((x, i) => { return this.processResidue(tr, x, i, 1); }));
-        }
-      },
-      () => {
-        this.logger.trace(`dequeue() - finished processResidue, finalizing transition`);
-
         // order doesn't matter for this operation
-        traverse('top-down', [...prev, ...next], vp => { vp.endTransition(tr); });
-
+        all.forEach(function (node) {
+          node.context.vpa.endTransition(tr);
+        });
         this.navigated = true;
 
         this.events.publish(new NavigationEndEvent(tr.id, tr.instructions, this.instructions));
@@ -843,107 +924,6 @@ export class Router {
         tr.resolve!(true);
 
         this.runNextTransition(tr);
-      },
-    );
-  }
-
-  /**
-   * See if there is any residue, and recurse through them invoking canLoad -> load -> Controller.activate, if applicable
-   *
-   * NOTE: this method is called in one of two ways:
-   * - Lazily by the router after activating the next component (for resolutionStrategy `dynamic`)
-   * - Eagerly or by the viewport agent (for resolutionStrategy `static`) during scheduleUpdate which happens during route tree compilation
-   */
-  private processResidue(tr: Transition, node: RouteNode, index: number, depth: number): void | Promise<void> {
-    this.logger.trace(`processResidue(index:%s,depth:%s,node:%s)`, index, depth, node);
-
-    const ctx = node.context;
-    if (ctx === null) {
-      throw new Error(`Unexpected null context at ${node}`);
-    }
-
-    RouteTreeCompiler.compileResidue(this.routeTree, tr.finalInstructions, ctx);
-
-    return runSequence(
-      () => { return this.runLifecycles(tr, node.children, node.children); },
-      () => { return resolveAll(node.children.map((x, i) => { return this.processResidue(tr, x, i, depth + 1); })); },
-    );
-  }
-
-  private runLifecycles(tr: Transition, prev: RouteNode[], next: RouteNode[]): void | Promise<void> {
-    const abortIfNeeded = (abort: () => void) => {
-      if (tr.guardsResult !== true) {
-        abort();
-        return this.cancelNavigation(tr);
-      }
-    };
-
-    return runSequence(
-      () => { return traverse('bottom-up', prev, vp => { return vp.canUnload(tr); }); },
-      abortIfNeeded,
-      () => { return traverse('top-down', next, vp => { return vp.canLoad(tr); }); },
-      abortIfNeeded,
-      () => {
-        switch (tr.options.lifecycleStrategy) {
-          case 'phased':
-            return runSequence(
-              () => { return traverse('bottom-up', prev, vp => { return vp.unload(tr); }); },
-              () => { return traverse('top-down', next, vp => { return vp.load(tr); }); },
-              () => {
-                switch (tr.options.swapStrategy) {
-                  case 'add-first':
-                  case 'parallel':
-                    // Note: these two operations are invoked in parallel, but they don't run completely in parallel.
-                    // The viewport agents themselves ensure that the swap intersections are sequenced properly based on the swapStrategy.
-                    return resolveAll([
-                      traverse('top-down', next, vp => { return vp.activateFromRouter(tr); }),
-                      traverse('bottom-up', prev, vp => { return vp.deactivateFromRouter(tr); }),
-                    ]);
-                  case 'remove-first':
-                    // Note: the order of these two `walkViewportTree` invocations are not what enforces the swapStrategy per se (at least not on a per-subtree basis),
-                    // but it does make a slight different w.r.t. the timings and it also matters for the overall invocation order (especially in synchronous situations)
-                    return resolveAll([
-                      traverse('bottom-up', prev, vp => { return vp.deactivateFromRouter(tr); }),
-                      traverse('top-down', next, vp => { return vp.activateFromRouter(tr); }),
-                    ]);
-                }
-              },
-            );
-          case 'parallel':
-            switch (tr.options.swapStrategy) {
-              case 'add-first':
-              case 'parallel':
-                return resolveAll([
-                  traverse('top-down', next, vp => {
-                    return runSequence(
-                      () => { return vp.load(tr); },
-                      () => { return vp.activateFromRouter(tr); },
-                    );
-                  }),
-                  traverse('bottom-up', prev, vp => {
-                    return runSequence(
-                      () => { return vp.unload(tr); },
-                      () => { return vp.deactivateFromRouter(tr); },
-                    );
-                  }),
-                ]);
-              case 'remove-first':
-                return resolveAll([
-                  traverse('bottom-up', prev, vp => {
-                    return runSequence(
-                      () => { return vp.unload(tr); },
-                      () => { return vp.deactivateFromRouter(tr); },
-                    );
-                  }),
-                  traverse('top-down', next, vp => {
-                    return runSequence(
-                      () => { return vp.load(tr); },
-                      () => { return vp.activateFromRouter(tr); },
-                    );
-                  }),
-                ]);
-            }
-        }
       },
     );
   }
@@ -967,8 +947,9 @@ export class Router {
 
     const prev = tr.previousRouteTree.root.children;
     const next = tr.routeTree.root.children;
+    const prevDistinct = prev.filter(p => !next.some(n => p.context.vpa === n.context.vpa));
     // order doesn't matter for this operation
-    traverse('top-down', [...prev, ...next], vp => { vp.cancelUpdate(); });
+    [...prevDistinct, ...next].forEach(x => { x.context.vpa.cancelUpdate(); });
 
     this.activeNavigation = null;
     this.instructions = tr.prevInstructions;

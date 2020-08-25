@@ -1,5 +1,4 @@
 import { RouteNode } from './route-tree';
-import { ViewportAgent } from './viewport-agent';
 
 type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
 type MaybePromise<T> = T extends Promise<infer R> ? (T | R) : (T | Promise<T>);
@@ -67,6 +66,31 @@ export function runSequence<T1, T2, T3, T4, T5, T6, T7, T8, T9>(
   call8: (abort: () => void, value: UnwrapPromise<T7>) => T8,
   call9: (abort: () => void, value: UnwrapPromise<T8>) => T9,
 ): MaybePromise<T9>;
+export function runSequence<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(
+  call1: (abort: () => void) => T1,
+  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
+  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
+  call4: (abort: () => void, value: UnwrapPromise<T3>) => T4,
+  call5: (abort: () => void, value: UnwrapPromise<T4>) => T5,
+  call6: (abort: () => void, value: UnwrapPromise<T5>) => T6,
+  call7: (abort: () => void, value: UnwrapPromise<T6>) => T7,
+  call8: (abort: () => void, value: UnwrapPromise<T7>) => T8,
+  call9: (abort: () => void, value: UnwrapPromise<T8>) => T9,
+  call10: (abort: () => void, value: UnwrapPromise<T9>) => T10,
+): MaybePromise<T10>;
+export function runSequence<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(
+  call1: (abort: () => void) => T1,
+  call2: (abort: () => void, value: UnwrapPromise<T1>) => T2,
+  call3: (abort: () => void, value: UnwrapPromise<T2>) => T3,
+  call4: (abort: () => void, value: UnwrapPromise<T3>) => T4,
+  call5: (abort: () => void, value: UnwrapPromise<T4>) => T5,
+  call6: (abort: () => void, value: UnwrapPromise<T5>) => T6,
+  call7: (abort: () => void, value: UnwrapPromise<T6>) => T7,
+  call8: (abort: () => void, value: UnwrapPromise<T7>) => T8,
+  call9: (abort: () => void, value: UnwrapPromise<T8>) => T9,
+  call10: (abort: () => void, value: UnwrapPromise<T9>) => T10,
+  call11: (abort: () => void, value: UnwrapPromise<T10>) => T11,
+): MaybePromise<T11>;
 export function runSequence(
   ...calls: ((abort: () => void, value: unknown) => unknown)[]
 ): unknown {
@@ -125,61 +149,6 @@ export function resolveAll(
   }
 }
 
-export function traverse<R extends void | Promise<void>>(
-  direction: 'bottom-up' | 'top-down',
-  nodes: RouteNode[],
-  callback: (viewportAgent: ViewportAgent) => R,
-): R {
-  const cache = new Map<ViewportAgent, void | Promise<void>>();
-
-  function cachedCallback(vpa: ViewportAgent): R {
-    let result: void | Promise<void>;
-    if (cache.has(vpa)) {
-      result = cache.get(vpa);
-    } else {
-      result = callback(vpa);
-      if (result instanceof Promise) {
-        cache.set(vpa, result);
-        // It can't throw and nothing needs to wait for it
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        result.then(function () {
-          // Just check that we haven't been cleared yet, so we can't cause minor mem leaks
-          if (cache.size > 0) {
-            // Set to void after the promise resolves, so that we don't wait unnecessary ticks later down the road
-            cache.set(vpa, void 0);
-          }
-        });
-      } else {
-        // Don't care about anything other than undefined if it's not a promise, so to prevent potential megamorphism, set to undefined
-        cache.set(vpa, void 0);
-      }
-    }
-    return result as R;
-  }
-
-  return runSequence(
-    () => {
-      switch (direction) {
-        case 'bottom-up':
-          return resolveAll(nodes.map(function dive(node): R {
-            return runSequence(
-              () => { return resolveAll(node.children.map(dive)); },
-              () => { return cachedCallback(node.context.vpa); },
-            ) as R;
-          }));
-        case 'top-down':
-          return resolveAll(nodes.map(function dive(node): R {
-            return runSequence(
-              () => { return cachedCallback(node.context.vpa); },
-              () => { return resolveAll(node.children.map(dive)); },
-            ) as R;
-          }));
-      }
-    },
-    () => { cache.clear(); },
-  ) as R;
-}
-
 export type ExposedPromise<T> = Promise<T> & {
   resolve(value?: T): void;
   reject(reason?: unknown): void;
@@ -195,4 +164,23 @@ export function createExposedPromise<T>(): ExposedPromise<T> {
   promise.resolve = $resolve;
   promise.reject = $reject;
   return promise;
+}
+
+export function mergeDistinct(prev: RouteNode[], next: RouteNode[]) {
+  prev = prev.slice();
+  next = next.slice();
+  const merged: RouteNode[] = [];
+  while (prev.length > 0) {
+    const p = prev.shift()!;
+    if (merged.every(m => m.context.vpa !== p.context.vpa))  {
+      const i = next.findIndex(n => n.context.vpa === p.context.vpa);
+      if (i >= 0) {
+        merged.push(...next.splice(0, i + 1));
+      } else {
+        merged.push(p);
+      }
+    }
+  }
+  merged.push(...next);
+  return merged;
 }

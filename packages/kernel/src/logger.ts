@@ -1,4 +1,4 @@
-import { all, DI, IContainer, ignore, IRegistry, optional, Registration, Key, IResolver, Transformer, IFactory, IContainerConfiguration } from './di';
+import { all, DI, IContainer, ignore, IRegistry, optional, Registration, Key, IResolver, Transformer, IFactory, IContainerConfiguration, IContainerDomainProbe } from './di';
 import { toLookup } from './functions';
 import { LogLevel } from './reporter';
 import { Class, Constructable } from './interfaces';
@@ -699,51 +699,28 @@ export const LoggerConfiguration = toLookup({
   },
 });
 
-export class ContainerTracer implements IContainer {
-  public readonly name: string;
+export class TracingContainerDomainProbe implements IContainerDomainProbe {
+  private lookingUpLoggerLock: boolean = false;
+  private _log: ILogger | undefined = undefined;
   public constructor(private readonly container: IContainer) {
-    this.name = 'tracer';
   }
 
-  public getContainerPath(): string {
-    return this.container.getContainerPath();
+  private get log(): ILogger | undefined {
+    console.log('outer');
+    if (!this.lookingUpLoggerLock && this._log === undefined) {
+      this.lookingUpLoggerLock = true;
+      console.log('inner');
+      if (this.container.has(ILogger, true)) {
+        console.log('getting');
+        this._log = this.container.get(ILogger);
+      }
+      this.lookingUpLoggerLock = false;
+    }
+    return this._log;
   }
 
-  public register(...params: any[]): IContainer {
-    return this.container.register(params);
-  }
-  public registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean | undefined): IResolver<T> {
-    return this.container.registerResolver(key, resolver, isDisposable);
-  }
-  public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
-    return this.container.registerTransformer(key, transformer);
-  }
-  public getResolver<K extends Key, T = K>(key: Key | K, autoRegister?: boolean): IResolver<T> | null {
-    return this.container.getResolver(key, autoRegister);
-  }
-  public registerFactory<T extends Constructable>(key: T, factory: IFactory<T>): void {
-    return this.container.registerFactory(key, factory);
-  }
-  public getFactory<T extends Constructable>(key: T): IFactory<T> | null {
-    return this.container.getFactory(key);
-  }
-  public createChild(config?: IContainerConfiguration): IContainer {
-    return this.container.createChild(config);
-  }
-  public disposeResolvers(): void {
-    return this.container.disposeResolvers();
-  }
-  public has<K extends Key>(key: Key| K,
-    searchAncestors: boolean): boolean {
-    return this.container.has(key, searchAncestors);
+  public get<K extends Key>(key: K): void {
+    this.log?.trace(key);
   }
 
-  public get<K extends Key>(key: K | Key) {
-    this.container.get(ILogger).trace('getting ', key);
-    return this.container.get(key);
-  }
-
-  public getAll<K extends Key>(key: K | Key) {
-    return this.container.get(key);
-  }
 }

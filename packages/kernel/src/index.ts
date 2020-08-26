@@ -88,7 +88,7 @@ export {
   LoggerConfiguration,
   format,
   sink,
-  ContainerTracer,
+  TracingContainerDomainProbe,
 } from './logger';
 export {
   relativeToFile,

@@ -1,4 +1,4 @@
-import { ContainerTracer, DI, DefaultResolver, IContainer, LogLevel, LoggerConfiguration, singleton } from '@aurelia/kernel';
+import { DI, DefaultResolver, IContainer, LogLevel, LoggerConfiguration, TracingContainerDomainProbe, singleton } from '@aurelia/kernel';
 
 import { assert } from '@aurelia/testing';
 
@@ -53,7 +53,7 @@ describe('IContainerConfiguration', function () {
   });
 
   describe('ContainerTracer', function () {
-    const container = DI.createContainer({ tracer: ContainerTracer });
+    const container = DI.createContainer({ domainProbe: TracingContainerDomainProbe });
     container.register(LoggerConfiguration.create({ level: LogLevel.trace, $console: console }));
 
     @singleton
@@ -71,10 +71,6 @@ describe('IContainerConfiguration', function () {
       public constructor(public bravo: Bravo) {
       }
     }
-
-    it('container', function () {
-      assert.instanceOf(container, ContainerTracer);
-    });
 
     it('single class', function () {
       assert.instanceOf(container.get(Alfa), Alfa);

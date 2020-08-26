@@ -2,7 +2,6 @@ import { Class, Constructable } from './interfaces';
 import { Metadata, applyMetadataPolyfill, isObject } from '@aurelia/metadata';
 import { isArrayIndex, isNativeFunction } from './functions';
 
-import { Except } from 'type-fest';
 import { PLATFORM } from './platform';
 import { Protocol } from './resource';
 import { Reporter } from './reporter';
@@ -153,23 +152,34 @@ export const DefaultResolver = {
   singleton(key: Key): IResolver {return new Resolver(key, ResolverStrategy.singleton, key);},
 };
 
+export interface IContainerDomainProbe {
+  get<K extends Key>(key: K): void;
+}
+
 export interface IContainerConfiguration {
   defaultResolver?(key: Key, handler: IContainer): IResolver;
   name?: string;
-  tracer?: Constructable<IContainer>;
+  domainProbe?: Constructable<IContainerDomainProbe>;
 }
 
-type ContainerConfiguration = Except<Required<IContainerConfiguration>, 'tracer'>;
+type ContainerConfiguration = Required<IContainerConfiguration>;
+
+class NoopContainerDomainProbe implements IContainerDomainProbe {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  public get<K extends Key>(): void {
+  }
+
+}
 
 const DefaultContainerConfiguration: ContainerConfiguration = {
   defaultResolver: DefaultResolver.singleton,
   name: 'root',
+  domainProbe: NoopContainerDomainProbe,
 };
 
 export const DI = {
   createContainer(config: IContainerConfiguration = {}): IContainer {
-    const rootContainer = new Container(null, merge(DefaultContainerConfiguration, config));
-    return config.tracer === undefined ? rootContainer: new config.tracer(rootContainer);
+    return new Container(null, merge(DefaultContainerConfiguration, config));
   },
   getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined {
     return Metadata.getOwn('design:paramtypes', Type);
@@ -895,6 +905,7 @@ export class Container implements IContainer {
   private readonly resourceResolvers: Record<string, IResolver | undefined>;
 
   private readonly disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
+  private readonly domainProbe: IContainerDomainProbe;
 
   public readonly name: string;
 
@@ -919,6 +930,7 @@ export class Container implements IContainer {
     }
 
     this.resolvers.set(IContainer, containerResolver);
+    this.domainProbe = new config.domainProbe(this);
   }
 
   public getContainerPath(): string {
@@ -1067,6 +1079,7 @@ export class Container implements IContainer {
 
   public get<K extends Key>(key: K): Resolved<K> {
     validateKey(key);
+    this.domainProbe.get(key);
 
     if ((key as IResolver).$isResolver) {
       return (key as IResolver).resolve(this, this);
@@ -1131,8 +1144,7 @@ export class Container implements IContainer {
   }
 
   public createChild(config: IContainerConfiguration = { name: 'child' }): IContainer {
-    const container = new Container(this, merge(this.config, config));
-    return config.tracer === undefined ? container : new config.tracer(container);
+    return new Container(this, merge(this.config, config));
   }
 
   public disposeResolvers() {

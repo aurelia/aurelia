@@ -1,12 +1,14 @@
+/* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
   PLATFORM,
   ILogger,
+  resolveAll,
+  onResolve,
 } from '@aurelia/kernel';
 import {
   CustomElementDefinition,
   CustomElement,
-  Controller,
 } from '@aurelia/runtime';
 
 import {
@@ -23,6 +25,7 @@ import {
   ViewportInstruction,
   NavigationInstructionType,
   Params,
+  ITypedNavigationInstruction_ResolvedComponent,
 } from './instructions';
 import {
   RecognizedRoute,
@@ -36,7 +39,7 @@ import {
 
 export interface IRouteNode {
   context: IRouteContext;
-  instruction: ViewportInstruction | null;
+  instruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null;
   params?: Params;
   queryParams?: Params;
   fragment?: string | null;
@@ -70,7 +73,7 @@ export class RouteNode implements IRouteNode {
      * Viewports that live underneath the component associated with this route, will be registered to this context.
      */
     public readonly context: IRouteContext,
-    public readonly instruction: ViewportInstruction | null,
+    public readonly instruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null,
     public params: Params,
     public queryParams: Params,
     public fragment: string | null,
@@ -316,21 +319,21 @@ export class RouteTreeCompiler {
     routeTree: RouteTree,
     instructions: ViewportInstructionTree,
     ctx: IRouteContext,
-  ): void {
+  ): Promise<void> | void {
     const compiler = new RouteTreeCompiler(routeTree, instructions, ctx);
-    compiler.compileRoot();
+    return compiler.compileRoot();
   }
 
   public static compileResidue(
     routeTree: RouteTree,
     instructions: ViewportInstructionTree,
     ctx: IRouteContext,
-  ): void {
+  ): Promise<readonly RouteNode[]> | readonly RouteNode[] {
     const compiler = new RouteTreeCompiler(routeTree, instructions, ctx);
-    compiler.compileResidue(ctx.node, ctx.depth);
+    return compiler.compileResidue(ctx.node, ctx.depth);
   }
 
-  private compileRoot(): void {
+  private compileRoot(): Promise<void> | void {
     const instructions = this.instructions;
     const ctx = this.ctx;
     const rootCtx = ctx.root;
@@ -350,22 +353,28 @@ export class RouteTreeCompiler {
     rootCtx.node.fragment = instructions.fragment;
     routeTree.instructions = instructions;
 
-    this.updateOrCompile(rootCtx.node, instructions);
+    return this.updateOrCompile(rootCtx.node, instructions);
   }
 
   private compileResidue(
     parent: RouteNode,
     depth: number,
-  ): void {
+  ): Promise<readonly RouteNode[]> | readonly RouteNode[] {
     if (depth >= this.ctx.path.length) {
       this.logger.trace(`compileResidue(parent:%s,depth:${depth}) - deferring because leaf context is reached: %s`, parent, this.ctx);
+      return PLATFORM.emptyArray;
     } else {
+      const existingChildren = parent.children.slice();
       this.logger.trace(`compileResidue(parent:%s,depth:${depth})`, parent);
-
+      const results: (void | Promise<void>)[] = [];
       while (parent.residue.length > 0) {
         const current = parent.residue.shift()!;
-        this.compile(current, depth, parent.append);
+        results.push(this.compile(current, depth, parent.append));
       }
+
+      return onResolve(resolveAll(...results), () => {
+        return parent.children.filter(x => !existingChildren.includes(x));
+      });
     }
   }
 
@@ -373,7 +382,7 @@ export class RouteTreeCompiler {
     instruction: ViewportInstruction,
     depth: number,
     append: boolean,
-  ): void {
+  ): Promise<void> | void {
     this.logger.trace(`compile(instruction:%s,depth:${depth},append:${append})`, instruction);
 
     const ctx = this.ctx.path[depth];
@@ -382,32 +391,31 @@ export class RouteTreeCompiler {
         switch (instruction.component.value) {
           case '..':
             // Allow going "too far up" just like directory command `cd..`, simply clamp it to the root
-            this.compileChildren(instruction, Math.max(depth - 1, 0), false);
-            break;
+            return this.compileChildren(instruction, Math.max(depth - 1, 0), false);
           case '.':
             // Ignore '.'
-            this.compileChildren(instruction, depth, false);
-            break;
+            return this.compileChildren(instruction, depth, false);
           case '~':
             // Go to root
-            this.compileChildren(instruction, 0, false);
-            break;
+            return this.compileChildren(instruction, 0, false);
           default: {
-            const childNode = this.resolve(instruction, depth, append);
-            this.compileResidue(childNode, depth + 1);
-            ctx.node.appendChild(childNode);
-            childNode.context.vpa.scheduleUpdate(this.deferUntil, this.swapStrategy, childNode);
+            return onResolve(this.resolve(instruction, depth, append), childNode => {
+              return onResolve(this.compileResidue(childNode, depth + 1), () => {
+                ctx.node.appendChild(childNode);
+                childNode.context.vpa.scheduleUpdate(this.deferUntil, this.swapStrategy, childNode);
+              });
+            });
           }
         }
-        break;
       }
       case NavigationInstructionType.IRouteViewModel:
       case NavigationInstructionType.CustomElementDefinition: {
-        const childNode = this.resolve(instruction, depth, append);
-        this.compileResidue(childNode, depth + 1);
-        ctx.node.appendChild(childNode);
-        childNode.context.vpa.scheduleUpdate(this.deferUntil, this.swapStrategy, childNode);
-        break;
+        return onResolve(this.resolve(instruction, depth, append), childNode => {
+          return onResolve(this.compileResidue(childNode, depth + 1), () => {
+            ctx.node.appendChild(childNode);
+            childNode.context.vpa.scheduleUpdate(this.deferUntil, this.swapStrategy, childNode);
+          });
+        });
       }
     }
   }
@@ -416,16 +424,16 @@ export class RouteTreeCompiler {
     parent: ViewportInstruction | ViewportInstructionTree,
     depth: number,
     append: boolean,
-  ): void {
-    for (const child of parent.children) {
-      this.compile(child, depth, append || child.append);
-    }
+  ): Promise<void> | void {
+    return resolveAll(...parent.children.map(child => {
+      return this.compile(child, depth, append || child.append);
+    }));
   }
 
   private updateOrCompile(
     node: RouteNode,
     instructions: ViewportInstructionTree,
-  ): void {
+  ): Promise<void> | void {
     this.logger.trace(`updateOrCompile(node:%s)`, node);
 
     if (!node.context.isRoot) {
@@ -436,11 +444,11 @@ export class RouteTreeCompiler {
 
     if (node.context === this.ctx) {
       node.children.length = 0;
-      this.compileChildren(instructions, node.context.depth, instructions.options.append);
+      return this.compileChildren(instructions, node.context.depth, instructions.options.append);
     } else {
-      for (const child of node.children) {
-        this.updateOrCompile(child, instructions);
-      }
+      return resolveAll(...node.children.map(child => {
+        return this.updateOrCompile(child, instructions);
+      }));
     }
   }
 
@@ -448,60 +456,46 @@ export class RouteTreeCompiler {
     instruction: ViewportInstruction,
     depth: number,
     append: boolean,
-  ): RouteNode {
+  ): Promise<RouteNode> | RouteNode {
     this.logger.trace(`resolve(instruction:%s,depth:${depth},append:${append}) in '${this.mode}' mode at ${this.ctx.path[depth]}`, instruction);
 
-    let node: RouteNode | null;
-    switch (this.mode) {
-      case 'configured-first':
-        node = this.resolveConfigured(instruction, depth, append) ?? this.resolveDirect(instruction, depth, append);
-        break;
-      case 'configured-only':
-        node = this.resolveConfigured(instruction, depth, append);
-        break;
-      case 'direct-first':
-        node = this.resolveDirect(instruction, depth, append) ?? this.resolveConfigured(instruction, depth, append);
-        break;
-      case 'direct-only':
-        node = this.resolveDirect(instruction, depth, append);
-        break;
-    }
-
-    if (node === null) {
-      throw new Error(`Could not resolve instruction ${instruction} in '${this.mode}' mode at ${this.ctx.path[depth]}`);
-    }
-
-    return node;
-  }
-
-  private resolveConfigured(
-    instruction: ViewportInstruction,
-    depth: number,
-    append: boolean,
-  ): RouteNode | null {
     const ctx = this.ctx.path[depth];
-    let result: RecognizedRoute | null;
     switch (instruction.component.type) {
       case NavigationInstructionType.string: {
-        result = ctx.recognize(instruction.component.value);
-        break;
+        const recognizedRoute = ctx.recognize(instruction.component.value);
+        if (recognizedRoute !== null) {
+          return this.routeNodeFromRecognizedRoute(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, recognizedRoute);
+        }
+        if (this.mode === 'configured-only') {
+          throw new Error(`instruction '${instruction}' did not match any configured route at ${ctx}`);
+        }
+        const component: CustomElementDefinition | null = ctx.findResource(CustomElement, instruction.component.value);
+        if (component === null) {
+          throw new Error(`instruction '${instruction}' did not match any configured route or registered component name at ${ctx}`);
+        }
+        return this.routeNodeFromComponent(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, component);
       }
       case NavigationInstructionType.CustomElementDefinition:
       case NavigationInstructionType.IRouteViewModel: {
-        const routeDef = RouteDefinition.resolve(instruction.component.value, ctx);
-        // TODO: serialize params and replace dynamic segment, if provided as object
-        result = ctx.recognize(routeDef.path);
-        break;
+        const routeDef = RouteDefinition.resolve(instruction.component.value);
+        return this.routeNodeFromComponent(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, routeDef.component);
+      }
+      case NavigationInstructionType.Promise: {
+        return onResolve(RouteDefinition.resolve(instruction.component.value, ctx), routeDef => {
+          return this.routeNodeFromComponent(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, routeDef.component);
+        });
       }
     }
+  }
 
-    if (result === null) {
-      this.logger.trace(`resolveConfigured(instruction:%s,depth:${depth},append:${append}) -> null`, instruction);
-
-      return null;
-    }
-
-    const endpoint = result.endpoint;
+  private routeNodeFromRecognizedRoute(
+    instruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
+    depth: number,
+    append: boolean,
+    recognizedRoute: RecognizedRoute,
+  ): RouteNode {
+    const ctx = this.ctx.path[depth];
+    const endpoint = recognizedRoute.endpoint;
     const viewportAgent = ctx.resolveViewportAgent(ViewportRequest.create({
       viewportName: endpoint.route.viewport,
       componentName: endpoint.route.component.name,
@@ -518,52 +512,28 @@ export class RouteTreeCompiler {
     childCtx.node = RouteNode.create({
       context: childCtx,
       instruction,
-      params: result.params, // TODO: params inheritance
+      params: recognizedRoute.params, // TODO: params inheritance
       queryParams: this.instructions.queryParams, // TODO: queryParamsStrategy
       fragment: this.instructions.fragment, // TODO: fragmentStrategy
       data: endpoint.route.data,
       viewport: endpoint.route.viewport,
       component: endpoint.route.component,
       append: append,
-      residue: result.residue === null ? [] : [ViewportInstruction.create(result.residue)],
+      residue: recognizedRoute.residue === null ? [] : [ViewportInstruction.create(recognizedRoute.residue)],
     });
 
-    this.logger.trace(`resolveConfigured(instruction:%s,depth:${depth},append:${append}) -> %s`, instruction, childCtx.node);
+    this.logger.trace(`routeNodeFromRecognizedRoute(instruction:%s,depth:${depth},append:${append}) -> %s`, instruction, childCtx.node);
 
     return childCtx.node;
   }
 
-  private resolveDirect(
-    instruction: ViewportInstruction,
+  private routeNodeFromComponent(
+    instruction: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>,
     depth: number,
     append: boolean,
-  ): RouteNode | null {
+    component: CustomElementDefinition,
+  ): RouteNode {
     const ctx = this.ctx.path[depth];
-    let component: CustomElementDefinition;
-
-    switch (instruction.component.type) {
-      case NavigationInstructionType.string: {
-        // TODO: use RouteExpression.parse and recursively build more instructions if needed
-        const resource: CustomElementDefinition | null = ctx.findResource(CustomElement, instruction.component.value);
-        if (resource === null) {
-          this.logger.trace(`resolveDirect(instruction:%s,depth:${depth},append:${append}) - string -> null`, instruction);
-
-          return null;
-        }
-        component = resource;
-        break;
-      }
-      case NavigationInstructionType.CustomElementDefinition: {
-        component = instruction.component.value;
-        break;
-      }
-      case NavigationInstructionType.IRouteViewModel: {
-        const controller = Controller.getCachedOrThrow(instruction.component.value);
-        component = controller.context.definition;
-        break;
-      }
-    }
-
     const viewportName = instruction.viewport ?? 'default';
 
     const viewportAgent = ctx.resolveViewportAgent(ViewportRequest.create({
@@ -592,6 +562,7 @@ export class RouteTreeCompiler {
       append,
       residue: [...instruction.children], // Children must be cloned, because residue will be mutated by the compiler
     });
+    this.logger.trace(`routeNodeFromComponent(instruction:%s,depth:${depth},append:${append}) -> %s`, instruction, childCtx.node);
 
     return childCtx.node;
   }

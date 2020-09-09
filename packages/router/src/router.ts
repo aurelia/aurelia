@@ -71,7 +71,7 @@ export function toManagedState(state: {} | null, navId: number): ManagedState {
   };
 }
 
-export type RoutingMode = 'direct-only' | 'configured-only' | 'direct-first' | 'configured-first';
+export type RoutingMode = 'configured-only' | 'configured-first';
 export type SwapStrategy = 'sequential-add-first' | 'sequential-remove-first' | 'parallel-remove-first';
 export type DeferralJuncture = 'guard-hooks' | 'load-hooks' | 'none';
 export type QueryParamsStrategy = 'overwrite' | 'preserve' | 'merge';
@@ -99,11 +99,9 @@ export class RouterOptions {
     /**
      * The operating mode of the router that determines how components are resolved based on a url.
      *
-     * - `direct-only`: only resolves components by name, provided they are either globally or locally registered as dependencies (configuration is ignored)
      * - `configured-only`: only match the url against configured routes.
-     * - `direct-first`: first tries to resolve by component name from available dependencies, then by configured routes.
      * - `configured-first`: first tries to resolve by configured routes, then by component name from available dependencies. (default)
-     * - A function that returns one of the 4 above values based on the navigation.
+     * - A function that returns one of the 2 above values based on the navigation.
      *
      * Default: `configured-first`
      */
@@ -888,44 +886,45 @@ export class Router {
     //
     // ---
 
-    RouteTreeCompiler.compileRoot(this.routeTree, tr.finalInstructions, navigationContext);
-    this.instructions = tr.finalInstructions;
+    return onResolve(RouteTreeCompiler.compileRoot(this.routeTree, tr.finalInstructions, navigationContext), () => {
+      this.instructions = tr.finalInstructions;
 
-    const abortIfNeeded = (abort: () => void) => {
-      if (tr.guardsResult !== true) {
-        abort();
-        return this.cancelNavigation(tr);
-      }
-    };
-    const prev = tr.previousRouteTree.root.children;
-    const next = tr.routeTree.root.children;
-    const all = mergeDistinct(prev, next);
-    return runSequence(
-      () => { return resolveAll(prev.map(p => { return p.context.vpa.canUnload(tr); })); },
-      abortIfNeeded,
-      () => { return resolveAll(next.map(n => { return n.context.vpa.canLoad(tr); })); },
-      abortIfNeeded,
-      () => { return resolveAll(prev.map(p => { return p.context.vpa.unload(tr); })); },
-      () => { return resolveAll(next.map(n => { return n.context.vpa.load(tr); })); },
-      () => { return resolveAll(all.map(x => { return x.context.vpa.swap(tr); })); },
-      () => {
-        // order doesn't matter for this operation
-        all.forEach(function (node) {
-          node.context.vpa.endTransition(tr);
-        });
-        this.navigated = true;
+      const abortIfNeeded = (abort: () => void) => {
+        if (tr.guardsResult !== true) {
+          abort();
+          return this.cancelNavigation(tr);
+        }
+      };
+      const prev = tr.previousRouteTree.root.children;
+      const next = tr.routeTree.root.children;
+      const all = mergeDistinct(prev, next);
+      return runSequence(
+        () => { return resolveAll(prev.map(p => { return p.context.vpa.canUnload(tr); })); },
+        abortIfNeeded,
+        () => { return resolveAll(next.map(n => { return n.context.vpa.canLoad(tr); })); },
+        abortIfNeeded,
+        () => { return resolveAll(prev.map(p => { return p.context.vpa.unload(tr); })); },
+        () => { return resolveAll(next.map(n => { return n.context.vpa.load(tr); })); },
+        () => { return resolveAll(all.map(x => { return x.context.vpa.swap(tr); })); },
+        () => {
+          // order doesn't matter for this operation
+          all.forEach(function (node) {
+            node.context.vpa.endTransition(tr);
+          });
+          this.navigated = true;
 
-        this.events.publish(new NavigationEndEvent(tr.id, tr.instructions, this.instructions));
+          this.events.publish(new NavigationEndEvent(tr.id, tr.instructions, this.instructions));
 
-        this.lastSuccessfulNavigation = this.activeNavigation;
-        this.activeNavigation = null;
-        this.applyHistoryState(tr);
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        tr.resolve!(true);
+          this.lastSuccessfulNavigation = this.activeNavigation;
+          this.activeNavigation = null;
+          this.applyHistoryState(tr);
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+          tr.resolve!(true);
 
-        this.runNextTransition(tr);
-      },
-    );
+          this.runNextTransition(tr);
+        },
+      );
+    });
   }
 
   private applyHistoryState(tr: Transition): void {

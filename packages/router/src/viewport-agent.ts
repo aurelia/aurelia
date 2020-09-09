@@ -1,9 +1,9 @@
-/* eslint-disable max-lines-per-function */
 // No-fallthrough disabled due to large numbers of false positives
 /* eslint-disable no-fallthrough */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
   ILogger,
+  onResolve,
 } from '@aurelia/kernel';
 import {
   IHydratedController,
@@ -240,6 +240,7 @@ export class ViewportAgent {
     switch (this.currState) {
       case State.currIsEmpty:
       case State.currIsActive:
+      case State.currCanUnloadDone:
         break;
       default:
         this.unexpectedState('scheduleUpdate 2');
@@ -259,40 +260,7 @@ export class ViewportAgent {
       }
     }
 
-    switch (this.$plan) {
-      case 'none':
-      case 'invoke-lifecycles':
-        this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s', compiling residue`, next, this.$plan);
-
-        // These plans can only occur if there is already a current component active in this viewport,
-        // and it is the same component as `next`.
-        // This means the RouteContext of `next` was created during a previous transition and might contain
-        // already-active children. If that is the case, we want to eagerly call the router hooks on them during the
-        // first pass of `Router.invokeLifecycles` instead of lazily in a later pass during `Router.processResidue`.
-        // By calling `compileResidue` here on the current context, we're ensuring that such nodes are created and
-        // their target viewports have the appropriate updates scheduled.
-        RouteTreeCompiler.compileResidue(next.tree, next.tree.instructions, next.context);
-        break;
-      case 'replace':
-        // In the case of 'replace', always process this node and its subtree as if it's a new one
-        switch (deferUntil) {
-          case 'none':
-            this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s' (deferral: 'none'), deferring residue compilation`, next, this.$plan);
-
-            // In dynamic mode, that means doing nothing here because child resolution will happen after this node is activated
-            break;
-          case 'guard-hooks':
-          case 'load-hooks': {
-            this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s' (deferral: '${deferUntil}'), creating nextCA and compiling residue`, next, this.$plan);
-
-            // In static mode, immediately create the component and drill down
-            const controller = this.hostController as ICustomElementController<HTMLElement>;
-            this.nextCA = next.context.createComponentAgent(controller, next);
-            RouteTreeCompiler.compileResidue(next.tree, next.tree.instructions, next.context);
-            break;
-          }
-        }
-    }
+    this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s'`, next, this.$plan);
   }
 
   public cancelUpdate(): void {
@@ -389,19 +357,12 @@ export class ViewportAgent {
               case 'invoke-lifecycles':
                 return this.curCA!.canLoad(this.nextNode!);
               case 'replace':
-                switch (this.$deferral) {
-                  case 'guard-hooks':
-                  case 'load-hooks':
-                    // nextCA was already created during scheduleUpdate
-                    return this.nextCA!.canLoad(this.nextNode!);
-                  case 'none':
-                    return (
-                      this.nextCA = this.nextNode!.context.createComponentAgent(
-                        this.hostController as ICustomElementController<HTMLElement>,
-                        this.nextNode!
-                      )
-                    ).canLoad(this.nextNode!);
-                }
+                return (
+                  this.nextCA = this.nextNode!.context.createComponentAgent(
+                    this.hostController as ICustomElementController<HTMLElement>,
+                    this.nextNode!
+                  )
+                ).canLoad(this.nextNode!);
             }
           case State.nextIsEmpty:
             this.logger.trace(`canLoad() - nothing to load at %s`, this);
@@ -410,21 +371,55 @@ export class ViewportAgent {
             this.unexpectedState('canLoad');
         }
       },
-      (_, result) => {
+      (abort, result) => {
         if (tr.guardsResult === true && result !== true) {
           tr.guardsResult = result;
-        } else {
-          switch (this.nextState) {
-            case State.nextCanLoad:
-              this.nextState = State.nextCanLoadDone;
-              return resolveAll(this.nextNode!.children.map(node => {
-                return node.context.vpa.canLoad(tr);
-              }));
-            case State.nextIsEmpty:
-              return;
-            default:
-              this.unexpectedState('canLoad');
-          }
+        }
+        if (tr.guardsResult !== true) {
+          abort();
+        }
+      },
+      () => {
+        const next = this.nextNode!;
+        switch (this.$plan) {
+          case 'none':
+          case 'invoke-lifecycles':
+            this.logger.trace(`canLoad(next:%s) - plan set to '%s', compiling residue`, next, this.$plan);
+
+            // These plans can only occur if there is already a current component active in this viewport,
+            // and it is the same component as `next`.
+            // This means the RouteContext of `next` was created during a previous transition and might contain
+            // already-active children. If that is the case, we want to eagerly call the router hooks on them during the
+            // first pass of activation, instead of lazily in a later pass after `processResidue`.
+            // By calling `compileResidue` here on the current context, we're ensuring that such nodes are created and
+            // their target viewports have the appropriate updates scheduled.
+            return RouteTreeCompiler.compileResidue(next.tree, next.tree.instructions, next.context);
+          case 'replace':
+            // In the case of 'replace', always process this node and its subtree as if it's a new one
+            switch (this.$deferral) {
+              case 'none':
+                // Residue compilation will happen at `ViewportAgent#processResidue`
+                this.logger.trace(`canLoad(next:%s) - (deferral: 'none'), delaying residue compilation until activate`, next, this.$plan);
+                return;
+              case 'guard-hooks':
+              case 'load-hooks': {
+                this.logger.trace(`canLoad(next:%s) - (deferral: '${this.$deferral}'), creating nextCA and compiling residue`, next, this.$plan);
+                return RouteTreeCompiler.compileResidue(next.tree, next.tree.instructions, next.context);
+              }
+            }
+        }
+      },
+      () => {
+        switch (this.nextState) {
+          case State.nextCanLoad:
+            this.nextState = State.nextCanLoadDone;
+            return resolveAll(this.nextNode!.children.map(node => {
+              return node.context.vpa.canLoad(tr);
+            }));
+          case State.nextIsEmpty:
+            return;
+          default:
+            this.unexpectedState('canLoad');
         }
       },
     );
@@ -692,15 +687,14 @@ export class ViewportAgent {
   private processResidue(tr: Transition): void | Promise<void> {
     this.logger.trace(`processResidue() - %s`, this);
     const next = this.nextNode!;
-    const existingChildren = next.children.slice();
-    RouteTreeCompiler.compileResidue(next.tree, next.tree.instructions, next.context);
-    const newChildren = next.children.filter(x => !existingChildren.includes(x));
-    return runSequence(
-      () => { return resolveAll(newChildren.map(x => { return x.context.vpa.canLoad(tr); })); },
-      tr.abortIfNeeded(),
-      () => { return resolveAll(newChildren.map(x => { return x.context.vpa.load(tr); })); },
-      () => { return resolveAll(newChildren.map(x => { return x.context.vpa.activate(tr); })); },
-    );
+    return onResolve(RouteTreeCompiler.compileResidue(next.tree, next.tree.instructions, next.context), newChildren => {
+      return runSequence(
+        () => { return resolveAll(newChildren.map(x => { return x.context.vpa.canLoad(tr); })); },
+        tr.abortIfNeeded(),
+        () => { return resolveAll(newChildren.map(x => { return x.context.vpa.load(tr); })); },
+        () => { return resolveAll(newChildren.map(x => { return x.context.vpa.activate(tr); })); },
+      );
+    });
   }
 
   public dispose(): void {

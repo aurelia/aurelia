@@ -5,6 +5,7 @@ import {
   DI,
   isObject,
   Constructable,
+  IModule,
 } from '@aurelia/kernel';
 import {
   ICustomElementViewModel,
@@ -63,11 +64,13 @@ export type NavigationInstruction = (
 /**
  * A component type, instance of definition that can be navigated to:
  * - `RouteType`: a custom element class with optional static properties that specify routing-specific attributes.
+ * - `Promise<IModule>`: a lazy loaded module, e.g. the return value of a dynamic import expression pointing to a file with a routeable component as the default export or the first named export.
  * - `PartialCustomElementDefinition`: either a complete `CustomElementDefinition` or a partial definition (e.g. an object literal with at least the `name` property)
  * - `IRouteViewModel`: an existing component instance.
  */
 export type RouteableComponent = (
   RouteType |
+  Promise<IModule> |
   PartialCustomElementDefinition |
   IRouteViewModel
 );
@@ -104,15 +107,13 @@ export interface IViewportInstruction {
   readonly children?: readonly NavigationInstruction[];
 }
 
-export class ViewportInstruction implements IViewportInstruction {
+export class ViewportInstruction<
+  TComponent extends ITypedNavigationInstruction_T = ITypedNavigationInstruction_Component
+> implements IViewportInstruction {
   private constructor(
     public readonly context: RouteContextLike | null,
     public append: boolean,
-    public readonly component: (
-      ITypedNavigationInstruction_string |
-      ITypedNavigationInstruction_CustomElementDefinition |
-      ITypedNavigationInstruction_IRouteViewModel
-    ),
+    public readonly component: TComponent,
     public readonly viewport: string | null,
     public readonly params: Params | null,
     public readonly children: ViewportInstruction[],
@@ -218,7 +219,7 @@ const getObjectId = (function () {
 export class ViewportInstructionTree {
   public constructor(
     public readonly options: NavigationOptions,
-    public readonly children: readonly ViewportInstruction[],
+    public readonly children: ViewportInstruction[],
     public readonly queryParams: Params,
     public readonly fragment: string | null,
   ) { }
@@ -285,6 +286,7 @@ export const enum NavigationInstructionType {
   string,
   ViewportInstruction,
   CustomElementDefinition,
+  Promise,
   IRouteViewModel,
 }
 /* eslint-enable no-shadow */
@@ -302,13 +304,25 @@ export interface ITypedNavigationInstruction_string extends
 export interface ITypedNavigationInstruction_ViewportInstruction extends
   ITypedNavigationInstruction<ViewportInstruction, NavigationInstructionType.ViewportInstruction> {}
 export interface ITypedNavigationInstruction_CustomElementDefinition extends
-  ITypedNavigationInstruction<CustomElementDefinition, NavigationInstructionType.CustomElementDefinition> {}
+ITypedNavigationInstruction<CustomElementDefinition, NavigationInstructionType.CustomElementDefinition> {}
+export interface ITypedNavigationInstruction_Promise extends
+  ITypedNavigationInstruction<Promise<IModule>, NavigationInstructionType.Promise> {}
+
 export interface ITypedNavigationInstruction_IRouteViewModel extends
   ITypedNavigationInstruction<IRouteViewModel, NavigationInstructionType.IRouteViewModel> {}
 
 export type ITypedNavigationInstruction_T = (
+  ITypedNavigationInstruction_Component |
+  ITypedNavigationInstruction_ViewportInstruction
+);
+
+export type ITypedNavigationInstruction_Component = (
+  ITypedNavigationInstruction_ResolvedComponent |
+  ITypedNavigationInstruction_Promise
+);
+
+export type ITypedNavigationInstruction_ResolvedComponent = (
   ITypedNavigationInstruction_string |
-  ITypedNavigationInstruction_ViewportInstruction |
   ITypedNavigationInstruction_CustomElementDefinition |
   ITypedNavigationInstruction_IRouteViewModel
 );
@@ -325,6 +339,7 @@ export class TypedNavigationInstruction<
   public static create(instruction: string): ITypedNavigationInstruction_string;
   public static create(instruction: IViewportInstruction): ITypedNavigationInstruction_ViewportInstruction;
   public static create(instruction: RouteType | PartialCustomElementDefinition): ITypedNavigationInstruction_CustomElementDefinition;
+  public static create(instruction: Promise<IModule>): ITypedNavigationInstruction_Promise;
   public static create(instruction: IRouteViewModel): ITypedNavigationInstruction_IRouteViewModel;
   public static create(instruction: Exclude<NavigationInstruction, IViewportInstruction>): Exclude<ITypedNavigationInstruction_T, ITypedNavigationInstruction_ViewportInstruction>;
   public static create(instruction: NavigationInstruction): ITypedNavigationInstruction_T;
@@ -343,6 +358,8 @@ export class TypedNavigationInstruction<
       // CustomElement.getDefinition will throw if the type is not a custom element
       const definition = CustomElement.getDefinition(instruction);
       return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, definition);
+    } else if (instruction instanceof Promise) {
+      return new TypedNavigationInstruction(NavigationInstructionType.Promise, instruction);
     } else if (isPartialViewportInstruction(instruction)) {
       const viewportInstruction = ViewportInstruction.create(instruction);
       return new TypedNavigationInstruction(NavigationInstructionType.ViewportInstruction, viewportInstruction);
@@ -365,6 +382,7 @@ export class TypedNavigationInstruction<
     switch (this.type) {
       case NavigationInstructionType.CustomElementDefinition:
       case NavigationInstructionType.IRouteViewModel:
+      case NavigationInstructionType.Promise:
       case NavigationInstructionType.string:
         return this.type === other.type && this.value === other.value;
       case NavigationInstructionType.ViewportInstruction:
@@ -377,6 +395,7 @@ export class TypedNavigationInstruction<
       case NavigationInstructionType.CustomElementDefinition:
         return this.value.name;
       case NavigationInstructionType.IRouteViewModel:
+      case NavigationInstructionType.Promise:
         return `au$obj${getObjectId(this.value)}`;
       case NavigationInstructionType.ViewportInstruction:
         return this.value.toUrlComponent();
@@ -389,6 +408,8 @@ export class TypedNavigationInstruction<
     switch (this.type) {
       case NavigationInstructionType.CustomElementDefinition:
         return `CEDef(name:'${this.value.name}')`;
+      case NavigationInstructionType.Promise:
+        return `Promise`;
       case NavigationInstructionType.IRouteViewModel:
         return `VM(name:'${CustomElement.getDefinition(this.value.constructor as Constructable).name}')`;
       case NavigationInstructionType.ViewportInstruction:

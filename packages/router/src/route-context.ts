@@ -14,6 +14,9 @@ import {
   InstanceProvider,
   Registration,
   ILogger,
+  IModuleLoader,
+  IModuleAnalyzer,
+  IModule,
 } from '@aurelia/kernel';
 import {
   ICompiledRenderContext,
@@ -54,6 +57,7 @@ import {
 import {
   IViewport,
 } from './resources/viewport';
+import { Routeable } from './route';
 
 type RenderContextLookup = WeakMap<IRenderContext, RouteDefinitionLookup>;
 type RouteDefinitionLookup = WeakMap<RouteDefinition, IRouteContext>;
@@ -72,6 +76,10 @@ function getRouteDefinitionLookup(
   }
 
   return routeDefinitionLookup;
+}
+
+function isNotPromise<T>(value: T): value is Exclude<T, Promise<unknown>> {
+  return !(value instanceof Promise);
 }
 
 export interface IRouteContext extends RouteContext {}
@@ -110,7 +118,7 @@ export class RouteContext implements IContainer {
   /**
    * The (fully resolved) configured child routes of this context's `RouteDefinition`
    */
-  public readonly childRoutes: readonly RouteDefinition[];
+  public readonly childRoutes: readonly (RouteDefinition | Promise<RouteDefinition>)[];
 
   private prevNode: RouteNode | null = null;
   private _node: RouteNode | null = null;
@@ -152,6 +160,8 @@ export class RouteContext implements IContainer {
     }
   }
 
+  private readonly moduleLoader: IModuleLoader;
+  private readonly moduleAnalyzer: IModuleAnalyzer;
   private readonly logger: ILogger;
   private readonly container: IContainer;
   private readonly hostControllerProvider: InstanceProvider<ICustomElementController<HTMLElement>>;
@@ -176,6 +186,10 @@ export class RouteContext implements IContainer {
     }
     this.logger = parentContainer.get(ILogger).scopeTo(`RouteContext<${this.friendlyPath}>`);
     this.logger.trace('constructor()');
+
+    this.moduleLoader = parentContainer.get(IModuleLoader);
+    this.moduleAnalyzer = parentContainer.get(IModuleAnalyzer);
+
     const container = this.container = parentContainer.createChild({ inheritParentResources: true });
 
     container.registerResolver(
@@ -195,16 +209,10 @@ export class RouteContext implements IContainer {
 
     container.register(...component.dependencies);
 
-    // We're resolving/completing the child routes and the route recognizer here
-    // eagerly but it doesn't *have* to be. It could be done lazily if for example we need
-    // to account for potentially late-registered dependencies.
-    // We could also create a new recognizer on each `recognize` request, but this would need solid
-    // justification because the perf impact of doing this can be significant in larger apps with big route tables.
-
-    // However, when it comes to route configuration, the act of mutating the config will
-    // invalidate the RouteContext cache and automatically results in a fresh context
+    // The act of mutating the config will invalidate the RouteContext cache and automatically results in a fresh context
     // (and thus, a new recognizer based on its new state).
-    const childRoutes = this.childRoutes = definition.config.children.map(child => {
+    // Lazy loaded modules which are added directly as children will be added to the recognizer once they're resolved.
+    const childRoutes = this.childRoutes = definition.config.children.filter(isNotPromise).map(child => {
       return RouteDefinition.resolve(child, this);
     });
 
@@ -444,8 +452,7 @@ export class RouteContext implements IContainer {
     this.logger.trace(`createComponentAgent(routeNode:%s)`, routeNode);
 
     this.hostControllerProvider.prepare(hostController);
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    const routeDefinition = RouteDefinition.resolve(routeNode.component!, this);
+    const routeDefinition = RouteDefinition.resolve(routeNode.component);
     const componentInstance = this.container.get<IRouteViewModel>(routeDefinition.component.key);
     const componentAgent = ComponentAgent.for(componentInstance, hostController, routeNode, this);
 
@@ -481,6 +488,43 @@ export class RouteContext implements IContainer {
     return this.recognizer.recognize(path);
   }
 
+  public addRoute(routeable: Exclude<Routeable, Promise<IModule>>): void {
+    this.logger.trace(`addRoute(routeable:'${routeable}')`);
+    const routeDef = RouteDefinition.resolve(routeable, this);
+    this.recognizer.add(routeDef, true);
+  }
+
+  public resolveLazy(
+    pathOrPromise: string | Promise<IModule>,
+  ): Promise<CustomElementDefinition> | CustomElementDefinition {
+    return this.moduleLoader.load(pathOrPromise, m => {
+      const analyzed = this.moduleAnalyzer.analyze(m);
+      let defaultExport: CustomElementDefinition | undefined = void 0;
+      let firstNonDefaultExport: CustomElementDefinition | undefined = void 0;
+      for (const item of analyzed.items) {
+        if (item.isConstructable) {
+          const def = item.definitions.find(isCustomElementDefinition);
+          if (def !== void 0) {
+            if (item.key === 'default') {
+              defaultExport = def;
+            } else if (firstNonDefaultExport === void 0) {
+              firstNonDefaultExport = def;
+            }
+          }
+        }
+      }
+
+      if (defaultExport === void 0) {
+        if (firstNonDefaultExport === void 0) {
+          // TODO: make error more accurate and add potential causes/solutions
+          throw new Error(`${pathOrPromise} does not appear to be a component or CustomElement recognizable by Aurelia`);
+        }
+        return firstNonDefaultExport;
+      }
+      return defaultExport;
+    });
+  }
+
   public toString(): string {
     const vpAgents = this.childViewportAgents;
     const viewports = vpAgents.map(String).join(',');
@@ -508,4 +552,8 @@ function isHTMLElement(value: unknown): value is HTMLElement {
 function logAndThrow(err: Error, logger: ILogger): never {
   logger.error(err);
   throw err;
+}
+
+function isCustomElementDefinition(value: ResourceDefinition): value is CustomElementDefinition {
+  return CustomElement.isType(value.Type);
 }

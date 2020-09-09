@@ -91,6 +91,12 @@ export {
   sink,
 } from './logger';
 export {
+  IModule,
+  IModuleLoader,
+  AnalyzedModule,
+  IModuleAnalyzer,
+} from './modules';
+export {
   relativeToFile,
   join,
 } from './path';

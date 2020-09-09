@@ -302,102 +302,9 @@ export class Navigation {
   }
 }
 
-export class VPAStateTracker {
-  private readonly queue: Set<ViewportAgent>;
-  private readonly running: Set<ViewportAgent>;
-  private readonly done: Set<ViewportAgent>;
-
-  public constructor(
-    private readonly logger: ILogger,
-    public readonly hook: 'canUnload' | 'canLoad' | 'unload' | 'load' | 'swap',
-  ) {
-    this.queue = new Set();
-    this.running = new Set();
-    this.done = new Set();
-  }
-
-  public isQueued(vpa: ViewportAgent): boolean {
-    return this.queue.has(vpa);
-  }
-
-  public isRunning(vpa: ViewportAgent): boolean {
-    return this.running.has(vpa);
-  }
-
-  public isDone(vpa: ViewportAgent): boolean {
-    return this.done.has(vpa);
-  }
-
-  public enqueue(vpa: ViewportAgent): void {
-    if (this.isQueued(vpa)) {
-      throw new Error(`${vpa}.${this.hook} is already queued`);
-    }
-    this.logger.trace(`StateTracker.enqueue(vpa:%s,hook:${this.hook})`, vpa);
-    this.queue.add(vpa);
-  }
-
-  public cancel(vpa: ViewportAgent): void {
-    if (!this.isQueued(vpa)) {
-      throw new Error(`${vpa}.${this.hook} is not queued`);
-    }
-    this.logger.trace(`StateTracker.cancel(vpa:%s,hook:${this.hook})`, vpa);
-    this.queue.delete(vpa);
-  }
-
-  public run(vpa: ViewportAgent, invoke: () => void | Promise<void>): void | Promise<void> {
-    this.start(vpa);
-    return onResolve(invoke(), () => {
-      this.finish(vpa);
-    });
-  }
-
-  public start(vpa: ViewportAgent): void {
-    if (this.isRunning(vpa)) {
-      throw new Error(`${vpa}.${this.hook} has already started`);
-    }
-    if (!this.isQueued(vpa)) {
-      throw new Error(`${vpa}.${this.hook} is not queued`);
-    }
-    this.logger.trace(`StateTracker.start(vpa:%s,hook:${this.hook})`, vpa);
-    this.queue.delete(vpa);
-    this.running.add(vpa);
-  }
-
-  public finish(vpa: ViewportAgent): void {
-    if (this.isDone(vpa)) {
-      throw new Error(`${vpa}.${this.hook} has already finished`);
-    }
-    if (!this.isRunning(vpa)) {
-      throw new Error(`${vpa}.${this.hook} has not started`);
-    }
-    this.logger.trace(`StateTracker.finish(vpa:%s,hook:${this.hook})`, vpa);
-    this.running.delete(vpa);
-    this.done.add(vpa);
-  }
-}
-
-export class VPALifecycleCoordinator {
-  public readonly canUnload: VPAStateTracker;
-  public readonly canLoad: VPAStateTracker;
-  public readonly unload: VPAStateTracker;
-  public readonly load: VPAStateTracker;
-  public readonly swap: VPAStateTracker;
-
-  public constructor(
-    private readonly logger: ILogger,
-  ) {
-    this.canUnload = new VPAStateTracker(logger, 'canUnload');
-    this.canLoad = new VPAStateTracker(logger, 'canLoad');
-    this.unload = new VPAStateTracker(logger, 'unload');
-    this.load = new VPAStateTracker(logger, 'load');
-    this.swap = new VPAStateTracker(logger, 'swap');
-  }
-}
-
 export class Transition {
   private constructor(
     public readonly id: number,
-    public readonly coordinator: VPALifecycleCoordinator,
     public readonly prevInstructions: ViewportInstructionTree,
     public readonly instructions: ViewportInstructionTree,
     public finalInstructions: ViewportInstructionTree,
@@ -419,7 +326,6 @@ export class Transition {
   ): Transition {
     return new Transition(
       input.id,
-      input.coordinator,
       input.prevInstructions,
       input.instructions,
       input.finalInstructions,
@@ -491,7 +397,6 @@ export class Router {
     if (currentTr === null) {
       currentTr = this._currentTr = Transition.create({
         id: 0,
-        coordinator: new VPALifecycleCoordinator(this.logger),
         prevInstructions: this.instructions,
         instructions: this.instructions,
         finalInstructions: this.instructions,
@@ -784,7 +689,6 @@ export class Router {
     // This is consistent with the runtime's controller behavior, where if you rapidly call async activate -> deactivate -> activate (for example), then the deactivate is canceled.
     const nextTr = this.nextTr = Transition.create({
       id: ++this.navigationId,
-      coordinator: new VPALifecycleCoordinator(this.logger),
       trigger,
       managedState: state,
       prevInstructions: lastTr.finalInstructions,

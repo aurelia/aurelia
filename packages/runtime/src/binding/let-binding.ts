@@ -3,6 +3,9 @@ import {
   IServiceLocator,
   Reporter,
 } from '@aurelia/kernel';
+import {
+  ITask, QueueTaskOptions,
+} from '@aurelia/scheduler';
 import { IExpression } from '../ast';
 import {
   LifecycleFlags,
@@ -33,6 +36,7 @@ export class LetBinding implements IPartialConnectableBinding {
   public $lifecycle: ILifecycle;
   public $scope?: IScope = void 0;
   public part?: string;
+  public task: ITask | null = null;
 
   public target: (IObservable & IIndexable) | null = null;
 
@@ -53,7 +57,8 @@ export class LetBinding implements IPartialConnectableBinding {
     }
 
     if (flags & LifecycleFlags.updateTargetInstance) {
-      const { target, targetProperty } = this as {target: IIndexable; targetProperty: string};
+      const target = this.target as IIndexable;
+      const targetProperty = this.targetProperty as string;
       const previousValue: unknown = target[targetProperty];
       const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part);
       if (newValue !== previousValue) {
@@ -62,7 +67,7 @@ export class LetBinding implements IPartialConnectableBinding {
       return;
     }
 
-    throw Reporter.error(15, flags);
+    throw new Error('Unexpected handleChange context in LetBinding');
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {

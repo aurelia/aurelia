@@ -1,5 +1,11 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import {
+  IScheduler,
+  ITask,
+  QueueTaskOptions,
+  Scheduler,
+} from '@aurelia/scheduler';
+import {
   IExpression,
   IInterpolationExpression,
 } from '../ast';
@@ -12,6 +18,7 @@ import { IBinding } from '../lifecycle';
 import {
   IBindingTargetAccessor,
   IScope,
+  ObserverType,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import {
@@ -21,6 +28,9 @@ import {
 } from './connectable';
 
 const { toView, oneTime } = BindingMode;
+const updateTaskOpts: QueueTaskOptions = {
+  reusable: false,
+};
 
 export class MultiInterpolationBinding implements IBinding {
   public interceptor: this = this;
@@ -90,6 +100,8 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public $scope?: IScope;
   public part?: string;
   public $state: State = State.none;
+  public $scheduler: IScheduler;
+  public task: ITask | null = null;
 
   public targetObserver: IBindingTargetAccessor;
 
@@ -105,6 +117,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   ) {
     connectable.assignIdTo(this);
 
+    this.$scheduler = locator.get(Scheduler);
     this.targetObserver = observerLocator.getAccessor(LifecycleFlags.none, target, targetProperty);
   }
 
@@ -120,6 +133,19 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     const previousValue = this.targetObserver.getValue();
     const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.part);
     if (newValue !== previousValue) {
+      if ((this.targetObserver.type & ObserverType.Layout) > 0) {
+        if (this.task != null) {
+          this.task.cancel();
+        }
+        const updateTime = Date.now();
+        this.task = this.$scheduler.queueRenderTask(() => {
+          if (updateTime > this.targetObserver.lastUpdate && (this.$state & State.isBound) > 0) {
+            this.interceptor.updateTarget(newValue, flags);
+          }
+        });
+      } else {
+        this.interceptor.updateTarget(newValue, flags);
+      }
       this.interceptor.updateTarget(newValue, flags);
     }
 
@@ -153,7 +179,19 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     // since the interpolation already gets the whole value, we only need to let the first
     // text binding do the update if there are multiple
     if (this.isFirst) {
-      this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
+      if ((this.targetObserver.type & ObserverType.Layout) > 0) {
+        if (this.task != null) {
+          this.task.cancel();
+        }
+        const updateTime = Date.now();
+        this.task = this.$scheduler.queueRenderTask(() => {
+          if (updateTime > this.targetObserver.lastUpdate && (this.$state & State.isBound) > 0) {
+            this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+          }
+        });
+      } else {
+        this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
+      }
     }
     if (this.mode & toView) {
       sourceExpression.connect(flags, scope, this.interceptor, part);
@@ -165,6 +203,11 @@ export class InterpolationBinding implements IPartialConnectableBinding {
       return;
     }
     this.$state &= ~State.isBound;
+
+    if (this.task != null) {
+      this.task.cancel();
+      this.task = null;
+    }
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {

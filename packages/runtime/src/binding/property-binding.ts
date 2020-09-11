@@ -3,6 +3,11 @@ import {
   Reporter,
 } from '@aurelia/kernel';
 import {
+  IScheduler,
+  ITask,
+  QueueTaskOptions,
+} from '@aurelia/scheduler';
+import {
   IForOfStatement,
   IsBindingBehavior,
 } from '../ast';
@@ -17,6 +22,7 @@ import {
   AccessorOrObserver,
   IBindingTargetObserver,
   IScope,
+  ObserverType,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import {
@@ -37,6 +43,10 @@ const toViewOrOneTime = toView | oneTime;
 
 export interface PropertyBinding extends IConnectableBinding {}
 
+const updateTaskOpts: QueueTaskOptions = {
+  reusable: false,
+};
+
 @connectable()
 export class PropertyBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
@@ -51,6 +61,9 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
+  private task: ITask | null = null;
+  private $scheduler: IScheduler;
+
   public constructor(
     public sourceExpression: IsBindingBehavior | IForOfStatement,
     public target: object,
@@ -61,6 +74,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
   ) {
     connectable.assignIdTo(this);
     this.$lifecycle = locator.get(ILifecycle);
+    this.$scheduler = locator.get(IScheduler);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -81,13 +95,27 @@ export class PropertyBinding implements IPartialConnectableBinding {
     flags |= this.persistentFlags;
 
     if ((flags & LifecycleFlags.updateTargetInstance) > 0) {
-      const previousValue = this.targetObserver!.getValue();
+      const targetObserver = this.targetObserver!;
+      const previousValue = targetObserver.getValue();
+
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
         newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part);
       }
       if (newValue !== previousValue) {
-        this.interceptor.updateTarget(newValue, flags);
+        if ((targetObserver.type & ObserverType.Layout) > 0) {
+          if (this.task != null) {
+            this.task.cancel();
+          }
+          const updateTime = Date.now();
+          this.task = this.$scheduler.queueRenderTask(() => {
+            if (updateTime > targetObserver.lastUpdate && (this.$state & State.isBound) > 0) {
+              this.interceptor.updateTarget(newValue, flags);
+            }
+          }, updateTaskOpts);
+        } else {
+          this.interceptor.updateTarget(newValue, flags);
+        }
       }
       if ((this.mode & oneTime) === 0) {
         this.version++;
@@ -104,7 +132,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       return;
     }
 
-    throw Reporter.error(15, flags);
+    throw new Error('Unexpected handleChange context in PropertyBinding');
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
@@ -131,32 +159,51 @@ export class PropertyBinding implements IPartialConnectableBinding {
       sourceExpression.bind(flags, scope, this.interceptor);
     }
 
-    let targetObserver = this.targetObserver as IBindingTargetObserver | undefined;
+    let $mode = this.mode;
+    let targetObserver = this.targetObserver as IBindingTargetObserver;
     if (!targetObserver) {
-      if (this.mode & fromView) {
-        targetObserver = this.targetObserver = this.observerLocator.getObserver(flags, this.target, this.targetProperty) as IBindingTargetObserver;
+      const observerLocator = this.observerLocator;
+      if ($mode & fromView) {
+        targetObserver = observerLocator.getObserver(flags, this.target, this.targetProperty) as IBindingTargetObserver;
       } else {
-        targetObserver = this.targetObserver = this.observerLocator.getAccessor(flags, this.target, this.targetProperty) as IBindingTargetObserver;
+        targetObserver = observerLocator.getAccessor(flags, this.target, this.targetProperty) as IBindingTargetObserver;
       }
+      this.targetObserver = targetObserver;
     }
-    if (this.mode !== BindingMode.oneTime && targetObserver.bind) {
+    if ($mode !== BindingMode.oneTime && targetObserver.bind) {
       targetObserver.bind(flags);
     }
 
+    $mode = this.mode;
+
     // during bind, binding behavior might have changed sourceExpression
     sourceExpression = this.sourceExpression;
-    if (this.mode & toViewOrOneTime) {
-      this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
-    }
-    if (this.mode & toView) {
-      sourceExpression.connect(flags, scope, this.interceptor, part);
-    }
-    if (this.mode & fromView) {
-      targetObserver.subscribe(this.interceptor);
-      if ((this.mode & toView) === 0) {
-        this.interceptor.updateSource(targetObserver.getValue(), flags);
+    const interceptor = this.interceptor;
+
+    if ($mode & toViewOrOneTime) {
+      if ((targetObserver.type & ObserverType.Layout) > 0) {
+        if (this.task != null) {
+          this.task.cancel();
+        }
+        const updateTime = Date.now();
+        this.task = this.$scheduler.queueRenderTask(() => {
+          if (updateTime > targetObserver.lastUpdate && (this.$state & State.isBound) > 0) {
+            interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+          }
+        });
+      } else {
+        interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
       }
-      (targetObserver as typeof targetObserver & { [key: string]: number })[this.id] |= LifecycleFlags.updateSourceExpression;
+    }
+    if ($mode & toView) {
+      sourceExpression.connect(flags, scope, interceptor, part);
+    }
+    if ($mode & fromView) {
+      targetObserver.subscribe(interceptor);
+      if (($mode & toView) === 0) {
+        interceptor.updateSource(targetObserver.getValue(), flags);
+      }
+      targetObserver[this.id] |= LifecycleFlags.updateSourceExpression;
     }
 
     // add isBound flag and remove isBinding flag
@@ -174,17 +221,23 @@ export class PropertyBinding implements IPartialConnectableBinding {
     // clear persistent flags
     this.persistentFlags = LifecycleFlags.none;
 
+    if (this.task != null) {
+      this.task.run();
+      this.task = null;
+    }
+
     if (hasUnbind(this.sourceExpression)) {
       this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }
     this.$scope = void 0;
 
-    if ((this.targetObserver as IBindingTargetObserver).unbind) {
-      (this.targetObserver as IBindingTargetObserver).unbind!(flags);
+    const targetObserver = this.targetObserver as IBindingTargetObserver;
+    if (targetObserver.unbind) {
+      targetObserver.unbind!(flags);
     }
-    if ((this.targetObserver as IBindingTargetObserver).unsubscribe) {
-      (this.targetObserver as IBindingTargetObserver).unsubscribe(this.interceptor);
-      (this.targetObserver as this['targetObserver'] & { [key: number]: number })[this.id] &= ~LifecycleFlags.updateSourceExpression;
+    if (targetObserver.unsubscribe) {
+      targetObserver.unsubscribe(this.interceptor);
+      targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
     }
     this.interceptor.unobserve(true);
 

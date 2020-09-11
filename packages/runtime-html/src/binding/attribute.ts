@@ -20,17 +20,24 @@ import {
   State,
   IScheduler,
   INode,
+  ITask,
+  QueueTaskOptions,
 } from '@aurelia/runtime';
 import {
   AttributeObserver,
   IHtmlElement,
 } from '../observation/element-attribute-observer';
+import { ObserverType } from '@aurelia/runtime';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
 
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
+
+const taskOptions: QueueTaskOptions = {
+  reusable: false,
+};
 
 export interface AttributeBinding extends IConnectableBinding {}
 
@@ -46,6 +53,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public $scheduler: IScheduler;
   public $scope: IScope = null!;
   public part?: string;
+  public task: ITask | null = null;
 
   /**
    * Target key. In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
@@ -100,12 +108,26 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
     if (flags & LifecycleFlags.updateTargetInstance) {
       const previousValue = this.targetObserver.getValue();
+      const targetObserver = this.targetObserver;
+
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
         newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
       }
       if (newValue !== previousValue) {
-        this.interceptor.updateTarget(newValue, flags);
+        if ((targetObserver.type & ObserverType.Layout) > 0) {
+          if (this.task != null) {
+            this.task.cancel();
+          }
+          const updateTime = Date.now();
+          this.task = this.$scheduler.queueRenderTask(() => {
+            if (updateTime > targetObserver.lastUpdate && (this.$state & State.isBound) > 0) {
+              this.interceptor.updateTarget(newValue, flags);
+            }
+          }, taskOptions);
+        } else {
+          this.interceptor.updateTarget(newValue, flags);
+        }
       }
       if ((this.mode & oneTime) === 0) {
         this.version++;
@@ -164,13 +186,25 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
     // during bind, binding behavior might have changed sourceExpression
     sourceExpression = this.sourceExpression;
-    if (this.mode & toViewOrOneTime) {
-      this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+    const $mode = this.mode;
+    const interceptor = this.interceptor;
+    if ($mode & toViewOrOneTime) {
+      if (interceptor.targetObserver.type & ObserverType.Node) {
+        if (this.task != null) {
+          this.task.cancel();
+        }
+        this.task = this.$scheduler.queueMicroTask(
+          () => interceptor
+            .updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags),
+          taskOptions
+        );
+      }
+      interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
     }
-    if (this.mode & toView) {
+    if ($mode & toView) {
       sourceExpression.connect(flags, scope, this, part);
     }
-    if (this.mode & fromView) {
+    if ($mode & fromView) {
       (targetObserver as IBindingTargetObserver & { [key: string]: number })[this.id] |= LifecycleFlags.updateSourceExpression;
       targetObserver.subscribe(this.interceptor);
     }
@@ -195,12 +229,13 @@ export class AttributeBinding implements IPartialConnectableBinding {
     }
     this.$scope = null!;
 
-    if ((this.targetObserver as IBindingTargetObserver).unbind) {
-      (this.targetObserver as IBindingTargetObserver).unbind!(flags);
+    const targetObserver = this.targetObserver as IBindingTargetObserver;
+    if (targetObserver.unbind) {
+      targetObserver.unbind!(flags);
     }
-    if ((this.targetObserver as IBindingTargetObserver).unsubscribe) {
-      (this.targetObserver as IBindingTargetObserver).unsubscribe(this.interceptor);
-      (this.targetObserver as IBindingTargetObserver & { [key: string]: number })[this.id] &= ~LifecycleFlags.updateSourceExpression;
+    if (targetObserver.unsubscribe) {
+      targetObserver.unsubscribe(this.interceptor);
+      targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
     }
     this.interceptor.unobserve(true);
 

@@ -1,9 +1,13 @@
 import { LifecycleFlags } from '../flags';
-import { IBindingTargetAccessor } from '../observation';
+import { IBindingTargetAccessor, ObserverType } from '../observation';
 
 export interface PropertyAccessor extends IBindingTargetAccessor<Record<string, unknown>, string> {}
 
 export class PropertyAccessor implements PropertyAccessor {
+  // the only thing can be guaranteed is it's an object
+  // even if this property accessor is used to access an element
+  public type: ObserverType = ObserverType.Obj;
+
   public constructor(
     public obj: Record<string, unknown>,
     public propertyKey: string,

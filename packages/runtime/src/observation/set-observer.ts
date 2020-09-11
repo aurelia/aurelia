@@ -1,6 +1,6 @@
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver } from '../observation';
+import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver, ObserverType } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
 
@@ -137,6 +137,7 @@ export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 @collectionSubscriberCollection()
 export class SetObserver {
   public inBatch: boolean;
+  public type: ObserverType = ObserverType.Set;
 
   public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
 
@@ -157,21 +158,22 @@ export class SetObserver {
   }
 
   public notify(): void {
-    if (this.lifecycle.batch.depth > 0) {
-      if (!this.inBatch) {
-        this.inBatch = true;
-        this.lifecycle.batch.add(this);
-      }
-    } else {
-      this.flushBatch(LifecycleFlags.none);
-    }
+    this.flushBatch(LifecycleFlags.none);
+    // if (this.lifecycle.batch.depth > 0) {
+    //   if (!this.inBatch) {
+    //     this.inBatch = true;
+    //     this.lifecycle.batch.add(this);
+    //   }
+    // } else {
+    //   this.flushBatch(LifecycleFlags.none);
+    // }
   }
 
   public getLengthObserver(): CollectionSizeObserver {
     if (this.lengthObserver === void 0) {
       this.lengthObserver = new CollectionSizeObserver(this.collection);
     }
-    return this.lengthObserver;
+    return this.lengthObserver as CollectionSizeObserver;
   }
 
   public getIndexObserver(index: number): ICollectionIndexObserver {

@@ -5,7 +5,8 @@ import {
   createIndexMap,
   ICollectionObserver,
   IObservedMap,
-  ICollectionIndexObserver
+  ICollectionIndexObserver,
+  ObserverType,
 } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
@@ -156,6 +157,7 @@ export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 @collectionSubscriberCollection()
 export class MapObserver {
   public inBatch: boolean;
+  public type: ObserverType = ObserverType.Map;
 
   public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
 
@@ -176,21 +178,22 @@ export class MapObserver {
   }
 
   public notify(): void {
-    if (this.lifecycle.batch.depth > 0) {
-      if (!this.inBatch) {
-        this.inBatch = true;
-        this.lifecycle.batch.add(this);
-      }
-    } else {
-      this.flushBatch(LifecycleFlags.none);
-    }
+    // if (this.lifecycle.batch.depth > 0) {
+    //   if (!this.inBatch) {
+    //     this.inBatch = true;
+    //     this.lifecycle.batch.add(this);
+    //   }
+    // } else {
+    //   this.flushBatch(LifecycleFlags.none);
+    // }
+    this.flushBatch(LifecycleFlags.none);
   }
 
   public getLengthObserver(): CollectionSizeObserver {
     if (this.lengthObserver === void 0) {
       this.lengthObserver = new CollectionSizeObserver(this.collection);
     }
-    return this.lengthObserver;
+    return this.lengthObserver as CollectionSizeObserver;
   }
 
   public getIndexObserver(index: number): ICollectionIndexObserver {

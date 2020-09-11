@@ -1,5 +1,5 @@
 import { LifecycleFlags } from '../flags';
-import { ISubscriberCollection } from '../observation';
+import { ISubscriberCollection, ObserverType } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 
 export interface CollectionLengthObserver extends ISubscriberCollection {}
@@ -7,6 +7,8 @@ export interface CollectionLengthObserver extends ISubscriberCollection {}
 @subscriberCollection()
 export class CollectionLengthObserver {
   public currentValue: number;
+  public type: ObserverType = ObserverType.Array;
+
   public constructor(
     public obj: unknown[],
   ) {
@@ -16,7 +18,7 @@ export class CollectionLengthObserver {
     return this.obj.length;
   }
   public setValue(newValue: number, flags: LifecycleFlags): void {
-    const { currentValue } = this;
+    const currentValue = this.currentValue;
     if (newValue !== currentValue) {
       this.currentValue = newValue;
       this.callSubscribers(newValue, currentValue, flags | LifecycleFlags.updateTargetInstance);

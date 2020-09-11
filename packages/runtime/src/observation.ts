@@ -310,16 +310,19 @@ export interface IPropertyChangeTracker<TObj, TProp = keyof TObj, TValue = unkno
 }
 
 export interface ICollectionLengthObserver extends IAccessor<number>, IPropertyChangeTracker<unknown[], 'length', number>, ISubscriberCollection {
+  type: ObserverType;
   lastUpdate: number;
   currentValue: number;
 }
 
 export interface ICollectionSizeObserver extends IAccessor<number>, IPropertyChangeTracker<Set<unknown> | Map<unknown, unknown>, 'size', number>, ISubscriberCollection {
+  type: ObserverType;
   lastUpdate: number;
   currentValue: number;
 }
 
 export interface ICollectionIndexObserver extends ICollectionSubscriber, IPropertyObserver<IIndexable, string> {
+  type: ObserverType;
   lastUpdate: number;
   owner: ICollectionObserver<CollectionKind.array>;
 }

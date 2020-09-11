@@ -2,7 +2,6 @@ import { IServiceLocator } from '@aurelia/kernel';
 import {
   IScheduler,
   ITask,
-  Scheduler,
 } from '@aurelia/scheduler';
 import {
   IExpression,
@@ -113,7 +112,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   ) {
     connectable.assignIdTo(this);
 
-    this.$scheduler = locator.get(Scheduler);
+    this.$scheduler = locator.get(IScheduler);
     this.targetObserver = observerLocator.getAccessor(LifecycleFlags.none, target, targetProperty);
   }
 
@@ -138,6 +137,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
           if (updateTime > this.targetObserver.lastUpdate && (this.$state & State.isBound) > 0) {
             this.interceptor.updateTarget(newValue, flags);
           }
+          this.task = null;
         });
       } else {
         this.interceptor.updateTarget(newValue, flags);

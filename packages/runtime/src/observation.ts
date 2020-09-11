@@ -185,6 +185,29 @@ export type IProxy<TObj extends {} = {}> = TObj & {
   $raw: TObj;
 };
 
+export const enum ObserverType {
+  None          = 0b0_0000_0000,
+
+  Node          = 0b0_0000_0001,
+  Obj           = 0b0_0000_0010,
+
+  Accessor      = 0b0_0000_0100,
+  Observer      = 0b0_0000_1000,
+
+  Array         = 0b0_0001_0010,
+  Set           = 0b0_0010_0010,
+  Map           = 0b0_0100_0010,
+
+  // misc characteristic of observer when update
+  //
+  // by default, everything is synchronous
+  // except changes that are supposed to cause reflow/heavy computation
+  // an observer can use this flag to signal binding that don't carelessly tell it to update
+  // queue it instead
+  // todo: https://gist.github.com/paulirish/5d52fb081b3570c81e3a
+  Layout        = 0b0_1000_0000,
+}
+
 /**
  * Basic interface to normalize getting/setting a value of any property on any object
  */
@@ -202,6 +225,8 @@ export interface IBindingTargetAccessor<
   TValue = unknown>
   extends IAccessor<TValue>,
   IPropertyChangeTracker<TObj, TProp> {
+  type: ObserverType;
+  lastUpdate: number;
   bind?(flags: LifecycleFlags): void;
   unbind?(flags: LifecycleFlags): void;
 }
@@ -309,6 +334,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends
   ICollectionChangeTracker<CollectionKindToType<T>>,
   ICollectionSubscriberCollection,
   IBatchable {
+  type: ObserverType;
   inBatch: boolean;
   lifecycle: ILifecycle;
   persistentFlags: LifecycleFlags;

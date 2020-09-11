@@ -142,7 +142,6 @@ export class InterpolationBinding implements IPartialConnectableBinding {
       } else {
         this.interceptor.updateTarget(newValue, flags);
       }
-      this.interceptor.updateTarget(newValue, flags);
     }
 
     if ((this.mode & oneTime) === 0) {
@@ -182,7 +181,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
         const updateTime = Date.now();
         this.task = this.$scheduler.queueRenderTask(() => {
           if (updateTime > this.targetObserver.lastUpdate && (this.$state & State.isBound) > 0) {
-            this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+            this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
           }
         });
       } else {

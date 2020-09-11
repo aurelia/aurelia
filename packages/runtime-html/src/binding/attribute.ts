@@ -21,7 +21,7 @@ import {
   IScheduler,
   INode,
   ITask,
-  ObserverType,
+  AccessorType,
   QueueTaskOptions,
 } from '@aurelia/runtime';
 import {
@@ -115,7 +115,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
         newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
       }
       if (newValue !== previousValue) {
-        if ((targetObserver.type & ObserverType.Layout) > 0) {
+        if ((targetObserver.type & AccessorType.Layout) > 0) {
           if (this.task != null) {
             this.task.cancel();
           }
@@ -124,6 +124,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
             if (updateTime > targetObserver.lastUpdate && (this.$state & State.isBound) > 0) {
               this.interceptor.updateTarget(newValue, flags);
             }
+            this.task = null;
           }, taskOptions);
         } else {
           this.interceptor.updateTarget(newValue, flags);
@@ -189,7 +190,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     const $mode = this.mode;
     const interceptor = this.interceptor;
     if ($mode & toViewOrOneTime) {
-      if (interceptor.targetObserver.type & ObserverType.Node) {
+      if (interceptor.targetObserver.type & AccessorType.Node) {
         if (this.task != null) {
           this.task.cancel();
         }

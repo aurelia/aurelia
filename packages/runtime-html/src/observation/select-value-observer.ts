@@ -11,7 +11,7 @@ import {
   subscriberCollection,
   IScheduler,
   ITask,
-  ObserverType,
+  AccessorType,
 } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 import { bound } from '@aurelia/kernel';
@@ -48,7 +48,7 @@ export class SelectValueObserver implements IAccessor {
   public task: ITask | null = null;
   // ObserverType.Layout is not always true
   // but for simplicity, always treat as such
-  public type: ObserverType = ObserverType.Node | ObserverType.Observer | ObserverType.Layout;
+  public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
   public lastUpdate: number = 0;
 
   public arrayObserver?: ICollectionObserver<CollectionKind.array> = void 0;
@@ -273,7 +273,7 @@ export class SelectValueObserver implements IAccessor {
     //   }
     //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     // }
-    this.flushChanges(flags);
+    // this.flushChanges(flags);
   }
 
   public unbind(flags: LifecycleFlags): void {

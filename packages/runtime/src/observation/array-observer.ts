@@ -8,7 +8,7 @@ import {
   IObservedArray,
   ICollectionIndexObserver,
   ISubscriber,
-  ObserverType
+  AccessorType
 } from '../observation';
 import {
   CollectionLengthObserver
@@ -388,7 +388,7 @@ export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>
 @collectionSubscriberCollection()
 export class ArrayObserver {
   public inBatch: boolean;
-  public type: ObserverType = ObserverType.Array;
+  public type: AccessorType = AccessorType.Array;
 
   private readonly indexObservers: Record<string | number, ArrayIndexObserver | undefined>;
 

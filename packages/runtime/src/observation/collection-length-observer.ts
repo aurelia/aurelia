@@ -1,5 +1,5 @@
 import { LifecycleFlags } from '../flags';
-import { ISubscriberCollection, ObserverType } from '../observation';
+import { ISubscriberCollection, AccessorType } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 
 export interface CollectionLengthObserver extends ISubscriberCollection {}
@@ -7,7 +7,7 @@ export interface CollectionLengthObserver extends ISubscriberCollection {}
 @subscriberCollection()
 export class CollectionLengthObserver {
   public currentValue: number;
-  public type: ObserverType = ObserverType.Array;
+  public type: AccessorType = AccessorType.Array;
   public lastUpdate: number = 0;
 
   public constructor(

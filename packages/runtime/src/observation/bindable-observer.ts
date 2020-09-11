@@ -1,7 +1,7 @@
 import { IIndexable, Reporter, PLATFORM } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { IPropertyObserver, ISubscriber, ObserverType } from '../observation';
+import { IPropertyObserver, ISubscriber, AccessorType } from '../observation';
 import { ProxyObserver } from './proxy-observer';
 import { subscriberCollection } from './subscriber-collection';
 import { InterceptorFunc } from '../templating/bindable';
@@ -22,7 +22,7 @@ export class BindableObserver {
   public readonly persistentFlags: LifecycleFlags;
   public inBatch: boolean = false;
   public observing: boolean;
-  public type: ObserverType = ObserverType.Obj;
+  public type: AccessorType = AccessorType.Obj;
 
   private readonly callback?: (newValue: unknown, oldValue: unknown, flags: LifecycleFlags) => void;
   private readonly propertyChangedCallback?: HasPropertyChangedCallback['propertyChanged'];

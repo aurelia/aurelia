@@ -21,7 +21,7 @@ import {
   AccessorOrObserver,
   IBindingTargetObserver,
   IScope,
-  ObserverType,
+  AccessorType,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import {
@@ -102,7 +102,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
         newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part);
       }
       if (newValue !== previousValue) {
-        if ((targetObserver.type & ObserverType.Layout) > 0) {
+        if ((targetObserver.type & AccessorType.Layout) > 0) {
           if (this.task != null) {
             this.task.cancel();
           }
@@ -181,7 +181,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const interceptor = this.interceptor;
 
     if ($mode & toViewOrOneTime) {
-      if ((targetObserver.type & ObserverType.Layout) > 0) {
+      if ((targetObserver.type & AccessorType.Layout) > 0) {
         if (this.task != null) {
           this.task.cancel();
         }
@@ -190,6 +190,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
           if (updateTime > targetObserver.lastUpdate && (this.$state & State.isBound) > 0) {
             interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
           }
+          this.task = null;
         });
       } else {
         interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);

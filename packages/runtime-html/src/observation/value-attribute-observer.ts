@@ -7,7 +7,7 @@ import {
   subscriberCollection,
   IScheduler,
   ITask,
-  ObserverType,
+  AccessorType,
 } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 
@@ -30,7 +30,7 @@ export class ValueAttributeObserver implements IAccessor {
   public task: ITask | null = null;
   // ObserverType.Layout is not always true, it depends on the element & property combo
   // but for simplicity, always treat as such
-  public type: ObserverType = ObserverType.Node | ObserverType.Observer | ObserverType.Layout;
+  public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
   public lastUpdate: number = 0;
 
   public constructor(
@@ -104,20 +104,20 @@ export class ValueAttributeObserver implements IAccessor {
     }
   }
 
-  public bind(flags: LifecycleFlags): void {
-    // if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-    //   if (this.task !== null) {
-    //     this.task.cancel();
-    //   }
-    //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-    // }
-    this.flushChanges(flags);
-  }
+  // public bind(flags: LifecycleFlags): void {
+  //   if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+  //     if (this.task !== null) {
+  //       this.task.cancel();
+  //     }
+  //     this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
+  //   }
+  //   this.flushChanges(flags);
+  // }
 
-  public unbind(flags: LifecycleFlags): void {
-    // if (this.task !== null) {
-    //   this.task.cancel();
-    //   this.task = null;
-    // }
-  }
+  // public unbind(flags: LifecycleFlags): void {
+  //   if (this.task !== null) {
+  //     this.task.cancel();
+  //     this.task = null;
+  //   }
+  // }
 }

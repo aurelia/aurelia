@@ -472,7 +472,7 @@ export {
 } from './lifecycle-task';
 export {
   AccessorOrObserver,
-  ObserverType,
+  AccessorType,
   Collection,
   CollectionKind,
   DelegationStrategy,

@@ -4,7 +4,7 @@ import {
   IScheduler,
   ITask,
   INode,
-  ObserverType,
+  AccessorType,
 } from '@aurelia/runtime';
 
 /**
@@ -22,7 +22,7 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
   public task: ITask | null = null;
   // ObserverType.Layout is not always true, it depends on the property
   // but for simplicity, always treat as such
-  public type: ObserverType = ObserverType.Node | ObserverType.Accessor | ObserverType.Layout;
+  public type: AccessorType = AccessorType.Node | AccessorType.Accessor | AccessorType.Layout;
   public lastUpdate: number = 0;
 
   public constructor(
@@ -58,7 +58,7 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const { currentValue } = this;
+      const currentValue = this.currentValue;
       this.oldValue = currentValue;
       if (currentValue == void 0) {
         this.obj.removeAttributeNS(this.namespace, this.propertyKey);
@@ -76,7 +76,7 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
     //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     // }
     this.currentValue = this.oldValue = this.obj.getAttributeNS(this.namespace, this.propertyKey);
-    this.flushChanges(flags);
+    // this.flushChanges(flags);
   }
 
   public unbind(flags: LifecycleFlags): void {

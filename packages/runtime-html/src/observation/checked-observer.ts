@@ -13,7 +13,7 @@ import {
   ITask,
   getCollectionObserver,
   ILifecycle,
-  ObserverType,
+  AccessorType,
 } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 import { ValueAttributeObserver } from './value-attribute-observer';
@@ -49,7 +49,7 @@ export class CheckedObserver implements IAccessor {
   public task: ITask | null = null;
   // ObserverType.Layout is not always true, it depends on the property
   // but for simplicity, always treat as such
-  public type: ObserverType = ObserverType.Node | ObserverType.Observer | ObserverType.Layout;
+  public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
   public lastUpdate: number = 0;
 
   public collectionObserver?: ICollectionObserver<CollectionKind> = void 0;
@@ -308,7 +308,7 @@ export class CheckedObserver implements IAccessor {
     //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     // }
     this.currentValue = this.obj.checked;
-    this.flushChanges(flags);
+    // this.flushChanges(flags);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -4,7 +4,7 @@ import {
   IScheduler,
   ITask,
   INode,
-  ObserverType,
+  AccessorType,
 } from '@aurelia/runtime';
 import { PLATFORM } from '@aurelia/kernel';
 
@@ -22,7 +22,7 @@ export class ClassAttributeAccessor implements IAccessor {
   public hasChanges: boolean = false;
   public isActive: boolean = false;
   public task: ITask | null = null;
-  public type: ObserverType = ObserverType.Node | ObserverType.Accessor | ObserverType.Layout;
+  public type: AccessorType = AccessorType.Node | AccessorType.Accessor | AccessorType.Layout;
   public lastUpdate: number = 0;
 
   public constructor(
@@ -96,7 +96,7 @@ export class ClassAttributeAccessor implements IAccessor {
     //   }
     //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     // }
-    this.flushChanges(flags);
+    // this.flushChanges(flags);
   }
 
   public unbind(flags: LifecycleFlags): void {

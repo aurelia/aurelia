@@ -1,6 +1,6 @@
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver, ObserverType } from '../observation';
+import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver, AccessorType } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
 
@@ -137,7 +137,7 @@ export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 @collectionSubscriberCollection()
 export class SetObserver {
   public inBatch: boolean;
-  public type: ObserverType = ObserverType.Set;
+  public type: AccessorType = AccessorType.Set;
 
   public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
 

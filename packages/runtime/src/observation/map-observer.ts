@@ -6,7 +6,7 @@ import {
   ICollectionObserver,
   IObservedMap,
   ICollectionIndexObserver,
-  ObserverType,
+  AccessorType,
 } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
@@ -157,7 +157,7 @@ export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 @collectionSubscriberCollection()
 export class MapObserver {
   public inBatch: boolean;
-  public type: ObserverType = ObserverType.Map;
+  public type: AccessorType = AccessorType.Map;
 
   public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
 

@@ -4,7 +4,7 @@ import {
   IScheduler,
   ITask,
   INode,
-  ObserverType,
+  AccessorType,
 } from '@aurelia/runtime';
 import { PLATFORM, kebabCase } from '@aurelia/kernel';
 
@@ -20,7 +20,7 @@ export class StyleAttributeAccessor implements IAccessor {
 
   public hasChanges: boolean = false;
   public task: ITask | null = null;
-  public type: ObserverType = ObserverType.Node | ObserverType.Accessor | ObserverType.Layout;
+  public type: AccessorType = AccessorType.Node | AccessorType.Accessor | AccessorType.Layout;
   public lastUpdate: number = 0;
 
   public constructor(
@@ -116,13 +116,14 @@ export class StyleAttributeAccessor implements IAccessor {
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const { currentValue } = this;
-      this.oldValue = currentValue;
+      const currentValue = this.currentValue;
       const styles = this.styles;
+      const styleTuples = this.getStyleTuples(currentValue);
+
       let style: string;
       let version = this.version;
 
-      const styleTuples = this.getStyleTuples(currentValue);
+      this.oldValue = currentValue;
 
       let tuple: [string, string];
       let name: string;
@@ -171,13 +172,13 @@ export class StyleAttributeAccessor implements IAccessor {
     //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     // }
     this.oldValue = this.currentValue = this.obj.style.cssText;
-    this.flushChanges(flags);
+    // this.flushChanges(flags);
   }
 
-  public unbind(flags: LifecycleFlags): void {
-    // if (this.task !== null) {
-    //   this.task.cancel();
-    //   this.task = null;
-    // }
-  }
+  // public unbind(flags: LifecycleFlags): void {
+  //   if (this.task !== null) {
+  //     this.task.cancel();
+  //     this.task = null;
+  //   }
+  // }
 }

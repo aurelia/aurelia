@@ -1,5 +1,5 @@
 import { PLATFORM, Primitive } from '@aurelia/kernel';
-import { IAccessor, ISubscribable, ObserverType } from '../observation';
+import { IAccessor, ISubscribable, AccessorType } from '../observation';
 
 const slice = Array.prototype.slice;
 
@@ -20,7 +20,7 @@ export class PrimitiveObserver implements IAccessor, ISubscribable {
 
   public doNotCache: boolean = true;
   public obj: Primitive;
-  public type: ObserverType = ObserverType.None;
+  public type: AccessorType = AccessorType.None;
   public lastUpdate: number = 0;
 
   public constructor(obj: Primitive, propertyKey: PropertyKey) {

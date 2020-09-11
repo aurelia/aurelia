@@ -17,7 +17,7 @@ import { IBinding } from '../lifecycle';
 import {
   IBindingTargetAccessor,
   IScope,
-  ObserverType,
+  AccessorType,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import {
@@ -129,7 +129,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     const previousValue = this.targetObserver.getValue();
     const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.part);
     if (newValue !== previousValue) {
-      if ((this.targetObserver.type & ObserverType.Layout) > 0) {
+      if ((this.targetObserver.type & AccessorType.Layout) > 0) {
         if (this.task != null) {
           this.task.cancel();
         }
@@ -174,7 +174,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     // since the interpolation already gets the whole value, we only need to let the first
     // text binding do the update if there are multiple
     if (this.isFirst) {
-      if ((this.targetObserver.type & ObserverType.Layout) > 0) {
+      if ((this.targetObserver.type & AccessorType.Layout) > 0) {
         if (this.task != null) {
           this.task.cancel();
         }
@@ -183,6 +183,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
           if (updateTime > this.targetObserver.lastUpdate && (this.$state & State.isBound) > 0) {
             this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
           }
+          this.task = null;
         });
       } else {
         this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);

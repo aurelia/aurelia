@@ -4,7 +4,7 @@ import {
   LifecycleFlags,
   IScheduler,
   ITask,
-  ObserverType,
+  AccessorType,
 } from '@aurelia/runtime';
 
 /**
@@ -24,7 +24,7 @@ export class ElementPropertyAccessor implements IAccessor {
   public task: ITask | null = null;
   // ObserverType.Layout is not always true, it depends on the property
   // but for simplicity, always treat as such
-  public type: ObserverType = ObserverType.Node | ObserverType.Accessor | ObserverType.Layout;
+  public type: AccessorType = AccessorType.Node | AccessorType.Accessor | AccessorType.Layout;
   public lastUpdate: number = 0;
 
   public constructor(
@@ -72,7 +72,7 @@ export class ElementPropertyAccessor implements IAccessor {
     //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     // }
     this.currentValue = this.oldValue = this.obj[this.propertyKey];
-    this.flushChanges(flags);
+    // this.flushChanges(flags);
   }
 
   public unbind(flags: LifecycleFlags): void {

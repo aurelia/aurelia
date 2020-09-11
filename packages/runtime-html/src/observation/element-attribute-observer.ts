@@ -8,7 +8,7 @@ import {
   subscriberCollection,
   IScheduler,
   ITask,
-  ObserverType,
+  AccessorType,
 } from '@aurelia/runtime';
 
 export interface IHtmlElement extends HTMLElement {
@@ -41,7 +41,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public task: ITask | null = null;
   // layout is not certain, depends on the attribute being flushed to owner element
   // but for simple start, always treat as such
-  public type: ObserverType = ObserverType.Node | ObserverType.Observer | ObserverType.Layout;
+  public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
   public lastUpdate: number = 0;
 
   public constructor(
@@ -166,7 +166,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
     //   }
     //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     // }
-    this.flushChanges(flags);
+    // this.flushChanges(flags);
   }
 
   public unbind(flags: LifecycleFlags): void {

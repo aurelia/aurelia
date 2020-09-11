@@ -1,7 +1,7 @@
 import { IIndexable, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { IPropertyObserver, ISubscriber, ObserverType } from '../observation';
+import { IPropertyObserver, ISubscriber, AccessorType } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 
 export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
@@ -18,7 +18,7 @@ export class SetterObserver {
   public readonly persistentFlags: LifecycleFlags;
   public inBatch: boolean = false;
   public observing: boolean = false;
-  public type: ObserverType = ObserverType.Obj;
+  public type: AccessorType = AccessorType.Obj;
   public lastUpdate: number = 0;
 
   public constructor(

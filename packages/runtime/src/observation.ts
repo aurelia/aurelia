@@ -106,7 +106,7 @@ export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj
   IPropertyChangeTracker<TObj, TProp>,
   ISubscriberCollection,
   IBatchable {
-  type: ObserverType;
+  type: AccessorType;
   lastUpdate: number;
   inBatch: boolean;
   observing: boolean;
@@ -187,7 +187,7 @@ export type IProxy<TObj extends {} = {}> = TObj & {
   $raw: TObj;
 };
 
-export const enum ObserverType {
+export const enum AccessorType {
   None          = 0b0_0000_0000,
 
   Node          = 0b0_0000_0001,
@@ -227,7 +227,7 @@ export interface IBindingTargetAccessor<
   TValue = unknown>
   extends IAccessor<TValue>,
   IPropertyChangeTracker<TObj, TProp> {
-  type: ObserverType;
+  type: AccessorType;
   lastUpdate: number;
   bind?(flags: LifecycleFlags): void;
   unbind?(flags: LifecycleFlags): void;
@@ -310,19 +310,19 @@ export interface IPropertyChangeTracker<TObj, TProp = keyof TObj, TValue = unkno
 }
 
 export interface ICollectionLengthObserver extends IAccessor<number>, IPropertyChangeTracker<unknown[], 'length', number>, ISubscriberCollection {
-  type: ObserverType;
+  type: AccessorType;
   lastUpdate: number;
   currentValue: number;
 }
 
 export interface ICollectionSizeObserver extends IAccessor<number>, IPropertyChangeTracker<Set<unknown> | Map<unknown, unknown>, 'size', number>, ISubscriberCollection {
-  type: ObserverType;
+  type: AccessorType;
   lastUpdate: number;
   currentValue: number;
 }
 
 export interface ICollectionIndexObserver extends ICollectionSubscriber, IPropertyObserver<IIndexable, string> {
-  type: ObserverType;
+  type: AccessorType;
   lastUpdate: number;
   owner: ICollectionObserver<CollectionKind.array>;
 }
@@ -342,7 +342,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends
   ICollectionChangeTracker<CollectionKindToType<T>>,
   ICollectionSubscriberCollection,
   IBatchable {
-  type: ObserverType;
+  type: AccessorType;
   inBatch: boolean;
   lifecycle: ILifecycle;
   persistentFlags: LifecycleFlags;

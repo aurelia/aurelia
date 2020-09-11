@@ -11,6 +11,7 @@ import {
   subscriberCollection,
   IScheduler,
   ITask,
+  ObserverType,
 } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 import { bound } from '@aurelia/kernel';
@@ -45,6 +46,10 @@ export class SelectValueObserver implements IAccessor {
 
   public hasChanges: boolean = false;
   public task: ITask | null = null;
+  // ObserverType.Layout is not always true
+  // but for simplicity, always treat as such
+  public type: ObserverType = ObserverType.Node & ObserverType.Observer & ObserverType.Layout;
+  public lastUpdate: number = 0;
 
   public arrayObserver?: ICollectionObserver<CollectionKind.array> = void 0;
   public nodeObserver?: MutationObserver = void 0;
@@ -65,16 +70,18 @@ export class SelectValueObserver implements IAccessor {
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
+    this.lastUpdate = Date.now();
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-      this.flushChanges(flags);
-    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
-        this.flushChanges(flags);
-        this.task = null;
-      });
-    }
+    this.flushChanges(flags);
+    // if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+    //   this.flushChanges(flags);
+    // } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
+    //   this.task = this.scheduler.queueRenderTask(() => {
+    //     this.flushChanges(flags);
+    //     this.task = null;
+    //   });
+    // }
   }
 
   public flushChanges(flags: LifecycleFlags): void {
@@ -260,22 +267,23 @@ export class SelectValueObserver implements IAccessor {
   public bind(flags: LifecycleFlags): void {
     this.nodeObserver = this.dom.createNodeObserver!(this.obj, this.handleNodeChange, childObserverOptions) as MutationObserver;
 
-    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      if (this.task !== null) {
-        this.task.cancel();
-      }
-      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-    }
+    // if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+    //   if (this.task !== null) {
+    //     this.task.cancel();
+    //   }
+    //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
+    // }
+    this.flushChanges(flags);
   }
 
   public unbind(flags: LifecycleFlags): void {
     this.nodeObserver!.disconnect();
     this.nodeObserver = null!;
 
-    if (this.task !== null) {
-      this.task.cancel();
-      this.task = null;
-    }
+    // if (this.task !== null) {
+    //   this.task.cancel();
+    //   this.task = null;
+    // }
 
     if (this.arrayObserver) {
       this.arrayObserver.unsubscribeFromCollection(this);

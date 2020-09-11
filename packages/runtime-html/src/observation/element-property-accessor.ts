@@ -4,6 +4,7 @@ import {
   LifecycleFlags,
   IScheduler,
   ITask,
+  ObserverType,
 } from '@aurelia/runtime';
 
 /**
@@ -21,6 +22,10 @@ export class ElementPropertyAccessor implements IAccessor {
 
   public hasChanges: boolean = false;
   public task: ITask | null = null;
+  // ObserverType.Layout is not always true, it depends on the property
+  // but for simplicity, always treat as such
+  public type: ObserverType = ObserverType.Node & ObserverType.Accessor & ObserverType.Layout;
+  public lastUpdate: number = 0;
 
   public constructor(
     public readonly scheduler: IScheduler,
@@ -36,41 +41,44 @@ export class ElementPropertyAccessor implements IAccessor {
   }
 
   public setValue(newValue: string | null, flags: LifecycleFlags): void {
+    this.lastUpdate = Date.now();
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-      this.flushChanges(flags);
-    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
-        this.flushChanges(flags);
-        this.task = null;
-      });
-    }
+    this.flushChanges(flags);
+    // if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+    //   this.flushChanges(flags);
+    // } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
+    //   this.task = this.scheduler.queueRenderTask(() => {
+    //     this.flushChanges(flags);
+    //     this.task = null;
+    //   });
+    // }
   }
 
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const { currentValue } = this;
+      const currentValue = this.currentValue;
       this.oldValue = currentValue;
       this.obj[this.propertyKey] = currentValue;
     }
   }
 
   public bind(flags: LifecycleFlags): void {
-    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      if (this.task !== null) {
-        this.task.cancel();
-      }
-      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-    }
+    // if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+    //   if (this.task !== null) {
+    //     this.task.cancel();
+    //   }
+    //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
+    // }
     this.currentValue = this.oldValue = this.obj[this.propertyKey];
+    this.flushChanges(flags);
   }
 
   public unbind(flags: LifecycleFlags): void {
-    if (this.task !== null) {
-      this.task.cancel();
-      this.task = null;
-    }
+    // if (this.task !== null) {
+    //   this.task.cancel();
+    //   this.task = null;
+    // }
   }
 }

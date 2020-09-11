@@ -13,6 +13,7 @@ import {
   ITask,
   getCollectionObserver,
   ILifecycle,
+  ObserverType,
 } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 import { ValueAttributeObserver } from './value-attribute-observer';
@@ -46,6 +47,10 @@ export class CheckedObserver implements IAccessor {
 
   public hasChanges: boolean = false;
   public task: ITask | null = null;
+  // ObserverType.Layout is not always true, it depends on the property
+  // but for simplicity, always treat as such
+  public type: ObserverType = ObserverType.Node & ObserverType.Observer & ObserverType.Layout;
+  public lastUpdate: number = 0;
 
   public collectionObserver?: ICollectionObserver<CollectionKind> = void 0;
   public valueObserver?: ValueAttributeObserver | SetterObserver = void 0;
@@ -65,16 +70,18 @@ export class CheckedObserver implements IAccessor {
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
+    this.lastUpdate = Date.now();
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) === LifecycleFlags.fromBind || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-      this.flushChanges(flags);
-    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
-        this.flushChanges(flags);
-        this.task = null;
-      });
-    }
+    this.flushChanges(flags);
+    // if ((flags & LifecycleFlags.fromBind) === LifecycleFlags.fromBind || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+    //   this.flushChanges(flags);
+    // } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
+    //   this.task = this.scheduler.queueRenderTask(() => {
+    //     this.flushChanges(flags);
+    //     this.task = null;
+    //   });
+    // }
   }
 
   public flushChanges(flags: LifecycleFlags): void {
@@ -113,32 +120,35 @@ export class CheckedObserver implements IAccessor {
   }
 
   public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
-    const { currentValue, oldValue } = this;
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-      this.oldValue = currentValue;
-      this.synchronizeElement();
-    } else {
-      this.hasChanges = true;
-    }
-    if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
-        this.flushChanges(flags);
-        this.task = null;
-      });
-    }
+    const currentValue = this.currentValue;
+    const oldValue = this.oldValue;
+    this.oldValue = currentValue;
+    this.synchronizeElement();
+    // if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+    // } else {
+    //   this.hasChanges = true;
+    // }
+    // if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
+    //   this.task = this.scheduler.queueRenderTask(() => {
+    //     this.flushChanges(flags);
+    //     this.task = null;
+    //   });
+    // }
     this.callSubscribers(currentValue, oldValue, flags);
   }
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-      this.synchronizeElement();
-    } else {
-      this.hasChanges = true;
-    }
-    if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags));
-    }
+    // if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+    //   this.synchronizeElement();
+    // } else {
+    //   this.hasChanges = true;
+    // }
+    // if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
+    //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags));
+    // }
+    this.synchronizeElement();
     this.callSubscribers(newValue, previousValue, flags);
+    this.flushChanges(flags);
   }
 
   public synchronizeElement(): void {
@@ -291,13 +301,14 @@ export class CheckedObserver implements IAccessor {
   }
 
   public bind(flags: LifecycleFlags): void {
-    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      if (this.task !== null) {
-        this.task.cancel();
-      }
-      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-    }
+    // if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+    //   if (this.task !== null) {
+    //     this.task.cancel();
+    //   }
+    //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
+    // }
     this.currentValue = this.obj.checked;
+    this.flushChanges(flags);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -311,10 +322,10 @@ export class CheckedObserver implements IAccessor {
       this.valueObserver.unsubscribe(this);
     }
 
-    if (this.task !== null) {
-      this.task.cancel();
-      this.task = null;
-    }
+    // if (this.task !== null) {
+    //   this.task.cancel();
+    //   this.task = null;
+    // }
   }
 
   public subscribe(subscriber: ISubscriber): void {

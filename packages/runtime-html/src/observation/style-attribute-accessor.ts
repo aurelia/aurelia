@@ -4,6 +4,7 @@ import {
   IScheduler,
   ITask,
   INode,
+  ObserverType,
 } from '@aurelia/runtime';
 import { PLATFORM, kebabCase } from '@aurelia/kernel';
 
@@ -19,6 +20,8 @@ export class StyleAttributeAccessor implements IAccessor {
 
   public hasChanges: boolean = false;
   public task: ITask | null = null;
+  public type: ObserverType = ObserverType.Node & ObserverType.Accessor & ObserverType.Layout;
+  public lastUpdate: number = 0;
 
   public constructor(
     public readonly scheduler: IScheduler,
@@ -34,16 +37,18 @@ export class StyleAttributeAccessor implements IAccessor {
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
+    this.lastUpdate = Date.now();
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-      this.flushChanges(flags);
-    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
-        this.flushChanges(flags);
-        this.task = null;
-      });
-    }
+    this.flushChanges(flags);
+    // if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+    //   this.flushChanges(flags);
+    // } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
+    //   this.task = this.scheduler.queueRenderTask(() => {
+    //     this.flushChanges(flags);
+    //     this.task = null;
+    //   });
+    // }
   }
 
   private getStyleTuplesFromString(currentValue: string): [string, string][] {
@@ -159,19 +164,20 @@ export class StyleAttributeAccessor implements IAccessor {
   }
 
   public bind(flags: LifecycleFlags): void {
-    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      if (this.task !== null) {
-        this.task.cancel();
-      }
-      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-    }
+    // if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
+    //   if (this.task !== null) {
+    //     this.task.cancel();
+    //   }
+    //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
+    // }
     this.oldValue = this.currentValue = this.obj.style.cssText;
+    this.flushChanges(flags);
   }
 
   public unbind(flags: LifecycleFlags): void {
-    if (this.task !== null) {
-      this.task.cancel();
-      this.task = null;
-    }
+    // if (this.task !== null) {
+    //   this.task.cancel();
+    //   this.task = null;
+    // }
   }
 }

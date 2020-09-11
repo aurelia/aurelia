@@ -175,10 +175,10 @@ export class StyleAttributeAccessor implements IAccessor {
     // this.flushChanges(flags);
   }
 
-  // public unbind(flags: LifecycleFlags): void {
-  //   if (this.task !== null) {
-  //     this.task.cancel();
-  //     this.task = null;
-  //   }
-  // }
+  public unbind(flags: LifecycleFlags): void {
+    // if (this.task !== null) {
+    //   this.task.cancel();
+    //   this.task = null;
+    // }
+  }
 }

@@ -41,7 +41,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public task: ITask | null = null;
   // layout is not certain, depends on the attribute being flushed to owner element
   // but for simple start, always treat as such
-  public type: ObserverType = ObserverType.Node & ObserverType.Observer & ObserverType.Layout;
+  public type: ObserverType = ObserverType.Node | ObserverType.Observer | ObserverType.Layout;
   public lastUpdate: number = 0;
 
   public constructor(

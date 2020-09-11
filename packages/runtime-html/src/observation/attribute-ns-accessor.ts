@@ -22,7 +22,7 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
   public task: ITask | null = null;
   // ObserverType.Layout is not always true, it depends on the property
   // but for simplicity, always treat as such
-  public type: ObserverType = ObserverType.Node & ObserverType.Accessor & ObserverType.Layout;
+  public type: ObserverType = ObserverType.Node | ObserverType.Accessor | ObserverType.Layout;
   public lastUpdate: number = 0;
 
   public constructor(

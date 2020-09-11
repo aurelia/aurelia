@@ -49,7 +49,7 @@ export class CheckedObserver implements IAccessor {
   public task: ITask | null = null;
   // ObserverType.Layout is not always true, it depends on the property
   // but for simplicity, always treat as such
-  public type: ObserverType = ObserverType.Node & ObserverType.Observer & ObserverType.Layout;
+  public type: ObserverType = ObserverType.Node | ObserverType.Observer | ObserverType.Layout;
   public lastUpdate: number = 0;
 
   public collectionObserver?: ICollectionObserver<CollectionKind> = void 0;

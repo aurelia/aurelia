@@ -30,7 +30,7 @@ export class ValueAttributeObserver implements IAccessor {
   public task: ITask | null = null;
   // ObserverType.Layout is not always true, it depends on the element & property combo
   // but for simplicity, always treat as such
-  public type: ObserverType = ObserverType.Node & ObserverType.Observer & ObserverType.Layout;
+  public type: ObserverType = ObserverType.Node | ObserverType.Observer | ObserverType.Layout;
   public lastUpdate: number = 0;
 
   public constructor(
@@ -65,7 +65,8 @@ export class ValueAttributeObserver implements IAccessor {
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const { currentValue, oldValue } = this;
+      const currentValue = this.currentValue;
+      const oldValue = this.oldValue;
       this.oldValue = currentValue;
       if (currentValue == void 0) {
         this.obj[this.propertyKey] = '';

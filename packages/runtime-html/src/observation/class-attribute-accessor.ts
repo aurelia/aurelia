@@ -22,7 +22,7 @@ export class ClassAttributeAccessor implements IAccessor {
   public hasChanges: boolean = false;
   public isActive: boolean = false;
   public task: ITask | null = null;
-  public type: ObserverType = ObserverType.Node & ObserverType.Accessor & ObserverType.Layout;
+  public type: ObserverType = ObserverType.Node | ObserverType.Accessor | ObserverType.Layout;
   public lastUpdate: number = 0;
 
   public constructor(

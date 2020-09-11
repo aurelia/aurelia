@@ -48,7 +48,7 @@ export class SelectValueObserver implements IAccessor {
   public task: ITask | null = null;
   // ObserverType.Layout is not always true
   // but for simplicity, always treat as such
-  public type: ObserverType = ObserverType.Node & ObserverType.Observer & ObserverType.Layout;
+  public type: ObserverType = ObserverType.Node | ObserverType.Observer | ObserverType.Layout;
   public lastUpdate: number = 0;
 
   public arrayObserver?: ICollectionObserver<CollectionKind.array> = void 0;

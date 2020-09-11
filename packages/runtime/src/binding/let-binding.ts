@@ -1,10 +1,9 @@
 import {
   IIndexable,
   IServiceLocator,
-  Reporter,
 } from '@aurelia/kernel';
 import {
-  ITask, QueueTaskOptions,
+  ITask,
 } from '@aurelia/scheduler';
 import { IExpression } from '../ast';
 import {

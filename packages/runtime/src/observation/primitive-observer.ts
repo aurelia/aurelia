@@ -21,6 +21,7 @@ export class PrimitiveObserver implements IAccessor, ISubscribable {
   public doNotCache: boolean = true;
   public obj: Primitive;
   public type: ObserverType = ObserverType.None;
+  public lastUpdate: number = 0;
 
   public constructor(obj: Primitive, propertyKey: PropertyKey) {
     // we don't need to store propertyName because only 'length' can return a useful value

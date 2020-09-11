@@ -106,6 +106,8 @@ export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj
   IPropertyChangeTracker<TObj, TProp>,
   ISubscriberCollection,
   IBatchable {
+  type: ObserverType;
+  lastUpdate: number;
   inBatch: boolean;
   observing: boolean;
   persistentFlags: LifecycleFlags;
@@ -308,14 +310,17 @@ export interface IPropertyChangeTracker<TObj, TProp = keyof TObj, TValue = unkno
 }
 
 export interface ICollectionLengthObserver extends IAccessor<number>, IPropertyChangeTracker<unknown[], 'length', number>, ISubscriberCollection {
+  lastUpdate: number;
   currentValue: number;
 }
 
 export interface ICollectionSizeObserver extends IAccessor<number>, IPropertyChangeTracker<Set<unknown> | Map<unknown, unknown>, 'size', number>, ISubscriberCollection {
+  lastUpdate: number;
   currentValue: number;
 }
 
 export interface ICollectionIndexObserver extends ICollectionSubscriber, IPropertyObserver<IIndexable, string> {
+  lastUpdate: number;
   owner: ICollectionObserver<CollectionKind.array>;
 }
 

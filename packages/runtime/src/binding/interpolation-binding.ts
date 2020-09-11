@@ -2,7 +2,6 @@ import { IServiceLocator } from '@aurelia/kernel';
 import {
   IScheduler,
   ITask,
-  QueueTaskOptions,
   Scheduler,
 } from '@aurelia/scheduler';
 import {
@@ -28,9 +27,6 @@ import {
 } from './connectable';
 
 const { toView, oneTime } = BindingMode;
-const updateTaskOpts: QueueTaskOptions = {
-  reusable: false,
-};
 
 export class MultiInterpolationBinding implements IBinding {
   public interceptor: this = this;

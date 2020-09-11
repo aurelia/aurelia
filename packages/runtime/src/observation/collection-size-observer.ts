@@ -8,6 +8,7 @@ export interface CollectionSizeObserver extends ISubscriberCollection {}
 export class CollectionSizeObserver {
   public currentValue: number;
   public type: ObserverType = ObserverType.Obj;
+  public lastUpdate: number = 0;
 
   public constructor(
     public obj: Set<unknown> | Map<unknown, unknown>,

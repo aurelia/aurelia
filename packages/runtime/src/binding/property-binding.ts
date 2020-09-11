@@ -1,6 +1,5 @@
 import {
   IServiceLocator,
-  Reporter,
 } from '@aurelia/kernel';
 import {
   IScheduler,
@@ -174,6 +173,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       targetObserver.bind(flags);
     }
 
+    // deepscan-disable-next-line
     $mode = this.mode;
 
     // during bind, binding behavior might have changed sourceExpression

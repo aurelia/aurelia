@@ -19,6 +19,7 @@ export class SetterObserver {
   public inBatch: boolean = false;
   public observing: boolean = false;
   public type: ObserverType = ObserverType.Obj;
+  public lastUpdate: number = 0;
 
   public constructor(
     public readonly lifecycle: ILifecycle,

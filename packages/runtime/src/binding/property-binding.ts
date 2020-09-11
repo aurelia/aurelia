@@ -62,7 +62,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   private task: ITask | null = null;
-  private $scheduler: IScheduler;
+  private readonly $scheduler: IScheduler;
 
   public constructor(
     public sourceExpression: IsBindingBehavior | IForOfStatement,

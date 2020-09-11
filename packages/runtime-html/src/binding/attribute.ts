@@ -21,13 +21,13 @@ import {
   IScheduler,
   INode,
   ITask,
+  ObserverType,
   QueueTaskOptions,
 } from '@aurelia/runtime';
 import {
   AttributeObserver,
   IHtmlElement,
 } from '../observation/element-attribute-observer';
-import { ObserverType } from '@aurelia/runtime';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;

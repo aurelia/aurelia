@@ -37,6 +37,8 @@ export class ElementPropertyAccessor implements IAccessor {
   }
 
   public getValue(): unknown {
+    // is it safe to assume the observer has the latest value?
+    // todo: ability to turn on/off cache based on type
     return this.currentValue;
   }
 
@@ -71,7 +73,7 @@ export class ElementPropertyAccessor implements IAccessor {
     //   }
     //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     // }
-    this.currentValue = this.oldValue = this.obj[this.propertyKey];
+    // this.currentValue = this.oldValue = this.obj[this.propertyKey];
     // this.flushChanges(flags);
   }
 

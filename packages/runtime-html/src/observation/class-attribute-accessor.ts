@@ -35,6 +35,8 @@ export class ClassAttributeAccessor implements IAccessor {
   }
 
   public getValue(): unknown {
+    // is it safe to assume the observer has the latest value?
+    // todo: ability to turn on/off cache based on type
     return this.currentValue;
   }
 

@@ -223,7 +223,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     this.persistentFlags = LifecycleFlags.none;
 
     if (this.task != null) {
-      this.task.run();
+      this.task.cancel();
       this.task = null;
     }
 

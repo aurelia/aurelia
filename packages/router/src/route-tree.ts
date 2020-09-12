@@ -399,10 +399,34 @@ export class RouteTreeCompiler {
             // Go to root
             return this.compileChildren(instruction, 0, false);
           default: {
-            return onResolve(this.resolve(instruction, depth, append), childNode => {
-              return onResolve(this.compileResidue(childNode, depth + 1), () => {
-                ctx.node.appendChild(childNode);
-                childNode.context.vpa.scheduleUpdate(this.deferUntil, this.swapStrategy, childNode);
+            let node: RouteNode | Promise<RouteNode>;
+
+            let path = instruction.component.value;
+            let cur = instruction;
+            while (cur.children.length === 1) {
+              cur = cur.children[0];
+              if (cur.component.type === NavigationInstructionType.string) {
+                path = `${path}/${cur.component.value}`;
+              } else {
+                break;
+              }
+            }
+            const recognizedRoute = ctx.recognize(path);
+            if (recognizedRoute !== null) {
+              node = this.routeNodeFromRecognizedRoute(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, recognizedRoute);
+            } else if (this.mode === 'configured-only') {
+              throw new Error(`instruction '${instruction}' did not match any configured route at ${ctx}`);
+            } else {
+              const component: CustomElementDefinition | null = ctx.findResource(CustomElement, instruction.component.value);
+              if (component === null) {
+                throw new Error(`instruction '${instruction}' did not match any configured route or registered component name at ${ctx}`);
+              }
+              node = this.routeNodeFromComponent(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, component);
+            }
+            return onResolve(node, $node => {
+              return onResolve(this.compileResidue($node, depth + 1), () => {
+                ctx.node.appendChild($node);
+                $node.context.vpa.scheduleUpdate(this.deferUntil, this.swapStrategy, $node);
               });
             });
           }
@@ -410,10 +434,13 @@ export class RouteTreeCompiler {
       }
       case NavigationInstructionType.IRouteViewModel:
       case NavigationInstructionType.CustomElementDefinition: {
-        return onResolve(this.resolve(instruction, depth, append), childNode => {
-          return onResolve(this.compileResidue(childNode, depth + 1), () => {
-            ctx.node.appendChild(childNode);
-            childNode.context.vpa.scheduleUpdate(this.deferUntil, this.swapStrategy, childNode);
+        const routeDef = RouteDefinition.resolve(instruction.component.value);
+        const node = this.routeNodeFromComponent(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, routeDef.component);
+
+        return onResolve(node, $node => {
+          return onResolve(this.compileResidue($node, depth + 1), () => {
+            ctx.node.appendChild($node);
+            $node.context.vpa.scheduleUpdate(this.deferUntil, this.swapStrategy, $node);
           });
         });
       }
@@ -449,42 +476,6 @@ export class RouteTreeCompiler {
       return resolveAll(...node.children.map(child => {
         return this.updateOrCompile(child, instructions);
       }));
-    }
-  }
-
-  private resolve(
-    instruction: ViewportInstruction,
-    depth: number,
-    append: boolean,
-  ): Promise<RouteNode> | RouteNode {
-    this.logger.trace(`resolve(instruction:%s,depth:${depth},append:${append}) in '${this.mode}' mode at ${this.ctx.path[depth]}`, instruction);
-
-    const ctx = this.ctx.path[depth];
-    switch (instruction.component.type) {
-      case NavigationInstructionType.string: {
-        const recognizedRoute = ctx.recognize(instruction.component.value);
-        if (recognizedRoute !== null) {
-          return this.routeNodeFromRecognizedRoute(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, recognizedRoute);
-        }
-        if (this.mode === 'configured-only') {
-          throw new Error(`instruction '${instruction}' did not match any configured route at ${ctx}`);
-        }
-        const component: CustomElementDefinition | null = ctx.findResource(CustomElement, instruction.component.value);
-        if (component === null) {
-          throw new Error(`instruction '${instruction}' did not match any configured route or registered component name at ${ctx}`);
-        }
-        return this.routeNodeFromComponent(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, component);
-      }
-      case NavigationInstructionType.CustomElementDefinition:
-      case NavigationInstructionType.IRouteViewModel: {
-        const routeDef = RouteDefinition.resolve(instruction.component.value);
-        return this.routeNodeFromComponent(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, routeDef.component);
-      }
-      case NavigationInstructionType.Promise: {
-        return onResolve(RouteDefinition.resolve(instruction.component.value, ctx), routeDef => {
-          return this.routeNodeFromComponent(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, routeDef.component);
-        });
-      }
     }
   }
 

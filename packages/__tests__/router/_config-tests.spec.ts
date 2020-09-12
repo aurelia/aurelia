@@ -421,6 +421,83 @@ describe('router config', function () {
     assert.notStrictEqual(e, null);
     assert.match(e.message, /'a11'.+did not match.+'root\/a11\/b11'/);
   });
+
+  it(`works with single multi segment static path`, async function () {
+    @customElement({ name: 'a01', template: null })
+    class A01 {}
+
+    @route({ children: [{ path: 'a/x', component: A01 }] })
+    @customElement({ name: 'root', template: vp(1) })
+    class Root {}
+
+    const { router } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+
+    await router.load('a/x');
+  });
+
+  it(`works with single multi segment dynamic path`, async function () {
+    @customElement({ name: 'a01', template: null })
+    class A01 {}
+
+    @route({ children: [{ path: 'a/:x', component: A01 }] })
+    @customElement({ name: 'root', template: vp(1) })
+    class Root {}
+
+    const { router } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+
+    await router.load('a/1');
+  });
+
+  it(`works with single multi segment static path with single child`, async function () {
+    @customElement({ name: 'b01', template: null })
+    class B01 {}
+
+    @route({ children: [{ path: 'b', component: B01 }] })
+    @customElement({ name: 'a11', template: vp(1) })
+    class A11 {}
+
+    @route({ children: [{ path: 'a/x', component: A11 }] })
+    @customElement({ name: 'root', template: vp(1) })
+    class Root {}
+
+    const { router } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+
+    await router.load('a/x/b');
+  });
+
+  it(`works with single multi segment static path with single multi segment static child`, async function () {
+    @customElement({ name: 'b01', template: null })
+    class B01 {}
+
+    @route({ children: [{ path: 'b/x', component: B01 }] })
+    @customElement({ name: 'a11', template: vp(1) })
+    class A11 {}
+
+    @route({ children: [{ path: 'a/x', component: A11 }] })
+    @customElement({ name: 'root', template: vp(1) })
+    class Root {}
+
+    const { router } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+
+    await router.load('a/x/b/x');
+  });
+
+  it(`works with single static path with single multi segment static child`, async function () {
+    @customElement({ name: 'b01', template: null })
+    class B01 {}
+
+    @route({ children: [{ path: 'b/x', component: B01 }] })
+    @customElement({ name: 'a11', template: vp(1) })
+    class A11 {}
+
+    @route({ children: [{ path: 'a', component: A11 }] })
+    @customElement({ name: 'root', template: vp(1) })
+    class Root {}
+
+    const { router } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
+
+    await router.load('a/b/x');
+  });
 });
 
 function join(sep: string, ...parts: string[]): string {

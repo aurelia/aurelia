@@ -32,6 +32,7 @@ export class RouteDefinition {
   public readonly hasExplicitPath: boolean;
   public readonly caseSensitive: boolean;
   public readonly path: string;
+  public readonly redirectTo: string | null;
   public readonly viewport: string;
   public readonly id: string;
   public readonly data: Params;
@@ -43,6 +44,7 @@ export class RouteDefinition {
     this.hasExplicitPath = config.path !== null;
     this.caseSensitive = config.caseSensitive;
     this.path = config.path ?? component.name;
+    this.redirectTo = config.redirectTo ?? null;
     this.viewport = config.viewport ?? 'default';
     this.id = config.id ?? this.path;
     this.data = config.data ?? {};

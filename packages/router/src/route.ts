@@ -64,6 +64,12 @@ export class RouteConfig {
      */
     public readonly path: string | null,
     /**
+     * The path to which to redirect when the url matches the path in this config.
+     *
+     * If the path begins with a slash (`/`), the redirect path is considered absolute, otherwise it is considered relative to the parent path.
+     */
+    public readonly redirectTo: string | null,
+    /**
      * Whether the `path` should be case sensitive.
      */
     public readonly caseSensitive: boolean,
@@ -101,6 +107,7 @@ export class RouteConfig {
       case 'string': {
         const path = configOrPath;
 
+        const redirectTo = Type?.redirectTo ?? null;
         const caseSensitive = Type?.caseSensitive ?? false;
         const id = Type?.id ?? path;
         const reentryBehavior = Type?.transitionPlan ?? defaultReentryBehavior;
@@ -108,13 +115,14 @@ export class RouteConfig {
         const data = Type?.data ?? {};
         const children = Type?.children ?? noChildren;
 
-        return new RouteConfig(id, path, caseSensitive, reentryBehavior, viewport, data, children);
+        return new RouteConfig(id, path, redirectTo, caseSensitive, reentryBehavior, viewport, data, children);
       }
       case 'object': {
         const config = configOrPath;
         validateRouteConfig(config, '');
 
         const path = config.path ?? Type?.path ?? null;
+        const redirectTo = config.redirectTo ?? Type?.redirectTo ?? null;
         const caseSensitive = config.caseSensitive ?? Type?.caseSensitive ?? false;
         const id = config.id ?? Type?.id ?? path;
         const reentryBehavior = config.transitionPlan ?? Type?.transitionPlan ?? defaultReentryBehavior;
@@ -128,7 +136,7 @@ export class RouteConfig {
           ...(Type?.children ?? noChildren),
         ];
 
-        return new RouteConfig(id, path, caseSensitive, reentryBehavior, viewport, data, children);
+        return new RouteConfig(id, path, redirectTo, caseSensitive, reentryBehavior, viewport, data, children);
       }
       default:
         expectType('string, function/class or object', '', configOrPath);
@@ -161,6 +169,7 @@ export class ChildRouteConfig extends RouteConfig {
   private constructor(
     id: string | null,
     path: string | null,
+    redirectTo: string | null,
     caseSensitive: boolean,
     reentryBehavior: TransitionPlanOrFunc,
     viewport: string | null,
@@ -174,6 +183,7 @@ export class ChildRouteConfig extends RouteConfig {
     super(
       id,
       path,
+      redirectTo,
       caseSensitive,
       reentryBehavior,
       viewport,

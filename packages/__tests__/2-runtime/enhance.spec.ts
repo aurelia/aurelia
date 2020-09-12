@@ -66,7 +66,9 @@ describe('enhance', function () {
     { text: 'instance', getComponent: () => new App1() },
     { text: 'raw object', getComponent: () => ({ foo: 'Bar' }) },
   ]) {
-    $it(`hydrates the root - ${text}`, function ({ host }) {
+    $it(`hydrates the root - ${text}`, function ({ host, scheduler }) {
+      assert.html.textContent('span', '', 'span.text', host);
+      scheduler.getRenderTaskQueue().flush();
       assert.html.textContent('span', 'Bar', 'span.text', host);
     }, { getComponent, template: `<span>\${foo}</span>` });
 
@@ -106,6 +108,7 @@ describe('enhance', function () {
         ) { }
 
         public async afterAttach() {
+          this.container.get(IScheduler).getRenderTaskQueue().flush();
           await this.enhance(this.r1);
         }
 
@@ -133,10 +136,12 @@ describe('enhance', function () {
       au[initialMethod]({ host, component });
       await au.start().wait();
 
+      const scheduler = container.get(IScheduler);
+      await new Promise(r => setTimeout(r, 20));
       assert.html.textContent('div', message, 'div', host);
 
       host.querySelector('button').click();
-      const scheduler = container.get(IScheduler);
+      await new Promise(r => setTimeout(r, 20));
       scheduler.getPostRenderTaskQueue().flush();
 
       assert.html.textContent('div:nth-of-type(2)', message, 'div:nth-of-type(2)', host);
@@ -268,20 +273,24 @@ describe('enhance', function () {
     const au = new Aurelia(container);
     au.enhance({ host, component });
 
+    const scheduler = au.container.get(IScheduler);
     // round #1
     await au.start().wait();
-    assert.html.textContent('span', 'Bar', 'span.text', host);
+    scheduler.getRenderTaskQueue().flush();
+    assert.html.textContent('span', 'Bar', 'span.text - 1', host);
     await au.stop().wait();
 
     // round #2
     await au.start().wait();
-    assert.html.textContent('span', 'Bar', 'span.text', host);
+    scheduler.getRenderTaskQueue().flush();
+    assert.html.textContent('span', 'Bar', 'span.text - 2', host);
     await au.stop().wait();
 
     // round #3
     component.foo = 'Fiz';
     await au.start().wait();
-    assert.html.textContent('span', 'Fiz', 'span.text', host);
+    scheduler.getRenderTaskQueue().flush();
+    assert.html.textContent('span', 'Fiz', 'span.text - 3', host);
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
   });

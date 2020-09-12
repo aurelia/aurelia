@@ -1,16 +1,18 @@
-import { DI, IContainer } from '@aurelia/kernel';
-import { PropertyBinding } from '@aurelia/runtime';
+import { DI, IContainer, Registration } from '@aurelia/kernel';
+import { PropertyBinding, IScheduler } from '@aurelia/runtime';
 import { SelfBindingBehavior } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
 describe('SelfBindingBehavior', function () {
-  const container: IContainer = DI.createContainer();
+  let container: IContainer
   let sut: SelfBindingBehavior;
   let binding: PropertyBinding;
   let originalCallSource: () => void;
 
   // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
+    container = DI.createContainer();
+    Registration.instance(IScheduler, { }).register(container);
     sut = new SelfBindingBehavior();
     binding = new PropertyBinding(undefined, undefined, undefined, undefined, undefined, container as any);
     originalCallSource = binding['callSource'] = function () { return; };

@@ -171,7 +171,7 @@ export class StyleAttributeAccessor implements IAccessor {
     //   }
     //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     // }
-    this.oldValue = this.currentValue = this.obj.style.cssText;
+    // this.oldValue = this.currentValue = this.obj.style.cssText;
     // this.flushChanges(flags);
   }
 

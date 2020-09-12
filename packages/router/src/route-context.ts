@@ -207,6 +207,7 @@ export class RouteContext implements IContainer {
     );
     contextProvider.prepare(this);
 
+    container.register(definition);
     container.register(...component.dependencies);
 
     // The act of mutating the config will invalidate the RouteContext cache and automatically results in a fresh context

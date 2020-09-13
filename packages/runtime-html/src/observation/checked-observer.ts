@@ -50,7 +50,6 @@ export class CheckedObserver implements IAccessor {
   // ObserverType.Layout is not always true, it depends on the property
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
-  public lastUpdate: number = 0;
 
   public collectionObserver?: ICollectionObserver<CollectionKind> = void 0;
   public valueObserver?: ValueAttributeObserver | SetterObserver = void 0;
@@ -72,18 +71,13 @@ export class CheckedObserver implements IAccessor {
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    this.lastUpdate = Date.now();
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
+    if (this.task != null) {
+      this.task.cancel();
+      this.task = null;
+    }
     this.flushChanges(flags);
-    // if ((flags & LifecycleFlags.fromBind) === LifecycleFlags.fromBind || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-    //   this.flushChanges(flags);
-    // } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-    //   this.task = this.scheduler.queueRenderTask(() => {
-    //     this.flushChanges(flags);
-    //     this.task = null;
-    //   });
-    // }
   }
 
   public flushChanges(flags: LifecycleFlags): void {

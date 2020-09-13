@@ -31,7 +31,6 @@ export class ValueAttributeObserver implements IAccessor {
   // ObserverType.Layout is not always true, it depends on the element & property combo
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
-  public lastUpdate: number = 0;
 
   public constructor(
     public readonly scheduler: IScheduler,
@@ -50,18 +49,13 @@ export class ValueAttributeObserver implements IAccessor {
   }
 
   public setValue(newValue: string | null, flags: LifecycleFlags): void {
-    this.lastUpdate = Date.now();
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
+    if (this.task != null) {
+      this.task.cancel();
+      this.task = null;
+    }
     this.flushChanges(flags);
-    // if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-    //   this.flushChanges(flags);
-    // } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-    //   this.task = this.scheduler.queueRenderTask(() => {
-    //     this.flushChanges(flags);
-    //     this.task = null;
-    //   });
-    // }
   }
 
   public flushChanges(flags: LifecycleFlags): void {

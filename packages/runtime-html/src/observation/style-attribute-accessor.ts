@@ -20,8 +20,7 @@ export class StyleAttributeAccessor implements IAccessor {
 
   public hasChanges: boolean = false;
   public task: ITask | null = null;
-  public type: AccessorType = AccessorType.Node | AccessorType.Accessor | AccessorType.Layout;
-  public lastUpdate: number = 0;
+  public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
   public constructor(
     public readonly scheduler: IScheduler,
@@ -37,18 +36,9 @@ export class StyleAttributeAccessor implements IAccessor {
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    this.lastUpdate = Date.now();
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
     this.flushChanges(flags);
-    // if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-    //   this.flushChanges(flags);
-    // } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-    //   this.task = this.scheduler.queueRenderTask(() => {
-    //     this.flushChanges(flags);
-    //     this.task = null;
-    //   });
-    // }
   }
 
   private getStyleTuplesFromString(currentValue: string): [string, string][] {

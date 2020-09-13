@@ -71,7 +71,7 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
     //   }
     //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     // }
-    this.currentValue = this.obj.getAttributeNS(this.namespace, this.propertyKey);
+    this.currentValue = this.oldValue = this.obj.getAttributeNS(this.namespace, this.propertyKey);
     // this.flushChanges(flags);
   }
 

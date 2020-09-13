@@ -67,7 +67,7 @@ export class ElementPropertyAccessor implements IAccessor {
     //   }
     //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     // }
-    // this.currentValue = this.oldValue = this.obj[this.propertyKey];
+    this.currentValue = this.oldValue = this.obj[this.propertyKey];
     // this.flushChanges(flags);
   }
 

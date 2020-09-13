@@ -54,7 +54,7 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
       this.task = null;
     }
     this.currentValue = newValue;
-    this.hasChanges = !$is(newValue, this.oldValue);
+    this.hasChanges = newValue !== this.oldValue;
     this.flushChanges(flags);
   }
 
@@ -78,7 +78,7 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
     //   }
     //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
     // }
-    // this.currentValue = this.oldValue = this.obj.getAttribute(this.propertyKey);
+    this.currentValue = this.oldValue = this.obj.getAttribute(this.propertyKey);
     // this.flushChanges(flags);
   }
 

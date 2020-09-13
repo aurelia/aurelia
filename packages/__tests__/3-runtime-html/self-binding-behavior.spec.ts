@@ -4,7 +4,7 @@ import { SelfBindingBehavior } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
 describe('SelfBindingBehavior', function () {
-  let container: IContainer
+  let container: IContainer;
   let sut: SelfBindingBehavior;
   let binding: PropertyBinding;
   let originalCallSource: () => void;

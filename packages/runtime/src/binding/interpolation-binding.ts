@@ -185,15 +185,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     // since the interpolation already gets the whole value, we only need to let the first
     // text binding do the update if there are multiple
     if (this.isFirst) {
-      if ((targetObserver.type & AccessorType.Layout) > 0) {
-        this.task?.cancel();
-        targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
-          this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
-          this.task = null;
-        }, queueTaskOptions);
-      } else {
-        this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
-      }
+      this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
     }
     if ((mode & toView) > 0) {
       sourceExpression.connect(flags, scope, this.interceptor, part);

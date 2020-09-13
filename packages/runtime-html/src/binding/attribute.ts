@@ -1,6 +1,5 @@
 import {
   IServiceLocator,
-  Reporter,
 } from '@aurelia/kernel';
 import {
   AccessorOrObserver,
@@ -23,7 +22,6 @@ import {
   ITask,
   AccessorType,
   QueueTaskOptions,
-  IAccessor,
 } from '@aurelia/runtime';
 import {
   AttributeObserver,
@@ -201,22 +199,14 @@ export class AttributeBinding implements IPartialConnectableBinding {
     const interceptor = this.interceptor;
 
     if ($mode & toViewOrOneTime) {
-      if ((interceptor.targetObserver.type & AccessorType.Layout) > 0) {
-        this.task?.cancel();
-        targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
-          interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
-          this.task = null;
-        }, taskOptions);
-      } else {
-        interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
-      }
+      interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
     }
     if ($mode & toView) {
-      sourceExpression.connect(flags, scope, this, part);
+      sourceExpression.connect(flags, scope, interceptor, part);
     }
     if ($mode & fromView) {
       targetObserver[this.id] |= LifecycleFlags.updateSourceExpression;
-      targetObserver.subscribe(this.interceptor);
+      targetObserver.subscribe(interceptor);
     }
 
     // add isBound flag and remove isBinding flag

@@ -193,16 +193,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const interceptor = this.interceptor;
 
     if ($mode & toViewOrOneTime) {
-      if ((targetObserver.type & AccessorType.Layout) > 0) {
-        targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
-          if ((this.$state & State.isBound) > 0) {
-            interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
-          }
-          this.task = null;
-        });
-      } else {
-        interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
-      }
+      interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
     }
     if ($mode & toView) {
       sourceExpression.connect(flags, scope, interceptor, part);

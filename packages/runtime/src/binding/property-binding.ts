@@ -94,32 +94,44 @@ export class PropertyBinding implements IPartialConnectableBinding {
     flags |= this.persistentFlags;
 
     if ((flags & LifecycleFlags.updateTargetInstance) > 0) {
+      const interceptor = this.interceptor;
       const targetObserver = this.targetObserver!;
-      const previousValue = targetObserver.getValue();
+      const sourceExpression = this.sourceExpression;
 
-      // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-      if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part);
-      }
-      if (newValue !== previousValue) {
-        if ((targetObserver.type & AccessorType.Layout) > 0) {
-          if (this.task != null) {
-            this.task.cancel();
+      if ((targetObserver.type & AccessorType.Layout) > 0) {
+        targetObserver.task?.cancel();
+        targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+          // timing wise, it's necessary to check if this binding is still bound, before execute everything below
+          // but if we always cancel any pending task during `$ubnind` of this binding
+          // then it's ok to just execute the logic inside here
+
+          // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
+          if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
+            newValue = sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part);
           }
-          const updateTime = Date.now();
-          this.task = this.$scheduler.queueRenderTask(() => {
-            if (updateTime > targetObserver.lastUpdate && (this.$state & State.isBound) > 0) {
-              this.interceptor.updateTarget(newValue, flags);
-            }
-          }, updateTaskOpts);
-        } else {
-          this.interceptor.updateTarget(newValue, flags);
+          interceptor.updateTarget(newValue, flags);
+          if ((this.mode & oneTime) === 0) {
+            this.version++;
+            sourceExpression.connect(flags, this.$scope!, this.interceptor, this.part);
+            interceptor.unobserve(false);
+          }
+          this.task = null;
+        }, updateTaskOpts);
+      } else {
+        const previousValue = targetObserver.getValue();
+        // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
+        if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
+          newValue = sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part);
         }
-      }
-      if ((this.mode & oneTime) === 0) {
-        this.version++;
-        this.sourceExpression.connect(flags, this.$scope!, this.interceptor, this.part);
-        this.interceptor.unobserve(false);
+        if (newValue !== previousValue) {
+          interceptor.updateTarget(newValue, flags);
+        }
+        // todo: merge this with evaluate above
+        if ((this.mode & oneTime) === 0) {
+          this.version++;
+          sourceExpression.connect(flags, this.$scope!, this.interceptor, this.part);
+          interceptor.unobserve(false);
+        }
       }
       return;
     }
@@ -182,12 +194,8 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
     if ($mode & toViewOrOneTime) {
       if ((targetObserver.type & AccessorType.Layout) > 0) {
-        if (this.task != null) {
-          this.task.cancel();
-        }
-        const updateTime = Date.now();
-        this.task = this.$scheduler.queueRenderTask(() => {
-          if (updateTime > targetObserver.lastUpdate && (this.$state & State.isBound) > 0) {
+        targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+          if ((this.$state & State.isBound) > 0) {
             interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
           }
           this.task = null;
@@ -221,24 +229,29 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
     // clear persistent flags
     this.persistentFlags = LifecycleFlags.none;
-
-    if (this.task != null) {
-      this.task.cancel();
-      this.task = null;
-    }
-
+    
     if (hasUnbind(this.sourceExpression)) {
       this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }
+
     this.$scope = void 0;
 
     const targetObserver = this.targetObserver as IBindingTargetObserver;
+    const task = this.task;
+
     if (targetObserver.unbind) {
       targetObserver.unbind!(flags);
     }
     if (targetObserver.unsubscribe) {
       targetObserver.unsubscribe(this.interceptor);
       targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
+    }
+    if (task != null) {
+      task.cancel();
+      if (task === targetObserver.task) {
+        targetObserver.task = null;
+      }
+      this.task = null;
     }
     this.interceptor.unobserve(true);
 

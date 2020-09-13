@@ -2,6 +2,7 @@ import { IServiceLocator } from '@aurelia/kernel';
 import {
   IScheduler,
   ITask,
+  QueueTaskOptions,
 } from '@aurelia/scheduler';
 import {
   IExpression,
@@ -26,6 +27,10 @@ import {
 } from './connectable';
 
 const { toView, oneTime } = BindingMode;
+
+const queueTaskOptions: QueueTaskOptions = {
+  reusable: false,
+};
 
 export class MultiInterpolationBinding implements IBinding {
   public interceptor: this = this;
@@ -125,29 +130,31 @@ export class InterpolationBinding implements IPartialConnectableBinding {
       return;
     }
 
-    const previousValue = this.targetObserver.getValue();
-    const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.part);
-    if (newValue !== previousValue) {
-      if ((this.targetObserver.type & AccessorType.Layout) > 0) {
-        if (this.task != null) {
-          this.task.cancel();
-        }
-        const updateTime = Date.now();
-        this.task = this.$scheduler.queueRenderTask(() => {
-          if (updateTime > this.targetObserver.lastUpdate && (this.$state & State.isBound) > 0) {
-            this.interceptor.updateTarget(newValue, flags);
-          }
-          this.task = null;
-        });
-      } else {
+    const targetObserver = this.targetObserver;
+    if ((targetObserver.type & AccessorType.Layout) > 0) {
+      const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.part);
+      targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
         this.interceptor.updateTarget(newValue, flags);
-      }
-    }
 
-    if ((this.mode & oneTime) === 0) {
-      this.version++;
-      this.sourceExpression.connect(flags, this.$scope!, this.interceptor, this.part);
-      this.interceptor.unobserve(false);
+        if ((this.mode & oneTime) === 0) {
+          this.version++;
+          this.sourceExpression.connect(flags, this.$scope!, this.interceptor, this.part);
+          this.interceptor.unobserve(false);
+        }
+        this.task = null;
+      }, queueTaskOptions);
+    } else {
+      const previousValue = this.targetObserver.getValue();
+      const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.part);
+      if (newValue !== previousValue)
+      this.interceptor.updateTarget(newValue, flags);
+
+      // todo: merge this with evaluate above
+      if ((this.mode & oneTime) === 0) {
+        this.version++;
+        this.sourceExpression.connect(flags, this.$scope!, this.interceptor, this.part);
+        this.interceptor.unobserve(false);
+      }
     }
   }
 
@@ -167,29 +174,28 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     if (sourceExpression.bind) {
       sourceExpression.bind(flags, scope, this.interceptor);
     }
-    if (this.mode !== BindingMode.oneTime && this.targetObserver.bind) {
-      this.targetObserver.bind(flags);
+
+    const targetObserver = this.targetObserver;
+    const mode = this.mode;
+
+    if (mode !== BindingMode.oneTime && targetObserver.bind) {
+      targetObserver.bind(flags);
     }
 
     // since the interpolation already gets the whole value, we only need to let the first
     // text binding do the update if there are multiple
     if (this.isFirst) {
-      if ((this.targetObserver.type & AccessorType.Layout) > 0) {
-        if (this.task != null) {
-          this.task.cancel();
-        }
-        const updateTime = Date.now();
-        this.task = this.$scheduler.queueRenderTask(() => {
-          if (updateTime > this.targetObserver.lastUpdate && (this.$state & State.isBound) > 0) {
-            this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
-          }
+      if ((targetObserver.type & AccessorType.Layout) > 0) {
+        this.task?.cancel();
+        targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+          this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
           this.task = null;
         });
       } else {
         this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
       }
     }
-    if (this.mode & toView) {
+    if ((mode & toView) > 0) {
       sourceExpression.connect(flags, scope, this.interceptor, part);
     }
   }
@@ -200,17 +206,23 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     }
     this.$state &= ~State.isBound;
 
-    if (this.task != null) {
-      this.task.cancel();
-      this.task = null;
-    }
-
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {
       sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }
-    if (this.targetObserver.unbind) {
-      this.targetObserver.unbind(flags);
+
+    const targetObserver = this.targetObserver;
+    const task = this.task;
+
+    if (targetObserver.unbind) {
+      targetObserver.unbind(flags);
+    }
+    if (task != null) {
+      task.cancel();
+      if (task === targetObserver.task) {
+        targetObserver.task = null;
+      }
+      this.task = null;
     }
 
     this.$scope = void 0;

@@ -23,6 +23,7 @@ import {
   ITask,
   AccessorType,
   QueueTaskOptions,
+  IAccessor,
 } from '@aurelia/runtime';
 import {
   AttributeObserver,
@@ -101,39 +102,48 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
     flags |= this.persistentFlags;
 
-    if (this.mode === BindingMode.fromView) {
+    const mode = this.mode;
+    if (mode === BindingMode.fromView) {
       flags &= ~LifecycleFlags.updateTargetInstance;
       flags |= LifecycleFlags.updateSourceExpression;
     }
 
     if (flags & LifecycleFlags.updateTargetInstance) {
-      const previousValue = this.targetObserver.getValue();
+      const interceptor = this.interceptor;
+      const sourceExpression = this.sourceExpression;
       const targetObserver = this.targetObserver;
-
-      // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-      if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
-      }
-      if (newValue !== previousValue) {
-        if ((targetObserver.type & AccessorType.Layout) > 0) {
-          if (this.task != null) {
-            this.task.cancel();
+      if ((targetObserver.type & AccessorType.Layout) > 0) {
+        this.task?.cancel();
+        this.task = this.$scheduler.queueRenderTask(() => {
+          // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
+          if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
+            newValue = sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
           }
-          const updateTime = Date.now();
-          this.task = this.$scheduler.queueRenderTask(() => {
-            if (updateTime > targetObserver.lastUpdate && (this.$state & State.isBound) > 0) {
-              this.interceptor.updateTarget(newValue, flags);
-            }
-            this.task = null;
-          }, taskOptions);
-        } else {
-          this.interceptor.updateTarget(newValue, flags);
+          interceptor.updateTarget(newValue, flags);
+
+          if ((mode & oneTime) === 0) {
+            this.version++;
+            sourceExpression.connect(flags, this.$scope, interceptor, this.part);
+            interceptor.unobserve(false);
+          }
+
+          this.task = null;
+        }, taskOptions);
+      } else {
+        // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
+        if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
+          newValue = sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
         }
-      }
-      if ((this.mode & oneTime) === 0) {
-        this.version++;
-        this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
-        this.interceptor.unobserve(false);
+
+        if (newValue != targetObserver.getValue()) {
+          interceptor.updateTarget(newValue, flags);
+        }
+
+        if ((mode & oneTime) === 0) {
+          this.version++;
+          sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
+          interceptor.unobserve(false);
+        }
       }
       return;
     }
@@ -189,24 +199,23 @@ export class AttributeBinding implements IPartialConnectableBinding {
     sourceExpression = this.sourceExpression;
     const $mode = this.mode;
     const interceptor = this.interceptor;
+
     if ($mode & toViewOrOneTime) {
-      if (interceptor.targetObserver.type & AccessorType.Node) {
-        if (this.task != null) {
-          this.task.cancel();
-        }
-        this.task = this.$scheduler.queueMicroTask(
-          () => interceptor
-            .updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags),
-          taskOptions
-        );
+      if ((interceptor.targetObserver.type & AccessorType.Layout) > 0) {
+        this.task?.cancel();
+        targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+          interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+          this.task = null;
+        }, taskOptions);
+      } else {
+        interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
       }
-      interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
     }
     if ($mode & toView) {
       sourceExpression.connect(flags, scope, this, part);
     }
     if ($mode & fromView) {
-      (targetObserver as IBindingTargetObserver & { [key: string]: number })[this.id] |= LifecycleFlags.updateSourceExpression;
+      targetObserver[this.id] |= LifecycleFlags.updateSourceExpression;
       targetObserver.subscribe(this.interceptor);
     }
 
@@ -231,12 +240,20 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.$scope = null!;
 
     const targetObserver = this.targetObserver as IBindingTargetObserver;
+    const task = this.task;
     if (targetObserver.unbind) {
       targetObserver.unbind!(flags);
     }
     if (targetObserver.unsubscribe) {
       targetObserver.unsubscribe(this.interceptor);
       targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
+    }
+    if (task != null) {
+      task.cancel();
+      if (task === targetObserver.task) {
+        targetObserver.task = null;
+      }
+      this.task = null;
     }
     this.interceptor.unobserve(true);
 
@@ -249,5 +266,9 @@ export class AttributeBinding implements IPartialConnectableBinding {
       flags |= this.persistentFlags;
       this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this.interceptor, this.part); // why do we have a connect method here in the first place? will this be called after bind?
     }
+  }
+
+  private handleUpdateTarget() {
+
   }
 }

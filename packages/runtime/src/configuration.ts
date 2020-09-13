@@ -37,6 +37,7 @@ import { ViewValueConverter } from './resources/value-converters/view';
 import { ViewLocator } from './templating/view';
 import { Now } from '@aurelia/scheduler';
 import { AuSlot, ProjectionProvider } from './resources/custom-elements/au-slot';
+import { AuSwitch, Case, DefaultCase } from './resources/custom-elements/au-switch';
 
 export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;
@@ -96,7 +97,12 @@ export const DefaultResources = [
   ElseRegistration,
   RepeatRegistration,
   WithRegistration,
+  AuSwitch,
+  Case,
+  DefaultCase,
+
   SanitizeValueConverterRegistration,
+
   ViewValueConverterRegistration,
   DebounceBindingBehaviorRegistration,
   OneTimeBindingBehaviorRegistration,

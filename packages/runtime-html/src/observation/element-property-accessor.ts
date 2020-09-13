@@ -42,17 +42,13 @@ export class ElementPropertyAccessor implements IAccessor {
   }
 
   public setValue(newValue: string | null, flags: LifecycleFlags): void {
+    if (this.task != null) {
+      this.task.cancel();
+      this.task = null;
+    }
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
     this.flushChanges(flags);
-    // if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-    //   this.flushChanges(flags);
-    // } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-    //   this.task = this.scheduler.queueRenderTask(() => {
-    //     this.flushChanges(flags);
-    //     this.task = null;
-    //   });
-    // }
   }
 
   public flushChanges(flags: LifecycleFlags): void {

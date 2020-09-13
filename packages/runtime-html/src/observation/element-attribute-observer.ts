@@ -61,19 +61,19 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    this.currentValue = newValue;
-    this.hasChanges = newValue !== this.oldValue;
     if (this.task != null) {
       this.task.cancel();
       this.task = null;
     }
+    this.currentValue = newValue;
+    this.hasChanges = newValue !== this.oldValue;
     this.flushChanges(flags);
   }
 
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const { currentValue } = this;
+      const currentValue = this.currentValue;
       this.oldValue = currentValue;
       switch (this.targetAttribute) {
         case 'class': {

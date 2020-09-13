@@ -71,22 +71,22 @@ export class SelectValueObserver implements IAccessor {
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    this.currentValue = newValue;
-    this.hasChanges = newValue !== this.oldValue;
     if (this.task != null) {
       this.task.cancel();
       this.task = null;
     }
+    this.currentValue = newValue;
+    this.hasChanges = newValue !== this.oldValue;
     this.flushChanges(flags);
   }
 
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const { currentValue } = this;
+      const currentValue = this.currentValue;
+      const isArray = Array.isArray(currentValue);
       this.oldValue = currentValue;
 
-      const isArray = Array.isArray(currentValue);
       if (!isArray && currentValue != void 0 && this.obj.multiple) {
         throw new Error('Only null or Array instances can be bound to a multi-select.');
       }

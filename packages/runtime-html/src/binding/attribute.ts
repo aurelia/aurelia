@@ -155,7 +155,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       return;
     }
 
-    throw Reporter.error(15, flags);
+    throw new Error('Unexpected handleChange context in AttributeBinding');
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {

@@ -40,20 +40,21 @@ export class ClassAttributeAccessor implements IAccessor {
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    this.currentValue = newValue;
-    this.hasChanges = newValue !== this.oldValue;
     if (this.task != null) {
       this.task.cancel();
       this.task = null;
     }
+    this.currentValue = newValue;
+    this.hasChanges = newValue !== this.oldValue;
     this.flushChanges(flags);
   }
 
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const { currentValue, nameIndex } = this;
-      let { version } = this;
+      const currentValue = this.currentValue;
+      const nameIndex = this.nameIndex;
+      let version = this.version;
       this.oldValue = currentValue;
 
       const classesToAdd = getClassesToAdd(currentValue as any);

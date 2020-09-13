@@ -7,6 +7,8 @@ import {
   AccessorType,
 } from '@aurelia/runtime';
 
+const $is = Object.is;
+
 /**
  * Attribute accessor for HTML elements.
  * Note that Aurelia works with properties, so in all case it will try to assign to property instead of attributes.
@@ -26,6 +28,8 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
   // ObserverType.Layout is not always true, it depends on the property
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
+  
+  private $set: typeof HTMLElement.prototype.setAttribute;
 
   public constructor(
     public readonly scheduler: IScheduler,
@@ -34,6 +38,7 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
     public readonly propertyKey: string,
   ) {
     this.obj = obj as HTMLElement;
+    this.$set = (obj as HTMLElement).setAttribute;
     this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
@@ -44,24 +49,24 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
   }
 
   public setValue(newValue: string | null, flags: LifecycleFlags): void {
-    this.currentValue = newValue;
-    this.hasChanges = newValue !== this.oldValue;
     if (this.task != null) {
       this.task.cancel();
       this.task = null;
     }
+    this.currentValue = newValue;
+    this.hasChanges = !$is(newValue, this.oldValue);
     this.flushChanges(flags);
   }
 
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const { currentValue } = this;
+      const currentValue = this.currentValue;
       this.oldValue = currentValue;
       if (currentValue == void 0) {
         this.obj.removeAttribute(this.propertyKey);
       } else {
-        this.obj.setAttribute(this.propertyKey, currentValue);
+        this.$set.call(this.obj, this.propertyKey, currentValue);
       }
     }
   }

@@ -18,8 +18,9 @@ export class SetterObserver {
   public readonly persistentFlags: LifecycleFlags;
   public inBatch: boolean = false;
   public observing: boolean = false;
+  // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
   public type: AccessorType = AccessorType.Obj;
-  public lastUpdate: number = 0;
+
 
   public constructor(
     public readonly lifecycle: ILifecycle,
@@ -27,7 +28,6 @@ export class SetterObserver {
     public readonly obj: IIndexable,
     public readonly propertyKey: string,
   ) {
-    // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
   }
 
@@ -40,13 +40,6 @@ export class SetterObserver {
       const currentValue = this.currentValue;
       this.currentValue = newValue;
       this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
-      // if (this.lifecycle.batch.depth === 0) {
-      //   this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
-      // } else if (!this.inBatch) {
-      //   this.inBatch = true;
-      //   this.oldValue = currentValue;
-      //   this.lifecycle.batch.add(this);
-      // }
     } else {
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
       // so calling obj[propertyKey] will actually return this.currentValue.

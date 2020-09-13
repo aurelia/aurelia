@@ -110,7 +110,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       const interceptor = this.interceptor;
       const sourceExpression = this.sourceExpression;
       const targetObserver = this.targetObserver;
-      
+
       // Alpha: during bind a simple strategy for bind is always flush immediately
       // todo:
       //  (1). determine whether this should be the behavior

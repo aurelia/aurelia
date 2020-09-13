@@ -106,7 +106,6 @@ describe('2-runtime/enhance.spec.ts', function () {
         ) { }
 
         public async afterAttach() {
-          this.container.get(IScheduler).getRenderTaskQueue().flush();
           await this.enhance(this.r1);
         }
 
@@ -135,7 +134,6 @@ describe('2-runtime/enhance.spec.ts', function () {
       await au.start().wait();
 
       const scheduler = container.get(IScheduler);
-      await new Promise(r => setTimeout(r, 20));
       assert.html.textContent('div', message, 'div', host);
 
       host.querySelector('button').click();

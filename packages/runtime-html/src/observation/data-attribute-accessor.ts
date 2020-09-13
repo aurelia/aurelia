@@ -7,8 +7,6 @@ import {
   AccessorType,
 } from '@aurelia/runtime';
 
-const $is = Object.is;
-
 /**
  * Attribute accessor for HTML elements.
  * Note that Aurelia works with properties, so in all case it will try to assign to property instead of attributes.

@@ -257,8 +257,4 @@ export class AttributeBinding implements IPartialConnectableBinding {
       this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this.interceptor, this.part); // why do we have a connect method here in the first place? will this be called after bind?
     }
   }
-
-  private handleUpdateTarget() {
-
-  }
 }

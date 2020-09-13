@@ -25,7 +25,7 @@ describe('2-runtime/binding-mode-behavior.spec.ts', function () {
   const container: IContainer = DI.createContainer();
   let sut: OneTimeBindingBehavior;
   let binding: PropertyBinding;
-  
+
   Registration.instance(IScheduler, {}).register(container);
 
   for (const { Behavior, mode } of tests) {

@@ -98,7 +98,11 @@ export class PropertyBinding implements IPartialConnectableBinding {
       const targetObserver = this.targetObserver!;
       const sourceExpression = this.sourceExpression;
 
-      if ((targetObserver.type & AccessorType.Layout) > 0) {
+      // Alpha: during bind a simple strategy for bind is always flush immediately
+      // todo:
+      //  (1). determine whether this should be the behavior
+      //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
+      if ((flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0) {
         targetObserver.task?.cancel();
         targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
           // timing wise, it's necessary to check if this binding is still bound, before execute everything below

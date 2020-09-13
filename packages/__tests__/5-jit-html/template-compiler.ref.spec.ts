@@ -335,6 +335,7 @@ describe('templating-compiler.ref.spec.ts', function () {
       title: 'works regardless of declaration order',
       template: '<input value.to-view="div.toString()"><div ref="div"></div>',
       assertFn: (ctx, host) => {
+        ctx.scheduler.getRenderTaskQueue().flush();
         assert.strictEqual(host.querySelector('input').value, ctx.createElement('div').toString());
       }
     },
@@ -342,6 +343,7 @@ describe('templating-compiler.ref.spec.ts', function () {
       title: 'works regardless of declaration order, and template controller in path',
       template: '<input value.to-view="div.toString()"><div if.bind="true" ref="div"></div>',
       assertFn: (ctx, host) => {
+        ctx.scheduler.getRenderTaskQueue().flush();
         assert.strictEqual(host.querySelector('input').value, ctx.createElement('div').toString());
       }
     },

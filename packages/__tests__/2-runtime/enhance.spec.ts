@@ -4,7 +4,7 @@ import { Aurelia, CustomElement, ICustomElementViewModel, IScheduler } from '@au
 import { assert, HTMLTestContext, TestContext, eachCartesianJoin } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
 
-describe('enhance', function () {
+describe('2-runtime/enhance.spec.ts', function () {
   interface TestSetupContext {
     getComponent: () => Constructable | ICustomElementViewModel<any>;
     template: string;
@@ -67,8 +67,6 @@ describe('enhance', function () {
     { text: 'raw object', getComponent: () => ({ foo: 'Bar' }) },
   ]) {
     $it(`hydrates the root - ${text}`, function ({ host, scheduler }) {
-      assert.html.textContent('span', '', 'span.text', host);
-      scheduler.getRenderTaskQueue().flush();
       assert.html.textContent('span', 'Bar', 'span.text', host);
     }, { getComponent, template: `<span>\${foo}</span>` });
 

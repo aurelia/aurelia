@@ -17,6 +17,7 @@ import {
   collectionSubscriberCollection,
   subscriberCollection
 } from './subscriber-collection';
+import { ITask } from '@aurelia/scheduler';
 
 const observerLookup = new WeakMap<unknown[], ArrayObserver>();
 
@@ -389,6 +390,7 @@ export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>
 export class ArrayObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Array;
+  public task: ITask | null = null;
 
   private readonly indexObservers: Record<string | number, ArrayIndexObserver | undefined>;
 
@@ -434,9 +436,10 @@ export class ArrayObserver {
   }
 
   public flushBatch(flags: LifecycleFlags): void {
-    this.inBatch = false;
     const indexMap = this.indexMap;
     const length = this.collection.length;
+
+    this.inBatch = false;
     this.indexMap = createIndexMap(length);
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
     if (this.lengthObserver !== void 0) {

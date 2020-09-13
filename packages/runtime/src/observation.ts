@@ -1,6 +1,7 @@
 import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from './flags';
 import { ILifecycle } from './lifecycle';
+import { ITask } from '@aurelia/scheduler';
 
 /** @internal */
 export const enum SubscriberFlags {
@@ -107,7 +108,6 @@ export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj
   ISubscriberCollection,
   IBatchable {
   type: AccessorType;
-  lastUpdate: number;
   inBatch: boolean;
   observing: boolean;
   persistentFlags: LifecycleFlags;
@@ -189,16 +189,14 @@ export type IProxy<TObj extends {} = {}> = TObj & {
 
 export const enum AccessorType {
   None          = 0b0_0000_0000,
+  Observer      = 0b0_0000_0001,
 
-  Node          = 0b0_0000_0001,
-  Obj           = 0b0_0000_0010,
+  Node          = 0b0_0000_0010,
+  Obj           = 0b0_0000_0100,
 
-  Accessor      = 0b0_0000_0100,
-  Observer      = 0b0_0000_1000,
-
-  Array         = 0b0_0001_0010,
-  Set           = 0b0_0010_0010,
-  Map           = 0b0_0100_0010,
+  Array         = 0b0_0000_1010,
+  Set           = 0b0_0001_0010,
+  Map           = 0b0_0010_0010,
 
   // misc characteristic of observer when update
   //
@@ -207,13 +205,16 @@ export const enum AccessorType {
   // an observer can use this flag to signal binding that don't carelessly tell it to update
   // queue it instead
   // todo: https://gist.github.com/paulirish/5d52fb081b3570c81e3a
-  Layout        = 0b0_1000_0000,
+  // todo: https://csstriggers.com/
+  Layout        = 0b0_0100_0000,
 }
 
 /**
  * Basic interface to normalize getting/setting a value of any property on any object
  */
 export interface IAccessor<TValue = unknown> {
+  task: ITask | null;
+  type: AccessorType;
   getValue(): TValue;
   setValue(newValue: TValue, flags: LifecycleFlags): void;
 }
@@ -227,8 +228,6 @@ export interface IBindingTargetAccessor<
   TValue = unknown>
   extends IAccessor<TValue>,
   IPropertyChangeTracker<TObj, TProp> {
-  type: AccessorType;
-  lastUpdate: number;
   bind?(flags: LifecycleFlags): void;
   unbind?(flags: LifecycleFlags): void;
 }
@@ -310,20 +309,14 @@ export interface IPropertyChangeTracker<TObj, TProp = keyof TObj, TValue = unkno
 }
 
 export interface ICollectionLengthObserver extends IAccessor<number>, IPropertyChangeTracker<unknown[], 'length', number>, ISubscriberCollection {
-  type: AccessorType;
-  lastUpdate: number;
   currentValue: number;
 }
 
 export interface ICollectionSizeObserver extends IAccessor<number>, IPropertyChangeTracker<Set<unknown> | Map<unknown, unknown>, 'size', number>, ISubscriberCollection {
-  type: AccessorType;
-  lastUpdate: number;
   currentValue: number;
 }
 
 export interface ICollectionIndexObserver extends ICollectionSubscriber, IPropertyObserver<IIndexable, string> {
-  type: AccessorType;
-  lastUpdate: number;
   owner: ICollectionObserver<CollectionKind.array>;
 }
 

@@ -10,6 +10,7 @@ import {
 } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
+import { ITask } from '@aurelia/scheduler';
 
 const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserver>();
 
@@ -158,6 +159,7 @@ export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 export class MapObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Map;
+  public task: ITask | null = null;
 
   public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
 
@@ -178,15 +180,14 @@ export class MapObserver {
   }
 
   public notify(): void {
-    // if (this.lifecycle.batch.depth > 0) {
-    //   if (!this.inBatch) {
-    //     this.inBatch = true;
-    //     this.lifecycle.batch.add(this);
-    //   }
-    // } else {
-    //   this.flushBatch(LifecycleFlags.none);
-    // }
-    this.flushBatch(LifecycleFlags.none);
+    if (this.lifecycle.batch.depth > 0) {
+      if (!this.inBatch) {
+        this.inBatch = true;
+        this.lifecycle.batch.add(this);
+      }
+    } else {
+      this.flushBatch(LifecycleFlags.none);
+    }
   }
 
   public getLengthObserver(): CollectionSizeObserver {
@@ -201,9 +202,10 @@ export class MapObserver {
   }
 
   public flushBatch(flags: LifecycleFlags): void {
+    const indexMap = this.indexMap;
+    const size = this.collection.size;
+
     this.inBatch = false;
-    const { indexMap, collection } = this;
-    const { size } = collection;
     this.indexMap = createIndexMap(size);
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
     if (this.lengthObserver !== void 0) {

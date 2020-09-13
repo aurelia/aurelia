@@ -3,6 +3,7 @@ import { ILifecycle } from '../lifecycle';
 import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver, AccessorType } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
+import { ITask } from '@aurelia/scheduler';
 
 const observerLookup = new WeakMap<Set<unknown>, SetObserver>();
 
@@ -138,6 +139,7 @@ export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 export class SetObserver {
   public inBatch: boolean;
   public type: AccessorType = AccessorType.Set;
+  public task: ITask | null = null;
 
   public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
 
@@ -158,15 +160,14 @@ export class SetObserver {
   }
 
   public notify(): void {
-    this.flushBatch(LifecycleFlags.none);
-    // if (this.lifecycle.batch.depth > 0) {
-    //   if (!this.inBatch) {
-    //     this.inBatch = true;
-    //     this.lifecycle.batch.add(this);
-    //   }
-    // } else {
-    //   this.flushBatch(LifecycleFlags.none);
-    // }
+    if (this.lifecycle.batch.depth > 0) {
+      if (!this.inBatch) {
+        this.inBatch = true;
+        this.lifecycle.batch.add(this);
+      }
+    } else {
+      this.flushBatch(LifecycleFlags.none);
+    }
   }
 
   public getLengthObserver(): CollectionSizeObserver {
@@ -181,9 +182,10 @@ export class SetObserver {
   }
 
   public flushBatch(flags: LifecycleFlags): void {
+    const indexMap = this.indexMap;
+    const size = this.collection.size;
+
     this.inBatch = false;
-    const { indexMap, collection } = this;
-    const { size } = collection;
     this.indexMap = createIndexMap(size);
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
     if (this.lengthObserver !== void 0) {

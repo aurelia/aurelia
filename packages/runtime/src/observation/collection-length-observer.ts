@@ -1,6 +1,7 @@
 import { LifecycleFlags } from '../flags';
 import { ISubscriberCollection, AccessorType } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
+import { ITask } from '@aurelia/scheduler';
 
 export interface CollectionLengthObserver extends ISubscriberCollection {}
 
@@ -8,7 +9,7 @@ export interface CollectionLengthObserver extends ISubscriberCollection {}
 export class CollectionLengthObserver {
   public currentValue: number;
   public type: AccessorType = AccessorType.Array;
-  public lastUpdate: number = 0;
+  public task: ITask | null = null;
 
   public constructor(
     public obj: unknown[],

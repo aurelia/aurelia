@@ -1,5 +1,6 @@
 import { PLATFORM, Primitive } from '@aurelia/kernel';
 import { IAccessor, ISubscribable, AccessorType } from '../observation';
+import { ITask } from '@aurelia/scheduler';
 
 const slice = Array.prototype.slice;
 
@@ -21,7 +22,7 @@ export class PrimitiveObserver implements IAccessor, ISubscribable {
   public doNotCache: boolean = true;
   public obj: Primitive;
   public type: AccessorType = AccessorType.None;
-  public lastUpdate: number = 0;
+  public task: ITask | null = null;
 
   public constructor(obj: Primitive, propertyKey: PropertyKey) {
     // we don't need to store propertyName because only 'length' can return a useful value

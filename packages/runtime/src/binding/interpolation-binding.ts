@@ -132,8 +132,8 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
     const targetObserver = this.targetObserver;
     if ((targetObserver.type & AccessorType.Layout) > 0) {
-      const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.part);
       targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+        const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.part);
         this.interceptor.updateTarget(newValue, flags);
 
         if ((this.mode & oneTime) === 0) {
@@ -190,7 +190,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
         targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
           this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
           this.task = null;
-        });
+        }, queueTaskOptions);
       } else {
         this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
       }

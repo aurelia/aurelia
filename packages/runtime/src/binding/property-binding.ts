@@ -220,7 +220,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
     // clear persistent flags
     this.persistentFlags = LifecycleFlags.none;
-    
+
     if (hasUnbind(this.sourceExpression)) {
       this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
     }

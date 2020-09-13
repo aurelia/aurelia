@@ -26,8 +26,6 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
   // ObserverType.Layout is not always true, it depends on the property
   // but for simplicity, always treat as such
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
-  
-  private $set: typeof HTMLElement.prototype.setAttribute;
 
   public constructor(
     public readonly scheduler: IScheduler,
@@ -36,7 +34,6 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
     public readonly propertyKey: string,
   ) {
     this.obj = obj as HTMLElement;
-    this.$set = (obj as HTMLElement).setAttribute;
     this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
   }
 
@@ -64,7 +61,7 @@ export class DataAttributeAccessor implements IAccessor<string | null> {
       if (currentValue == void 0) {
         this.obj.removeAttribute(this.propertyKey);
       } else {
-        this.$set.call(this.obj, this.propertyKey, currentValue);
+        this.obj.setAttribute(this.propertyKey, currentValue);
       }
     }
   }

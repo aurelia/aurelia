@@ -133,6 +133,10 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     const targetObserver = this.targetObserver;
     if ((targetObserver.type & AccessorType.Layout) > 0) {
       targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+        // timing wise, it's necessary to check if this binding is still bound, before execute everything below
+        // but if we always cancel any pending task during `$ubnind` of this binding
+        // then it's ok to just execute the logic inside here
+
         const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.part);
         this.interceptor.updateTarget(newValue, flags);
 

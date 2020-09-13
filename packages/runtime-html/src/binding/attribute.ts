@@ -113,6 +113,10 @@ export class AttributeBinding implements IPartialConnectableBinding {
       if ((targetObserver.type & AccessorType.Layout) > 0) {
         this.task?.cancel();
         this.task = this.$scheduler.queueRenderTask(() => {
+          // timing wise, it's necessary to check if this binding is still bound, before execute everything below
+          // but if we always cancel any pending task during `$ubnind` of this binding
+          // then it's ok to just execute the logic inside here
+
           // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
           if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
             newValue = sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);

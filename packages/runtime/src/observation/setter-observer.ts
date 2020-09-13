@@ -21,7 +21,6 @@ export class SetterObserver {
   // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
   public type: AccessorType = AccessorType.Obj;
 
-
   public constructor(
     public readonly lifecycle: ILifecycle,
     flags: LifecycleFlags,

@@ -110,6 +110,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       const interceptor = this.interceptor;
       const sourceExpression = this.sourceExpression;
       const targetObserver = this.targetObserver;
+      const $scope = this.$scope;
 
       // Alpha: during bind a simple strategy for bind is always flush immediately
       // todo:
@@ -117,20 +118,20 @@ export class AttributeBinding implements IPartialConnectableBinding {
       //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
       if ((flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0) {
         this.task?.cancel();
-        this.task = this.$scheduler.queueRenderTask(() => {
+        this.task = this.$scheduler.queueMicroTask(() => {
           // timing wise, it's necessary to check if this binding is still bound, before execute everything below
           // but if we always cancel any pending task during `$ubnind` of this binding
           // then it's ok to just execute the logic inside here
 
           // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
           if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-            newValue = sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
+            newValue = sourceExpression.evaluate(flags, $scope, this.locator, this.part);
           }
           interceptor.updateTarget(newValue, flags);
 
           if ((mode & oneTime) === 0) {
             this.version++;
-            sourceExpression.connect(flags, this.$scope, interceptor, this.part);
+            sourceExpression.connect(flags, $scope, interceptor, this.part);
             interceptor.unobserve(false);
           }
 
@@ -139,7 +140,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       } else {
         // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
         if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-          newValue = sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
+          newValue = sourceExpression.evaluate(flags, $scope, this.locator, this.part);
         }
 
         if (newValue != targetObserver.getValue()) {
@@ -148,7 +149,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
         if ((mode & oneTime) === 0) {
           this.version++;
-          sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
+          sourceExpression.connect(flags, $scope, interceptor, this.part);
           interceptor.unobserve(false);
         }
       }

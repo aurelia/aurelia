@@ -246,26 +246,6 @@ describe('router config', function () {
     await router.load('a01');
   });
 
-  it(`can NOT load a direct route by name which is listed as a dependency when routingMode is 'configured-only'`, async function () {
-    @customElement({ name: 'a01', template: null })
-    class A01 {}
-
-    @customElement({ name: 'root', template: vp(1), dependencies: [A01] })
-    class Root {}
-
-    const { router } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ routingMode: 'configured-only' }));
-
-    let e: Error | null = null;
-    try {
-      await router.load('a01');
-    } catch (err) {
-      e = err;
-    }
-
-    assert.notStrictEqual(e, null);
-    assert.match(e.message, /'a01'.+did not match.+'root'/);
-  });
-
   it(`can load a configured child route by name when routingMode is 'configured-first'`, async function () {
     @customElement({ name: 'a01', template: null })
     class A01 {}
@@ -292,92 +272,6 @@ describe('router config', function () {
     await router.load('a01');
   });
 
-  it(`can NOT load a configured child route with indirect path by name when routingMode is 'configured-first'`, async function () {
-    @route({ path: 'a' })
-    @customElement({ name: 'a01', template: null })
-    class A01 {}
-
-    @route({ children: [A01] })
-    @customElement({ name: 'root', template: vp(1) })
-    class Root {}
-
-    const { router } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ routingMode: 'configured-first' }));
-
-    let e: Error | null = null;
-    try {
-      await router.load('a01');
-    } catch (err) {
-      e = err;
-    }
-
-    assert.notStrictEqual(e, null);
-    assert.match(e.message, /'a01'.+did not match.+'root'/);
-  });
-
-  it(`can NOT load a configured child route with indirect path by name when routingMode is 'configured-only'`, async function () {
-    @route({ path: 'a' })
-    @customElement({ name: 'a01', template: null })
-    class A01 {}
-
-    @route({ children: [A01] })
-    @customElement({ name: 'root', template: vp(1) })
-    class Root {}
-
-    const { router } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ routingMode: 'configured-only' }));
-
-    let e: Error | null = null;
-    try {
-      await router.load('a01');
-    } catch (err) {
-      e = err;
-    }
-
-    assert.notStrictEqual(e, null);
-    assert.match(e.message, /'a01'.+did not match.+'root'/);
-  });
-
-  it(`can NOT load a direct route by indirect path when listed only as a dependency and routingMode is 'configured-first'`, async function () {
-    @route({ path: 'a' })
-    @customElement({ name: 'a01', template: null })
-    class A01 {}
-
-    @customElement({ name: 'root', template: vp(1), dependencies: [A01] })
-    class Root {}
-
-    const { router } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ routingMode: 'configured-first' }));
-
-    let e: Error | null = null;
-    try {
-      await router.load('a');
-    } catch (err) {
-      e = err;
-    }
-
-    assert.notStrictEqual(e, null);
-    assert.match(e.message, /'a'.+did not match.+'root'/);
-  });
-
-  it(`can NOT load a direct route by indirect path when listed only as a dependency and routingMode is 'configured-only'`, async function () {
-    @route({ path: 'a' })
-    @customElement({ name: 'a01', template: null })
-    class A01 {}
-
-    @customElement({ name: 'root', template: vp(1), dependencies: [A01] })
-    class Root {}
-
-    const { router } = await createFixture(Root, [], getDefaultHIAConfig, () => ({ routingMode: 'configured-only' }));
-
-    let e: Error | null = null;
-    try {
-      await router.load('a');
-    } catch (err) {
-      e = err;
-    }
-
-    assert.notStrictEqual(e, null);
-    assert.match(e.message, /'a'.+did not match.+'root'/);
-  });
-
   it(`can navigate to deep dependencies as long as they are declared`, async function () {
     @customElement({ name: 'c01', template: null })
     class C01 {}
@@ -394,32 +288,6 @@ describe('router config', function () {
     const { router } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a11/b11/c01');
-  });
-
-  it(`can NOT navigate to deep dependencies that are indirectly circular`, async function () {
-    @customElement({ name: 'c01', template: null })
-    class C01 {}
-
-    @customElement({ name: 'b11', template: vp(1), dependencies: [C01] })
-    class B11 {}
-
-    @customElement({ name: 'a11', template: vp(1), dependencies: [B11] })
-    class A11 {}
-
-    @customElement({ name: 'root', template: vp(1), dependencies: [A11] })
-    class Root {}
-
-    const { router } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
-
-    let e: Error | null = null;
-    try {
-      await router.load('a11/b11/a11');
-    } catch (err) {
-      e = err;
-    }
-
-    assert.notStrictEqual(e, null);
-    assert.match(e.message, /'a11'.+did not match.+'root\/a11\/b11'/);
   });
 
   it(`works with single multi segment static path`, async function () {
@@ -497,6 +365,162 @@ describe('router config', function () {
     const { router } = await createFixture(Root, [], getDefaultHIAConfig, () => ({}));
 
     await router.load('a/b/x');
+  });
+
+  describe(`throw error when`, function () {
+    function getErrorMsg({
+      routingMode,
+      isRegistered,
+      instruction,
+      parent,
+      parentPath,
+    }: {
+      routingMode: 'configured-first' | 'configured-only';
+      isRegistered: boolean;
+      instruction: string;
+      parent: string;
+      parentPath: string;
+    }) {
+      switch (routingMode) {
+        case 'configured-first':
+          return `'${instruction}' did not match any configured route or registered component name at '${parentPath}' - did you forget to add the component '${instruction}' to the dependencies of '${parent}' or to register it as a global dependency?`;
+        case 'configured-only':
+          if (isRegistered) {
+            return `'${instruction}' did not match any configured route, but it does match a registered component name at '${parentPath}' - did you forget to add a @route({ path: '${instruction}' }) decorator to '${instruction}' or unintentionally set routingMode to 'configured-only'?`;
+          } else {
+            return `'${instruction}' did not match any configured route or registered component name at '${parentPath}' - did you forget to add '${instruction}' to the children list of the route decorator of '${parent}'?`;
+          }
+      }
+    }
+
+    for (const routingMode of ['configured-first', 'configured-only'] as const) {
+      // In these cases, whatever fails in 'configured-first' should also fail in 'configured-only',
+      // so we could run these with only 'configured-first', but just to make sure we just loop through both modes for all cases.
+      describe(`routingMode is '${routingMode}'`, function () {
+        const routerOptions: IRouterOptions = { routingMode };
+        const getRouterOptions = () => routerOptions;
+
+        it(`load a configured child route with indirect path by name`, async function () {
+          @route({ path: 'a' })
+          @customElement({ name: 'a01', template: null })
+          class A01 {}
+
+          @route({ children: [A01] })
+          @customElement({ name: 'root', template: vp(1) })
+          class Root {}
+
+          const { router } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
+
+          let e: Error | null = null;
+          try {
+            await router.load('a01');
+          } catch (err) {
+            e = err;
+          }
+
+          assert.notStrictEqual(e, null);
+          assert.strictEqual(e.message, getErrorMsg({
+            routingMode,
+            isRegistered: false,
+            instruction: 'a01',
+            parent: 'root',
+            parentPath: 'root',
+          }));
+        });
+
+        it(`load a direct route by indirect path when listed only as a dependency`, async function () {
+          @route({ path: 'a' })
+          @customElement({ name: 'a01', template: null })
+          class A01 {}
+
+          @customElement({ name: 'root', template: vp(1), dependencies: [A01] })
+          class Root {}
+
+          const { router } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
+
+          let e: Error | null = null;
+          try {
+            await router.load('a');
+          } catch (err) {
+            e = err;
+          }
+
+          assert.notStrictEqual(e, null);
+          assert.strictEqual(e.message, getErrorMsg({
+            routingMode,
+            isRegistered: false,
+            instruction: 'a',
+            parent: 'root',
+            parentPath: 'root',
+          }));
+        });
+      });
+    }
+
+    describe(`routingMode is 'configured-first'`, function () {
+      const routerOptions: IRouterOptions = { routingMode: 'configured-first' };
+      const getRouterOptions = () => routerOptions;
+
+      it(`navigate to deep dependencies that are indirectly circular`, async function () {
+        @customElement({ name: 'b11', template: vp(1) })
+        class B11 {}
+
+        @customElement({ name: 'a11', template: vp(1), dependencies: [B11] })
+        class A11 {}
+
+        @customElement({ name: 'root', template: vp(1), dependencies: [A11] })
+        class Root {}
+
+        const { router } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
+
+        let e: Error | null = null;
+        try {
+          await router.load('a11/b11/a11');
+        } catch (err) {
+          e = err;
+        }
+
+        assert.notStrictEqual(e, null);
+        assert.strictEqual(e.message, getErrorMsg({
+          routingMode: 'configured-first',
+          isRegistered: false,
+          instruction: 'a11',
+          parent: 'b11',
+          parentPath: 'root/a11/b11',
+        }));
+      });
+    });
+
+    describe(`routingMode is 'configured-only'`, function () {
+      const routerOptions: IRouterOptions = { routingMode: 'configured-only' };
+      const getRouterOptions = () => routerOptions;
+
+      it(`load a direct route by name which is listed as a dependency`, async function () {
+        @customElement({ name: 'a01', template: null })
+        class A01 {}
+
+        @customElement({ name: 'root', template: vp(1), dependencies: [A01] })
+        class Root {}
+
+        const { router } = await createFixture(Root, [], getDefaultHIAConfig, getRouterOptions);
+
+        let e: Error | null = null;
+        try {
+          await router.load('a01');
+        } catch (err) {
+          e = err;
+        }
+
+        assert.notStrictEqual(e, null);
+        assert.strictEqual(e.message, getErrorMsg({
+          routingMode: 'configured-only',
+          isRegistered: true,
+          instruction: 'a01',
+          parent: 'root',
+          parentPath: 'root',
+        }));
+      });
+    });
   });
 });
 

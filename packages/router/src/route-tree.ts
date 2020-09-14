@@ -414,14 +414,22 @@ export class RouteTreeCompiler {
             const recognizedRoute = ctx.recognize(path);
             if (recognizedRoute !== null) {
               node = this.routeNodeFromRecognizedRoute(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, recognizedRoute);
-            } else if (this.mode === 'configured-only') {
-              throw new Error(`instruction '${instruction}' did not match any configured route at ${ctx}`);
             } else {
-              const component: CustomElementDefinition | null = ctx.findResource(CustomElement, instruction.component.value);
-              if (component === null) {
-                throw new Error(`instruction '${instruction}' did not match any configured route or registered component name at ${ctx}`);
+              const name = instruction.component.value;
+              const component: CustomElementDefinition | null = ctx.findResource(CustomElement, name);
+              switch (this.mode) {
+                case 'configured-only':
+                  if (component === null) {
+                    throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add '${name}' to the children list of the route decorator of '${ctx.component.name}'?`);
+                  }
+                  throw new Error(`'${name}' did not match any configured route, but it does match a registered component name at '${ctx.friendlyPath}' - did you forget to add a @route({ path: '${name}' }) decorator to '${name}' or unintentionally set routingMode to 'configured-only'?`);
+                case 'configured-first':
+                  if (component === null) {
+                    throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
+                  }
+                  node = this.routeNodeFromComponent(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, component);
+                  break;
               }
-              node = this.routeNodeFromComponent(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, component);
             }
             return onResolve(node, $node => {
               return onResolve(this.compileResidue($node, depth + 1), () => {

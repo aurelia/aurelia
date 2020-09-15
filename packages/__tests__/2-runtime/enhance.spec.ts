@@ -66,7 +66,7 @@ describe('2-runtime/enhance.spec.ts', function () {
     { text: 'instance', getComponent: () => new App1() },
     { text: 'raw object', getComponent: () => ({ foo: 'Bar' }) },
   ]) {
-    $it(`hydrates the root - ${text}`, function ({ host, scheduler }) {
+    $it(`hydrates the root - ${text}`, function ({ host }) {
       assert.html.textContent('span', 'Bar', 'span.text', host);
     }, { getComponent, template: `<span>\${foo}</span>` });
 
@@ -268,7 +268,6 @@ describe('2-runtime/enhance.spec.ts', function () {
     const au = new Aurelia(container);
     au.enhance({ host, component });
 
-    const scheduler = au.container.get(IScheduler);
     // round #1
     await au.start().wait();
     assert.html.textContent('span', 'Bar', 'span.text - 1', host);

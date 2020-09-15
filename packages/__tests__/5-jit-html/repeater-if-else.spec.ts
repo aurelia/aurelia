@@ -583,10 +583,11 @@ describe(spec, function () {
 
         execute(component as any, ctx.scheduler, host, count, ifText, elseText);
 
+        // todo(fred): there's macro task floating, only in CI
+        au.container.get(IScheduler).getMacroTaskQueue().flush();
         au.stop();
         assert.strictEqual(trimFull(host.textContent), '', `trimFull(host.textContent) === ''`);
 
-        au.container.get(IScheduler).getMacroTaskQueue().flush();
 
         assert.isSchedulerEmpty();
       });

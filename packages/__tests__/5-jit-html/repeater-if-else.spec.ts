@@ -3,11 +3,8 @@ import {
   BindingStrategy,
   CustomElement,
   IScheduler,
-  TaskQueue,
-  Task,
 } from '@aurelia/runtime';
 import { eachCartesianJoin, TestContext, TestConfiguration, trimFull, assert } from '@aurelia/testing';
-import { Scheduler, TaskQueuePriority } from '@aurelia/scheduler';
 
 const spec = 'repeater-if-else';
 
@@ -586,80 +583,12 @@ describe(spec, function () {
 
         execute(component as any, ctx.scheduler, host, count, ifText, elseText);
 
+        // todo(fred): remove this flush
+        ctx.scheduler.getRenderTaskQueue().flush();
         au.stop();
         assert.strictEqual(trimFull(host.textContent), '', `trimFull(host.textContent) === ''`);
 
-        try {
-          assert.isSchedulerEmpty();
-        } catch (ex) {
-          function priorityToString(priority: TaskQueuePriority) {
-            switch (priority) {
-              case TaskQueuePriority.microTask:
-                return 'microTask';
-              case TaskQueuePriority.render:
-                return 'render';
-              case TaskQueuePriority.macroTask:
-                return 'macroTask';
-              case TaskQueuePriority.postRender:
-                return 'postRender';
-              case TaskQueuePriority.idle:
-                return 'idle';
-              default:
-                return 'unknown';
-            }
-          }
-
-          function round(num: number) {
-            return ((num * 10 + .5) | 0) / 10;
-          }
-
-          function reportTask(task: any) {
-            const id = task.id;
-            const created = round(task.createdTime);
-            const queue = round(task.queueTime);
-            const preempt = task.preempt;
-            const reusable = task.reusable;
-            const persistent = task.persistent;
-            const status = task._status;
-        
-            return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}\n    callback=${task.callback?.toString()}`;
-          }
-          function toArray(task: any) {
-            const arr = [task];
-            while (task = task.next) {
-              arr.push(task);
-            }
-            return arr;
-          }
-
-          function reportTaskQueue(taskQueue: any) {
-            const processing = taskQueue.processingSize;
-            const pending = taskQueue.pendingSize;
-            const delayed = taskQueue.delayedSize;
-            const flushReq = taskQueue.flushRequested;
-            const prio = taskQueue.priority;
-
-            let info = `${priorityToString(prio)}TaskQueue has processing=${processing} pending=${pending} delayed=${delayed} flushRequested=${flushReq}\n\n`;
-            if (processing > 0) {
-              info += `  Tasks in processing:\n${toArray(taskQueue.processingHead).map(reportTask).join('')}`;
-            }
-            if (pending > 0) {
-              info += `  Tasks in pending:\n${toArray(taskQueue.pendingHead).map(reportTask).join('')}`;
-            }
-            if (delayed > 0) {
-              info += `  Tasks in delayed:\n${toArray(taskQueue.delayedHead).map(reportTask).join('')}`;
-            }
-
-            return info;
-          }
-          const scheduler = ctx.scheduler as unknown as Scheduler;
-          console.log('------------ FLOATING TASK CALLBACK ---------------');
-          console.log(reportTaskQueue(scheduler['microtask']));
-          console.log(reportTaskQueue(scheduler['render']));
-          console.log(reportTaskQueue(scheduler['macroTask']));
-          console.log(reportTaskQueue(scheduler['postRender']));
-          console.log(reportTaskQueue(scheduler['idle']));
-        }
+        assert.isSchedulerEmpty();
       });
     });
 

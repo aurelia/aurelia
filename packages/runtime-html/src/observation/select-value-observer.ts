@@ -262,24 +262,11 @@ export class SelectValueObserver implements IAccessor {
 
   public bind(flags: LifecycleFlags): void {
     this.nodeObserver = this.dom.createNodeObserver!(this.obj, this.handleNodeChange, childObserverOptions) as MutationObserver;
-
-    // if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-    //   if (this.task !== null) {
-    //     this.task.cancel();
-    //   }
-    //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-    // }
-    // this.flushChanges(flags);
   }
 
   public unbind(flags: LifecycleFlags): void {
     this.nodeObserver!.disconnect();
     this.nodeObserver = null!;
-
-    // if (this.task !== null) {
-    //   this.task.cancel();
-    //   this.task = null;
-    // }
 
     if (this.arrayObserver) {
       this.arrayObserver.unsubscribeFromCollection(this);

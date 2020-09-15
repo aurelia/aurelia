@@ -87,23 +87,6 @@ export class ClassAttributeAccessor implements IAccessor {
     }
   }
 
-  public bind(flags: LifecycleFlags): void {
-    // if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-    //   if (this.task !== null) {
-    //     this.task.cancel();
-    //   }
-    //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-    // }
-    // this.flushChanges(flags);
-  }
-
-  public unbind(flags: LifecycleFlags): void {
-    // if (this.task !== null) {
-    //   this.task.cancel();
-    //   this.task = null;
-    // }
-  }
-
   private addClassesAndUpdateIndex(classes: string[]) {
     const node = this.obj;
     for (let i = 0, ii = classes.length; i < ii; i++) {

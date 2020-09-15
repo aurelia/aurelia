@@ -207,6 +207,10 @@ export const enum AccessorType {
   // todo: https://gist.github.com/paulirish/5d52fb081b3570c81e3a
   // todo: https://csstriggers.com/
   Layout        = 0b0_0100_0000,
+
+  // there needs to be a flag to signal that accessor real value
+  // may get out of sync with binding value
+  // so that binding can ask for a force read instead of cache read
 }
 
 /**

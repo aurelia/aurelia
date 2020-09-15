@@ -61,20 +61,6 @@ export class ElementPropertyAccessor implements IAccessor {
   }
 
   public bind(flags: LifecycleFlags): void {
-    // if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-    //   if (this.task !== null) {
-    //     this.task.cancel();
-    //   }
-    //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-    // }
     this.currentValue = this.oldValue = this.obj[this.propertyKey];
-    // this.flushChanges(flags);
-  }
-
-  public unbind(flags: LifecycleFlags): void {
-    // if (this.task !== null) {
-    //   this.task.cancel();
-    //   this.task = null;
-    // }
   }
 }

@@ -297,14 +297,7 @@ export class CheckedObserver implements IAccessor {
   }
 
   public bind(flags: LifecycleFlags): void {
-    // if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-    //   if (this.task !== null) {
-    //     this.task.cancel();
-    //   }
-    //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-    // }
     this.currentValue = this.obj.checked;
-    // this.flushChanges(flags);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -317,11 +310,6 @@ export class CheckedObserver implements IAccessor {
     if (this.valueObserver !== void 0) {
       this.valueObserver.unsubscribe(this);
     }
-
-    // if (this.task !== null) {
-    //   this.task.cancel();
-    //   this.task = null;
-    // }
   }
 
   public subscribe(subscriber: ISubscriber): void {

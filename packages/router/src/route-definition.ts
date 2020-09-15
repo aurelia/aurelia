@@ -20,12 +20,14 @@ import {
   Routeable,
   RouteType,
   Route,
+  IRedirectRouteConfig,
 } from './route';
 import {
   IRouteContext,
 } from './route-context';
 import {
   isPartialChildRouteConfig,
+  isPartialRedirectRouteConfig,
 } from './validation';
 
 export class RouteDefinition {
@@ -39,11 +41,11 @@ export class RouteDefinition {
 
   public constructor(
     public readonly config: Omit<RouteConfig, 'saveTo'>,
-    public readonly component: CustomElementDefinition,
+    public readonly component: CustomElementDefinition | null,
   ) {
     this.hasExplicitPath = config.path !== null;
     this.caseSensitive = config.caseSensitive;
-    this.path = config.path ?? component.name;
+    this.path = config.path ?? component!.name;
     this.redirectTo = config.redirectTo ?? null;
     this.viewport = config.viewport ?? 'default';
     this.id = config.id ?? this.path;
@@ -57,6 +59,10 @@ export class RouteDefinition {
   public static resolve(routeable: Exclude<Routeable, Promise<IModule>>, context: IRouteContext): RouteDefinition;
   public static resolve(routeable: Routeable, context: IRouteContext): RouteDefinition | Promise<RouteDefinition>;
   public static resolve(routeable: Routeable, context?: IRouteContext): RouteDefinition | Promise<RouteDefinition> {
+    if (isPartialRedirectRouteConfig(routeable)) {
+      return new RouteDefinition(routeable as RouteConfig, null);
+    }
+
     // Check if this component already has a `RouteDefinition` associated with it, where the `config` matches the `RouteConfig` that is currently associated with the type.
     // If a type is re-configured via `Route.configure`, that effectively invalidates any existing `RouteDefinition` and we re-create and associate it.
     // Note: RouteConfig is associated with Type, but RouteDefinition is associated with CustomElementDefinition.
@@ -84,7 +90,7 @@ export class RouteDefinition {
   }
 
   public static resolveCustomElementDefinition(
-    routeable: Routeable,
+    routeable: Exclude<Routeable, IRedirectRouteConfig>,
     context?: IRouteContext,
   ): CustomElementDefinition | Promise<CustomElementDefinition> {
     if (isPartialChildRouteConfig(routeable)) {
@@ -118,7 +124,7 @@ export class RouteDefinition {
   }
 
   public register(container: IContainer): void {
-    this.component.register(container);
+    this.component?.register(container);
   }
 
   public toUrlComponent(): string {
@@ -127,6 +133,10 @@ export class RouteDefinition {
 
   public toString(): string {
     const path = this.config.path === null ? 'null' : `'${this.config.path}'`;
-    return `RD(config.path:${path},c.name:'${this.component.name}')`;
+    if (this.component !== null) {
+      return `RD(config.path:${path},c.name:'${this.component.name}')`;
+    } else {
+      return `RD(config.path:${path},redirectTo:'${this.redirectTo}')`;
+    }
   }
 }

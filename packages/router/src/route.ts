@@ -29,15 +29,18 @@ const noChildren = PLATFORM.emptyArray as RouteConfig['children'];
  *
  * NOTE: differs from `NavigationInstruction` only in having `IChildRouteConfig` instead of `IViewportIntruction`
  * (which in turn are quite similar, but do have a few minor but important differences that make them non-interchangeable)
+ * as well as `IRedirectRouteConfig`
  */
 export type Routeable = (
   string |
   IChildRouteConfig |
+  IRedirectRouteConfig |
   RouteableComponent
 );
 
 export interface IRouteConfig extends Partial<RouteConfig> { }
 export interface IChildRouteConfig extends IRouteConfig, Pick<ChildRouteConfig, 'component'> { }
+export interface IRedirectRouteConfig extends Pick<IRouteConfig, 'caseSensitive'>, Pick<RouteConfig, 'redirectTo' | 'path'> { }
 
 export type TransitionPlan = 'none' | 'replace' | 'invoke-lifecycles';
 export type TransitionPlanOrFunc = TransitionPlan | ((current: RouteNode, next: RouteNode) => TransitionPlan);
@@ -191,6 +194,14 @@ export class ChildRouteConfig extends RouteConfig {
       children,
     );
   }
+}
+
+export class RedirectRouteConfig {
+  private constructor(
+    public readonly path: string,
+    public readonly redirectTo: string,
+    public readonly caseSensitive: boolean,
+  ) {}
 }
 
 export const Route = {

@@ -332,7 +332,7 @@ export class RouteRecognizer {
     const path = collectResidue ? `${route.path}/*${RESIDUE}` : route.path;
 
     // Normalize leading, trailing and double slashes by ignoring empty segments
-    const parts = path.split('/').filter(function (part) {
+    const parts = path === '' ? [''] : path.split('/').filter(function (part) {
       return part.length > 0;
     });
     const paramNames: string[] = [];

@@ -38,6 +38,7 @@ import {
 import {
   RouteExpression,
 } from './route-expression';
+import { tryStringify } from './util';
 
 export type RouteContextLike = (
   IRouteContext |
@@ -194,6 +195,43 @@ export class ViewportInstruction<
     const children = this.children.length === 0 ? '' : `children:[${this.children.map(String).join(',')}]`;
     const props = [component, viewport, children].filter(Boolean).join(',');
     return `VPI(${props})`;
+  }
+}
+
+export interface IRedirectInstruction {
+  readonly path: string;
+  readonly redirectTo: string;
+}
+
+export class RedirectInstruction implements IRedirectInstruction {
+  private constructor(
+    public readonly path: string,
+    public readonly redirectTo: string,
+  ) { }
+
+  public static create(
+    instruction: IRedirectInstruction,
+  ): RedirectInstruction {
+    if (instruction instanceof RedirectInstruction) {
+      return instruction;
+    }
+
+    return new RedirectInstruction(
+      instruction.path,
+      instruction.redirectTo,
+    );
+  }
+
+  public equals(other: RedirectInstruction): boolean {
+    return this.path === other.path && this.redirectTo === other.redirectTo;
+  }
+
+  public toUrlComponent(): string {
+    return this.path;
+  }
+
+  public toString(): string {
+    return `RI(path:'${this.path}',redirectTo:'${this.redirectTo}')`;
   }
 }
 
@@ -374,7 +412,7 @@ export class TypedNavigationInstruction<
       const definition = CustomElement.getDefinition(Type);
       return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, definition);
     } else {
-      throw new Error(`Invalid component ${String(instruction)}: must be either a class, a custom element ViewModel, or a (partial) custom element definition`);
+      throw new Error(`Invalid component ${tryStringify(instruction)}: must be either a class, a custom element ViewModel, or a (partial) custom element definition`);
     }
   }
 

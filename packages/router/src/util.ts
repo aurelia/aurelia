@@ -184,3 +184,11 @@ export function mergeDistinct(prev: RouteNode[], next: RouteNode[]) {
   merged.push(...next);
   return merged;
 }
+
+export function tryStringify(value: unknown): string {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return Object.prototype.toString.call(value);
+  }
+}

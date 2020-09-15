@@ -36,6 +36,12 @@ import {
 import {
   ViewportRequest,
 } from './viewport-agent';
+import {
+  ExpressionKind,
+  RouteExpression,
+  ScopedSegmentExpression,
+  SegmentExpression,
+} from './route-expression';
 
 export interface IRouteNode {
   context: IRouteContext;
@@ -219,7 +225,7 @@ export class RouteNode implements IRouteNode {
   public toString(): string {
     const props: string[] = [];
 
-    const component = this.context?.definition.component.name ?? '';
+    const component = this.context?.definition.component?.name ?? '';
     if (component.length > 0) {
       props.push(`c:'${component}'`);
     }
@@ -420,11 +426,18 @@ export class RouteTreeCompiler {
               switch (this.mode) {
                 case 'configured-only':
                   if (component === null) {
+                    if (name === '') {
+                      // TODO: maybe throw here instead? Do we want to force the empty route to always be configured?
+                      return;
+                    }
                     throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add '${name}' to the children list of the route decorator of '${ctx.component.name}'?`);
                   }
                   throw new Error(`'${name}' did not match any configured route, but it does match a registered component name at '${ctx.friendlyPath}' - did you forget to add a @route({ path: '${name}' }) decorator to '${name}' or unintentionally set routingMode to 'configured-only'?`);
                 case 'configured-first':
                   if (component === null) {
+                    if (name === '') {
+                      return;
+                    }
                     throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
                   }
                   node = this.routeNodeFromComponent(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, component);
@@ -443,7 +456,7 @@ export class RouteTreeCompiler {
       case NavigationInstructionType.IRouteViewModel:
       case NavigationInstructionType.CustomElementDefinition: {
         const routeDef = RouteDefinition.resolve(instruction.component.value);
-        const node = this.routeNodeFromComponent(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, routeDef.component);
+        const node = this.routeNodeFromComponent(instruction as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, depth, append, routeDef.component!);
 
         return onResolve(node, $node => {
           return onResolve(this.compileResidue($node, depth + 1), () => {
@@ -494,17 +507,119 @@ export class RouteTreeCompiler {
     recognizedRoute: RecognizedRoute,
   ): RouteNode {
     const ctx = this.ctx.path[depth];
-    const endpoint = recognizedRoute.endpoint;
+
+    let endpoint = recognizedRoute.endpoint;
+    while (endpoint.route.redirectTo !== null) {
+      // Migrate parameters to the redirect
+      const originalPath = RouteExpression.parse(endpoint.route.path, false);
+      const redirectPath = RouteExpression.parse(endpoint.route.redirectTo, false);
+      let originalCur: ScopedSegmentExpression | SegmentExpression;
+      let redirectCur: ScopedSegmentExpression | SegmentExpression;
+      const newSegments: string[] = [];
+      switch (originalPath.root.kind) {
+        case ExpressionKind.ScopedSegment:
+        case ExpressionKind.Segment:
+          originalCur = originalPath.root;
+          break;
+        default:
+          throw new Error(`Unexpected expression kind ${originalPath.root.kind}`);
+      }
+      switch (redirectPath.root.kind) {
+        case ExpressionKind.ScopedSegment:
+        case ExpressionKind.Segment:
+          redirectCur = redirectPath.root;
+          break;
+        default:
+          throw new Error(`Unexpected expression kind ${redirectPath.root.kind}`);
+      }
+
+      let originalSeg: SegmentExpression | null;
+      let redirectSeg: SegmentExpression | null;
+      let originalDone: boolean = false;
+      let redirectDone: boolean = false;
+      while (!(originalDone && redirectDone)) {
+        if (originalDone) {
+          originalSeg = null;
+        } else if (originalCur.kind === ExpressionKind.Segment) {
+          originalSeg = originalCur;
+          originalDone = true;
+        } else if (originalCur.left.kind === ExpressionKind.Segment) {
+          originalSeg = originalCur.left;
+          switch (originalCur.right.kind) {
+            case ExpressionKind.ScopedSegment:
+            case ExpressionKind.Segment:
+              originalCur = originalCur.right;
+              break;
+            default:
+              throw new Error(`Unexpected expression kind ${originalCur.right.kind}`);
+          }
+        } else {
+          throw new Error(`Unexpected expression kind ${originalCur.left.kind}`);
+        }
+        if (redirectDone) {
+          redirectSeg = null;
+        } else if (redirectCur.kind === ExpressionKind.Segment) {
+          redirectSeg = redirectCur;
+          redirectDone = true;
+        } else if (redirectCur.left.kind === ExpressionKind.Segment) {
+          redirectSeg = redirectCur.left;
+          switch (redirectCur.right.kind) {
+            case ExpressionKind.ScopedSegment:
+            case ExpressionKind.Segment:
+              redirectCur = redirectCur.right;
+              break;
+            default:
+              throw new Error(`Unexpected expression kind ${redirectCur.right.kind}`);
+          }
+        } else {
+          throw new Error(`Unexpected expression kind ${redirectCur.left.kind}`);
+        }
+
+        if (redirectSeg !== null) {
+          if (redirectSeg.component.isDynamic && originalSeg?.component.isDynamic) {
+            newSegments.push(recognizedRoute.params[originalSeg.component.name] as string);
+          } else {
+            newSegments.push(redirectSeg.raw);
+          }
+        }
+      }
+
+      const newPath = newSegments.join('/');
+
+      const recognizedRedirectRoute = ctx.recognize(newPath);
+      if (recognizedRedirectRoute === null) {
+        const name = newPath;
+        const comp: CustomElementDefinition | null = ctx.findResource(CustomElement, newPath);
+        switch (this.mode) {
+          case 'configured-only':
+            if (comp === null) {
+              throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add '${name}' to the children list of the route decorator of '${ctx.component.name}'?`);
+            }
+            throw new Error(`'${name}' did not match any configured route, but it does match a registered component name at '${ctx.friendlyPath}' - did you forget to add a @route({ path: '${name}' }) decorator to '${name}' or unintentionally set routingMode to 'configured-only'?`);
+          case 'configured-first':
+            if (comp === null) {
+              throw new Error(`'${name}' did not match any configured route or registered component name at '${ctx.friendlyPath}' - did you forget to add the component '${name}' to the dependencies of '${ctx.component.name}' or to register it as a global dependency?`);
+            }
+            return this.routeNodeFromComponent(instruction, depth, append, comp);
+        }
+      }
+
+      endpoint = recognizedRedirectRoute.endpoint;
+    }
+
+    const viewportName = endpoint.route.viewport;
+    const component = endpoint.route.component!;
+
     const viewportAgent = ctx.resolveViewportAgent(ViewportRequest.create({
-      viewportName: endpoint.route.viewport,
-      componentName: endpoint.route.component.name,
+      viewportName,
+      componentName: component.name,
       append,
       deferUntil: this.deferUntil,
     }));
 
     const childCtx = RouteContext.getOrCreate(
       viewportAgent,
-      endpoint.route.component,
+      component,
       viewportAgent.hostController.context,
     );
 
@@ -515,9 +630,9 @@ export class RouteTreeCompiler {
       queryParams: this.instructions.queryParams, // TODO: queryParamsStrategy
       fragment: this.instructions.fragment, // TODO: fragmentStrategy
       data: endpoint.route.data,
-      viewport: endpoint.route.viewport,
-      component: endpoint.route.component,
-      append: append,
+      viewport: viewportName,
+      component,
+      append,
       residue: recognizedRoute.residue === null ? [] : [ViewportInstruction.create(recognizedRoute.residue)],
     });
 

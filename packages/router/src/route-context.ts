@@ -454,7 +454,7 @@ export class RouteContext implements IContainer {
 
     this.hostControllerProvider.prepare(hostController);
     const routeDefinition = RouteDefinition.resolve(routeNode.component);
-    const componentInstance = this.container.get<IRouteViewModel>(routeDefinition.component.key);
+    const componentInstance = this.container.get<IRouteViewModel>(routeDefinition.component!.key);
     const componentAgent = ComponentAgent.for(componentInstance, hostController, routeNode, this);
 
     this.hostControllerProvider.dispose();

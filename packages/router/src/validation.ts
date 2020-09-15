@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
   IIndexable,
 } from '@aurelia/kernel';
@@ -9,12 +8,14 @@ import {
 
 import {
   IChildRouteConfig,
+  IRedirectRouteConfig,
   Routeable,
 } from './route';
 import {
   IViewportInstruction,
   RouteableComponent,
 } from './instructions';
+import { tryStringify } from './util';
 
 export function isNotNullishOrTypeOrViewModel(value: RouteableComponent | null | undefined): value is PartialCustomElementDefinition | IChildRouteConfig {
   return (
@@ -33,12 +34,21 @@ export function isPartialCustomElementDefinition(value: RouteableComponent | ICh
   );
 }
 
-export function isPartialChildRouteConfig(value: RouteableComponent | IChildRouteConfig | null | undefined): value is IChildRouteConfig {
+export function isPartialChildRouteConfig(value: RouteableComponent | IChildRouteConfig | IRedirectRouteConfig | null | undefined): value is IChildRouteConfig {
   // 'component' is the only mandatory property of a ChildRouteConfig
   // It may overlap with RouteType and CustomElementViewModel, so this ducktype check is only valid when those are ruled out *first*
   return (
     isNotNullishOrTypeOrViewModel(value) &&
     Object.prototype.hasOwnProperty.call(value, 'component') === true
+  );
+}
+
+export function isPartialRedirectRouteConfig(value: RouteableComponent | IChildRouteConfig | IRedirectRouteConfig | null | undefined): value is IRedirectRouteConfig {
+  // 'redirectTo' and 'path' are mandatory properties of a RedirectRouteConfig
+  // It may overlap with RouteType and CustomElementViewModel, so this ducktype check is only valid when those are ruled out *first*
+  return (
+    isNotNullishOrTypeOrViewModel(value) &&
+    Object.prototype.hasOwnProperty.call(value, 'redirectTo') === true
   );
 }
 
@@ -54,7 +64,7 @@ export function isPartialViewportInstruction(value: RouteableComponent | IViewpo
 }
 
 export function expectType(expected: string, prop: string, value: unknown): never {
-  throw new Error(`Invalid route config property: "${prop}". Expected ${expected}, but got ${Object.prototype.toString.call(value)}.`);
+  throw new Error(`Invalid route config property: "${prop}". Expected ${expected}, but got ${tryStringify(value)}.`);
 }
 
 /**
@@ -98,7 +108,33 @@ export function validateRouteConfig(
       }
       default:
         // We don't *have* to throw here, but let's be as strict as possible until someone gives a valid reason for not doing so.
-        throw new Error(`Unknown route config property: "${parentPath}${key as string}". Please specify known properties only.`);
+        throw new Error(`Unknown route config property: "${parentPath}.${key as string}". Please specify known properties only.`);
+    }
+  }
+}
+
+export function validateRedirectRouteConfig(
+  config: Partial<IRedirectRouteConfig> | null | undefined,
+  parentPath: string,
+): void {
+  if (config === null || config === void 0) {
+    throw new Error(`Invalid route config: expected an object or string, but got: ${String(config)}.`);
+  }
+
+  const keys = Object.keys(config) as (keyof IRedirectRouteConfig)[];
+  for (const key of keys) {
+    const value = config[key];
+    const path = `${parentPath}${key}`;
+    switch (key) {
+      case 'path':
+      case 'redirectTo':
+        if (typeof value !== 'string') {
+          expectType('string', path, value);
+        }
+        break;
+      default:
+        // We don't *have* to throw here, but let's be as strict as possible until someone gives a valid reason for not doing so.
+        throw new Error(`Unknown redirect config property: "${parentPath}.${key as string}". Only 'path' and 'redirectTo' should be specified for redirects.`);
     }
   }
 }
@@ -111,6 +147,10 @@ export function validateComponent(
     case 'function':
       break;
     case 'object':
+      if (isPartialRedirectRouteConfig(component)) {
+        validateRedirectRouteConfig(component, parentPath);
+        break;
+      }
       if (isPartialChildRouteConfig(component)) {
         validateRouteConfig(component, parentPath);
         break;
@@ -119,13 +159,13 @@ export function validateComponent(
         !isCustomElementViewModel(component) &&
         !isPartialCustomElementDefinition(component)
       ) {
-        expectType('Routeable', parentPath, component);
+        expectType(`an object with at least a 'component' property (see Routeable)`, parentPath, component);
       }
       break;
     case 'string':
       break;
     default:
-      expectType('Routeable', parentPath, component);
+      expectType('function, object or string (see Routeable)', parentPath, component);
   }
 }
 

@@ -1,10 +1,23 @@
-import { Constructable, LogLevel, Registration, ILogConfig } from '@aurelia/kernel';
+import { Constructable, LogLevel, Registration, ILogConfig, DI } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime';
 import { IRouterOptions, RouterConfiguration, IRouter } from '@aurelia/router';
 import { TestContext, assert } from '@aurelia/testing';
 
 import { IHIAConfig, IHookInvocationAggregator } from './hook-invocation-tracker';
 import { TestRouterConfiguration } from './configuration';
+
+export const IActivityTracker = DI.createInterface<IActivityTracker>('IActivityTracker').withDefault(x => x.singleton(ActivityTracker));
+export interface IActivityTracker extends ActivityTracker {}
+export class ActivityTracker {
+  public readonly activeVMs: string[] = [];
+
+  public setActive(vm: string): void {
+    this.activeVMs.push(vm);
+  }
+  public setNonActive(vm: string): void {
+    this.activeVMs.splice(this.activeVMs.indexOf(vm), 1);
+  }
+}
 
 export async function createFixture<T extends Constructable>(
   Component: T,
@@ -23,6 +36,7 @@ export async function createFixture<T extends Constructable>(
   container.register(RouterConfiguration.customize(routerOptions));
   container.register(...deps);
 
+  const activityTracker = container.get(IActivityTracker);
   const hia = container.get(IHookInvocationAggregator);
   const router = container.get(IRouter);
   const component = container.get(Component);
@@ -47,6 +61,7 @@ export async function createFixture<T extends Constructable>(
     component,
     scheduler,
     router,
+    activityTracker,
     startTracing() {
       logConfig.level = LogLevel.trace;
     },

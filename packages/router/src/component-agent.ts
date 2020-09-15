@@ -179,6 +179,6 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   }
 
   public toString(): string {
-    return `CA(ctx:'${this.ctx.friendlyPath}',c:'${this.definition.component.name}')`;
+    return `CA(ctx:'${this.ctx.friendlyPath}',c:'${this.definition.component!.name}')`;
   }
 }

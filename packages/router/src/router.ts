@@ -49,9 +49,6 @@ import {
   resolveAll,
   runSequence,
 } from './util';
-import {
-  ViewportAgent,
-} from './viewport-agent';
 
 export const AuNavId = 'au-nav-id' as const;
 export type AuNavId = typeof AuNavId;
@@ -383,7 +380,7 @@ export class Router {
         RouteNode.create({
           context: ctx,
           instruction: null,
-          component: ctx.definition.component,
+          component: ctx.definition.component!,
           append: false,
         }),
       );
@@ -744,7 +741,7 @@ export class Router {
       finalInstructions: tr.finalInstructions,
     });
 
-    const routeChanged = !tr.instructions.equals(this.instructions);
+    const routeChanged = !tr.instructions.equals(this.instructions) || !this.navigated;
     const shouldProcessRoute = routeChanged || tr.options.getSameUrlStrategy(this.instructions) === 'reload';
 
     if (!shouldProcessRoute) {
@@ -772,11 +769,6 @@ export class Router {
     }
 
     const navigationContext = this.getContext(tr.options.context);
-
-    // TODO: apply redirects
-    //
-    //
-    // ---
 
     this.activeNavigation = Navigation.create({
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion

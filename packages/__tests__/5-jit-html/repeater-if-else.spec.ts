@@ -5,6 +5,7 @@ import {
   IScheduler,
 } from '@aurelia/runtime';
 import { eachCartesianJoin, TestContext, TestConfiguration, trimFull, assert } from '@aurelia/testing';
+import { Scheduler, TaskQueue, Task } from '@aurelia/scheduler';
 
 const spec = 'repeater-if-else';
 
@@ -592,6 +593,24 @@ describe(spec, function () {
           assert.isSchedulerEmpty();
         } catch (ex) {
           console.log('todo(fred): scheduler not empty.');
+          try {
+            const renderQueue = (ctx.scheduler as Scheduler)['render'] as TaskQueue;
+            let head = renderQueue['processingHead'] as Task;
+            head?.cancel();
+            while (head?.next) {
+              head.next.cancel();
+              head = head.next;
+            }
+            let tries = 0;
+            while (!renderQueue.isEmpty) {
+              renderQueue.flush();
+              tries++;
+              if (tries >= 10) {
+                console.log('todo(fred): unable to flush scheduler render queue.');
+                break;
+              }
+            }
+          } catch {}
         }
       });
     });

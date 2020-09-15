@@ -137,7 +137,6 @@ describe('2-runtime/enhance.spec.ts', function () {
       assert.html.textContent('div', message, 'div', host);
 
       host.querySelector('button').click();
-      await new Promise(r => setTimeout(r, 20));
       scheduler.getPostRenderTaskQueue().flush();
 
       assert.html.textContent('div:nth-of-type(2)', message, 'div:nth-of-type(2)', host);
@@ -272,20 +271,17 @@ describe('2-runtime/enhance.spec.ts', function () {
     const scheduler = au.container.get(IScheduler);
     // round #1
     await au.start().wait();
-    scheduler.getRenderTaskQueue().flush();
     assert.html.textContent('span', 'Bar', 'span.text - 1', host);
     await au.stop().wait();
 
     // round #2
     await au.start().wait();
-    scheduler.getRenderTaskQueue().flush();
     assert.html.textContent('span', 'Bar', 'span.text - 2', host);
     await au.stop().wait();
 
     // round #3
     component.foo = 'Fiz';
     await au.start().wait();
-    scheduler.getRenderTaskQueue().flush();
     assert.html.textContent('span', 'Fiz', 'span.text - 3', host);
     await au.stop().wait();
     ctx.doc.body.removeChild(host);

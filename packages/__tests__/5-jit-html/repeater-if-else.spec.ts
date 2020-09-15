@@ -586,6 +586,8 @@ describe(spec, function () {
         au.stop();
         assert.strictEqual(trimFull(host.textContent), '', `trimFull(host.textContent) === ''`);
 
+        au.container.get(IScheduler).getMacroTaskQueue().flush();
+
         assert.isSchedulerEmpty();
       });
     });

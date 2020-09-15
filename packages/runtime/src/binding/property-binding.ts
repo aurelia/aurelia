@@ -44,6 +44,7 @@ export interface PropertyBinding extends IConnectableBinding {}
 
 const updateTaskOpts: QueueTaskOptions = {
   reusable: false,
+  preempt: true,
 };
 
 @connectable()

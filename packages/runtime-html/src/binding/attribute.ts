@@ -36,6 +36,7 @@ const toViewOrOneTime = toView | oneTime;
 
 const taskOptions: QueueTaskOptions = {
   reusable: false,
+  preempt: true,
 };
 
 export interface AttributeBinding extends IConnectableBinding {}

@@ -30,6 +30,7 @@ const { toView, oneTime } = BindingMode;
 
 const queueTaskOptions: QueueTaskOptions = {
   reusable: false,
+  preempt: true,
 };
 
 export class MultiInterpolationBinding implements IBinding {

@@ -3,7 +3,6 @@ import {
   BindingStrategy,
   CustomElement,
   IScheduler,
-  LifecycleFlags
 } from '@aurelia/runtime';
 import { eachCartesianJoin, TestContext, TestConfiguration, trimFull, assert } from '@aurelia/testing';
 
@@ -586,6 +585,7 @@ describe(spec, function () {
 
         au.stop();
         assert.strictEqual(trimFull(host.textContent), '', `trimFull(host.textContent) === ''`);
+
         assert.isSchedulerEmpty();
       });
     });

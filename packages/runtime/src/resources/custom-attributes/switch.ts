@@ -6,16 +6,19 @@ import {
   Registration,
   Writable,
 } from '@aurelia/kernel';
+import { ITargetedInstruction } from '../../definitions';
 import {
   INode, IRenderLocation,
 } from '../../dom';
 import {
+  BindingMode,
   LifecycleFlags,
   State,
 } from '../../flags';
 import {
   IController,
   ICustomAttributeController,
+  ICustomAttributeViewModel,
   ICustomElementController,
   ICustomElementViewModel,
   ISyntheticView,
@@ -33,6 +36,7 @@ import {
 } from '../../templating/bindable';
 import { Controller } from '../../templating/controller';
 import {
+  CustomAttribute,
   templateController,
 } from '../custom-attribute';
 import {
@@ -40,38 +44,42 @@ import {
   customElement,
 } from '../custom-element';
 
-// interface IAuSwitch<T extends INode = Node> {
-//   readonly cases: Case<T>[];
-//   defaultCase?: Case<T>;
-// }
-// const IAuSwitch = DI.createInterface<IAuSwitch>('IAuSwitch').noDefault();
-
-@customElement({ name: 'au-switch', template: null/* , containerless: true */ })
-export class AuSwitch<T extends INode = Node> implements ICustomElementViewModel<T> {
-  // probably it is better to rename this to value.
-  @bindable public expression: any;
+@templateController('switch')
+export class AuSwitch<T extends INode = Node> implements ICustomAttributeViewModel<T> {
+  public readonly id: number = nextId('au$component');
+  @bindable public value: any;
   /** @internal */
   public readonly cases: Case<T>[] = [];
   public defaultCase?: Case<T>;
+  public view?: ISyntheticView<T> = void 0;
 
-  public readonly $controller!: ICustomElementController<T, this>; // This is set by the controller after this instance is constructed
+  public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
 
   private task: ILifecycleTask = LifecycleTask.done;
 
   public constructor(
-    // @IViewFactory private readonly factory: IViewFactory<T>,
+    @IViewFactory private readonly factory: IViewFactory<T>,
     @IRenderLocation private readonly location: IRenderLocation<T>,
+    @ITargetedInstruction private readonly instruction: ITargetedInstruction,
   ) {
-    console.log(`switch ctor:`, location);
-    // const view = factory.create();
+    console.group('switch ctor');
+    console.log(`location:`, location);
+    console.log(`instruction:`, instruction);
+    // const view = this.view = factory.create();
     // view.hold(location, MountStrategy.insertBefore);
+    console.groupEnd();
   }
 
   public beforeBind(flags: LifecycleFlags): ILifecycleTask {
     console.log('before bind');
-    console.log(`#cases: ${this.cases.length}`);
-    console.log(`value: ${this.expression}`);
     console.log(`scope`, this.$controller.scope);
+    const view = /* this.view =  */this.$controller as unknown as Controller;
+    view['hydrateSynthetic'](this.factory.context);
+    view.hold(location, MountStrategy.insertBefore);
+
+    console.log(`#cases: ${this.cases.length}`);
+    console.log(`value: ${this.value}`);
+
     if (this.task.done) {
       this.task = this.swap(flags);
     } else {
@@ -81,7 +89,7 @@ export class AuSwitch<T extends INode = Node> implements ICustomElementViewModel
   }
 
   private swap(flags: LifecycleFlags): ILifecycleTask {
-    const value = this.expression;
+    const value = this.value;
     for (const $case of this.cases) {
       console.log(`$case.value: ${$case.value}`);
       if (value === $case.value) {
@@ -93,9 +101,10 @@ export class AuSwitch<T extends INode = Node> implements ICustomElementViewModel
 }
 
 @templateController('case')
-export class Case<T extends INode = Node> {
+export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T> {
   public readonly id: number = nextId('au$component');
   @bindable public value: any;
+  @bindable({ mode: BindingMode.oneTime }) public fallthrough: boolean = false;
   protected task: ILifecycleTask = LifecycleTask.done;
   public view?: ISyntheticView<T> = void 0;
   public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
@@ -105,8 +114,16 @@ export class Case<T extends INode = Node> {
     @IViewFactory private readonly factory: IViewFactory<T>,
     @IRenderLocation private readonly location: IRenderLocation<T>,
     @INode node: Node,
+    @IController controller: ICustomAttributeController<T>,
   ) {
-    const auSwitch = CustomElement.for(node, true)?.viewModel ?? null;
+    console.log(`case#ctor`);
+    console.log(controller);
+    const auSwitch = controller.viewModel;
+    console.log(auSwitch);
+    console.log(`node`, (node as HTMLElement).outerHTML);
+    console.log(`node.parent`, (node.parentElement as HTMLElement).outerHTML);
+    const x = CustomAttribute.for(node, 'switch');
+    console.log(x);
     if (auSwitch instanceof AuSwitch) {
       this.auSwitch = auSwitch;
       auSwitch.cases.push(this);
@@ -115,11 +132,19 @@ export class Case<T extends INode = Node> {
     }
   }
 
+  public beforeBind(flags: LifecycleFlags) {
+    console.log(`Case#beforeBind;
+    value: ${JSON.stringify(this.value)}
+    fallthrough: ${JSON.stringify(this.fallthrough)}
+    state: ${this.$controller.state & State.isBoundOrBinding}
+    `);
+  }
+
   /** @internal */
   public activate(flags: LifecycleFlags, location: IRenderLocation<T>): ILifecycleTask {
     const controller = this.$controller as Writable<IController>;
     const pc = this.auSwitch.$controller;
-    controller.scope = controller.scope ?? Scope.fromParent(flags, pc.scope, null!);
+    controller.scope = controller.scope ?? Scope.fromParent(flags, pc.scope ?? null, null!);
     controller.state |= flags;
 
     if (this.task.done) {

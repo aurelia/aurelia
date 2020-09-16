@@ -522,7 +522,7 @@ describe(spec, function () {
   ];
 
   eachCartesianJoin(
-    [strategySpecs, behaviorsSpecs, ceTemplateSpecs.slice(0, 1), appTemplateSpecs.slice(0, 2), itemsSpecs, countSpecs, mutationSpecs],
+    [strategySpecs, behaviorsSpecs, ceTemplateSpecs, appTemplateSpecs, itemsSpecs, countSpecs, mutationSpecs],
     (strategySpec, behaviorsSpec, ceTemplateSpec, appTemplateSpec, itemsSpec, countSpec, mutationSpec) => {
 
       it(`strategySpec ${strategySpec.t}, behaviorsSpec ${behaviorsSpec.t}, ceTemplateSpec ${ceTemplateSpec.t}, appTemplateSpec ${appTemplateSpec.t}, itemsSpec ${itemsSpec.t}, countSpec ${countSpec.t}, mutationSpec ${mutationSpec.t}`, async function () {
@@ -585,33 +585,9 @@ describe(spec, function () {
         execute(component as any, ctx.scheduler, host, count, ifText, elseText);
 
         au.stop();
-        // todo(fred): remove this flush
-        ctx.scheduler.getRenderTaskQueue().flush();
         assert.strictEqual(trimFull(host.textContent), '', `trimFull(host.textContent) === ''`);
 
-        try {
-          assert.isSchedulerEmpty();
-        } catch (ex) {
-          console.log('todo(fred): scheduler not empty.');
-          try {
-            const renderQueue = (ctx.scheduler as Scheduler)['render'] as TaskQueue;
-            let head = renderQueue['processingHead'] as Task;
-            head?.cancel();
-            while (head?.next) {
-              head.next.cancel();
-              head = head.next;
-            }
-            let tries = 0;
-            while (!renderQueue.isEmpty) {
-              renderQueue.flush();
-              tries++;
-              if (tries >= 10) {
-                console.log('todo(fred): unable to flush scheduler render queue.');
-                break;
-              }
-            }
-          } catch {}
-        }
+        assert.isSchedulerEmpty();
       });
     });
 

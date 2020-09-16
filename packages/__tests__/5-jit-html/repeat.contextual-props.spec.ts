@@ -431,6 +431,7 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
           if (body) {
             body.focus();
           }
+          assert.isSchedulerEmpty();
         }
       });
     }

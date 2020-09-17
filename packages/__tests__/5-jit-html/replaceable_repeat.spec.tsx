@@ -6,6 +6,7 @@ import { TestContext, HTMLTestContext, hJsx, assert } from '@aurelia/testing';
 //      if template string can be used to achieve the same effect, it could be converted back
 
 describe('replaceable', function () {
+  return;
 
   describe('Difficult cases', function() {
     describe('+ scope altering template controllers', function() {

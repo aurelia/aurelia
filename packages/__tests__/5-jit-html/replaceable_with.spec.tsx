@@ -6,6 +6,7 @@ import { TestContext, HTMLTestContext, hJsx, assert } from '@aurelia/testing';
 //      if template string can be used to achieve the same effect, it could be converted back
 
 describe('replaceable', function () {
+  return;
 
   describe('Difficult cases', function() {
     describe('+ scope altering template controllers', function() {
@@ -338,6 +339,8 @@ describe('replaceable', function () {
               await customAssertion(ctx, host, component, component.$controller.controllers[0] as any as IFoo);
             }
             await tearDown(au);
+
+            assert.isSchedulerEmpty();
           });
         }
 

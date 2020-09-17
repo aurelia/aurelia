@@ -1,8 +1,8 @@
 import { Constructable } from '@aurelia/kernel';
-import { Aurelia, BindingMode, CustomElement, ILifecycle, LifecycleFlags, IScheduler } from '@aurelia/runtime';
+import { Aurelia, BindingMode, CustomElement, IScheduler } from '@aurelia/runtime';
 import { IEventManager } from '@aurelia/runtime-html';
 import { JitHtmlConfiguration } from '@aurelia/jit-html';
-import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert, ensureSchedulerEmpty } from '@aurelia/testing';
+import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert } from '@aurelia/testing';
 import { ClassAttributePattern } from './attribute-pattern';
 
 // TemplateCompiler - Binding Commands integration
@@ -204,7 +204,7 @@ describe('template-compiler.binding-commands.class', function () {
           const em = ctx.container.get(IEventManager);
           em.dispose();
           tearDown();
-          await au.stop().wait()
+          await au.stop().wait();
         }
       });
     }

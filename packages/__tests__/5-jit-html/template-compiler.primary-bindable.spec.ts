@@ -17,7 +17,6 @@ import {
   assert,
   HTMLTestContext,
   TestContext,
-  ensureSchedulerEmpty,
 } from '@aurelia/testing';
 import { HTMLDOM } from '@aurelia/runtime-html';
 

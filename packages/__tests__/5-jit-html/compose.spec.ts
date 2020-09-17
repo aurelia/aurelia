@@ -15,7 +15,6 @@ import {
   TestContext,
   trimFull,
   assert,
-  ensureSchedulerEmpty,
 } from '@aurelia/testing';
 
 const spec = 'compose';

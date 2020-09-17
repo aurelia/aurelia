@@ -15,6 +15,9 @@ import {
 } from '@aurelia/testing';
 
 describe('checked-observer.spec.ts', function () {
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
+  });
 
   const testCases: ITestCase[] = [
     {

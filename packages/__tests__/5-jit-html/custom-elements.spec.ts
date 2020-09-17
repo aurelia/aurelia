@@ -14,7 +14,9 @@ interface Person { firstName?: string; lastName?: string; fullName?: string }
 const app = class { public value: string = 'wOOt'; };
 
 describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
-
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
+  });
   const registrations = [TestConfiguration];
 
   // custom elements
@@ -398,8 +400,6 @@ describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
   });
 
   describe('08. Change Handler', function () {
-    this.afterEach(assert.isSchedulerEmpty);
-
     describe('+ with only [prop]Changed()', function () {
       interface IChangeHandlerTestViewModel {
         prop: any;
@@ -609,7 +609,6 @@ describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
   });
 
   describe('09. with setter', function () {
-    this.afterEach(assert.isSchedulerEmpty);
     interface IBindableSetterHtmlInputTestCase {
       title: string;
       template: string;

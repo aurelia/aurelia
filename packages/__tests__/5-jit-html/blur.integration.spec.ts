@@ -8,13 +8,8 @@ describe('blur.integration.spec.ts', function () {
   if (!PLATFORM.isBrowserLike) {
     return;
   }
-  afterEach(function () {
-    try {
-      assert.isSchedulerEmpty();
-    } catch (ex) {
-      ensureSchedulerEmpty();
-      throw ex;
-    }
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
   });
 
   interface IApp {

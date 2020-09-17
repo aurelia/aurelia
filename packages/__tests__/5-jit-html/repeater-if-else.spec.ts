@@ -10,19 +10,13 @@ import {
   TestConfiguration,
   trimFull,
   assert,
-  ensureSchedulerEmpty,
 } from '@aurelia/testing';
 
 const spec = 'repeater-if-else';
 
 describe(spec, function () {
-  afterEach(function () {
-    try {
-      assert.isSchedulerEmpty();
-    } catch (ex) {
-      ensureSchedulerEmpty();
-      throw ex;
-    }
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
   });
   type Comp = { items: any[]; display: boolean };
   interface Spec {

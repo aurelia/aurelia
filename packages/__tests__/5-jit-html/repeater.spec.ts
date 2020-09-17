@@ -4,19 +4,13 @@ import {
   TestContext,
   TestConfiguration,
   assert,
-  ensureSchedulerEmpty,
 } from '@aurelia/testing';
 
 const spec = 'repeater';
 
 describe(spec, function () {
-  afterEach(async function () {
-    try {
-      assert.isSchedulerEmpty();
-    } catch (ex) {
-      ensureSchedulerEmpty();
-      throw ex;
-    }
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
   });
   interface Spec {
     t: string;

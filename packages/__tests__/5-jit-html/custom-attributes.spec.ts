@@ -8,7 +8,9 @@ import {
 import { assert, eachCartesianJoin, createFixture } from '@aurelia/testing';
 
 describe('custom-attributes', function () {
-  this.afterEach(assert.isSchedulerEmpty);
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
+  });
   // custom elements
   describe('01. Aliases', function () {
 

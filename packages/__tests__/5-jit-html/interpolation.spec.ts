@@ -16,13 +16,8 @@ const testDateString = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated 
 const ThreeHoursAheadDateString = new Date('Sat Feb 02 2002 03:00:00 GMT+0000 (Coordinated Universal Time)').toString();
 const ThreeDaysDateString = new Date('Sat Feb 03 2002 00:00:00 GMT+0000 (Coordinated Universal Time)').toString();
 describe('interpolation', function () {
-  afterEach(function () {
-    try {
-      assert.isSchedulerEmpty();
-    } catch (ex) {
-      ensureSchedulerEmpty();
-      throw ex;
-    }
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
   });
 
   const cases: CaseType[] = [

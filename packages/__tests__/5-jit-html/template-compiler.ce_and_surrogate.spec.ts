@@ -1,14 +1,9 @@
-import { HTMLTestContext, TestContext, assert, ensureSchedulerEmpty } from '@aurelia/testing';
+import { HTMLTestContext, TestContext, assert } from '@aurelia/testing';
 import { CustomElement, Aurelia } from '@aurelia/runtime';
 
 describe('template-compiler.ce_and_surrogate.spec.ts', function () {
-  afterEach(function () {
-    try {
-      assert.isSchedulerEmpty();
-    } catch (ex) {
-      ensureSchedulerEmpty();
-      throw ex;
-    }
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
   });
 
   interface ISurrogateIntegrationTestCase {

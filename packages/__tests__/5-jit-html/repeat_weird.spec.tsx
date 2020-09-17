@@ -1,18 +1,13 @@
 import { Aurelia, CustomElement } from '@aurelia/runtime';
-import { TestContext, hJsx, assert, ensureSchedulerEmpty } from '@aurelia/testing';
+import { TestContext, hJsx, assert } from '@aurelia/testing';
 
 // IMPORTANT:
 //      JSX is used to eliminate space between tags so test result can be easier to manually constructed
 //      if template string can be used to achieve the same effect, it could be converted back
 
 describe('[repeat] -- funny cases', function () {
-  afterEach(function () {
-    try {
-      assert.isSchedulerEmpty();
-    } catch (ex) {
-      ensureSchedulerEmpty();
-      throw ex;
-    }
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
   });
   const testCases: [string, HTMLElement, HTMLElement, ITestItem[], string, ICustomAssertion?][] = [
     [

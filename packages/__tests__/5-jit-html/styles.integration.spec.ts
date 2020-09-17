@@ -1,15 +1,10 @@
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { cssModules } from '@aurelia/runtime-html';
-import { assert, TestContext, ensureSchedulerEmpty } from '@aurelia/testing';
+import { assert, TestContext } from '@aurelia/testing';
 
 describe('styles', function () {
-  afterEach(function () {
-    try {
-      assert.isSchedulerEmpty();
-    } catch (ex) {
-      ensureSchedulerEmpty();
-      throw ex;
-    }
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
   });
 
   function createFixture() {

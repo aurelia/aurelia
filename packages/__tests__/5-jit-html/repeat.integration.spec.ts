@@ -1,15 +1,10 @@
 /* eslint-disable quotes, @typescript-eslint/explicit-member-accessibility */
 import { Aurelia, CustomElement } from "@aurelia/runtime";
-import { TestContext, assert, ensureSchedulerEmpty } from "@aurelia/testing";
+import { TestContext, assert } from "@aurelia/testing";
 
 describe("generated.template-compiler.repeat", function () {
-  afterEach(function () {
-    try {
-      assert.isSchedulerEmpty();
-    } catch (ex) {
-      ensureSchedulerEmpty();
-      throw ex;
-    }
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
   });
   function createFixture() {
     const ctx = TestContext.createHTMLTestContext();

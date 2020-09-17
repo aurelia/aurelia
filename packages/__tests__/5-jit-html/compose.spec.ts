@@ -21,13 +21,8 @@ import {
 const spec = 'compose';
 
 describe(spec, function () {
-  afterEach(function () {
-    try {
-      assert.isSchedulerEmpty();
-    } catch (ex) {
-      ensureSchedulerEmpty();
-      throw ex;
-    }
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
   });
 
   function createFixture(): SpecContext {

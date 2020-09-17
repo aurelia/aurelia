@@ -10,19 +10,14 @@ import {
   ISignaler,
   LifecycleFlags
 } from '@aurelia/runtime';
-import { assert, TestContext, ensureSchedulerEmpty } from '@aurelia/testing';
+import { assert, TestContext } from '@aurelia/testing';
 
 const spec = 'kitchen-sink';
 
 // TemplateCompiler - integration with various different parts
 describe(spec, function () {
-  afterEach(function () {
-    try {
-      assert.isSchedulerEmpty();
-    } catch (ex) {
-      ensureSchedulerEmpty();
-      throw ex;
-    }
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
   });
   it.skip('startup with App type', function () {
     const ctx = TestContext.createHTMLTestContext();
@@ -116,13 +111,8 @@ describe(spec, function () {
 });
 
 describe('xml node compiler tests', function () {
-  afterEach(async function () {
-    try {
-      assert.isSchedulerEmpty();
-    } catch (ex) {
-      ensureSchedulerEmpty();
-      throw ex;
-    }
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
   });
   // TODO: add some content assertions and verify different kinds of xml compilation
   // (for now these tests are just to ensure the binder doesn't hang or crash when given "unusual" node types)
@@ -172,13 +162,8 @@ describe('xml node compiler tests', function () {
 });
 
 describe('dependency injection', function () {
-  afterEach(async function () {
-    try {
-      assert.isSchedulerEmpty();
-    } catch (ex) {
-      ensureSchedulerEmpty();
-      throw ex;
-    }
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
   });
   it.skip('register local dependencies ', function () {
     const Foo = CustomElement.define(

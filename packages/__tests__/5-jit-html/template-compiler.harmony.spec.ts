@@ -12,20 +12,14 @@ import {
   assert,
   HTMLTestContext,
   TestContext,
-  ensureSchedulerEmpty,
 } from '@aurelia/testing';
 
 describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', function () {
-  afterEach(function () {
-    try {
-      assert.isSchedulerEmpty();
-    } catch (ex) {
-      ensureSchedulerEmpty();
-      throw ex;
-    }
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
   });
 
-  afterEach(async function () {
+  this.afterEach(async function () {
     const ctx = TestContext.createHTMLTestContext();
     await new Promise(r => ctx.dom.window.requestAnimationFrame(r));
     await new Promise(r => ctx.dom.window.requestAnimationFrame(r));

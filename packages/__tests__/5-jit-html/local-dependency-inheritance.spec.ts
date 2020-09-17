@@ -1,8 +1,16 @@
 import { IContainer } from '@aurelia/kernel';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
-import { assert, TestContext } from '@aurelia/testing';
+import { assert, TestContext, ensureSchedulerEmpty } from '@aurelia/testing';
 
 describe('local dependency inheritance', function () {
+  afterEach(function () {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
   function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const au = new Aurelia(ctx.container);

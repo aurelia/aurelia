@@ -1,6 +1,6 @@
 import { Aurelia, CustomElement, CustomAttribute, ValueConverter, BindingBehavior, CustomElementType, customElement, customAttribute, alias, CustomAttributeDefinition, BindingMode } from "@aurelia/runtime";
 import { BindingCommand } from "@aurelia/jit";
-import { TestContext, assert } from "@aurelia/testing";
+import { TestContext, assert, ensureSchedulerEmpty } from "@aurelia/testing";
 import { Metadata } from '@aurelia/kernel';
 
 function startAndStop(component: CustomElementType) {
@@ -23,6 +23,15 @@ function getMetadataAsObject(target: any): Record<string, any> {
 }
 
 describe('CustomAttribute', function () {
+  afterEach(function () {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
+
   it('works in the most basic scenario', function () {
     let created = false;
 

@@ -8,13 +8,22 @@ import {
   CustomElement,
   IExpressionParser,
   ISignaler,
-  LifecycleFlags } from '@aurelia/runtime';
-import { assert, TestContext } from '@aurelia/testing';
+  LifecycleFlags
+} from '@aurelia/runtime';
+import { assert, TestContext, ensureSchedulerEmpty } from '@aurelia/testing';
 
 const spec = 'kitchen-sink';
 
 // TemplateCompiler - integration with various different parts
 describe(spec, function () {
+  afterEach(function () {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
   it.skip('startup with App type', function () {
     const ctx = TestContext.createHTMLTestContext();
     const component = CustomElement.define({ name: 'app', template: `<template>\${message}</template>` }, class { public message = 'Hello!'; });
@@ -75,7 +84,7 @@ describe(spec, function () {
     const App = CustomElement.define({
       name: 'app',
       template: `<template><div repeat.for="i of 3">\${items[i] & signal:'updateItem' & oneTime}</div></template>`
-    },                                       class {
+    }, class {
       public items = items;
     });
 
@@ -107,6 +116,14 @@ describe(spec, function () {
 });
 
 describe('xml node compiler tests', function () {
+  afterEach(async function () {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
   // TODO: add some content assertions and verify different kinds of xml compilation
   // (for now these tests are just to ensure the binder doesn't hang or crash when given "unusual" node types)
   const markups = [
@@ -155,7 +172,14 @@ describe('xml node compiler tests', function () {
 });
 
 describe('dependency injection', function () {
-
+  afterEach(async function () {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
   it.skip('register local dependencies ', function () {
     const Foo = CustomElement.define(
       {

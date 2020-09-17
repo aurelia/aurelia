@@ -1,8 +1,17 @@
 import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { cssModules } from '@aurelia/runtime-html';
-import { assert, TestContext } from '@aurelia/testing';
+import { assert, TestContext, ensureSchedulerEmpty } from '@aurelia/testing';
 
 describe('styles', function () {
+  afterEach(function () {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
+
   function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const au = new Aurelia(ctx.container);
@@ -53,5 +62,7 @@ describe('styles', function () {
     const withoutStylesDiv = withoutStylesRoot.getElementById('target');
 
     assert.equal(true, withoutStylesDiv.classList.contains('test'));
+
+    await au.stop().wait();
   });
 });

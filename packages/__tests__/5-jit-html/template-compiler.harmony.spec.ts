@@ -11,10 +11,25 @@ import {
 import {
   assert,
   HTMLTestContext,
-  TestContext
+  TestContext,
+  ensureSchedulerEmpty,
 } from '@aurelia/testing';
 
 describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', function () {
+  afterEach(function () {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
+
+  afterEach(async function () {
+    const ctx = TestContext.createHTMLTestContext();
+    await new Promise(r => ctx.dom.window.requestAnimationFrame(r));
+    await new Promise(r => ctx.dom.window.requestAnimationFrame(r));
+  });
 
   interface IHarmoniousCompilationTestCase {
     title: string;
@@ -254,7 +269,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         assert.equal(comp.log2, undefined);
 
         input1.focus();
-        assert.equal(comp.hasFocus, true);
+        assert.equal(comp.hasFocus, true, 'hasFocus === true when <input 1/> focused');
         assert.equal(comp.log, 1);
         assert.equal(comp.hasFocus2, undefined);
         assert.equal(comp.log2, undefined);
@@ -262,7 +277,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         input2.focus();
         assert.equal(comp.hasFocus, false);
         assert.equal(comp.log, 1);
-        assert.equal(comp.hasFocus2, true);
+        assert.equal(comp.hasFocus2, true, 'hasFocus2 === true when <input 2/> focused');
         assert.equal(comp.log2, 1);
       }
     },
@@ -321,8 +336,8 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
     it(`\n\t(${idx + 1}). ${title}\n\t`, async function () {
       let host: HTMLElement;
       let body: HTMLElement;
+      const ctx = TestContext.createHTMLTestContext();
       try {
-        const ctx = TestContext.createHTMLTestContext();
         const comp = new (CustomElement.define(
           {
             name: 'app',
@@ -342,12 +357,8 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
 
         await au.stop().wait();
       } finally {
-        if (host) {
-          host.remove();
-        }
-        if (body) {
-          body.focus();
-        }
+        host?.remove();
+        body?.focus();
       }
     });
   });

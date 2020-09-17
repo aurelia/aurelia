@@ -11,11 +11,19 @@ import {
 } from '@aurelia/runtime';
 import {
   assert,
-  TestContext
+  TestContext,
+  ensureSchedulerEmpty,
 } from '@aurelia/testing';
 
 describe(`[repeat.contextual-prop.spec.ts]`, function () {
-
+  afterEach(function () {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
   interface ISimpleRepeatContextualPropsTestCase {
     title: string;
     repeatExpression?: string;
@@ -431,7 +439,6 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
           if (body) {
             body.focus();
           }
-          assert.isSchedulerEmpty();
         }
       });
     }

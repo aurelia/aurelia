@@ -10,11 +10,26 @@ import {
   getRenderContext,
 } from '@aurelia/runtime';
 import { RenderPlan } from '@aurelia/runtime-html';
-import { eachCartesianJoin, TestContext, trimFull, assert } from '@aurelia/testing';
+import {
+  eachCartesianJoin,
+  TestContext,
+  trimFull,
+  assert,
+  ensureSchedulerEmpty,
+} from '@aurelia/testing';
 
 const spec = 'compose';
 
 describe(spec, function () {
+  afterEach(function () {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
+
   function createFixture(): SpecContext {
     const ctx = TestContext.createHTMLTestContext();
     const { container, dom, lifecycle, observerLocator } = ctx;
@@ -140,6 +155,7 @@ describe(spec, function () {
       } else {
         assert.strictEqual(trimFull(host.textContent), expectedText, `host.textContent #3`);
       }
+      await au.stop().wait();
     });
   });
 

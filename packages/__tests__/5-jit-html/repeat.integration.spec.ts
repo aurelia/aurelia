@@ -1,18 +1,22 @@
 /* eslint-disable quotes, @typescript-eslint/explicit-member-accessibility */
 import { Aurelia, CustomElement } from "@aurelia/runtime";
-import { TestContext, assert } from "@aurelia/testing";
+import { TestContext, assert, ensureSchedulerEmpty } from "@aurelia/testing";
 
 describe("generated.template-compiler.repeat", function () {
+  afterEach(function () {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
   function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const au = new Aurelia(ctx.container);
     const host = ctx.createElement("div");
     return { au, host };
   }
-
-  this.afterEach(() => {
-    assert.isSchedulerEmpty();
-  });
 
   it("10 _", async function () {
     const { au, host } = createFixture();

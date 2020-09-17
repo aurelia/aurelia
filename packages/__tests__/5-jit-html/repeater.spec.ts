@@ -1,9 +1,23 @@
 import { Aurelia, CustomElement } from '@aurelia/runtime';
-import { eachCartesianJoin, TestContext, TestConfiguration, assert } from '@aurelia/testing';
+import {
+  eachCartesianJoin,
+  TestContext,
+  TestConfiguration,
+  assert,
+  ensureSchedulerEmpty,
+} from '@aurelia/testing';
 
 const spec = 'repeater';
 
 describe(spec, function () {
+  afterEach(async function () {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
   interface Spec {
     t: string;
   }
@@ -209,7 +223,7 @@ describe(spec, function () {
   ];
 
   eachCartesianJoin([bindSpecs, templateSpecs], (bindSpec, templateSpec) => {
-    it(`bindSpec ${bindSpec.t}, templateSpec ${templateSpec.t}`, function () {
+    it(`bindSpec ${bindSpec.t}, templateSpec ${templateSpec.t}`, async function () {
       const { forof, item, expected, initialize } = bindSpec;
       const { createTemplate } = templateSpec;
 
@@ -226,11 +240,11 @@ describe(spec, function () {
 
       const au = new Aurelia(container);
       au.app({ host, component });
-      au.start();
+      await au.start().wait();
 
       assert.strictEqual(host.textContent, expected, 'host.textContent');
 
-      au.stop();
+      await au.stop().wait();
 
       assert.strictEqual(host.textContent, '', 'host.textContent');
     });

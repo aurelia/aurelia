@@ -2,7 +2,7 @@ import { JitHtmlConfiguration } from '@aurelia/jit-html';
 import { Constructable, PLATFORM } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IScheduler } from '@aurelia/runtime';
 import { IEventManager } from '@aurelia/runtime-html';
-import { assert, eachCartesianJoin, TestContext } from '@aurelia/testing';
+import { assert, eachCartesianJoin, TestContext, ensureSchedulerEmpty } from '@aurelia/testing';
 import { StyleAttributePattern } from './attribute-pattern';
 
 // Remove certain defaults/fallbacks which are added by certain browsers to allow the assertion to pass
@@ -19,6 +19,14 @@ function getNormalizedStyle(el: HTMLElement, ruleName: string): string {
 
 // TemplateCompiler - Binding Commands integration
 describe('template-compiler.binding-commands.style', function () {
+  afterEach(function () {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
 
   /** [ruleName, ruleValue, defaultValue, isInvalid, valueOnInvalid] */
   const rulesTests: [string, string, string, boolean?, string?][] = [
@@ -248,6 +256,7 @@ describe('template-compiler.binding-commands.style', function () {
           const em = ctx.container.get(IEventManager);
           em.dispose();
           tearDown();
+          await au.stop().wait();
         }
       });
     }

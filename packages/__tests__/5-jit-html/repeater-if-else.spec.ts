@@ -4,13 +4,26 @@ import {
   CustomElement,
   IScheduler,
 } from '@aurelia/runtime';
-import { eachCartesianJoin, TestContext, TestConfiguration, trimFull, assert } from '@aurelia/testing';
-import { Scheduler, TaskQueue, Task } from '@aurelia/scheduler';
+import {
+  eachCartesianJoin,
+  TestContext,
+  TestConfiguration,
+  trimFull,
+  assert,
+  ensureSchedulerEmpty,
+} from '@aurelia/testing';
 
 const spec = 'repeater-if-else';
 
 describe(spec, function () {
-
+  afterEach(function () {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
   type Comp = { items: any[]; display: boolean };
   interface Spec {
     t: string;
@@ -584,10 +597,8 @@ describe(spec, function () {
 
         execute(component as any, ctx.scheduler, host, count, ifText, elseText);
 
-        au.stop();
+        await au.stop().wait();
         assert.strictEqual(trimFull(host.textContent), '', `trimFull(host.textContent) === ''`);
-
-        assert.isSchedulerEmpty();
       });
     });
 

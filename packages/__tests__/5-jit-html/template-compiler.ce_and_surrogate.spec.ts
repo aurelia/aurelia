@@ -1,7 +1,15 @@
-import { HTMLTestContext, TestContext, assert } from '@aurelia/testing';
+import { HTMLTestContext, TestContext, assert, ensureSchedulerEmpty } from '@aurelia/testing';
 import { CustomElement, Aurelia } from '@aurelia/runtime';
 
 describe('template-compiler.ce_and_surrogate.spec.ts', function () {
+  afterEach(function () {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
 
   interface ISurrogateIntegrationTestCase {
     title: string;
@@ -179,17 +187,14 @@ describe('template-compiler.ce_and_surrogate.spec.ts', function () {
 
         aurelia.app({ host: host, component: Root });
 
-        aurelia.start();
+        await aurelia.start().wait();
 
         await assertFn(ctx, host, aurelia.container.get(Root));
 
-        aurelia.stop();
-
+        await aurelia.stop().wait();
         host.remove();
       } finally {
-        if (host !== undefined) {
-          host.remove();
-        }
+        host?.remove();
       }
     });
   }

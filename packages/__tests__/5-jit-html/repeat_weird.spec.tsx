@@ -1,12 +1,19 @@
 import { Aurelia, CustomElement } from '@aurelia/runtime';
-import { TestContext, hJsx, assert } from '@aurelia/testing';
+import { TestContext, hJsx, assert, ensureSchedulerEmpty } from '@aurelia/testing';
 
 // IMPORTANT:
 //      JSX is used to eliminate space between tags so test result can be easier to manually constructed
 //      if template string can be used to achieve the same effect, it could be converted back
 
 describe('[repeat] -- funny cases', function () {
-
+  afterEach(function () {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
   const testCases: [string, HTMLElement, HTMLElement, ITestItem[], string, ICustomAssertion?][] = [
     [
       [
@@ -87,13 +94,13 @@ describe('[repeat] -- funny cases', function () {
       const component = new App();
 
       au.app({ host, component });
-      au.start();
+      await au.start().wait();
 
       assert.strictEqual(host.textContent, expectedTextContent, `host.textContent`);
       if (customAssertion) {
         await customAssertion(host, component, component.$controller.controllers[0] as any as IFoo);
       }
-      tearDown(au);
+      await tearDown(au);
     });
   }
 
@@ -118,8 +125,8 @@ describe('[repeat] -- funny cases', function () {
     name: string;
   }
 
-  function tearDown(au: Aurelia) {
-    au.stop();
+  async function tearDown(au: Aurelia) {
+    await au.stop().wait();
     (au.root.host as Element).remove();
   }
 

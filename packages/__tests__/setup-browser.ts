@@ -1,6 +1,8 @@
 import {
   HTMLTestContext,
   TestContext,
+  assert,
+  ensureSchedulerEmpty,
 } from '@aurelia/testing';
 import {
   JitHtmlBrowserConfiguration
@@ -13,7 +15,7 @@ import {
 Reporter.level = LogLevel.error;
 
 function createBrowserTestContext(): HTMLTestContext {
-  return HTMLTestContext.create(
+  const ctx = HTMLTestContext.create(
     JitHtmlBrowserConfiguration,
     window,
     UIEvent,
@@ -29,6 +31,14 @@ function createBrowserTestContext(): HTMLTestContext {
     CSSStyleSheet,
     ShadowRoot
   );
+  try {
+    assert.isSchedulerEmpty();
+  } catch (ex) {
+    debugger;
+    ensureSchedulerEmpty();
+    throw ex;
+  }
+  return ctx;
 }
 
 function initializeBrowserTestContext(): void {

@@ -16,11 +16,12 @@ import {
 import {
   assert,
   HTMLTestContext,
-  TestContext,
+  TestContext
 } from '@aurelia/testing';
 import { HTMLDOM } from '@aurelia/runtime-html';
 
 describe('template-compiler.primary-bindable.spec.ts', function () {
+
   interface IPrimaryBindableTestCase {
     title: string;
     template: string | HTMLElement;

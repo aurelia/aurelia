@@ -33,10 +33,6 @@ import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueCo
 import { Organization, Person } from '../validation/_test-resources';
 
 describe('validate-binding-behavior', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
-
   const $atob = typeof atob === 'function' ? atob : (b64: string) => Buffer.from(b64, 'base64').toString();
   const $btoa = typeof btoa === 'function' ? btoa : (plainText: string) => Buffer.from(plainText).toString('base64');
   const IObserveCollection = DI.createInterface('IObserveCollection');

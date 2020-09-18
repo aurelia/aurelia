@@ -32,6 +32,7 @@ function createBrowserTestContext(): HTMLTestContext {
     ShadowRoot
   );
   try {
+    ctx.scheduler.getIdleTaskQueue();
     assert.isSchedulerEmpty();
   } catch (ex) {
     debugger;

@@ -19,12 +19,6 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
     assert.isSchedulerEmpty(true);
   });
 
-  this.afterEach(async function () {
-    const ctx = TestContext.createHTMLTestContext();
-    await new Promise(r => ctx.dom.window.requestAnimationFrame(r));
-    await new Promise(r => ctx.dom.window.requestAnimationFrame(r));
-  });
-
   interface IHarmoniousCompilationTestCase {
     title: string;
     template: string | HTMLElement;
@@ -352,6 +346,8 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         await au.stop().wait();
       } finally {
         host?.remove();
+        await new Promise(r => ctx.dom.window.requestAnimationFrame(r));
+        await new Promise(r => ctx.dom.window.requestAnimationFrame(r));
         body?.focus();
       }
     });

@@ -7,10 +7,6 @@ import { ClassAttributePattern } from './attribute-pattern';
 
 // TemplateCompiler - Binding Commands integration
 describe('template-compiler.binding-commands.class', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
-
   const falsyValues = [0, false, null, undefined, ''];
   const truthyValues = [1, '1', true, {}, [], Symbol(), function () {/**/}, Number, new Proxy({}, {})];
 

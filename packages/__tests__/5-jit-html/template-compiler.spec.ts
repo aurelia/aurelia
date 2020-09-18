@@ -55,10 +55,6 @@ export function createAttribute(name: string, value: string): Attr {
 }
 
 describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
-
   let ctx: HTMLTestContext;
   let sut: ITemplateCompiler;
   let container: IContainer;

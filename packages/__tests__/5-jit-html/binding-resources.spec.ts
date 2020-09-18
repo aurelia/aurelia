@@ -7,10 +7,6 @@ async function wait(ms: number): Promise<void> {
 
 // TemplateCompiler - Binding Resources integration
 describe('binding-resources', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
-
   function createFixture() {
       const ctx = TestContext.createHTMLTestContext();
       const au = new Aurelia(ctx.container);

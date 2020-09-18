@@ -22,10 +22,6 @@ import {
 } from '@aurelia/testing';
 
 describe('simple Computed Observer test case', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
-
   interface IComputedObserverTestCase<T extends IApp = IApp> {
     title: string;
     template: string;

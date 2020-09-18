@@ -15,10 +15,6 @@ const testDateString = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated 
 const ThreeHoursAheadDateString = new Date('Sat Feb 02 2002 03:00:00 GMT+0000 (Coordinated Universal Time)').toString();
 const ThreeDaysDateString = new Date('Sat Feb 03 2002 00:00:00 GMT+0000 (Coordinated Universal Time)').toString();
 describe('interpolation', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
-
   const cases: CaseType[] = [
     {
       expected: 'wOOt', expectedStrictMode: 'wOOt', app: class { public value?: string | number = 'wOOt'; public value1?: string | number; }, interpolation: `$\{value}`, it: 'Renders expected text'

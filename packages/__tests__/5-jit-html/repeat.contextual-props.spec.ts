@@ -15,9 +15,6 @@ import {
 } from '@aurelia/testing';
 
 describe(`[repeat.contextual-prop.spec.ts]`, function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
   interface ISimpleRepeatContextualPropsTestCase {
     title: string;
     repeatExpression?: string;

@@ -8,10 +8,6 @@ describe('blur.integration.spec.ts', function () {
   if (!PLATFORM.isBrowserLike) {
     return;
   }
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
-
   interface IApp {
     hasFocus: boolean;
   }

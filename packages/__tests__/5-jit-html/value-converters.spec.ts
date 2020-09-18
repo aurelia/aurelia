@@ -9,9 +9,6 @@ import { assert, createFixture } from '@aurelia/testing';
 
 // TemplateCompiler - value converter integration
 describe('value-converters', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
   // custom elements
   describe('01. Aliases', function () {
 

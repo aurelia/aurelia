@@ -3,9 +3,6 @@ import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('local dependency inheritance', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
   function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const au = new Aurelia(ctx.container);

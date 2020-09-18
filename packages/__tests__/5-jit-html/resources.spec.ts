@@ -23,10 +23,6 @@ function getMetadataAsObject(target: any): Record<string, any> {
 }
 
 describe('CustomAttribute', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
-
   it('works in the most basic scenario', function () {
     let created = false;
 

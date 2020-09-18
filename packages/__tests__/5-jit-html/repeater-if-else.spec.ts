@@ -15,9 +15,6 @@ import {
 const spec = 'repeater-if-else';
 
 describe(spec, function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
   type Comp = { items: any[]; display: boolean };
   interface Spec {
     t: string;

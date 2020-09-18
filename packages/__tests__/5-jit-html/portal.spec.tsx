@@ -9,9 +9,6 @@ import {
 } from '@aurelia/testing';
 
 describe('portal.spec.tsx 🚪-🔁-🚪', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
   describe('basic', function() {
 
     const basicTestCases: IPortalTestCase<IPortalTestRootVm>[] = [

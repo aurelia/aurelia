@@ -9,9 +9,6 @@ import {
 const spec = 'repeater';
 
 describe(spec, function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
   interface Spec {
     t: string;
   }

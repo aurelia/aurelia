@@ -15,10 +15,6 @@ import {
 } from '@aurelia/testing';
 
 describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
-
   interface IHarmoniousCompilationTestCase {
     title: string;
     template: string | HTMLElement;

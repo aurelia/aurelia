@@ -21,10 +21,6 @@ import {
 import { HTMLDOM } from '@aurelia/runtime-html';
 
 describe('template-compiler.primary-bindable.spec.ts', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
-
   interface IPrimaryBindableTestCase {
     title: string;
     template: string | HTMLElement;

@@ -13,9 +13,6 @@ import {
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('binding-behaviors', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
   // custom elements
   describe('01. Aliases', function () {
 

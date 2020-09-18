@@ -20,10 +20,6 @@ import {
 const spec = 'compose';
 
 describe(spec, function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
-
   function createFixture(): SpecContext {
     const ctx = TestContext.createHTMLTestContext();
     const { container, dom, lifecycle, observerLocator } = ctx;

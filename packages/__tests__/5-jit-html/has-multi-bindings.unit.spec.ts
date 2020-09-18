@@ -4,9 +4,6 @@ import { ResourceModel, IAttributeParser, PlainElementSymbol } from '@aurelia/ji
 import { IExpressionParser, CustomAttribute } from '@aurelia/runtime';
 
 describe('has-multi-bindings.unit.spec.ts', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
   interface IBindingSpec {
     target: string;
     rawValue: string;

@@ -3,9 +3,6 @@ import { Aurelia, CustomElement } from "@aurelia/runtime";
 import { TestContext, assert } from "@aurelia/testing";
 
 describe("generated.template-compiler.repeat", function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
   function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const au = new Aurelia(ctx.container);

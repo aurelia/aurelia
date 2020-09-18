@@ -3,10 +3,6 @@ import { cssModules } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('styles', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
-
   function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const au = new Aurelia(ctx.container);

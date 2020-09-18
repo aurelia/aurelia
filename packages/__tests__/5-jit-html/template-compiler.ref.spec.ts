@@ -17,10 +17,6 @@ import {
 } from '@aurelia/testing';
 
 describe('templating-compiler.ref.spec.ts', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
-
   interface IRefIntegrationTestCase {
     title: string;
     template: string | HTMLElement;

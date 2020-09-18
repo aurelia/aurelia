@@ -14,9 +14,6 @@ interface Person { firstName?: string; lastName?: string; fullName?: string }
 const app = class { public value: string = 'wOOt'; };
 
 describe('5-jit-html/custom-elements/custom-elements.spec.ts', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
   const registrations = [TestConfiguration];
 
   // custom elements

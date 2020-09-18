@@ -6,9 +6,6 @@ import { TestContext, hJsx, assert } from '@aurelia/testing';
 //      if template string can be used to achieve the same effect, it could be converted back
 
 describe('[repeat] -- funny cases', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
   const testCases: [string, HTMLElement, HTMLElement, ITestItem[], string, ICustomAssertion?][] = [
     [
       [

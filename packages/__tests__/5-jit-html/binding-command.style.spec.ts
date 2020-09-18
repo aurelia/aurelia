@@ -19,10 +19,6 @@ function getNormalizedStyle(el: HTMLElement, ruleName: string): string {
 
 // TemplateCompiler - Binding Commands integration
 describe('template-compiler.binding-commands.style', function () {
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
-
   /** [ruleName, ruleValue, defaultValue, isInvalid, valueOnInvalid] */
   const rulesTests: [string, string, string, boolean?, string?][] = [
     ['background', 'red', ''],

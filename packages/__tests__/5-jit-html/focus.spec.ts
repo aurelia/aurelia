@@ -9,10 +9,6 @@ describe('focus.spec.ts', function () {
     return;
   }
 
-  this.afterEach(function () {
-    assert.isSchedulerEmpty(true);
-  });
-
   interface IApp {
     hasFocus?: boolean;
     isFocused?: boolean;

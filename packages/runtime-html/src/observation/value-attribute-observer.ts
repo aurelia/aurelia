@@ -49,10 +49,7 @@ export class ValueAttributeObserver implements IAccessor {
   }
 
   public setValue(newValue: string | null, flags: LifecycleFlags): void {
-    if (this.task != null) {
-      this.task.cancel();
-      this.task = null;
-    }
+    this.task?.cancel();
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
     this.flushChanges(flags);

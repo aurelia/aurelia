@@ -16,6 +16,7 @@ import {
 } from '@aurelia/testing';
 
 describe('simple Computed Observer test case', function () {
+
   interface IArrayIndexObserverTestCase<T extends IApp = IApp> {
     title: string;
     template: string;

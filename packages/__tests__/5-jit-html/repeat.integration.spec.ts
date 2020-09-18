@@ -9,7 +9,6 @@ describe("generated.template-compiler.repeat", function () {
     const host = ctx.createElement("div");
     return { au, host };
   }
-
   it("10 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(

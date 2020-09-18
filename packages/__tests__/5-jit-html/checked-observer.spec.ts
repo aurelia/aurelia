@@ -15,6 +15,7 @@ import {
 } from '@aurelia/testing';
 
 describe('checked-observer.spec.ts', function () {
+
   const testCases: ITestCase[] = [
     {
       title: '[Checkbox] basic scenario with array',

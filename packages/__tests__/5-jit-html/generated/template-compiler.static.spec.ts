@@ -3,7 +3,6 @@ import { Aurelia, CustomElement } from "@aurelia/runtime";
 import { TestContext, writeProfilerReport, assert } from "@aurelia/testing";
 
 describe("generated.template-compiler.static", function () {
-
     // eslint-disable-next-line mocha/no-hooks
     before(function () {
         Profiler.enable();
@@ -21,7 +20,7 @@ describe("generated.template-compiler.static", function () {
     }
     function verify(au, host, expected) {
         const root = au.root;
-         au.start();
+        au.start();
         const outerHtmlAfterStart1 = host.outerHTML;
         assert.visibleTextEqual(root, expected, "after start #1");
         au.stop();

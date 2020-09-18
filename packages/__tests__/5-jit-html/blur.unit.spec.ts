@@ -8,6 +8,7 @@ describe('[UNIT] blur.unit.spec.ts', function () {
   if (!PLATFORM.isBrowserLike) {
     return;
   }
+
   const falsyPansyValues = [false, 0, '', undefined, null];
 
   describe('contains()', function () {

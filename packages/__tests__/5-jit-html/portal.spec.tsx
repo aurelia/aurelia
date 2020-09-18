@@ -5,10 +5,11 @@ import {
   eachCartesianJoin,
   hJsx, // deepscan-disable-line UNUSED_IMPORT
   HTMLTestContext,
-  TestContext,
+  TestContext
 } from '@aurelia/testing';
 
 describe('portal.spec.tsx 🚪-🔁-🚪', function () {
+
   describe('basic', function() {
 
     const basicTestCases: IPortalTestCase<IPortalTestRootVm>[] = [

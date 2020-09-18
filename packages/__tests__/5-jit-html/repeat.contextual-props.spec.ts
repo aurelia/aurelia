@@ -11,10 +11,11 @@ import {
 } from '@aurelia/runtime';
 import {
   assert,
-  TestContext,
+  TestContext
 } from '@aurelia/testing';
 
 describe(`[repeat.contextual-prop.spec.ts]`, function () {
+
   interface ISimpleRepeatContextualPropsTestCase {
     title: string;
     repeatExpression?: string;

@@ -7,6 +7,7 @@ import { assert, createFixture } from '@aurelia/testing';
 import { BindingCommandInstance, PlainAttributeSymbol, BindingSymbol, bindingCommand, OneTimeBindingCommand } from '@aurelia/jit';
 
 describe('binding-commands', function () {
+
   const app = class {
     public value = 'wOOt';
   };

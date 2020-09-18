@@ -3,7 +3,6 @@ import { Aurelia, CustomElement } from "@aurelia/runtime";
 import { TestContext, writeProfilerReport, assert } from "@aurelia/testing";
 
 describe("generated.template-compiler.static.if-else.double", function () {
-
     // eslint-disable-next-line mocha/no-hooks
     before(function () {
         Profiler.enable();

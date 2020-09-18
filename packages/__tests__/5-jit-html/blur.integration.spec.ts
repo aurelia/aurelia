@@ -8,6 +8,7 @@ describe('blur.integration.spec.ts', function () {
   if (!PLATFORM.isBrowserLike) {
     return;
   }
+
   interface IApp {
     hasFocus: boolean;
   }

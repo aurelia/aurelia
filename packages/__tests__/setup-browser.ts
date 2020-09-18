@@ -35,6 +35,7 @@ function createBrowserTestContext(): HTMLTestContext {
     ctx.scheduler.getIdleTaskQueue();
     assert.isSchedulerEmpty();
   } catch (ex) {
+    // eslint-disable-next-line
     debugger;
     ensureSchedulerEmpty();
     throw ex;

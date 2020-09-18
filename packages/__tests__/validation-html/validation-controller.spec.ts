@@ -20,6 +20,10 @@ import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueCo
 import { Person } from '../validation/_test-resources';
 
 describe('validation controller factory', function () {
+  this.afterEach(function () {
+    assert.isSchedulerEmpty(true);
+  });
+
   @customElement({
     name: 'app',
     isStrictBinding: true,

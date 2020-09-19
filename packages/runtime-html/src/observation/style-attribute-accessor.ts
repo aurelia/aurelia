@@ -36,7 +36,6 @@ export class StyleAttributeAccessor implements IAccessor {
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
-    this.task?.cancel();
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
     if ((flags & LifecycleFlags.noTargetObserverQueue) === 0) {

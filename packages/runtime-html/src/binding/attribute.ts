@@ -3,6 +3,7 @@ import {
 } from '@aurelia/kernel';
 import {
   AccessorOrObserver,
+  INodeAccessor,
   BindingMode,
   connectable,
   ExpressionKind,
@@ -102,64 +103,56 @@ export class AttributeBinding implements IPartialConnectableBinding {
     flags |= this.persistentFlags;
 
     const mode = this.mode;
+    const interceptor = this.interceptor;
+    const sourceExpression = this.sourceExpression;
+    const $scope = this.$scope;
+    const locator = this.locator;
+
     if (mode === BindingMode.fromView) {
       flags &= ~LifecycleFlags.updateTargetInstance;
       flags |= LifecycleFlags.updateSourceExpression;
     }
 
     if (flags & LifecycleFlags.updateTargetInstance) {
-      const interceptor = this.interceptor;
-      const sourceExpression = this.sourceExpression;
       const targetObserver = this.targetObserver;
-      const $scope = this.$scope;
-
       // Alpha: during bind a simple strategy for bind is always flush immediately
       // todo:
       //  (1). determine whether this should be the behavior
       //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
-      if ((flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0) {
+      const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
+
+      if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
+        newValue = sourceExpression.evaluate(flags, $scope, locator, this.part);
+      }
+
+      if (shouldQueueFlush) {
+        flags |= LifecycleFlags.noTargetObserverQueue;
         this.task?.cancel();
+        targetObserver.task?.cancel();
         targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
           // timing wise, it's necessary to check if this binding is still bound, before execute everything below
           // but if we always cancel any pending task during `$ubnind` of this binding
           // then it's ok to just execute the logic inside here
-
+  
           // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-          if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-            newValue = sourceExpression.evaluate(flags, $scope, this.locator, this.part);
-          }
-          interceptor.updateTarget(newValue, flags);
-
-          if ((mode & oneTime) === 0) {
-            this.version++;
-            sourceExpression.connect(flags, $scope, interceptor, this.part);
-            interceptor.unobserve(false);
-          }
-
-          this.task = null;
+          (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
+          this.task = targetObserver.task = null;
         }, taskOptions);
-      } else {
-        // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-        if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-          newValue = sourceExpression.evaluate(flags, $scope, this.locator, this.part);
-        }
-
-        if (newValue != targetObserver.getValue()) {
-          interceptor.updateTarget(newValue, flags);
-        }
-
-        if ((mode & oneTime) === 0) {
-          this.version++;
-          sourceExpression.connect(flags, $scope, interceptor, this.part);
-          interceptor.unobserve(false);
-        }
       }
+      interceptor.updateTarget(newValue, flags);
+
+      if ((mode & oneTime) === 0) {
+        this.version++;
+        sourceExpression.connect(flags, $scope, interceptor, this.part);
+        interceptor.unobserve(false);
+      }
+
       return;
     }
 
     if (flags & LifecycleFlags.updateSourceExpression) {
-      if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
-        this.interceptor.updateSource(newValue, flags);
+      if (newValue !== this.sourceExpression.evaluate(flags, $scope, locator, this.part)) {
+        interceptor.updateSource(newValue, flags);
       }
       return;
     }

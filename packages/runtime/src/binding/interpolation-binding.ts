@@ -18,6 +18,7 @@ import {
   IBindingTargetAccessor,
   IScope,
   AccessorType,
+  INodeAccessor,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import {
@@ -136,35 +137,32 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
-    if ((flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0) {
-      this.task?.cancel();
-      targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
-        // timing wise, it's necessary to check if this binding is still bound, before execute everything below
-        // but if we always cancel any pending task during `$ubnind` of this binding
-        // then it's ok to just execute the logic inside here
+    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
+    const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.part);
+    const oldValue = targetObserver.getValue();
+    const interceptor = this.interceptor;
 
-        const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.part);
-        this.interceptor.updateTarget(newValue, flags);
+    // todo(fred): maybe let the observer decides whether it updates
+    if (newValue !== oldValue) {
+      if (shouldQueueFlush) {
+        flags |= LifecycleFlags.noTargetObserverQueue;
 
-        if ((this.mode & oneTime) === 0) {
-          this.version++;
-          this.sourceExpression.connect(flags, this.$scope!, this.interceptor, this.part);
-          this.interceptor.unobserve(false);
-        }
-        this.task = null;
-      }, queueTaskOptions);
-    } else {
-      const previousValue = this.targetObserver.getValue();
-      const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.part);
-      if (newValue !== previousValue)
-      this.interceptor.updateTarget(newValue, flags);
-
-      // todo: merge this with evaluate above
-      if ((this.mode & oneTime) === 0) {
-        this.version++;
-        this.sourceExpression.connect(flags, this.$scope!, this.interceptor, this.part);
-        this.interceptor.unobserve(false);
+        this.task?.cancel();
+        targetObserver.task?.cancel();
+        targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+          (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
+          this.task = targetObserver.task = null;
+        }, queueTaskOptions);
       }
+
+      interceptor.updateTarget(newValue, flags);
+    }
+
+    // todo: merge this with evaluate above
+    if ((this.mode & oneTime) === 0) {
+      this.version++;
+      this.sourceExpression.connect(flags, this.$scope!, interceptor, this.part);
+      interceptor.unobserve(false);
     }
   }
 

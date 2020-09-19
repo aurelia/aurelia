@@ -1,84 +1,65 @@
 import {
-  DI,
-  IContainer,
-  nextId,
-  optional,
-  Registration,
-  Writable,
+  nextId
 } from '@aurelia/kernel';
-import { ITargetedInstruction } from '../../definitions';
 import {
-  INode, IRenderLocation,
+  INode,
+  IRenderLocation,
 } from '../../dom';
 import {
   BindingMode,
   LifecycleFlags,
-  State,
+  State
 } from '../../flags';
 import {
   IController,
   ICustomAttributeController,
   ICustomAttributeViewModel,
-  ICustomElementController,
-  ICustomElementViewModel,
   ISyntheticView,
   IViewFactory,
-  MountStrategy,
+  MountStrategy
 } from '../../lifecycle';
 import {
   ContinuationTask,
   ILifecycleTask,
   LifecycleTask,
 } from '../../lifecycle-task';
-import { Scope } from '../../observation/binding-context';
 import {
   bindable,
 } from '../../templating/bindable';
-import { Controller } from '../../templating/controller';
 import {
-  CustomAttribute,
+  Controller,
+} from '../../templating/controller';
+import {
   templateController,
 } from '../custom-attribute';
-import {
-  CustomElement,
-  customElement,
-} from '../custom-element';
 
 @templateController('switch')
-export class AuSwitch<T extends INode = Node> implements ICustomAttributeViewModel<T> {
+export class Switch<T extends INode = Node> implements ICustomAttributeViewModel<T> {
   public readonly id: number = nextId('au$component');
+
+  public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
+  public view?: ISyntheticView<T> = void 0;
+
   @bindable public value: any;
+
   /** @internal */
   public readonly cases: Case<T>[] = [];
   public defaultCase?: Case<T>;
-  public view?: ISyntheticView<T> = void 0;
-
-  public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
+  private activeCase?: Case<T>;
 
   private task: ILifecycleTask = LifecycleTask.done;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,
     @IRenderLocation private readonly location: IRenderLocation<T>,
-    @ITargetedInstruction private readonly instruction: ITargetedInstruction,
-  ) {
-    console.group('switch ctor');
-    console.log(`location:`, location);
-    console.log(`instruction:`, instruction);
-    // const view = this.view = factory.create();
-    // view.hold(location, MountStrategy.insertBefore);
-    console.groupEnd();
-  }
+  ) { }
 
   public beforeBind(flags: LifecycleFlags): ILifecycleTask {
-    console.log('before bind');
-    console.log(`scope`, this.$controller.scope);
-    const view = /* this.view =  */this.$controller as unknown as Controller;
-    view['hydrateSynthetic'](this.factory.context);
-    view.hold(location, MountStrategy.insertBefore);
-
-    console.log(`#cases: ${this.cases.length}`);
-    console.log(`value: ${this.value}`);
+    // TODO fix the linking via renderer?
+    const controller = this.$controller as unknown as Controller;
+    controller['hydrateSynthetic'](this.factory.context);
+    // TODO do we really need reference to this view?
+    this.view = controller as unknown as ISyntheticView<T>;
 
     if (this.task.done) {
       this.task = this.swap(flags);
@@ -88,15 +69,55 @@ export class AuSwitch<T extends INode = Node> implements ICustomAttributeViewMod
     return this.task;
   }
 
+  public beforeAttach(flags: LifecycleFlags): void {
+    if (this.task.done) {
+      this.attachView(flags);
+    } else {
+      this.task = new ContinuationTask(this.task, this.attachView, this, flags);
+    }
+  }
+
   private swap(flags: LifecycleFlags): ILifecycleTask {
     const value = this.value;
-    for (const $case of this.cases) {
-      console.log(`$case.value: ${$case.value}`);
-      if (value === $case.value) {
-        return $case.activate(flags, this.location);
-      }
+    const activeCase: Case<T> | undefined = this.activeCase = this.cases.find((c) => c.value === value) ?? this.defaultCase;
+
+    if (activeCase === void 0) {
+      // TODO generate warning?
+      return LifecycleTask.done;
     }
-    return this.defaultCase?.activate(flags, this.location) ?? LifecycleTask.done;
+
+    const activeView = activeCase.createView(flags);
+    if (activeView === void 0) {
+      return LifecycleTask.done;
+    }
+    activeView.hold(this.location, MountStrategy.insertBefore);
+    let task = this.bindView(flags);
+    if ((this.$controller.state & State.isAttached) === 0) {
+      return task;
+    }
+
+    if (task.done) {
+      this.attachView(flags);
+    } else {
+      task = new ContinuationTask(task, this.attachView, this, flags);
+    }
+    return task;
+  }
+
+  private bindView(flags: LifecycleFlags): ILifecycleTask {
+    const controller = this.$controller;
+    const activeView = this.activeCase?.view;
+    if (activeView !== void 0 && (this.$controller.state & State.isBoundOrBinding) > 0) {
+      return activeView.bind(flags, controller.scope, controller.hostScope);
+    }
+    return LifecycleTask.done;
+  }
+
+  private attachView(flags: LifecycleFlags): void {
+    const activeView = this.activeCase?.view;
+    if (activeView !== void 0 && (this.$controller.state & State.isAttachedOrAttaching) > 0) {
+      activeView.attach(flags);
+    }
   }
 }
 
@@ -108,103 +129,37 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   protected task: ILifecycleTask = LifecycleTask.done;
   public view?: ISyntheticView<T> = void 0;
   public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
-  private readonly auSwitch: AuSwitch<T>;
+  private readonly auSwitch!: Switch<T>;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,
-    @IRenderLocation private readonly location: IRenderLocation<T>,
-    @INode node: Node,
     @IController controller: ICustomAttributeController<T>,
   ) {
-    console.log(`case#ctor`);
-    console.log(controller);
     const auSwitch = controller.viewModel;
-    console.log(auSwitch);
-    console.log(`node`, (node as HTMLElement).outerHTML);
-    console.log(`node.parent`, (node.parentElement as HTMLElement).outerHTML);
-    const x = CustomAttribute.for(node, 'switch');
-    console.log(x);
-    if (auSwitch instanceof AuSwitch) {
+    if (auSwitch instanceof Switch) {
       this.auSwitch = auSwitch;
-      auSwitch.cases.push(this);
+      this.linkToSwitch(auSwitch);
     } else {
       throw new Error(`Unsupported switch`);
     }
   }
 
-  public beforeBind(flags: LifecycleFlags) {
-    console.log(`Case#beforeBind;
-    value: ${JSON.stringify(this.value)}
-    fallthrough: ${JSON.stringify(this.fallthrough)}
-    state: ${this.$controller.state & State.isBoundOrBinding}
-    `);
-  }
-
   /** @internal */
-  public activate(flags: LifecycleFlags, location: IRenderLocation<T>): ILifecycleTask {
-    const controller = this.$controller as Writable<IController>;
-    const pc = this.auSwitch.$controller;
-    controller.scope = controller.scope ?? Scope.fromParent(flags, pc.scope ?? null, null!);
-    controller.state |= flags;
-
-    if (this.task.done) {
-      this.task = this.activateCore(flags, location);
-    } else {
-      this.task = new ContinuationTask(this.task, this.activateCore, this, flags, location);
-    }
-    return this.task;
-  }
-
-  /** @internal */
-  protected activateCore(flags: LifecycleFlags, location: IRenderLocation<T>): ILifecycleTask {
+  public createView(flags: LifecycleFlags): ISyntheticView<T> {
     const view = this.view = this.factory.create(flags);
-    if (view === void 0) {
-      return LifecycleTask.done;
-    }
-    view.hold(this.location, MountStrategy.insertBefore);
-    let task = this.bindView(flags);
-    console.log('bound');
-    // if ((this.$controller.state & State.isAttached) === 0) {
-    //   return task;
-    // }
-
-    if (task.done) {
-      this.attachView(flags);
-    } else {
-      task = new ContinuationTask(task, this.attachView, this, flags);
-    }
-    return task;
+    view.parent = this.$controller;
+    return view;
   }
 
-  private bindView(flags: LifecycleFlags): ILifecycleTask {
-    if (this.view !== void 0 && (this.$controller.state & State.isBoundOrBinding) > 0) {
-      this.view.parent = this.$controller;
-      console.log('binding');
-      return this.view.bind(flags, this.$controller.scope, this.$controller.hostScope);
-    }
-    return LifecycleTask.done;
-  }
-
-  private attachView(flags: LifecycleFlags): void {
-    console.log(`attachView`, this.$controller.state);
-    if (this.view !== void 0 /* && (this.$controller.state & State.isAttachedOrAttaching) > 0 */) {
-      this.view.attach(flags);
-    }
+  protected linkToSwitch(auSwitch: Switch<T>) {
+    auSwitch.cases.push(this);
   }
 }
 
 @templateController('default-case')
 export class DefaultCase<T extends INode = Node> extends Case<T>{
 
-  /** @internal */
-  public link(auSwitch: AuSwitch<T> | ICustomElementController<T>): void {
-    console.log(`DefaultCase#link`);
-    if (auSwitch instanceof AuSwitch) {
-      auSwitch.defaultCase = this;
-    } else if (auSwitch.viewModel instanceof AuSwitch) {
-      auSwitch.viewModel.defaultCase = this;
-    } else {
-      throw new Error(`Unsupported switch`);
-    }
+  protected linkToSwitch(auSwitch: Switch<T>) {
+    auSwitch.defaultCase = this;
   }
 }

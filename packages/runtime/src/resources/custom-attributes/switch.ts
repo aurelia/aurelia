@@ -44,8 +44,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
   public readonly cases: Case<T>[] = [];
   /** @internal */
   public defaultCase?: Case<T>;
-  // TODO this needs to be converted to an array to support fall-through
-  private activeCase?: Case<T>;
+  private activeCases: Case<T>[] = [];
 
   private task: ILifecycleTask = LifecycleTask.done;
 
@@ -76,29 +75,70 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
   }
 
   public beforeDetach(flags: LifecycleFlags): ILifecycleTask {
-    const view = this.activeCase?.view;
-    if (view !== void 0) {
+    const cases = this.activeCases;
+
+    const length = cases.length;
+    if (length === 0) { return LifecycleTask.done; }
+
+    if (length === 1) {
+      const view = cases[0].view;
+      if (view === void 0) { return this.task; }
+
       if (this.task.done) {
         view.detach(flags);
       } else {
         this.task = new ContinuationTask(this.task, view.detach, view, flags);
       }
+      return this.task;
     }
 
-    return this.task;
+    let task = this.task;
+    for (const $case of cases) {
+      const view = $case.view;
+      if (view === void 0) { continue; }
+
+      if (task.done) {
+        view.detach(flags);
+      } else {
+        task = new ContinuationTask(task, view.detach, view, flags);
+      }
+    }
+
+    return this.task = task;
   }
 
   public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
-    const view = this.activeCase?.view;
-    if (view !== void 0) {
+    const cases = this.activeCases;
+
+    const length = cases.length;
+    if (length === 0) { return LifecycleTask.done; }
+
+    if (length === 1) {
+      const view = cases[0].view;
+      if (view === void 0) { return this.task; }
+
       if (this.task.done) {
         this.task = view.unbind(flags);
       } else {
         this.task = new ContinuationTask(this.task, view.unbind, view, flags);
       }
+
+      return this.task;
     }
 
-    return this.task;
+    let task = this.task;
+    for (const $case of cases) {
+      const view = $case.view;
+      if (view === void 0) { continue; }
+
+      if (task.done) {
+        task = view.unbind(flags);
+      } else {
+        task = new ContinuationTask(task, view.unbind, view, flags);
+      }
+    }
+
+    return this.task = task;
   }
 
   public valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags): void {
@@ -117,18 +157,33 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
   }
 
   private swap(flags: LifecycleFlags, value: any): ILifecycleTask {
-    const activeCase: Case<T> | undefined = this.activeCase = this.cases.find((c) => c.isMatch(value)) ?? this.defaultCase;
+    const activeCases: Case<T>[] = this.activeCases;
 
-    if (activeCase === void 0) {
+    let fallThrough: boolean = false;
+    for (const $case of this.cases) {
+      if ($case.isMatch(value) || fallThrough) {
+        activeCases.push($case);
+        fallThrough = $case.fallThrough;
+
+        const view = $case.createView(flags);
+        view.hold(this.location, MountStrategy.insertBefore);
+      }
+    }
+    const defaultCase = this.defaultCase;
+    if (activeCases.length === 0 && defaultCase !== void 0) {
+      activeCases.push(defaultCase);
+
+      const view = defaultCase.createView(flags);
+      view.hold(this.location, MountStrategy.insertBefore);
+    }
+
+    if (activeCases.length === 0) {
       // TODO generate warning?
       return LifecycleTask.done;
     }
 
-    const activeView = activeCase.createView(flags);
-    if (activeView === void 0) {
-      return LifecycleTask.done;
-    }
-    activeView.hold(this.location, MountStrategy.insertBefore);
+    this.activeCases = activeCases;
+
     let task = this.bindView(flags);
     if ((this.$controller.state & State.isAttached) === 0) {
       return task;
@@ -144,17 +199,46 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
 
   private bindView(flags: LifecycleFlags): ILifecycleTask {
     const controller = this.$controller;
-    const view = this.activeCase?.view;
-    if (view !== void 0 && (this.$controller.state & State.isBoundOrBinding) > 0) {
-      return view.bind(flags, controller.scope, controller.hostScope);
+    if ((controller.state & State.isBoundOrBinding) === 0) { return LifecycleTask.done; }
+
+    const scope = controller.scope;
+    const hostScope = controller.hostScope;
+
+    const cases = this.activeCases;
+    const length = cases.length;
+    if (length === 0) { return LifecycleTask.done; }
+
+    // most common case
+    if (length === 1) {
+      const view = cases[0].view;
+      return view !== void 0 ? view.bind(flags, scope, hostScope) : LifecycleTask.done;
     }
-    return LifecycleTask.done;
+
+    let task = LifecycleTask.done;
+    for (const $case of cases) {
+      const view = $case.view;
+      if (view !== void 0) {
+        task = task === LifecycleTask.done
+          ? view.bind(flags, scope, hostScope)
+          : new ContinuationTask(task, view.bind, view, flags, scope, hostScope);
+      }
+    }
+    return task;
   }
 
   private attachView(flags: LifecycleFlags): void {
-    const view = this.activeCase?.view;
-    if (view !== void 0 && (this.$controller.state & State.isAttachedOrAttaching) > 0) {
-      view.attach(flags);
+    if ((this.$controller.state & State.isAttachedOrAttaching) === 0) { return; }
+
+    const cases = this.activeCases;
+    const length = cases.length;
+    if (length === 0) { return; }
+
+    if (length === 1) {
+      cases[0].view?.attach(flags);
+    }
+
+    for (const $case of cases) {
+      $case.view?.attach(flags);
     }
   }
 }
@@ -165,7 +249,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
 
   @bindable public value: any;
-  @bindable({ mode: BindingMode.oneTime }) public fallthrough: boolean = false;
+  @bindable({ mode: BindingMode.oneTime }) public fallThrough: boolean = false;
 
   public view?: ISyntheticView<T> = void 0;
   private readonly auSwitch!: Switch<T>;

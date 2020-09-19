@@ -152,12 +152,58 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     }
   }
 
-  public caseChanged($case: Case<T>): void {
+  public caseChanged($case: Case<T>, flags: LifecycleFlags): void {
+    const isMatch = $case.isMatch(this.value);
 
+    // compute the new active cases
+    const newActiveCases = [];
+    let fallThrough = !$case.fallThrough;
+    if (!fallThrough) {
+      newActiveCases.push($case);
+    } else {
+      const cases = this.cases;
+      const idx = cases.findIndex((c) => c === $case);
+      for (let i = idx, ii = cases.length; i < ii && fallThrough; i++) {
+        const c = cases[i];
+        newActiveCases.push(c);
+        fallThrough = c.fallThrough;
+      }
+    }
+
+    // optimize the common case
+    if (this.activeCases.length === 1 && isMatch && this.activeCases[0].id > $case.id) {
+      this.clearActiveCases();
+      this.activeCases = newActiveCases;
+
+      if (this.task === LifecycleTask.done) {
+        this.task = this.bindView(flags);
+      } else {
+        this.task = new ContinuationTask(this.task, this.bindView, this, flags);
+      }
+
+      if (this.task === LifecycleTask.done) {
+        this.attachView(flags);
+      } else {
+        this.task = new ContinuationTask(this.task, this.attachView, this, flags);
+      }
+      return;
+    }
+
+    this.clearActiveCases();
+    this.activeCases = newActiveCases;
+    if (this.task === LifecycleTask.done) {
+      this.task = this.swap(flags, this.value);
+    } else {
+      this.task = new ContinuationTask(this.task, this.swap, this, flags, this.value);
+    }
   }
 
   private swap(flags: LifecycleFlags, value: any): ILifecycleTask {
     const activeCases: Case<T>[] = this.activeCases;
+
+    if (activeCases.length > 0) {
+      this.clearActiveCases();
+    }
 
     let fallThrough: boolean = false;
     for (const $case of this.cases) {
@@ -241,6 +287,18 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
       $case.view?.attach(flags);
     }
   }
+
+  private clearActiveCases(): void {
+    const cases = this.activeCases;
+    const length = cases.length;
+    if (length === 0) { return; }
+
+    for (const $case of cases) {
+      $case.view?.release(LifecycleFlags.none);
+    }
+
+    this.activeCases.splice(0);
+  }
 }
 
 @templateController('case')
@@ -248,11 +306,12 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   public readonly id: number = nextId('au$component');
   public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
 
+  // TODO if value is an array then observe.
   @bindable public value: any;
   @bindable({ mode: BindingMode.oneTime }) public fallThrough: boolean = false;
 
   public view?: ISyntheticView<T> = void 0;
-  private readonly auSwitch!: Switch<T>;
+  private readonly $switch!: Switch<T>;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,
@@ -260,7 +319,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   ) {
     const auSwitch = controller.viewModel;
     if (auSwitch instanceof Switch) {
-      this.auSwitch = auSwitch;
+      this.$switch = auSwitch;
       this.linkToSwitch(auSwitch);
     } else {
       throw new Error(`Unsupported switch`);
@@ -279,6 +338,10 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
     return Array.isArray($value)
       ? $value.includes(value)
       : $value === value;
+  }
+
+  public valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags) {
+    this.$switch.caseChanged(this, flags);
   }
 
   protected linkToSwitch(auSwitch: Switch<T>) {

@@ -39,7 +39,9 @@ export class StyleAttributeAccessor implements IAccessor {
     this.task?.cancel();
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    this.flushChanges(flags);
+    if ((flags & LifecycleFlags.noTargetObserverQueue) === 0) {
+      this.flushChanges(flags);
+    }
   }
 
   private getStyleTuplesFromString(currentValue: string): [string, string][] {

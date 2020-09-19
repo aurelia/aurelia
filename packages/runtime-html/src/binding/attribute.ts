@@ -140,7 +140,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
         interceptor.updateTarget(newValue, flags);
       }
 
-
       if ((mode & oneTime) === 0) {
         this.version++;
         sourceExpression.connect(flags, $scope, interceptor, this.part);

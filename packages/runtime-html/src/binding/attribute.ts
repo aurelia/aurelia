@@ -120,26 +120,26 @@ export class AttributeBinding implements IPartialConnectableBinding {
       //  (1). determine whether this should be the behavior
       //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
       const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
+      const oldValue = targetObserver.getValue();
 
       if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
         newValue = sourceExpression.evaluate(flags, $scope, locator, this.part);
       }
 
-      if (shouldQueueFlush) {
-        flags |= LifecycleFlags.noTargetObserverQueue;
-        this.task?.cancel();
-        targetObserver.task?.cancel();
-        targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
-          // timing wise, it's necessary to check if this binding is still bound, before execute everything below
-          // but if we always cancel any pending task during `$ubnind` of this binding
-          // then it's ok to just execute the logic inside here
-  
-          // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-          (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
-          this.task = targetObserver.task = null;
-        }, taskOptions);
+      if (newValue !== oldValue) {
+        if (shouldQueueFlush) {
+          flags |= LifecycleFlags.noTargetObserverQueue;
+          this.task?.cancel();
+          targetObserver.task?.cancel();
+          targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+            (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
+            this.task = targetObserver.task = null;
+          }, taskOptions);
+        }
+
+        interceptor.updateTarget(newValue, flags);
       }
-      interceptor.updateTarget(newValue, flags);
+
 
       if ((mode & oneTime) === 0) {
         this.version++;

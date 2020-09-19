@@ -124,6 +124,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
             this.task = targetObserver.task = null;
           }, updateTaskOpts);
         }
+
         interceptor.updateTarget(newValue, flags);
       }
 

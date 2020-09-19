@@ -36,15 +36,15 @@ import {
 @templateController('switch')
 export class Switch<T extends INode = Node> implements ICustomAttributeViewModel<T> {
   public readonly id: number = nextId('au$component');
-
   public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
-  public view?: ISyntheticView<T> = void 0;
 
   @bindable public value: any;
 
   /** @internal */
   public readonly cases: Case<T>[] = [];
+  /** @internal */
   public defaultCase?: Case<T>;
+  // TODO this needs to be converted to an array to support fall-through
   private activeCase?: Case<T>;
 
   private task: ILifecycleTask = LifecycleTask.done;
@@ -58,13 +58,11 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     // TODO fix the linking via renderer?
     const controller = this.$controller as unknown as Controller;
     controller['hydrateSynthetic'](this.factory.context);
-    // TODO do we really need reference to this view?
-    this.view = controller as unknown as ISyntheticView<T>;
 
     if (this.task.done) {
-      this.task = this.swap(flags);
+      this.task = this.swap(flags, this.value);
     } else {
-      this.task = new ContinuationTask(this.task, this.swap, this, flags);
+      this.task = new ContinuationTask(this.task, this.swap, this, flags, this.value);
     }
     return this.task;
   }
@@ -77,9 +75,49 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     }
   }
 
-  private swap(flags: LifecycleFlags): ILifecycleTask {
-    const value = this.value;
-    const activeCase: Case<T> | undefined = this.activeCase = this.cases.find((c) => c.value === value) ?? this.defaultCase;
+  public beforeDetach(flags: LifecycleFlags): ILifecycleTask {
+    const view = this.activeCase?.view;
+    if (view !== void 0) {
+      if (this.task.done) {
+        view.detach(flags);
+      } else {
+        this.task = new ContinuationTask(this.task, view.detach, view, flags);
+      }
+    }
+
+    return this.task;
+  }
+
+  public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
+    const view = this.activeCase?.view;
+    if (view !== void 0) {
+      if (this.task.done) {
+        this.task = view.unbind(flags);
+      } else {
+        this.task = new ContinuationTask(this.task, view.unbind, view, flags);
+      }
+    }
+
+    return this.task;
+  }
+
+  public valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags): void {
+    if ((this.$controller.state & State.isBound) === 0) {
+      return;
+    }
+    if (this.task.done) {
+      this.task = this.swap(flags, this.value);
+    } else {
+      this.task = new ContinuationTask(this.task, this.swap, this, flags, this.value);
+    }
+  }
+
+  public caseChanged($case: Case<T>): void {
+
+  }
+
+  private swap(flags: LifecycleFlags, value: any): ILifecycleTask {
+    const activeCase: Case<T> | undefined = this.activeCase = this.cases.find((c) => c.isMatch(value)) ?? this.defaultCase;
 
     if (activeCase === void 0) {
       // TODO generate warning?
@@ -106,17 +144,17 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
 
   private bindView(flags: LifecycleFlags): ILifecycleTask {
     const controller = this.$controller;
-    const activeView = this.activeCase?.view;
-    if (activeView !== void 0 && (this.$controller.state & State.isBoundOrBinding) > 0) {
-      return activeView.bind(flags, controller.scope, controller.hostScope);
+    const view = this.activeCase?.view;
+    if (view !== void 0 && (this.$controller.state & State.isBoundOrBinding) > 0) {
+      return view.bind(flags, controller.scope, controller.hostScope);
     }
     return LifecycleTask.done;
   }
 
   private attachView(flags: LifecycleFlags): void {
-    const activeView = this.activeCase?.view;
-    if (activeView !== void 0 && (this.$controller.state & State.isAttachedOrAttaching) > 0) {
-      activeView.attach(flags);
+    const view = this.activeCase?.view;
+    if (view !== void 0 && (this.$controller.state & State.isAttachedOrAttaching) > 0) {
+      view.attach(flags);
     }
   }
 }
@@ -124,11 +162,12 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
 @templateController('case')
 export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T> {
   public readonly id: number = nextId('au$component');
+  public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
+
   @bindable public value: any;
   @bindable({ mode: BindingMode.oneTime }) public fallthrough: boolean = false;
-  protected task: ILifecycleTask = LifecycleTask.done;
+
   public view?: ISyntheticView<T> = void 0;
-  public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
   private readonly auSwitch!: Switch<T>;
 
   public constructor(
@@ -149,6 +188,13 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
     const view = this.view = this.factory.create(flags);
     view.parent = this.$controller;
     return view;
+  }
+
+  public isMatch(value: any): boolean {
+    const $value = this.value;
+    return Array.isArray($value)
+      ? $value.includes(value)
+      : $value === value;
   }
 
   protected linkToSwitch(auSwitch: Switch<T>) {

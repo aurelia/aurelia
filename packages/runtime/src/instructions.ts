@@ -151,6 +151,7 @@ export class HydrateTemplateController implements IHydrateTemplateController {
         this.linkType = TemplateControllerLinkType.$else;
         break;
       case 'case':
+      case 'default-case':
         this.linkType = TemplateControllerLinkType.$case;
         break;
     }

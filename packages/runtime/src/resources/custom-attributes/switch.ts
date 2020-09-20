@@ -227,8 +227,6 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
       return LifecycleTask.done;
     }
 
-    this.activeCases = activeCases;
-
     let task = this.bindView(flags);
     if ((this.$controller.state & State.isAttached) === 0) {
       return task;
@@ -320,10 +318,10 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   ) { }
 
   public link(controller: ICustomAttributeController<T>) {
-    const auSwitch = controller.viewModel;
-    if (auSwitch instanceof Switch) {
-      this.$switch = auSwitch;
-      this.linkToSwitch(auSwitch);
+    const $switch = controller.viewModel;
+    if ($switch instanceof Switch) {
+      this.$switch = $switch;
+      this.linkToSwitch($switch);
     } else {
       throw new Error(`Unsupported switch`);
     }
@@ -365,7 +363,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
 @templateController('default-case')
 export class DefaultCase<T extends INode = Node> extends Case<T>{
 
-  protected linkToSwitch(auSwitch: Switch<T>) {
-    auSwitch.defaultCase = this;
+  protected linkToSwitch($switch: Switch<T>) {
+    $switch.defaultCase = this;
   }
 }

@@ -739,7 +739,7 @@ export const AuDOMTest = {
     );
   },
   createElseInstruction(def: PartialCustomElementDefinition): HydrateTemplateController {
-    return new HydrateTemplateController(def, 'else', [], true);
+    return new HydrateTemplateController(def, 'else', []);
   },
   createRepeatInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController {
     return new HydrateTemplateController(

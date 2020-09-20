@@ -11,7 +11,6 @@ import {
   State
 } from '../../flags';
 import {
-  IController,
   ICustomAttributeController,
   ICustomAttributeViewModel,
   ISyntheticView,
@@ -24,11 +23,14 @@ import {
   LifecycleTask,
 } from '../../lifecycle-task';
 import {
+  IndexMap,
+} from '../../observation';
+import {
+  IObserverLocator,
+} from '../../observation/observer-locator';
+import {
   bindable,
 } from '../../templating/bindable';
-import {
-  Controller,
-} from '../../templating/controller';
 import {
   templateController,
 } from '../custom-attribute';
@@ -54,9 +56,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
   ) { }
 
   public beforeBind(flags: LifecycleFlags): ILifecycleTask {
-    // TODO fix the linking via renderer?
-    const controller = this.$controller as unknown as Controller;
-    controller['hydrateSynthetic'](this.factory.context);
+    this.factory.create(flags, this.$controller);
 
     if (this.task.done) {
       this.task = this.swap(flags, this.value);
@@ -153,7 +153,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
   }
 
   public caseChanged($case: Case<T>, flags: LifecycleFlags): void {
-    const isMatch = $case.isMatch(this.value);
+    const isMatch = $case.isMatch(this.value, flags);
 
     // compute the new active cases
     const newActiveCases = [];
@@ -207,7 +207,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
 
     let fallThrough: boolean = false;
     for (const $case of this.cases) {
-      if ($case.isMatch(value) || fallThrough) {
+      if ($case.isMatch(value, flags) || fallThrough) {
         activeCases.push($case);
         fallThrough = $case.fallThrough;
 
@@ -224,7 +224,6 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     }
 
     if (activeCases.length === 0) {
-      // TODO generate warning?
       return LifecycleTask.done;
     }
 
@@ -306,17 +305,19 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   public readonly id: number = nextId('au$component');
   public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
 
-  // TODO if value is an array then observe.
   @bindable public value: any;
   @bindable({ mode: BindingMode.oneTime }) public fallThrough: boolean = false;
 
   public view?: ISyntheticView<T> = void 0;
-  private readonly $switch!: Switch<T>;
+  private $switch!: Switch<T>;
+  private isObserving: boolean = false;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,
-    @IController controller: ICustomAttributeController<T>,
-  ) {
+    @IObserverLocator private readonly locator: IObserverLocator,
+  ) { }
+
+  public link(controller: ICustomAttributeController<T>) {
     const auSwitch = controller.viewModel;
     if (auSwitch instanceof Switch) {
       this.$switch = auSwitch;
@@ -333,14 +334,24 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
     return view;
   }
 
-  public isMatch(value: any): boolean {
+  public isMatch(value: any, flags: LifecycleFlags): boolean {
     const $value = this.value;
-    return Array.isArray($value)
-      ? $value.includes(value)
-      : $value === value;
+    if (Array.isArray($value)) {
+      if (!this.isObserving) {
+        const observer = this.locator.getArrayObserver(flags, $value);
+        observer.addCollectionSubscriber(this);
+        this.isObserving = true;
+      }
+      return $value.includes(value);
+    }
+    return $value === value;
   }
 
   public valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags) {
+    this.$switch.caseChanged(this, flags);
+  }
+
+  public handleCollectionChange(_indexMap: IndexMap, flags: LifecycleFlags) {
     this.$switch.caseChanged(this, flags);
   }
 

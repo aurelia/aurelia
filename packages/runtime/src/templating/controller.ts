@@ -281,6 +281,7 @@ export class Controller<
     lifecycle: ILifecycle,
     context: IRenderContext<T>,
     flags: LifecycleFlags = LifecycleFlags.none,
+    parentController: ISyntheticView<T> | ICustomElementController<T> | ICustomAttributeController<T> | undefined = void 0,
   ): ISyntheticView<T> {
     const controller = new Controller<T>(
       /* vmKind         */ViewModelKind.synthetic,
@@ -292,6 +293,7 @@ export class Controller<
       /* bindingContext */void 0,
       /* host           */void 0,
     );
+    controller.parent = parentController;
 
     controller.hydrateSynthetic(context);
 

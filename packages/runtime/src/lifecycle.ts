@@ -346,7 +346,7 @@ export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   readonly context: IRenderContext<T>;
   readonly contentType: AuSlotContentType | undefined;
   readonly projectionScope: IScope | null;
-  create(flags?: LifecycleFlags): ISyntheticView<T>;
+  create(flags?: LifecycleFlags, parentController?: ISyntheticView<T> | ICustomElementController<T> | ICustomAttributeController<T> | undefined): ISyntheticView<T>;
 }
 
 export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();

@@ -17,6 +17,7 @@ import {
   ISetPropertyInstruction,
   ITargetedInstruction,
   TargetedInstructionType,
+  TemplateControllerLinkType,
 } from './definitions';
 import { BindingMode } from './flags';
 import { PartialCustomElementDefinition } from './resources/custom-element';
@@ -138,13 +139,22 @@ export class HydrateAttributeInstruction implements IHydrateAttributeInstruction
 
 export class HydrateTemplateController implements IHydrateTemplateController {
   public type: TargetedInstructionType.hydrateTemplateController = TargetedInstructionType.hydrateTemplateController;
+  public linkType?: TemplateControllerLinkType;
 
   public constructor(
     public def: PartialCustomElementDefinition,
     public res: string,
     public instructions: ITargetedInstruction[],
-    public link?: boolean,
-  ) {}
+  ) {
+    switch(res) {
+      case 'else':
+        this.linkType = TemplateControllerLinkType.$else;
+        break;
+      case 'case':
+        this.linkType = TemplateControllerLinkType.$case;
+        break;
+    }
+  }
 }
 
 export class LetElementInstruction implements IHydrateLetElementInstruction {

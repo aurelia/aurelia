@@ -172,7 +172,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
 
     // optimize the common case
     if (this.activeCases.length === 1 && isMatch && this.activeCases[0].id > $case.id) {
-      this.clearActiveCases();
+      this.clearActiveCases(flags);
       this.activeCases = newActiveCases;
 
       if (this.task === LifecycleTask.done) {
@@ -189,7 +189,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
       return;
     }
 
-    this.clearActiveCases();
+    this.clearActiveCases(flags);
     this.activeCases = newActiveCases;
     if (this.task === LifecycleTask.done) {
       this.task = this.swap(flags, this.value);
@@ -202,7 +202,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     const activeCases: Case<T>[] = this.activeCases;
 
     if (activeCases.length > 0) {
-      this.clearActiveCases();
+      this.clearActiveCases(flags);
     }
 
     let fallThrough: boolean = false;
@@ -287,13 +287,15 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     }
   }
 
-  private clearActiveCases(): void {
+  private clearActiveCases(flags: LifecycleFlags): void {
     const cases = this.activeCases;
     const length = cases.length;
     if (length === 0) { return; }
 
     for (const $case of cases) {
-      $case.view?.release(LifecycleFlags.none);
+      const view = $case.view;
+      view?.detach(flags);
+      view?.release(flags);
     }
 
     this.activeCases.splice(0);

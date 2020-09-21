@@ -27,22 +27,22 @@ describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
         </svg>
       </div>`,
       class App {
-        static get inject() {
+        public static get inject() {
           return [State];
         }
 
-        state: State;
-        totalNodes: number;
-        baseTransform: string;
+        public state: State;
+        public totalNodes: number;
+        public baseTransform: string;
 
-        constructor(_: State) {
-          this.state = state;
+        public constructor($state: State) {
+          this.state = $state || state;
           const base = state.baseSize;
           this.totalNodes = 2 ** (MAX_LEVEL + 1) - 1;
           this.baseTransform = `translate(50%, 100%) translate(-${base / 2}px, 0) scale(${base}, ${-base})`;
         }
 
-        onMouseMove({ clientX, clientY }) {
+        public onMouseMove({ clientX, clientY }: { clientX: number; clientY: number }) {
           this.state.mouseMoved(clientX, clientY);
         }
       },
@@ -76,24 +76,24 @@ describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
   const DEGREES = 180 / Math.PI;
 
   class State {
-    baseSize: number;
-    leftTransform: string;
-    rightTransform: string;
+    public baseSize: number;
+    public leftTransform: string;
+    public rightTransform: string;
 
-    constructor() {
+    public constructor() {
       this.leftTransform = '';
       this.rightTransform = '';
 
       this.baseSize = BASE_SIZE;
     }
 
-    mouseMoved(x: number, y: number) {
+    public mouseMoved(x: number, y: number) {
       const height = window.innerHeight;
       const width = window.innerWidth;
       this.update(1 - y / height, x / width);
     }
 
-    update(ratioH: number, ratioW: number) {
+    public update(ratioH: number, ratioW: number) {
       const h = 0.8 * ratioH;
       const h2 = h * h;
       const l = 0.01 + 0.98 * ratioW;
@@ -162,22 +162,22 @@ describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
         bindables: ['level'],
       },
       class Pythagoras {
-        static get inject() {
+        public static get inject() {
           return [State];
         }
 
-        level: number;
-        fill: string;
-        renderLeft: boolean;
-        renderRight: boolean;
+        public level: number;
+        public fill: string;
+        public renderLeft: boolean;
+        public renderRight: boolean;
 
-        constructor(public state: State) {
+        public constructor(public state: State) {
           this.level = undefined;
           this.fill = '';
           this.renderLeft = this.renderRight = false;
         }
 
-        beforeBind() {
+        public beforeBind() {
           this.renderLeft = this.renderRight = this.level < MAX_LEVEL;
           this.fill = memoizedViridis(this.level, MAX_LEVEL);
         }

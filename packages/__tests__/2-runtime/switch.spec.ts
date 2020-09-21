@@ -71,6 +71,9 @@ describe('switch', function () {
   const InitialStatus = DI.createInterface<Status>('InitialStatus').noDefault();
 
   class App {
+    public status1: Status = Status.received;
+    public status2: Status = Status.processing;
+    public statuses: Status[] = [Status.received, Status.processing];
     public constructor(
       @InitialStatus public status: Status,
     ) { }
@@ -98,6 +101,17 @@ describe('switch', function () {
       </template>
     </template>`;
 
+    const templateWithDefaultCase = `
+    <template>
+      <template switch.bind="status">
+        <span case="received">Order received.</span>
+        <span case="dispatched">On the way.</span>
+        <span case="processing">Processing your order.</span>
+        <span case="delivered">Delivered.</span>
+        <span default-case>Not found.</span>
+      </template>
+    </template>`;
+
     yield new TestData(
       'works for simple switch-case',
       Status.processing,
@@ -120,19 +134,12 @@ describe('switch', function () {
         ctx.app.status = Status.unknown;
         await ctx.scheduler.yieldAll();
         assert.html.innerEqual(ctx.host, '', 'change innerHTML2');
+
+        ctx.app.status = Status.received;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>Order received.</span>', 'change innerHTML1');
       }
     );
-
-    const templateWithDefaultCase = `
-    <template>
-      <template switch.bind="status">
-        <span case="received">Order received.</span>
-        <span case="dispatched">On the way.</span>
-        <span case="processing">Processing your order.</span>
-        <span case="delivered">Delivered.</span>
-        <span default-case>Not found.</span>
-      </template>
-    </template>`;
 
     yield new TestData(
       'supports default-case',
@@ -152,6 +159,56 @@ describe('switch', function () {
         ctx.app.status = Status.unknown;
         await ctx.scheduler.yieldAll();
         assert.html.innerEqual(ctx.host, '<span>Not found.</span>', 'change innerHTML');
+      }
+    );
+
+    yield new TestData(
+      'supports case.bind - #1',
+      Status.processing,
+      `
+    <template>
+      <template switch.bind="true">
+        <span case.bind="status === 'received'">Order received.</span>
+        <span case.bind="status === 'processing'">Processing your order.</span>
+        <span case.bind="status === 'dispatched'">On the way.</span>
+        <span case.bind="status === 'delivered'">Delivered.</span>
+      </template>
+    </template>`,
+      [],
+      '<span>Processing your order.</span>',
+      async (ctx) => {
+        ctx.app.status = Status.dispatched;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>On the way.</span>', 'change innerHTML1');
+      }
+    );
+
+    yield new TestData(
+      'supports case.bind - #2',
+      Status.processing,
+      `
+    <template>
+      <template switch.bind="status">
+        <span case.bind="status1">Order received.</span>
+        <span case.bind="status2">Processing your order.</span>
+        <span case="dispatched">On the way.</span>
+        <span case="delivered">Delivered.</span>
+      </template>
+    </template>`,
+      [],
+      '<span>Processing your order.</span>',
+      async (ctx) => {
+        ctx.app.status = Status.dispatched;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>On the way.</span>', 'change innerHTML1');
+
+        ctx.app.status1 = Status.processing;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>On the way.</span>', 'no-change innerHTML2');
+
+        ctx.app.status = Status.processing;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>Order received.</span>', 'no-change innerHTML3');
       }
     );
 
@@ -176,6 +233,52 @@ describe('switch', function () {
         ctx.app.status = Status.received;
         await ctx.scheduler.yieldAll();
         assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML2');
+      }
+    );
+
+    yield new TestData(
+      'supports multi-case collection change - #1',
+      Status.received,
+      `
+    <template>
+      <template switch.bind="status">
+        <span case.bind="statuses">Processing.</span>
+        <span case="dispatched">On the way.</span>
+        <span case="delivered">Delivered.</span>
+      </template>
+    </template>`,
+      [],
+      '<span>Processing.</span>',
+      async (ctx) => {
+        ctx.app.status = Status.dispatched;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>On the way.</span>', 'change innerHTML1');
+
+        ctx.app.statuses = [Status.dispatched];
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML2');
+      }
+    );
+
+    // TODO: fix
+    yield new TestData(
+      'supports multi-case collection change - #2',
+      Status.dispatched,
+      `
+    <template>
+      <template switch.bind="status">
+        <span case.bind="statuses">Processing.</span>
+        <span case="dispatched">On the way.</span>
+        <span case="delivered">Delivered.</span>
+      </template>
+    </template>`,
+      [],
+      '<span>On the way.</span>',
+      async (ctx) => {
+        // ctx.app.statuses.push(Status.dispatched);
+        ctx.app.statuses = [ctx.app.status = Status.dispatched];
+        await ctx.scheduler.yieldAll(2);
+        assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML1');
       }
     );
 

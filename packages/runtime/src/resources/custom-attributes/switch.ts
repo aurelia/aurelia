@@ -162,7 +162,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
 
     // compute the new active cases
     const newActiveCases = [];
-    let fallThrough = !$case.fallThrough;
+    let fallThrough = $case.fallThrough;
     if (!fallThrough) {
       newActiveCases.push($case);
     } else {
@@ -215,14 +215,14 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
       if ($case.isMatch(value, flags) || fallThrough) {
         activeCases.push($case);
         fallThrough = $case.fallThrough;
-        $case.view?.hold(this.location, MountStrategy.insertBefore);
+        $case.view.hold(this.location, MountStrategy.insertBefore);
       }
       if (activeCases.length > 0 && !fallThrough) { break; }
     }
     const defaultCase = this.defaultCase;
     if (activeCases.length === 0 && defaultCase !== void 0) {
       activeCases.push(defaultCase);
-      defaultCase.view?.hold(this.location, MountStrategy.insertBefore);
+      defaultCase.view.hold(this.location, MountStrategy.insertBefore);
     }
 
     if (activeCases.length === 0) {
@@ -279,11 +279,11 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     if (length === 0) { return; }
 
     if (length === 1) {
-      cases[0].view?.attach(flags);
+      cases[0].view.attach(flags);
     }
 
     for (const $case of cases) {
-      $case.view?.attach(flags);
+      $case.view.attach(flags);
     }
   }
 
@@ -294,8 +294,8 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
 
     for (const $case of cases) {
       const view = $case.view;
-      view?.detach(flags);
-      view?.release(flags);
+      view.detach(flags);
+      view.release(flags);
     }
 
     this.activeCases.splice(0);
@@ -310,7 +310,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   @bindable public value: any;
   @bindable({ mode: BindingMode.oneTime }) public fallThrough: boolean = false;
 
-  public view!: ISyntheticView<T>;
+  public view: ISyntheticView<T>;
   private $switch!: Switch<T>;
   private isObserving: boolean = false;
 
@@ -319,8 +319,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
     @IObserverLocator private readonly locator: IObserverLocator,
     @IRenderLocation private readonly location: IRenderLocation<T>,
   ) {
-    const view = this.view = this.factory.create();
-    view?.hold(this.location, MountStrategy.insertBefore);
+    this.view = this.factory.create();
   }
 
   public link(controller: ICustomAttributeController<T>) {

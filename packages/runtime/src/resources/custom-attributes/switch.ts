@@ -39,6 +39,7 @@ import {
 export class Switch<T extends INode = Node> implements ICustomAttributeViewModel<T> {
   public readonly id: number = nextId('au$component');
   public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
+  private view!: ISyntheticView<T>;
 
   @bindable public value: any;
 
@@ -56,14 +57,18 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
   ) { }
 
   public beforeBind(flags: LifecycleFlags): ILifecycleTask {
-    this.factory.create(flags, this.$controller);
+    const view = this.view = this.factory.create(flags, this.$controller);
+    const $controller = this.$controller;
 
-    if (this.task.done) {
-      this.task = this.swap(flags, this.value);
+    let task = this.task.done
+      ? view.bind(flags, $controller.scope, $controller.hostScope)
+      : new ContinuationTask(this.task, view.bind, view, flags, $controller.scope, $controller.hostScope);
+    if (task.done) {
+      task = this.swap(flags, this.value);
     } else {
-      this.task = new ContinuationTask(this.task, this.swap, this, flags, this.value);
+      task = new ContinuationTask(task, this.swap, this, flags, this.value);
     }
-    return this.task;
+    return this.task = task;
   }
 
   public beforeAttach(flags: LifecycleFlags): void {
@@ -175,13 +180,13 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
       this.clearActiveCases(flags);
       this.activeCases = newActiveCases;
 
-      if (this.task === LifecycleTask.done) {
+      if (this.task.done) {
         this.task = this.bindView(flags);
       } else {
         this.task = new ContinuationTask(this.task, this.bindView, this, flags);
       }
 
-      if (this.task === LifecycleTask.done) {
+      if (this.task.done) {
         this.attachView(flags);
       } else {
         this.task = new ContinuationTask(this.task, this.attachView, this, flags);
@@ -191,7 +196,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
 
     this.clearActiveCases(flags);
     this.activeCases = newActiveCases;
-    if (this.task === LifecycleTask.done) {
+    if (this.task.done) {
       this.task = this.swap(flags, this.value);
     } else {
       this.task = new ContinuationTask(this.task, this.swap, this, flags, this.value);
@@ -210,17 +215,14 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
       if ($case.isMatch(value, flags) || fallThrough) {
         activeCases.push($case);
         fallThrough = $case.fallThrough;
-
-        const view = $case.createView(flags);
-        view.hold(this.location, MountStrategy.insertBefore);
+        $case.view?.hold(this.location, MountStrategy.insertBefore);
       }
+      if (activeCases.length > 0 && !fallThrough) { break; }
     }
     const defaultCase = this.defaultCase;
     if (activeCases.length === 0 && defaultCase !== void 0) {
       activeCases.push(defaultCase);
-
-      const view = defaultCase.createView(flags);
-      view.hold(this.location, MountStrategy.insertBefore);
+      defaultCase.view?.hold(this.location, MountStrategy.insertBefore);
     }
 
     if (activeCases.length === 0) {
@@ -308,30 +310,28 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   @bindable public value: any;
   @bindable({ mode: BindingMode.oneTime }) public fallThrough: boolean = false;
 
-  public view?: ISyntheticView<T> = void 0;
+  public view!: ISyntheticView<T>;
   private $switch!: Switch<T>;
   private isObserving: boolean = false;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,
     @IObserverLocator private readonly locator: IObserverLocator,
-  ) { }
+    @IRenderLocation private readonly location: IRenderLocation<T>,
+  ) {
+    const view = this.view = this.factory.create();
+    view?.hold(this.location, MountStrategy.insertBefore);
+  }
 
   public link(controller: ICustomAttributeController<T>) {
     const $switch = controller.viewModel;
     if ($switch instanceof Switch) {
       this.$switch = $switch;
+      this.$controller.parent = controller;
       this.linkToSwitch($switch);
     } else {
       throw new Error(`Unsupported switch`);
     }
-  }
-
-  /** @internal */
-  public createView(flags: LifecycleFlags): ISyntheticView<T> {
-    const view = this.view = this.factory.create(flags);
-    view.parent = this.$controller;
-    return view;
   }
 
   public isMatch(value: any, flags: LifecycleFlags): boolean {

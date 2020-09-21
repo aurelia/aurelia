@@ -56,6 +56,7 @@ describe('switch', function () {
     if (error === null) {
       await au.stop().wait();
     }
+    assert.html.innerEqual(host, '', 'post-detach innerHTML');
     ctx.doc.body.removeChild(host);
   }
   const $it = createSpecFunction(testSwitch);
@@ -65,6 +66,7 @@ describe('switch', function () {
     processing = 'processing',
     dispatched = 'dispatched',
     delivered = 'delivered',
+    unknown = 'unknown',
   }
   const InitialStatus = DI.createInterface<Status>('InitialStatus').noDefault();
 
@@ -93,7 +95,6 @@ describe('switch', function () {
         <span case="dispatched">On the way.</span>
         <span case="processing">Processing your order.</span>
         <span case="delivered">Delivered.</span>
-        <span default-case>Not found.</span>
       </template>
     </template>`;
 
@@ -106,14 +107,6 @@ describe('switch', function () {
     );
 
     yield new TestData(
-      'supports default-case',
-      'foo' as unknown as Status,
-      enumTemplate,
-      [],
-      '<span>Not found.</span>'
-    );
-
-    yield new TestData(
       'reacts to switch value change',
       Status.dispatched,
       enumTemplate,
@@ -122,9 +115,72 @@ describe('switch', function () {
       async (ctx) => {
         ctx.app.status = Status.delivered;
         await ctx.scheduler.yieldAll();
-        assert.html.innerEqual(ctx.host, '<span>Delivered.</span>', 'change innerHTML');
+        assert.html.innerEqual(ctx.host, '<span>Delivered.</span>', 'change innerHTML1');
+
+        ctx.app.status = Status.unknown;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '', 'change innerHTML2');
       }
     );
+
+    const templateWithDefaultCase = `
+    <template>
+      <template switch.bind="status">
+        <span case="received">Order received.</span>
+        <span case="dispatched">On the way.</span>
+        <span case="processing">Processing your order.</span>
+        <span case="delivered">Delivered.</span>
+        <span default-case>Not found.</span>
+      </template>
+    </template>`;
+
+    yield new TestData(
+      'supports default-case',
+      Status.unknown,
+      templateWithDefaultCase,
+      [],
+      '<span>Not found.</span>'
+    );
+
+    yield new TestData(
+      'reacts to switch value change - default case',
+      Status.dispatched,
+      templateWithDefaultCase,
+      [],
+      '<span>On the way.</span>',
+      async (ctx) => {
+        ctx.app.status = Status.unknown;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>Not found.</span>', 'change innerHTML');
+      }
+    );
+
+    yield new TestData(
+      'supports multi-case',
+      Status.processing,
+      `
+    <template>
+      <template switch.bind="status">
+        <span case.bind="['received', 'processing']">Processing.</span>
+        <span case="dispatched">On the way.</span>
+        <span case="delivered">Delivered.</span>
+      </template>
+    </template>`,
+      [],
+      '<span>Processing.</span>',
+      async (ctx) => {
+        ctx.app.status = Status.dispatched;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>On the way.</span>', 'change innerHTML1');
+
+        ctx.app.status = Status.received;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML2');
+      }
+    );
+
+    // valueConverter
+    // bindingBehavior
   }
 
   for (const data of getTestData()) {

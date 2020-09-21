@@ -90,9 +90,7 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
     }
     // we got a template element, remove it from the DOM if it's present there and don't
     // do any other processing
-    if (input.parentNode != null) {
-      input.parentNode.removeChild(input);
-    }
-    return input as HTMLTemplateElement;
+    input.parentNode?.removeChild(input);
+    return input.cloneNode(true) as HTMLTemplateElement;
   }
 }

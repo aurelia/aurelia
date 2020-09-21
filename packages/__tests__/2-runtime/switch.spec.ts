@@ -260,7 +260,6 @@ describe('switch', function () {
       }
     );
 
-    // TODO: fix
     yield new TestData(
       'supports multi-case collection change - #2',
       Status.dispatched,
@@ -277,6 +276,26 @@ describe('switch', function () {
       async (ctx) => {
         // ctx.app.statuses.push(Status.dispatched);
         ctx.app.statuses = [ctx.app.status = Status.dispatched];
+        await ctx.scheduler.yieldAll(2);
+        assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML1');
+      }
+    );
+
+    yield new TestData(
+      'supports multi-case collection mutation',
+      Status.dispatched,
+      `
+    <template>
+      <template switch.bind="status">
+        <span case.bind="statuses">Processing.</span>
+        <span case="dispatched">On the way.</span>
+        <span case="delivered">Delivered.</span>
+      </template>
+    </template>`,
+      [],
+      '<span>On the way.</span>',
+      async (ctx) => {
+        ctx.app.statuses.push(ctx.app.status = Status.dispatched);
         await ctx.scheduler.yieldAll(2);
         assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML1');
       }

@@ -180,6 +180,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
       this.clearActiveCases(flags);
       this.activeCases = newActiveCases;
 
+      $case.view.hold(this.location, MountStrategy.insertBefore);
       if (this.task.done) {
         this.task = this.bindView(flags);
       } else {

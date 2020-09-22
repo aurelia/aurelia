@@ -7,11 +7,15 @@ import {
   createFixture,
   TestContext
 } from '@aurelia/testing';
-import { Registration } from '@aurelia/kernel';
+import { Registration, PLATFORM } from '@aurelia/kernel';
 import { register } from '@aurelia/plugin-svg';
 
 describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
   it('renders fractal tree', async function () {
+    if (!PLATFORM.isBrowserLike) {
+      return;
+    }
+
     const ctx = TestContext.createHTMLTestContext();
     const state = new State();
     Registration.instance(State, state).register(ctx.container);
@@ -116,7 +120,7 @@ describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
           y='0'
           width='1'
           height='1'
-          fill.bind='fill' />
+          fill.bind='fill'></rect>
         <g
           if.bind='renderLeft'
           as-element='pythagoras'

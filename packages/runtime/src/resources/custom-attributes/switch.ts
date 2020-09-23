@@ -165,6 +165,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     let fallThrough = $case.fallThrough;
     if (!fallThrough) {
       newActiveCases.push($case);
+      $case.view.hold(this.location, MountStrategy.insertBefore);
     } else {
       const cases = this.cases;
       const idx = cases.findIndex((c) => c === $case);
@@ -172,6 +173,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
         const c = cases[i];
         newActiveCases.push(c);
         fallThrough = c.fallThrough;
+        c.view.hold(this.location, MountStrategy.insertBefore);
       }
     }
 
@@ -180,7 +182,6 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
       this.clearActiveCases(flags);
       this.activeCases = newActiveCases;
 
-      $case.view.hold(this.location, MountStrategy.insertBefore);
       if (this.task.done) {
         this.task = this.bindView(flags);
       } else {

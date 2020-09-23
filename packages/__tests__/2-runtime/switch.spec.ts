@@ -101,17 +101,6 @@ describe('switch', function () {
       </template>
     </template>`;
 
-    const templateWithDefaultCase = `
-    <template>
-      <template switch.bind="status">
-        <span case="received">Order received.</span>
-        <span case="dispatched">On the way.</span>
-        <span case="processing">Processing your order.</span>
-        <span case="delivered">Delivered.</span>
-        <span default-case>Not found.</span>
-      </template>
-    </template>`;
-
     yield new TestData(
       'works for simple switch-case',
       Status.processing,
@@ -140,6 +129,17 @@ describe('switch', function () {
         assert.html.innerEqual(ctx.host, '<span>Order received.</span>', 'change innerHTML1');
       }
     );
+
+    const templateWithDefaultCase = `
+    <template>
+      <template switch.bind="status">
+        <span case="received">Order received.</span>
+        <span case="dispatched">On the way.</span>
+        <span case="processing">Processing your order.</span>
+        <span case="delivered">Delivered.</span>
+        <span default-case>Not found.</span>
+      </template>
+    </template>`;
 
     yield new TestData(
       'supports default-case',
@@ -301,6 +301,62 @@ describe('switch', function () {
       }
     );
 
+    const fallThroughTemplate = `
+      <template>
+        <template switch.bind="status">
+          <span case="received">Order received.</span>
+          <span case="value.bind:'dispatched'; fall-through.bind:true">On the way.</span>
+          <span case="value.bind:'processing'; fall-through.bind:true">Processing your order.</span>
+          <span case="delivered">Delivered.</span>
+        </template>
+      </template>`;
+
+    yield new TestData(
+      'supports fall-through #1',
+      Status.dispatched,
+      fallThroughTemplate,
+      [],
+      '<span>On the way.</span><span>Processing your order.</span><span>Delivered.</span>',
+      async (ctx) => {
+        ctx.app.status = Status.delivered;
+        await ctx.scheduler.yieldAll(2);
+        assert.html.innerEqual(ctx.host, '<span>Delivered.</span>', 'change innerHTML1');
+      }
+    );
+
+    yield new TestData(
+      'supports fall-through #2',
+      Status.delivered,
+      fallThroughTemplate,
+      [],
+      '<span>Delivered.</span>',
+      async (ctx) => {
+        ctx.app.status = Status.processing;
+        await ctx.scheduler.yieldAll(2);
+        assert.html.innerEqual(ctx.host, '<span>Processing your order.</span><span>Delivered.</span>', 'change innerHTML1');
+      }
+    );
+
+    yield new TestData(
+      'supports fall-through #3',
+      Status.delivered,
+      `
+    <template>
+      <template switch.bind="true">
+        <span case.bind="status === 'received'">Order received.</span>
+        <span case="value.bind:status === 'processing'; fall-through.bind:true">Processing your order.</span>
+        <span case="value.bind:status === 'dispatched'; fall-through.bind:true">On the way.</span>
+        <span case.bind="status === 'delivered'">Delivered.</span>
+      </template>
+    </template>`,
+      [],
+      '<span>Delivered.</span>',
+      async (ctx) => {
+        ctx.app.status = Status.processing;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>On the way.</span><span>Processing your order.</span><span>Delivered.</span>', 'change innerHTML1');
+      }
+    );
     // valueConverter
     // bindingBehavior
   }

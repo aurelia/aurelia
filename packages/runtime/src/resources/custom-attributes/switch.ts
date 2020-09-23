@@ -58,6 +58,8 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
 
   public beforeBind(flags: LifecycleFlags): ILifecycleTask {
     const view = this.view = this.factory.create(flags, this.$controller);
+    view.hold(this.location, MountStrategy.insertBefore);
+
     const $controller = this.$controller;
 
     let task = this.task.done
@@ -83,11 +85,10 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     const cases = this.activeCases;
 
     const length = cases.length;
-    if (length === 0) { return LifecycleTask.done; }
+    if (length === 0) { return this.task; }
 
     if (length === 1) {
       const view = cases[0].view;
-      if (view === void 0) { return this.task; }
 
       if (this.task.done) {
         view.detach(flags);
@@ -100,8 +101,6 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     let task = this.task;
     for (const $case of cases) {
       const view = $case.view;
-      if (view === void 0) { continue; }
-
       if (task.done) {
         view.detach(flags);
       } else {
@@ -116,12 +115,10 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     const cases = this.activeCases;
 
     const length = cases.length;
-    if (length === 0) { return LifecycleTask.done; }
+    if (length === 0) { return this.task; }
 
     if (length === 1) {
       const view = cases[0].view;
-      if (view === void 0) { return this.task; }
-
       if (this.task.done) {
         this.task = view.unbind(flags);
       } else {
@@ -134,8 +131,6 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     let task = this.task;
     for (const $case of cases) {
       const view = $case.view;
-      if (view === void 0) { continue; }
-
       if (task.done) {
         task = view.unbind(flags);
       } else {
@@ -165,7 +160,6 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     let fallThrough = $case.fallThrough;
     if (!fallThrough) {
       newActiveCases.push($case);
-      $case.view.hold(this.location, MountStrategy.insertBefore);
     } else {
       const cases = this.cases;
       const idx = cases.findIndex((c) => c === $case);
@@ -173,7 +167,6 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
         const c = cases[i];
         newActiveCases.push(c);
         fallThrough = c.fallThrough;
-        c.view.hold(this.location, MountStrategy.insertBefore);
       }
     }
 
@@ -217,14 +210,12 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
       if ($case.isMatch(value, flags) || fallThrough) {
         activeCases.push($case);
         fallThrough = $case.fallThrough;
-        $case.view.hold(this.location, MountStrategy.insertBefore);
       }
       if (activeCases.length > 0 && !fallThrough) { break; }
     }
     const defaultCase = this.defaultCase;
     if (activeCases.length === 0 && defaultCase !== void 0) {
       activeCases.push(defaultCase);
-      defaultCase.view.hold(this.location, MountStrategy.insertBefore);
     }
 
     if (activeCases.length === 0) {
@@ -257,8 +248,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
 
     // most common case
     if (length === 1) {
-      const view = cases[0].view;
-      return view !== void 0 ? view.bind(flags, scope, hostScope) : LifecycleTask.done;
+      return cases[0].view.bind(flags, scope, hostScope);
     }
 
     let task = LifecycleTask.done;
@@ -275,6 +265,9 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
 
   private attachView(flags: LifecycleFlags): void {
     if ((this.$controller.state & State.isAttachedOrAttaching) === 0) { return; }
+    if ((this.$controller.state & State.isAttached) === 0) {
+      this.view.attach(flags);
+    }
 
     const cases = this.activeCases;
     const length = cases.length;
@@ -319,9 +312,10 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,
     @IObserverLocator private readonly locator: IObserverLocator,
-    @IRenderLocation private readonly location: IRenderLocation<T>,
+    @IRenderLocation location: IRenderLocation<T>,
   ) {
-    this.view = this.factory.create();
+    const view = this.view = this.factory.create();
+    view.hold(location, MountStrategy.insertBefore);
   }
 
   public link(controller: ICustomAttributeController<T>) {

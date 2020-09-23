@@ -1,5 +1,5 @@
 import { DI, IContainer, Registration } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IScheduler } from '@aurelia/runtime';
+import { Aurelia, bindable, customElement, CustomElement, IScheduler } from '@aurelia/runtime';
 import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
 
@@ -91,6 +91,12 @@ describe('switch', function () {
   }
 
   function* getTestData() {
+
+    @customElement({ name: 'my-echo', template: `Echoed '\${message}'` })
+    class MyEcho {
+      @bindable public message: string;
+    }
+
     const enumTemplate = `
     <template>
       <template switch.bind="status">
@@ -316,7 +322,7 @@ describe('switch', function () {
       Status.dispatched,
       fallThroughTemplate,
       [],
-      '<span>On the way.</span><span>Processing your order.</span><span>Delivered.</span>',
+      '<span>On the way.</span> <span>Processing your order.</span> <span>Delivered.</span>',
       async (ctx) => {
         ctx.app.status = Status.delivered;
         await ctx.scheduler.yieldAll(2);
@@ -333,7 +339,7 @@ describe('switch', function () {
       async (ctx) => {
         ctx.app.status = Status.processing;
         await ctx.scheduler.yieldAll(2);
-        assert.html.innerEqual(ctx.host, '<span>Processing your order.</span><span>Delivered.</span>', 'change innerHTML1');
+        assert.html.innerEqual(ctx.host, '<span>Processing your order.</span> <span>Delivered.</span>', 'change innerHTML1');
       }
     );
 
@@ -354,9 +360,31 @@ describe('switch', function () {
       async (ctx) => {
         ctx.app.status = Status.processing;
         await ctx.scheduler.yieldAll();
-        assert.html.innerEqual(ctx.host, '<span>Processing your order.</span><span>On the way.</span><span>Delivered.</span>', 'change innerHTML1');
+        assert.html.innerEqual(ctx.host, '<span>Processing your order.</span> <span>On the way.</span> <span>Delivered.</span>', 'change innerHTML1');
       }
     );
+
+    yield new TestData(
+      'supports non-case elements',
+      Status.delivered,
+      `
+      <template>
+        <template switch.bind="status">
+          <span case="received">Order received.</span>
+          <span case="dispatched">On the way.</span>
+          <span case="processing">Processing your order.</span>
+          <span case="delivered">Delivered.</span>
+          <span>foobar</span>
+          <span if.bind="true">foo</span><span else>bar</span>
+          <span if.bind="false">foo</span><span else>bar</span>
+          <span repeat.for="i of 3">\${i}</span>
+          <my-echo message="awesome possum"></my-echo>
+        </template>
+      </template>`,
+      [MyEcho],
+      '<span>Delivered.</span> <span>foobar</span> <span>foo</span> <span>bar</span> <span>0</span><span>1</span><span>2</span> <my-echo message="awesome possum" class="au">Echoed \'awesome possum\'</my-echo>',
+    );
+
     // valueConverter
     // bindingBehavior
   }

@@ -354,7 +354,7 @@ describe('switch', function () {
       async (ctx) => {
         ctx.app.status = Status.processing;
         await ctx.scheduler.yieldAll();
-        assert.html.innerEqual(ctx.host, '<span>On the way.</span><span>Processing your order.</span><span>Delivered.</span>', 'change innerHTML1');
+        assert.html.innerEqual(ctx.host, '<span>Processing your order.</span><span>On the way.</span><span>Delivered.</span>', 'change innerHTML1');
       }
     );
     // valueConverter

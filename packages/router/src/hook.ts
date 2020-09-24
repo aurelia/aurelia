@@ -80,7 +80,8 @@ class Target {
   public matches(viewportInstructions: ViewportInstruction[]): boolean {
     const instructions = viewportInstructions.slice();
     if (!instructions.length) {
-      instructions.push(new ViewportInstruction(''));
+      // instructions.push(new ViewportInstruction(''));
+      instructions.push(ViewportInstruction.create(null, ''));
     }
     for (const instruction of instructions) {
       if ((this.componentName !== null && this.componentName === instruction.componentName) ||

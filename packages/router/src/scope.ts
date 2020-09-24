@@ -10,9 +10,11 @@ import { arrayRemove } from './utils';
 import { Collection } from './collection';
 import { IConfigurableRoute, RouteRecognizer } from './route-recognizer';
 import { Navigation } from './navigation';
-import { IConnectionCustomElement } from './resources/viewport';
+import { IConnectedCustomElement } from './resources/viewport';
 import { NavigationCoordinator } from './navigation-coordinator';
 import { Runner } from './runner';
+
+export type NextContentAction = 'skip' | 'reload' | 'swap' | '';
 
 /**
  * @internal - Shouldn't be used directly
@@ -46,12 +48,16 @@ export interface IScopeOwner {
   isViewportScope: boolean;
   isEmpty: boolean;
 
-  setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: Navigation): boolean;
+  nextContentActivated: boolean;
+  parentNextContentActivated: boolean;
+  nextContentAction: NextContentAction;
+
+  setNextContent(viewportInstruction: ViewportInstruction, navigation: Navigation): NextContentAction;
   swap(coordinator: NavigationCoordinator): void;
-  canLeave(): boolean | Promise<boolean>;
-  canEnter(): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
-  enter(): void | Promise<void>;
-  leave(): void | Promise<void>;
+  canUnload(): boolean | Promise<boolean>;
+  canLoad(recurse: boolean): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
+  load(recurse: boolean): void | Promise<void>;
+  unload(recurse: boolean): void | Promise<void>;
   // loadContent(): Promise<boolean>;
   finalizeContentChange(): void;
   abortContentChange(): Promise<void>;
@@ -89,8 +95,12 @@ export class Scope {
     // console.log('Created scope', this.toString());
   }
 
-  public toString(): string {
-    return `${this.owningScope !== this ? this.owningScope!.toString() : ''}/${this.isViewport ? 'v' : 'vs'}:${this.owner!.name}`;
+  public toString(recurse = false): string {
+    const contentName = (this.owner! as Viewport).content?.content.componentName ?? '';
+    const nextContentName = (this.owner! as Viewport).nextContent?.content.componentName ?? '';
+    return `${this.owningScope !== this ? this.owningScope!.toString() : ''}/${this.isViewport ? 'v' : 'vs'}:` +
+      `${this.owner!.name}[${contentName}->${nextContentName}]` +
+      `${recurse ? `\n` + this.children.map(child => child.toString(true)).join('') : ''}`;
   }
 
   public get isViewport(): boolean {
@@ -144,6 +154,17 @@ export class Scope {
     return null;
   }
 
+  public get parentNextContentAction(): NextContentAction {
+    if (this.parent === null) {
+      return '';
+    }
+    const parentAction = this.parent.owner!.nextContentAction;
+    if (parentAction === 'swap' || parentAction === 'skip') {
+      return parentAction;
+    }
+    return this.parent.parentNextContentAction;
+  }
+
   public getEnabledViewports(viewportScopes: Scope[]): Record<string, Viewport> {
     return viewportScopes
       .filter(scope => !scope.isViewportScope)
@@ -171,6 +192,41 @@ export class Scope {
       }
     }
     return scopes;
+  }
+
+  public findInstructions(instruction: string | ViewportInstruction[]): FoundRoute {
+    let route = new FoundRoute();
+    if (typeof instruction === 'string') {
+      const instructions = this.router.instructionResolver.parseViewportInstructions(instruction);
+      if (this.router.options.useConfiguredRoutes && !this.router.hasSiblingInstructions(instructions)) {
+        const foundRoute = this.findMatchingRoute(instruction);
+        if (foundRoute?.foundConfiguration ?? false) {
+          route = foundRoute!;
+        } else {
+          if (this.router.options.useDirectRoutes) {
+            route.instructions = instructions;
+            if (route.instructions.length > 0) {
+              const nextInstructions = route.instructions[0].nextScopeInstructions ?? [];
+              route.remaining = this.router.instructionResolver.stringifyViewportInstructions(nextInstructions);
+              // TODO: Verify that it's okay to leave this in
+              route.instructions[0].nextScopeInstructions = null;
+            }
+          }
+        }
+      } else if (this.router.options.useDirectRoutes) {
+        route.instructions = instructions;
+      }
+    } else {
+      route.instructions = instruction;
+    }
+
+    for (const instr of route.instructions) {
+      if (instr.scope === null) {
+        instr.scope = this;
+      }
+    }
+
+    return route;
   }
 
   // Note: This can't change state other than the instructions!
@@ -360,36 +416,36 @@ export class Scope {
     return remaining;
   }
 
-  public addViewport(name: string, connectionCE: IConnectionCustomElement | null, options: IViewportOptions = {}): Viewport {
+  public addViewport(name: string, connectedCE: IConnectedCustomElement | null, options: IViewportOptions = {}): Viewport {
     let viewport: Viewport | null = this.getEnabledViewports(this.getOwnedScopes())[name];
     // Each au-viewport element has its own Viewport
-    if (((connectionCE ?? null) !== null) &&
-      ((viewport?.connectionCE ?? null) !== null) &&
-      viewport.connectionCE !== connectionCE) {
+    if (((connectedCE ?? null) !== null) &&
+      ((viewport?.connectedCE ?? null) !== null) &&
+      viewport.connectedCE !== connectedCE) {
       viewport.enabled = false;
-      viewport = this.getOwnedViewports(true).find(child => child.name === name && child.connectionCE === connectionCE) ?? null;
+      viewport = this.getOwnedViewports(true).find(child => child.name === name && child.connectedCE === connectedCE) ?? null;
       if ((viewport ?? null) !== null) {
         viewport!.enabled = true;
       }
     }
     if ((viewport ?? null) === null) {
-      viewport = new Viewport(this.router, name, connectionCE, this.scope, !!options.scope, options);
+      viewport = new Viewport(this.router, name, connectedCE, this.scope, !!options.scope, options);
       this.addChild(viewport.connectedScope);
     }
-    if ((connectionCE ?? null) !== null) {
-      viewport!.setConnection(connectionCE!, options);
+    if ((connectedCE ?? null) !== null) {
+      viewport!.setConnectedCE(connectedCE!, options);
     }
     return viewport!;
   }
-  public removeViewport(viewport: Viewport, connectionCE: IConnectionCustomElement | null): boolean {
-    if (((connectionCE ?? null) !== null) || viewport.remove(connectionCE)) {
+  public removeViewport(viewport: Viewport, connectedCE: IConnectedCustomElement | null): boolean {
+    if (((connectedCE ?? null) !== null) || viewport.remove(connectedCE)) {
       this.removeChild(viewport.connectedScope);
       return true;
     }
     return false;
   }
-  public addViewportScope(name: string, connectionCE: IConnectionCustomElement | null, options: IViewportScopeOptions = {}): ViewportScope {
-    const viewportScope = new ViewportScope(name, this.router, connectionCE, this.scope, true, null, options);
+  public addViewportScope(name: string, connectedCE: IConnectedCustomElement | null, options: IViewportScopeOptions = {}): ViewportScope {
+    const viewportScope = new ViewportScope(name, this.router, connectedCE, this.scope, true, null, options);
     this.addChild(viewportScope.connectedScope);
     return viewportScope;
   }
@@ -476,12 +532,12 @@ export class Scope {
     return null;
   }
 
-  public canLeave(): boolean | Promise<boolean> {
+  public canLoad(recurse: boolean): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
     const results = Runner.runAll(
       this.children.map(child =>
         child.viewport !== null
-          ? child.viewport.canLeave()
-          : child.canLeave())
+          ? child.viewport.canLoad(recurse)
+          : child.canLoad(recurse))
     );
     if (results instanceof Promise) {
       return results.then(resolvedResults =>
@@ -489,21 +545,59 @@ export class Scope {
       );
     }
     return results.every(result => result as boolean);
-
-
-    // return Promise.all(this.children.map(child =>
-    //   child.viewport !== null
-    //     ? child.viewport.canLeave()
-    //     : child.canLeave())
-    // ).then(results => !results.some(result => result === false));
   }
-  // public async canLeave(): boolean | Promise<boolean> {
-  //   const results = await Promise.all(this.children.map(child =>
-  //     child.viewport !== null
-  //       ? child.viewport.canLeave()
-  //       : child.canLeave()));
-  //   return !results.some(result => result === false);
-  // }
+
+  public canUnload(): boolean | Promise<boolean> {
+    const results = Runner.runAll(
+      this.children.map(child =>
+        child.viewport !== null
+          ? child.viewport.canUnload()
+          : child.canUnload())
+    );
+    if (results instanceof Promise) {
+      return results.then(resolvedResults => {
+        return resolvedResults.every(result => result as boolean);
+      }
+      );
+    }
+    return results.every(result => result as boolean);
+  }
+
+  public load(recurse: boolean): void | Promise<void> {
+    const results = Runner.runAll(
+      this.children.map(child =>
+        child.viewport !== null
+          ? child.viewport.load(recurse)
+          : child.load(recurse))
+    );
+    if (results instanceof Promise) {
+      return results as unknown as Promise<void>;
+    }
+  }
+
+  public unload(recurse: boolean): void | Promise<void> {
+    const results = Runner.runAll(
+      this.children.map(child =>
+        child.viewport !== null
+          ? child.viewport.unload(recurse)
+          : child.unload(recurse))
+    );
+    if (results instanceof Promise) {
+      return results as unknown as Promise<void>;
+    }
+  }
+
+  public removeContent(): void | Promise<void> {
+    const results = Runner.runAll(
+      this.children.map(child =>
+        child.viewport !== null
+          ? child.viewport.removeContent()
+          : child.removeContent())
+    );
+    if (results instanceof Promise) {
+      return results as unknown as Promise<void>;
+    }
+  }
 
   private findMatchingRouteInRoutes(path: string, routes: IRoute[] | null): FoundRoute | null {
     if (!Array.isArray(routes)) {

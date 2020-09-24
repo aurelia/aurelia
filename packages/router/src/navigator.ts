@@ -78,9 +78,6 @@ export interface INavigatorEntry extends IStoredNavigatorEntry {
   reject?: ((value?: void | PromiseLike<void>) => void);
 }
 
-/**
- * @internal - Shouldn't be used directly
- */
 export interface INavigatorOptions {
   viewer?: INavigatorViewer;
   store?: INavigatorStore;

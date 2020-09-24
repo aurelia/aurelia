@@ -26,3 +26,7 @@ export function resolvePossiblePromise<T = unknown>(value: T | Promise<T>, callb
   }
   return value;
 }
+
+export function deprecationWarning(oldFeature: string, newFeature: string) {
+  console.warn(`[Deprecated] The ${oldFeature} has been deprecated. Please use the ${newFeature} instead.`);
+}

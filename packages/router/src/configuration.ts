@@ -4,8 +4,10 @@ import { NavCustomElement } from './resources/nav';
 import { ViewportCustomElement } from './resources/viewport';
 import { ViewportScopeCustomElement } from './resources/viewport-scope';
 import { GotoCustomAttribute } from './resources/goto';
+import { LoadCustomAttribute } from './resources/load';
 import { HrefCustomAttribute } from './resources/href';
-import { IRouter, IRouterActivateOptions } from './router';
+import { IRouter } from './router';
+import { IRouterActivateOptions } from './router-options';
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
 
@@ -22,6 +24,7 @@ export {
   ViewportScopeCustomElement,
   NavCustomElement,
   GotoCustomAttribute,
+  LoadCustomAttribute,
   HrefCustomAttribute,
 };
 
@@ -29,18 +32,20 @@ export const ViewportCustomElementRegistration = ViewportCustomElement as unknow
 export const ViewportScopeCustomElementRegistration = ViewportScopeCustomElement as unknown as IRegistry;
 export const NavCustomElementRegistration = NavCustomElement as unknown as IRegistry;
 export const GotoCustomAttributeRegistration = GotoCustomAttribute as unknown as IRegistry;
+export const LoadCustomAttributeRegistration = LoadCustomAttribute as unknown as IRegistry;
 export const HrefCustomAttributeRegistration = HrefCustomAttribute as unknown as IRegistry;
 
 /**
  * Default router resources:
  * - Custom Elements: `au-viewport`, `au-nav`
- * - Custom Attributes: `goto`, `href`
+ * - Custom Attributes: `goto`, `load`, `href`
  */
 export const DefaultResources: IRegistry[] = [
   ViewportCustomElement as unknown as IRegistry,
   ViewportScopeCustomElement as unknown as IRegistry,
   NavCustomElement as unknown as IRegistry,
   GotoCustomAttribute as unknown as IRegistry,
+  LoadCustomAttribute as unknown as IRegistry,
   HrefCustomAttribute as unknown as IRegistry,
 ];
 

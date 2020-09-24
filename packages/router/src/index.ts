@@ -50,6 +50,10 @@ export {
 } from './navigation';
 
 export {
+  NavigationState,
+} from './navigation-coordinator';
+
+export {
   IStoredNavigatorEntry,
   INavigatorEntry,
   INavigatorOptions,
@@ -80,11 +84,18 @@ export {
 } from './route-recognizer';
 
 export {
-  IRouterOptions,
-  IRouterTitle,
+  // IRouterActivateOptions,
+  // IRouterOptions,
+  // IRouterTitle,
   IRouter,
   Router,
 } from './router';
+
+export {
+  IRouterActivateOptions,
+  IRouterTitle,
+  RouterOptions,
+} from './router-options';
 
 export {
   IViewportOptions,
@@ -112,6 +123,8 @@ export {
   NavCustomElementRegistration,
   GotoCustomAttribute,
   GotoCustomAttributeRegistration,
+  LoadCustomAttribute,
+  LoadCustomAttributeRegistration,
   HrefCustomAttribute,
   HrefCustomAttributeRegistration,
 } from './configuration';

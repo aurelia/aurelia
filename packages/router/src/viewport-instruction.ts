@@ -1,4 +1,4 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, Key } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime';
 import { ComponentAppellation, ComponentParameters, IRouteableComponent, RouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
@@ -8,6 +8,7 @@ import { IComponentParameter, InstructionResolver } from './instruction-resolver
 import { Scope, IScopeOwner } from './scope';
 import { ViewportScope } from './viewport-scope';
 import { FoundRoute } from './found-route';
+import { RouterOptions } from './router-options';
 
 /**
  * @internal - Shouldn't be used directly
@@ -27,6 +28,8 @@ export type Params = {
  * Public API - The viewport instructions are the core of the router's navigations
  */
 export class ViewportInstruction {
+  public static readonly inject: readonly Key[] = [RouterOptions];
+
   public componentName: string | null = null;
   public componentType: RouteableComponentType | null = null;
   public componentInstance: IRouteableComponent | null = null;
@@ -37,6 +40,9 @@ export class ViewportInstruction {
   public parametersList: unknown[] | null = null;
   public parametersType: ParametersType = ParametersType.none;
 
+  public ownsScope: boolean = true;
+  public nextScopeInstructions: ViewportInstruction[] | null = null;
+
   public scope: Scope | null = null;
   public context: string = '';
   public viewportScope: ViewportScope | null = null;
@@ -44,19 +50,38 @@ export class ViewportInstruction {
   public route: FoundRoute | string | null = null;
 
   public default: boolean = false;
+  public topInstruction: boolean = false;
 
   private instructionResolver: InstructionResolver | null = null;
 
-  public constructor(
-    component: ComponentAppellation,
-    viewport?: ViewportHandle,
-    parameters?: ComponentParameters,
-    public ownsScope: boolean = true,
-    public nextScopeInstructions: ViewportInstruction[] | null = null,
-  ) {
-    this.setComponent(component);
-    this.setViewport(viewport);
-    this.setParameters(parameters);
+  // public constructor(
+  //   component: ComponentAppellation,
+  //   viewport?: ViewportHandle,
+  //   parameters?: ComponentParameters,
+  //   public ownsScope: boolean = true,
+  //   public nextScopeInstructions: ViewportInstruction[] | null = null,
+  // ) {
+  //   this.setComponent(component);
+  //   this.setViewport(viewport);
+  //   this.setParameters(parameters);
+  // }
+
+  public static create(instructionResolver: InstructionResolver | null, component: ComponentAppellation | Promise<ComponentAppellation>, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: ViewportInstruction[] | null = null): ViewportInstruction {
+    // if (component instanceof Promise) {
+    //   return component.then((resolvedComponent) => {
+    //     return ViewportInstruction.create(instructionResolver, resolvedComponent, viewport, parameters, ownsScope, nextScopeInstructions);
+    //   });
+    // }
+
+    const instruction: ViewportInstruction = new ViewportInstruction();
+    instruction.setComponent(component);
+    instruction.setViewport(viewport);
+    instruction.setParameters(parameters);
+    instruction.ownsScope = ownsScope;
+    instruction.nextScopeInstructions = nextScopeInstructions;
+    instruction.setInstructionResolver(instructionResolver);
+
+    return instruction;
   }
 
   public get owner(): IScopeOwner | null {
@@ -146,7 +171,7 @@ export class ViewportInstruction {
     }
     this.setParameters({ ...this.parametersRecord, ...parameters });
   }
-  public setInstructionResolver(instructionResolver: InstructionResolver): void {
+  public setInstructionResolver(instructionResolver: InstructionResolver | null): void {
     this.instructionResolver = instructionResolver;
   }
 

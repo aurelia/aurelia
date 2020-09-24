@@ -1,19 +1,33 @@
 import { Navigation } from './navigation';
-// import { ILogger } from '@aurelia/kernel';
-
-type NavigationState = ('entered' | 'swapped' | 'left');
 
 export class Entity<T, S> {
+  public running: boolean = false;
   public states: S[] = [];
 
   public constructor(public entity: T) { }
 }
 
-class OpenPromise {
+export class OpenPromise {
   public isPending: boolean = true;
   public promise!: Promise<void>;
-  public resolve!: (value: void | PromiseLike<void>) => void;
-  public reject!: (value: void | PromiseLike<void>) => void;
+  public res!: (value: void | PromiseLike<void>) => void;
+  public rej!: (value: void | PromiseLike<void>) => void;
+
+  public constructor() {
+    this.promise = new Promise((res, rej) => {
+      this.res = res;
+      this.rej = rej;
+    });
+  }
+
+  public resolve(value: void | PromiseLike<void>): void {
+    this.res(value);
+    this.isPending = false;
+  }
+  public reject(value: void | PromiseLike<void>): void {
+    this.rej(value);
+    this.isPending = false;
+  }
 }
 
 export class StateCoordinator<T, S> {
@@ -29,10 +43,6 @@ export class StateCoordinator<T, S> {
 
   public addSyncState(state: S): void {
     const openPromise = new OpenPromise();
-    openPromise.promise = new Promise((res, rej) => {
-      openPromise.resolve = res;
-      openPromise.reject = rej;
-    });
     this.syncStates.set(state, openPromise);
   }
 
@@ -44,7 +54,7 @@ export class StateCoordinator<T, S> {
     return ent;
   }
   public addEntityState(entity: T, state: S): void {
-    // console.log('#### EntityState received', state, entity);
+    // console.log(`#### EntityState received ${state}`, (entity as any).name);
     let ent = this.entities.find(e => e.entity === entity);
     if (ent === void 0) {
       ent = this.addEntity(entity);
@@ -62,6 +72,9 @@ export class StateCoordinator<T, S> {
     return openPromise.promise;
   }
 
+  public checkingSyncState(state: S): boolean {
+      return this.syncStates.has(state);
+  }
   public finalEntity(): void {
     this.hasAllEntities = true;
     // console.log('Final entity received', this.entities.length);
@@ -81,13 +94,12 @@ export class StateCoordinator<T, S> {
     if (openPromise === void 0) {
       return;
     }
-    if (//this.hasAllEntities &&
+    if (this.hasAllEntities &&
       openPromise.isPending &&
       // Check that this state has been reached by all state entities and if so resolve the promise
       this.entities.every(ent => ent.states.includes(state))) {
       openPromise.resolve();
-      openPromise.isPending = false;
-      // console.log('StateCoordinator state resolved', state, this);
+      // console.log('#### StateCoordinator state resolved', state /*, this */);
     }
   }
 

@@ -1,8 +1,9 @@
+import { OpenPromise } from './state-coordinator';
 /* eslint-disable prefer-template */
 /* eslint-disable max-lines-per-function */
 import { DI, IContainer, Registration, IIndexable, Key, Metadata } from '@aurelia/kernel';
 import { Aurelia, CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, isRenderContext } from '@aurelia/runtime';
-import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
+import { InstructionResolver } from './instruction-resolver';
 import { IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
@@ -10,7 +11,7 @@ import { INavigatorOptions, INavigatorViewerEvent, IStoredNavigatorEntry, Naviga
 import { QueueItem } from './queue';
 import { INavClasses } from './resources/nav';
 import { NavigationInstructionResolver, IViewportInstructionsOptions } from './type-resolvers';
-import { arrayRemove } from './utils';
+import { arrayRemove, deprecationWarning } from './utils';
 import { IViewportOptions, Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 import { FoundRoute } from './found-route';
@@ -19,13 +20,14 @@ import { Scope, IScopeOwner } from './scope';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 import { BrowserViewerStore } from './browser-viewer-store';
 import { Navigation } from './navigation';
-import { IRoutingController, IConnectionCustomElement } from './resources/viewport';
-import { NavigationCoordinator, NavigationCoordinatorOptions } from './navigation-coordinator';
+import { IRoutingController, IConnectedCustomElement } from './resources/viewport';
+import { NavigationCoordinator, NavigationCoordinatorOptions, NavigationState } from './navigation-coordinator';
+import { IRouterActivateOptions, RouterOptions } from './router-options';
 
 /**
  * Public API
  */
-export interface IGotoOptions {
+export interface ILoadOptions {
   title?: string;
   query?: string;
   data?: Record<string, unknown>;
@@ -34,45 +36,53 @@ export interface IGotoOptions {
   origin?: ICustomElementViewModel | Element;
 }
 
-/**
- * Public API
- */
-export interface IRouterActivateOptions extends Omit<Partial<IRouterOptions>, 'title'> {
-  title?: string | IRouterTitle;
-}
+// export type SwapStrategy = 'add-first-sequential' | 'add-first-parallel' | 'remove-first-sequential' | 'remove-first-parallel';
+// export type RoutingHookIntegration = 'integrated' | 'separate';
 
-/**
- * Public API
- */
-export interface IRouterOptions extends INavigatorOptions {
-  separators?: IRouteSeparators;
-  useUrlFragmentHash: boolean;
-  useHref: boolean;
-  statefulHistoryLength: number;
-  useDirectRoutes: boolean;
-  useConfiguredRoutes: boolean;
-  title: ITitleConfiguration;
-  hooks?: IHookDefinition[];
-  reportCallback?(instruction: Navigation): void;
-}
+// /**
+//  * Public API
+//  */
+// export interface IRouterActivateOptions extends Omit<Partial<IRouterOptions>, 'title'> {
+//   title?: string | IRouterTitle;
+// }
 
-/**
- * Public API
- */
-export interface IRouterTitle extends Partial<ITitleConfiguration> { }
+// /**
+//  * Public API
+//  */
+// export interface IRouterOptions extends INavigatorOptions {
+//   separators?: IRouteSeparators;
+//   useUrlFragmentHash: boolean;
+//   useHref: boolean;
+//   statefulHistoryLength: number;
+//   useDirectRoutes: boolean;
+//   useConfiguredRoutes: boolean;
+//   additiveInstructionDefault: boolean;
+//   title: ITitleConfiguration;
+//   hooks?: IHookDefinition[];
+//   reportCallback?(instruction: Navigation): void;
 
-/**
- * Public API
- */
-export interface ITitleConfiguration {
-  appTitle: string;
-  appTitleSeparator: string;
-  componentTitleOrder: 'top-down' | 'bottom-up';
-  componentTitleSeparator: string;
-  useComponentNames: boolean;
-  componentPrefix: string;
-  transformTitle?: (title: string, instruction: string | ViewportInstruction | FoundRoute) => string;
-}
+//   navigationSyncStates: NavigationState[];
+//   swapStrategy: SwapStrategy;
+//   routingHookIntegration: RoutingHookIntegration;
+// }
+
+// /**
+//  * Public API
+//  */
+// export interface IRouterTitle extends Partial<ITitleConfiguration> { }
+
+// /**
+//  * Public API
+//  */
+// export interface ITitleConfiguration {
+//   appTitle: string;
+//   appTitleSeparator: string;
+//   componentTitleOrder: 'top-down' | 'bottom-up';
+//   componentTitleSeparator: string;
+//   useComponentNames: boolean;
+//   componentPrefix: string;
+//   transformTitle?: (title: string, instruction: string | ViewportInstruction | FoundRoute) => string;
+// }
 
 /**
  * Public API
@@ -88,7 +98,7 @@ class ClosestViewportCustomElement { }
 class ClosestScope { }
 
 export class Router implements IRouter {
-  public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserViewerStore, LinkHandler, InstructionResolver, HookManager];
+  public static readonly inject: readonly Key[] = [IContainer, Navigator, BrowserViewerStore, LinkHandler, InstructionResolver, HookManager, RouterOptions];
 
   public rootScope: ViewportScope | null = null;
 
@@ -115,26 +125,32 @@ export class Router implements IRouter {
    */
   public appendedInstructions: ViewportInstruction[] = [];
 
-  /**
-   * @internal
-   */
-  public options: IRouterOptions = {
-    useUrlFragmentHash: true,
-    useHref: true,
-    statefulHistoryLength: 0,
-    useDirectRoutes: true,
-    useConfiguredRoutes: true,
-    title: {
-      appTitle: "${componentTitles}\${appTitleSeparator}Aurelia",
-      appTitleSeparator: ' | ',
-      componentTitleOrder: 'top-down',
-      componentTitleSeparator: ' > ',
-      useComponentNames: true,
-      componentPrefix: 'app-',
-    }
-  };
+  // /**
+  //  * @internal
+  //  */
+  // public options: IRouterOptions = {
+  //   useUrlFragmentHash: true,
+  //   useHref: true,
+  //   statefulHistoryLength: 0,
+  //   useDirectRoutes: true,
+  //   useConfiguredRoutes: true,
+  //   additiveInstructionDefault: true,
+  //   title: {
+  //     appTitle: "${componentTitles}\${appTitleSeparator}Aurelia",
+  //     appTitleSeparator: ' | ',
+  //     componentTitleOrder: 'top-down',
+  //     componentTitleSeparator: ' > ',
+  //     useComponentNames: true,
+  //     componentPrefix: 'app-',
+  //   },
+  //   swapStrategy: 'add-first-sequential',
+  //   routingHookIntegration: 'integrated',
+  //   navigationSyncStates: ['guardedUnload', 'swapped', 'completed'],
+  // };
   public processingNavigation: Navigation | null = null;
-  private isActive: boolean = false;
+  public isActive: boolean = false;
+  public pendingConnects: Map<IConnectedCustomElement, OpenPromise> = new Map();
+
   private loadedFirst: boolean = false;
 
   private lastNavigation: Navigation | null = null;
@@ -163,6 +179,7 @@ export class Router implements IRouter {
      * @internal - Shouldn't be used directly. Probably.
      */
     public hookManager: HookManager,
+    public options: RouterOptions,
   ) {
     // this.hookManager = new HookManager();
   }
@@ -174,6 +191,15 @@ export class Router implements IRouter {
     return this.processingNavigation !== null;
   }
 
+  public get isRestrictedNavigation(): boolean {
+    const syncStates = this.options.navigationSyncStates;
+    return syncStates.includes('guardedLoad') ||
+      syncStates.includes('unloaded') ||
+      syncStates.includes('loaded') ||
+      syncStates.includes('guarded') ||
+      syncStates.includes('routed');
+  }
+
   /**
    * @internal
    */
@@ -181,6 +207,8 @@ export class Router implements IRouter {
     return this.options.statefulHistoryLength !== void 0 && this.options.statefulHistoryLength > 0;
   }
 
+  // TODO: Switch this to use (probably) an event instead
+  public starters: any[] = [];
   /**
    * Public API
    */
@@ -196,6 +224,12 @@ export class Router implements IRouter {
       ...(typeof options.title === 'string' ? { appTitle: options.title } : options.title),
     };
     options.title = titleOptions;
+
+    const separatorOptions = {
+      ...this.options.separators,
+      ...options.separators ?? {},
+    };
+    options.separators = separatorOptions;
 
     Object.assign(this.options, options);
 
@@ -216,6 +250,10 @@ export class Router implements IRouter {
       useUrlFragmentHash: this.options.useUrlFragmentHash
     });
     this.ensureRootScope();
+    // TODO: Switch this to use (probably) an event instead
+    for (const starter of this.starters) {
+      starter();
+    }
   }
 
   /**
@@ -262,7 +300,7 @@ export class Router implements IRouter {
       }
     }
     // Adds to Navigator's Queue, which makes sure it's serial
-    this.goto(instruction, { origin: info.anchor! }).catch(error => { throw error; });
+    this.load(instruction, { origin: info.anchor! }).catch(error => { throw error; });
   };
 
   /**
@@ -342,6 +380,9 @@ export class Router implements IRouter {
   public processNavigations = async (qInstruction: QueueItem<Navigation>): Promise<void> => {
     const instruction = this.processingNavigation = qInstruction as Navigation;
 
+    // console.log('pendingConnects', [...this.pendingConnects]);
+    this.pendingConnects.clear();
+
     if (this.options.reportCallback) {
       this.options.reportCallback(instruction);
     }
@@ -354,11 +395,10 @@ export class Router implements IRouter {
     //   clearScopeOwners,
     //   clearViewportScopes,
     // }
-    const coordinator = NavigationCoordinator.create(this, instruction,
-      { syncStates: ['couldLeave', 'swapped', 'completed'] }) as NavigationCoordinator;
+    const coordinator = NavigationCoordinator.create(this, instruction, { syncStates: this.options.navigationSyncStates }) as NavigationCoordinator;
     // const steps = [
-    //   () => coordinator.syncState('entered'),
-    //   () => { console.log('SyncState entered resolved!', steps); },
+    //   () => coordinator.syncState('loaded'),
+    //   () => { console.log('SyncState loaded resolved!', steps); },
     //   () => coordinator.syncState('swapped'),
     //   () => { console.log('SyncState swapped resolved!', steps); },
     //   () => coordinator.syncState('left'),
@@ -366,25 +406,37 @@ export class Router implements IRouter {
     // ];
     // run(...steps);
 
-    // const enteredPromise = ;
-    // if (enteredPromise !== void 0) {
-    //   enteredPromise.then((value: any) => {
-    //     console.log('SyncState entered resolved!', value);
+    // const loadedPromise = ;
+    // if (loadedPromise !== void 0) {
+    //   loadedPromise.then((value: any) => {
+    //     console.log('SyncState loaded resolved!', value);
     //   });
     // }
 
-    let configuredRoute = await this.findInstructions(
-      this.rootScope!.scope,
-      instruction.instruction,
-      instruction.scope ?? this.rootScope!.scope,
-      !instruction.useFullStateInstruction);
-    let instructions = configuredRoute.instructions;
+    // console.log(instruction.instruction);
+    // console.log(this.rootScope?.scope.toString(true));
+    let transformedInstruction = typeof instruction.instruction === 'string' && !instruction.useFullStateInstruction
+      ? await this.hookManager.invokeTransformFromUrl(instruction.instruction, this.processingNavigation as Navigation)
+      : instruction.instruction;
+    // TODO: Review this
+    if (transformedInstruction === '/') {
+      transformedInstruction = '';
+    }
+
+    instruction.scope = instruction.scope ?? this.rootScope!.scope;
+    let configuredRoute = instruction.scope!.findInstructions(transformedInstruction);
     let configuredRoutePath: string | null = null;
 
+    // let configuredRoute = await this.findInstructions(
+    //   this.rootScope!.scope,
+    //   instruction.instruction,
+    //   instruction.scope ?? this.rootScope!.scope,
+    //   !instruction.useFullStateInstruction);
     if (instruction.instruction.length > 0 && !configuredRoute.foundConfiguration && !configuredRoute.foundInstructions) {
       // TODO: Do something here!
       this.unknownRoute(configuredRoute.remaining);
     }
+    let instructions = configuredRoute.instructions;
 
     if (configuredRoute.foundConfiguration) {
       instruction.path = (instruction.instruction as string).startsWith('/')
@@ -394,12 +446,25 @@ export class Router implements IRouter {
       this.rootScope!.path = configuredRoutePath;
     }
     // TODO: Used to have an early exit if no instructions. Restore it?
+
+    if (!this.options.additiveInstructionDefault &&
+      instructions.length > 0 &&
+      !this.instructionResolver.isAddAllViewportsInstruction(instructions[0]) &&
+      !this.instructionResolver.isClearAllViewportsInstruction(instructions[0])) {
+      const instr = this.createViewportInstruction(this.instructionResolver.clearViewportInstruction);
+      instr.scope = instructions[0].scope;
+      instructions.unshift(instr);
+    }
+
     const clearScopeOwners: IScopeOwner[] = [];
     let clearViewportScopes: ViewportScope[] = [];
     for (const clearInstruction of instructions.filter(instr => this.instructionResolver.isClearAllViewportsInstruction(instr))) {
       const scope = clearInstruction.scope || this.rootScope!.scope;
-      clearScopeOwners.push(...scope.children.filter(scope => !scope.owner!.isEmpty).map(scope => scope.owner!));
-      if (scope.viewportScope !== null) {
+      const scopes = scope.allScopes().filter(scope => !scope.owner!.isEmpty).map(scope => scope.owner!);
+      // TODO: Tell Fred about the need for reverse
+      // scopes.reverse();
+      clearScopeOwners.push(...scopes);
+      if (scope.viewportScope !== null && scope.viewportScope !== this.rootScope) {
         clearViewportScopes.push(scope.viewportScope);
       }
     }
@@ -408,6 +473,10 @@ export class Router implements IRouter {
     for (const addInstruction of instructions.filter(instr => this.instructionResolver.isAddAllViewportsInstruction(instr))) {
       addInstruction.setViewport((addInstruction.scope || this.rootScope!.scope).viewportScope!.name);
       addInstruction.scope = addInstruction.scope!.owningScope!;
+    }
+
+    for (const instr of instructions) {
+      instr.topInstruction = true;
     }
 
     const updatedScopeOwners: IScopeOwner[] = [];
@@ -419,6 +488,7 @@ export class Router implements IRouter {
       if (!guard--) { // Guard against endless loop
         const err = new Error(remainingInstructions.length + ' remaining instructions after 100 iterations; there is likely an infinite loop.');
         (err as Error & IIndexable)['remainingInstructions'] = remainingInstructions;
+        console.log('remainingInstructions', remainingInstructions);
         throw err;
       }
       const changedScopeOwners: IScopeOwner[] = [];
@@ -435,11 +505,17 @@ export class Router implements IRouter {
         const scopeOwner = viewportInstruction.owner;
         if (scopeOwner !== null) {
           scopeOwner.path = configuredRoutePath;
-          if (scopeOwner.setNextContent(viewportInstruction, instruction)) {
+          const action = scopeOwner.setNextContent(viewportInstruction, instruction);
+          if (action !== 'skip') {
             changedScopeOwners.push(scopeOwner);
             coordinator.addEntity(scopeOwner);
           }
-          arrayRemove(clearScopeOwners, value => value === scopeOwner);
+          const dontClear = [scopeOwner];
+          if (action === 'swap') {
+            dontClear.push(...scopeOwner.scope.allScopes(true, true).map(scope => scope.owner!));
+          }
+          arrayRemove(clearScopeOwners, value => dontClear.includes(value));
+          // arrayRemove(clearScopeOwners, value => value === scopeOwner);
           if (!this.instructionResolver.isClearViewportInstruction(viewportInstruction)
             && viewportInstruction.scope !== null
             && viewportInstruction.scope!.parent! !== null
@@ -450,26 +526,29 @@ export class Router implements IRouter {
         }
       }
 
+      if (!this.isRestrictedNavigation) {
+        coordinator.finalEntity();
+      }
       coordinator.run();
-      await coordinator.syncState('swapped');
+      // await coordinator.syncState('routed');
 
       // // eslint-disable-next-line no-await-in-loop
-      // let results = await Promise.all(changedScopeOwners.map((scopeOwner) => scopeOwner.canLeave()));
+      // let results = await Promise.all(changedScopeOwners.map((scopeOwner) => scopeOwner.canUnload()));
       // if (results.some(result => result === false)) {
       //   return this.cancelNavigation([...changedScopeOwners, ...updatedScopeOwners], instruction);
       // }
       // // eslint-disable-next-line no-await-in-loop
       // results = await Promise.all(changedScopeOwners.map(async (scopeOwner) => {
-      //   const canEnter = await scopeOwner.canEnter();
-      //   if (typeof canEnter === 'boolean') {
-      //     if (canEnter) {
-      //       coordinator.addEntityState(scopeOwner, 'entered');
-      //       return scopeOwner.enter();
+      //   const canLoad = await scopeOwner.canLoad();
+      //   if (typeof canLoad === 'boolean') {
+      //     if (canLoad) {
+      //       coordinator.addEntityState(scopeOwner, 'loaded');
+      //       return scopeOwner.load();
       //     } else {
       //       return false;
       //     }
       //   }
-      //   await this.goto(canEnter, { append: true });
+      //   await this.load(canLoad, { append: true });
       //   await scopeOwner.abortContentChange();
       //   // TODO: Abort content change in the viewports
       //   return true;
@@ -496,8 +575,25 @@ export class Router implements IRouter {
           .filter(instr => instr.owner !== null && instr.owner.path === configuredRoutePath)
           .map(instr => instr.owner!)
           .filter((value, index, arr) => arr.indexOf(value) === index);
+
+        // Need to await new viewports being bound
+        if (!this.isRestrictedNavigation) {
+          // await Promise.resolve();
+          // console.log('Awaiting swapped');
+          await coordinator.syncState('swapped');
+          // console.log('Awaited swapped');
+          // console.log('pendingConnects before find new', [...this.pendingConnects]);
+          // const pending = [...this.pendingConnects.values()].filter(connect => connect.isPending);
+          // if (pending.length > 0) {
+          //   console.log('Beginning await for ', pending.length);
+          //   await Promise.all(pending.map(connect => connect.promise));
+          //   console.log('Await done');
+          // }
+        }
+
         for (const owner of routeScopeOwners) {
-          configured = await this.findInstructions(owner.scope, configuredRoute.remaining, owner.scope);
+          configured = owner.scope.findInstructions(configuredRoute.remaining);
+          // configured = await this.findInstructions(owner.scope, configuredRoute.remaining, owner.scope);
           if (configured.foundConfiguration) {
             break;
           }
@@ -563,6 +659,7 @@ export class Router implements IRouter {
         }));
         clearViewportScopes = [];
       }
+      // await new Promise(res => setTimeout(res, 100));
     } while (viewportInstructions.length > 0 || remainingInstructions.length > 0);
 
     coordinator.finalEntity();
@@ -685,44 +782,53 @@ export class Router implements IRouter {
   /**
    * @internal - Called from the viewport custom element
    */
-  public connectViewport(viewport: Viewport | null, connectionCE: IConnectionCustomElement, name: string, options?: IViewportOptions): Viewport {
-    const parentScope = this.findParentScope(connectionCE.container);
-    // console.log('Viewport parentScope', parentScope.toString(), (connectionCE as any).getClosestCustomElement());
+  public connectViewport(viewport: Viewport | null, connectedCE: IConnectedCustomElement, name: string, options?: IViewportOptions): Viewport {
+    const parentScope = this.findParentScope(connectedCE.container);
+    // console.log('Viewport parentScope', parentScope.toString(), (connectedCE as any).getClosestCustomElement());
+    const parentViewportScope = ((connectedCE as any).parentViewport?.viewport ?? this.rootScope).scope;
+    if (parentScope !== parentViewportScope) {
+      console.error('Viewport parentScope !== parentViewportScope', parentScope.toString(true), parentViewportScope.toString(true), (connectedCE as any).getClosestCustomElement());
+    }
     if (viewport === null) {
-      viewport = parentScope.addViewport(name, connectionCE, options);
-      this.setClosestScope(connectionCE.container, viewport.connectedScope);
+      viewport = parentScope.addViewport(name, connectedCE, options);
+      this.setClosestScope(connectedCE.container, viewport.connectedScope);
+      if (!this.isRestrictedNavigation) {
+        this.pendingConnects.set(connectedCE, new OpenPromise());
+      }
+    } else {
+      this.pendingConnects.get(connectedCE)?.resolve();
     }
     return viewport!;
   }
   /**
    * @internal - Called from the viewport custom element
    */
-  public disconnectViewport(viewport: Viewport, connectionCE: IConnectionCustomElement): void {
-    if (!viewport.connectedScope.parent!.removeViewport(viewport, connectionCE)) {
+  public disconnectViewport(viewport: Viewport, connectedCE: IConnectedCustomElement): void {
+    if (!viewport.connectedScope.parent!.removeViewport(viewport, connectedCE)) {
       throw new Error("Failed to remove viewport: " + viewport.name);
     }
-    this.unsetClosestScope(connectionCE.container);
+    this.unsetClosestScope(connectedCE.container);
   }
   /**
    * @internal - Called from the viewport scope custom element
    */
-  public connectViewportScope(viewportScope: ViewportScope | null, connectionCE: IConnectionCustomElement, name: string, options?: IViewportScopeOptions): ViewportScope {
-    const parentScope = this.findParentScope(connectionCE.container);
-    // console.log('ViewportScope parentScope', parentScope.toString(), (connectionCE as any).getClosestCustomElement());
+  public connectViewportScope(viewportScope: ViewportScope | null, connectedCE: IConnectedCustomElement, name: string, options?: IViewportScopeOptions): ViewportScope {
+    const parentScope = this.findParentScope(connectedCE.container);
+    // console.log('ViewportScope parentScope', parentScope.toString(), (connectedCE as any).getClosestCustomElement());
     if (viewportScope === null) {
-      viewportScope = parentScope.addViewportScope(name, connectionCE, options);
-      this.setClosestScope(connectionCE.container, viewportScope.connectedScope);
+      viewportScope = parentScope.addViewportScope(name, connectedCE, options);
+      this.setClosestScope(connectedCE.container, viewportScope.connectedScope);
     }
     return viewportScope;
   }
   /**
    * @internal - Called from the viewport scope custom element
    */
-  public disconnectViewportScope(viewportScope: ViewportScope, connectionCE: IConnectionCustomElement): void {
+  public disconnectViewportScope(viewportScope: ViewportScope, connectedCE: IConnectedCustomElement): void {
     if (!viewportScope.connectedScope.parent!.removeViewportScope(viewportScope)) {
       throw new Error("Failed to remove viewport scope: " + viewportScope.path);
     }
-    this.unsetClosestScope(connectionCE.container);
+    this.unsetClosestScope(connectedCE.container);
   }
 
   public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
@@ -733,10 +839,11 @@ export class Router implements IRouter {
   /**
    * Public API - THE navigation API
    */
-  public async load(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void> {
-    return this.goto(instructions, options);
+  public async goto(instructions: NavigationInstruction | NavigationInstruction[], options?: ILoadOptions): Promise<void> {
+    deprecationWarning('"goto" method', '"load" method');
+    return this.load(instructions, options);
   }
-  public async goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void> {
+  public async load(instructions: NavigationInstruction | NavigationInstruction[], options?: ILoadOptions): Promise<void> {
     options = options || {};
     // TODO: Review query extraction; different pos for path and fragment!
     if (typeof instructions === 'string' && !options.query) {
@@ -755,7 +862,7 @@ export class Router implements IRouter {
     if (options.append && this.processingNavigation) {
       instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
       this.appendInstructions(instructions as ViewportInstruction[], scope);
-      // Can't return current navigation promise since it can lead to deadlock in enter
+      // Can't return current navigation promise since it can lead to deadlock in load
       return Promise.resolve();
     }
 
@@ -912,56 +1019,10 @@ export class Router implements IRouter {
    * Public API - The right way to create ViewportInstructions
    */
   public createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: ViewportInstruction[] | null = null): ViewportInstruction {
-    return this.instructionResolver.createViewportInstruction(component, viewport, parameters, ownsScope, nextScopeInstructions);
+    return this.instructionResolver.createViewportInstruction(component, viewport, parameters, ownsScope, nextScopeInstructions) as ViewportInstruction;
   }
 
-  private async findInstructions(scope: Scope, instruction: string | ViewportInstruction[], instructionScope: Scope, transformUrl: boolean = false): Promise<FoundRoute> {
-    let route = new FoundRoute();
-    if (typeof instruction === 'string') {
-      instruction = transformUrl
-        ? await this.hookManager.invokeTransformFromUrl(instruction as string, this.processingNavigation as Navigation)
-        : instruction;
-      if (Array.isArray(instruction)) {
-        route.instructions = instruction;
-      } else {
-        // TODO: Review this
-        if (instruction === '/') {
-          instruction = '';
-        }
-
-        const instructions = this.instructionResolver.parseViewportInstructions(instruction);
-        if (this.options.useConfiguredRoutes && !this.hasSiblingInstructions(instructions)) {
-          const foundRoute = scope.findMatchingRoute(instruction);
-          if (foundRoute !== null && foundRoute.foundConfiguration) {
-            route = foundRoute;
-          } else {
-            if (this.options.useDirectRoutes) {
-              route.instructions = instructions;
-              if (route.instructions.length > 0) {
-                const nextInstructions = route.instructions[0].nextScopeInstructions || [];
-                route.remaining = this.instructionResolver.stringifyViewportInstructions(nextInstructions);
-                route.instructions[0].nextScopeInstructions = null;
-              }
-            }
-          }
-        } else if (this.options.useDirectRoutes) {
-          route.instructions = instructions;
-        }
-      }
-    } else {
-      route.instructions = instruction;
-    }
-
-    for (const instr of route.instructions) {
-      if (instr.scope === null) {
-        instr.scope = instructionScope;
-      }
-    }
-
-    return route;
-  }
-
-  private hasSiblingInstructions(instructions: ViewportInstruction[] | null): boolean {
+  public hasSiblingInstructions(instructions: ViewportInstruction[] | null): boolean {
     if (instructions === null) {
       return false;
     }
@@ -1049,7 +1110,7 @@ export class Router implements IRouter {
     if (!this.rootScope) {
       const root = this.container.get(Aurelia).root;
       // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
-      this.rootScope = new ViewportScope('rootScope', this, root.viewModel as IConnectionCustomElement, null, true, root.config.component as CustomElementType);
+      this.rootScope = new ViewportScope('rootScope', this, root.viewModel as IConnectedCustomElement, null, true, root.config.component as CustomElementType);
     }
     return this.rootScope!;
   }

@@ -6,6 +6,7 @@
 <import from="./main/contact.html"></import>
 <import from="./books/books"></import>
 <import from="./books/book-details"></import>
+<import from="./main/other.html"></import>
 
 <nav>
     <a goto="welcome">Welcome</a>
@@ -18,6 +19,7 @@
 <div class="container">
     <au-viewport name="main" default="welcome" fallback="missing"></au-viewport>
 </div>
+<au-viewport name="other" used-by="other"></au-viewport>
 
 <div class="footer">
     THIS IS THE FOOTER

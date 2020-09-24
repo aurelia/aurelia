@@ -1,0 +1,47 @@
+{
+  "name": "au2-routing",
+  "description": "An Aurelia 2 client application.",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "???"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "aurelia": "dev"
+  },
+  "devDependencies": {
+    "htmlhint": "^0.11.0",
+    "browser-do": "^0.3.0",
+    "rimraf": "^2.0.0",
+    "webpack": "^4.0.0",
+    "webpack-cli": "^3.0.0",
+    "webpack-dev-server": "^3.0.0",
+    "html-webpack-plugin": "^3.0.0",
+    "style-loader": "^1.0.0",
+    "css-loader": "^3.0.0",
+    "@aurelia/webpack-loader": "dev",
+    "ts-loader": "^6.0.0",
+    "postcss-loader": "^3.0.0",
+    "autoprefixer": "^9.0.0",
+    "webpack-shell-plugin-next": "^1.0.0",
+    "@types/node": "^12.0.0",
+    "typescript": "^3.0.0",
+    "tslint": "^5.0.0",
+    "jasmine-core": "^3.0.0",
+    "@types/jasmine": "^3.0.0"
+  },
+  "scripts": {
+    "lint:html": "htmlhint -c .htmlhintrc src",
+    "lint": "npm run lint:js && npm run lint:html",
+    "test": "npm run test:headless",
+    "pretest": "npm run lint && npm run build:test",
+    "start": "webpack-dev-server",
+    "build": "rimraf dist && webpack --env production",
+    "build:test": "rimraf dist && webpack --env test",
+    "test:watch": "rimraf dist && webpack --env test --watch --runTest",
+    "lint:js": "tslint --project tsconfig.json",
+    "test:headless": "browser-do --jasmine < dist/entry-bundle.js",
+    "test:chrome": "browser-do --jasmine --browser chrome < dist/entry-bundle.js"
+  }
+}

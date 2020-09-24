@@ -7,11 +7,11 @@ export class Description {
     public static parameters: string[] = ['id'];
     public book: Book;
 
-    public constructor(private bookService: BookService) {
+    public constructor(private readonly bookService: BookService) {
 
     }
 
-    public enter(parameters) {
+    public load(parameters) {
         this.book = this.bookService.getBook(parameters.id);
     }
 }

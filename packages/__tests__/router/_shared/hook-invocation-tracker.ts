@@ -15,11 +15,13 @@ export type HookName = (
 
   'dispose' |
 
-  'canEnter' |
-  'enter' |
-  'canLeave' |
-  'leave'
+  'canLoad' |
+  'load' |
+  'canUnload' |
+  'unload'
 );
+
+export type MaybeHookName = HookName | '';
 
 export class HookInvocationTracker {
   public get promise(): Promise<void> {
@@ -114,10 +116,10 @@ export class HookInvocationAggregator {
 
   public readonly $$dispose: HookInvocationTracker = new HookInvocationTracker(this, 'dispose');
 
-  public readonly canEnter: HookInvocationTracker = new HookInvocationTracker(this, 'canEnter');
-  public readonly enter: HookInvocationTracker = new HookInvocationTracker(this, 'enter');
-  public readonly canLeave: HookInvocationTracker = new HookInvocationTracker(this, 'canLeave');
-  public readonly leave: HookInvocationTracker = new HookInvocationTracker(this, 'leave');
+  public readonly canLoad: HookInvocationTracker = new HookInvocationTracker(this, 'canLoad');
+  public readonly load: HookInvocationTracker = new HookInvocationTracker(this, 'load');
+  public readonly canUnload: HookInvocationTracker = new HookInvocationTracker(this, 'canUnload');
+  public readonly unload: HookInvocationTracker = new HookInvocationTracker(this, 'unload');
 
   public notify(
     componentName: string,
@@ -145,10 +147,10 @@ export class HookInvocationAggregator {
     this.afterUnbind.dispose();
     this.afterUnbindChildren.dispose();
     this.$$dispose.dispose();
-    this.canEnter.dispose();
-    this.enter.dispose();
-    this.canLeave.dispose();
-    this.leave.dispose();
+    this.canLoad.dispose();
+    this.load.dispose();
+    this.canUnload.dispose();
+    this.unload.dispose();
 
     const $this = this as Partial<Writable<this>>;
     $this.notifyHistory = void 0;
@@ -164,9 +166,9 @@ export class HookInvocationAggregator {
     $this.afterUnbind = void 0;
     $this.afterUnbindChildren = void 0;
     $this.$$dispose = void 0;
-    $this.canEnter = void 0;
-    $this.enter = void 0;
-    $this.canLeave = void 0;
-    $this.leave = void 0;
+    $this.canLoad = void 0;
+    $this.load = void 0;
+    $this.canUnload = void 0;
+    $this.unload = void 0;
   }
 }

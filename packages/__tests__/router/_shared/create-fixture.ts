@@ -1,16 +1,64 @@
 import { Constructable, LogLevel, Registration, ILogConfig } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime';
-import { IRouterOptions, RouterConfiguration, IRouter } from '@aurelia/router';
+import { RouterOptions, RouterConfiguration, IRouter, IRouterActivateOptions, NavigationState } from '@aurelia/router';
 import { TestContext, assert } from '@aurelia/testing';
 
 import { IHIAConfig, IHookInvocationAggregator } from './hook-invocation-tracker';
 import { TestRouterConfiguration } from './configuration';
 
+export interface IRouterOptionsSpec {
+  deferUntil: DeferralJuncture;
+  swapStrategy: SwapStrategy;
+  toString(): string;
+}
+
+export type SwapStrategy = 'sequential-add-first' | 'sequential-remove-first' | 'parallel-remove-first';
+export type DeferralJuncture = 'guard-hooks' | 'load-hooks' | 'none';
+
+export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouterActivateOptions {
+  let swap;
+  switch (routerOptionsSpec.swapStrategy) {
+    case 'sequential-add-first':
+      swap = 'add-first-sequential';
+      break;
+    case 'sequential-remove-first':
+      swap = 'remove-first-sequential';
+      break;
+    case 'parallel-remove-first':
+      swap = 'remove-first-parallel';
+      break;
+  }
+  const syncStates = ['guardedUnload', 'swapped', 'completed'] as NavigationState[];
+  switch (routerOptionsSpec.deferUntil) {
+    case 'load-hooks':
+      syncStates.push('loaded', 'unloaded', 'routed');
+    // eslint-disable-next-line no-fallthrough
+    case 'guard-hooks':
+      syncStates.push('guardedLoad', 'guarded');
+  }
+
+  // const integration = routerOptionsSpec.resolutionStrategy === 'static' ||
+  //   routerOptionsSpec.lifecycleStrategy === 'phased'
+  //   ? 'separate'
+  //   : 'integrated';
+  // console.log('SyncStates', syncStates.toString());
+  return {
+    additiveInstructionDefault: false,
+    swapStrategy: swap,
+    navigationSyncStates: syncStates,
+    // routingHookIntegration: integration,
+  };
+}
+
+export function transformNotifications(notifications: string[]): string[] {
+  return notifications.filter(notification => !(/^stop\..*?\.unload$/.test(notification)));
+}
+
 export async function createFixture<T extends Constructable>(
   Component: T,
   deps: Constructable[],
   createHIAConfig: () => IHIAConfig,
-  createRouterOptions: () => IRouterOptions,
+  createRouterOptions: () => IRouterActivateOptions,
   level: LogLevel = LogLevel.warn,
 ) {
   const hiaConfig = createHIAConfig();
@@ -29,6 +77,7 @@ export async function createFixture<T extends Constructable>(
 
   const au = new Aurelia(container);
   const host = ctx.createElement('div');
+  ctx.doc.body.appendChild(host as any);
 
   const logConfig = container.get(ILogConfig);
 
@@ -40,6 +89,7 @@ export async function createFixture<T extends Constructable>(
 
   return {
     ctx,
+    container,
     au,
     host,
     hia,

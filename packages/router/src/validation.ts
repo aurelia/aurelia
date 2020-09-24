@@ -17,7 +17,7 @@ import {
 } from './instructions';
 import { tryStringify } from './util';
 
-export function isNotNullishOrTypeOrViewModel(value: RouteableComponent | null | undefined): value is PartialCustomElementDefinition | IChildRouteConfig {
+export function isNotNullishOrTypeOrViewModel(value: RouteableComponent | IChildRouteConfig | null | undefined): value is PartialCustomElementDefinition | IChildRouteConfig {
   return (
     typeof value === 'object' &&
     value !== null &&

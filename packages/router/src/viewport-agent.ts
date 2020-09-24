@@ -84,11 +84,11 @@ export class ViewportAgent {
 
   private $deferral: DeferralJuncture = 'none';
   private $plan: TransitionPlan = 'replace';
-  private $swap: SwapStrategy = 'sequential-add-first';
   private currNode: RouteNode | null = null;
   private nextNode: RouteNode | null = null;
 
-  private currentTransition: Transition | null = null;
+  private currTransition: Transition | null = null;
+  private prevTransition: Transition | null = null;
 
   public constructor(
     public readonly viewport: IViewport,
@@ -121,7 +121,7 @@ export class ViewportAgent {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    const tr = this.currentTransition;
+    const tr = this.currTransition;
     if (tr !== null) { ensureTransitionHasNotErrored(tr); }
     this.isActive = true;
 
@@ -138,23 +138,23 @@ export class ViewportAgent {
             this.unexpectedState('activateFromViewport 1');
         }
       case State.nextLoadDone:
-        if (this.currentTransition === null) {
+        if (this.currTransition === null) {
           throw new Error(`Unexpected viewport activation outside of a transition context at ${this}`);
         }
         if (this.$deferral !== 'load-hooks') {
           throw new Error(`Unexpected viewport activation at ${this}`);
         }
         this.logger.trace(`activateFromViewport() - running ordinary activate at %s`, this);
-        return this.activate(this.currentTransition!);
+        return this.activate(this.currTransition!);
       case State.nextCanLoadDone:
-        if (this.currentTransition === null) {
+        if (this.currTransition === null) {
           throw new Error(`Unexpected viewport activation outside of a transition context at ${this}`);
         }
         if (this.$deferral !== 'guard-hooks') {
           throw new Error(`Unexpected viewport activation at ${this}`);
         }
         this.logger.trace(`activateFromViewport() - running ordinary activate at %s`, this);
-        return this.activate(this.currentTransition!);
+        return this.activate(this.currTransition!);
       default:
         this.unexpectedState('activateFromViewport 2');
     }
@@ -165,7 +165,7 @@ export class ViewportAgent {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
-    const tr = this.currentTransition;
+    const tr = this.currTransition;
     if (tr !== null) { ensureTransitionHasNotErrored(tr); }
     this.isActive = false;
 
@@ -183,11 +183,11 @@ export class ViewportAgent {
         this.logger.trace(`deactivateFromViewport() - already deactivating at %s`, this);
         return;
       default:
-        if (this.currentTransition === null) {
+        if (this.currTransition === null) {
           throw new Error(`Unexpected viewport deactivation outside of a transition context at ${this}`);
         }
         this.logger.trace(`deactivateFromViewport() - running ordinary deactivate at %s`, this);
-        return this.deactivate(this.currentTransition!);
+        return this.deactivate(this.currTransition!);
     }
   }
 
@@ -221,82 +221,8 @@ export class ViewportAgent {
     return true;
   }
 
-  public scheduleUpdate(
-    deferUntil: DeferralJuncture,
-    swapStrategy: SwapStrategy,
-    next: RouteNode,
-  ): void {
-    switch (this.nextState) {
-      case State.nextIsEmpty:
-        this.nextNode = next;
-        this.nextState = State.nextIsScheduled;
-        this.$deferral = deferUntil;
-        this.$swap = swapStrategy;
-        break;
-      default:
-        this.unexpectedState('scheduleUpdate 1');
-    }
-
-    switch (this.currState) {
-      case State.currIsEmpty:
-      case State.currIsActive:
-      case State.currCanUnloadDone:
-        break;
-      default:
-        this.unexpectedState('scheduleUpdate 2');
-    }
-
-    const cur = this.curCA?.routeNode ?? null;
-    if (cur === null || cur.component !== next.component) {
-      // Component changed (or is cleared), so set to 'replace'
-      this.$plan = 'replace';
-    } else {
-      // Component is the same, so determine plan based on config and/or convention
-      const plan = next.context.definition.config.transitionPlan;
-      if (typeof plan === 'function') {
-        this.$plan = plan(cur, next);
-      } else {
-        this.$plan = plan;
-      }
-    }
-
-    this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s'`, next, this.$plan);
-  }
-
-  public cancelUpdate(): void {
-    this.logger.trace(`cancelUpdate(nextNode:%s)`, this.nextNode);
-
-    switch (this.currState) {
-      case State.currIsEmpty:
-      case State.currIsActive:
-        break;
-      case State.currCanUnload:
-      case State.currCanUnloadDone:
-        this.currState = State.currIsActive;
-        break;
-      case State.currUnload:
-      case State.currDeactivate:
-        // TODO: should schedule an 'undo' action
-        break;
-    }
-
-    switch (this.nextState) {
-      case State.nextIsEmpty:
-      case State.nextIsScheduled:
-      case State.nextCanLoad:
-      case State.nextCanLoadDone:
-        this.nextNode = null;
-        this.nextState = State.nextIsEmpty;
-        break;
-      case State.nextLoad:
-      case State.nextActivate:
-        // TODO: should schedule an 'undo' action
-        break;
-    }
-  }
-
   public canUnload(tr: Transition): void | Promise<void> {
-    if (this.currentTransition === null) { this.currentTransition = tr; }
+    if (this.currTransition === null) { this.currTransition = tr; }
     ensureTransitionHasNotErrored(tr);
     if (tr.guardsResult !== true) { return; }
 
@@ -318,7 +244,7 @@ export class ViewportAgent {
                 return true;
               case 'invoke-lifecycles':
               case 'replace':
-                return this.curCA!.canUnload(this.nextNode);
+                return this.curCA!.canUnload(tr, this.nextNode);
             }
           }
           case State.currIsEmpty:
@@ -328,19 +254,16 @@ export class ViewportAgent {
             this.unexpectedState('canUnload');
         }
       },
-      (_, result) => {
+      () => {
         if (this.currState === State.currCanUnload) {
           this.currState = State.currCanUnloadDone;
-        }
-        if (tr.guardsResult === true && result !== true) {
-          tr.guardsResult = result;
         }
       },
     );
   }
 
   public canLoad(tr: Transition): void | Promise<void> {
-    if (this.currentTransition === null) { this.currentTransition = tr; }
+    if (this.currTransition === null) { this.currTransition = tr; }
     ensureTransitionHasNotErrored(tr);
     if (tr.guardsResult !== true) { return; }
 
@@ -355,14 +278,14 @@ export class ViewportAgent {
               case 'none':
                 return true;
               case 'invoke-lifecycles':
-                return this.curCA!.canLoad(this.nextNode!);
+                return this.curCA!.canLoad(tr, this.nextNode!);
               case 'replace':
                 return (
                   this.nextCA = this.nextNode!.context.createComponentAgent(
                     this.hostController as ICustomElementController<HTMLElement>,
                     this.nextNode!
                   )
-                ).canLoad(this.nextNode!);
+                ).canLoad(tr, this.nextNode!);
             }
           case State.nextIsEmpty:
             this.logger.trace(`canLoad() - nothing to load at %s`, this);
@@ -371,14 +294,7 @@ export class ViewportAgent {
             this.unexpectedState('canLoad');
         }
       },
-      (abort, result) => {
-        if (tr.guardsResult === true && result !== true) {
-          tr.guardsResult = result;
-        }
-        if (tr.guardsResult !== true) {
-          abort();
-        }
-      },
+      tr.abortIfNeeded(),
       () => {
         const next = this.nextNode!;
         switch (this.$plan) {
@@ -427,7 +343,7 @@ export class ViewportAgent {
 
   public unload(tr: Transition): void | Promise<void> {
     ensureTransitionHasNotErrored(tr);
-    ensureGuardsResultIsTrue(tr);
+    ensureGuardsResultIsTrue(this, tr);
 
     // run unload bottom-up
     return runSequence(
@@ -447,7 +363,7 @@ export class ViewportAgent {
                 return;
               case 'invoke-lifecycles':
               case 'replace':
-                return this.curCA!.unload(this.nextNode);
+                return this.curCA!.unload(tr, this.nextNode);
             }
           case State.currIsEmpty:
             this.logger.trace(`unload() - nothing to unload at %s`, this);
@@ -471,7 +387,7 @@ export class ViewportAgent {
     }
 
     ensureTransitionHasNotErrored(tr);
-    ensureGuardsResultIsTrue(tr);
+    ensureGuardsResultIsTrue(this, tr);
 
     // run load top-down
     return runSequence(
@@ -484,9 +400,9 @@ export class ViewportAgent {
               case 'none':
                 return;
               case 'invoke-lifecycles':
-                return this.curCA!.load(this.nextNode!);
+                return this.curCA!.load(tr, this.nextNode!);
               case 'replace':
-                return this.nextCA!.load(this.nextNode!);
+                return this.nextCA!.load(tr, this.nextNode!);
             }
           }
           case State.nextIsEmpty:
@@ -515,7 +431,7 @@ export class ViewportAgent {
 
   public deactivate(tr: Transition): void | Promise<void> {
     ensureTransitionHasNotErrored(tr);
-    ensureGuardsResultIsTrue(tr);
+    ensureGuardsResultIsTrue(this, tr);
 
     // run deactivate bottom-up
     return runSequence(
@@ -551,7 +467,7 @@ export class ViewportAgent {
 
   public activate(tr: Transition): void | Promise<void> {
     ensureTransitionHasNotErrored(tr);
-    ensureGuardsResultIsTrue(tr);
+    ensureGuardsResultIsTrue(this, tr);
 
     if (
       this.nextState === State.nextIsScheduled &&
@@ -621,7 +537,7 @@ export class ViewportAgent {
     }
 
     ensureTransitionHasNotErrored(tr);
-    ensureGuardsResultIsTrue(tr);
+    ensureGuardsResultIsTrue(this, tr);
 
     if (
       this.currState === State.currUnloadDone &&
@@ -706,21 +622,106 @@ export class ViewportAgent {
     }
   }
 
-  public endTransition(tr: Transition): void {
+  public scheduleUpdate(
+    deferUntil: DeferralJuncture,
+    swapStrategy: SwapStrategy,
+    next: RouteNode,
+  ): void {
+    switch (this.nextState) {
+      case State.nextIsEmpty:
+        this.nextNode = next;
+        this.nextState = State.nextIsScheduled;
+        this.$deferral = deferUntil;
+        break;
+      default:
+        this.unexpectedState('scheduleUpdate 1');
+    }
+
+    switch (this.currState) {
+      case State.currIsEmpty:
+      case State.currIsActive:
+      case State.currCanUnloadDone:
+        break;
+      default:
+        this.unexpectedState('scheduleUpdate 2');
+    }
+
+    const cur = this.curCA?.routeNode ?? null;
+    if (cur === null || cur.component !== next.component) {
+      // Component changed (or is cleared), so set to 'replace'
+      this.$plan = 'replace';
+    } else {
+      // Component is the same, so determine plan based on config and/or convention
+      const plan = next.context.definition.config.transitionPlan;
+      if (typeof plan === 'function') {
+        this.$plan = plan(cur, next);
+      } else {
+        this.$plan = plan;
+      }
+    }
+
+    this.logger.trace(`scheduleUpdate(next:%s) - plan set to '%s'`, next, this.$plan);
+  }
+
+  public cancelUpdate(): void {
     if (this.currNode !== null) {
       this.currNode.children.forEach(function (node) {
-        node.context.vpa.endTransition(tr);
+        node.context.vpa.cancelUpdate();
       });
     }
     if (this.nextNode !== null) {
       this.nextNode.children.forEach(function (node) {
-        node.context.vpa.endTransition(tr);
+        node.context.vpa.cancelUpdate();
       });
     }
 
-    if (this.currentTransition !== null) {
-      this.currentTransition = null;
-      ensureTransitionHasNotErrored(tr);
+    this.logger.trace(`cancelUpdate(nextNode:%s)`, this.nextNode);
+
+    if (this.currTransition !== null) {
+      switch (this.currState) {
+        case State.currIsEmpty:
+        case State.currIsActive:
+          break;
+        case State.currCanUnload:
+        case State.currCanUnloadDone:
+          this.currState = State.currIsActive;
+          break;
+        case State.currUnload:
+        case State.currDeactivate:
+          // TODO: should schedule an 'undo' action
+          break;
+      }
+
+      switch (this.nextState) {
+        case State.nextIsEmpty:
+        case State.nextIsScheduled:
+        case State.nextCanLoad:
+        case State.nextCanLoadDone:
+          this.nextNode = null;
+          this.nextState = State.nextIsEmpty;
+          break;
+        case State.nextLoad:
+        case State.nextActivate:
+          // TODO: should schedule an 'undo' action
+          break;
+      }
+    }
+  }
+
+  public endTransition(): void {
+    if (this.currNode !== null) {
+      this.currNode.children.forEach(function (node) {
+        node.context.vpa.endTransition();
+      });
+    }
+    if (this.nextNode !== null) {
+      this.nextNode.children.forEach(function (node) {
+        node.context.vpa.endTransition();
+      });
+    }
+
+    if (this.currTransition !== null) {
+      ensureTransitionHasNotErrored(this.currTransition);
       switch (this.nextState) {
         case State.nextIsEmpty:
           switch (this.currState) {
@@ -765,6 +766,8 @@ export class ViewportAgent {
       this.nextState = State.nextIsEmpty;
       this.nextNode = null;
       this.nextCA = null;
+      this.prevTransition = this.currTransition;
+      this.currTransition = null;
     }
   }
 
@@ -777,9 +780,9 @@ export class ViewportAgent {
   }
 }
 
-function ensureGuardsResultIsTrue(tr: Transition): void {
+function ensureGuardsResultIsTrue(vpa: ViewportAgent, tr: Transition): void {
   if (tr.guardsResult !== true) {
-    throw new Error(`Unexpected guardsResult ${tr.guardsResult}`);
+    throw new Error(`Unexpected guardsResult ${tr.guardsResult} at ${vpa}`);
   }
 }
 

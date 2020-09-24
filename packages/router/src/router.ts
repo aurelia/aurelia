@@ -805,7 +805,7 @@ export class Router {
         () => {
           // order doesn't matter for this operation
           all.forEach(function (node) {
-            node.context.vpa.endTransition(tr);
+            node.context.vpa.endTransition();
           });
           this.navigated = true;
 
@@ -842,9 +842,11 @@ export class Router {
 
     const prev = tr.previousRouteTree.root.children;
     const next = tr.routeTree.root.children;
-    const prevDistinct = prev.filter(p => !next.some(n => p.context.vpa === n.context.vpa));
+    const all = mergeDistinct(prev, next);
     // order doesn't matter for this operation
-    [...prevDistinct, ...next].forEach(x => { x.context.vpa.cancelUpdate(); });
+    all.forEach(function (node) {
+      node.context.vpa.cancelUpdate();
+    });
 
     this.activeNavigation = null;
     this.instructions = tr.prevInstructions;

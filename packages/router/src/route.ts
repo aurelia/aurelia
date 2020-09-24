@@ -18,8 +18,18 @@ import {
 import {
  RouteNode,
 } from './route-tree';
+import {
+  CanLoad,
+  CanUnload,
+  Load,
+  Unload,
+} from './hooks';
 
 const noChildren = PLATFORM.emptyArray as RouteConfig['children'];
+const noCanLoadHooks = PLATFORM.emptyArray as RouteConfig['canLoad'];
+const noCanUnloadHooks = PLATFORM.emptyArray as RouteConfig['canUnload'];
+const noLoadHooks = PLATFORM.emptyArray as RouteConfig['load'];
+const noUnloadHooks = PLATFORM.emptyArray as RouteConfig['unload'];
 
 /**
  * Either a `RouteableComponent` or a name/config that can be resolved to a one:
@@ -100,6 +110,10 @@ export class RouteConfig {
      * The child routes that can be navigated to from this route. See `Routeable` for more information.
      */
     public readonly children: readonly Routeable[],
+    public readonly canLoad: readonly CanLoad[],
+    public readonly canUnload: readonly CanUnload[],
+    public readonly load: readonly Load[],
+    public readonly unload: readonly Unload[],
   ) { }
 
   public static create(
@@ -117,8 +131,25 @@ export class RouteConfig {
         const viewport = Type?.viewport ?? null;
         const data = Type?.data ?? {};
         const children = Type?.children ?? noChildren;
+        const canLoad = Type?.canLoad ?? noCanLoadHooks;
+        const canUnload = Type?.canUnload ?? noCanUnloadHooks;
+        const load = Type?.load ?? noLoadHooks;
+        const unload = Type?.unload ?? noUnloadHooks;
 
-        return new RouteConfig(id, path, redirectTo, caseSensitive, reentryBehavior, viewport, data, children);
+        return new RouteConfig(
+          id,
+          path,
+          redirectTo,
+          caseSensitive,
+          reentryBehavior,
+          viewport,
+          data,
+          children,
+          canLoad,
+          canUnload,
+          load,
+          unload,
+        );
       }
       case 'object': {
         const config = configOrPath;
@@ -138,8 +169,36 @@ export class RouteConfig {
           ...(config.children ?? noChildren),
           ...(Type?.children ?? noChildren),
         ];
-
-        return new RouteConfig(id, path, redirectTo, caseSensitive, reentryBehavior, viewport, data, children);
+        const canLoad = [
+          ...(config.canLoad ?? noCanLoadHooks),
+          ...(Type?.canLoad ?? noCanLoadHooks),
+        ];
+        const canUnload = [
+          ...(config.canUnload ?? noCanUnloadHooks),
+          ...(Type?.canUnload ?? noCanUnloadHooks),
+        ];
+        const load = [
+          ...(config.load ?? noLoadHooks),
+          ...(Type?.load ?? noLoadHooks),
+        ];
+        const unload = [
+          ...(config.unload ?? noUnloadHooks),
+          ...(Type?.unload ?? noUnloadHooks),
+        ];
+        return new RouteConfig(
+          id,
+          path,
+          redirectTo,
+          caseSensitive,
+          reentryBehavior,
+          viewport,
+          data,
+          children,
+          canLoad,
+          canUnload,
+          load,
+          unload,
+        );
       }
       default:
         expectType('string, function/class or object', '', configOrPath);
@@ -178,6 +237,10 @@ export class ChildRouteConfig extends RouteConfig {
     viewport: string | null,
     data: Params,
     children: readonly Routeable[],
+    canLoad: readonly CanLoad[],
+    canUnload: readonly CanUnload[],
+    load: readonly Load[],
+    unload: readonly Unload[],
     /**
      * The component to load when this route is matched.
      */
@@ -192,6 +255,10 @@ export class ChildRouteConfig extends RouteConfig {
       viewport,
       data,
       children,
+      canLoad,
+      canUnload,
+      load,
+      unload,
     );
   }
 }

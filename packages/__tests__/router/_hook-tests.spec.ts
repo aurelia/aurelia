@@ -2021,6 +2021,8 @@ describe('router hooks', function () {
           'canUnload',
           'unload',
         ] as HookName[]) {
+          const throwsInTarget1 = ['canUnload'].includes(hookName);
+
           runTest({
             async action(router, container) {
               const target1 = CustomElement.define({ name: 'a', template: null }, class Target1 {
@@ -2029,11 +2031,11 @@ describe('router hooks', function () {
                 }
               });
 
-              // These shouldn't throw
               const target2 = CustomElement.define({ name: 'a', template: null }, class Target2 {
                 public async beforeBind() { throw new Error(`error in beforeBind`); }
                 public async afterBind() { throw new Error(`error in afterBind`); }
                 public async afterAttach() { throw new Error(`error in afterAttach`); }
+                public async afterAttachChildren() { throw new Error(`error in afterAttachChildren`); }
                 public async canLoad() { throw new Error(`error in canLoad`); }
                 public async load() { throw new Error(`error in load`); }
               });
@@ -2042,10 +2044,95 @@ describe('router hooks', function () {
               await router.load(target1);
               await router.load(target2);
             },
-            messageMatcher: new RegExp(`error in ${hookName}`),
-            stackMatcher: new RegExp(`Target1.${hookName}`),
+            messageMatcher: new RegExp(`error in ${throwsInTarget1 ? hookName : 'canLoad'}`),
+            stackMatcher: new RegExp(`${throwsInTarget1 ? 'Target1' : 'Target2'}.${throwsInTarget1 ? hookName : 'canLoad'}`),
             toString() {
-              return String(this.messageMatcher);
+              return `${String(this.messageMatcher)} with canLoad,load,beforeBind,afterBind,afterAttach`;
+            },
+          });
+        }
+
+        for (const hookName of [
+          'beforeDetach',
+          'beforeUnbind',
+          'afterUnbind',
+          'afterUnbindChildren',
+          'canUnload',
+          'unload',
+        ] as HookName[]) {
+          const throwsInTarget1 = ['canUnload', 'unload'].includes(hookName);
+
+          runTest({
+            async action(router, container) {
+              const target1 = CustomElement.define({ name: 'a', template: null }, class Target1 {
+                public async [hookName]() {
+                  throw new Error(`error in ${hookName}`);
+                }
+              });
+
+              const target2 = CustomElement.define({ name: 'a', template: null }, class Target2 {
+                public async beforeBind() { throw new Error(`error in beforeBind`); }
+                public async afterBind() { throw new Error(`error in afterBind`); }
+                public async afterAttach() { throw new Error(`error in afterAttach`); }
+                public async afterAttachChildren() { throw new Error(`error in afterAttachChildren`); }
+                public async load() { throw new Error(`error in load`); }
+              });
+
+              container.register(target1, target2);
+              await router.load(target1);
+              await router.load(target2);
+            },
+            messageMatcher: new RegExp(`error in ${throwsInTarget1 ? hookName : 'load'}`),
+            stackMatcher: new RegExp(`${throwsInTarget1 ? 'Target1' : 'Target2'}.${throwsInTarget1 ? hookName : 'load'}`),
+            toString() {
+              return `${String(this.messageMatcher)} with load,beforeBind,afterBind,afterAttach`;
+            },
+          });
+        }
+
+        for (const hookName of [
+          'beforeDetach',
+          'beforeUnbind',
+          'afterUnbind',
+          'afterUnbindChildren',
+        ] as HookName[]) {
+          let throwsInTarget1: boolean;
+          switch (routerOptionsSpec.swapStrategy) {
+            case 'sequential-add-first':
+              throwsInTarget1 = false;
+              break;
+            case 'sequential-remove-first':
+              throwsInTarget1 = true;
+              break;
+            case 'parallel-remove-first':
+              // Would be hookName === 'beforeDetach' if things were async
+              throwsInTarget1 = hookName !== 'afterUnbindChildren';
+              break;
+          }
+
+          runTest({
+            async action(router, container) {
+              const target1 = CustomElement.define({ name: 'a', template: null }, class Target1 {
+                public async [hookName]() {
+                  throw new Error(`error in ${hookName}`);
+                }
+              });
+
+              const target2 = CustomElement.define({ name: 'a', template: null }, class Target2 {
+                public async beforeBind() { throw new Error(`error in beforeBind`); }
+                public async afterBind() { throw new Error(`error in afterBind`); }
+                public async afterAttach() { throw new Error(`error in afterAttach`); }
+                public async afterAttachChildren() { throw new Error(`error in afterAttachChildren`); }
+              });
+
+              container.register(target1, target2);
+              await router.load(target1);
+              await router.load(target2);
+            },
+            messageMatcher: new RegExp(`error in ${throwsInTarget1 ? hookName : 'beforeBind'}`),
+            stackMatcher: new RegExp(`${throwsInTarget1 ? 'Target1' : 'Target2'}.${throwsInTarget1 ? hookName : 'beforeBind'}`),
+            toString() {
+              return `${String(this.messageMatcher)} with beforeBind,afterBind,afterAttach`;
             },
           });
         }

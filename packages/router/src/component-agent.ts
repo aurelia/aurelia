@@ -10,6 +10,8 @@ import {
 import {
   Constructable,
   ILogger,
+  onResolve,
+  resolveAll,
 } from '@aurelia/kernel';
 
 import {
@@ -26,9 +28,8 @@ import {
   NavigationInstruction,
   ViewportInstructionTree,
 } from './instructions';
-import {
-  runSequence,
-} from './util';
+import { instantiateHook, RouterHookObject } from './hooks';
+import { Transition } from './router';
 
 export interface IRouteViewModel extends ICustomElementViewModel<HTMLElement> {
   canLoad?(
@@ -56,10 +57,10 @@ const componentAgentLookup: WeakMap<object, ComponentAgent> = new WeakMap();
 export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
   private readonly logger: ILogger;
 
-  public readonly hasCanLoad: boolean;
-  public readonly hasLoad: boolean;
-  public readonly hasCanUnload: boolean;
-  public readonly hasUnload: boolean;
+  public readonly canLoadHooks: readonly RouterHookObject<'canLoad'>[];
+  public readonly loadHooks: readonly RouterHookObject<'load'>[];
+  public readonly canUnloadHooks: readonly RouterHookObject<'canUnload'>[];
+  public readonly unloadHooks: readonly RouterHookObject<'unload'>[];
 
   public constructor(
     public readonly instance: T,
@@ -72,10 +73,18 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
     this.logger.trace(`constructor()`);
 
-    this.hasCanLoad = 'canLoad' in instance;
-    this.hasLoad = 'load' in instance;
-    this.hasCanUnload = 'canUnload' in instance;
-    this.hasUnload = 'unload' in instance;
+    this.canLoadHooks = (
+      'canLoad' in instance ? [instance as RouterHookObject<'canLoad'>] : []
+    ).concat(definition.config.canLoad.map(x => instantiateHook(ctx, 'canLoad', x)));
+    this.loadHooks = (
+      'load' in instance ? [instance as RouterHookObject<'load'>] : []
+    ).concat(definition.config.load.map(x => instantiateHook(ctx, 'load', x)));
+    this.canUnloadHooks = (
+      'canUnload' in instance ? [instance as RouterHookObject<'canUnload'>] : []
+    ).concat(definition.config.canUnload.map(x => instantiateHook(ctx, 'canUnload', x)));
+    this.unloadHooks = (
+      'unload' in instance ? [instance as RouterHookObject<'unload'>] : []
+    ).concat(definition.config.unload.map(x => instantiateHook(ctx, 'unload', x)));
   }
 
   public static for<T extends IRouteViewModel>(
@@ -131,51 +140,64 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     this.controller.dispose();
   }
 
-  public canLoad(next: RouteNode): boolean | ViewportInstructionTree | Promise<boolean | ViewportInstructionTree> {
-    if (this.hasCanLoad) {
-      this.logger.trace(`canLoad(next:%s) - invoking hook on component`, next);
-      return runSequence(
-        () => { return this.instance.canLoad!(next.params, next, this.routeNode); },
-        (_, result) => {
-          if (typeof result === 'boolean') {
-            return result;
+  public canLoad(
+    tr: Transition,
+    next: RouteNode,
+  ): void | Promise<void> {
+    this.logger.trace(`canLoad(next:%s) - invoking ${this.canLoadHooks.length} hooks`, next);
+    return resolveAll(...this.canLoadHooks.map(x => {
+      if (tr.guardsResult === true) {
+        return onResolve(x.canLoad(next.params, next, this.routeNode), result => {
+          if (tr.guardsResult === true && result !== true) {
+            tr.guardsResult = result === false ? false : ViewportInstructionTree.create(result);
           }
-
-          return ViewportInstructionTree.create(result);
-        },
-      );
-    }
-
-    this.logger.trace(`canLoad(next:%s) - component does not implement this hook, so skipping`, next);
-    return true;
+        });
+      }
+      return void 0;
+    }));
   }
 
-  public load(next: RouteNode): void | Promise<void> {
-    if (this.hasLoad) {
-      this.logger.trace(`load(next:%s) - invoking hook on component`, next);
-      return this.instance.load!(next.params, next, this.routeNode);
-    }
-
-    this.logger.trace(`load(next:%s) - component does not implement this hook, so skipping`, next);
+  public load(
+    tr: Transition,
+    next: RouteNode,
+  ): void | Promise<void> {
+    this.logger.trace(`load(next:%s) - invoking ${this.loadHooks.length} hooks`, next);
+    return resolveAll(...this.loadHooks.map(x => {
+      if (tr.guardsResult === true) {
+        return x.load(next.params, next, this.routeNode);
+      }
+      return void 0;
+    }));
   }
 
-  public canUnload(next: RouteNode | null): boolean | Promise<boolean> {
-    if (this.hasCanUnload) {
-      this.logger.trace(`canUnload(next:%s) - invoking hook on component`, next);
-      return this.instance.canUnload!(next, this.routeNode);
-    }
-
-    this.logger.trace(`canUnload(next:%s) - component does not implement this hook, so skipping`, next);
-    return true;
+  public canUnload(
+    tr: Transition,
+    next: RouteNode | null,
+  ): void | Promise<void> {
+    this.logger.trace(`canUnload(next:%s) - invoking ${this.canUnloadHooks.length} hooks`, next);
+    return resolveAll(...this.canUnloadHooks.map(x => {
+      if (tr.guardsResult === true) {
+        return onResolve(x.canUnload(next, this.routeNode), result => {
+          if (tr.guardsResult === true && result !== true) {
+            tr.guardsResult = false;
+          }
+        });
+      }
+      return void 0;
+    }));
   }
 
-  public unload(next: RouteNode | null): void | Promise<void> {
-    if (this.hasUnload) {
-      this.logger.trace(`unload(next:%s) - invoking hook on component`, next);
-      return this.instance.unload!(next, this.routeNode);
-    }
-
-    this.logger.trace(`unload(next:%s) - component does not implement this hook, so skipping`, next);
+  public unload(
+    tr: Transition,
+    next: RouteNode | null,
+  ): void | Promise<void> {
+    this.logger.trace(`unload(next:%s) - invoking ${this.unloadHooks.length} hooks`, next);
+    return resolveAll(...this.unloadHooks.map(x => {
+      if (tr.guardsResult === true) {
+        return x.unload(next, this.routeNode);
+      }
+      return void 0;
+    }));
   }
 
   public toString(): string {

@@ -12,18 +12,18 @@ describe('Nav', function () {
     const Foo = CustomElement.define({ name: 'foo', template: '<template>Nav: foo <au-nav name="main-nav"></au-nav></template>' }, class {
       public static inject = [IRouter];
       public constructor(private readonly r: IRouter) { }
-      public enter() { this.r.setNav('main-nav', [{ title: 'Bar', route: 'bar' }]); }
+      public load() { this.r.setNav('main-nav', [{ title: 'Bar', route: 'bar' }]); }
     });
     const Bar = CustomElement.define({ name: 'bar', template: '<template>Nav: bar <au-nav name="main-nav"></au-nav><au-viewport name="main-viewport" default="baz"></au-viewport></template>' }, class {
       public static inject = [IRouter];
       public constructor(private readonly r: IRouter) { }
-      public enter() { this.r.setNav('main-nav', [{ title: 'Baz', route: 'baz' }]); }
+      public load() { this.r.setNav('main-nav', [{ title: 'Baz', route: 'baz' }]); }
     });
     const Baz = CustomElement.define({ name: 'baz', template: '<template>Baz</template>' }, class { });
     const Qux = CustomElement.define({ name: 'qux', template: '<template>Nav: qux <au-nav name="main-nav"></au-nav><au-viewport name="main-viewport" default="baz"></au-viewport></template>' }, class {
       public static inject = [IRouter];
       public constructor(private readonly r: IRouter) { }
-      public enter() {
+      public load() {
         this.r.addNav('main-nav', [{ title: 'Baz', route: Baz, children: [{ title: 'Bar', route: ['bar', Baz] }] }, { title: 'Foo', route: { component: Foo, viewport: 'main-viewport' } }]);
       }
     });

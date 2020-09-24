@@ -1,6 +1,6 @@
 import { Writable } from '@aurelia/kernel';
 import { ICustomElementController, IHydratedController, IHydratedParentController, LifecycleFlags } from '@aurelia/runtime';
-import { Params, IRouteableComponent, ViewportInstruction, Navigation } from '@aurelia/router';
+import { Params, IRouteableComponent, NavigationInstruction, Navigation } from '@aurelia/router';
 import { IHookInvocationAggregator } from './hook-invocation-tracker';
 import { IHookSpec, hookSpecsMap } from './hook-spec';
 
@@ -52,17 +52,17 @@ export interface ITestRouteViewModel extends IRouteableComponent<HTMLElement> {
     params: Params,
     next: Navigation,
     current: Navigation | null,
-  ): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
-  enter(
+  ): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
+  load(
     params: Params,
     next: Navigation,
     current: Navigation | null,
   ): void | Promise<void>;
-  canLeave(
+  canUnload(
     next: Navigation | null,
     current: Navigation,
   ): boolean | Promise<boolean>;
-  leave(
+  unload(
     next: Navigation | null,
     current: Navigation,
   ): void | Promise<void>;
@@ -183,6 +183,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    // this.hia.beforeBind.notify(this.name);
     return this.specs.beforeBind.invoke(
       this,
       () => {
@@ -197,6 +198,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    // this.hia.afterBind.notify(this.name);
     return this.specs.afterBind.invoke(
       this,
       () => {
@@ -211,6 +213,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    // this.hia.afterAttach.notify(this.name);
     return this.specs.afterAttach.invoke(
       this,
       () => {
@@ -224,6 +227,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     initiator: IHydratedController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    // this.hia.afterAttachChildren.notify(this.name);
     return this.specs.afterAttachChildren.invoke(
       this,
       () => {
@@ -238,6 +242,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    // this.hia.beforeDetach.notify(this.name);
     return this.specs.beforeDetach.invoke(
       this,
       () => {
@@ -252,6 +257,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    // this.hia.beforeUnbind.notify(this.name);
     return this.specs.beforeUnbind.invoke(
       this,
       () => {
@@ -266,6 +272,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     parent: IHydratedParentController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    // this.hia.afterUnbind.notify(this.name);
     return this.specs.afterUnbind.invoke(
       this,
       () => {
@@ -279,6 +286,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     initiator: IHydratedController<HTMLElement>,
     flags: LifecycleFlags,
   ): void | Promise<void> {
+    // this.hia.afterUnbindChildren.notify(this.name);
     return this.specs.afterUnbindChildren.invoke(
       this,
       () => {
@@ -289,6 +297,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   public dispose(): void {
+    // this.hia.$$dispose.notify(this.name);
     this.specs.$dispose.invoke(
       this,
       () => {
@@ -302,8 +311,10 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     params: Params,
     next: Navigation,
     current: Navigation | null,
-  ): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]> {
-    return this.specs.canEnter.invoke(
+  ): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
+    // console.log('TestViewModel canLoad', this.name);
+    // this.hia.canLoad.notify(this.name);
+    return this.specs.canLoad.invoke(
       this,
       () => {
         this.hia.canLoad.notify(this.name);
@@ -317,6 +328,8 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     next: Navigation,
     current: Navigation | null,
   ): void | Promise<void> {
+    // console.log('TestViewModel load', this.name);
+    // this.hia.load.notify(this.name);
     return this.specs.load.invoke(
       this,
       () => {
@@ -326,11 +339,13 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     );
   }
 
-  public canLeave(
+  public canUnload(
     next: Navigation | null,
     current: Navigation,
   ): boolean | Promise<boolean> {
-    return this.specs.canUnload.invoke(
+    // console.log('TestViewModel canUnload', this);
+    // this.hia.canUnload.notify(this.name);
+    return this.specs?.canUnload.invoke(
       this,
       () => {
         this.hia.canUnload.notify(this.name);
@@ -339,10 +354,12 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     );
   }
 
-  public leave(
+  public unload(
     next: Navigation | null,
     current: Navigation,
   ): void | Promise<void> {
+    // console.log('TestViewModel unload', this.name);
+    // this.hia.unload.notify(this.name);
     return this.specs.unload.invoke(
       this,
       () => {
@@ -418,7 +435,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     _params: Params,
     _next: Navigation,
     _current: Navigation | null,
-  ): string | boolean | ViewportInstruction[] | Promise<string | boolean | ViewportInstruction[]> {
+  ): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
     return true;
   }
 
@@ -430,14 +447,14 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
     // do nothing
   }
 
-  protected $canLeave(
+  protected $canUnload(
     _next: Navigation | null,
     _current: Navigation,
   ): boolean | Promise<boolean> {
     return true;
   }
 
-  protected $leave(
+  protected $unload(
     _next: Navigation | null,
     _current: Navigation,
   ): void | Promise<void> {

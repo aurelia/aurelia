@@ -21,6 +21,8 @@ export type HookName = (
   'unload'
 );
 
+export type MaybeHookName = HookName | '';
+
 export class HookInvocationTracker {
   public get promise(): Promise<void> {
     this.setTimeout(this.aggregator.config.resolveTimeoutMs);

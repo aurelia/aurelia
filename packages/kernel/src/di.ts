@@ -8,6 +8,8 @@ import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { Protocol } from './resource';
 
+const { emptyArray } = PLATFORM;
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
@@ -434,14 +436,16 @@ function createAllResolver(
 ): (key: any, searchAncestors?: boolean) => ReturnType<typeof DI.inject> {
   return function (key: any, searchAncestors?: boolean): ReturnType<typeof DI.inject> {
     searchAncestors = !!searchAncestors;
-    const resolver: ReturnType<typeof DI.inject> & Partial<Pick<IResolver, 'resolve'>> & { $isResolver: true} =
-      function (
-        target: Injectable,
-        property?: string | number,
-        descriptor?: PropertyDescriptor | number
-      ): void {
-        DI.inject(resolver)(target, property, descriptor);
-      };
+    const resolver: ReturnType<typeof DI.inject>
+      & Required<Pick<IResolver, 'resolve'>>
+      & { $isResolver: true}
+      = function (
+          target: Injectable,
+          property?: string | number,
+          descriptor?: PropertyDescriptor | number
+        ): void {
+          DI.inject(resolver)(target, property, descriptor);
+        };
 
     resolver.$isResolver = true;
     resolver.resolve = function (handler: IContainer, requestor: IContainer): any {
@@ -1108,39 +1112,37 @@ export class Container implements IContainer {
   public getAll<K extends Key>(key: K, searchAncestors: boolean = false): readonly Resolved<K>[] {
     validateKey(key);
 
-    let current: Container | null = this;
+    const requestor = this;
+    let current: Container | null = requestor;
     let resolver: IResolver | undefined;
-    let resolvers: IResolver[] | undefined;
 
-    while (current != null) {
-      resolver = current.resolvers.get(key);
-
-      if (resolver == null) {
-        if (current.parent == null) {
-          return resolvers != null
-            ? buildAllResponses(resolvers, current, this)
-            : PLATFORM.emptyArray;
+    if (searchAncestors) {
+      let resolutions: any[] = emptyArray;
+      while (current != null) {
+        resolver = current.resolvers.get(key);
+        if (resolver != null) {
+          resolutions = resolutions.concat(buildAllResponse(resolver, current, requestor));
         }
-
         current = current.parent;
-      } else {
-        if (searchAncestors) {
-          if (resolvers == null) {
-            resolvers = [resolver];
-          } else {
-            resolvers[resolvers.length] = resolver;
-          }
+      }
+      return resolutions;
+    } else {
+      while (current != null) {
+        resolver = current.resolvers.get(key);
+  
+        if (resolver == null) {
           if (current.parent == null) {
-            return buildAllResponses(resolvers, current, this);
+            return emptyArray;
           }
+  
           current = current.parent;
         } else {
-          return buildAllResponse(resolver, current, this);
+          return buildAllResponse(resolver, current, requestor);
         }
       }
     }
 
-    return PLATFORM.emptyArray;
+    return emptyArray;
   }
 
   public getFactory<K extends Constructable>(Type: K): IFactory<K> | null {
@@ -1395,21 +1397,4 @@ function buildAllResponse(resolver: IResolver, handler: IContainer, requestor: I
   }
 
   return [resolver.resolve(handler, requestor)];
-}
-
-function buildAllResponses(resolvers: IResolver[], handler: IContainer, requestor: IContainer): any[] {
-  const results = [];
-  let lastIndex = 0;
-  for (let i = 0, ii = resolvers.length; ii > i; ++i) {
-    const resolver = resolvers[i];
-    if (resolver instanceof Resolver && resolver.strategy === ResolverStrategy.array) {
-      const state = resolver.state as IResolver[];
-      for (let j = 0, jj = state.length; jj > j; ++j) {
-        results[lastIndex++] = state[j].resolve(handler, requestor);
-      }
-    } else {
-      results[lastIndex++] = resolver.resolve(handler, requestor);
-    }
-  }
-  return results;
 }

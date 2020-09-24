@@ -1,2 +1,12 @@
 <p>This is the page about the app.</p>
 <p><a goto="/contact">Contact information</a></p>
+
+<nav>
+  <a goto="welcome@one">Welcome</a>
+  <a goto="about@one">About</a>
+  <a goto="welcome@two">Welcome 2</a>
+  <a goto="about@two">About 2</a>
+</nav>
+
+<au-viewport name="one" default="welcome" fallback="missing"></au-viewport>
+<au-viewport name="two" fallback="missing"></au-viewport>

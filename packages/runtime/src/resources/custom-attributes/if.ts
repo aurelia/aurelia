@@ -1,4 +1,4 @@
-import { nextId } from '@aurelia/kernel';
+import { nextId, onResolve } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
 import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../lifecycle';
@@ -54,28 +54,17 @@ export class If<T extends INode = INode> implements ICustomAttributeViewModel<T>
     if (!$controller.isActive) {
       return;
     }
-    let ret: void | Promise<void> = void 0;
-    if (this.view !== void 0) {
-      ret = this.view.deactivate(this.view, $controller, flags);
-    }
-
-    if (ret instanceof Promise) {
-      // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      ret.then(() => {
+    const ret = onResolve(
+      this.view?.deactivate(this.view, $controller, flags),
+      () => {
         const view = this.view = this.updateView(this.value, flags);
         if (view !== void 0) {
+          // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
           return view.activate(view, $controller, flags, $controller.scope, $controller.part);
         }
-      });
-    } else {
-      const view = this.view = this.updateView(this.value, flags);
-      if (view !== void 0) {
-        // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        view.activate(view, $controller, flags, $controller.scope, $controller.part);
-      }
-    }
+      },
+    );
+    if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
   }
 
   /** @internal */
@@ -107,6 +96,14 @@ export class If<T extends INode = INode> implements ICustomAttributeViewModel<T>
     view.setLocation(this.location, MountStrategy.insertBefore);
 
     return view;
+  }
+
+  public onCancel(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void {
+    this.view?.cancel(initiator, this.$controller, flags);
   }
 
   public dispose(): void {

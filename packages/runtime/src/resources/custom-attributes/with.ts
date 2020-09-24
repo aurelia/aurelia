@@ -63,6 +63,14 @@ export class With<T extends INode = INode> implements ICustomAttributeViewModel<
     return this.view.activate(initiator, $controller, flags, scope, $controller.part);
   }
 
+  public onCancel(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void {
+    this.view?.cancel(initiator, this.$controller, flags);
+  }
+
   public dispose(): void {
     this.view.dispose();
     this.view = (void 0)!;

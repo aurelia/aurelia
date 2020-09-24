@@ -37,6 +37,14 @@ export class Replaceable<T extends INode = INode> implements ICustomAttributeVie
     return this.view.deactivate(initiator, this.$controller, flags);
   }
 
+  public onCancel(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void {
+    this.view?.cancel(initiator, this.$controller, flags);
+  }
+
   public dispose(): void {
     this.view.dispose();
     this.view = (void 0)!;

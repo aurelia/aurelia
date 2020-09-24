@@ -3,10 +3,9 @@ import { customAttribute, INode, bindable, BindingMode, IDOM, DelegationStrategy
 import { IEventManager } from '@aurelia/runtime-html';
 import { IRouter } from '../router';
 import { NavigationInstructionResolver } from '../type-resolvers';
-import { deprecationWarning } from '../utils';
 
-@customAttribute('goto')
-export class GotoCustomAttribute implements ICustomAttributeViewModel<HTMLElement> {
+@customAttribute('load')
+export class LoadCustomAttribute implements ICustomAttributeViewModel<Element> {
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 
@@ -18,14 +17,13 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel<HTMLElemen
 
   public readonly $controller!: ICustomAttributeController<Element, this>;
 
-  private readonly activeClass: string = 'goto-active';
+  private readonly activeClass: string = 'load-active';
   public constructor(
     @IDOM private readonly dom: IDOM,
     @INode element: INode,
     @IRouter private readonly router: IRouter,
     @IEventManager private readonly eventManager: IEventManager,
   ) {
-    deprecationWarning('"goto" custom attribute', '"load" custom attribute');
     this.element = element as Element;
   }
 
@@ -62,7 +60,7 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel<HTMLElemen
   }
 
   public handleChange(): void {
-    const controller = CustomAttribute.for(this.element, 'goto')!.parent!;
+    const controller = CustomAttribute.for(this.element, 'load')!.parent!;
     const created = NavigationInstructionResolver.createViewportInstructions(this.router, this.value as any, { context: controller });
     const instructions = NavigationInstructionResolver.toViewportInstructions(this.router, created.instructions);
     for (const instruction of instructions) {

@@ -2,29 +2,30 @@ import { ComponentParameters, ComponentAppellation, ViewportHandle } from './int
 import { ViewportInstruction } from './viewport-instruction';
 import { Scope } from './scope';
 import { FoundRoute } from './found-route';
+import { IRouteSeparators, ISeparators } from './router-options';
 
 export interface IInstructionResolverOptions {
   separators?: IRouteSeparators;
 }
 
-export interface IRouteSeparators extends Partial<ISeparators> { }
+// export interface IRouteSeparators extends Partial<ISeparators> { }
 
-interface ISeparators {
-  viewport: string;
-  sibling: string;
-  scope: string;
-  scopeStart: string;
-  scopeEnd: string;
-  noScope: string;
-  parameters: string;
-  parametersEnd: string;
-  parameterSeparator: string;
-  parameterKeySeparator: string;
-  parameter?: string;
-  add: string;
-  clear: string;
-  action: string;
-}
+// interface ISeparators {
+//   viewport: string;
+//   sibling: string;
+//   scope: string;
+//   scopeStart: string;
+//   scopeEnd: string;
+//   noScope: string;
+//   parameters: string;
+//   parametersEnd: string;
+//   parameterSeparator: string;
+//   parameterKeySeparator: string;
+//   parameter?: string;
+//   add: string;
+//   clear: string;
+//   action: string;
+// }
 
 export interface IComponentParameter {
   key?: string | undefined;
@@ -93,10 +94,16 @@ export class InstructionResolver {
       : instruction === this.addViewportInstruction;
   }
 
-  public createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: ViewportInstruction[] | null = null): ViewportInstruction {
-    const instruction: ViewportInstruction = new ViewportInstruction(component, viewport, parameters, ownsScope, nextScopeInstructions);
-    instruction.setInstructionResolver(this);
-    return instruction;
+  public createViewportInstruction(component: ComponentAppellation | Promise<ComponentAppellation>, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: ViewportInstruction[] | null = null): ViewportInstruction | Promise<ViewportInstruction> {
+    if (component instanceof Promise) {
+      return component.then((resolvedComponent) => {
+        return this.createViewportInstruction(resolvedComponent, viewport, parameters, ownsScope, nextScopeInstructions);
+      });
+    }
+    // const instruction: ViewportInstruction = new ViewportInstruction(component, viewport, parameters, ownsScope, nextScopeInstructions);
+    // instruction.setInstructionResolver(this);
+    // return instruction;
+    return ViewportInstruction.create(this, component, viewport, parameters, ownsScope, nextScopeInstructions);
   }
 
   public parseViewportInstructions(instructions: string): ViewportInstruction[] {
@@ -118,7 +125,7 @@ export class InstructionResolver {
     if (instructions.length) {
       return instructions[0];
     }
-    return this.createViewportInstruction('');
+    return this.createViewportInstruction('') as ViewportInstruction;
   }
 
   public stringifyViewportInstructions(instructions: ViewportInstruction[] | string, excludeViewport: boolean = false, viewportContext: boolean = false): string {
@@ -240,7 +247,7 @@ export class InstructionResolver {
         instruction.componentName!,
         instruction.viewportName!,
         instruction.typedParameters !== null ? instruction.typedParameters : void 0,
-      );
+      ) as ViewportInstruction;
       if (keepInstances) {
         clone.setComponent(instruction.componentInstance ?? instruction.componentType ?? instruction.componentName!);
         clone.setViewport(instruction.viewport ?? instruction.viewportName!);
@@ -468,7 +475,7 @@ export class InstructionResolver {
       instruction = `${token}${instruction}`;
     }
 
-    const viewportInstruction: ViewportInstruction = this.createViewportInstruction(component, viewport, parametersString, scope);
+    const viewportInstruction: ViewportInstruction = this.createViewportInstruction(component, viewport, parametersString, scope) as ViewportInstruction;
 
     return { instruction: viewportInstruction, remaining: instruction };
   }

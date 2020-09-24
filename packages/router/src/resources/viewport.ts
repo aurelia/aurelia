@@ -15,11 +15,12 @@ import {
 import { IRouter } from '../router';
 import { Viewport, IViewportOptions } from '../viewport';
 import { ViewportScopeCustomElement } from './viewport-scope';
+import { Runner } from '../runner';
 
 export interface IRoutingController extends ICustomElementController<Element> {
   routingContainer?: IContainer;
 }
-export interface IConnectionCustomElement extends ICustomElementViewModel<Element> {
+export interface IConnectedCustomElement extends ICustomElementViewModel<Element> {
   element: Element;
   container: IContainer;
   controller: IRoutingController;
@@ -55,7 +56,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
     @IRouter private readonly router: IRouter,
     @INode element: INode,
     @IContainer public container: IContainer,
-    @ParentViewport private readonly parentViewport: ViewportCustomElement,
+    @ParentViewport public readonly parentViewport: ViewportCustomElement,
   ) {
     this.element = element as Element;
   }
@@ -64,38 +65,34 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
     this.controller = controller as IRoutingController;
     this.container = controller.context.get(IContainer);
 
-    // console.log('Viewport creating', this.getAttribute('name', this.name), this.container, this.parentViewport, controller, this);
-    // this.connect();
+    // The first viewport(s) might be compiled before the router is active
+    return Runner.run(
+      () => this.waitForRouterStart(),
+      () => {
+        if (this.router.isRestrictedNavigation) {
+          this.connect();
+        }
+      }
+    );
   }
 
-  public afterBind(initiator: IHydratedController<Element>, parent: IHydratedParentController<Element> | null, flags: LifecycleFlags): void | Promise<void> {
+  public beforeBind(initiator: IHydratedController<Element>, parent: IHydratedParentController<Element> | null, flags: LifecycleFlags): void | Promise<void> {
     this.isBound = true;
-    this.connect();
+    return Runner.run(
+      () => this.waitForRouterStart(),
+      () => {
+        if (!this.router.isRestrictedNavigation) {
+          this.connect();
+        }
+      }
+    );
   }
 
   public async afterAttach(initiator: IHydratedController<Element>, parent: IHydratedParentController<Element> | null, flags: LifecycleFlags): Promise<void> {
     if (this.viewport) {
       this.viewport.enabled = true;
-      // Only acts if not already entered
-      await this.viewport.content?.enter(this.viewport.content.instruction);
-      await this.viewport.content?.activateComponent(initiator, this.$controller, flags, this);
+      return this.viewport.activate(initiator, this.$controller, flags, true);
       // TODO: Restore scroll state
-    }
-  }
-
-  public async beforeDetach(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): Promise<void> {
-    // TODO: Save scroll state
-  }
-
-  public async beforeUnbind(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): Promise<void> {
-    if (this.viewport) {
-      // Only acts if not already left
-      await this.viewport.content?.leave(this.viewport.content.instruction);
-      await this.viewport.content?.deactivateComponent(initiator, this.$controller as ICustomElementController<Element, ICustomElementViewModel<Element>>, flags, this,
-        this.viewport.doForceRemove
-          ? false
-          : this.router.statefulHistory || this.viewport.options.stateful);
-      this.viewport.enabled = false;
     }
   }
 
@@ -118,14 +115,22 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
       //   }
       // }
 
+      // TODO: Save scroll state before detach
 
-      this.disconnect();
+      this.isBound = false;
+
+      this.viewport.enabled = false;
+      return this.viewport.deactivate(initiator, parent, flags);
+      // this.viewport.enabled = false;
     }
-    this.isBound = false;
+  }
+
+  public dispose(): void {
+    this.disconnect();
   }
 
   public connect(): void {
-    if (this.router.rootScope === null) {
+    if (this.router.rootScope === null || (this.viewport !== null && this.router.isRestrictedNavigation)) {
       return;
     }
     // let controllerContainer = (this.controller.context as any).container;
@@ -196,7 +201,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
         }
       }
     }
-    return void 0;
+    return value;
   }
 
   private getClosestCustomElement() {
@@ -209,5 +214,15 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
       parent = parent.parent;
     }
     return customElement;
+  }
+
+  // TODO: Switch this to use (probably) an event instead
+  private waitForRouterStart(): void | Promise<void> {
+    if (this.router.isActive) {
+      return;
+    }
+    return new Promise((resolve) => {
+      this.router.starters.push(resolve);
+    });
   }
 }

@@ -51,6 +51,7 @@ export class Runner {
    *
    */
   public static run<T = unknown>(...steps: unknown[]): T | Promise<T> {
+    // debugger; // FIX ARRAY CHECK!
     const $runner = new Runner();
     const value = Runner.$run($runner, ...steps);
     if (value instanceof Promise) {

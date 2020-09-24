@@ -2,10 +2,10 @@ import { CustomElementType } from '@aurelia/runtime';
 import { ComponentAppellation, IRoute, RouteableComponentType, NavigationInstruction } from './interfaces';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
-import { IScopeOwner, IScopeOwnerOptions, Scope } from './scope';
+import { IScopeOwner, IScopeOwnerOptions, NextContentAction, Scope } from './scope';
 import { arrayRemove } from './utils';
 import { Navigation } from './navigation';
-import { IConnectionCustomElement } from './resources/viewport';
+import { IConnectedCustomElement } from './resources/viewport';
 import { NavigationCoordinator } from './navigation-coordinator';
 import { Runner } from './runner';
 
@@ -33,7 +33,7 @@ export class ViewportScope implements IScopeOwner {
   public constructor(
     public name: string,
     public readonly router: IRouter,
-    public connectionCE: IConnectionCustomElement | null,
+    public connectedCE: IConnectedCustomElement | null,
     owningScope: Scope | null,
     scope: boolean,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
@@ -105,17 +105,19 @@ export class ViewportScope implements IScopeOwner {
     }
   }
 
-  public setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: Navigation): boolean {
-    let viewportInstruction: ViewportInstruction;
-    if (content instanceof ViewportInstruction) {
-      viewportInstruction = content;
-    } else {
-      if (typeof content === 'string') {
-        viewportInstruction = this.router.instructionResolver.parseViewportInstruction(content);
-      } else {
-        viewportInstruction = this.router.createViewportInstruction(content);
-      }
-    }
+  public get nextContentActivated(): boolean {
+    return this.scope.parent?.owner?.nextContentActivated ?? false;
+  }
+
+  public get parentNextContentActivated(): boolean {
+    return this.scope.parent?.owner?.nextContentActivated ?? false;
+  }
+
+  public get nextContentAction(): NextContentAction {
+    return '';
+  }
+
+  public setNextContent(viewportInstruction: ViewportInstruction, navigation: Navigation): NextContentAction {
     viewportInstruction.viewportScope = this;
 
     this.remove = this.router.instructionResolver.isClearViewportInstruction(viewportInstruction)
@@ -133,17 +135,18 @@ export class ViewportScope implements IScopeOwner {
 
     this.nextContent = viewportInstruction;
 
-    return true;
+    return 'swap';
   }
 
   public swap(coordinator: NavigationCoordinator): void {
-    console.log('ViewportScope swap', this, coordinator);
+    //console.log('ViewportScope swap'/*, this, coordinator*/);
 
     Runner.run(
-      () => coordinator.addEntityState(this, 'couldLeave'),
-      () => coordinator.addEntityState(this, 'couldEnter'),
-      () => coordinator.addEntityState(this, 'entered'),
-      () => coordinator.addEntityState(this, 'left'),
+      () => coordinator.addEntityState(this, 'guardedUnload'),
+      () => coordinator.addEntityState(this, 'guardedLoad'),
+      () => coordinator.addEntityState(this, 'guarded'),
+      () => coordinator.addEntityState(this, 'loaded'),
+      () => coordinator.addEntityState(this, 'unloaded'),
       () => coordinator.addEntityState(this, 'routed'),
       () => coordinator.addEntityState(this, 'swapped'),
       () => {
@@ -154,17 +157,17 @@ export class ViewportScope implements IScopeOwner {
     );
   }
 
-  public canLeave(): boolean | Promise<boolean> {
+  public canUnload(): boolean | Promise<boolean> {
     return true;
   }
-  public canEnter(): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
+  public canLoad(): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
     return true;
   }
 
-  public leave(): void | Promise<void> {
+  public unload(): void | Promise<void> {
     return;
   }
-  public enter(): void | Promise<void> {
+  public load(): void | Promise<void> {
     return;
   }
 

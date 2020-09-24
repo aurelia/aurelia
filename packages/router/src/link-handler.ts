@@ -2,6 +2,7 @@ import { IDOM, CustomAttribute } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { Key } from '@aurelia/kernel';
 import { GotoCustomAttribute } from './resources/goto';
+import { LoadCustomAttribute } from './resources/load';
 
 /**
  * Provides information about how to handle an anchor event.
@@ -11,7 +12,7 @@ import { GotoCustomAttribute } from './resources/goto';
 export interface ILinkHandlerOptions {
   /**
    * Attribute href should be used for instruction if present and
-   * attribute goto is not present
+   * attribute load is not present
    */
   useHref?: boolean;
   /**
@@ -92,13 +93,15 @@ export class LinkHandler {
 
     const gotoAttr = CustomAttribute.for(target, 'goto');
     const goto = gotoAttr !== void 0 ? (gotoAttr.viewModel as GotoCustomAttribute).value as string : null;
+    const loadAttr = CustomAttribute.for(target, 'load');
+    const load = loadAttr !== void 0 ? (loadAttr.viewModel as LoadCustomAttribute).value as string : null;
     const href = options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
-    if ((goto === null || goto.length === 0) && (href === null || href.length === 0)) {
+    if ((goto === null || goto.length === 0) && (load === null || load.length === 0) && (href === null || href.length === 0)) {
       return info;
     }
 
     info.anchor = target;
-    info.instruction = goto || href;
+    info.instruction = load ?? goto ?? href;
 
     const leftButtonClicked: boolean = event.button === 0;
 

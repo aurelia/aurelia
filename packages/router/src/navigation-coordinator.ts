@@ -3,16 +3,27 @@ import { IRouter } from './router';
 import { Navigation } from './navigation';
 import { StateCoordinator, Entity } from './state-coordinator';
 
-type NavigationState = (
-  'couldLeave' | // fulfilled when canUnload/canLeave has been called
-  'couldEnter' | // fulfilled when canLoad/canEnter has been called
+export type NavigationState =
+  'guardedUnload' | // fulfilled when canUnload has been called
+  'guardedLoad' | // fulfilled when canLoad has been called
+  'guarded' | // fulfilled when check hooks canUnload and canLoad (if any) have been called
   'routed' | // fulfilled when initial routing hooks (if any) have been called
-  'entered' | // fulfilled when load/enter has been called
+  'loaded' | // fulfilled when load has been called
   // 'bound' | // fulfilled when bind has been called (I think I want this back)
   'swapped' |
-  'left' | // fulfilled when unload/leave has been called
+  'unloaded' | // fulfilled when unload has been called
   'completed' // fulfilled when everything is done
-);
+  ;
+export type NavigationStep =
+  'checkUnload' | // can't be controlled
+  'checkLoad' |
+  'route' | // run routing hooks (if any)
+  'load' |
+  // 'bind' | // (I think I want this back)
+  'swap' |
+  'unload' |
+  'complete'
+  ;
 
 export class NavigationCoordinatorOptions {
   public syncStates: NavigationState[];
@@ -41,11 +52,24 @@ export class NavigationCoordinator extends StateCoordinator<IScopeOwner, Navigat
     return coordinator;
   }
 
+  // public get isRestrictedNavigation(): boolean {
+  //   return this.syncStates.has('guardedLoad') ||
+  //     this.syncStates.has('unloaded') ||
+  //     this.syncStates.has('loaded') ||
+  //     this.syncStates.has('guarded') ||
+  //     this.syncStates.has('routed');
+  // }
+
   public run() {
     if (!this.running) {
-      // console.log('NavigationCoordinator RUN', this);
+      // console.log('NavigationCoordinator RUN' /*, { ...this } */);
       this.running = true;
-      this.entities.forEach(entity => entity.entity.swap(this));
+      for (const entity of this.entities) {
+        if (!entity.running) {
+          entity.running = true;
+          entity.entity.swap(this);
+        }
+      }
     }
   }
 

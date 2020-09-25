@@ -662,6 +662,29 @@ describe('switch', function () {
       }
     );
 
+    yield new TestData(
+      'works with case on CE',
+      {
+        initialStatus: Status.received,
+        template: `
+      <template>
+        <template switch.bind="status">
+          <span case="received">Order received.</span>
+          <span case="dispatched">On the way.</span>
+          <span case="processing">Processing your order.</span>
+          <my-echo case="delivered" message="Delivered."></my-echo>
+        </template>
+      </template>`,
+        registrations: [MyEcho]
+      },
+      '<span>Order received.</span>',
+      async (ctx) => {
+        ctx.app.status = Status.delivered;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<my-echo message="Delivered." class="au">Echoed \'Delivered.\'</my-echo>', 'change innerHTML1');
+      }
+    );
+
   for (const data of getTestData()) {
     $it(data.name,
       async function (ctx) {

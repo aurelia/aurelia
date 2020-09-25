@@ -612,6 +612,28 @@ describe('switch', function () {
       },
       '<span> Expected to be delivered in 2 days. </span>',
     );
+
+    yield new TestData(
+      'works with local template',
+      {
+        initialStatus: Status.delivered,
+        template: `
+      <template as-custom-element="foo-bar">
+        <bindable property="status"></bindable>
+        <div switch.bind="status">
+          <span case="received">Order received.</span>
+          <span case="dispatched">On the way.</span>
+          <span case="processing">Processing your order.</span>
+          <span case="delivered">Delivered.</span>
+        </div>
+      </template>
+
+      <foo-bar status.bind="status"></foo-bar>
+      `,
+      },
+      '<foo-bar status.bind="status" class="au"> <div> <span>Delivered.</span> </div> </foo-bar>',
+    );
+
   }
 
   for (const data of getTestData()) {

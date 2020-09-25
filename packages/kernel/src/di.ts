@@ -110,7 +110,7 @@ export class ResolverBuilder<K> {
 
 export type RegisterSelf<T extends Constructable> = {
   register(container: IContainer): IResolver<InstanceType<T>>;
-  registerInRequester: boolean;
+  registerInRequestor: boolean;
 };
 
 export type Key = PropertyKey | object | InterfaceSymbol | Constructable | IResolver;
@@ -382,7 +382,7 @@ export const DI = {
       const registration = Registration.transient(target as T, target as T);
       return registration.register(container, target);
     };
-    target.registerInRequester = false;
+    target.registerInRequestor = false;
     return target as T & RegisterSelf<T>;
   },
   /**
@@ -408,7 +408,7 @@ export const DI = {
       const registration = Registration.singleton(target, target);
       return registration.register(container, target);
     };
-    target.registerInRequester = options.scoped;
+    target.registerInRequestor = options.scoped;
     return target as T & RegisterSelf<T>;
   },
 };
@@ -857,11 +857,11 @@ function isRegistry(obj: IRegistry | Record<string, IRegistry>): obj is IRegistr
 }
 
 function isSelfRegistry<T extends Constructable>(obj: RegisterSelf<T>): obj is RegisterSelf<T> {
-  return isRegistry(obj) && typeof obj.registerInRequester === 'boolean';
+  return isRegistry(obj) && typeof obj.registerInRequestor === 'boolean';
 }
 
 function isRegisterInRequester<T extends Constructable>(obj: RegisterSelf<T>): obj is RegisterSelf<T> {
-  return isSelfRegistry(obj) && obj.registerInRequester;
+  return isSelfRegistry(obj) && obj.registerInRequestor;
 }
 
 function isClass<T extends { prototype?: any }>(obj: T): obj is Class<any, T> {

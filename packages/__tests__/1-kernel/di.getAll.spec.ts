@@ -2,7 +2,7 @@
 import { all, DI, IContainer, Registration } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
-describe.only('1-kernel/di.getAll.spec.ts', function () {
+describe('1-kernel/di.getAll.spec.ts', function () {
   let container: IContainer;
 
   // eslint-disable-next-line mocha/no-hooks

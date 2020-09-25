@@ -590,6 +590,28 @@ describe('switch', function () {
       '<div> <span>Order received.</span> </div><div> <span>On the way.</span> </div>',
     );
 
+    yield new TestData(
+      'supports nested switch',
+      {
+        initialStatus: Status.delivered,
+        template: `
+      <template>
+        <let day.bind="2"></let>
+        <template switch.bind="status">
+          <span case="received">Order received.</span>
+          <span case="dispatched">On the way.</span>
+          <span case="processing">Processing your order.</span>
+          <span case="delivered" switch.bind="day">
+            Expected to be delivered
+            <template case.bind="1">tomorrow.</template>
+            <template case.bind="2">in 2 days.</template>
+            <template default-case>in few days.</template>
+          </span>
+        </template>
+      </template>`,
+      },
+      '<span> Expected to be delivered in 2 days. </span>',
+    );
   }
 
   for (const data of getTestData()) {

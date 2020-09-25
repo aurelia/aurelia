@@ -6,9 +6,14 @@ import {
 import {
   Aurelia,
   bindable,
+  bindingBehavior,
+  BindingBehaviorInstance,
   customElement,
   CustomElement,
+  IBinding,
   IScheduler,
+  IScope,
+  LifecycleFlags,
   valueConverter,
 } from '@aurelia/runtime';
 import {
@@ -66,6 +71,7 @@ describe('switch', function () {
           Registration.instance(InitialStatus, initialStatus),
           Registration.instance(InitialStatusNum, initialStatusNum),
           ToStatusStringValueConverter,
+          NoopBindingBehavior,
         )
         .app({
           host,
@@ -122,6 +128,16 @@ describe('switch', function () {
         case StatusNum.unknown:
           return Status.unknown;
       }
+    }
+  }
+
+  @bindingBehavior('noop')
+  class NoopBindingBehavior implements BindingBehaviorInstance {
+    public bind(_flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, _binding: IBinding): void {
+      return;
+    }
+    public unbind(_flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, _binding: IBinding): void {
+      return;
     }
   }
 
@@ -512,7 +528,50 @@ describe('switch', function () {
       }
     );
 
-    // bindingBehavior
+    yield new TestData(
+      'works with bindingBehavior for switch expression',
+      {
+        initialStatus: Status.delivered,
+        template: `
+      <template>
+        <template switch.bind="status & noop">
+          <span case="received">Order received.</span>
+          <span case="dispatched">On the way.</span>
+          <span case="processing">Processing your order.</span>
+          <span case="delivered">Delivered.</span>
+        </template>
+      </template>`,
+      },
+      '<span>Delivered.</span>',
+      async (ctx) => {
+        ctx.app.status = Status.processing;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>Processing your order.</span>', 'change innerHTML1');
+      }
+    );
+
+    yield new TestData(
+      'works with bindingBehavior for case expression',
+      {
+        initialStatus: Status.delivered,
+        template: `
+      <template>
+        <template switch.bind="status">
+          <span case.bind="'received' & noop">Order received.</span>
+          <span case.bind="'dispatched' & noop">On the way.</span>
+          <span case.bind="'processing' & noop">Processing your order.</span>
+          <span case.bind="'delivered' & noop">Delivered.</span>
+        </template>
+      </template>`,
+      },
+      '<span>Delivered.</span>',
+      async (ctx) => {
+        ctx.app.status = Status.processing;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>Processing your order.</span>', 'change innerHTML1');
+      }
+    );
+
   }
 
   for (const data of getTestData()) {

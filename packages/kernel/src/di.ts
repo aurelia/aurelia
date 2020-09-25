@@ -153,7 +153,6 @@ function cloneArrayWithPossibleProps<T>(source: readonly T[]): T[] {
 }
 
 export interface IContainerConfiguration {
-  jitRegisterInRoot?: boolean;
   /**
    * If `true`, `createChild` will inherit the resource resolvers from its parent container
    * instead of only from the root container.
@@ -175,7 +174,6 @@ export class ContainerConfiguration implements IContainerConfiguration {
   public static readonly DEFAULT: ContainerConfiguration = ContainerConfiguration.from({});
 
   private constructor(
-    public readonly jitRegisterInRoot: boolean,
     public readonly inheritParentResources: boolean,
     public readonly defaultResolver: (key: Key, handler: IContainer) => IResolver,
   ) {}
@@ -188,7 +186,6 @@ export class ContainerConfiguration implements IContainerConfiguration {
       return ContainerConfiguration.DEFAULT;
     }
     return new ContainerConfiguration(
-      config.jitRegisterInRoot ?? true,
       config.inheritParentResources ?? false,
       config.defaultResolver ?? DefaultResolver.singleton,
     );

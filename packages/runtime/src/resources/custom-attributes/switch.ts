@@ -319,7 +319,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   }
 
   public link(controller: ICustomAttributeController<T>) {
-    const $switch = controller.viewModel;
+    const $switch = controller?.viewModel;
     if ($switch instanceof Switch) {
       this.$switch = $switch;
       this.$controller.parent = controller;

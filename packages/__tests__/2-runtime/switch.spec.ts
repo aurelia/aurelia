@@ -373,7 +373,6 @@ describe('switch', function () {
       },
       '<span>On the way.</span>',
       async (ctx) => {
-        // ctx.app.statuses.push(Status.dispatched);
         ctx.app.statuses = [ctx.app.status = Status.dispatched];
         await ctx.scheduler.yieldAll(2);
         assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML1');
@@ -570,6 +569,25 @@ describe('switch', function () {
         await ctx.scheduler.yieldAll();
         assert.html.innerEqual(ctx.host, '<span>Processing your order.</span>', 'change innerHTML1');
       }
+    );
+
+    yield new TestData(
+      'works with repeater - switch expression',
+      {
+        initialStatus: Status.delivered,
+        template: `
+      <template>
+        <div repeat.for="s of ['received', 'dispatched']">
+          <template switch.bind="s">
+            <span case="received">Order received.</span>
+            <span case="dispatched">On the way.</span>
+            <span case="processing">Processing your order.</span>
+            <span case="delivered">Delivered.</span>
+          </template>
+        </div>
+      </template>`,
+      },
+      '<div> <span>Order received.</span> </div><div> <span>On the way.</span> </div>',
     );
 
   }

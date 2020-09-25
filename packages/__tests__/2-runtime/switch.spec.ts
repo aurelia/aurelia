@@ -1,13 +1,33 @@
-import { DI, IContainer, Registration } from '@aurelia/kernel';
-import { Aurelia, bindable, customElement, CustomElement, IScheduler } from '@aurelia/runtime';
-import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
-import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
+import {
+  DI,
+  IContainer,
+  Registration,
+} from '@aurelia/kernel';
+import {
+  Aurelia,
+  bindable,
+  customElement,
+  CustomElement,
+  IScheduler,
+  valueConverter,
+} from '@aurelia/runtime';
+import {
+  assert,
+  HTMLTestContext,
+  TestContext,
+} from '@aurelia/testing';
+import {
+  createSpecFunction,
+  TestExecutionContext,
+  TestFunction,
+} from '../util';
 
 describe('switch', function () {
   interface TestSetupContext {
     template: string;
     registrations: any[];
     initialStatus: Status;
+    initialStatusNum: StatusNum;
   }
   class SwitchTestExecutionContext implements TestExecutionContext<any> {
     private _scheduler: IScheduler;
@@ -23,7 +43,12 @@ describe('switch', function () {
 
   async function testSwitch(
     testFunction: TestFunction<SwitchTestExecutionContext>,
-    { template, registrations = [], initialStatus = Status.received }: Partial<TestSetupContext> = {}
+    {
+      template,
+      registrations = [],
+      initialStatus = Status.unknown,
+      initialStatusNum = StatusNum.unknown,
+    }: Partial<TestSetupContext> = {}
   ) {
     const ctx = TestContext.createHTMLTestContext();
 
@@ -38,7 +63,9 @@ describe('switch', function () {
       await au
         .register(
           ...registrations,
-          Registration.instance(InitialStatus, initialStatus)
+          Registration.instance(InitialStatus, initialStatus),
+          Registration.instance(InitialStatusNum, initialStatusNum),
+          ToStatusStringValueConverter,
         )
         .app({
           host,
@@ -62,13 +89,41 @@ describe('switch', function () {
   const $it = createSpecFunction(testSwitch);
 
   const enum Status {
+    unknown = 'unknown',
     received = 'received',
     processing = 'processing',
     dispatched = 'dispatched',
     delivered = 'delivered',
-    unknown = 'unknown',
   }
+
+  const enum StatusNum {
+    unknown = 0,
+    received = 1,
+    processing = 2,
+    dispatched = 3,
+    delivered = 4,
+  }
+
   const InitialStatus = DI.createInterface<Status>('InitialStatus').noDefault();
+  const InitialStatusNum = DI.createInterface<StatusNum>('InitialStatusNum').noDefault();
+
+  @valueConverter('toStatusString')
+  class ToStatusStringValueConverter {
+    public toView(value: StatusNum): string {
+      switch (value) {
+        case StatusNum.received:
+          return Status.received;
+        case StatusNum.processing:
+          return Status.processing;
+        case StatusNum.dispatched:
+          return Status.dispatched;
+        case StatusNum.delivered:
+          return Status.delivered;
+        case StatusNum.unknown:
+          return Status.unknown;
+      }
+    }
+  }
 
   class App {
     public status1: Status = Status.received;
@@ -76,18 +131,31 @@ describe('switch', function () {
     public statuses: Status[] = [Status.received, Status.processing];
     public constructor(
       @InitialStatus public status: Status,
+      @InitialStatusNum public statusNum: StatusNum,
     ) { }
   }
 
   class TestData implements TestSetupContext {
+    public readonly initialStatus: Status;
+    public readonly template: string;
+    public readonly registrations: any[];
+    public readonly initialStatusNum: StatusNum;
     public constructor(
       public readonly name: string,
-      public readonly initialStatus: Status,
-      public readonly template: string,
-      public readonly registrations: any[],
+      {
+        initialStatus = Status.unknown,
+        initialStatusNum = StatusNum.unknown,
+        registrations = [],
+        template,
+      }: Partial<TestSetupContext>,
       public readonly expectedInnerHtml: string,
       public readonly additionalAssertions: ((ctx: SwitchTestExecutionContext) => Promise<void> | void) | null = null,
-    ) { }
+    ) {
+      this.initialStatus = initialStatus;
+      this.initialStatusNum = initialStatusNum;
+      this.registrations = registrations;
+      this.template = template;
+    }
   }
 
   function* getTestData() {
@@ -109,17 +177,19 @@ describe('switch', function () {
 
     yield new TestData(
       'works for simple switch-case',
-      Status.processing,
-      enumTemplate,
-      [],
+      {
+        initialStatus: Status.processing,
+        template: enumTemplate,
+      },
       '<span>Processing your order.</span>'
     );
 
     yield new TestData(
       'reacts to switch value change',
-      Status.dispatched,
-      enumTemplate,
-      [],
+      {
+        initialStatus: Status.dispatched,
+        template: enumTemplate
+      },
       '<span>On the way.</span>',
       async (ctx) => {
         ctx.app.status = Status.delivered;
@@ -149,17 +219,19 @@ describe('switch', function () {
 
     yield new TestData(
       'supports default-case',
-      Status.unknown,
-      templateWithDefaultCase,
-      [],
+      {
+        initialStatus: Status.unknown,
+        template: templateWithDefaultCase
+      },
       '<span>Not found.</span>'
     );
 
     yield new TestData(
       'reacts to switch value change - default case',
-      Status.dispatched,
-      templateWithDefaultCase,
-      [],
+      {
+        initialStatus: Status.dispatched,
+        template: templateWithDefaultCase,
+      },
       '<span>On the way.</span>',
       async (ctx) => {
         ctx.app.status = Status.unknown;
@@ -170,8 +242,9 @@ describe('switch', function () {
 
     yield new TestData(
       'supports case.bind - #1',
-      Status.processing,
-      `
+      {
+        initialStatus: Status.processing,
+        template: `
     <template>
       <template switch.bind="true">
         <span case.bind="status === 'received'">Order received.</span>
@@ -180,7 +253,7 @@ describe('switch', function () {
         <span case.bind="status === 'delivered'">Delivered.</span>
       </template>
     </template>`,
-      [],
+      },
       '<span>Processing your order.</span>',
       async (ctx) => {
         ctx.app.status = Status.dispatched;
@@ -191,8 +264,9 @@ describe('switch', function () {
 
     yield new TestData(
       'supports case.bind - #2',
-      Status.processing,
-      `
+      {
+        initialStatus: Status.processing,
+        template: `
     <template>
       <template switch.bind="status">
         <span case.bind="status1">Order received.</span>
@@ -201,7 +275,7 @@ describe('switch', function () {
         <span case="delivered">Delivered.</span>
       </template>
     </template>`,
-      [],
+      },
       '<span>Processing your order.</span>',
       async (ctx) => {
         ctx.app.status = Status.dispatched;
@@ -220,8 +294,9 @@ describe('switch', function () {
 
     yield new TestData(
       'supports multi-case',
-      Status.processing,
-      `
+      {
+        initialStatus: Status.processing,
+        template: `
     <template>
       <template switch.bind="status">
         <span case.bind="['received', 'processing']">Processing.</span>
@@ -229,7 +304,7 @@ describe('switch', function () {
         <span case="delivered">Delivered.</span>
       </template>
     </template>`,
-      [],
+      },
       '<span>Processing.</span>',
       async (ctx) => {
         ctx.app.status = Status.dispatched;
@@ -244,8 +319,9 @@ describe('switch', function () {
 
     yield new TestData(
       'supports multi-case collection change - #1',
-      Status.received,
-      `
+      {
+        initialStatus: Status.received,
+        template: `
     <template>
       <template switch.bind="status">
         <span case.bind="statuses">Processing.</span>
@@ -253,7 +329,7 @@ describe('switch', function () {
         <span case="delivered">Delivered.</span>
       </template>
     </template>`,
-      [],
+      },
       '<span>Processing.</span>',
       async (ctx) => {
         ctx.app.status = Status.dispatched;
@@ -268,8 +344,9 @@ describe('switch', function () {
 
     yield new TestData(
       'supports multi-case collection change - #2',
-      Status.dispatched,
-      `
+      {
+        initialStatus: Status.dispatched,
+        template: `
     <template>
       <template switch.bind="status">
         <span case.bind="statuses">Processing.</span>
@@ -277,7 +354,7 @@ describe('switch', function () {
         <span case="delivered">Delivered.</span>
       </template>
     </template>`,
-      [],
+      },
       '<span>On the way.</span>',
       async (ctx) => {
         // ctx.app.statuses.push(Status.dispatched);
@@ -289,8 +366,9 @@ describe('switch', function () {
 
     yield new TestData(
       'supports multi-case collection mutation',
-      Status.dispatched,
-      `
+      {
+        initialStatus: Status.dispatched,
+        template: `
     <template>
       <template switch.bind="status">
         <span case.bind="statuses">Processing.</span>
@@ -298,7 +376,7 @@ describe('switch', function () {
         <span case="delivered">Delivered.</span>
       </template>
     </template>`,
-      [],
+      },
       '<span>On the way.</span>',
       async (ctx) => {
         ctx.app.statuses.push(ctx.app.status = Status.dispatched);
@@ -319,9 +397,10 @@ describe('switch', function () {
 
     yield new TestData(
       'supports fall-through #1',
-      Status.dispatched,
-      fallThroughTemplate,
-      [],
+      {
+        initialStatus: Status.dispatched,
+        template: fallThroughTemplate,
+      },
       '<span>On the way.</span> <span>Processing your order.</span> <span>Delivered.</span>',
       async (ctx) => {
         ctx.app.status = Status.delivered;
@@ -332,9 +411,10 @@ describe('switch', function () {
 
     yield new TestData(
       'supports fall-through #2',
-      Status.delivered,
-      fallThroughTemplate,
-      [],
+      {
+        initialStatus: Status.delivered,
+        template: fallThroughTemplate,
+      },
       '<span>Delivered.</span>',
       async (ctx) => {
         ctx.app.status = Status.processing;
@@ -345,8 +425,9 @@ describe('switch', function () {
 
     yield new TestData(
       'supports fall-through #3',
-      Status.delivered,
-      `
+      {
+        initialStatus: Status.delivered,
+        template: `
     <template>
       <template switch.bind="true">
         <span case.bind="status === 'received'">Order received.</span>
@@ -355,7 +436,7 @@ describe('switch', function () {
         <span case.bind="status === 'delivered'">Delivered.</span>
       </template>
     </template>`,
-      [],
+      },
       '<span>Delivered.</span>',
       async (ctx) => {
         ctx.app.status = Status.processing;
@@ -366,8 +447,9 @@ describe('switch', function () {
 
     yield new TestData(
       'supports non-case elements',
-      Status.delivered,
-      `
+      {
+        initialStatus: Status.delivered,
+        template: `
       <template>
         <template switch.bind="status">
           <span case="received">Order received.</span>
@@ -381,11 +463,55 @@ describe('switch', function () {
           <my-echo message="awesome possum"></my-echo>
         </template>
       </template>`,
-      [MyEcho],
+        registrations: [MyEcho],
+      },
       '<span>Delivered.</span> <span>foobar</span> <span>foo</span> <span>bar</span> <span>0</span><span>1</span><span>2</span> <my-echo message="awesome possum" class="au">Echoed \'awesome possum\'</my-echo>',
     );
 
-    // valueConverter
+    yield new TestData(
+      'works with value converter for switch expression',
+      {
+        initialStatusNum: StatusNum.delivered,
+        template: `
+      <template>
+        <template switch.bind="statusNum | toStatusString">
+          <span case="received">Order received.</span>
+          <span case="dispatched">On the way.</span>
+          <span case="processing">Processing your order.</span>
+          <span case="delivered">Delivered.</span>
+        </template>
+      </template>`,
+      },
+      '<span>Delivered.</span>',
+      async (ctx) => {
+        ctx.app.statusNum = StatusNum.processing;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>Processing your order.</span>', 'change innerHTML1');
+      }
+    );
+
+    yield new TestData(
+      'works with value converter for case expression',
+      {
+        initialStatus: Status.delivered,
+        template: `
+      <template>
+        <template switch.bind="status">
+          <span case.bind="1 | toStatusString">Order received.</span>
+          <span case.bind="3 | toStatusString">On the way.</span>
+          <span case.bind="2 | toStatusString">Processing your order.</span>
+          <span case.bind="4 | toStatusString">Delivered.</span>
+        </template>
+      </template>`,
+      },
+      '<span>Delivered.</span>',
+      async (ctx) => {
+        ctx.app.status = Status.processing;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>Processing your order.</span>', 'change innerHTML1');
+      }
+    );
+
     // bindingBehavior
   }
 

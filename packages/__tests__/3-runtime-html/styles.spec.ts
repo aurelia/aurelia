@@ -90,11 +90,8 @@ describe('Styles', function () {
 
       const childContainer = parentContainer.createChild();
 
-      const parentResources = new ResourceModel(parentContainer);
-      const childResources = new ResourceModel(childContainer);
-
-      const fromParent = parentResources['find'](CustomAttribute, 'class');
-      const fromChild = childResources['find'](CustomAttribute, 'class');
+      const fromParent = parentContainer.findResource(CustomAttribute, 'class');
+      const fromChild = childContainer.findResource(CustomAttribute, 'class');
 
       assert.equal(fromParent.name, 'class');
       assert.equal(fromChild, null);

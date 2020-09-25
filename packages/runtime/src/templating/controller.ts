@@ -155,6 +155,7 @@ export class Controller<
     public readonly vmKind: ViewModelKind,
     public flags: LifecycleFlags,
     public readonly lifecycle: ILifecycle,
+    public readonly definition: CustomElementDefinition | CustomAttributeDefinition | undefined,
     public hooks: HooksDefinition,
     /**
      * The viewFactory. Only present for synthetic views.
@@ -217,6 +218,7 @@ export class Controller<
       /* vmKind         */ViewModelKind.customElement,
       /* flags          */flags,
       /* lifecycle      */lifecycle,
+      /* definition     */definition,
       /* hooks          */definition.hooks,
       /* viewFactory    */void 0,
       /* viewModel      */viewModel,
@@ -227,7 +229,7 @@ export class Controller<
     controllerLookup.set(viewModel, controller as Controller);
 
     if (hydrate) {
-      controller.hydrateCustomElement(definition, parentContainer, parts);
+      controller.hydrateCustomElement(parentContainer, parts);
     }
 
     return controller as unknown as ICustomElementController<T, C>;
@@ -253,6 +255,7 @@ export class Controller<
       /* vmKind         */ViewModelKind.customAttribute,
       /* flags          */flags,
       /* lifecycle      */lifecycle,
+      /* definition     */definition,
       /* hooks          */definition.hooks,
       /* viewFactory    */void 0,
       /* viewModel      */viewModel,
@@ -262,7 +265,7 @@ export class Controller<
 
     controllerLookup.set(viewModel, controller as Controller);
 
-    controller.hydrateCustomAttribute(definition);
+    controller.hydrateCustomAttribute();
 
     return controller as unknown as ICustomAttributeController<T, C>;
   }
@@ -279,6 +282,7 @@ export class Controller<
       /* vmKind         */ViewModelKind.synthetic,
       /* flags          */flags,
       /* lifecycle      */lifecycle,
+      /* definition     */void 0,
       /* hooks          */HooksDefinition.none,
       /* viewFactory    */viewFactory,
       /* viewModel      */void 0,
@@ -292,7 +296,6 @@ export class Controller<
   }
 
   private hydrateCustomElement(
-    definition: CustomElementDefinition,
     parentContainer: IContainer,
     parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
@@ -302,6 +305,7 @@ export class Controller<
       this.logger = this.logger.scopeTo(this.name);
     }
 
+    let definition = this.definition as CustomElementDefinition;
     const flags = this.flags |= definition.strategy;
     const instance = this.viewModel as BindingContext<T, C>;
     createObservers(this.lifecycle, definition, flags, instance);
@@ -386,7 +390,8 @@ export class Controller<
     }
   }
 
-  private hydrateCustomAttribute(definition: CustomAttributeDefinition): void {
+  private hydrateCustomAttribute(): void {
+    const definition = this.definition as CustomElementDefinition;
     const flags = this.flags | definition.strategy;
     const instance = this.viewModel!;
     createObservers(this.lifecycle, definition, flags, instance);

@@ -75,7 +75,7 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
    * @returns The closest controller relative to the provided node.
    * @throws - If neither the node or any of its effective parent nodes host a custom element, an error will be thrown.
    */
-  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, searchParents: true): ICustomElementController<T, C>;
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, opts: { searchParents: true }): ICustomElementController<T, C>;
   /**
    * Returns the controller that is associated with this node, if it is a custom element with the provided name.
    *
@@ -83,7 +83,7 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
    * @returns The controller associated with the provided node, if it is a custom element with the provided name, or otherwise `undefined`.
    * @throws - If the node does not host a custom element, an error will be thrown.
    */
-  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, name: string): ICustomElementController<T, C> | undefined;
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, opts: { name: string }): ICustomElementController<T, C> | undefined;
   /**
    * Returns the closest controller that is associated with either this node (if it is a custom element) or the first
    * parent node (including containerless) that is a custom element with the provided name.
@@ -93,15 +93,24 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
    * @returns The closest controller of a custom element with the provided name, relative to the provided node, if one can be found, or otherwise `undefined`.
    * @throws - If neither the node or any of its effective parent nodes host a custom element, an error will be thrown.
    */
-  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, name: string, searchParents: true): ICustomElementController<T, C> | undefined;
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, opts: { name: string; searchParents: true }): ICustomElementController<T, C> | undefined;
   /**
    * Returns the controller that is associated with this node, if it is a custom element.
    *
    * @param node - The node to retrieve the controller for, if it is a custom element.
+   * @param optional - If `true`, do not throw if the provided node is not a custom element.
    * @returns The controller associated with the provided node, if it is a custom element
    * @throws - If the node does not host a custom element, an error will be thrown.
    */
-  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T): ICustomElementController<T, C> | undefined;
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T): ICustomElementController<T, C>;
+  /**
+   * Returns the controller that is associated with this node, if it is a custom element.
+   *
+   * @param node - The node to retrieve the controller for, if it is a custom element.
+   * @param optional - If `true`, do not throw if the provided node is not a custom element.
+   * @returns The controller associated with the provided node, if it is a custom element, otherwise `null`
+   */
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, opts: { optional: true }): ICustomElementController<T, C> | null;
   isType<T extends INode, C>(value: C): value is (C extends Constructable ? CustomElementType<C, T> : never);
   define<T extends INode, C extends Constructable >(name: string, Type: C): CustomElementType<C, T>;
   define<T extends INode, C extends Constructable >(def: PartialCustomElementDefinition, Type: C): CustomElementType<C, T>;
@@ -393,6 +402,17 @@ type InternalInjectableToken<K = any> = InjectableToken<K> & {
   register?(container: IContainer): IResolver<K>;
 };
 
+type ForOpts = {
+  name?: string;
+  searchParents?: boolean;
+  optional?: boolean;
+};
+const defaultForOpts: ForOpts = {
+  name: undefined,
+  searchParents: false,
+  optional: false,
+};
+
 export const CustomElement: CustomElementKind = {
   name: Protocol.resource.keyFor('custom-element'),
   keyFrom(name: string): string {
@@ -401,22 +421,25 @@ export const CustomElement: CustomElementKind = {
   isType<T extends INode, C>(value: C): value is (C extends Constructable ? CustomElementType<C, T> : never) {
     return typeof value === 'function' && Metadata.hasOwn(CustomElement.name, value);
   },
-  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, nameOrSearchParents?: string | boolean, searchParents?: boolean): ICustomElementController<T, C> {
-    if (nameOrSearchParents === void 0) {
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, opts: ForOpts = defaultForOpts): ICustomElementController<T, C> {
+    if (opts.name === void 0 && opts.searchParents !== true) {
       const controller = Metadata.getOwn(CustomElement.name, node) as Controller<T, C> | undefined;
       if (controller === void 0) {
+        if (opts.optional === true) {
+          return null!;
+        }
         throw new Error(`The provided node is not a custom element or containerless host.`);
       }
       return controller as unknown as ICustomElementController<T, C>;
     }
-    if (typeof nameOrSearchParents === 'string') {
-      if (searchParents !== true) {
+    if (opts.name !== void 0) {
+      if (opts.searchParents !== true) {
         const controller = Metadata.getOwn(CustomElement.name, node) as Controller<T, C> | undefined;
         if (controller === void 0) {
           throw new Error(`The provided node is not a custom element or containerless host.`);
         }
 
-        if (controller.is(nameOrSearchParents)) {
+        if (controller.is(opts.name)) {
           return controller as unknown as ICustomElementController<T, C>;
         }
 
@@ -429,7 +452,7 @@ export const CustomElement: CustomElementKind = {
         const controller = Metadata.getOwn(CustomElement.name, cur) as Controller<T, C> | undefined;
         if (controller !== void 0) {
           foundAController = true;
-          if (controller.is(nameOrSearchParents)) {
+          if (controller.is(opts.name)) {
             return controller as unknown as ICustomElementController<T, C>;
           }
         }

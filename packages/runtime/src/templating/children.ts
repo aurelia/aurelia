@@ -238,13 +238,15 @@ function defaultChildQuery(projector: IElementProjector): ArrayLike<INode> {
   return projector.children;
 }
 
-function defaultChildFilter(node: INode, controller?: ICustomElementController, viewModel?: any): boolean {
+function defaultChildFilter(node: INode, controller?: ICustomElementController | null, viewModel?: any): boolean {
   return !!viewModel;
 }
 
-function defaultChildMap(node: INode, controller?: ICustomElementController, viewModel?: any): any {
+function defaultChildMap(node: INode, controller?: ICustomElementController | null, viewModel?: any): any {
   return viewModel;
 }
+
+const forOpts = { optional: true } as const;
 
 /** @internal */
 export function filterChildren(
@@ -258,8 +260,8 @@ export function filterChildren(
 
   for (let i = 0, ii = nodes.length; i < ii; ++i) {
     const node = nodes[i];
-    const controller = CustomElement.for(node);
-    const viewModel = controller ? controller.viewModel : null;
+    const controller = CustomElement.for(node, forOpts);
+    const viewModel = controller?.viewModel ?? null;
 
     if (filter(node, controller, viewModel)) {
       children.push(map(node, controller, viewModel));

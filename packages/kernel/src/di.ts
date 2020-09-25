@@ -431,30 +431,6 @@ function createResolver(getter: (key: any, handler: IContainer, requestor: ICont
   };
 }
 
-function createAllResolver(
-  getter: (key: any, handler: IContainer, requestor: IContainer, searchAncestors: boolean) => readonly any[]
-): (key: any, searchAncestors?: boolean) => ReturnType<typeof DI.inject> {
-  return function (key: any, searchAncestors?: boolean): ReturnType<typeof DI.inject> {
-    searchAncestors = !!searchAncestors;
-    const resolver: ReturnType<typeof DI.inject>
-      & Required<Pick<IResolver, 'resolve'>>
-      & { $isResolver: true}
-      = function (
-          target: Injectable,
-          property?: string | number,
-          descriptor?: PropertyDescriptor | number
-        ): void {
-          DI.inject(resolver)(target, property, descriptor);
-        };
-
-    resolver.$isResolver = true;
-    resolver.resolve = function (handler: IContainer, requestor: IContainer): any {
-      return getter(key, handler, requestor, searchAncestors!);
-    };
-
-    return resolver;
-  };
-}
 
 export const inject = DI.inject;
 
@@ -523,6 +499,31 @@ export function singleton<T extends Constructable>(targetOrOptions?: (T & Partia
   }
   return function <T extends Constructable>($target: T) {
     return DI.singleton($target, targetOrOptions as SingletonOptions | undefined);
+  };
+}
+
+function createAllResolver(
+  getter: (key: any, handler: IContainer, requestor: IContainer, searchAncestors: boolean) => readonly any[]
+): (key: any, searchAncestors?: boolean) => ReturnType<typeof DI.inject> {
+  return function (key: any, searchAncestors?: boolean): ReturnType<typeof DI.inject> {
+    searchAncestors = !!searchAncestors;
+    const resolver: ReturnType<typeof DI.inject>
+      & Required<Pick<IResolver, 'resolve'>>
+      & { $isResolver: true}
+      = function (
+          target: Injectable,
+          property?: string | number,
+          descriptor?: PropertyDescriptor | number
+        ): void {
+          DI.inject(resolver)(target, property, descriptor);
+        };
+
+    resolver.$isResolver = true;
+    resolver.resolve = function (handler: IContainer, requestor: IContainer): any {
+      return getter(key, handler, requestor, searchAncestors!);
+    };
+
+    return resolver;
   };
 }
 
@@ -1129,13 +1130,13 @@ export class Container implements IContainer {
     } else {
       while (current != null) {
         resolver = current.resolvers.get(key);
-  
+
         if (resolver == null) {
-          if (current.parent == null) {
+          current = current.parent;
+
+          if (current == null) {
             return emptyArray;
           }
-  
-          current = current.parent;
         } else {
           return buildAllResponse(resolver, current, requestor);
         }

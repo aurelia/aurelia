@@ -84,9 +84,6 @@ describe.only('1-kernel/di.getAll.spec.ts', function () {
           parentExpectation.push(0, 1, 2, 3, 4);
         }
 
-        if (regInChild) {
-          debugger;
-        }
         assert.deepStrictEqual(child.get(Foo).patterns(), childExpectation);
         assert.deepStrictEqual(container.get(Foo).patterns(), regInChild ? parentExpectation : childExpectation);
       });

@@ -87,20 +87,8 @@ describe.only('1-kernel/di.getAll.spec.ts', function () {
         if (regInChild) {
           debugger;
         }
-        try {
-          assert.deepStrictEqual(child.get(Foo).patterns(), childExpectation);
-        } catch (ex) {
-          debugger;
-          console.log('deepStrictEqual child failed', child.get(Foo).patterns(), childExpectation);
-          throw ex;
-        }
-        try {
-          assert.deepStrictEqual(container.get(Foo).patterns(), parentExpectation);
-        } catch (ex) {
-          debugger;
-          console.log('deepStrictEqual parent failed', container.get(Foo).patterns(), parentExpectation);
-          throw ex;
-        }
+        assert.deepStrictEqual(child.get(Foo).patterns(), childExpectation);
+        assert.deepStrictEqual(container.get(Foo).patterns(), regInChild ? parentExpectation : childExpectation);
       });
     }
   });

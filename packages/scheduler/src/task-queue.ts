@@ -220,6 +220,7 @@ export class TaskQueue {
       leave(this, 'yield empty');
     } else {
       if (this.yieldPromise === void 0) {
+        trace(this, 'yield - creating promise');
         this.yieldPromise = createExposedPromise();
       }
 

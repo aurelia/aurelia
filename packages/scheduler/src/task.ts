@@ -106,36 +106,22 @@ export class Task<T = any> implements ITask {
     taskQueue.remove(this);
 
     this._status = 'running';
-    let isAsync = false;
 
     try {
       const ret = callback(taskQueue.now() - createdTime);
       if (async === true || (async === 'auto' && ret instanceof Promise)) {
-        isAsync = true;
         (ret as unknown as Promise<T>)
           .then($ret => {
             if (this.persistent) {
               taskQueue.resetPersistentTask(this);
-            } else if (persistent) {
-              // Persistent tasks never reach completed status. They're either pending, running, or canceled.
-              this._status = 'canceled';
             } else {
-              this._status = 'completed';
-            }
+              if (persistent) {
+                // Persistent tasks never reach completed status. They're either pending, running, or canceled.
+                this._status = 'canceled';
+              } else {
+                this._status = 'completed';
+              }
 
-            if (resolve !== void 0) {
-              resolve($ret as UnwrapPromise<T>);
-            }
-          })
-          .catch(err => {
-            if (reject !== void 0) {
-              reject(err);
-            } else {
-              throw err;
-            }
-          })
-          .finally(() => {
-            if (!this.persistent) {
               this.dispose();
 
               if (reusable) {
@@ -145,31 +131,38 @@ export class Task<T = any> implements ITask {
 
             taskQueue.completeAsyncTask(this);
 
-            leave(this, 'run async finally');
+            leave(this, 'run async then');
+
+            if (resolve !== void 0) {
+              resolve($ret as UnwrapPromise<T>);
+            }
+          })
+          .catch(err => {
+            if (!this.persistent) {
+              this.dispose();
+            }
+
+            taskQueue.completeAsyncTask(this);
+
+            leave(this, 'run async catch');
+
+            if (reject !== void 0) {
+              reject(err);
+            } else {
+              throw err;
+            }
           });
       } else {
         if (this.persistent) {
           taskQueue.resetPersistentTask(this);
-        } else if (persistent) {
-          // Persistent tasks never reach completed status. They're either pending, running, or canceled.
-          this._status = 'canceled';
         } else {
-          this._status = 'completed';
-        }
+          if (persistent) {
+            // Persistent tasks never reach completed status. They're either pending, running, or canceled.
+            this._status = 'canceled';
+          } else {
+            this._status = 'completed';
+          }
 
-        if (resolve !== void 0) {
-          resolve(ret as UnwrapPromise<T>);
-        }
-      }
-    } catch (err) {
-      if (reject !== void 0) {
-        reject(err);
-      } else {
-        throw err;
-      }
-    } finally {
-      if (!isAsync) {
-        if (!this.persistent) {
           this.dispose();
 
           if (reusable) {
@@ -177,7 +170,23 @@ export class Task<T = any> implements ITask {
           }
         }
 
-        leave(this, 'run sync finally');
+        leave(this, 'run sync success');
+
+        if (resolve !== void 0) {
+          resolve(ret as UnwrapPromise<T>);
+        }
+      }
+    } catch (err) {
+      if (!this.persistent) {
+        this.dispose();
+      }
+
+      leave(this, 'run sync error');
+
+      if (reject !== void 0) {
+        reject(err);
+      } else {
+        throw err;
       }
     }
   }
@@ -199,14 +208,14 @@ export class Task<T = any> implements ITask {
 
       this._status = 'canceled';
 
-      if (reject !== void 0) {
-        reject(new TaskAbortError(this));
-      }
-
       this.dispose();
 
       if (reusable) {
         taskQueue.returnToPool(this);
+      }
+
+      if (reject !== void 0) {
+        reject(new TaskAbortError(this));
       }
 
       leave(this, 'cancel true =pending');

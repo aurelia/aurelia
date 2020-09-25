@@ -12,8 +12,8 @@ export type PartialChildrenDefinition<TNode extends INode = INode> = {
   property?: string;
   options?: MutationObserverInit;
   query?: (projector: IElementProjector<TNode>) => ArrayLike<TNode>;
-  filter?: (node: TNode, controller?: ICustomElementController<TNode>, viewModel?: ICustomElementViewModel<TNode>) => boolean;
-  map?: (node: TNode, controller?: ICustomElementController<TNode>, viewModel?: ICustomElementViewModel<TNode>) => any;
+  filter?: (node: TNode, controller?: ICustomElementController<TNode> | null, viewModel?: ICustomElementViewModel<TNode>) => boolean;
+  map?: (node: TNode, controller?: ICustomElementController<TNode> | null, viewModel?: ICustomElementViewModel<TNode>) => any;
 };
 
 /**
@@ -139,8 +139,8 @@ export class ChildrenDefinition<TNode extends INode = INode> {
     public readonly property: string,
     public readonly options?: MutationObserverInit,
     public readonly query?: (projector: IElementProjector<TNode>) => ArrayLike<TNode>,
-    public readonly filter?: (node: TNode, controller?: ICustomElementController<TNode>, viewModel?: ICustomElementViewModel<TNode>) => boolean,
-    public readonly map?: (node: TNode, controller?: ICustomElementController<TNode>, viewModel?: ICustomElementViewModel<TNode>) => any,
+    public readonly filter?: (node: TNode, controller?: ICustomElementController<TNode> | null, viewModel?: ICustomElementViewModel<TNode>) => boolean,
+    public readonly map?: (node: TNode, controller?: ICustomElementController<TNode> | null, viewModel?: ICustomElementViewModel<TNode>) => any,
   ) {}
 
   public static create<TNode extends INode = INode>(prop: string, def: PartialChildrenDefinition<TNode> = {}): ChildrenDefinition<TNode> {

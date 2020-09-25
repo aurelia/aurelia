@@ -326,7 +326,7 @@ export class RouteContext implements IContainer {
         // some already convoluted issues impossible to troubleshoot.
         // That's why we catch, log and re-throw instead of just letting the error bubble up.
         // This also gives us a set point in the future to potentially handle supported scenarios where this could occur.
-        const controller = CustomElement.for(context, true);
+        const controller = CustomElement.for(context, { searchParents: true });
         logger.trace(`resolve(context:Node(nodeName:'${context.nodeName}'),controller:'${controller.context.definition.name}') - resolving RouteContext from controller's RenderContext`);
         return controller.context.get(IRouteContext);
       } catch (err) {

@@ -26,6 +26,7 @@ export declare class TaskQueue {
     private processingSize;
     private processingHead;
     private processingTail;
+    private processingAsync;
     private pendingSize;
     private pendingHead;
     private pendingTail;
@@ -40,15 +41,55 @@ export declare class TaskQueue {
     private microTaskRequestFlushTask;
     private readonly flushRequestor;
     get isEmpty(): boolean;
+    /**
+     * Persistent tasks will re-queue themselves indefinitely until they are explicitly canceled,
+     * so we consider them 'infinite work' whereas non-persistent (one-off) tasks are 'finite work'.
+     *
+     * This `hasNoMoreFiniteWork` getters returns true if either all remaining tasks are persistent, or if there are no more tasks.
+     *
+     * If that is the case, we can resolve the promise that was created when `yield()` is called.
+     */
+    private get hasNoMoreFiniteWork();
     constructor(now: Now, priority: TaskQueuePriority, scheduler: IScheduler, flushRequestorFactory: IFlushRequestorFactory);
     flush(): void;
+    /**
+     * Cancel the next flush cycle (and/or the macrotask that schedules the next flush cycle, in case this is a microtask queue), if it was requested.
+     *
+     * This operation is idempotent and will do nothing if no flush is scheduled.
+     */
     cancel(): void;
+    /**
+     * Returns a promise that, when awaited, resolves when:
+     * - all *non*-persistent (including async) tasks have finished;
+     * - the last-added persistent task has run exactly once;
+     *
+     * This operation is idempotent: the same promise will be returned until it resolves.
+     *
+     * If `yield()` is called multiple times in a row when there are one or more persistent tasks in the queue, each call will await exactly one cycle of those tasks.
+     */
     yield(): Promise<void>;
     queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): Task<T>;
+    /**
+     * Take this task from the taskQueue it's currently queued to, and add it to this queue.
+     */
     take(task: Task): void;
+    /**
+     * Remove the task from this queue.
+     */
     remove<T = any>(task: Task<T>): void;
+    /**
+     * Return a reusable task to the shared task pool.
+     * The next queued callback will reuse this task object instead of creating a new one, to save overhead of creating additional objects.
+     */
     returnToPool(task: Task): void;
+    /**
+     * Reset the persistent task back to its pending state, preparing it for being invoked again on the next flush.
+     */
     resetPersistentTask(task: Task): void;
+    /**
+     * Notify the queue that this async task has had its promise resolved, so that the queue can proceed with consecutive tasks on the next flush.
+     */
+    completeAsyncTask(task: Task): void;
     private finish;
     private removeFromProcessing;
     private removeFromPending;
@@ -59,5 +100,6 @@ export declare class TaskQueue {
     private movePendingToProcessing;
     private moveDelayedToProcessing;
     private requestFlush;
+    private requestFlushClamped;
 }
 //# sourceMappingURL=task-queue.d.ts.map

@@ -32,8 +32,8 @@ export class Scheduler {
         return this.taskQueues[priority].yield();
     }
     queueTask(callback, opts) {
-        const { delay, preempt, priority, persistent, reusable } = { ...defaultQueueTaskOptions, ...opts };
-        return this.taskQueues[priority].queueTask(callback, { delay, preempt, persistent, reusable });
+        const { delay, preempt, priority, persistent, reusable, async } = { ...defaultQueueTaskOptions, ...opts };
+        return this.taskQueues[priority].queueTask(callback, { delay, preempt, persistent, reusable, async });
     }
     getMicroTaskQueue() {
         return this.microtask;
@@ -67,11 +67,11 @@ export class Scheduler {
     }
     async yieldAll(repeat = 1) {
         while (repeat-- > 0) {
-            await this.yieldIdleTask();
-            await this.yieldPostRenderTask();
-            await this.yieldMacroTask();
-            await this.yieldRenderTask();
             await this.yieldMicroTask();
+            await this.yieldRenderTask();
+            await this.yieldMacroTask();
+            await this.yieldPostRenderTask();
+            await this.yieldIdleTask();
         }
     }
     queueMicroTask(callback, opts) {

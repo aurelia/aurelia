@@ -71,6 +71,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.isDirty = false;
             this.validatedOnce = false;
             this.triggerEvent = null;
+            this.task = null;
             const locator = this.locator;
             this.scheduler = locator.get(runtime_1.IScheduler);
             this.defaultTrigger = locator.get(exports.IDefaultTrigger);
@@ -112,16 +113,18 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.processDelta(delta);
         }
         $unbind(flags) {
-            var _a, _b, _c, _d;
+            var _a, _b, _c, _d, _e;
+            (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
+            this.task = null;
             const event = this.triggerEvent;
             if (event !== null) {
-                (_a = this.target) === null || _a === void 0 ? void 0 : _a.removeEventListener(event, this);
+                (_b = this.target) === null || _b === void 0 ? void 0 : _b.removeEventListener(event, this);
             }
-            (_b = this.controller) === null || _b === void 0 ? void 0 : _b.removeSubscriber(this);
-            (_c = this.controller) === null || _c === void 0 ? void 0 : _c.unregisterBinding(this.propertyBinding);
+            (_c = this.controller) === null || _c === void 0 ? void 0 : _c.removeSubscriber(this);
+            (_d = this.controller) === null || _d === void 0 ? void 0 : _d.unregisterBinding(this.propertyBinding);
             this.binding.$unbind(flags);
             for (const expr of this.connectedExpressions) {
-                (_d = expr.unbind) === null || _d === void 0 ? void 0 : _d.call(expr, flags, this.scope, this);
+                (_e = expr.unbind) === null || _e === void 0 ? void 0 : _e.call(expr, flags, this.scope, this);
             }
         }
         handleTriggerChange(newValue, _previousValue, _flags) {
@@ -177,7 +180,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             return new ValidateArgumentsDelta(this.ensureController(controller), this.ensureTrigger(trigger), rules);
         }
         validateBinding() {
-            this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
+            var _a;
+            (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
+            this.task = this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
                 await this.controller.validateBinding(this.propertyBinding);
             });
         }

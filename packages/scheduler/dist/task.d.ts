@@ -5,8 +5,9 @@ export declare class TaskAbortError<T = any> extends Error {
     constructor(task: Task<T>);
 }
 export declare type TaskStatus = 'pending' | 'running' | 'completed' | 'canceled';
+export declare type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
 export interface ITask<T = any> {
-    readonly result: Promise<T>;
+    readonly result: Promise<UnwrapPromise<T>>;
     readonly status: TaskStatus;
     readonly priority: TaskQueuePriority;
     run(): void;
@@ -18,6 +19,7 @@ export declare class Task<T = any> implements ITask {
     queueTime: number;
     preempt: boolean;
     persistent: boolean;
+    async: boolean | 'auto';
     readonly reusable: boolean;
     callback: TaskCallback<T>;
     readonly id: number;
@@ -26,15 +28,15 @@ export declare class Task<T = any> implements ITask {
     private resolve;
     private reject;
     private _result;
-    get result(): Promise<T>;
+    get result(): Promise<UnwrapPromise<T>>;
     private _status;
     get status(): TaskStatus;
     readonly priority: TaskQueuePriority;
-    constructor(taskQueue: TaskQueue, createdTime: number, queueTime: number, preempt: boolean, persistent: boolean, reusable: boolean, callback: TaskCallback<T>);
+    constructor(taskQueue: TaskQueue, createdTime: number, queueTime: number, preempt: boolean, persistent: boolean, async: boolean | 'auto', reusable: boolean, callback: TaskCallback<T>);
     run(): void;
     cancel(): boolean;
     reset(time: number): void;
-    reuse(time: number, delay: number, preempt: boolean, persistent: boolean, callback: TaskCallback<T>): void;
+    reuse(time: number, delay: number, preempt: boolean, persistent: boolean, async: boolean | 'auto', callback: TaskCallback<T>): void;
     dispose(): void;
 }
 //# sourceMappingURL=task.d.ts.map

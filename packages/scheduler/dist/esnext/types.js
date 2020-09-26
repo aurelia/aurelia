@@ -12,6 +12,7 @@ export const defaultQueueTaskOptions = {
     priority: 1 /* render */,
     persistent: false,
     reusable: true,
+    async: false,
 };
 let $resolve;
 let $reject;
@@ -19,6 +20,9 @@ function executor(resolve, reject) {
     $resolve = resolve;
     $reject = reject;
 }
+/**
+ * Efficiently create a promise where the `resolve` and `reject` functions are stored as properties on the prommise itself.
+ */
 export function createExposedPromise() {
     const p = new Promise(executor);
     p.resolve = $resolve;

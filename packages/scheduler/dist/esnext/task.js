@@ -1,4 +1,5 @@
 import { createExposedPromise, } from './types';
+import { enter, trace, leave } from './log';
 export class TaskAbortError extends Error {
     constructor(task) {
         super('Task was canceled.');
@@ -7,12 +8,13 @@ export class TaskAbortError extends Error {
 }
 let id = 0;
 export class Task {
-    constructor(taskQueue, createdTime, queueTime, preempt, persistent, reusable, callback) {
+    constructor(taskQueue, createdTime, queueTime, preempt, persistent, async, reusable, callback) {
         this.taskQueue = taskQueue;
         this.createdTime = createdTime;
         this.queueTime = queueTime;
         this.preempt = preempt;
         this.persistent = persistent;
+        this.async = async;
         this.reusable = reusable;
         this.callback = callback;
         this.id = ++id;
@@ -48,38 +50,86 @@ export class Task {
         return this._status;
     }
     run() {
+        enter(this, 'run');
         if (this._status !== 'pending') {
+            leave(this, 'run error');
             throw new Error(`Cannot run task in ${this._status} state`);
         }
         // this.persistent could be changed while the task is running (this can only be done by the task itself if canceled, and is a valid way of stopping a loop)
         // so we deliberately reference this.persistent instead of the local variable, but we keep it around to know whether the task *was* persistent before running it,
         // so we can set the correct cancelation state.
-        const persistent = this.persistent;
-        const reusable = this.reusable;
-        const taskQueue = this.taskQueue;
-        const callback = this.callback;
-        const resolve = this.resolve;
-        const reject = this.reject;
-        const createdTime = this.createdTime;
+        const { persistent, reusable, taskQueue, callback, resolve, reject, createdTime, async, } = this;
         taskQueue.remove(this);
         this._status = 'running';
         try {
             const ret = callback(taskQueue.now() - createdTime);
-            if (this.persistent) {
-                taskQueue.resetPersistentTask(this);
-            }
-            else if (persistent) {
-                // Persistent tasks never reach completed status. They're either pending, running, or canceled.
-                this._status = 'canceled';
+            if (async === true || (async === 'auto' && ret instanceof Promise)) {
+                ret
+                    .then($ret => {
+                    if (this.persistent) {
+                        taskQueue.resetPersistentTask(this);
+                    }
+                    else {
+                        if (persistent) {
+                            // Persistent tasks never reach completed status. They're either pending, running, or canceled.
+                            this._status = 'canceled';
+                        }
+                        else {
+                            this._status = 'completed';
+                        }
+                        this.dispose();
+                        if (reusable) {
+                            taskQueue.returnToPool(this);
+                        }
+                    }
+                    taskQueue.completeAsyncTask(this);
+                    leave(this, 'run async then');
+                    if (resolve !== void 0) {
+                        resolve($ret);
+                    }
+                })
+                    .catch(err => {
+                    if (!this.persistent) {
+                        this.dispose();
+                    }
+                    taskQueue.completeAsyncTask(this);
+                    leave(this, 'run async catch');
+                    if (reject !== void 0) {
+                        reject(err);
+                    }
+                    else {
+                        throw err;
+                    }
+                });
             }
             else {
-                this._status = 'completed';
-            }
-            if (resolve !== void 0) {
-                resolve(ret);
+                if (this.persistent) {
+                    taskQueue.resetPersistentTask(this);
+                }
+                else {
+                    if (persistent) {
+                        // Persistent tasks never reach completed status. They're either pending, running, or canceled.
+                        this._status = 'canceled';
+                    }
+                    else {
+                        this._status = 'completed';
+                    }
+                    this.dispose();
+                    if (reusable) {
+                        taskQueue.returnToPool(this);
+                    }
+                }
+                leave(this, 'run sync success');
+                if (resolve !== void 0) {
+                    resolve(ret);
+                }
             }
         }
         catch (err) {
+            if (!this.persistent) {
+                this.dispose();
+            }
+            leave(this, 'run sync error');
             if (reject !== void 0) {
                 reject(err);
             }
@@ -87,16 +137,9 @@ export class Task {
                 throw err;
             }
         }
-        finally {
-            if (!this.persistent) {
-                this.dispose();
-                if (reusable) {
-                    taskQueue.returnToPool(this);
-                }
-            }
-        }
     }
     cancel() {
+        enter(this, 'cancel');
         if (this._status === 'pending') {
             const taskQueue = this.taskQueue;
             const reusable = this.reusable;
@@ -106,22 +149,26 @@ export class Task {
                 taskQueue.cancel();
             }
             this._status = 'canceled';
-            if (reject !== void 0) {
-                reject(new TaskAbortError(this));
-            }
             this.dispose();
             if (reusable) {
                 taskQueue.returnToPool(this);
             }
+            if (reject !== void 0) {
+                reject(new TaskAbortError(this));
+            }
+            leave(this, 'cancel true =pending');
             return true;
         }
         else if (this._status === 'running' && this.persistent) {
             this.persistent = false;
+            leave(this, 'cancel true =running+persistent');
             return true;
         }
+        leave(this, 'cancel false');
         return false;
     }
     reset(time) {
+        enter(this, 'reset');
         const delay = this.queueTime - this.createdTime;
         this.createdTime = time;
         this.queueTime = time + delay;
@@ -129,16 +176,21 @@ export class Task {
         this.resolve = void 0;
         this.reject = void 0;
         this._result = void 0;
+        leave(this, 'reset');
     }
-    reuse(time, delay, preempt, persistent, callback) {
+    reuse(time, delay, preempt, persistent, async, callback) {
+        enter(this, 'reuse');
         this.createdTime = time;
         this.queueTime = time + delay;
         this.preempt = preempt;
         this.persistent = persistent;
+        this.async = async;
         this.callback = callback;
         this._status = 'pending';
+        leave(this, 'reuse');
     }
     dispose() {
+        trace(this, 'dispose');
         this.prev = void 0;
         this.next = void 0;
         this.callback = (void 0);

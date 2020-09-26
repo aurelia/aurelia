@@ -61,6 +61,7 @@ export declare class ValidateBindingBehavior extends BindingInterceptor implemen
     handleRulesChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void;
     handleValidationEvent(event: ValidationEvent): void;
     private processBindingExpressionArgs;
+    private task;
     private validateBinding;
     private processDelta;
     private ensureTrigger;

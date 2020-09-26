@@ -150,13 +150,11 @@ export class Scheduler implements IScheduler {
   }
   public async yieldAll(repeat: number = 1): Promise<void> {
     while (repeat-- > 0) {
-      await Promise.all([
-        this.yieldIdleTask(),
-        this.yieldPostRenderTask(),
-        this.yieldMacroTask(),
-        this.yieldRenderTask(),
-        this.yieldMicroTask(),
-      ]);
+      await this.yieldMicroTask();
+      await this.yieldRenderTask();
+      await this.yieldMacroTask();
+      await this.yieldPostRenderTask();
+      await this.yieldIdleTask();
     }
   }
 

@@ -54,9 +54,12 @@ describe('binding-resources', function () {
 
       assert.strictEqual(receiver.value, '0', `change 3 not yet propagated`);
 
-      await ctx.scheduler.yieldAll();
+      await wait(50);
 
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
+
+      await au.stop().wait();
+      assert.isSchedulerEmpty();
     });
 
     it('works with toView bindings to other components', async function () {
@@ -104,9 +107,12 @@ describe('binding-resources', function () {
 
       assert.strictEqual(receiver.value, '0', `change 3 not yet propagated`);
 
-      await ctx.scheduler.yieldAll();
+      await wait(50);
 
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
+
+      await au.stop().wait();
+      assert.isSchedulerEmpty();
     });
 
     it('works with twoWay bindings to other components', async function () {
@@ -160,6 +166,9 @@ describe('binding-resources', function () {
       await ctx.scheduler.yieldAll();
 
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
+
+      await au.stop().wait();
+      assert.isSchedulerEmpty();
     });
 
     for (const command of ['trigger', 'capture', 'delegate']) {
@@ -214,6 +223,9 @@ describe('binding-resources', function () {
         assert.strictEqual(component.events[0], event3, `event 3 is the specific event that propagated`);
 
         host.remove();
+
+        await au.stop().wait();
+        assert.isSchedulerEmpty();
       });
     }
   });

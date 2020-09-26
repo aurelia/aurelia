@@ -45,6 +45,7 @@ import {
   AuSlotContentType,
   IScope,
   Scope,
+  TemplateControllerLinkType,
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
 import {
@@ -519,7 +520,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         projectionsMap: new Map<ITargetedInstruction, IProjections>(),
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
-      link: attr === 'else'
+      linkType: attr === 'else' ? TemplateControllerLinkType.$else : void 0,
     };
     const input: PartialCustomElementDefinition = {
       template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
@@ -558,7 +559,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         projectionsMap: new Map<ITargetedInstruction, IProjections>(),
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
-      link: attr === 'else'
+      linkType: attr === 'else' ? TemplateControllerLinkType.$else : void 0,
     };
     const rawMarkup = `<${tagName} ${attr}="${value || ''}">${childTpl || ''}</${tagName}>`;
     const input: PartialCustomElementDefinition = {

@@ -164,7 +164,7 @@ describe('switch', function () {
         registrations = [],
         template,
       }: Partial<TestSetupContext>,
-      public readonly expectedInnerHtml: string,
+      public readonly expectedInnerHtml: string = '',
       public readonly additionalAssertions: ((ctx: SwitchTestExecutionContext) => Promise<void> | void) | null = null,
     ) {
       this.initialStatus = initialStatus;
@@ -591,6 +591,23 @@ describe('switch', function () {
     );
 
     yield new TestData(
+      '*[switch][repeat.for] works',
+      {
+        initialStatus: Status.delivered,
+        template: `
+      <template>
+        <div repeat.for="s of ['received', 'dispatched']" switch.bind="s">
+          <span case="received">Order received.</span>
+          <span case="dispatched">On the way.</span>
+          <span case="processing">Processing your order.</span>
+          <span case="delivered">Delivered.</span>
+        </div>
+      </template>`,
+      },
+      '<div> <span>Order received.</span> </div><div> <span>On the way.</span> </div>',
+    );
+
+    yield new TestData(
       'supports nested switch',
       {
         initialStatus: Status.delivered,
@@ -713,6 +730,70 @@ describe('switch', function () {
         assert.html.innerEqual(ctx.host, '<foo-bar class="au"> <span>Delivered.</span> </foo-bar>', 'change innerHTML1');
       }
     );
+
+    yield new TestData(
+      '*[switch] native-html-element *[case] works',
+      {
+        initialStatus: Status.received,
+        template: `
+      <template>
+        <template switch.bind="status">
+          <div>
+            <div>
+              <span case="received">Order received.</span>
+              <span case="dispatched">On the way.</span>
+              <span case="processing">Processing your order.</span>
+              <span case="delivered">Delivered.</span>
+            </div>
+          </div>
+        </template>
+      </template>`,
+      },
+      `<div> <div> <span>Order received.</span> </div> </div>`
+    );
+
+    yield new TestData(
+      '*[switch]>CE>*[case] works',
+      {
+        initialStatus: Status.dispatched,
+        template: `
+      <template as-custom-element="foo-bar">
+        foo bar
+      </template>
+
+      <template switch.bind="status">
+        <foo-bar>
+          <span case="dispatched">On the way.</span>
+          <span case="delivered">Delivered.</span>
+        </foo-bar>
+      </template>`,
+      },
+      '<foo-bar class="au"> <span>On the way.</span> foo bar </foo-bar>'
+    );
+
+    yield new TestData(
+      '*[switch]>CE>CE>*[case] works',
+      {
+        initialStatus: Status.dispatched,
+        template: `
+      <template as-custom-element="foo-bar">
+        foo bar
+      </template>
+      <template as-custom-element="fiz-baz">
+        fiz baz
+      </template>
+
+      <template switch.bind="status">
+        <foo-bar>
+          <fiz-baz>
+            <span case="dispatched">On the way.</span>
+            <span case="delivered">Delivered.</span>
+          </fiz-baz>
+        </foo-bar>
+      </template>`,
+      },
+      '<foo-bar class="au"> <fiz-baz class="au"> <span>On the way.</span> fiz baz </fiz-baz> foo bar </foo-bar>'
+    );
   }
 
   for (const data of getTestData()) {
@@ -726,6 +807,60 @@ describe('switch', function () {
         if (additionalAssertions !== null) {
           await additionalAssertions(ctx);
         }
+      },
+      data);
+  }
+
+  function* getNegativeTestData() {
+    yield new TestData(
+      '*[switch]>*[if]>*[case]',
+      {
+        template: `
+      <template>
+        <template switch.bind="status">
+          <template if.bind="true">
+            <span case="delivered">delivered</span>
+          </template>
+        </template>
+      </template>`,
+      }
+    );
+
+    yield new TestData(
+      '*[switch]>*[repeat.for]>*[case]',
+      {
+        template: `
+      <template>
+        <template switch.bind="status">
+          <template repeat.for="s of ['received','dispatched','processing','delivered',]">
+            <span case.bind="s">\${s}</span>
+          </template>
+        </template>
+      </template>`,
+      },
+    );
+
+    yield new TestData(
+      '*[switch]>*[au-slot]>*[case]',
+      {
+        template: `
+      <template as-custom-element="foo-bar">
+        <au-slot name="s1"></au-slot>
+      </template>
+
+      <foo-bar switch.bind="status">
+        <template au-slot="s1">
+          <span case="dispatched">On the way.</span>
+          <span case="delivered">Delivered.</span>
+        </template>
+      </foo-bar>`,
+      },
+    );
+  }
+  for (const data of getNegativeTestData()) {
+    $it(`${data.name} does not work`,
+      function (ctx) {
+        assert.match(ctx.error.message, /The parent switch not found; only `\*\[switch\] > \*\[case\|default-case\]` relation is supported\./);
       },
       data);
   }

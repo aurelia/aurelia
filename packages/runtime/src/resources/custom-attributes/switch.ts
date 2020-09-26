@@ -325,7 +325,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
       this.$controller.parent = controller;
       this.linkToSwitch($switch);
     } else {
-      throw new Error(`Unsupported switch`);
+      throw new Error('The parent switch not found; only `*[switch] > *[case|default-case]` relation is supported.');
     }
   }
 

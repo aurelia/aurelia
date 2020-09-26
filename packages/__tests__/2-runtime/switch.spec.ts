@@ -686,7 +686,7 @@ describe('switch', function () {
     );
 
     yield new TestData(
-      'slot integration - switch on CE, case on content',
+      'slot integration - switch wrapped with au-slot',
       {
         initialStatus: Status.received,
         template: `
@@ -694,23 +694,27 @@ describe('switch', function () {
         <au-slot name="s1"></au-slot>
       </template>
 
-      <foo-bar switch.bind="status">
+      <foo-bar>
         <template au-slot="s1">
-          <span case="received">Order received.</span>
-          <span case="dispatched">On the way.</span>
-          <span case="processing">Processing your order.</span>
-          <span case="delivered">Delivered.</span>
+          <template switch.bind="status">
+            <span case="received">Order received.</span>
+            <span case="dispatched">On the way.</span>
+            <span case="processing">Processing your order.</span>
+            <span case="delivered">Delivered.</span>
+          </template>
         </template>
       </foo-bar>
       `,
       },
-      '<foo-bar status.bind="status" class="au"> <div> <span>Projection</span> </div> </foo-bar>',
+      '<foo-bar class="au"> <span>Order received.</span> </foo-bar>',
       async (ctx) => {
         ctx.app.status = Status.delivered;
         await ctx.scheduler.yieldAll();
-        assert.html.innerEqual(ctx.host, '<foo-bar status.bind="status" class="au"> <div> Delivered. </div> </foo-bar>', 'change innerHTML1');
+        assert.html.innerEqual(ctx.host, '<foo-bar class="au"> <span>Delivered.</span> </foo-bar>', 'change innerHTML1');
       }
     );
+  }
+
   for (const data of getTestData()) {
     $it(data.name,
       async function (ctx) {

@@ -685,6 +685,32 @@ describe('switch', function () {
       }
     );
 
+    yield new TestData(
+      'slot integration - switch on CE, case on content',
+      {
+        initialStatus: Status.received,
+        template: `
+      <template as-custom-element="foo-bar">
+        <au-slot name="s1"></au-slot>
+      </template>
+
+      <foo-bar switch.bind="status">
+        <template au-slot="s1">
+          <span case="received">Order received.</span>
+          <span case="dispatched">On the way.</span>
+          <span case="processing">Processing your order.</span>
+          <span case="delivered">Delivered.</span>
+        </template>
+      </foo-bar>
+      `,
+      },
+      '<foo-bar status.bind="status" class="au"> <div> <span>Projection</span> </div> </foo-bar>',
+      async (ctx) => {
+        ctx.app.status = Status.delivered;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<foo-bar status.bind="status" class="au"> <div> Delivered. </div> </foo-bar>', 'change innerHTML1');
+      }
+    );
   for (const data of getTestData()) {
     $it(data.name,
       async function (ctx) {

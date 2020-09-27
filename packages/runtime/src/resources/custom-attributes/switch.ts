@@ -24,6 +24,7 @@ import {
 } from '../../lifecycle-task';
 import {
   IndexMap,
+  IScope,
 } from '../../observation';
 import {
   IObserverLocator,
@@ -65,11 +66,9 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     let task = this.task.done
       ? view.bind(flags, $controller.scope, $controller.hostScope)
       : new ContinuationTask(this.task, view.bind, view, flags, $controller.scope, $controller.hostScope);
-    if (task.done) {
-      task = this.swap(flags, this.value);
-    } else {
-      task = new ContinuationTask(task, this.swap, this, flags, this.value);
-    }
+    task = task.done
+      ? this.swap(flags, this.value)
+      : new ContinuationTask(task, this.swap, this, flags, this.value);
     return this.task = task;
   }
 
@@ -88,23 +87,21 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     if (length === 0) { return this.task; }
 
     if (length === 1) {
-      const view = cases[0].view;
-
+      const $case = cases[0];
       if (this.task.done) {
-        view.detach(flags);
+        $case.detachView(flags);
       } else {
-        this.task = new ContinuationTask(this.task, view.detach, view, flags);
+        this.task = new ContinuationTask(this.task, $case.detachView, $case, flags);
       }
       return this.task;
     }
 
     let task = this.task;
     for (const $case of cases) {
-      const view = $case.view;
       if (task.done) {
-        view.detach(flags);
+        $case.detachView(flags);
       } else {
-        task = new ContinuationTask(task, view.detach, view, flags);
+        task = new ContinuationTask(task, $case.detachView, $case, flags);
       }
     }
 
@@ -248,17 +245,14 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
 
     // most common case
     if (length === 1) {
-      return cases[0].view.bind(flags, scope, hostScope);
+      return cases[0].bindView(flags, scope, hostScope);
     }
 
     let task = LifecycleTask.done;
     for (const $case of cases) {
-      const view = $case.view;
-      if (view !== void 0) {
-        task = task === LifecycleTask.done
-          ? view.bind(flags, scope, hostScope)
-          : new ContinuationTask(task, view.bind, view, flags, scope, hostScope);
-      }
+      task = task.done
+        ? $case.bindView(flags, scope, hostScope)
+        : new ContinuationTask(task, $case.bindView, $case, flags, scope, hostScope);
     }
     return task;
   }
@@ -274,11 +268,11 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     if (length === 0) { return; }
 
     if (length === 1) {
-      cases[0].view.attach(flags);
+      cases[0].attachView(flags);
     }
 
     for (const $case of cases) {
-      $case.view.attach(flags);
+      $case.attachView(flags);
     }
   }
 
@@ -288,9 +282,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     if (length === 0) { return; }
 
     for (const $case of cases) {
-      const view = $case.view;
-      view.detach(flags);
-      view.release(flags);
+      $case.detachView(flags);
     }
 
     this.activeCases.splice(0);
@@ -348,6 +340,26 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
 
   public handleCollectionChange(_indexMap: IndexMap, flags: LifecycleFlags) {
     this.$switch.caseChanged(this, flags);
+  }
+
+  public bindView(flags: LifecycleFlags, scope: IScope | undefined, hostScope: IScope | null): ILifecycleTask {
+    const view = this.view;
+    return (view.state & State.isBound) === 0
+      ? view.bind(flags, scope, hostScope)
+      : LifecycleTask.done;
+  }
+
+  public attachView(flags: LifecycleFlags): void {
+    const view = this.view;
+    if ((view.state & State.isAttached) === 0) {
+      view.attach(flags);
+    }
+  }
+
+  public detachView(flags: LifecycleFlags): void {
+    const view = this.view;
+    view.detach(flags);
+    view.release(flags);
   }
 
   protected linkToSwitch(auSwitch: Switch<T>) {

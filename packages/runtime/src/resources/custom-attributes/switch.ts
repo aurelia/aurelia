@@ -204,7 +204,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
 
     let fallThrough: boolean = false;
     for (const $case of this.cases) {
-      if ($case.isMatch(value, flags) || fallThrough) {
+      if (fallThrough || $case.isMatch(value, flags)) {
         activeCases.push($case);
         fallThrough = $case.fallThrough;
       }
@@ -278,14 +278,13 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
 
   private clearActiveCases(flags: LifecycleFlags): void {
     const cases = this.activeCases;
-    const length = cases.length;
-    if (length === 0) { return; }
+    if (cases.length === 0) { return; }
 
     for (const $case of cases) {
       $case.detachView(flags);
     }
 
-    this.activeCases.splice(0);
+    cases.splice(0);
   }
 }
 

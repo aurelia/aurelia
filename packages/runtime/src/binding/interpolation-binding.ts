@@ -26,13 +26,9 @@ import {
   IConnectableBinding,
   IPartialConnectableBinding,
 } from './connectable';
+import { IDOM } from '../dom';
 
 const { toView, oneTime } = BindingMode;
-
-const queueTaskOptions: QueueTaskOptions = {
-  reusable: false,
-  preempt: true,
-};
 
 export class MultiInterpolationBinding implements IBinding {
   public interceptor: this = this;
@@ -103,9 +99,11 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public part?: string;
   public $state: State = State.none;
   public $scheduler: IScheduler;
-  public task: ITask | null = null;
+  // public task: ITask | null = null;
 
-  public targetObserver: IBindingTargetAccessor;
+  public targetObserver: IBindingTargetAccessor & INodeAccessor;
+
+  private dom: IDOM;
 
   public constructor(
     public sourceExpression: IExpression,
@@ -120,7 +118,8 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     connectable.assignIdTo(this);
 
     this.$scheduler = locator.get(IScheduler);
-    this.targetObserver = observerLocator.getAccessor(LifecycleFlags.none, target, targetProperty);
+    this.targetObserver = observerLocator.getAccessor(LifecycleFlags.none, target, targetProperty) as IBindingTargetAccessor & INodeAccessor;
+    this.dom = locator.get(IDOM);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -146,13 +145,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     if (newValue !== oldValue) {
       if (shouldQueueFlush) {
         flags |= LifecycleFlags.noTargetObserverQueue;
-
-        this.task?.cancel();
-        targetObserver.task?.cancel();
-        targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
-          (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
-          this.task = targetObserver.task = null;
-        }, queueTaskOptions);
+        this.dom.queueFlushChanges(targetObserver);
       }
 
       interceptor.updateTarget(newValue, flags);
@@ -212,17 +205,8 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     }
 
     const targetObserver = this.targetObserver;
-    const task = this.task;
-
     if (targetObserver.unbind) {
       targetObserver.unbind(flags);
-    }
-    if (task != null) {
-      task.cancel();
-      if (task === targetObserver.task) {
-        targetObserver.task = null;
-      }
-      this.task = null;
     }
 
     this.$scope = void 0;

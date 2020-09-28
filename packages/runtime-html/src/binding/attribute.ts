@@ -23,6 +23,7 @@ import {
   ITask,
   AccessorType,
   QueueTaskOptions,
+  IDOM,
 } from '@aurelia/runtime';
 import {
   AttributeObserver,
@@ -34,11 +35,6 @@ const { oneTime, toView, fromView } = BindingMode;
 
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
-
-const taskOptions: QueueTaskOptions = {
-  reusable: false,
-  preempt: true,
-};
 
 export interface AttributeBinding extends IConnectableBinding {}
 
@@ -54,7 +50,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public $scheduler: IScheduler;
   public $scope: IScope = null!;
   public part?: string;
-  public task: ITask | null = null;
 
   /**
    * Target key. In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
@@ -65,6 +60,8 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
   public target: Element;
+
+  private dom: IDOM;
 
   public constructor(
     public sourceExpression: IsBindingBehavior | IForOfStatement,
@@ -83,6 +80,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.target = target as Element;
     connectable.assignIdTo(this);
     this.$scheduler = locator.get(IScheduler);
+    this.dom = locator.get(IDOM);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -129,12 +127,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       if (newValue !== oldValue) {
         if (shouldQueueFlush) {
           flags |= LifecycleFlags.noTargetObserverQueue;
-          this.task?.cancel();
-          targetObserver.task?.cancel();
-          targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
-            (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
-            this.task = targetObserver.task = null;
-          }, taskOptions);
+          this.dom.queueFlushChanges(targetObserver as unknown as INodeAccessor);
         }
 
         interceptor.updateTarget(newValue, flags);
@@ -233,20 +226,12 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.$scope = null!;
 
     const targetObserver = this.targetObserver as IBindingTargetObserver;
-    const task = this.task;
     if (targetObserver.unbind) {
       targetObserver.unbind!(flags);
     }
     if (targetObserver.unsubscribe) {
       targetObserver.unsubscribe(this.interceptor);
       targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
-    }
-    if (task != null) {
-      task.cancel();
-      if (task === targetObserver.task) {
-        targetObserver.task = null;
-      }
-      this.task = null;
     }
     this.interceptor.unobserve(true);
 

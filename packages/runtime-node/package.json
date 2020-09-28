@@ -1,5 +1,5 @@
 {
-  "name": "au",
+  "name": "@aurelia/runtime-node",
   "version": "0.6.0",
   "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
@@ -16,43 +16,33 @@
   },
   "keywords": [
     "aurelia",
-    "au",
-    "cli"
+    "runtime-node"
   ],
   "files": [
-    "bin",
     "dist",
     "src",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
   ],
-  "bin": {
-    "au": "./bin/au.js"
-  },
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "bundle": "ts-node -P ../../tsconfig.json ../../scripts/bundle.ts umd,esm,system aurelia",
     "dev": "tsc -b -w --preserveWatchOutput"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/aot": "0.6.0",
     "@aurelia/debug": "0.6.0",
-    "@aurelia/jit": "0.6.0",
     "@aurelia/kernel": "0.6.0",
     "@aurelia/runtime": "0.6.0",
-    "@aurelia/runtime-node": "0.6.0",
-    "@aurelia/testing": "0.6.0",
-    "typescript": "^3.7.4",
     "ws": "^7.2.1"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",
     "@types/ws": "^6.0.4",
-    "tslib": "^1.10.0"
+    "tslib": "^1.10.0",
+    "typescript": "^3.7.4"
   }
 }

@@ -31,6 +31,7 @@
     "packages/runtime-html",
     "packages/runtime-html-browser",
     "packages/runtime-html-jsdom",
+    "packages/runtime-node",
     "packages/scheduler",
     "packages/scheduler-dom",
     "packages/scheduler-node",
@@ -54,7 +55,8 @@
     "test/navigation-skeleton/app",
     "test/rainbow-spiral",
     "test/realworld",
-    "test/sierpinski-triangle"
+    "test/sierpinski-triangle",
+    "examples/jit-webpack-vanilla-ts"
   ],
   "version": "0.6.0"
 }

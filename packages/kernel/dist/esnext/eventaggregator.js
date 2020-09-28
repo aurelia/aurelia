@@ -4,11 +4,7 @@ import { Reporter } from './reporter';
  * Represents a handler for an EventAggregator event.
  */
 class Handler {
-    constructor(
-    /** @internal */
-    messageType, 
-    /** @internal */
-    callback) {
+    constructor(messageType, callback) {
         this.messageType = messageType;
         this.callback = callback;
     }
@@ -18,17 +14,17 @@ class Handler {
         }
     }
 }
-function invokeCallback(callback, data, event) {
+function invokeCallback(callback, message, channel) {
     try {
-        callback(data, event);
+        callback(message, channel);
     }
     catch (e) {
         Reporter.error(0, e); // TODO: create error code
     }
 }
-function invokeHandler(handler, data) {
+function invokeHandler(handler, message) {
     try {
-        handler.handle(data);
+        handler.handle(message);
     }
     catch (e) {
         Reporter.error(0, e); // TODO: create error code
@@ -45,45 +41,40 @@ export class EventAggregator {
         /** @internal */
         this.messageHandlers = [];
     }
-    publish(channelOrInstance, data) {
-        let subscribers;
-        let i;
+    publish(channelOrInstance, message) {
         if (!channelOrInstance) {
             throw Reporter.error(0); // TODO: create error code for 'Event was invalid.'
         }
         if (typeof channelOrInstance === 'string') {
-            const channel = channelOrInstance;
-            subscribers = this.eventLookup[channel];
-            if (subscribers != null) {
+            let subscribers = this.eventLookup[channelOrInstance];
+            if (subscribers !== void 0) {
                 subscribers = subscribers.slice();
-                i = subscribers.length;
-                while (i--) {
-                    invokeCallback(subscribers[i], data, channel);
+                let i = subscribers.length;
+                while (i-- > 0) {
+                    invokeCallback(subscribers[i], message, channelOrInstance);
                 }
             }
         }
         else {
-            const instance = channelOrInstance;
-            subscribers = this.messageHandlers.slice();
-            i = subscribers.length;
-            while (i--) {
-                invokeHandler(subscribers[i], instance);
+            const subscribers = this.messageHandlers.slice();
+            let i = subscribers.length;
+            while (i-- > 0) {
+                invokeHandler(subscribers[i], channelOrInstance);
             }
         }
     }
     subscribe(channelOrType, callback) {
-        let handler;
-        let subscribers;
         if (!channelOrType) {
             throw Reporter.error(0); // TODO: create error code for 'Event channel/type was invalid.'
         }
+        let handler;
+        let subscribers;
         if (typeof channelOrType === 'string') {
-            const channel = channelOrType;
-            handler = callback;
-            if (this.eventLookup[channel] === void 0) {
-                this.eventLookup[channel] = [];
+            if (this.eventLookup[channelOrType] === void 0) {
+                this.eventLookup[channelOrType] = [];
             }
-            subscribers = this.eventLookup[channel];
+            handler = callback;
+            subscribers = this.eventLookup[channelOrType];
         }
         else {
             handler = new Handler(channelOrType, callback);
@@ -100,9 +91,9 @@ export class EventAggregator {
         };
     }
     subscribeOnce(channelOrType, callback) {
-        const sub = this.subscribe(channelOrType, (data, event) => {
+        const sub = this.subscribe(channelOrType, function (message, event) {
             sub.dispose();
-            return callback(data, event);
+            callback(message, event);
         });
         return sub;
     }

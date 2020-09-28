@@ -7,6 +7,6 @@ export { PLATFORM } from './platform';
 export { ITraceInfo, ITraceWriter, ILiveLoggingOptions, Reporter, Tracer, LogLevel, } from './reporter';
 export { Profiler } from './profiler';
 export { IResourceKind, PartialResourceDefinition, Protocol, ResourceDefinition, ResourceType, fromAnnotationOrDefinitionOrTypeOrDefault, fromAnnotationOrTypeOrDefault, fromDefinitionOrDefault, } from './resource';
-export { EventAggregator, EventAggregatorCallback, IEventAggregator, } from './eventaggregator';
+export { EventAggregator, IEventAggregator, } from './eventaggregator';
 export { isArrayIndex, camelCase, kebabCase, pascalCase, toArray, nextId, resetId, compareNumber, mergeDistinct, isNumberOrBigInt, isStringOrDate, bound, mergeArrays, mergeObjects, firstDefined, getPrototypeChain, isNativeFunction, } from './functions';
 //# sourceMappingURL=index.d.ts.map

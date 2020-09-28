@@ -84,7 +84,6 @@ export interface IValidationVisitor {
   visitPropertyRule(propertyRule: IPropertyRule): string;
 }
 
-export type Hydratable = any & { $TYPE: string };
 export const IValidationHydrator = DI.createInterface<IValidationHydrator>('IValidationHydrator').noDefault();
 export interface IValidationHydrator {
   readonly astDeserializer: Deserializer;

@@ -1,42 +1,36 @@
-import { IContainer, Registration, toArray } from '@aurelia/kernel';
+import { Registration, toArray, newInstanceForScope, DI } from '@aurelia/kernel';
 import { IScheduler, Aurelia, CustomElement, DOM, customElement } from '@aurelia/runtime';
 import { assert, TestContext, ISpy, HTMLTestContext, createSpy, getVisibleText } from '@aurelia/testing';
 import {
-  IValidationController,
   IValidationRules,
+  ValidationResult,
+} from '@aurelia/validation';
+import {
+  IValidationController,
   ValidationController,
-  ValidationConfiguration,
+  ValidationHtmlConfiguration,
   ValidationResultsSubscriber,
   ValidationResultPresenterService,
-  ValidationResult,
-  ValidationControllerFactory
-} from '@aurelia/validation';
-import { Spy } from '../../Spy';
-import { Person } from '../_test-resources';
+} from '@aurelia/validation-html';
+import { Person } from '../../validation/_test-resources';
 import { TestFunction, TestExecutionContext, ToNumberValueConverter, createSpecFunction } from '../../util';
 
 describe('validation-result-presenter-service', function () {
 
+  const IValidationResultPresenterService = DI.createInterface<ValidationResultPresenterService>('ValidationResultPresenterService').noDefault();
+
   class App {
     public person: Person = new Person((void 0)!, (void 0)!);
-    public controllerSpy: Spy;
-    public readonly scheduler: IScheduler;
-    public controller: ValidationController;
-    public presenterService: ValidationResultPresenterService;
-    private readonly validationRules: IValidationRules;
+    public controllerValidateSpy: ISpy;
 
-    public constructor(container: IContainer, presenterService?: ValidationResultPresenterService) {
-      const factory = new ValidationControllerFactory();
-      this.scheduler = container.get(IScheduler);
-      this.controllerSpy = new Spy();
-
-      // mocks ValidationControllerFactory#createForCurrentScope
-      const controller = this.controller = this.controllerSpy.getMock(factory.construct(container)) as unknown as ValidationController;
-      Registration.instance(IValidationController, controller).register(container);
-
-      controller.addSubscriber(this.presenterService = presenterService ?? new ValidationResultPresenterService());
-
-      const validationRules = this.validationRules = container.get(IValidationRules);
+    public constructor(
+      @IScheduler public readonly scheduler: IScheduler,
+      @newInstanceForScope(IValidationController) public controller: ValidationController,
+      @IValidationResultPresenterService public presenterService: ValidationResultPresenterService,
+      @IValidationRules private readonly validationRules: IValidationRules,
+    ) {
+      this.controllerValidateSpy = createSpy(controller, 'validate', true);
+      controller.addSubscriber(presenterService);
       validationRules
         .on(this.person)
 
@@ -72,30 +66,28 @@ describe('validation-result-presenter-service', function () {
   }
   async function runTest(
     testFunction: TestFunction<TestExecutionContext<App>>,
-    { template, presenterService }: TestSetupContext
+    { template, presenterService = new ValidationResultPresenterService() }: TestSetupContext
   ) {
     const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
     const host = ctx.dom.createElement('app');
     ctx.doc.body.appendChild(host);
-    let app: App;
     const au = new Aurelia(container);
     await au
       .register(
-        ValidationConfiguration,
+        ValidationHtmlConfiguration,
         ToNumberValueConverter,
-        CustomValidationContainer
+        CustomValidationContainer,
+        Registration.instance(IValidationResultPresenterService, presenterService),
       )
       .app({
         host,
-        component: app = (() => {
-          const ca = CustomElement.define({ name: 'app', isStrictBinding: true, template }, App);
-          return new ca(container, presenterService);
-        })()
+        component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
       })
       .start()
       .wait();
 
+    const app = au.root.viewModel as App;
     await testFunction({ app, host, container, scheduler: app.scheduler, ctx });
 
     await au.stop().wait();
@@ -108,16 +100,16 @@ describe('validation-result-presenter-service', function () {
   async function assertEventHandler(
     target: HTMLElement,
     scheduler: IScheduler,
-    controllerSpy: Spy,
+    controllerValidateSpy: ISpy,
     handleValidationEventSpy: ISpy,
     ctx: HTMLTestContext,
-    event: string = 'blur',
+    event: string = 'focusout',
   ) {
     handleValidationEventSpy.calls.splice(0);
-    controllerSpy.clearCallRecords();
+    controllerValidateSpy.calls.splice(0);
     target.dispatchEvent(new ctx.Event(event));
     await scheduler.yieldAll(10);
-    controllerSpy.methodCalledTimes('validate', 1);
+    assert.equal(controllerValidateSpy.calls.length, 1, 'incorrect #calls for validate');
     assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
   }
   function assertSubscriber(controller: ValidationController, subscriber: ValidationResultPresenterService) {
@@ -179,7 +171,7 @@ describe('validation-result-presenter-service', function () {
       const input1: HTMLInputElement = div1.querySelector('input#target1');
       const input2: HTMLInputElement = div2.querySelector('input#target2');
 
-      const controllerSpy = app.controllerSpy;
+      const controllerSpy = app.controllerValidateSpy;
       const spy = createSpy(presenterService, 'handleValidationEvent', true);
       const addSpy = createSpy(presenterService, 'add', true);
       const removeSpy = createSpy(presenterService, 'remove', true);
@@ -286,7 +278,7 @@ describe('validation-result-presenter-service', function () {
       const input1: HTMLInputElement = validationContainer1.querySelector('input#target1');
       const input2: HTMLInputElement = validationContainer2.querySelector('input#target2');
 
-      const controllerSpy = app.controllerSpy;
+      const controllerSpy = app.controllerValidateSpy;
       const spy = createSpy(presenterService, 'handleValidationEvent', true);
       const addSpy = createSpy(presenterService, 'add', true);
       const removeSpy = createSpy(presenterService, 'remove', true);
@@ -389,7 +381,7 @@ describe('validation-result-presenter-service', function () {
       const input1: HTMLInputElement = validationContainer1.querySelector('input#target1');
       const input2: HTMLInputElement = validationContainer2.querySelector('input#target2');
 
-      const controllerSpy = app.controllerSpy;
+      const controllerSpy = app.controllerValidateSpy;
       const spy = createSpy(presenterService, 'handleValidationEvent', true);
       const addSpy = createSpy(presenterService, 'add', true);
       const removeSpy = createSpy(presenterService, 'remove', true);

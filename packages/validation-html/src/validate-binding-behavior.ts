@@ -14,8 +14,8 @@ import {
   IBinding,
   BindingBehaviorExpression,
 } from '@aurelia/runtime';
-import { PropertyRule } from './rule-provider';
-import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo } from './validation-controller';
+import { PropertyRule } from '@aurelia/validation';
+import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo, ValidationResultsSubscriber, ValidationEvent } from './validation-controller';
 
 /**
  * Validation triggers.
@@ -24,22 +24,32 @@ export enum ValidationTrigger {
   /**
    * Manual validation.  Use the controller's `validate()` and  `reset()` methods to validate all bindings.
    */
-  manual = "manual",
+  manual = 'manual',
 
   /**
-   * Validate the binding when the binding's target element fires a DOM "blur" event.
+   * Validate the binding when the binding's target element fires a DOM 'blur' event.
    */
-  blur = "blur",
+  blur = 'blur',
+
+  /**
+   * Validate the binding when the binding's target element fires a DOM 'focusout' event.
+   */
+  focusout = 'focusout',
 
   /**
    * Validate the binding when it updates the model due to a change in the source property (usually triggered by some change in view)
    */
-  change = "change",
+  change = 'change',
 
   /**
-   * Validate the binding when the binding's target element fires a DOM "blur" event and when it updates the model due to a change in the view.
+   * Validate the binding when the binding's target element fires a DOM 'blur' event and when it updates the model due to a change in the view.
    */
-  changeOrBlur = "changeOrBlur"
+  changeOrBlur = 'changeOrBlur',
+
+  /**
+   * Validate the binding when the binding's target element fires a DOM 'focusout' event and when it updates the model due to a change in the view.
+   */
+  changeOrFocusout = 'changeOrFocusout',
 }
 
 /* @internal */
@@ -49,10 +59,11 @@ export const IDefaultTrigger = DI.createInterface<ValidationTrigger>('IDefaultTr
  * Binding behavior. Indicates the bound property should be validated.
  */
 @bindingBehavior('validate')
-export class ValidateBindingBehavior extends BindingInterceptor {
+export class ValidateBindingBehavior extends BindingInterceptor implements ValidationResultsSubscriber {
   private propertyBinding: BindingWithBehavior = (void 0)!;
   private target: HTMLElement = (void 0)!;
   private trigger!: ValidationTrigger;
+  private readonly scopedController?: IValidationController;
   private controller!: IValidationController;
   private isChangeTrigger: boolean = false;
   private readonly scheduler: IScheduler;
@@ -62,14 +73,20 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   private readonly triggerMediator: BindingMediator<'handleTriggerChange'> = new BindingMediator('handleTriggerChange', this, this.observerLocator, this.locator);
   private readonly controllerMediator: BindingMediator<'handleControllerChange'> = new BindingMediator('handleControllerChange', this, this.observerLocator, this.locator);
   private readonly rulesMediator: BindingMediator<'handleRulesChange'> = new BindingMediator('handleRulesChange', this, this.observerLocator, this.locator);
+  private isDirty: boolean = false;
+  private validatedOnce: boolean = false;
+  private triggerEvent: 'blur' | 'focusout' | null = null;
+  private bindingInfo!: BindingInfo;
 
   public constructor(
     public readonly binding: BindingWithBehavior,
     expr: IBindingBehaviorExpression,
   ) {
     super(binding, expr);
-    this.scheduler = this.locator.get(IScheduler);
-    this.defaultTrigger = this.locator.get(IDefaultTrigger);
+    const locator = this.locator;
+    this.scheduler = locator.get(IScheduler);
+    this.defaultTrigger = locator.get(IDefaultTrigger);
+    this.scopedController = locator.get(IValidationController);
     this.setPropertyBinding();
   }
 
@@ -88,13 +105,17 @@ export class ValidateBindingBehavior extends BindingInterceptor {
       this.propertyBinding.updateSource(value, flags);
     }
 
-    if (this.isChangeTrigger) {
+    this.isDirty = true;
+    const event = this.triggerEvent;
+    if (this.isChangeTrigger && (event === null || event !== null && this.validatedOnce)) {
       this.validateBinding();
     }
   }
 
   public handleEvent(_event: Event) {
-    this.validateBinding();
+    if (!this.isChangeTrigger || this.isChangeTrigger && this.isDirty) {
+      this.validateBinding();
+    }
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined) {
@@ -106,7 +127,11 @@ export class ValidateBindingBehavior extends BindingInterceptor {
   }
 
   public $unbind(flags: LifecycleFlags) {
-    this.target?.removeEventListener('blur', this);
+    const event = this.triggerEvent;
+    if (event !== null) {
+      this.target?.removeEventListener(event, this);
+    }
+    this.controller?.removeSubscriber(this);
     this.controller?.unregisterBinding(this.propertyBinding);
     this.binding.$unbind(flags);
     for (const expr of this.connectedExpressions) {
@@ -126,6 +151,14 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     this.processDelta(new ValidateArgumentsDelta(void 0, void 0, this.ensureRules(newValue)));
   }
 
+  public handleValidationEvent(event: ValidationEvent): void {
+    const triggerEvent = this.triggerEvent;
+    const propertyName = this.bindingInfo.propertyInfo?.propertyName;
+    if (propertyName !== void 0 && triggerEvent !== null && this.isChangeTrigger) {
+      this.validatedOnce = event.addedResults.find((r) => r.result.propertyName === propertyName) !== void 0;
+    }
+  }
+
   private processBindingExpressionArgs(flags: LifecycleFlags): ValidateArgumentsDelta {
     const scope: IScope = this.scope;
     const locator = this.locator;
@@ -137,10 +170,11 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     while (expression.name !== 'validate' && expression !== void 0) {
       expression = expression.expression as BindingBehaviorExpression;
     }
+    const evaluationFlags = flags | LifecycleFlags.isStrictBindingStrategy;
     const args = expression.args;
     for (let i = 0, ii = args.length; i < ii; i++) {
       const arg = args[i];
-      const temp = arg.evaluate(flags, scope, locator);
+      const temp = arg.evaluate(evaluationFlags, scope, locator);
       switch (i) {
         case 0:
           trigger = this.ensureTrigger(temp);
@@ -174,19 +208,30 @@ export class ValidateBindingBehavior extends BindingInterceptor {
     const controller = delta.controller ?? this.controller;
     const rules = delta.rules;
     if (this.trigger !== trigger) {
-      if (this.trigger === ValidationTrigger.blur || this.trigger === ValidationTrigger.changeOrBlur) {
-        this.target.removeEventListener('blur', this);
+      let event = this.triggerEvent;
+      if (event !== null) {
+        this.target.removeEventListener(event, this);
       }
+
+      this.validatedOnce = false;
+      this.isDirty = false;
       this.trigger = trigger;
-      this.isChangeTrigger = trigger === ValidationTrigger.change || trigger === ValidationTrigger.changeOrBlur;
-      if (trigger === ValidationTrigger.blur || trigger === ValidationTrigger.changeOrBlur) {
-        this.target.addEventListener('blur', this);
+      this.isChangeTrigger = trigger === ValidationTrigger.change
+        || trigger === ValidationTrigger.changeOrBlur
+        || trigger === ValidationTrigger.changeOrFocusout;
+
+      event = this.setTriggerEvent(this.trigger);
+      if (event !== null) {
+        this.target.addEventListener(event, this);
       }
     }
     if (this.controller !== controller || rules !== void 0) {
+      this.controller?.removeSubscriber(this);
       this.controller?.unregisterBinding(this.propertyBinding);
+
       this.controller = controller;
-      controller.registerBinding(this.propertyBinding, new BindingInfo(this.target, this.scope, rules));
+      controller.registerBinding(this.propertyBinding, this.setBindingInfo(rules));
+      controller.addSubscriber(this);
     }
   }
 
@@ -201,7 +246,7 @@ export class ValidateBindingBehavior extends BindingInterceptor {
 
   private ensureController(controller: unknown): ValidationController {
     if (controller === (void 0) || controller === null) {
-      controller = this.locator.get(IValidationController);
+      controller = this.scopedController;
     } else if (!(controller instanceof ValidationController)) {
       throw new Error(`${controller} is not of type ValidationController`); // TODO: use reporter
     }
@@ -237,12 +282,31 @@ export class ValidateBindingBehavior extends BindingInterceptor {
       this.target = controller.host as HTMLElement;
     }
   }
+
+  private setTriggerEvent(trigger: ValidationTrigger) {
+    let triggerEvent: 'blur' | 'focusout' | null = null;
+    switch (trigger) {
+      case ValidationTrigger.blur:
+      case ValidationTrigger.changeOrBlur:
+        triggerEvent = 'blur';
+        break;
+      case ValidationTrigger.focusout:
+      case ValidationTrigger.changeOrFocusout:
+        triggerEvent = 'focusout';
+        break;
+    }
+    return this.triggerEvent = triggerEvent;
+  }
+
+  private setBindingInfo(rules: PropertyRule[] | undefined): BindingInfo {
+    return this.bindingInfo = new BindingInfo(this.target, this.scope, rules);
+  }
 }
 
 class ValidateArgumentsDelta {
   public constructor(
     public controller?: ValidationController,
     public trigger?: ValidationTrigger,
-    public rules?: PropertyRule[]
+    public rules?: PropertyRule[],
   ) { }
 }

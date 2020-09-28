@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/promise-function-async */
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { CustomElementType } from '@aurelia/runtime';
 import { ComponentAppellation, INavigatorInstruction, IRoute, RouteableComponentType } from './interfaces';
 import { IRouter } from './router';

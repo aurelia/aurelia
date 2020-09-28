@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/promise-function-async */
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import {
   bindable,
   INode,
@@ -17,8 +13,6 @@ import {
   PartialCustomElementDefinition,
   IController,
   IHydratedController,
-  IHydratedParentController,
-  ControllerVisitor,
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IViewportScopeOptions, ViewportScope } from '../viewport-scope';
@@ -50,7 +44,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
     @INode element: INode,
     @IContainer private container: IContainer,
     @ParentViewportScope private readonly parent: ViewportScopeCustomElement,
-    @IController private readonly parentController: IHydratedController<Element>,
+    @IController private readonly parentController: IHydratedController,
   ) {
     this.element = element as HTMLElement;
   }
@@ -117,11 +111,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
     this.viewportScope = null;
   }
 
-  public beforeBind(
-    initiator: IHydratedController<Element>,
-    parent: IHydratedParentController<Element> | null,
-    flags: LifecycleFlags,
-  ): void {
+  public beforeBind(flags: LifecycleFlags): void {
     this.isBound = true;
 
     (this.$controller as Writable<ICustomElementController>).scope = this.parentController.scope!;
@@ -131,11 +121,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
       this.viewportScope.beforeBind();
     }
   }
-  public async beforeUnbind(
-    initiator: IHydratedController<Element>,
-    parent: IHydratedParentController<Element> | null,
-    flags: LifecycleFlags,
-  ): Promise<void> {
+  public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
     if (this.viewportScope !== null) {
       this.viewportScope.beforeUnbind();
     }
@@ -160,11 +146,5 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
       }
     }
     return void 0;
-  }
-
-  public accept(visitor: ControllerVisitor<Element>): void | true {
-    if (this.viewportScope?.content?.componentInstance?.accept?.(visitor) === true) {
-      return true;
-    }
   }
 }

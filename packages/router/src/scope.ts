@@ -1,11 +1,6 @@
-
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/promise-function-async */
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 import { IContainer } from '@aurelia/kernel';
-import { CustomElementType, ICustomElementController } from '@aurelia/runtime';
+import { CustomElementType } from '@aurelia/runtime';
 import { IRoute, ComponentAppellation, INavigatorInstruction } from './interfaces';
 import { FoundRoute } from './found-route';
 import { IRouter } from './router';
@@ -257,7 +252,7 @@ export class Scope {
         if (!this.getEnabledViewports(ownedScopes)[name]) {
           continue;
           // TODO: No longer pre-creating viewports. Evaluate!
-          this.addViewport(name, null, { scope: newScope, forceDescription: true });
+          this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
           availableViewports[name] = this.getEnabledViewports(ownedScopes)[name];
         }
         const viewport = availableViewports[name];
@@ -305,7 +300,7 @@ export class Scope {
           if (!this.getEnabledViewports(ownedScopes)[name]) {
             continue;
             // TODO: No longer pre-creating viewports. Evaluate!
-            this.addViewport(name, null, { scope: newScope, forceDescription: true });
+            this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
             availableViewports[name] = this.getEnabledViewports(ownedScopes)[name];
           }
           viewport = availableViewports[name];
@@ -353,33 +348,28 @@ export class Scope {
     return remaining;
   }
 
-  public addViewport(name: string, viewportController: ICustomElementController<Element> | null, options: IViewportOptions = {}): Viewport {
+  public addViewport(name: string, element: Element | null, container: IContainer | null, options: IViewportOptions = {}): Viewport {
     let viewport: Viewport | null = this.getEnabledViewports(this.getOwnedScopes())[name];
     // Each au-viewport element has its own Viewport
-    if (
-      viewportController &&
-      viewport &&
-      viewport.viewportController !== null &&
-      viewport.viewportController !== viewportController
-    ) {
+    if (element && viewport && viewport.element !== null && viewport.element !== element) {
       viewport.enabled = false;
-      viewport = this.getOwnedViewports(true).find(child => child.name === name && child.viewportController === viewportController) || null;
+      viewport = this.getOwnedViewports(true).find(child => child.name === name && child.element === element) || null;
       if (viewport) {
         viewport.enabled = true;
       }
     }
     if (!viewport) {
-      viewport = new Viewport(this.router, name, null, this.scope, !!options.scope, options);
+      viewport = new Viewport(this.router, name, null, null, this.scope, !!options.scope, options);
       this.addChild(viewport.connectedScope);
     }
     // TODO: Either explain why || instead of && here (might only need one) or change it to && if that should turn out to not be relevant
-    if (viewportController) {
-      viewport.setController(viewportController, options);
+    if (element || container) {
+      viewport.setElement(element as Element, container as IContainer, options);
     }
     return viewport;
   }
-  public removeViewport(viewport: Viewport, viewportController: ICustomElementController<Element> | null): boolean {
-    if (!viewportController || viewport.remove(viewportController)) {
+  public removeViewport(viewport: Viewport, element: Element | null, container: IContainer | null): boolean {
+    if ((!element && !container) || viewport.remove(element, container)) {
       this.removeChild(viewport.connectedScope);
       return true;
     }

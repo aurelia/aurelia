@@ -48,7 +48,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel<HTMLElemen
 
   private hasGoto(): boolean {
     const parent = this.$controller.parent!;
-    const siblings = parent.children;
+    const siblings = parent.vmKind !== ViewModelKind.customAttribute ? parent.controllers : void 0;
     return siblings !== void 0
       && siblings.some(c => c.vmKind === ViewModelKind.customAttribute && c.viewModel instanceof GotoCustomAttribute);
   }

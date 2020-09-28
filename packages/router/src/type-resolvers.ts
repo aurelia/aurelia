@@ -72,11 +72,7 @@ export interface IViewportInstructionsOptions {
 }
 
 export const NavigationInstructionResolver = {
-  createViewportInstructions: function (
-    router: IRouter,
-    navigationInstructions: NavigationInstruction | NavigationInstruction[],
-    options?: IViewportInstructionsOptions,
-  ): { instructions: string | ViewportInstruction[]; scope: Scope | null } {
+  createViewportInstructions: function (router: IRouter, navigationInstructions: NavigationInstruction | NavigationInstruction[], options?: IViewportInstructionsOptions): { instructions: string | ViewportInstruction[]; scope: Scope | null } {
     options = options || {};
     let scope: Scope | null = null;
     if (options.context) {

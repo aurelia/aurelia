@@ -8,9 +8,6 @@ import {
   ICompiledCustomElementController,
   ICustomElementViewModel,
   ICustomElementController,
-  IHydratedController,
-  IHydratedParentController,
-  ControllerVisitor,
 } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { IViewportOptions, Viewport } from '../viewport';
@@ -37,6 +34,8 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
 
   private readonly element: Element;
 
+  private isBound: boolean = false;
+
   public constructor(
     @IRouter private readonly router: IRouter,
     @INode element: INode,
@@ -52,51 +51,95 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
     // this.connect();
   }
 
-  public async afterAttach(
-    initiator: IHydratedController<Element>,
-    parent: IHydratedParentController<Element> | null,
-    flags: LifecycleFlags,
-  ): Promise<void> {
+  public afterUnbind(): void {
+    this.isBound = false;
+  }
+
+  public connect(): void {
     if (this.router.rootScope === null) {
       return;
     }
     const name: string = this.getAttribute('name', this.name) as string;
-    const options: IViewportOptions = {
-      scope: !this.noScope,
-      usedBy: this.usedBy,
-      default: this.default,
-      fallback: this.fallback,
-      noLink: this.element.hasAttribute('no-link'),
-      noHistory: this.element.hasAttribute('no-history'),
-      stateful: this.element.hasAttribute('stateful'),
-    };
-    this.viewport = this.router.connectViewport(this.viewport, this.$controller, name, options);
-    await this.viewport.activate(initiator, this.$controller, flags);
+    let value: string | boolean | undefined = this.getAttribute('no-scope', this.noScope);
+    const options: IViewportOptions = { scope: value === void 0 || !value ? true : false };
+    value = this.getAttribute('used-by', this.usedBy);
+    if (value !== void 0) {
+      options.usedBy = value as string;
+    }
+    value = this.getAttribute('default', this.default);
+    if (value !== void 0) {
+      options.default = value as string;
+    }
+    value = this.getAttribute('fallback', this.fallback);
+    if (value !== void 0) {
+      options.fallback = value as string;
+    }
+    value = this.getAttribute('no-link', this.noLink, true);
+    if (value !== void 0) {
+      options.noLink = value as boolean;
+    }
+    value = this.getAttribute('no-history', this.noHistory, true);
+    if (value !== void 0) {
+      options.noHistory = value as boolean;
+    }
+    value = this.getAttribute('stateful', this.stateful, true);
+    if (value !== void 0) {
+      options.stateful = value as boolean;
+    }
+    this.viewport = this.router.connectViewport(this.viewport, this.container, name, this.element, options);
+  }
+  public disconnect(): void {
+    if (this.viewport) {
+      this.router.disconnectViewport(this.viewport, this.container, this.element);
+    }
+    this.viewport = null;
   }
 
-  public async afterUnbind(
-    initiator: IHydratedController<Element>,
-    parent: IHydratedParentController<Element> | null,
-    flags: LifecycleFlags,
-  ): Promise<void> {
-    const { viewport } = this;
-    if (viewport !== null) {
-      this.router.disconnectViewport(viewport, this.$controller);
-      this.viewport = null;
-      await viewport.deactivate(initiator, this.$controller, flags);
+  public beforeBind(flags: LifecycleFlags): void {
+    this.isBound = true;
+    this.connect();
+    if (this.viewport) {
+      this.viewport.beforeBind(flags);
+    }
+  }
+
+  public beforeAttach(flags: LifecycleFlags): Promise<void> {
+    if (this.viewport) {
+      return this.viewport.beforeAttach(flags);
+    }
+    return Promise.resolve();
+  }
+
+  public beforeDetach(flags: LifecycleFlags): Promise<void> {
+    if (this.viewport) {
+      return this.viewport.beforeDetach(flags);
+    }
+    return Promise.resolve();
+  }
+
+  public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
+    if (this.viewport) {
+      await this.viewport.beforeUnbind(flags);
+      this.disconnect();
     }
   }
 
   private getAttribute(key: string, value: string | boolean, checkExists: boolean = false): string | boolean | undefined {
-    if (checkExists) {
-      return this.element.hasAttribute(key);
+    const result: Record<string, string | boolean> = {};
+    if (this.isBound && !checkExists) {
+      return value;
+    } else {
+      if (this.element.hasAttribute(key)) {
+        if (checkExists) {
+          return true;
+        } else {
+          value = this.element.getAttribute(key) as string;
+          if (value.length > 0) {
+            return value;
+          }
+        }
+      }
     }
-    return value;
-  }
-
-  public accept(visitor: ControllerVisitor<Element>): void | true {
-    if (this.viewport?.content?.content?.componentInstance?.accept?.(visitor) === true) {
-      return true;
-    }
+    return void 0;
   }
 }

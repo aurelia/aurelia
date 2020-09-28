@@ -12,7 +12,11 @@ import {
   INode,
   INodeSequence,
   IRenderLocation,
-  CustomElement
+  CustomElement,
+  INodeAccessor,
+  IScheduler,
+  ITask,
+  QueueTaskOptions
 } from '@aurelia/runtime';
 import { ShadowDOMProjector } from './projectors';
 
@@ -32,6 +36,13 @@ export const enum NodeType {
 }
 
 const effectiveParentNodeOverrides = new WeakMap<Node, Node>();
+const taskOptions: QueueTaskOptions = {
+  reusable: false,
+  preempt: true,
+};
+const flushNodeAccessor = (accessor: INodeAccessor) => {
+  accessor.flushChanges();
+};
 
 /**
  * IDOM implementation for Html.
@@ -43,8 +54,11 @@ export class HTMLDOM implements IDOM {
   public readonly CustomEvent: typeof CustomEvent;
   public readonly CSSStyleSheet: typeof CSSStyleSheet;
   public readonly ShadowRoot: typeof ShadowRoot;
+  public readonly scheduler: IScheduler;
 
   private readonly emptyNodes: FragmentNodeSequence;
+  private readonly flushQueue: Set<INodeAccessor> = new Set();
+  private task: ITask | null = null;
 
   public constructor(
     public readonly window: Window,
@@ -54,7 +68,8 @@ export class HTMLDOM implements IDOM {
     THTMLElement: typeof HTMLElement,
     TCustomEvent: typeof CustomEvent,
     TCSSStyleSheet: typeof CSSStyleSheet,
-    TShadowRoot: typeof ShadowRoot
+    TShadowRoot: typeof ShadowRoot,
+    scheduler: IScheduler,
   ) {
     this.Node = TNode;
     this.Element = TElement;
@@ -62,6 +77,7 @@ export class HTMLDOM implements IDOM {
     this.CustomEvent = TCustomEvent;
     this.CSSStyleSheet = TCSSStyleSheet;
     this.ShadowRoot = TShadowRoot;
+    this.scheduler = scheduler;
     if (DOM.isInitialized) {
       Reporter.write(1001); // TODO: create reporters code // DOM already initialized (just info)
       DOM.destroy();
@@ -73,6 +89,19 @@ export class HTMLDOM implements IDOM {
 
   public static register(container: IContainer): IResolver<IDOM> {
     return Registration.aliasTo(IDOM, this).register(container);
+  }
+
+  public queueFlushChanges(accessor: INodeAccessor): void {
+    const queue = this.flushQueue;
+    if (this.task == null) {
+      this.task = this.scheduler.queueRenderTask(() => {
+        queue.forEach(flushNodeAccessor);
+        queue.clear();
+        this.task = null;
+      }, taskOptions);
+    }
+
+    queue.add(accessor);
   }
 
   public addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void {

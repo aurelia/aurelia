@@ -224,7 +224,7 @@ export interface IAccessor<TValue = unknown> {
 }
 
 export interface INodeAccessor<TValue = unknown> extends IAccessor<TValue> {
-  flushChanges(flags: LifecycleFlags): void;
+  flushChanges(): void;
 }
 
 /**

@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/promise-function-async */
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 /* eslint-disable max-lines-per-function */
 import { DI, IContainer, Key, Reporter, Registration, Metadata } from '@aurelia/kernel';
 import { Aurelia, CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, isRenderContext } from '@aurelia/runtime';
@@ -22,6 +18,9 @@ import { Scope, IScopeOwner } from './scope';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 import { BrowserViewerStore } from './browser-viewer-store';
 
+/**
+ * Public API
+ */
 export interface IGotoOptions {
   title?: string;
   query?: string;
@@ -31,6 +30,9 @@ export interface IGotoOptions {
   origin?: ICustomElementViewModel | Element;
 }
 
+/**
+ * Public API
+ */
 export interface IRouterOptions extends INavigatorOptions {
   separators?: IRouteSeparators;
   useUrlFragmentHash?: boolean;
@@ -42,6 +44,9 @@ export interface IRouterOptions extends INavigatorOptions {
   reportCallback?(instruction: INavigatorInstruction): void;
 }
 
+/**
+ * Public API
+ */
 export interface IRouter {
   readonly isNavigating: boolean;
   activeComponents: ViewportInstruction[];
@@ -74,9 +79,9 @@ export interface IRouter {
   unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void;
 
   // Called from the viewport custom element
-  connectViewport(viewport: Viewport | null, controller: ICustomElementController<Element>, name: string, options?: IViewportOptions): Viewport;
+  connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport;
   // Called from the viewport custom element
-  disconnectViewport(viewport: Viewport, controller: ICustomElementController<Element>): void;
+  disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void;
   // Called from the viewport scope custom element
   connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope;
   // Called from the viewport scope custom element
@@ -111,6 +116,9 @@ export interface IRouter {
 }
 
 class ClosestViewportCustomElement { }
+/**
+ * @internal
+ */
 class ClosestScope { }
 
 export const IRouter = DI.createInterface<IRouter>('IRouter').withDefault(x => x.singleton(Router));
@@ -120,14 +128,32 @@ export class Router implements IRouter {
 
   public rootScope: ViewportScope | null = null;
 
+  /**
+   * @internal
+   */
   public hookManager: HookManager;
 
+  /**
+   * @internal
+   */
   public navs: Record<string, Nav> = {};
+  /**
+   * Public API
+   */
   public activeComponents: ViewportInstruction[] = [];
+  /**
+   * Public API
+   */
   public activeRoute?: IRoute;
 
+  /**
+   * @internal
+   */
   public appendedInstructions: ViewportInstruction[] = [];
 
+  /**
+   * @internal
+   */
   public options: IRouterOptions = {
     useHref: true,
     statefulHistoryLength: 0,
@@ -142,23 +168,47 @@ export class Router implements IRouter {
   private staleChecks: Record<string, ViewportInstruction[]> = {};
 
   public constructor(
+    /**
+     * @internal - Shouldn't be used directly.
+     */
     public readonly container: IContainer,
+    /**
+     * @internal - Shouldn't be used directly.
+     */
     public navigator: Navigator,
+    /**
+     * @internal - Shouldn't be used directly.
+     */
     public navigation: BrowserViewerStore,
+    /**
+     * @internal - Shouldn't be used directly.
+     */
     public linkHandler: LinkHandler,
+    /**
+     * @internal - Shouldn't be used directly. Probably.
+     */
     public instructionResolver: InstructionResolver
   ) {
     this.hookManager = new HookManager();
   }
 
+  /**
+   * Public API
+   */
   public get isNavigating(): boolean {
     return this.processingNavigation !== null;
   }
 
+  /**
+   * @internal
+   */
   public get statefulHistory(): boolean {
     return this.options.statefulHistoryLength !== void 0 && this.options.statefulHistoryLength > 0;
   }
 
+  /**
+   * Public API
+   */
   public activate(options?: IRouterOptions): void {
     if (this.isActive) {
       throw new Error('Router has already been activated');
@@ -188,6 +238,9 @@ export class Router implements IRouter {
     this.ensureRootScope();
   }
 
+  /**
+   * Public API
+   */
   public async loadUrl(): Promise<void> {
     const entry: INavigatorEntry = {
       ...this.navigation.viewerState,
@@ -202,6 +255,9 @@ export class Router implements IRouter {
     return result;
   }
 
+  /**
+   * Public API
+   */
   public deactivate(): void {
     if (!this.isActive) {
       throw new Error('Router has not been activated');
@@ -211,6 +267,9 @@ export class Router implements IRouter {
     this.navigation.deactivate();
   }
 
+  /**
+   * @internal
+   */
   // TODO: use @bound and improve name (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
   public linkCallback = (info: AnchorEventInfo): void => {
@@ -226,6 +285,9 @@ export class Router implements IRouter {
     this.goto(instruction, { origin: info.anchor! }).catch(error => { throw error; });
   };
 
+  /**
+   * @internal
+   */
   // TODO: use @bound and improve name (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
   public navigatorCallback = (instruction: INavigatorInstruction): void => {
@@ -233,6 +295,9 @@ export class Router implements IRouter {
     this.processNavigations(instruction).catch(error => { throw error; });
   };
 
+  /**
+   * @internal
+   */
   // TODO: use @bound and improve name (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
   public navigatorSerializeCallback = async (entry: IStoredNavigatorEntry, preservedEntries: IStoredNavigatorEntry[]): Promise<IStoredNavigatorEntry> => {
@@ -277,6 +342,9 @@ export class Router implements IRouter {
     return serialized;
   };
 
+  /**
+   * @internal
+   */
   // TODO: use @bound and improve name (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
   public browserNavigatorCallback = (browserNavigationEvent: INavigatorViewerEvent): void => {
@@ -288,6 +356,9 @@ export class Router implements IRouter {
     this.navigator.navigate(entry).catch(error => { throw error; });
   };
 
+  /**
+   * @internal
+   */
   // TODO: use @bound and improve name (eslint-disable is temp)
   // eslint-disable-next-line @typescript-eslint/typedef
   public processNavigations = async (qInstruction: QueueItem<INavigatorInstruction>): Promise<void> => {
@@ -500,6 +571,9 @@ export class Router implements IRouter {
     await this.navigator.finalize(instruction);
   };
 
+  /**
+   * @internal
+   */
   public findScope(origin: Element | ICustomElementViewModel | Viewport | Scope | ICustomElementController | null): Scope {
     // this.ensureRootScope();
     if (origin === void 0 || origin === null) {
@@ -510,6 +584,9 @@ export class Router implements IRouter {
     }
     return this.getClosestScope(origin) || this.rootScope!.scope;
   }
+  /**
+   * @internal
+   */
   public findParentScope(container: IContainer | null): Scope {
     if (container === null) {
       return this.rootScope!.scope;
@@ -527,16 +604,41 @@ export class Router implements IRouter {
     return this.rootScope!.scope;
   }
 
-  // External API to get viewport by name
+  /**
+   * Public API - Get viewport by name
+   */
   public getViewport(name: string): Viewport | null {
     return this.allViewports().find(viewport => viewport.name === name) || null;
   }
+  /**
+   * Public API (not yet implemented)
+   */
+  public addViewport(...args: unknown[]): unknown {
+    throw new Error('Not implemented');
+  }
+  /**
+   * Public API (not yet implemented)
+   */
+  public findViewportScope(...args: unknown[]): unknown {
+    throw new Error('Not implemented');
+  }
+  /**
+   * Public API (not yet implemented)
+   */
+  public addViewportScope(...args: unknown[]): unknown {
+    throw new Error('Not implemented');
+  }
 
-  // Called from the viewport scope custom element in created()
+  /**
+   * @internal - Called from the viewport scope custom element in created()
+   */
   public setClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer, scope: Scope): void {
     const container: IContainer | null = this.getContainer(viewModelOrContainer);
     Registration.instance(ClosestScope, scope).register(container!);
   }
+  /**
+   * @internal
+   */
   public getClosestScope(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController | IContainer): Scope | null {
     const container: IContainer | null = 'resourceResolvers' in viewModelOrElement
       ? viewModelOrElement as IContainer
@@ -549,29 +651,38 @@ export class Router implements IRouter {
     }
     return container.get<Scope>(ClosestScope) || null;
   }
+  /**
+   * @internal
+   */
   public unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void {
     const container: IContainer | null = this.getContainer(viewModelOrContainer);
     // TODO: Get an 'unregister' on container
     (container as any).resolvers.delete(ClosestScope);
   }
 
-  // Called from the viewport custom element in attached()
-  public connectViewport(viewport: Viewport | null, controller: ICustomElementController<Element>, name: string, options?: IViewportOptions): Viewport {
-    const parentScope: Scope = this.findParentScope(controller.context);
+  /**
+   * @internal - Called from the viewport custom element
+   */
+  public connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport {
+    const parentScope: Scope = this.findParentScope(container);
     if (viewport === null) {
-      viewport = parentScope.addViewport(name, controller, options);
-      this.setClosestScope(controller.context, viewport.connectedScope);
+      viewport = parentScope.addViewport(name, element, container, options);
+      this.setClosestScope(container, viewport.connectedScope);
     }
     return viewport as Viewport;
   }
-  // Called from the viewport custom element
-  public disconnectViewport(viewport: Viewport, controller: ICustomElementController<Element>): void {
-    if (!viewport.connectedScope.parent!.removeViewport(viewport, controller)) {
+  /**
+   * @internal - Called from the viewport custom element
+   */
+  public disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void {
+    if (!viewport.connectedScope.parent!.removeViewport(viewport, element, container)) {
       throw new Error(`Failed to remove viewport: ${viewport.name}`);
     }
-    this.unsetClosestScope(controller.context);
+    this.unsetClosestScope(container);
   }
-  // Called from the viewport scope custom element in attached()
+  /**
+   * @internal - Called from the viewport scope custom element
+   */
   public connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope {
     const parentScope: Scope = this.findParentScope(container);
     if (viewportScope === null) {
@@ -580,7 +691,9 @@ export class Router implements IRouter {
     }
     return viewportScope as ViewportScope;
   }
-  // Called from the viewport scope custom element
+  /**
+   * @internal - Called from the viewport scope custom element
+   */
   public disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void {
     if (!viewportScope.connectedScope.parent!.removeViewportScope(viewportScope)) {
       throw new Error(`Failed to remove viewport scope: ${viewportScope.path}`);
@@ -588,11 +701,17 @@ export class Router implements IRouter {
     this.unsetClosestScope(container);
   }
 
+  /**
+   * @internal
+   */
   public allViewports(includeDisabled: boolean = false, includeReplaced: boolean = false): Viewport[] {
     // this.ensureRootScope();
     return (this.rootScope as ViewportScope).scope.allViewports(includeDisabled, includeReplaced);
   }
 
+  /**
+   * Public API - THE navigation API
+   */
   public goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void> {
     options = options || {};
     // TODO: Review query extraction; different pos for path and fragment!
@@ -630,18 +749,30 @@ export class Router implements IRouter {
     return this.navigator.navigate(entry);
   }
 
+  /**
+   * Public API
+   */
   public refresh(): Promise<void> {
     return this.navigator.refresh();
   }
 
+  /**
+   * Public API
+   */
   public back(): Promise<void> {
     return this.navigator.go(-1);
   }
 
+  /**
+   * Public API
+   */
   public forward(): Promise<void> {
     return this.navigator.go(1);
   }
 
+  /**
+   * Public API
+   */
   public checkActive(instructions: ViewportInstruction[]): boolean {
     for (const instruction of instructions) {
       const scopeInstructions: ViewportInstruction[] = this.instructionResolver.matchScope(this.activeComponents, instruction.scope!);
@@ -661,6 +792,9 @@ export class Router implements IRouter {
     return true;
   }
 
+  /**
+   * Public API
+   */
   public setNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
     const nav = this.findNav(name);
     if (nav !== void 0 && nav !== null) {
@@ -668,6 +802,9 @@ export class Router implements IRouter {
     }
     this.addNav(name, routes, classes);
   }
+  /**
+   * Public API
+   */
   public addNav(name: string, routes: INavRoute[], classes?: INavClasses): void {
     let nav = this.navs[name];
     if (nav === void 0 || nav === null) {
@@ -676,6 +813,9 @@ export class Router implements IRouter {
     nav.addRoutes(routes);
     nav.update();
   }
+  /**
+   * Public API
+   */
   public updateNav(name?: string): void {
     const navs = name
       ? [name]
@@ -686,10 +826,16 @@ export class Router implements IRouter {
       }
     }
   }
+  /**
+   * Public API
+   */
   public findNav(name: string): Nav {
     return this.navs[name];
   }
 
+  /**
+   * Public API
+   */
   public addRoutes(routes: IRoute[], context?: ICustomElementViewModel | Element): IRoute[] {
     // TODO: This should add to the context instead
     // TODO: Add routes without context to rootScope content (which needs to be created)?
@@ -697,15 +843,24 @@ export class Router implements IRouter {
     // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
     // return viewport.addRoutes(routes);
   }
+  /**
+   * Public API
+   */
   public removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel | Element): void {
     // TODO: This should remove from the context instead
     // const viewport = (context !== void 0 ? this.closestViewport(context) : this.rootScope) || this.rootScope as Viewport;
     // return viewport.removeRoutes(routes);
   }
 
+  /**
+   * Public API
+   */
   public addHooks(hooks: IHookDefinition[]): HookIdentity[] {
     return hooks.map(hook => this.addHook(hook.hook, hook.options));
   }
+  /**
+   * Public API
+   */
   public addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
   public addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
   public addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
@@ -713,10 +868,16 @@ export class Router implements IRouter {
   public addHook(hook: HookFunction, options: IHookOptions): HookIdentity {
     return this.hookManager.addHook(hook, options);
   }
+  /**
+   * Public API
+   */
   public removeHooks(hooks: HookIdentity[]): void {
     return;
   }
 
+  /**
+   * Public API - The right way to create ViewportInstructions
+   */
   public createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: ViewportInstruction[] | null = null): ViewportInstruction {
     return this.instructionResolver.createViewportInstruction(component, viewport, parameters, ownsScope, nextScopeInstructions);
   }

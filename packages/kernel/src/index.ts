@@ -27,7 +27,7 @@ export {
   newInstanceOf,
   DefaultContainerConfiguration,
   DefaultResolver,
-  IContainerConfiguration
+  IContainerConfiguration,
 } from './di';
 export {
   Class,
@@ -69,6 +69,9 @@ export {
 export {
   metadata,
   Metadata,
+  isNullOrUndefined,
+  isObject,
+  applyMetadataPolyfill,
 } from '@aurelia/metadata';
 export {
   IConsoleLike,
@@ -85,6 +88,7 @@ export {
   ConsoleSink,
   LoggerConfiguration,
   format,
+  sink,
 } from './logger';
 export {
   relativeToFile,
@@ -134,7 +138,5 @@ export {
   mergeObjects,
   firstDefined,
   getPrototypeChain,
-  isObject,
-  isNullOrUndefined,
   isNativeFunction,
 } from './functions';

@@ -31,7 +31,7 @@
     "packages/runtime-html",
     "packages/runtime-html-browser",
     "packages/runtime-html-jsdom",
-    "packages/runtime-node",
+    "packages/http-server",
     "packages/scheduler",
     "packages/scheduler-dom",
     "packages/scheduler-node",
@@ -56,7 +56,12 @@
     "test/rainbow-spiral",
     "test/realworld",
     "test/sierpinski-triangle",
-    "examples/jit-webpack-vanilla-ts"
+    "test/router-layouts",
+    "test/router-modules",
+    "test/router-nav",
+    "test/router-scope",
+    "test/router-siblings",
+    "test/router-wizard"
   ],
-  "version": "0.6.0"
+  "version": "0.7.0"
 }

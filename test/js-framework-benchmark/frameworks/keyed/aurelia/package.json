@@ -1,7 +1,7 @@
 {
-  "name": "aurelia",
+  "name": "test-js-framework-benchmark-aurelia1",
   "description": "An Aurelia client application.",
-  "version": "0.1.0",
+  "version": "0.7.0",
   "js-framework-benchmark": {
     "frameworkVersion": "",
     "customURL": "/dist/"

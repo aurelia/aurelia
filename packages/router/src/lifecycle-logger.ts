@@ -1,3 +1,6 @@
+/**
+ * @internal - Will be removed
+ */
 export function lifecycleLogger(name: string) {
   const lifecycles = [
     'canLeave', 'leave',

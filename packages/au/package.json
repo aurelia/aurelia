@@ -1,6 +1,6 @@
 {
   "name": "au",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "main": "dist/esnext/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -40,19 +40,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/aot": "0.6.0",
-    "@aurelia/debug": "0.6.0",
-    "@aurelia/jit": "0.6.0",
-    "@aurelia/kernel": "0.6.0",
-    "@aurelia/runtime": "0.6.0",
-    "@aurelia/runtime-node": "0.6.0",
-    "@aurelia/testing": "0.6.0",
-    "typescript": "^3.7.4",
-    "ws": "^7.2.1"
+    "@aurelia/debug": "0.7.0",
+    "@aurelia/kernel": "0.7.0",
+    "@aurelia/http-server": "0.7.0"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",
-    "@types/ws": "^6.0.4",
-    "tslib": "^1.10.0"
+    "tslib": "^1.10.0",
+    "typescript": "^3.8.3"
   }
 }

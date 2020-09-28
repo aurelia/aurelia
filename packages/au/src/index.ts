@@ -1,9 +1,9 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
-import { AuConfigurationOptions, LogLevel } from './au-configuration-options';
+import { AuConfigurationOptions } from './au-configuration-options';
 import { DevServer } from "./dev-server";
-export { AuConfigurationOptions, LogLevel };
+export { AuConfigurationOptions };
 
 type AuCommands = 'help' | 'dev';
 
@@ -41,38 +41,7 @@ function parseArgs(args: string[]): ParsedArgs {
       break;
     case 'dev': {
       parsed = new ParsedArgs(cmd, configuration);
-      const server = configuration.server;
-      while (args.length > 0) {
-        const key = args[0].trim().replace(/-/g, '');
-        const value = args[1];
-        switch (key) {
-          case 'server.root':
-            server.root = resolve(cwd, value);
-            break;
-          case 'server.hostName':
-            server.hostName = value;
-            break;
-          case 'server.port':
-            server.port = Number(value);
-            break;
-          case 'server.key':
-            server.key = resolve(cwd, value);
-            break;
-          case 'server.cert':
-            server.cert = resolve(cwd, value);
-            break;
-          case 'server.useHttp2':
-            server.useHttp2 = value === 'true';
-            break;
-          case 'server.logLevel':
-            server.logLevel = value as unknown as LogLevel;
-            break;
-          default:
-            parsed.unconsumedArgs.push(key, value);
-            break;
-        }
-        args.splice(0, 2);
-      }
+      configuration.server.applyOptionsFromCli(cwd, args, 'server.');
       break;
     }
     default:

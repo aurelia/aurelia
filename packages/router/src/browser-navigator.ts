@@ -21,6 +21,9 @@ export interface IBrowserNavigatorOptions extends INavigatorViewerOptions {
   useUrlFragmentHash?: boolean;
 }
 
+/**
+ * @internal - Will be removed
+ */
 export class BrowserNavigator implements INavigatorStore, INavigatorViewer {
   public window: Window;
   public history: History;

@@ -138,4 +138,6 @@ export {
   firstDefined,
   getPrototypeChain,
   isNativeFunction,
+  onResolve,
+  resolveAll,
 } from './functions';

@@ -16,7 +16,7 @@ import {
   fromAnnotationOrDefinitionOrTypeOrDefault,
 } from '@aurelia/kernel';
 import { registerAliases } from '../definitions';
-import { LifecycleFlags, State } from '../flags';
+import { LifecycleFlags } from '../flags';
 import { IScope, ISubscribable, IProxySubscribable } from '../observation';
 import { IBinding } from '../lifecycle';
 import { connectable, IConnectableBinding } from '../binding/connectable';
@@ -129,13 +129,14 @@ export class BindingBehaviorFactory<T extends Constructable = Constructable> {
       case 0:
       case 1:
       case 2:
-        return new this.Type(binding, expr) as IInterceptableBinding;
+        // TODO(fkleuver): fix this cast
+        return new this.Type(binding, expr) as unknown as IInterceptableBinding;
       case 3:
-        return new this.Type(container.get(deps[0]), binding, expr) as IInterceptableBinding;
+        return new this.Type(container.get(deps[0]), binding, expr) as unknown as IInterceptableBinding;
       case 4:
-        return new this.Type(container.get(deps[0]), container.get(deps[1]), binding, expr) as IInterceptableBinding;
+        return new this.Type(container.get(deps[0]), container.get(deps[1]), binding, expr) as unknown as IInterceptableBinding;
       default:
-        return new this.Type(...deps.map(d => container.get(d)), binding, expr) as IInterceptableBinding;
+        return new this.Type(...deps.map(d => container.get(d)), binding, expr) as unknown as IInterceptableBinding;
     }
   }
 }
@@ -174,8 +175,8 @@ export class BindingInterceptor implements IInterceptableBinding {
   public get part(): string | undefined {
     return this.binding.part;
   }
-  public get $state(): State {
-    return this.binding.$state;
+  public get isBound(): boolean {
+    return this.binding.isBound;
   }
 
   public constructor(

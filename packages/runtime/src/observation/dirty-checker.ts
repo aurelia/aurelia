@@ -104,7 +104,7 @@ export class DirtyChecker {
     for (; i < len; ++i) {
       current = tracked[i];
       if (current.isDirty()) {
-        current.flush(LifecycleFlags.fromTick);
+        current.flush(LifecycleFlags.none);
       }
     }
   }

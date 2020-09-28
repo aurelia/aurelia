@@ -243,7 +243,7 @@ export function getRefTarget(refHost: INode, refTargetName: string): object {
       if (caController !== void 0) {
         return caController.viewModel!;
       }
-      const ceController = CustomElement.for(refHost, refTargetName);
+      const ceController = CustomElement.for(refHost, { name: refTargetName });
       if (ceController === void 0) {
         throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
       }
@@ -406,8 +406,8 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     Metadata.define(key, childController, renderLocation);
 
     if (instruction.link) {
-      const controllers = controller.controllers!;
-      (component as { link(componentTail: IController): void}).link(controllers[controllers.length - 1]);
+      const children = controller.children!;
+      (component as { link(componentTail: IController): void}).link(children[children.length - 1]);
     }
 
     parentContext.renderInstructions(

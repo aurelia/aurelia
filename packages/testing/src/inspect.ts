@@ -1308,13 +1308,8 @@ const methodNamesWithFlags: PropertyKey[] = [
 
   'attachControllers',
 
-  'beforeAttach',
   'afterAttach',
-
-  'mount',
-  'mountCustomElement',
-  'mountCustomAttribute',
-  'mountSynthetic',
+  'afterAttachChildren',
 
   'detach',
   'detachCustomElement',
@@ -1324,21 +1319,16 @@ const methodNamesWithFlags: PropertyKey[] = [
   'detachControllers',
 
   'beforeDetach',
-  'afterDetach',
+  'afterDetachChildren',
 
-  'unmount',
-  'unmountCustomElement',
-  'unmountCustomAttribute',
-  'unmountSynthetic',
-
-  'release',
+  'tryReturnToCache',
 
   'cache',
   'cacheCustomElement',
   'cacheCustomAttribute',
   'cacheSynthetic',
 
-  'caching',
+  'dispose',
 
   'unbind',
   'unbindCustomElement',
@@ -1350,7 +1340,7 @@ const methodNamesWithFlags: PropertyKey[] = [
   'endUnbind',
 
   'beforeUnbind',
-  'afterUnbind',
+  'afterUnbindChildren',
 ];
 
 export function formatProperty(
@@ -1388,13 +1378,8 @@ export function formatProperty(
 
           case 'attachControllers':
 
-          case 'beforeAttach':
           case 'afterAttach':
-
-          case 'mount':
-          case 'mountCustomElement':
-          case 'mountCustomAttribute':
-          case 'mountSynthetic':
+          case 'afterAttachChildren':
 
           case 'detach':
           case 'detachCustomElement':
@@ -1404,21 +1389,16 @@ export function formatProperty(
           case 'detachControllers':
 
           case 'beforeDetach':
-          case 'afterDetach':
+          case 'afterDetachChildren':
 
-          case 'unmount':
-          case 'unmountCustomElement':
-          case 'unmountCustomAttribute':
-          case 'unmountSynthetic':
-
-          case 'release':
+          case 'tryReturnToCache':
 
           case 'cache':
           case 'cacheCustomElement':
           case 'cacheCustomAttribute':
           case 'cacheSynthetic':
 
-          case 'caching':
+          case 'dispose':
 
           case 'unbind':
           case 'unbindCustomElement':
@@ -1430,7 +1410,7 @@ export function formatProperty(
           case 'endUnbind':
 
           case 'beforeUnbind':
-          case 'afterUnbind':
+          case 'afterUnbindChildren':
             value.args[0] = stringifyLifecycleFlags(value.args[0]);
             break;
           case 'valueChanged':

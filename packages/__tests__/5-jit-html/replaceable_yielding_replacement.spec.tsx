@@ -229,7 +229,7 @@ describe('replaceable', function () {
 
           assert.strictEqual(host.textContent, expectedTextContent, `host.textContent`);
           if (customAssertion) {
-            await customAssertion(host, component, component.$controller.controllers[0] as any as IFoo);
+            await customAssertion(host, component, component.$controller.children[0] as any as IFoo);
           }
           await tearDown(au);
         });

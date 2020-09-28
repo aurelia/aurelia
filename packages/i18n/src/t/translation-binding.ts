@@ -16,7 +16,6 @@ import {
   IScope,
   IsExpression,
   LifecycleFlags,
-  State,
   INode,
   IRenderableController,
 } from '@aurelia/runtime';
@@ -50,7 +49,7 @@ export interface TranslationBinding extends IConnectableBinding {}
 export class TranslationBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
   public id!: number;
-  public $state: State;
+  public isBound: boolean = false;
   public expr!: IsExpression;
   public parametersExpr?: IsExpression;
   private readonly i18n: I18N;
@@ -61,7 +60,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private isInterpolatedSourceExpr!: boolean;
   private readonly targetObservers: Set<IBindingTargetAccessor>;
 
-  public readonly target: HTMLElement;
+  public target: HTMLElement;
 
   public constructor(
     target: INode,
@@ -69,7 +68,6 @@ export class TranslationBinding implements IPartialConnectableBinding {
     public locator: IServiceLocator,
   ) {
     this.target = target as HTMLElement;
-    this.$state = State.none;
     this.i18n = this.locator.get(I18N);
     const ea: IEventAggregator = this.locator.get(IEventAggregator);
     ea.subscribe(Signals.I18N_EA_CHANNEL, this.handleLocaleChange.bind(this));
@@ -128,14 +126,13 @@ export class TranslationBinding implements IPartialConnectableBinding {
     }
 
     this.updateTranslations(flags);
-    this.$state = State.isBound;
+    this.isBound = true;
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
-    this.$state |= State.isUnbinding;
 
     if (this.expr.unbind) {
       this.expr.unbind(flags, this.scope, this as any);
@@ -283,5 +280,11 @@ export class TranslationBinding implements IPartialConnectableBinding {
     if (exprType !== 'string') {
       throw new Error(`Expected the i18n key to be a string, but got ${expr} of type ${exprType}`); // TODO use reporter/logger
     }
+  }
+
+  public dispose(): void {
+    this.interceptor = (void 0)!;
+    this.locator = (void 0)!;
+    this.target = (void 0)!;
   }
 }

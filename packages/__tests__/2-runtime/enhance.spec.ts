@@ -233,8 +233,8 @@ describe('enhance', function () {
       afterCompileChildren() { this.eventLog.push('afterCompileChildren'); },
       beforeBind() { this.eventLog.push('beforeBind'); },
       afterBind() { this.eventLog.push('afterBind'); },
-      beforeAttach() { this.eventLog.push('beforeAttach'); },
       afterAttach() { this.eventLog.push('afterAttach'); },
+      afterAttachChildren() { this.eventLog.push('afterAttachChildren'); },
     };
     const container = ctx.container;
     const au = new Aurelia(container);
@@ -251,8 +251,8 @@ describe('enhance', function () {
       'afterCompileChildren',
       'beforeBind',
       'afterBind',
-      'beforeAttach',
       'afterAttach',
+      'afterAttachChildren',
     ]);
   });
 

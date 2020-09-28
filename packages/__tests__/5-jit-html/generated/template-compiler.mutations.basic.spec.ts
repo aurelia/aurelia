@@ -35,11 +35,11 @@
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during beforeAttach() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
 //             }
-//             afterAttach() {
+//             afterAttachChildren() {
 //                 this.items.push(4);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "12345678123" : "123", "this.el.textContent during afterAttach() before mutation before flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "12345678123" : "123", "this.el.textContent during afterAttachChildren() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "123456781234" : "1234", "this.el.textContent during afterAttach() after mutation after flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "123456781234" : "1234", "this.el.textContent during afterAttachChildren() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //             beforeDetach() {
 //                 this.items.push(5);
@@ -47,18 +47,18 @@
 //                 this.$lifecycle.processFlushQueue();
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "1234567812345" : "12345", "this.el.textContent during beforeDetach() after mutation after flushChanges()", `this.el.textContent`);
 //             }
-//             afterDetach() {
+//             afterDetachChildren() {
 //                 this.items.push(6);
 //             }
 //             beforeUnbind() {
 //                 this.items.push(7);
 //             }
-//             afterUnbind() {
+//             afterUnbindChildren() {
 //                 this.items.push(8);
 //                 this.cycled = true;
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterUnbind() before mutation before flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterUnbindChildren() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterUnbind() after mutation after flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterUnbindChildren() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //         });
 //         au.register(Foo);
@@ -102,26 +102,26 @@
 //                 this.items.push(3);
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during beforeAttach() before mutation", `this.el.textContent`);
 //             }
-//             afterAttach() {
+//             afterAttachChildren() {
 //                 this.items.push(4);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "12345678123" : "123", "this.el.textContent during afterAttach() before mutation", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "12345678123" : "123", "this.el.textContent during afterAttachChildren() before mutation", `this.el.textContent`);
 //             }
 //             beforeDetach() {
 //                 this.items.push(5);
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "12345678123" : "123", "this.el.textContent during beforeDetach() before mutation", `this.el.textContent`);
 //             }
-//             afterDetach() {
+//             afterDetachChildren() {
 //                 this.items.push(6);
 //             }
 //             beforeUnbind() {
 //                 this.items.push(7);
 //             }
-//             afterUnbind() {
+//             afterUnbindChildren() {
 //                 this.items.push(8);
 //                 this.cycled = true;
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterUnbind() before mutation before flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterUnbindChildren() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterUnbind() after mutation after flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterUnbindChildren() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //         });
 //         au.register(Foo);
@@ -167,11 +167,11 @@
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during beforeAttach() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
 //             }
-//             afterAttach() {
+//             afterAttachChildren() {
 //                 this.items.push(4);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "2", "this.el.textContent during afterAttach() before mutation before flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "2", "this.el.textContent during afterAttachChildren() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "24", "this.el.textContent during afterAttach() after mutation after flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "24", "this.el.textContent during afterAttachChildren() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //             beforeDetach() {
 //                 this.items.push(5);
@@ -179,19 +179,19 @@
 //                 this.$lifecycle.processFlushQueue();
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "24", "this.el.textContent during beforeDetach() after mutation after flushChanges()", `this.el.textContent`);
 //             }
-//             afterDetach() {
+//             afterDetachChildren() {
 //                 this.items.push(6);
 //             }
 //             beforeUnbind() {
 //                 this.items.push(7);
 //             }
-//             afterUnbind() {
+//             afterUnbindChildren() {
 //                 this.items.push(8);
 //                 this.cycled = true;
 //                 this.mod = 3;
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterUnbind() before mutation before flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterUnbindChildren() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterUnbind() after mutation after flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterUnbindChildren() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //         });
 //         au.register(Foo);
@@ -236,27 +236,27 @@
 //                 this.items.push(3);
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during beforeAttach() before mutation", `this.el.textContent`);
 //             }
-//             afterAttach() {
+//             afterAttachChildren() {
 //                 this.items.push(4);
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "2", "this.el.textContent during afterAttach() before mutation", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "2", "this.el.textContent during afterAttachChildren() before mutation", `this.el.textContent`);
 //             }
 //             beforeDetach() {
 //                 this.items.push(5);
 //                 assert.strictEqual(this.el.textContent, this.cycled ? "363" : "2", "this.el.textContent during beforeDetach() before mutation", `this.el.textContent`);
 //             }
-//             afterDetach() {
+//             afterDetachChildren() {
 //                 this.items.push(6);
 //             }
 //             beforeUnbind() {
 //                 this.items.push(7);
 //             }
-//             afterUnbind() {
+//             afterUnbindChildren() {
 //                 this.items.push(8);
 //                 this.cycled = true;
 //                 this.mod = 3;
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterUnbind() before mutation before flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterUnbindChildren() before mutation before flushChanges()", `this.el.textContent`);
 //                 this.$lifecycle.processFlushQueue();
-//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterUnbind() after mutation after flushChanges()", `this.el.textContent`);
+//                 assert.strictEqual(this.el.textContent, this.cycled ? "" : "", "this.el.textContent during afterUnbindChildren() after mutation after flushChanges()", `this.el.textContent`);
 //             }
 //         });
 //         au.register(Foo);

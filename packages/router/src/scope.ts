@@ -1,4 +1,3 @@
-
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 import { IContainer } from '@aurelia/kernel';
 import { CustomElementType } from '@aurelia/runtime';

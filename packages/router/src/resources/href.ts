@@ -1,4 +1,4 @@
-import { customAttribute, INode, bindable, BindingMode, ViewModelKind, IDOM, DelegationStrategy, ICustomAttributeViewModel, IController, IRenderableController, ICustomAttributeController } from '@aurelia/runtime';
+import { customAttribute, INode, bindable, BindingMode, ViewModelKind, IDOM, DelegationStrategy, ICustomAttributeViewModel, ICustomAttributeController } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { GotoCustomAttribute } from '../configuration';
 import { IEventManager } from '@aurelia/runtime-html';

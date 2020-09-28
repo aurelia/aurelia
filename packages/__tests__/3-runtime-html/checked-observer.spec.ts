@@ -125,7 +125,7 @@ describe.skip('CheckedObserver', function () {
             assert.deepStrictEqual(
               subscriber.handleChange,
               [
-                [checkedBefore, null, LF.fromDOMEvent | LF.allowPublishRoundtrip],
+                [checkedBefore, null, LF.none],
               ],
               `subscriber.handleChange`,
             );
@@ -138,8 +138,8 @@ describe.skip('CheckedObserver', function () {
               assert.deepStrictEqual(
                 subscriber.handleChange,
                 [
-                  [checkedBefore, null, LF.fromDOMEvent | LF.allowPublishRoundtrip],
-                  [checkedAfter, checkedBefore, LF.fromDOMEvent | LF.allowPublishRoundtrip],
+                  [checkedBefore, null, LF.none],
+                  [checkedAfter, checkedBefore, LF.none],
                 ],
                 `subscriber.handleChange`,
               );
@@ -147,7 +147,7 @@ describe.skip('CheckedObserver', function () {
               assert.deepStrictEqual(
                 subscriber.handleChange,
                 [
-                  [checkedBefore, null, LF.fromDOMEvent | LF.allowPublishRoundtrip],
+                  [checkedBefore, null, LF.none],
                 ],
                 `subscriber.handleChange`,
               );
@@ -595,7 +595,7 @@ describe.skip('CheckedObserver', function () {
                     assert.strictEqual(sut.getValue(), propValue, 'sut.getValue() 1');
 
                     assert.strictEqual(el.checked, prop === 'model' && value === undefined && propValue === checkedValue, 'el.checked 1');
-                    valueOrModelObserver.setValue(value, LF.none | LF.fromFlush);
+                    valueOrModelObserver.setValue(value, LF.none);
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 2');
                     scheduler.getRenderTaskQueue().flush();
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 3');
@@ -604,7 +604,7 @@ describe.skip('CheckedObserver', function () {
                     scheduler.getRenderTaskQueue().flush();
                     assert.strictEqual(sut.getValue(), newValue, 'sut.getValue() 2');
 
-                    valueOrModelObserver.setValue(value, LF.none | LF.fromFlush);
+                    valueOrModelObserver.setValue(value, LF.none);
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 4');
                     scheduler.getRenderTaskQueue().flush();
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 5');

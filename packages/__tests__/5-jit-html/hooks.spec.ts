@@ -95,19 +95,19 @@
 //       public beforeAttach() {
 //         return;
 //       }
-//       public afterAttach() {
+//       public afterAttachChildren() {
 //         return;
 //       }
 //       public beforeDetach() {
 //         return;
 //       }
-//       public afterDetach() {
+//       public afterDetachChildren() {
 //         return;
 //       }
 //       public beforeUnbind() {
 //         return;
 //       }
-//       public afterUnbind() {
+//       public afterUnbindChildren() {
 //         return;
 //       }
 //     });
@@ -131,19 +131,19 @@
 //       public beforeAttach() {
 //         return;
 //       }
-//       public afterAttach() {
+//       public afterAttachChildren() {
 //         return;
 //       }
 //       public beforeDetach() {
 //         return;
 //       }
-//       public afterDetach() {
+//       public afterDetachChildren() {
 //         return;
 //       }
 //       public beforeUnbind() {
 //         return;
 //       }
-//       public afterUnbind() {
+//       public afterUnbindChildren() {
 //         return;
 //       }
 //     });
@@ -167,19 +167,19 @@
 //       public beforeAttach() {
 //         return;
 //       }
-//       public afterAttach() {
+//       public afterAttachChildren() {
 //         return;
 //       }
 //       public beforeDetach() {
 //         return;
 //       }
-//       public afterDetach() {
+//       public afterDetachChildren() {
 //         return;
 //       }
 //       public beforeUnbind() {
 //         return;
 //       }
-//       public afterUnbind() {
+//       public afterUnbindChildren() {
 //         return;
 //       }
 //     });
@@ -202,19 +202,19 @@
 //       public beforeAttach() {
 //         return;
 //       }
-//       public afterAttach() {
+//       public afterAttachChildren() {
 //         return;
 //       }
 //       public beforeDetach() {
 //         return;
 //       }
-//       public afterDetach() {
+//       public afterDetachChildren() {
 //         return;
 //       }
 //       public beforeUnbind() {
 //         return;
 //       }
-//       public afterUnbind() {
+//       public afterUnbindChildren() {
 //         return;
 //       }
 //     });
@@ -267,7 +267,7 @@
 
 //   });
 
-//   it('afterAttach task awaited indirectly', async function () {
+//   it('afterAttachChildren task awaited indirectly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -326,7 +326,7 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('afterAttach task awaited directly', async function () {
+//   it('afterAttachChildren task awaited directly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -390,7 +390,7 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('afterAttach task (triple then) awaited indirectly', async function () {
+//   it('afterAttachChildren task (triple then) awaited indirectly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -457,7 +457,7 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('afterAttach task (triple then) awaited directly', async function () {
+//   it('afterAttachChildren task (triple then) awaited directly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -521,7 +521,7 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('afterDetach task awaited indirectly', async function () {
+//   it('afterDetachChildren task awaited indirectly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -582,7 +582,7 @@
 
 //   });
 
-//   it('afterDetach task awaited directly', async function () {
+//   it('afterDetachChildren task awaited directly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -643,7 +643,7 @@
 
 //   });
 
-//   it('afterDetach task (triple then) awaited indirectly', async function () {
+//   it('afterDetachChildren task (triple then) awaited indirectly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',
@@ -707,7 +707,7 @@
 //     assert.strictEqual(host.textContent, '', `host.textContent`);
 //   });
 
-//   it('afterDetach task (triple then) awaited directly', async function () {
+//   it('afterDetachChildren task (triple then) awaited directly', async function () {
 
 //     const Foo = CustomElement.define({
 //       name: 'foo',

@@ -13,50 +13,64 @@ class BrowserDOMInitializer implements IDOMInitializer {
   }
 
   public initialize(config?: ISinglePageApp<Node>): IDOM {
-    if (this.container.has(IDOM, false)) {
-      return this.container.get(IDOM);
+    const container = this.container;
+    if (container.has(IDOM, false)) {
+      return container.get(IDOM);
     }
+    const scheduler = createDOMScheduler(container, window);
+    const $win = window;
+    const $doc = document;
+    const $Node = Node;
+    const $Element = Element;
+    const $HTMLElement = HTMLElement;
+    const $CustomEvent = CustomEvent;
+    const $CssStyleSheet = CSSStyleSheet;
+    const $ShadowRoot = ShadowRoot;
+
     let dom: IDOM;
     if (config !== undefined) {
       if (config.dom !== undefined) {
         dom = config.dom;
       } else if (config.host.ownerDocument !== null) {
         dom = new HTMLDOM(
-          window,
+          $win,
           config.host.ownerDocument,
-          Node,
-          Element,
-          HTMLElement,
-          CustomEvent,
-          CSSStyleSheet,
-          ShadowRoot
+          $Node,
+          $Element,
+          $HTMLElement,
+          $CustomEvent,
+          $CssStyleSheet,
+          $ShadowRoot,
+          scheduler,
         );
       } else {
         dom = new HTMLDOM(
-          window,
-          document,
-          Node,
-          Element,
-          HTMLElement,
-          CustomEvent,
-          CSSStyleSheet,
-          ShadowRoot
+          $win,
+          $doc,
+          $Node,
+          $Element,
+          $HTMLElement,
+          $CustomEvent,
+          $CssStyleSheet,
+          $ShadowRoot,
+          scheduler,
         );
       }
     } else {
       dom = new HTMLDOM(
-        window,
-        document,
-        Node,
-        Element,
-        HTMLElement,
-        CustomEvent,
-        CSSStyleSheet,
-        ShadowRoot
+        $win,
+        $doc,
+        $Node,
+        $Element,
+        $HTMLElement,
+        $CustomEvent,
+        $CssStyleSheet,
+        $ShadowRoot,
+        scheduler,
       );
     }
-    Registration.instance(IDOM, dom).register(this.container);
-    Registration.instance(IScheduler, createDOMScheduler(this.container, window)).register(this.container);
+    Registration.instance(IDOM, dom).register(container);
+    Registration.instance(IScheduler, scheduler).register(container);
 
     return dom;
   }

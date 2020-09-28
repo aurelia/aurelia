@@ -50,7 +50,8 @@ import {
   ITemplateCompiler,
   IScheduler,
   CustomElement,
-  ICustomElementController
+  ICustomElementController,
+  INodeAccessor
 } from '@aurelia/runtime';
 import { TestContext } from './html-test-context';
 
@@ -288,6 +289,9 @@ export class AuNode implements INode {
 }
 
 export class AuDOM implements IDOM<AuNode> {
+  public queueFlushChanges(accessor: INodeAccessor): void {
+    accessor.flushChanges();
+  }
   public createNodeSequence(fragment: AuNode): AuNodeSequence {
     return new AuNodeSequence(this, fragment.cloneNode(true));
   }

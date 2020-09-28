@@ -18,53 +18,61 @@ class JSDOMInitializer implements IDOMInitializer {
   }
 
   public initialize(config?: ISinglePageApp<Node>): IDOM {
-    if (this.container.has(IDOM, false)) {
-      return this.container.get(IDOM);
+    const container = this.container;
+    if (container.has(IDOM, false)) {
+      return container.get(IDOM);
     }
+
+    const $window = this.jsdom.window;
+    const scheduler = createDOMScheduler(container, $window);
     let dom: IDOM;
+
     if (config !== undefined) {
       if (config.dom !== undefined) {
         dom = config.dom;
       } else if (config.host.ownerDocument) {
         dom = new HTMLDOM(
-          this.jsdom.window,
+          $window,
           config.host.ownerDocument,
-          this.jsdom.window.Node,
-          this.jsdom.window.Element,
-          this.jsdom.window.HTMLElement,
-          this.jsdom.window.CustomEvent,
-          this.jsdom.window.CSSStyleSheet,
-          (this.jsdom.window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot
+          $window.Node,
+          $window.Element,
+          $window.HTMLElement,
+          $window.CustomEvent,
+          $window.CSSStyleSheet,
+          ($window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot,
+          scheduler,
         );
       } else {
         if (config.host !== undefined) {
-          this.jsdom.window.document.body.appendChild(config.host);
+          $window.document.body.appendChild(config.host);
         }
         dom = new HTMLDOM(
-          this.jsdom.window,
-          this.jsdom.window.document,
-          this.jsdom.window.Node,
-          this.jsdom.window.Element,
-          this.jsdom.window.HTMLElement,
-          this.jsdom.window.CustomEvent,
-          this.jsdom.window.CSSStyleSheet,
-          (this.jsdom.window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot
+          $window,
+          $window.document,
+          $window.Node,
+          $window.Element,
+          $window.HTMLElement,
+          $window.CustomEvent,
+          $window.CSSStyleSheet,
+          ($window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot,
+          scheduler,
         );
       }
     } else {
       dom = new HTMLDOM(
-        this.jsdom.window,
-        this.jsdom.window.document,
-        this.jsdom.window.Node,
-        this.jsdom.window.Element,
-        this.jsdom.window.HTMLElement,
-        this.jsdom.window.CustomEvent,
-        this.jsdom.window.CSSStyleSheet,
-        (this.jsdom.window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot
+        $window,
+        $window.document,
+        $window.Node,
+        $window.Element,
+        $window.HTMLElement,
+        $window.CustomEvent,
+        $window.CSSStyleSheet,
+        ($window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot,
+        scheduler,
       );
     }
-    Registration.instance(IDOM, dom).register(this.container);
-    Registration.instance(IScheduler, createDOMScheduler(this.container, this.jsdom.window)).register(this.container);
+    Registration.instance(IDOM, dom).register(container);
+    Registration.instance(IScheduler, scheduler).register(container);
 
     return dom;
   }

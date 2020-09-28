@@ -1,8 +1,40 @@
-import { I18nConfiguration, TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindBindingInstruction, TranslationBindBindingRenderer, TranslationBinding, TranslationBindingCommand, TranslationBindingInstruction, TranslationBindingRenderer, TranslationBindInstructionType, TranslationInstructionType } from '@aurelia/i18n';
-import { AttributePattern, AttributePatternDefinition, AttrSyntax, BindingCommand, IAttributePattern, PlainAttributeSymbol } from '@aurelia/jit';
+import {
+  I18nConfiguration,
+  TranslationAttributePattern,
+  TranslationBindAttributePattern,
+  TranslationBindBindingCommand,
+  TranslationBindBindingInstruction,
+  TranslationBindBindingRenderer,
+  TranslationBinding,
+  TranslationBindingCommand,
+  TranslationBindingInstruction,
+  TranslationBindingRenderer,
+  TranslationBindInstructionType,
+  TranslationInstructionType,
+} from '@aurelia/i18n';
+import {
+  AttributePattern,
+  AttributePatternDefinition,
+  AttrSyntax,
+  BindingCommand,
+  IAttributePattern,
+  PlainAttributeSymbol,
+} from '@aurelia/jit';
 import { AttrBindingCommand } from '@aurelia/jit-html';
 import { Constructable, DI } from '@aurelia/kernel';
-import { AnyBindingExpression, BindingType, ICallBindingInstruction, IExpressionParser, IInstructionRenderer, IObserverLocator, LifecycleFlags, RuntimeConfiguration, ICompiledRenderContext, IRenderableController, IBinding } from '@aurelia/runtime';
+import {
+  AnyBindingExpression,
+  BindingType,
+  IBinding,
+  ICallBindingInstruction,
+  ICompiledRenderContext,
+  IExpressionParser,
+  IInstructionRenderer,
+  IObserverLocator,
+  IRenderableController,
+  LifecycleFlags,
+  RuntimeConfiguration,
+} from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
@@ -13,7 +45,7 @@ describe('TranslationAttributePattern', function () {
       patterns.push({ pattern, symbols: '' });
       TranslationAttributePattern.registerAlias(pattern);
     }
-    const container = DI.createContainer(AttributePattern.define(patterns, TranslationAttributePattern));
+    const container = DI.createContainer().register(AttributePattern.define(patterns, TranslationAttributePattern));
     return container.get(IAttributePattern);
   }
 
@@ -48,7 +80,9 @@ describe('TranslationAttributePattern', function () {
 describe('TranslationBindingCommand', function () {
   function createFixture(aliases?: string[]) {
     aliases = aliases || [];
-    const container = DI.createContainer(BindingCommand.define({ name: 't', aliases }, TranslationBindingCommand));
+    const container = DI.createContainer().register(
+      BindingCommand.define({name: 't', aliases}, TranslationBindingCommand)
+    );
     if (!aliases.includes('t')) {
       aliases.push('t');
     }
@@ -152,7 +186,9 @@ describe('TranslationBindAttributePattern', function () {
       patterns.push({ pattern: `${pattern}.bind`, symbols: '.' });
       TranslationBindAttributePattern.registerAlias(pattern);
     }
-    const container = DI.createContainer(AttributePattern.define(patterns, TranslationBindAttributePattern));
+    const container = DI.createContainer().register(
+      AttributePattern.define(patterns, TranslationBindAttributePattern)
+    );
     return container.get(IAttributePattern);
   }
 
@@ -192,7 +228,9 @@ describe('TranslationBindBindingCommand', function () {
   function createFixture(aliases?: string[]) {
     aliases = aliases || [];
     aliases = aliases.map(alias => `${alias}.bind`);
-    const container = DI.createContainer(BindingCommand.define({ name: 't.bind', aliases }, TranslationBindBindingCommand));
+    const container = DI.createContainer().register(
+      BindingCommand.define({name: 't.bind', aliases}, TranslationBindBindingCommand)
+    );
     if (!aliases.includes('t.bind')) {
       aliases.push('t.bind');
     }

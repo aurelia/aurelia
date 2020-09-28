@@ -1,0 +1,8 @@
+sequenceDiagram
+  ViewModel->>ValidationRules: Start defining validation rules on target
+  ValidationRules->>RulesRegistry: Set validation rules on target
+  RulesRegistry->>RulesRegistry: Set rules metadata annotation on object
+  ValidationRules->>ViewModel: Handle to define further rules
+  ViewModel->>ValidationRules: Define rule on property 'x'
+  ValidationRules->>ViewModel: PropertyRule instance for `x`with a collection of rules
+  Note over ViewModel,ValidationRules: Further rules and customizations<br/>definition.

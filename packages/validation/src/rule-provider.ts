@@ -102,7 +102,7 @@ class ValidationMessageEvaluationContext {
     public readonly $rule: IValidationRule,
     public readonly $object?: IValidateable,
   ) { }
-  public $getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)) {
+  public $getDisplayName(propertyName: string | number | undefined, displayName?: string | null | ValidationDisplayNameAccessor) {
     return this.messageProvider.getDisplayName(propertyName, displayName);
   }
 }
@@ -651,7 +651,7 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
     return new PrimitiveLiteralExpression(message);
   }
 
-  public getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined {
+  public getDisplayName(propertyName: string | number | undefined, displayName?: string | null | ValidationDisplayNameAccessor): string | undefined {
     if (displayName !== null && displayName !== undefined) {
       return (displayName instanceof Function) ? displayName() : displayName;
     }

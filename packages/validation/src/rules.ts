@@ -10,6 +10,7 @@ import {
   IRangeRule,
   IEqualsRule,
   IValidationVisitor,
+  ValidationDisplayNameAccessor,
 } from './rule-interfaces';
 
 /**
@@ -31,7 +32,7 @@ export interface IValidationMessageProvider {
   /**
    * Formulates a property display name using the property name and the configured displayName (if provided).
    */
-  getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined;
+  getDisplayName(propertyName: string | number | undefined, displayName?: string | null | ValidationDisplayNameAccessor): string | undefined;
 }
 
 export const IValidationMessageProvider = DI.createInterface<IValidationMessageProvider>('IValidationMessageProvider').noDefault();

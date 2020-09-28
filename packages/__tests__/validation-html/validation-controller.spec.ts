@@ -403,11 +403,10 @@ describe('validation-controller', function () {
         const subscriber = new FooSubscriber();
         const msg = 'foobar';
         sut.addSubscriber(subscriber);
-        sut.addError(msg, person1, property);
+        const result = sut.addError(msg, person1, property);
         await scheduler.yieldAll();
         assert.html.textContent('span.error', msg, 'incorrect msg', host);
 
-        const result = sut.results.find((r) => r.object === person1 && r.propertyName === property && r.isManual);
         const events = subscriber.notifications;
         events.splice(0);
 
@@ -487,6 +486,56 @@ describe('validation-controller', function () {
 
       // cleanup
       sut.removeObject(person2);
+    }
+  );
+
+  $it(`revalidateErrors does not remove the manually added errors - w/o pre-existing errors`,
+    async function ({ app: { controller: sut, person1 }, scheduler, host }) {
+      const msg = 'foobar';
+      const result = sut.addError(msg, person1);
+      await scheduler.yieldAll();
+      assert.html.textContent('span.error', msg, 'incorrect msg', host);
+
+      await sut.revalidateErrors();
+      assert.includes(sut.results, result);
+    },
+    {
+      template: `
+  <input id="target" type="text" value.two-way="person1.name & validate">
+  <span class="error" repeat.for="result of controller.results">
+    \${result.message}
+  </span>
+  ` }
+  );
+
+  $it(`revalidateErrors does not remove the manually added errors - with pre-exiting errors`,
+    async function ({ app: { controller: sut, person1 } }) {
+      await sut.validate();
+      const msg = 'foobar';
+      sut.addError(msg, person1);
+      assert.deepStrictEqual(sut.results.filter((r) => !r.valid).map((r) => r.toString()), ['Name is required.', msg]);
+
+      person1.name = "test";
+      await sut.revalidateErrors();
+      assert.deepStrictEqual(sut.results.filter((r) => !r.valid).map((r) => r.toString()), [msg]);
+    },
+    {
+      template: `<input id="target" type="text" value.two-way="person1.name & validate">`
+    }
+  );
+
+  $it(`validate removes the manually added errors`,
+    async function ({ app: { controller: sut, person1 } }) {
+      await sut.validate();
+      const msg = 'foobar';
+      sut.addError(msg, person1);
+      assert.deepStrictEqual(sut.results.filter((r) => !r.valid).map((r) => r.toString()), ['Name is required.', msg]);
+
+      await sut.validate();
+      assert.deepStrictEqual(sut.results.filter((r) => !r.valid).map((r) => r.toString()), ['Name is required.']);
+    },
+    {
+      template: `<input id="target" type="text" value.two-way="person1.name & validate">`
     }
   );
 

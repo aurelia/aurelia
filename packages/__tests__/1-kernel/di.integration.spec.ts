@@ -1,11 +1,26 @@
-import {
-  DI,
-  IContainer,
-  inject,
-  InterfaceSymbol,
-  Registration,
-} from '@aurelia/kernel';
+import { DI, IContainer, inject, InterfaceSymbol, Registration, singleton } from '@aurelia/kernel';
 import { assert, createSpy, ISpy } from '@aurelia/testing';
+
+describe('DI.getDependencies', function () {
+  it('string param', function () {
+    @singleton
+    class Foo {
+      public constructor(public readonly test: string) {}
+    }
+    const actual = DI.getDependencies(Foo);
+    assert.deepStrictEqual(actual, [String]);
+  });
+
+  it('class param', function () {
+    class Bar {}
+    @singleton
+    class Foo {
+      public constructor(public readonly test: Bar) {}
+    }
+    const actual = DI.getDependencies(Foo);
+    assert.deepStrictEqual(actual, [Bar]);
+  });
+});
 
 describe('DI.createInterface() -> container.get()', function () {
   let container: IContainer;

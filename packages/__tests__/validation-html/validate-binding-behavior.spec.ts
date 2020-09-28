@@ -1,41 +1,36 @@
 import { Unparser } from '@aurelia/debug';
-import { Registration, DI, newInstanceForScope, newInstanceOf, IServiceLocator } from '@aurelia/kernel';
+import { DI, IServiceLocator, newInstanceForScope, newInstanceOf, Registration } from '@aurelia/kernel';
 import {
+  ArrayObserver,
   Aurelia,
-  CustomElement,
-  IBinding,
-  INode,
-  IScheduler,
   bindable,
-  customElement,
-  customAttribute,
-  valueConverter,
   bindingBehavior,
-  BindingInterceptor,
   BindingBehaviorInstance,
+  BindingInterceptor,
+  BindingMediator,
+  customAttribute,
+  CustomElement,
+  customElement,
+  IBinding,
+  ILifecycle,
+  INode,
+  IObserverLocator,
+  IScheduler,
   IScope,
   LifecycleFlags,
-  BindingMediator,
-  IObserverLocator,
-  ILifecycle,
-  ArrayObserver
+  valueConverter,
 } from '@aurelia/runtime';
-import { assert, TestContext, HTMLTestContext, createSpy, ISpy } from '@aurelia/testing';
-import {
-  IValidationRules,
-  PropertyRule,
-  RangeRule,
-  RequiredRule,
-} from '@aurelia/validation';
+import { assert, createSpy, HTMLTestContext, ISpy, TestContext } from '@aurelia/testing';
+import { IValidationRules, PropertyRule, RangeRule, RequiredRule } from '@aurelia/validation';
 import {
   BindingWithBehavior,
   IValidationController,
   ValidationController,
+  ValidationHtmlConfiguration,
   ValidationTrigger,
-  ValidationHtmlConfiguration
 } from '@aurelia/validation-html';
-import { Person, Organization } from '../validation/_test-resources';
-import { createSpecFunction, TestFunction, TestExecutionContext, ToNumberValueConverter } from '../util';
+import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../util';
+import { Organization, Person } from '../validation/_test-resources';
 
 describe('validate-binding-behavior', function () {
   const $atob = typeof atob === 'function' ? atob : (b64: string) => Buffer.from(b64, 'base64').toString();
@@ -1185,7 +1180,7 @@ describe('validate-binding-behavior', function () {
     `
     }
   );
-  $it('can be used to validate nested property - intial non-undefined',
+  $it('can be used to validate nested property - initial non-undefined',
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
       const person = app.person;

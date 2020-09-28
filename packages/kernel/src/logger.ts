@@ -1,5 +1,5 @@
+import { all, DI, IContainer, ignore, IRegistry, optional, Registration } from './di';
 import { toLookup } from './functions';
-import { DI, all, IRegistry, IContainer, Registration } from './di';
 import { LogLevel } from './reporter';
 
 /**
@@ -296,6 +296,7 @@ export const ILogConfig = DI.createInterface<ILogConfig>('ILogConfig').withDefau
 export const ISink = DI.createInterface<ISink>('ISink').noDefault();
 export const ILogEventFactory = DI.createInterface<ILogEventFactory>('ILogEventFactory').withDefault(x => x.singleton(DefaultLogEventFactory));
 export const ILogger = DI.createInterface<ILogger>('ILogger').withDefault(x => x.singleton(DefaultLogger));
+export const ILogScopes = DI.createInterface<string[]>('ILogScope').noDefault();
 
 export interface IConsoleLike {
   debug(message: string, ...optionalParams: unknown[]): void;
@@ -489,8 +490,8 @@ export class DefaultLogger implements ILogger {
     @ILogConfig public readonly config: ILogConfig,
     @ILogEventFactory private readonly factory: ILogEventFactory,
     @all(ISink) private readonly sinks: ISink[],
-    public readonly scope: string[] = [],
-    parent: ILogger | null = null,
+    @optional(ILogScopes) public readonly scope: string[] = [],
+    @ignore parent: ILogger | null = null,
   ) {
     if (parent === null) {
       this.root = this;

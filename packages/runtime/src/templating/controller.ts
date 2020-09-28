@@ -203,12 +203,14 @@ export class Controller<
     parts: PartialCustomElementDefinitionParts | undefined,
     flags: LifecycleFlags = LifecycleFlags.none,
     hydrate: boolean = true,
+    // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
+    definition: CustomElementDefinition | undefined = void 0,
   ): ICustomElementController<T, C> {
     if (controllerLookup.has(viewModel)) {
       return controllerLookup.get(viewModel) as unknown as ICustomElementController<T, C>;
     }
 
-    const definition = CustomElement.getDefinition(viewModel.constructor as Constructable);
+    definition = definition ?? CustomElement.getDefinition(viewModel.constructor as Constructable);
     flags |= definition.strategy;
 
     const controller = new Controller<T, C>(

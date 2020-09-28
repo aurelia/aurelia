@@ -995,13 +995,21 @@ export const Metadata = {
   delete: $delete,
 };
 
-function def(obj: object, key: string, value: unknown): void {
-  Reflect.defineProperty(obj, key, {
-    writable: true,
+function def(
+  obj: object,
+  key: string,
+  value: unknown,
+  writable: boolean,
+  configurable: boolean,
+): void {
+  if (!Reflect.defineProperty(obj, key, {
+    writable,
     enumerable: false,
-    configurable: true,
+    configurable,
     value,
-  });
+  })) {
+    throw new Error(`Unable to apply metadata polyfill: could not add property '${key}' to the global Reflect object`);
+  }
 }
 
 const internalSlotName = '[[$au]]';
@@ -1009,7 +1017,32 @@ function hasInternalSlot(reflect: typeof Reflect): reflect is typeof Reflect & {
   return internalSlotName in reflect;
 }
 
-export function applyMetadataPolyfill(reflect: typeof Reflect): void {
+function $applyMetadataPolyfill(
+  reflect: typeof Reflect,
+  writable: boolean,
+  configurable: boolean,
+): void {
+  def(reflect, internalSlotName, metadataInternalSlot, writable, configurable);
+
+  def(reflect, 'metadata', metadata, writable, configurable);
+  def(reflect, 'decorate', decorate, writable, configurable);
+  def(reflect, 'defineMetadata', $define, writable, configurable);
+  def(reflect, 'hasMetadata', $has, writable, configurable);
+  def(reflect, 'hasOwnMetadata', $hasOwn, writable, configurable);
+  def(reflect, 'getMetadata', $get, writable, configurable);
+  def(reflect, 'getOwnMetadata', $getOwn, writable, configurable);
+  def(reflect, 'getMetadataKeys', $getKeys, writable, configurable);
+  def(reflect, 'getOwnMetadataKeys', $getOwnKeys, writable, configurable);
+  def(reflect, 'deleteMetadata', $delete, writable, configurable);
+}
+
+export function applyMetadataPolyfill(
+  reflect: typeof Reflect,
+  throwIfConflict: boolean = true,
+  forceOverwrite: boolean = false,
+  writable: boolean = true,
+  configurable: boolean = true,
+): void {
   if (hasInternalSlot(reflect)) {
     if (reflect[internalSlotName] === metadataInternalSlot) {
       return;
@@ -1017,31 +1050,32 @@ export function applyMetadataPolyfill(reflect: typeof Reflect): void {
     throw new Error(`Conflicting @aurelia/metadata module import detected. Please make sure you have the same version of all Aurelia packages in your dependency tree.`);
   }
 
-  if (
-    'metadata' in reflect ||
-    'decorate' in reflect ||
-    'defineMetadata' in reflect ||
-    'hasMetadata' in reflect ||
-    'hasOwnMetadata' in reflect ||
-    'getMetadata' in reflect ||
-    'getOwnMetadata' in reflect ||
-    'getMetadataKeys' in reflect ||
-    'getOwnMetadataKeys' in reflect ||
-    'deleteMetadata' in reflect
-  ) {
-    throw new Error(`Conflicting reflect.metadata polyfill found. If you have 'reflect-metadata' or any other reflect polyfill imported, please remove it, if not (or if you must use a specific polyfill) please file an issue at https://github.com/aurelia/aurelia/issues so that we can look into compatibility options for this scenario.`);
+  const presentProps = [
+    'metadata',
+    'decorate',
+    'defineMetadata',
+    'hasMetadata',
+    'hasOwnMetadata',
+    'getMetadata',
+    'getOwnMetadata',
+    'getMetadataKeys',
+    'getOwnMetadataKeys',
+    'deleteMetadata',
+  ].filter(function (p) {
+    return p in Reflect;
+  });
+
+  if (presentProps.length > 0) {
+    if (throwIfConflict) {
+      const implementationSummary = presentProps.map(function (p) {
+        const impl = `${(Reflect as { [k: string]: Function })[p].toString().slice(0, 100)}...`;
+        return `${p}:\n${impl}`;
+      }).join('\n\n');
+      throw new Error(`Conflicting reflect.metadata polyfill found. If you have 'reflect-metadata' or any other reflect polyfill imported, please remove it, if not (or if you must use a specific polyfill) please file an issue at https://github.com/aurelia/aurelia/issues so that we can look into compatibility options for this scenario. Implementation summary:\n\n${implementationSummary}`);
+    } else if (forceOverwrite) {
+      $applyMetadataPolyfill(reflect, writable, configurable);
+    }
+  } else {
+    $applyMetadataPolyfill(reflect, writable, configurable);
   }
-
-  def(Metadata, '$Internal', metadataInternalSlot);
-
-  def(reflect, 'metadata', metadata);
-  def(reflect, 'decorate', decorate);
-  def(reflect, 'defineMetadata', $define);
-  def(reflect, 'hasMetadata', $has);
-  def(reflect, 'hasOwnMetadata', $hasOwn);
-  def(reflect, 'getMetadata', $get);
-  def(reflect, 'getOwnMetadata', $getOwn);
-  def(reflect, 'getMetadataKeys', $getKeys);
-  def(reflect, 'getOwnMetadataKeys', $getOwnKeys);
-  def(reflect, 'deleteMetadata', $delete);
 }

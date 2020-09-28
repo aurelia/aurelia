@@ -23,7 +23,7 @@ Aurelia supports two-way binding a variety of data-types to checkbox input eleme
 
 Bind a boolean property to an input element's `checked` attribute using `checked.bind="myBooleanProperty"`.
 
-```JavaScript
+```javascript
 export class App {
   motherboard = false;
   cpu = false;
@@ -31,7 +31,7 @@ export class App {
 }
 ```
 
-```HTML
+```markup
 <template>
   <form>
     <h4>Products</h4>
@@ -54,7 +54,7 @@ A set of checkbox elements is a multiple selection interface. If you have an arr
 
 To define the input's "value", bind the input's `model` attribute: `model.bind="product.id"`.
 
-```JavaScript
+```javascript
 export class App {
   products = [
     { id: 0, name: 'Motherboard' },
@@ -66,7 +66,7 @@ export class App {
 }
 ```
 
-```HTML
+```markup
 <template>
   <form>
     <h4>Products</h4>
@@ -86,7 +86,7 @@ export class App {
 
 Numbers aren't the only type of value you can store in a "selected items" array. The binding system supports all types, including objects. Here's an example that adds and removes "product" objects from a `selectedProducts` array using the checkbox data-binding.
 
-```TypeScript
+```typescript
 export interface IProduct {
   id: number;
   name: string;
@@ -103,7 +103,7 @@ export class App {
 }
 ```
 
-```HTML
+```markup
 <template>
   <form>
     <h4>Products</h4>
@@ -126,7 +126,7 @@ export class App {
 
 You may run into situations where the object your input element's model is bound to does not have reference equality to any of the objects in your checked array. The objects might match by id, but they may not be the same object instance. To support this scenario you can override Aurelia's default "matcher" which is a equality comparison function that looks like this: `(a, b) => a === b`. You can substitute a function of your choosing that has the right logic to compare your objects.
 
-```JavaScript
+```javascript
 export class App {
   selectedProducts = [
     { id: 1, name: 'CPU' },
@@ -137,7 +137,7 @@ export class App {
 }
 ```
 
-```HTML
+```markup
 <template>
   <form>
     <h4>Products</h4>
@@ -174,14 +174,14 @@ export class App {
 
 Finally, here's an example that adds and removes strings from a `selectedProducts` array using the checkbox data-binding. This is example is unique because it does not use `model.bind` to assign each checkbox's value. Instead the input's standard `value` attribute is used. Normally we cannot use the standard `value` attribute in conjunction with checked binding because it coerces anything it's assigned to a string. This example uses an array of strings so everything works just fine.
 
-```JavaScript
+```javascript
 export class App {
   products = ['Motherboard', 'CPU', 'Memory'];
   selectedProducts = [];
 }
 ```
 
-```HTML
+```markup
 <template>
   <form>
     <h4>Products</h4>
@@ -207,7 +207,7 @@ A group of radio inputs is a type of "single select" interface. Aurelia supports
 
 Let's start with an example that uses a numeric "selected item" property. In this example each radio input will be assigned a number value via the model property. Selecting a radio will cause it's model value to be assigned to the `selectedProductId` property.
 
-```JavaScript
+```javascript
 export class App {
   products = [
     { id: 0, name: 'Motherboard' },
@@ -219,7 +219,7 @@ export class App {
 }
 ```
 
-```HTML
+```markup
 <template>
   <form>
     <h4>Products</h4>
@@ -240,7 +240,7 @@ export class App {
 
 The binding system supports binding all types to radios, including objects. Here's an example that binds a group of radios to a `selectedProduct` object property.
 
-```JavaScript
+```javascript
 export class App {
   products = [
     { id: 0, name: 'Motherboard' },
@@ -252,7 +252,7 @@ export class App {
 }
 ```
 
-```HTML
+```markup
 <template>
   <form>
     <h4>Products</h4>
@@ -273,7 +273,7 @@ export class App {
 
 You may run into situations where the object your input element's model is bound to does not have reference equality to any of the object in your checked attribute is bound to. The objects might match by id, but they may not be the same object instance. To support this scenario you can override Aurelia's default "matcher" which is a equality comparison function that looks like this: `(a, b) => a === b`. You can substitute a function of your choosing that has the right logic to compare your objects.
 
-```JavaScript
+```javascript
 export class App {
   selectedProduct = { id: 1, name: 'CPU' };
 
@@ -281,7 +281,7 @@ export class App {
 }
 ```
 
-```HTML
+```markup
 <template>
   <form>
     <h4>Products</h4>
@@ -318,13 +318,13 @@ export class App {
 
 In this example each radio input is assigned one of three literal values: `null`, `true` and `false`. Selecting one of the radios will assign it's value to the `likesCake` property.
 
-```JavaScript
+```javascript
 export class App {
   likesCake = null;
 }
 ```
 
-```HTML
+```markup
 <template>
   <form>
     <h4>Do you like cake?</h4>
@@ -355,14 +355,14 @@ export class App {
 
 Finally, here's an example using strings. This is example is unique because it does not use `model.bind` to assign each radio's value. Instead the input's standard `value` attribute is used. Normally we cannot use the standard `value` attribute in conjunction with checked binding because it coerces anything it's assigned to a string.
 
-```JavaScript
+```javascript
 export class App {
   products = ['Motherboard', 'CPU', 'Memory'];
   selectedProduct = null;
 }
 ```
 
-```HTML
+```markup
 <template>
   <form>
     <h4>Products</h4>
@@ -394,7 +394,7 @@ A `<select>` element can serve as a single-select or multiple-select "picker" de
 
 ### Select Number
 
-```JavaScript
+```javascript
 export class App {
   products = [
     { id: 0, name: 'Motherboard' },
@@ -406,7 +406,7 @@ export class App {
 }
 ```
 
-```HTML
+```markup
 <template>
   <label>
     Select product:<br>
@@ -426,7 +426,7 @@ export class App {
 
 ### Select Object
 
-```JavaScript
+```javascript
 export class App {
   products = [
     { id: 0, name: 'Motherboard' },
@@ -438,7 +438,7 @@ export class App {
 }
 ```
 
-```HTML
+```markup
 <template>
   <label>
     Select product:<br>
@@ -461,7 +461,7 @@ export class App {
 
 You may run into situations where the object your select element's value is bound does not have reference equality with any of the objects your option element model properties are bound to. The select's value object might "match" one of the option objects by id, but they may not be the same object instance. To support this scenario you can override Aurelia's default "matcher" which is a equality comparison function that looks like this: `(a, b) => a === b`. You can substitute a function of your choosing that has the right logic to compare your objects.
 
-```JavaScript
+```javascript
 export class App {
   products = [
     { id: 0, name: 'Motherboard' },
@@ -475,7 +475,7 @@ export class App {
 }
 ```
 
-```HTML
+```markup
 <template>
   <label>
     Select product:<br>
@@ -496,13 +496,13 @@ export class App {
 
 ### Select Boolean
 
-```JavaScript
+```javascript
 export class App {
   likesTacos = null;
 }
 ```
 
-```HTML
+```markup
 <template>
   <label>
     Do you like tacos?:
@@ -520,14 +520,14 @@ export class App {
 
 ### Select String
 
-```JavaScript
+```javascript
 export class App {
   products = ['Motherboard', 'CPU', 'Memory'];
   selectedProduct = '';
 }
 ```
 
-```HTML
+```markup
 <template>
   <label>
     Select product:<br>
@@ -547,7 +547,7 @@ export class App {
 
 ### Multiple Select Numbers
 
-```JavaScript
+```javascript
 export class App {
   products = [
     { id: 0, name: 'Motherboard' },
@@ -559,7 +559,7 @@ export class App {
 }
 ```
 
-```HTML
+```markup
 <template>
   <label>
     Select products:
@@ -578,7 +578,7 @@ export class App {
 
 ### Multiple Select Objects
 
-```JavaScript
+```javascript
 export class App {
   products = [
     { id: 0, name: 'Motherboard' },
@@ -590,7 +590,7 @@ export class App {
 }
 ```
 
-```HTML
+```markup
 <template>
   <label>
     Select products:
@@ -613,14 +613,14 @@ export class App {
 
 ### Multiple Select Strings
 
-```JavaScript
+```javascript
 export class App {
   products = ['Motherboard', 'CPU', 'Memory'];
   selectedProducts = [];
 }
 ```
 
-```HTML
+```markup
 <template>
   <label>
     Select products:
@@ -636,3 +636,4 @@ export class App {
 ```
 
 [Select Multiple Strings Demo](https://codesandbox.io/embed/yvr7p888q9?autoresize=1&fontsize=18&hidenavigation=1&module=%2Fsrc%2Fapp.html&view=preview)
+

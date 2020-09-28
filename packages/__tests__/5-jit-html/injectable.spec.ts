@@ -2,7 +2,7 @@ import { CustomElement, Aurelia, customElement } from '@aurelia/runtime';
 import { TestContext, assert } from '@aurelia/testing';
 
 describe('CustomElement.createInjectable', function () {
-  it.skip('properly links parent-child', async function () {
+  it('properly links parent-child', async function () {
     const IRoot = CustomElement.createInjectable();
     const IParent = CustomElement.createInjectable();
     const IChild = CustomElement.createInjectable();

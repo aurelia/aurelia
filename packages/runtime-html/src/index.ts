@@ -133,7 +133,10 @@ export {
   NodeType,
   HTMLDOM,
   DOM,
-  FragmentNodeSequence
+  FragmentNodeSequence,
+  IHistory,
+  IWindow,
+  ILocation,
 } from './dom';
 export {
   AttributeBindingInstruction,

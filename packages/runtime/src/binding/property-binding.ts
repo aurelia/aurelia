@@ -34,6 +34,7 @@ import {
   IConnectableBinding,
   IPartialConnectableBinding,
 } from './connectable';
+import { IDOM } from '../dom';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -42,11 +43,6 @@ const { oneTime, toView, fromView } = BindingMode;
 const toViewOrOneTime = toView | oneTime;
 
 export interface PropertyBinding extends IConnectableBinding {}
-
-const updateTaskOpts: QueueTaskOptions = {
-  reusable: false,
-  preempt: true,
-};
 
 @connectable()
 export class PropertyBinding implements IPartialConnectableBinding {
@@ -62,7 +58,8 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
-  private task: ITask | null = null;
+  // private task: ITask | null = null;
+  private dom: IDOM;
   private readonly $scheduler: IScheduler;
 
   public constructor(
@@ -76,6 +73,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     connectable.assignIdTo(this);
     this.$lifecycle = locator.get(ILifecycle);
     this.$scheduler = locator.get(IScheduler);
+    this.dom = locator.get(IDOM);
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -117,12 +115,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       if (newValue !== oldValue) {
         if (shouldQueueFlush) {
           flags |= LifecycleFlags.noTargetObserverQueue;
-          this.task?.cancel();
-          targetObserver.task?.cancel();
-          targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
-            (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
-            this.task = targetObserver.task = null;
-          }, updateTaskOpts);
+          this.dom.queueFlushChanges(targetObserver as unknown as INodeAccessor);
         }
 
         interceptor.updateTarget(newValue, flags);
@@ -230,7 +223,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
     this.$scope = void 0;
 
     const targetObserver = this.targetObserver as IBindingTargetObserver;
-    const task = this.task;
 
     if (targetObserver.unbind) {
       targetObserver.unbind!(flags);
@@ -238,13 +230,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
     if (targetObserver.unsubscribe) {
       targetObserver.unsubscribe(this.interceptor);
       targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
-    }
-    if (task != null) {
-      task.cancel();
-      if (task === targetObserver.task) {
-        targetObserver.task = null;
-      }
-      this.task = null;
     }
     this.interceptor.unobserve(true);
 

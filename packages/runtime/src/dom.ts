@@ -6,6 +6,7 @@ import {
   Reporter,
 } from '@aurelia/kernel';
 import { IScheduler } from '@aurelia/scheduler';
+import { INodeAccessor } from './observation';
 
 export interface INode extends Object {}
 
@@ -65,6 +66,10 @@ export interface INodeSequence<T extends INode = INode> extends INode {
 export const IDOM = DI.createInterface<IDOM>('IDOM').noDefault();
 
 export interface IDOM<T extends INode = INode> {
+  /**
+   * Ideally all DOM updates should go through a central flush
+   */
+  queueFlushChanges(accessor: INodeAccessor): void;
   addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
   appendChild(parent: T, child: T): void;
   cloneNode<TClone extends T>(node: TClone, deep?: boolean): TClone;
@@ -126,6 +131,7 @@ const ni = function (...args: unknown[]): unknown {
 } as any; // this function doesn't need typing because it is never directly called
 
 const niDOM: IDOM = {
+  queueFlushChanges: ni,
   addEventListener: ni,
   appendChild: ni,
   cloneNode: ni,

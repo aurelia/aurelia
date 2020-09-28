@@ -540,22 +540,20 @@ describe('switch', function () {
       async (ctx) => {
         const $switch = ctx.getSwitchTestDoubles()[0];
 
-        // console.log('------------------------------CHANGING------------------------------');
         $switch.clearCalls();
         ctx.app.status = Status.dispatched;
         await ctx.scheduler.yieldAll();
         assert.html.innerEqual(ctx.host, '<span>On the way.</span>', 'change innerHTML1');
-        // TODO: fix
-        // ctx.assertCalls(
-        //   $switch,
-        //   new SwitchCallsExpectation(
-        //     [1, 1, 1, 0],
-        //     [0, 0, 1, 0],
-        //     [0, 0, 1, 0],
-        //     [0, 1, 0, 0],
-        //   ),
-        //   'change'
-        // );
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [0, 1, 1, 0],
+            [0, 0, 1, 0],
+            [0, 0, 1, 0],
+            [0, 1, 0, 0],
+          ),
+          'change'
+        );
       }
     );
 
@@ -583,18 +581,49 @@ describe('switch', function () {
         )
       ],
       async (ctx) => {
-        // TODO assert the calls
+        const $switch = ctx.getSwitchTestDoubles()[0];
+
+        $switch.clearCalls();
         ctx.app.status = Status.dispatched;
         await ctx.scheduler.yieldAll();
         assert.html.innerEqual(ctx.host, '<span>On the way.</span>', 'change innerHTML1');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [1, 1, 1, 0],
+            [0, 0, 1, 0],
+            [0, 0, 1, 0],
+            [0, 1, 0, 0],
+          )
+        );
 
+        $switch.clearCalls();
         ctx.app.status1 = Status.processing;
         await ctx.scheduler.yieldAll();
         assert.html.innerEqual(ctx.host, '<span>On the way.</span>', 'no-change innerHTML2');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [1, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+          )
+        );
 
+        $switch.clearCalls();
         ctx.app.status = Status.processing;
         await ctx.scheduler.yieldAll();
         assert.html.innerEqual(ctx.host, '<span>Order received.</span>', 'no-change innerHTML3');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [1, 0, 0, 0],
+            [1, 0, 0, 0],
+            [1, 0, 0, 0],
+            [0, 0, 1, 0],
+          )
+        );
       }
     );
 
@@ -699,17 +728,16 @@ describe('switch', function () {
         ctx.app.statuses = [Status.dispatched];
         await ctx.scheduler.yieldAll();
         assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML2');
-        // TODO assert calls
-        // ctx.assertCalls(
-        //   $switch,
-        //   new SwitchCallsExpectation(
-        //     [1, 1, 0],
-        //     [0, 1, 0],
-        //     [0, 1, 0],
-        //     [1, 0, 0],
-        //   ),
-        //   'change2'
-        // );
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [1, 0, 0],
+            [0, 0, 0],
+            [1, 0, 0],
+            [0, 1, 0],
+          ),
+          'change2'
+        );
       }
     );
 
@@ -736,10 +764,22 @@ describe('switch', function () {
         )
       ],
       async (ctx) => {
-        // TODO assert calls
-        ctx.app.statuses = [ctx.app.status = Status.dispatched];
+        const $switch = ctx.getSwitchTestDoubles()[0];
+
+        $switch.clearCalls();
+        ctx.app.statuses = [Status.dispatched]; // TODO assert the calls for `ctx.app.statuses = [ctx.app.status = Status.delivered];`
         await ctx.scheduler.yieldAll(2);
         assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML1');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [1, 0, 0],
+            [1, 0, 0],
+            [1, 0, 0],
+            [0, 1, 0],
+          ),
+          'change1'
+        );
       }
     );
 
@@ -766,10 +806,22 @@ describe('switch', function () {
         )
       ],
       async (ctx) => {
-        // TODO assert calls
-        ctx.app.statuses.push(ctx.app.status = Status.dispatched);
+        const $switch = ctx.getSwitchTestDoubles()[0];
+
+        $switch.clearCalls();
+        ctx.app.statuses.push(Status.dispatched); // TODO assert the calls for `ctx.app.statuses.push(ctx.app.status = Status.delivered);`
         await ctx.scheduler.yieldAll(2);
         assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML1');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [1, 0, 0],
+            [1, 0, 0],
+            [1, 0, 0],
+            [0, 1, 0],
+          ),
+          'change1'
+        );
       }
     );
 
@@ -883,17 +935,16 @@ describe('switch', function () {
         ctx.app.status = Status.processing;
         await ctx.scheduler.yieldAll();
         assert.html.innerEqual(ctx.host, '<span>Processing your order.</span> <span>On the way.</span> <span>Delivered.</span>', 'change innerHTML1');
-        // TODO: assert calls
-        // ctx.assertCalls(
-        //   $switch,
-        //   new SwitchCallsExpectation(
-        //     [1, 1, 0, 0],
-        //     [0, 1, 1, 0],
-        //     [0, 1, 1, 1],
-        //     [0, 0, 0, 1],
-        //   ),
-        //   'change'
-        // );
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [0, 1, 0, 1],
+            [0, 1, 1, 0],
+            [0, 1, 1, 1],
+            [0, 0, 0, 1], // TODO: fix this; as the view is being attached, it is desirable that it does not get detached.
+          ),
+          'change'
+        );
       }
     );
 

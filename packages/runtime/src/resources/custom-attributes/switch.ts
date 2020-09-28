@@ -151,6 +151,28 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
 
   public caseChanged($case: Case<T>, flags: LifecycleFlags): void {
     const isMatch = $case.isMatch(this.value, flags);
+    const activeCases = this.activeCases;
+    const numActiveCases = activeCases.length;
+
+    // Early termination #1
+    if (!isMatch) {
+      /** The previous match started with this; thus clear. */
+      if (numActiveCases > 0 && activeCases[0].id === $case.id) {
+        this.clearActiveCases(flags);
+      }
+      /**
+       * There are 2 different scenarios here:
+       * 1. $case in activeCases: Indicates by-product of fallthrough. The starting case still satisfies. Return.
+       * 2. $case not in activeCases: It was previously not active, and currently also not a match. Return.
+       */
+      return;
+    }
+
+    // Early termination #2
+    if (numActiveCases > 0 && activeCases[0].id < $case.id) {
+      // Even if this case now a match, the previous case still wins by as that has lower ordinal.
+      return;
+    }
 
     // compute the new active cases
     const newActiveCases = [];
@@ -168,33 +190,23 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     }
 
     // optimize the common case
-    if (this.activeCases.length === 1 && isMatch && this.activeCases[0].id > $case.id) {
-      this.clearActiveCases(flags);
-      this.activeCases = newActiveCases;
+    this.clearActiveCases(flags, newActiveCases);
+    this.activeCases = newActiveCases;
 
-      if (this.task.done) {
-        this.task = this.bindView(flags);
-      } else {
-        this.task = new ContinuationTask(this.task, this.bindView, this, flags);
-      }
-
-      if (this.task.done) {
-        this.attachView(flags);
-      } else {
-        this.task = new ContinuationTask(this.task, this.attachView, this, flags);
-      }
-      return;
+    if (this.task.done) {
+      this.task = this.bindView(flags);
+    } else {
+      this.task = new ContinuationTask(this.task, this.bindView, this, flags);
     }
 
-    this.clearActiveCases(flags);
-    this.activeCases = newActiveCases;
     if (this.task.done) {
-      this.task = this.swap(flags, this.value);
+      this.attachView(flags);
     } else {
-      this.task = new ContinuationTask(this.task, this.swap, this, flags, this.value);
+      this.task = new ContinuationTask(this.task, this.attachView, this, flags);
     }
   }
 
+  // TODO normalize the active case binding and attaching, to avoid unnecessary detachment of view
   private swap(flags: LifecycleFlags, value: any): ILifecycleTask {
     const activeCases: Case<T>[] = this.activeCases;
 
@@ -276,14 +288,23 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     }
   }
 
-  private clearActiveCases(flags: LifecycleFlags): void {
+  private clearActiveCases(flags: LifecycleFlags, newActiveCases: Case<T>[] = []): void {
     const cases = this.activeCases;
-    if (cases.length === 0) { return; }
+    const numCases = cases.length;
 
-    for (const $case of cases) {
-      $case.detachView(flags);
+    if (numCases === 0) { return; }
+
+    if (numCases === 1) {
+      cases[0].detachView(flags);
+      cases.splice(0);
+      return;
     }
 
+    for (const $case of cases) {
+      if (!newActiveCases.includes($case)) {
+        $case.detachView(flags);
+      }
+    }
     cases.splice(0);
   }
 }

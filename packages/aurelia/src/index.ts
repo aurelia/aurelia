@@ -268,7 +268,6 @@ export {
   // fromDefinitionOrDefault,
 
   EventAggregator,
-  EventAggregatorCallback,
   IEventAggregator,
 
   isArrayIndex,

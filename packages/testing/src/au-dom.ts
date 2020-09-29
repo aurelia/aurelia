@@ -648,14 +648,16 @@ export class AuTextInstruction implements ITargetedInstruction {
   }
 }
 
-@inject(IObserverLocator)
+@inject(IObserverLocator, IDOM)
 @instructionRenderer('au')
 /** @internal */
 export class AuTextRenderer implements IInstructionRenderer {
   private readonly observerLocator: IObserverLocator;
+  private readonly dom: IDOM;
 
-  public constructor(observerLocator: IObserverLocator) {
+  public constructor(observerLocator: IObserverLocator, dom: IDOM) {
     this.observerLocator = observerLocator;
+    this.dom = dom;
   }
 
   public render(
@@ -672,7 +674,15 @@ export class AuTextRenderer implements IInstructionRenderer {
     } else {
       realTarget = target;
     }
-    const bindable = new PropertyBinding(instruction.from, realTarget, 'textContent', BindingMode.toView, this.observerLocator, context);
+    const bindable = new PropertyBinding(
+      instruction.from,
+      realTarget,
+      'textContent',
+      BindingMode.toView,
+      this.observerLocator,
+      context,
+      this.dom,
+    );
     controller.addBinding(bindable);
   }
 }

@@ -628,6 +628,63 @@ describe('switch', function () {
     );
 
     yield new TestData(
+      'supports case.bind - #3',
+      {
+        template: `
+    <template>
+      <let num.bind="9"></let>
+      <template switch.bind="true">
+        <span case.bind="num % 3 === 0 && num % 5 === 0">FizzBuzz</span>
+        <span case.bind="num % 3 === 0">Fizz</span>
+        <span case.bind="num % 5 === 0">Buzz</span>
+      </template>
+    </template>`,
+      },
+      '<span>Fizz</span>',
+      [
+        new SwitchCallsExpectation(
+          [1, 1, 0],
+          [0, 1, 0],
+          [0, 1, 0],
+          [0, 0, 0],
+        )
+      ],
+      async (ctx) => {
+        const $switch = ctx.getSwitchTestDoubles()[0];
+
+        $switch.clearCalls();
+        ctx.controller.scope.overrideContext.num = 49;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '', 'change innerHTML1');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [0, 1, 0],
+            [0, 0, 0],
+            [0, 0, 0],
+            [0, 1, 0],
+          ),
+          'change1'
+        );
+
+        $switch.clearCalls();
+        ctx.controller.scope.overrideContext.num = 15;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>FizzBuzz</span>', 'change innerHTML2');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [1, 1, 1],
+            [1, 0, 0],
+            [1, 0, 0],
+            [0, 0, 0],
+          ),
+          'change2'
+        );
+      }
+    );
+
+    yield new TestData(
       'supports multi-case',
       {
         initialStatus: Status.processing,
@@ -862,8 +919,8 @@ describe('switch', function () {
           new SwitchCallsExpectation(
             [1, 1, 1, 1],
             [0, 0, 0, 0],
-            [0, 0, 0, 1],
-            [0, 1, 1, 1],
+            [0, 0, 0, 0],
+            [0, 1, 1, 0],
           ),
           'change'
         );
@@ -897,8 +954,8 @@ describe('switch', function () {
           new SwitchCallsExpectation(
             [1, 1, 1, 0],
             [0, 0, 1, 0],
-            [0, 0, 1, 1],
-            [0, 0, 0, 1],
+            [0, 0, 1, 0],
+            [0, 0, 0, 0],
           ),
           'change'
         );
@@ -940,11 +997,37 @@ describe('switch', function () {
           new SwitchCallsExpectation(
             [0, 1, 0, 1],
             [0, 1, 1, 0],
-            [0, 1, 1, 1],
-            [0, 0, 0, 1], // TODO: fix this; as the view is being attached, it is desirable that it does not get detached.
+            [0, 1, 1, 0],
+            [0, 0, 0, 0],
           ),
           'change'
         );
+      }
+    );
+
+    yield new TestData(
+      'works without case',
+      {
+        initialStatus: Status.processing,
+        template: `
+        <template>
+          <div switch.bind="status">
+            the curious case of \${status}
+          </div>
+        </template>`,
+      },
+      '<div> the curious case of processing </div>',
+      [
+        new SwitchCallsExpectation(
+          [],
+          [],
+          [],
+        )
+      ],
+      async (ctx) => {
+        ctx.app.status = Status.delivered;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<div> the curious case of delivered </div>', 'change innerHTML1');
       }
     );
 

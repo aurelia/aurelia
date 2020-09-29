@@ -206,28 +206,28 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     }
   }
 
-  // TODO normalize the active case binding and attaching, to avoid unnecessary detachment of view
   private swap(flags: LifecycleFlags, value: any): ILifecycleTask {
-    const activeCases: Case<T>[] = this.activeCases;
-
-    if (activeCases.length > 0) {
-      this.clearActiveCases(flags);
-    }
+    const newActiveCases: Case<T>[] = [];
 
     let fallThrough: boolean = false;
     for (const $case of this.cases) {
       if (fallThrough || $case.isMatch(value, flags)) {
-        activeCases.push($case);
+        newActiveCases.push($case);
         fallThrough = $case.fallThrough;
       }
-      if (activeCases.length > 0 && !fallThrough) { break; }
+      if (newActiveCases.length > 0 && !fallThrough) { break; }
     }
     const defaultCase = this.defaultCase;
-    if (activeCases.length === 0 && defaultCase !== void 0) {
-      activeCases.push(defaultCase);
+    if (newActiveCases.length === 0 && defaultCase !== void 0) {
+      newActiveCases.push(defaultCase);
     }
 
-    if (activeCases.length === 0) {
+    if (this.activeCases.length > 0) {
+      this.clearActiveCases(flags, newActiveCases);
+    }
+    this.activeCases = newActiveCases;
+
+    if (newActiveCases.length === 0) {
       return LifecycleTask.done;
     }
 
@@ -295,8 +295,11 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     if (numCases === 0) { return; }
 
     if (numCases === 1) {
-      cases[0].detachView(flags);
-      cases.splice(0);
+      const firstCase = cases[0];
+      if (!newActiveCases.includes(firstCase)) {
+        firstCase.detachView(flags);
+        cases.splice(0);
+      }
       return;
     }
 

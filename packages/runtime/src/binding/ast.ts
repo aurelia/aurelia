@@ -53,7 +53,7 @@ import {
   IVisitor,
   Observes,
   UnaryOperator,
-  IHydrator,
+  IConnectable,
 } from '../ast';
 import {
   ExpressionKind,
@@ -439,9 +439,13 @@ export class AccessScopeExpression implements IAccessScopeExpression {
     public readonly ancestor: number = 0,
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): IBindingContext | IBinding | IOverrideContext {
-    const obj = BindingContext.get(scope, this.name, this.ancestor, flags, part) as IBindingContext;
-    const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string, connectable?: IConnectable): IBindingContext | IBinding | IOverrideContext {
+    const name = this.name;
+    const obj = BindingContext.get(scope, name, this.ancestor, flags, part) as IBindingContext;
+    if (connectable != null) {
+      connectable.observeProperty(flags, obj, name);
+    }
+    const evaluatedValue = obj[name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (flags & LifecycleFlags.isStrictBindingStrategy) {
       return evaluatedValue;
     }
@@ -479,12 +483,25 @@ export class AccessMemberExpression implements IAccessMemberExpression {
     public readonly name: string,
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string, connectable?: IConnectable): unknown {
     const instance = this.object.evaluate(flags, scope, locator, part) as IIndexable;
+    const name = this.name;
     if (flags & LifecycleFlags.isStrictBindingStrategy) {
-      return instance == null ? instance : instance[this.name];
+      if (instance == null) {
+        return instance;
+      }
+      if (connectable != null) {
+        connectable.observeProperty(flags, instance, name);
+      }
+      return instance[name];
     }
-    return instance ? instance[this.name] : '';
+    if (instance == null) {
+      return '';
+    }
+    if (connectable != null) {
+      connectable.observeProperty(flags, instance, name);
+    }
+    return instance[name];
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, part?: string): unknown {
@@ -1207,19 +1224,19 @@ export class Interpolation implements IInterpolationExpression {
     this.firstExpression = expressions[0];
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): string {
+  public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string, connectable?: IConnectable): string {
     if (this.isMulti) {
       const expressions = this.expressions;
       const parts = this.parts;
       let result = parts[0];
       for (let i = 0, ii = expressions.length; i < ii; ++i) {
-        result += expressions[i].evaluate(flags, scope, locator, part);
+        result += expressions[i].evaluate(flags, scope, locator, part, connectable);
         result += parts[i + 1];
       }
       return result;
     } else {
       const parts = this.parts;
-      return `${parts[0]}${this.firstExpression.evaluate(flags, scope, locator, part)}${parts[1]}`;
+      return `${parts[0]}${this.firstExpression.evaluate(flags, scope, locator, part, connectable)}${parts[1]}`;
     }
   }
 

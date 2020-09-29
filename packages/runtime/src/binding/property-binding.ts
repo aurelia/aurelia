@@ -50,7 +50,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public id!: number;
   public $state: State = State.none;
-  public $lifecycle: ILifecycle;
   public $scope?: IScope = void 0;
   public part?: string;
 
@@ -58,9 +57,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
-  // private task: ITask | null = null;
-  private dom: IDOM;
-  private readonly $scheduler: IScheduler;
+  private readonly dom: IDOM;
 
   public constructor(
     public sourceExpression: IsBindingBehavior | IForOfStatement,
@@ -69,11 +66,10 @@ export class PropertyBinding implements IPartialConnectableBinding {
     public mode: BindingMode,
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator,
+    dom: IDOM,
   ) {
     connectable.assignIdTo(this);
-    this.$lifecycle = locator.get(ILifecycle);
-    this.$scheduler = locator.get(IScheduler);
-    this.dom = locator.get(IDOM);
+    this.dom = dom;
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {

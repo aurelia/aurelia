@@ -61,7 +61,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
   public target: Element;
 
-  private dom: IDOM;
+  private readonly dom: IDOM;
 
   public constructor(
     public sourceExpression: IsBindingBehavior | IForOfStatement,
@@ -76,11 +76,12 @@ export class AttributeBinding implements IPartialConnectableBinding {
     public mode: BindingMode,
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator,
+    dom: IDOM,
   ) {
     this.target = target as Element;
     connectable.assignIdTo(this);
     this.$scheduler = locator.get(IScheduler);
-    this.dom = locator.get(IDOM);
+    this.dom = dom;
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {

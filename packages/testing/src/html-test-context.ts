@@ -123,9 +123,8 @@ export class HTMLTestContext {
     this.Comment = CommentType;
     this.DOMParser = DOMParserType;
     this.doc = wnd.document;
-    this.dom = new HTMLDOM(this.wnd, this.doc, NodeType, ElementType, HTMLElementType, CustomEventType, CSSStyleSheetType, ShadowRootType);
+    this.dom = new HTMLDOM(this.wnd, this.doc, NodeType, ElementType, HTMLElementType, CustomEventType, CSSStyleSheetType, ShadowRootType, this.scheduler);
     this._container = void 0;
-    this._scheduler = void 0;
     this._templateCompiler = void 0;
     this._observerLocator = void 0;
     this._lifecycle = void 0;

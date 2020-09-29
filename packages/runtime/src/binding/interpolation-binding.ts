@@ -103,7 +103,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
   public targetObserver: IBindingTargetAccessor & INodeAccessor;
 
-  private dom: IDOM;
+  private readonly dom: IDOM;
 
   public constructor(
     public sourceExpression: IExpression,

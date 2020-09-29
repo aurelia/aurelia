@@ -35,7 +35,7 @@ import {
   PartialCustomElementDefinitionParts,
   mergeParts
 } from './definitions';
-import { INode } from './dom';
+import { INode, IDOM } from './dom';
 import { BindingMode, LifecycleFlags } from './flags';
 import {
   IController,
@@ -548,6 +548,7 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IDOM private readonly dom: IDOM,
   ) {}
 
   public render(
@@ -559,7 +560,7 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | instruction.mode);
     const binding = applyBindingBehavior(
-      new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context),
+      new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context, this.dom),
       expr,
       context,
     );
@@ -573,6 +574,7 @@ export class IteratorBindingRenderer implements IInstructionRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IDOM private readonly dom: IDOM,
   ) {}
 
   public render(
@@ -584,7 +586,7 @@ export class IteratorBindingRenderer implements IInstructionRenderer {
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.ForCommand);
     const binding = applyBindingBehavior(
-      new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context),
+      new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, this.dom),
       expr as unknown as IsBindingBehavior,
       context,
     );

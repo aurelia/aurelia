@@ -14,6 +14,7 @@ import {
   PropertyBinding,
   applyBindingBehavior,
   IsBindingBehavior,
+  IDOM,
 } from '@aurelia/runtime';
 import { AttributeBinding } from './binding/attribute';
 import { Listener } from './binding/listener';
@@ -139,6 +140,7 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IDOM private readonly dom: IDOM,
   ) {}
 
   public render(
@@ -150,7 +152,15 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
     const binding = applyBindingBehavior(
-      new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context),
+      new PropertyBinding(
+        expr,
+        target.style,
+        instruction.to,
+        BindingMode.toView,
+        this.observerLocator,
+        context,
+        this.dom,
+      ),
       expr,
       context,
     );
@@ -164,6 +174,7 @@ export class AttributeBindingRenderer implements IInstructionRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IDOM private readonly dom: IDOM,
   ) {}
 
   public render(
@@ -182,7 +193,8 @@ export class AttributeBindingRenderer implements IInstructionRenderer {
         instruction.to/* targetKey */,
         BindingMode.toView,
         this.observerLocator,
-        context
+        context,
+        this.dom,
       ),
       expr,
       context,

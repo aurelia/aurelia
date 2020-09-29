@@ -1,4 +1,3 @@
-import { OpenPromise } from './state-coordinator';
 /* eslint-disable prefer-template */
 /* eslint-disable max-lines-per-function */
 import { DI, IContainer, Registration, IIndexable, Key, Metadata } from '@aurelia/kernel';
@@ -23,6 +22,7 @@ import { Navigation } from './navigation';
 import { IRoutingController, IConnectedCustomElement } from './resources/viewport';
 import { NavigationCoordinator, NavigationCoordinatorOptions, NavigationState } from './navigation-coordinator';
 import { IRouterActivateOptions, RouterOptions } from './router-options';
+import { OpenPromise } from './open-promise';
 
 /**
  * Public API
@@ -493,6 +493,7 @@ export class Router implements IRouter {
       }
       const changedScopeOwners: IScopeOwner[] = [];
 
+      // TODO: Review whether this await poses a problem (it's currently necessary for new viewports to load)
       const hooked = await this.hookManager.invokeBeforeNavigation(viewportInstructions, instruction);
       if (hooked === false) {
         coordinator.cancel();
@@ -501,6 +502,7 @@ export class Router implements IRouter {
       } else {
         viewportInstructions = hooked as ViewportInstruction[];
       }
+
       for (const viewportInstruction of viewportInstructions) {
         const scopeOwner = viewportInstruction.owner;
         if (scopeOwner !== null) {
@@ -1099,7 +1101,10 @@ export class Router implements IRouter {
   private async cancelNavigation(updatedScopeOwners: IScopeOwner[], qInstruction: QueueItem<Navigation>): Promise<void> {
     // TODO: Take care of disabling viewports when cancelling and stateful!
     updatedScopeOwners.forEach((viewport) => {
-      viewport.abortContentChange().catch(error => { throw error; });
+      const abort = viewport.abortContentChange();
+      if (abort instanceof Promise) {
+        abort.catch(error => { throw error; });
+      }
     });
     await this.navigator.cancel(qInstruction as Navigation);
     this.processingNavigation = null;

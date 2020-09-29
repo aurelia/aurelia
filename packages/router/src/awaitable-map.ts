@@ -1,9 +1,11 @@
-export class OpenPromise<T> {
-  public isPending: boolean = true;
-  public promise!: Promise<T>;
-  public resolve!: (value: T | PromiseLike<T>) => void;
-  public reject!: () => void;
-}
+// export class OpenPromise<T> {
+//   public isPending: boolean = true;
+//   public promise!: Promise<T>;
+//   public resolve!: (value: T | PromiseLike<T>) => void;
+//   public reject!: () => void;
+// }
+
+import { OpenPromise } from './open-promise';
 
 export class AwaitableMap<K, V> {
   public map: Map<K, V | OpenPromise<V>> = new Map();

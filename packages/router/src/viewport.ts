@@ -103,13 +103,21 @@ export class Viewport implements IScopeOwner {
   }
 
   public get performLoad(): boolean {
-    return this.nextContentAction !== 'skip' && this.connectedScope.parentNextContentAction !== 'swap';
-    // return this.nextContentAction !== 'skip' && ((this.nextContent?.content.topInstruction ?? false) || this.clear);
+    return true;
+    // return this.nextContentAction !== 'skip' && this.connectedScope.parentNextContentAction !== 'swap';
+    // // return this.nextContentAction !== 'skip' && ((this.nextContent?.content.topInstruction ?? false) || this.clear);
   }
 
   public get performSwap(): boolean {
-    return this.nextContentAction !== 'skip' && this.connectedScope.parentNextContentAction !== 'swap';
-    // return this.nextContentAction !== 'skip' && ((this.nextContent?.content.topInstruction ?? false) || this.clear);
+    return true;
+    // return this.nextContentAction !== 'skip' && this.connectedScope.parentNextContentAction !== 'swap';
+    // // return this.nextContentAction !== 'skip' && ((this.nextContent?.content.topInstruction ?? false) || this.clear);
+  }
+
+  public toString(): string {
+    const contentName = this.content?.content.componentName ?? '';
+    const nextContentName = this.nextContent?.content.componentName ?? '';
+    return `v:${this.name}[${contentName}->${nextContentName}]`;
   }
 
   public setNextContent(viewportInstruction: ViewportInstruction, navigation: Navigation): NextContentAction {
@@ -253,32 +261,51 @@ export class Viewport implements IScopeOwner {
     }
   }
 
-  public async remove(connectedCE: IConnectedCustomElement | null): Promise<boolean> {
+  public remove(connectedCE: IConnectedCustomElement | null): boolean | Promise<boolean> {
     if (this.connectedCE === connectedCE) {
-      if (this.content.componentInstance) {
-        await this.content.freeContent(
-          this.connectedCE,
-          (this.nextContent ? this.nextContent.instruction : null),
-          this.historyCache,
-          this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful
-        ); // .catch(error => { throw error; });
-      }
-      if (this.doForceRemove) {
-        await Promise.all(this.historyCache.map(content => content.freeContent(
-          null,
-          null,
-          this.historyCache,
-          false,
-        )));
-        this.historyCache = [];
-      }
-      return true;
+      return Runner.run(
+        () => {
+          if (this.content.componentInstance) {
+            return this.content.freeContent(
+              this.connectedCE,
+              (this.nextContent ? this.nextContent.instruction : null),
+              this.historyCache,
+              this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful
+            ); // .catch(error => { throw error; });
+          }
+        },
+        () => {
+          if (this.doForceRemove) {
+            const removes = [];
+            for (const content of this.historyCache) {
+              removes.push(() => content.freeContent(
+                null,
+                null,
+                this.historyCache,
+                false,
+              ));
+            }
+            removes.push(() => { this.historyCache = []; });
+            return Runner.run(
+              ...removes,
+            );
+            // return Promise.all(this.historyCache.map(content => content.freeContent(
+            //   null,
+            //   null,
+            //   this.historyCache,
+            //   false,
+            // )));
+            // this.historyCache = [];
+          }
+          return true;
+        }
+      );
     }
     return false;
   }
 
-  public swap(coordinator: NavigationCoordinator): void {
-    //console.log('Viewport swap', this.name, this.nextContent?.content.topInstruction /*, this, coordinator */);
+  public transition(coordinator: NavigationCoordinator): void {
+    // console.log('Viewport transition', this.toString());
 
     let run: unknown;
 
@@ -303,7 +330,7 @@ export class Viewport implements IScopeOwner {
 
         coordinator.addEntityState(this, 'guardedUnload');
       },
-      () => coordinator.syncState('guardedUnload'),
+      () => coordinator.syncState('guardedUnload', this),
 
       () => performLoad ? this.canLoad(guarded) as boolean | NavigationInstruction | NavigationInstruction[] : true,
       (canLoadResult: boolean | NavigationInstruction | NavigationInstruction[]) => {
@@ -326,20 +353,24 @@ export class Viewport implements IScopeOwner {
     ];
 
     const routingSteps = [
-      () => coordinator.syncState('guarded'),
+      // () => { console.log("I'm waiting for guarded", this.toString()); },
+      () => coordinator.syncState('guarded', this),
+      // () => { console.log("I'm guarded", this.toString()); },
       // TODO: For consistency it should probably be this option with 'routed'
       // () => performSwap ? this.unload(coordinator.checkingSyncState('routed')) : true,
       () => performLoad ? this.unload(true) : true,
       () => coordinator.addEntityState(this, 'unloaded'),
 
-      () => coordinator.syncState('unloaded'),
+      // () => { console.log("I'm waiting for unloaded", this.toString()); },
+      () => coordinator.syncState('unloaded', this),
+      // () => { console.log("I'm done waiting for unloaded", this.toString()); },
       () => performLoad ? this.load(coordinator.checkingSyncState('routed')) : true,
       () => coordinator.addEntityState(this, 'loaded'),
       () => coordinator.addEntityState(this, 'routed'),
     ];
 
     const lifecycleSteps = [
-      () => coordinator.syncState('routed'),
+      () => coordinator.syncState('routed', this),
       // () => coordinator.addEntityState(this, 'bound'),
     ];
     if (performSwap) {
@@ -430,7 +461,7 @@ export class Viewport implements IScopeOwner {
 
         return this.nextContent!.canLoad(this, this.content.instruction);
       },
-      () => recurse ? this.connectedScope.canLoad(recurse) : true,
+      // () => recurse ? this.connectedScope.canLoad(recurse) : true,
     );
   }
 
@@ -448,7 +479,7 @@ export class Viewport implements IScopeOwner {
 
     return Runner.run(
       () => this.nextContent?.load(this.content.instruction),
-      () => recurse ? this.connectedScope.load(recurse) : true,
+      // () => recurse ? this.connectedScope.load(recurse) : true,
     );
     // return this.nextContent?.load(this.content.instruction);
     // await this.nextContent.activateComponent(null, this.connectedCE!.$controller as ICustomElementController<Element, ICustomElementViewModel<Element>>, LifecycleFlags.none, this.connectedCE!);
@@ -456,38 +487,30 @@ export class Viewport implements IScopeOwner {
   }
 
   public addContent(): void | Promise<void> {
-    // console.log(this.name, 'addContent', this.nextContent?.content);
-    const add = [];
-    // if (this.router.options.routingHookIntegration === 'integrated') {
-    //   add.push(
-    //     () => this.load(),
-    //   );
-    // }
-    add.push(() => this.activate(null, this.connectedController, LifecycleFlags.none, this.parentNextContentActivated));
+    // console.log('addContent', this.toString());
 
-    return Runner.run(...add);
+    return Runner.run(
+      () => this.activate(null, this.connectedController, LifecycleFlags.none, this.parentNextContentActivated)
+    );
   }
 
   public removeContent(): void | Promise<void> {
+    if (this.isEmpty) {
+      return;
+    }
+    // console.log('removeContent', this.toString());
+
+    return Runner.run(
+      () => this.connectedScope.removeContent(),
+      () => this.deactivate(null, null /* TODO: verify this.connectedController */, LifecycleFlags.none),
+      () => this.dispose(),
+    );
+  }
+
+  public removeChildrenContent(): void | Promise<void> {
     // console.log(this.name, 'removeContent', this.content.content);
     return Runner.run(
       () => !this.isEmpty ? this.connectedScope.removeContent() : void 0,
-      () => {
-        //console.log(this.connectedScope.toString(), 'viewport removeContent', this.content.content.componentName);
-        const remove = [];
-        // if (this.router.options.routingHookIntegration === 'integrated') {
-        //   remove.push(() => this.unload());
-        // }
-        remove.push(
-          () => this.deactivate(null, this.connectedController, LifecycleFlags.none),
-        );
-        // unload should really be here!
-        remove.push(
-          () => this.dispose(),
-        );
-
-        return Runner.run(...remove);
-      }
     );
   }
 
@@ -581,17 +604,20 @@ export class Viewport implements IScopeOwner {
     this.previousViewportState = null;
     this.connectedScope.clearReplacedChildren();
   }
-  public async abortContentChange(): Promise<void> {
+  public abortContentChange(): void | Promise<void> {
     this.connectedScope.reenableReplacedChildren();
-    await this.nextContent!.freeContent(
-      this.connectedCE,
-      this.nextContent!.instruction,
-      this.historyCache,
-      this.router.statefulHistory || this.options.stateful);
-    if (this.previousViewportState) {
-      Object.assign(this, this.previousViewportState);
-    }
-    this.nextContentAction = '';
+    return Runner.run(
+      () => this.nextContent!.freeContent(
+        this.connectedCE,
+        this.nextContent!.instruction,
+        this.historyCache,
+        this.router.statefulHistory || this.options.stateful),
+      () => {
+        if (this.previousViewportState) {
+          Object.assign(this, this.previousViewportState);
+        }
+        this.nextContentAction = '';
+      });
   }
 
   // TODO: Deal with non-string components
@@ -623,18 +649,24 @@ export class Viewport implements IScopeOwner {
     return false;
   }
 
-  public async freeContent(component: IRouteableComponent) {
+  public freeContent(component: IRouteableComponent): void | Promise<void> {
     const content = this.historyCache.find(cached => cached.componentInstance === component);
     if (content !== void 0) {
-      this.forceRemove = true;
-      await content.freeContent(
-        null,
-        null,
-        this.historyCache,
-        false,
+      return Runner.run(
+        () => {
+          this.forceRemove = true;
+          return content.freeContent(
+            null,
+            null,
+            this.historyCache,
+            false,
+          );
+        },
+        () => {
+          this.forceRemove = false;
+          arrayRemove(this.historyCache, (cached => cached === content));
+        },
       );
-      this.forceRemove = false;
-      arrayRemove(this.historyCache, (cached => cached === content));
     }
   }
 

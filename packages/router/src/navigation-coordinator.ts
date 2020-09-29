@@ -67,7 +67,7 @@ export class NavigationCoordinator extends StateCoordinator<IScopeOwner, Navigat
       for (const entity of this.entities) {
         if (!entity.running) {
           entity.running = true;
-          entity.entity.swap(this);
+          entity.entity.transition(this);
         }
       }
     }
@@ -76,7 +76,7 @@ export class NavigationCoordinator extends StateCoordinator<IScopeOwner, Navigat
   public addEntity(entity: IScopeOwner): Entity<IScopeOwner, NavigationState> {
     const ent = super.addEntity(entity);
     if (this.running) {
-      ent.entity.swap(this);
+      ent.entity.transition(this);
     }
     return ent;
   }
@@ -87,7 +87,12 @@ export class NavigationCoordinator extends StateCoordinator<IScopeOwner, Navigat
 
   public cancel() {
     // TODO: Take care of disabling viewports when cancelling and stateful!
-    this.entities.forEach(entity => { entity.entity.abortContentChange().catch(error => { throw error; }); });
+    this.entities.forEach(entity => {
+      const abort = entity.entity.abortContentChange();
+      if (abort instanceof Promise) {
+        abort.catch(error => { throw error; });
+      }
+    });
     this.router.navigator.cancel(this.navigation).then(() => {
       this.router.processingNavigation = null;
       (this.navigation.resolve as ((value: void | PromiseLike<void>) => void))();

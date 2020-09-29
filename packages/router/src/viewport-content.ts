@@ -8,7 +8,6 @@ import { ViewportInstruction } from './viewport-instruction';
 import { Navigation } from './navigation';
 import { IConnectedCustomElement } from './resources/viewport';
 import { Runner } from './runner';
-import { OpenPromise } from './state-coordinator';
 import { AwaitableMap } from './awaitable-map';
 
 /**
@@ -272,7 +271,7 @@ export class ViewportContent {
         // }
 
         const contentController = this.contentController(connectedCE);
-        return contentController.activate(initiator ?? contentController, parent!, flags);
+        return contentController.activate(initiator ?? contentController, null /* TODO: take back: parent! */, flags);
       },
       () => {
         if (this.fromCache || this.fromHistory) {

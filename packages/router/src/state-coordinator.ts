@@ -1,33 +1,15 @@
 import { Navigation } from './navigation';
+import { OpenPromise } from './open-promise';
 
 export class Entity<T, S> {
   public running: boolean = false;
   public states: S[] = [];
+  public checkedStates: S[] = [];
+
+  public syncState: S | null = null;
+  public syncPromise: OpenPromise | null = null;
 
   public constructor(public entity: T) { }
-}
-
-export class OpenPromise {
-  public isPending: boolean = true;
-  public promise!: Promise<void>;
-  public res!: (value: void | PromiseLike<void>) => void;
-  public rej!: (value: void | PromiseLike<void>) => void;
-
-  public constructor() {
-    this.promise = new Promise((res, rej) => {
-      this.res = res;
-      this.rej = rej;
-    });
-  }
-
-  public resolve(value: void | PromiseLike<void>): void {
-    this.res(value);
-    this.isPending = false;
-  }
-  public reject(value: void | PromiseLike<void>): void {
-    this.rej(value);
-    this.isPending = false;
-  }
 }
 
 export class StateCoordinator<T, S> {
@@ -35,6 +17,8 @@ export class StateCoordinator<T, S> {
   protected hasAllEntities: boolean = false;
 
   protected readonly syncStates: Map<S, OpenPromise> = new Map();
+
+  protected readonly checkedSyncStates: Set<S> = new Set();
 
   // public constructor(@ILogger private readonly logger: ILogger) {
   //   this.logger = logger.root.scopeTo('StateCoordinator');
@@ -63,17 +47,30 @@ export class StateCoordinator<T, S> {
     this.checkSyncState(state);
   }
 
-  public syncState(state: S): void | Promise<void> {
+  public syncState(state: S, entity: T | null = null): void | Promise<void> {
     const openPromise = this.syncStates.get(state);
     if (openPromise === void 0) {
       return;
     }
-    this.checkSyncState(state);
+
+    if (entity !== null) {
+      const ent = this.entities.find(e => e.entity === entity);
+      if (ent?.syncPromise === null && openPromise.isPending) {
+        ent.syncState = state;
+        ent.syncPromise = new OpenPromise();
+        ent.checkedStates.push(state);
+        this.checkedSyncStates.add(state);
+        Promise.resolve().then(() => { this.checkSyncState(state); });
+        return ent.syncPromise.promise;
+      }
+    }
+
+    // this.checkSyncState(state);
     return openPromise.promise;
   }
 
   public checkingSyncState(state: S): boolean {
-      return this.syncStates.has(state);
+    return this.syncStates.has(state);
   }
   public finalEntity(): void {
     this.hasAllEntities = true;
@@ -96,8 +93,19 @@ export class StateCoordinator<T, S> {
     }
     if (this.hasAllEntities &&
       openPromise.isPending &&
-      // Check that this state has been reached by all state entities and if so resolve the promise
-      this.entities.every(ent => ent.states.includes(state))) {
+      // Check that this state has been done by all state entities and if so resolve the promise
+      this.entities.every(ent => ent.states.includes(state)) &&
+      // Check that this state has been checked (reached) by all state entities and if so resolve the promise
+      (!this.checkedSyncStates.has(state) || this.entities.every(ent => ent.checkedStates.includes(state)))
+    ) {
+      for (const entity of this.entities) {
+        if (entity.syncState === state) {
+          // console.log('Resolving entity promise for ', state, (entity.entity as any).toString());
+          entity.syncPromise?.resolve();
+          entity.syncPromise = null;
+          entity.syncState = null;
+        }
+      }
       openPromise.resolve();
       // console.log('#### StateCoordinator state resolved', state /*, this */);
     }

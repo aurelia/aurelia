@@ -53,14 +53,14 @@ export interface IScopeOwner {
   nextContentAction: NextContentAction;
 
   setNextContent(viewportInstruction: ViewportInstruction, navigation: Navigation): NextContentAction;
-  swap(coordinator: NavigationCoordinator): void;
+  transition(coordinator: NavigationCoordinator): void;
   canUnload(): boolean | Promise<boolean>;
   canLoad(recurse: boolean): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
   load(recurse: boolean): void | Promise<void>;
   unload(recurse: boolean): void | Promise<void>;
   // loadContent(): Promise<boolean>;
   finalizeContentChange(): void;
-  abortContentChange(): Promise<void>;
+  abortContentChange(): void | Promise<void>;
 
   getRoutes(): IRoute[] | null;
 }
@@ -96,10 +96,7 @@ export class Scope {
   }
 
   public toString(recurse = false): string {
-    const contentName = (this.owner! as Viewport).content?.content.componentName ?? '';
-    const nextContentName = (this.owner! as Viewport).nextContent?.content.componentName ?? '';
-    return `${this.owningScope !== this ? this.owningScope!.toString() : ''}/${this.isViewport ? 'v' : 'vs'}:` +
-      `${this.owner!.name}[${contentName}->${nextContentName}]` +
+    return `${this.owningScope !== this ? this.owningScope!.toString() : ''}/${this.owner!.toString()}` +
       `${recurse ? `\n` + this.children.map(child => child.toString(true)).join('') : ''}`;
   }
 

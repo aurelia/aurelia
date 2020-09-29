@@ -99,13 +99,13 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Node>
       this.viewportScope.beforeBind();
     }
   }
-  public async beforeUnbind(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): Promise<void> {
+  public beforeUnbind(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): void | Promise<void> {
     if (this.viewportScope !== null) {
       this.viewportScope.beforeUnbind();
     }
     return Promise.resolve();
   }
-  public async afterUnbind(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): Promise<void> {
+  public afterUnbind(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): void | Promise<void> {
     this.disconnect();
     return Promise.resolve();
   }

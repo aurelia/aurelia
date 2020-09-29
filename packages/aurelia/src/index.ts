@@ -352,7 +352,8 @@ export {
   // Segment,
   // RouteRecognizer,
 
-  IRouterOptions,
+  RouterOptions,
+  IRouterActivateOptions,
   IRouter,
   Router,
 

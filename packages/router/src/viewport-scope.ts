@@ -117,6 +117,12 @@ export class ViewportScope implements IScopeOwner {
     return '';
   }
 
+  public toString(): string {
+    const contentName = this.content?.componentName ?? '';
+    const nextContentName = this.nextContent?.componentName ?? '';
+    return `vs:${this.name}[${contentName}->${nextContentName}]`;
+  }
+
   public setNextContent(viewportInstruction: ViewportInstruction, navigation: Navigation): NextContentAction {
     viewportInstruction.viewportScope = this;
 
@@ -138,7 +144,7 @@ export class ViewportScope implements IScopeOwner {
     return 'swap';
   }
 
-  public swap(coordinator: NavigationCoordinator): void {
+  public transition(coordinator: NavigationCoordinator): void {
     //console.log('ViewportScope swap'/*, this, coordinator*/);
 
     Runner.run(

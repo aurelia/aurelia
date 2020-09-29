@@ -6,6 +6,7 @@ import { ViewportInstruction } from './viewport-instruction';
 import { Scope } from './scope';
 import { ICustomElementViewModel } from '@aurelia/runtime';
 import { Navigation, IStoredNavigation } from './navigation';
+import { Runner } from './runner';
 
 /**
  * @internal - Shouldn't be used directly
@@ -441,20 +442,25 @@ export class Navigator {
     }
   }
 
-  private async freeInstructionComponents(instruction: ViewportInstruction, excludeComponents: IRouteableComponent[], alreadyDone: IRouteableComponent[]): Promise<void> {
+  private freeInstructionComponents(instruction: ViewportInstruction, excludeComponents: IRouteableComponent[], alreadyDone: IRouteableComponent[]): void | Promise<void> {
     const component = instruction.componentInstance;
     const viewport = instruction.viewport;
     if (component === null || viewport === null || alreadyDone.some(done => done === component)) {
       return;
     }
     if (!excludeComponents.some(exclude => exclude === component)) {
-      await viewport.freeContent(component);
-      alreadyDone.push(component);
-      return;
+      return Runner.run(
+        () => viewport.freeContent(component),
+        () => {
+          alreadyDone.push(component);
+        },
+      );
     }
     if (instruction.nextScopeInstructions !== null) {
       for (const nextInstruction of instruction.nextScopeInstructions) {
-        await this.freeInstructionComponents(nextInstruction, excludeComponents, alreadyDone);
+        return Runner.run(
+          () => this.freeInstructionComponents(nextInstruction, excludeComponents, alreadyDone)
+        );
       }
     }
   }

@@ -62,6 +62,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
   }
 
   public afterCompile(controller: ICompiledCustomElementController) {
+    // console.log('afterCompile', this.name, this.router.isActive);
     this.controller = controller as IRoutingController;
     this.container = controller.context.get(IContainer);
 
@@ -88,16 +89,18 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
     );
   }
 
-  public async afterAttach(initiator: IHydratedController<Element>, parent: IHydratedParentController<Element> | null, flags: LifecycleFlags): Promise<void> {
-    if (this.viewport) {
+  public afterAttach(initiator: IHydratedController<Element>, parent: IHydratedParentController<Element> | null, flags: LifecycleFlags): void | Promise<void> {
+    if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
+      // console.log('afterAttach', this.viewport?.toString());
       this.viewport.enabled = true;
       return this.viewport.activate(initiator, this.$controller, flags, true);
       // TODO: Restore scroll state
     }
   }
 
-  public async afterUnbind(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): Promise<void> {
-    if (this.viewport) {
+  public beforeUnbind(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): void | Promise<void> {
+    if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
+      // console.log('beforeUnbind', this.viewport?.toString());
       // TODO: Save to cache, something like
       // this.viewport.cacheContent();
       // From viewport-content:
@@ -117,16 +120,35 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
 
       // TODO: Save scroll state before detach
 
-      this.isBound = false;
+      return Runner.run(
+        () => this.viewport!.deactivate(initiator, parent, flags),
+        () => {
+          this.isBound = false;
+          this.viewport!.enabled = false;
+        }
+      );
 
-      this.viewport.enabled = false;
-      return this.viewport.deactivate(initiator, parent, flags);
+      // this.isBound = false;
+
       // this.viewport.enabled = false;
+      // return this.viewport.deactivate(initiator, parent, flags);
+      // // this.viewport.enabled = false;
     }
   }
 
-  public dispose(): void {
-    this.disconnect();
+  // public beforeDetach(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): void | Promise<void> {
+  //   if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
+  //     console.log('beforeDetach', this.viewport?.toString());
+  //   }
+  // }
+
+  public dispose(): void | Promise<void> {
+    if (this.viewport !== null) {
+      return Runner.run(
+        () => (this.viewport?.nextContent ?? null) === null ? this.viewport?.dispose() : void 0,
+        () => this.disconnect()
+      );
+    }
   }
 
   public connect(): void {

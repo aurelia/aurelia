@@ -110,7 +110,7 @@ export interface IComponentSpec {
 describe('router hooks', function () {
   this.timeout(2000);
 
-  describe('monomorphic timings', function () {
+  describe.only('monomorphic timings', function () {
     const deferUntils: DeferralJuncture[] = [
       'none',
       'guard-hooks',
@@ -167,7 +167,7 @@ describe('router hooks', function () {
     for (const componentSpec of componentSpecs) {
       const { kind, hookSpecs } = componentSpec;
 
-      if (kind !== 'all-async') {
+      if (kind !== 'all-sync') {
         continue;
       }
 
@@ -861,7 +861,7 @@ describe('router hooks', function () {
                 const instr1 = join('/', t1.p, t1.c);
                 const instr2 = join('/', t2.p, t2.c);
                 // TODO: Fix this AM HERE
-                it(`${instr1}' -> '${instr2}' -> '${instr1}' -> '${instr2}'`, async function () {
+                it.only(`${instr1}' -> '${instr2}' -> '${instr1}' -> '${instr2}'`, async function () {
                   const { router, hia, tearDown } = await createFixture(Root1, A, getDefaultHIAConfig, getRouterOptions);
 
                   const phase1 = `('' -> '${instr1}')#1`;
@@ -881,6 +881,7 @@ describe('router hooks', function () {
                   hia.setPhase(phase4);
                   await router.load(instr2);
 
+                  // console.log(`tearDown ${instr1}' -> '${instr2}' -> '${instr1}' -> '${instr2}'`);
                   await tearDown();
 
                   const expected = [...(function* () {

@@ -28,6 +28,7 @@ import {
   Switch,
   templateController,
   valueConverter,
+  TemplateControllerLinkType,
 } from '@aurelia/runtime';
 import {
   assert,
@@ -54,7 +55,7 @@ describe('switch', function () {
     }
   }
 
-  @templateController('case')
+  @templateController({ name: 'case', linkType: TemplateControllerLinkType.parent })
   class CaseTestDouble<T extends INode = Node> extends Case<T> {
     public isMatchCallCount: number = 0;
     public bindSpy: ISpy;
@@ -86,7 +87,7 @@ describe('switch', function () {
     }
   }
 
-  @templateController('default-case')
+  @templateController({ name: 'default-case', linkType: TemplateControllerLinkType.parent })
   class DefaultCaseTestDouble<T extends INode = Node> extends DefaultCase<T> {
     public bindSpy: ISpy;
     public attachSpy: ISpy;

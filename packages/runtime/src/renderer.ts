@@ -401,12 +401,12 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     Metadata.define(key, childController, renderLocation);
 
     switch (instruction.linkType) {
-      case TemplateControllerLinkType.$else: {
+      case TemplateControllerLinkType.sibling: {
         const controllers = controller.controllers!;
         (component as { link(componentTail: IController): void }).link(controllers[controllers.length - 1]);
         break;
       }
-      case TemplateControllerLinkType.$case: {
+      case TemplateControllerLinkType.parent: {
         const switchController = controller.parent!;
         (component as { link(controller: IController): void }).link(switchController);
         break;

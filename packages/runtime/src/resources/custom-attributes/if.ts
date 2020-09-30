@@ -1,4 +1,5 @@
 import { nextId } from '@aurelia/kernel';
+import { TemplateControllerLinkType } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags, State } from '../../flags';
 import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
@@ -182,7 +183,7 @@ export class If<T extends INode = INode> implements ICustomAttributeViewModel<T>
   }
 }
 
-@templateController('else')
+@templateController({ name: 'else', linkType: TemplateControllerLinkType.sibling })
 export class Else<T extends INode = INode> {
   public readonly id: number = nextId('au$component');
 

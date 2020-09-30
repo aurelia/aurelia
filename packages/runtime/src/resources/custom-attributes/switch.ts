@@ -1,6 +1,7 @@
 import {
   nextId
 } from '@aurelia/kernel';
+import { TemplateControllerLinkType } from '../../definitions';
 import {
   INode,
   IRenderLocation,
@@ -312,7 +313,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
   }
 }
 
-@templateController('case')
+@templateController({ name: 'case', linkType: TemplateControllerLinkType.parent })
 export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T> {
   public readonly id: number = nextId('au$component');
   public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
@@ -390,7 +391,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   }
 }
 
-@templateController('default-case')
+@templateController({ name: 'default-case', linkType: TemplateControllerLinkType.parent })
 export class DefaultCase<T extends INode = Node> extends Case<T>{
 
   protected linkToSwitch($switch: Switch<T>) {

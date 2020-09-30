@@ -520,7 +520,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         projectionsMap: new Map<ITargetedInstruction, IProjections>(),
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
-      linkType: attr === 'else' ? TemplateControllerLinkType.$else : void 0,
+      linkType: attr === 'else' ? TemplateControllerLinkType.sibling : TemplateControllerLinkType.none,
     };
     const input: PartialCustomElementDefinition = {
       template: finalize ? `<div>${rawMarkup}</div>` : rawMarkup,
@@ -559,7 +559,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         projectionsMap: new Map<ITargetedInstruction, IProjections>(),
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
-      linkType: attr === 'else' ? TemplateControllerLinkType.$else : void 0,
+      linkType: attr === 'else' ? TemplateControllerLinkType.sibling : TemplateControllerLinkType.none,
     };
     const rawMarkup = `<${tagName} ${attr}="${value || ''}">${childTpl || ''}</${tagName}>`;
     const input: PartialCustomElementDefinition = {

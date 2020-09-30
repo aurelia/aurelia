@@ -299,7 +299,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       needsCompile: false,
     });
 
-    instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings)]);
+    instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings, symbol.info.linkType)]);
   }
 
   private compileBindings(

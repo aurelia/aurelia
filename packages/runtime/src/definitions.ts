@@ -45,8 +45,9 @@ export const enum TargetedInstructionType {
 }
 
 export const enum TemplateControllerLinkType {
-  $else,
-  $case
+  none,
+  sibling,
+  parent,
 }
 
 export type InstructionTypeName = string;
@@ -141,7 +142,7 @@ export interface IHydrateTemplateController extends IHydrateInstruction {
   res: string;
   instructions: ITargetedInstruction[];
   def: PartialCustomElementDefinition;
-  linkType?: TemplateControllerLinkType;
+  linkType: TemplateControllerLinkType;
 }
 
 export interface IHydrateLetElementInstruction extends IHydrateInstruction {

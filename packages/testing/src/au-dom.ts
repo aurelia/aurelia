@@ -50,7 +50,8 @@ import {
   ITemplateCompiler,
   IScheduler,
   CustomElement,
-  ICustomElementController
+  ICustomElementController,
+  TemplateControllerLinkType
 } from '@aurelia/runtime';
 import { TestContext } from './html-test-context';
 
@@ -735,24 +736,27 @@ export const AuDOMTest = {
     return new HydrateTemplateController(
       def,
       'if',
-      [new ToViewBindingInstruction(parseExpression(expression), 'value')]
+      [new ToViewBindingInstruction(parseExpression(expression), 'value')],
+      TemplateControllerLinkType.none,
     );
   },
   createElseInstruction(def: PartialCustomElementDefinition): HydrateTemplateController {
-    return new HydrateTemplateController(def, 'else', []);
+    return new HydrateTemplateController(def, 'else', [], TemplateControllerLinkType.sibling);
   },
   createRepeatInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController {
     return new HydrateTemplateController(
       def,
       'repeat',
-      [new IteratorBindingInstruction(parseExpression(expression, BindingType.ForCommand), 'items')]
+      [new IteratorBindingInstruction(parseExpression(expression, BindingType.ForCommand), 'items')],
+      TemplateControllerLinkType.none,
     );
   },
   createWithInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController {
     return new HydrateTemplateController(
       def,
       'with',
-      [new ToViewBindingInstruction(parseExpression(expression), 'value')]
+      [new ToViewBindingInstruction(parseExpression(expression), 'value')],
+      TemplateControllerLinkType.none,
     );
   },
   createElementInstruction(name: string, bindings: [string, string][]): HydrateElementInstruction {

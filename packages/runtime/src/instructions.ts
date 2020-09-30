@@ -139,23 +139,13 @@ export class HydrateAttributeInstruction implements IHydrateAttributeInstruction
 
 export class HydrateTemplateController implements IHydrateTemplateController {
   public type: TargetedInstructionType.hydrateTemplateController = TargetedInstructionType.hydrateTemplateController;
-  public linkType?: TemplateControllerLinkType;
 
   public constructor(
     public def: PartialCustomElementDefinition,
     public res: string,
     public instructions: ITargetedInstruction[],
-  ) {
-    switch(res) {
-      case 'else':
-        this.linkType = TemplateControllerLinkType.$else;
-        break;
-      case 'case':
-      case 'default-case':
-        this.linkType = TemplateControllerLinkType.$case;
-        break;
-    }
-  }
+    public linkType: TemplateControllerLinkType,
+  ) {}
 }
 
 export class LetElementInstruction implements IHydrateLetElementInstruction {

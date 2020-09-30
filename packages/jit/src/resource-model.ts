@@ -14,6 +14,7 @@ import {
   CustomElement,
   BindableDefinition,
   CustomElementDefinition,
+  TemplateControllerLinkType,
 } from '@aurelia/runtime';
 import { AttrSyntax } from './ast';
 import { BindingCommand, BindingCommandInstance } from './binding-command';
@@ -118,10 +119,11 @@ export class AttrInfo {
     public name: string,
     public isTemplateController: boolean,
     public noMultiBindings: boolean,
+    public linkType: TemplateControllerLinkType,
   ) {}
 
   public static from(def: CustomAttributeDefinition): AttrInfo {
-    const info = new AttrInfo(def.name, def.isTemplateController, def.noMultiBindings);
+    const info = new AttrInfo(def.name, def.isTemplateController, def.noMultiBindings, def.linkType);
     const bindables = def.bindables;
     const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
       ? def.defaultBindingMode

@@ -16,6 +16,7 @@ import {
   CustomElementDefinition,
   BindableDefinition,
   ICustomElementController,
+  TemplateControllerLinkType,
 } from '@aurelia/runtime';
 import {
   parseExpression,
@@ -347,6 +348,7 @@ describe.skip('controller', function () {
               ),
               'if',
               [new ToViewBindingInstruction(parseExpression('id===1&oneTime'), 'value')],
+              TemplateControllerLinkType.none,
             ),
           ],
         ],
@@ -749,6 +751,7 @@ describe.skip('controller', function () {
               ),
               'if',
               [new ToViewBindingInstruction(parseExpression('id===1&oneTime'), 'value')],
+              TemplateControllerLinkType.none
             ),
           ],
         ],

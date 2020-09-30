@@ -808,6 +808,7 @@ describe('switch', function () {
         <span case.bind="statuses">Processing.</span>
         <span case="dispatched">On the way.</span>
         <span case="delivered">Delivered.</span>
+        <span default-case>Unknown.</span>
       </template>
     </template>`,
       },
@@ -818,14 +819,15 @@ describe('switch', function () {
           [0, 1, 0],
           [0, 1, 0],
           [0, 0, 0],
+          new DefaultCaseCallsExpectation(0, 0, 0),
         )
       ],
       async (ctx) => {
         const $switch = ctx.getSwitchTestDoubles()[0];
 
         $switch.clearCalls();
-        ctx.app.statuses = [Status.dispatched]; // TODO assert the calls for `ctx.app.statuses = [ctx.app.status = Status.delivered];`
-        await ctx.scheduler.yieldAll(2);
+        ctx.app.statuses = [Status.dispatched];
+        await ctx.scheduler.yieldAll();
         assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML1');
         ctx.assertCalls(
           $switch,
@@ -834,8 +836,41 @@ describe('switch', function () {
             [1, 0, 0],
             [1, 0, 0],
             [0, 1, 0],
+            new DefaultCaseCallsExpectation(0, 0, 0),
           ),
           'change1'
+        );
+
+        $switch.clearCalls();
+        ctx.app.status = Status.unknown;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>Unknown.</span>', 'change innerHTML2');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [1, 1, 1],
+            [0, 0, 0],
+            [0, 0, 0],
+            [1, 0, 0],
+            new DefaultCaseCallsExpectation(1, 1, 0),
+          ),
+          'change2'
+        );
+
+        $switch.clearCalls();
+        ctx.app.statuses = [ctx.app.status = Status.delivered];
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML2');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [2, 1, 1],
+            [0, 0, 1],
+            [1, 0, 1],
+            [0, 0, 1],
+            new DefaultCaseCallsExpectation(0, 0, 1),
+          ),
+          'change3'
         );
       }
     );
@@ -850,6 +885,7 @@ describe('switch', function () {
         <span case.bind="statuses">Processing.</span>
         <span case="dispatched">On the way.</span>
         <span case="delivered">Delivered.</span>
+        <span default-case>Unknown.</span>
       </template>
     </template>`,
       },
@@ -860,13 +896,14 @@ describe('switch', function () {
           [0, 1, 0],
           [0, 1, 0],
           [0, 0, 0],
+          new DefaultCaseCallsExpectation(0, 0, 0),
         )
       ],
       async (ctx) => {
         const $switch = ctx.getSwitchTestDoubles()[0];
 
         $switch.clearCalls();
-        ctx.app.statuses.push(Status.dispatched); // TODO assert the calls for `ctx.app.statuses.push(ctx.app.status = Status.delivered);`
+        ctx.app.statuses.push(Status.dispatched);
         await ctx.scheduler.yieldAll(2);
         assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML1');
         ctx.assertCalls(
@@ -876,8 +913,41 @@ describe('switch', function () {
             [1, 0, 0],
             [1, 0, 0],
             [0, 1, 0],
+            new DefaultCaseCallsExpectation(0, 0, 0),
           ),
           'change1'
+        );
+
+        $switch.clearCalls();
+        ctx.app.status = Status.unknown;
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>Unknown.</span>', 'change innerHTML2');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [1, 1, 1],
+            [0, 0, 0],
+            [0, 0, 0],
+            [1, 0, 0],
+            new DefaultCaseCallsExpectation(1, 1, 0),
+          ),
+          'change2'
+        );
+
+        $switch.clearCalls();
+        ctx.app.statuses.push(ctx.app.status = Status.delivered);
+        await ctx.scheduler.yieldAll();
+        assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML2');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [2, 1, 1],
+            [0, 0, 1],
+            [1, 0, 1],
+            [0, 0, 1],
+            new DefaultCaseCallsExpectation(0, 0, 1),
+          ),
+          'change3'
         );
       }
     );

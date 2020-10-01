@@ -8,7 +8,7 @@ import { IDisposable } from '@aurelia/kernel';
   name: 'href',
   noMultiBindings: true
 })
-export class HrefCustomAttribute implements ICustomAttributeViewModel<HTMLElement> {
+export class HrefCustomAttribute implements ICustomAttributeViewModel<Element> {
   @bindable({ mode: BindingMode.toView })
   public value: string | undefined;
 

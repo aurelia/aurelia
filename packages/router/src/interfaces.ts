@@ -5,18 +5,6 @@ import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 import { Navigation } from './navigation';
 
-export type RouteableComponentType<C extends Constructable = Constructable> = CustomElementType<C> & {
-  parameters?: string[];
-};
-
-export interface IRouteableComponent<T extends INode = INode> extends ICustomElementViewModel<T> {
-  reentryBehavior?: ReentryBehavior;
-  canEnter?(parameters: Record<string, unknown>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): boolean | string | ViewportInstruction[] | Promise<boolean | string | ViewportInstruction[]>;
-  enter?(parameters: Record<string, unknown>, nextInstruction: INavigatorInstruction, instruction: INavigatorInstruction): void | Promise<void>;
-  canLeave?(nextInstruction: INavigatorInstruction | null, instruction: INavigatorInstruction): boolean | Promise<boolean>;
-  leave?(nextInstruction: INavigatorInstruction | null, instruction: INavigatorInstruction): void | Promise<void>;
-}
-
 // These interfaces exclusively exist to prevent TS decorator metadata emission from having the runtime
 // side-effect of causing a ReferenceError in node, because these are not defined as globals there.
 // We will have a cleaner solution for this once AOT is done, as we can do arbitrary transforms then.

@@ -6,7 +6,7 @@ import { NavigationInstructionResolver } from '../type-resolvers';
 import { deprecationWarning } from '../utils';
 
 @customAttribute('goto')
-export class GotoCustomAttribute implements ICustomAttributeViewModel<HTMLElement> {
+export class GotoCustomAttribute implements ICustomAttributeViewModel<Element> {
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 

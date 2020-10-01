@@ -320,7 +320,7 @@ export class Viewport implements IScopeOwner {
       () => performLoad ? this.canUnload() : true,
       (canUnloadResult: boolean) => {
         if (!canUnloadResult) {
-          Runner.cancel(run);
+          Runner.cancel(void 0);
           coordinator.cancel();
           return;
         }
@@ -337,7 +337,7 @@ export class Viewport implements IScopeOwner {
       (canLoadResult: boolean | NavigationInstruction | NavigationInstruction[]) => {
         if (typeof canLoadResult === 'boolean') {
           if (!canLoadResult) {
-            Runner.cancel(run);
+            Runner.cancel(void 0);
             coordinator.cancel();
             return;
           }

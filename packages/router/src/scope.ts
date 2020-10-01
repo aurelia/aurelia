@@ -97,6 +97,7 @@ export class Scope {
 
   public toString(recurse = false): string {
     return `${this.owningScope !== this ? this.owningScope!.toString() : ''}/${this.owner!.toString()}` +
+      // eslint-disable-next-line prefer-template
       `${recurse ? `\n` + this.children.map(child => child.toString(true)).join('') : ''}`;
   }
 

@@ -192,6 +192,7 @@ export class Viewport implements IScopeOwner {
 
     if (!this.content.equalParameters(this.nextContent)) {
       // TODO: Fix a config option for this
+      // eslint-disable-next-line no-constant-condition
       if (false) { // Re-use component, only reload with new parameters
         this.content.reentry = true;
         this.nextContent!.content.setComponent(this.content.componentInstance!);
@@ -307,7 +308,7 @@ export class Viewport implements IScopeOwner {
   public transition(coordinator: NavigationCoordinator): void {
     // console.log('Viewport transition', this.toString());
 
-    let run: unknown;
+    // let run: unknown;
 
     const guarded = coordinator.checkingSyncState('guarded');
 
@@ -405,7 +406,8 @@ export class Viewport implements IScopeOwner {
     //   () => coordinator.addEntityState(this, 'swapped'),
     // ];
 
-    run = Runner.run(
+    // run =
+    Runner.run(
       ...guardSteps,
       ...routingSteps,
       ...lifecycleSteps,
@@ -416,13 +418,13 @@ export class Viewport implements IScopeOwner {
   public canUnload(): boolean | Promise<boolean> {
     return Runner.run(
       () => {
-        //console.log('viewport canUnload run', this.name, 'before');
+        // console.log('viewport canUnload run', this.name, 'before');
         const result = this.connectedScope.canUnload();
-        //console.log('viewport canUnload run', this.name, 'after');
+        // console.log('viewport canUnload run', this.name, 'after');
         return result;
       },
       (canUnloadChildren: boolean) => {
-        //console.log('viewport canUnload result', this.name, canUnloadChildren);
+        // console.log('viewport canUnload result', this.name, canUnloadChildren);
         if (!canUnloadChildren) {
           return false;
         }
@@ -439,7 +441,7 @@ export class Viewport implements IScopeOwner {
   }
 
   public canLoad(recurse: boolean): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
-    //console.log(this.connectedScope.toString(), 'viewport content canLoad', this.nextContent?.content?.componentName);
+    // console.log(this.connectedScope.toString(), 'viewport content canLoad', this.nextContent?.content?.componentName);
     if (this.clear) {
       return true;
     }
@@ -466,7 +468,7 @@ export class Viewport implements IScopeOwner {
   }
 
   public load(recurse: boolean): void | Promise<void> {
-    //console.log(this.connectedScope.toString(), 'viewport content load', this.nextContent?.content?.componentName);
+    // console.log(this.connectedScope.toString(), 'viewport content load', this.nextContent?.content?.componentName);
     if (this.clear || (this.nextContent?.componentInstance ?? null) === null) {
       return;
     }
@@ -515,7 +517,7 @@ export class Viewport implements IScopeOwner {
   }
 
   public activate(initiator: IHydratedController<Element> | null, parent: IHydratedParentController<Element> | null, flags: LifecycleFlags, fromParent: boolean): void | Promise<void> {
-    //console.log('activate' /* , { ...this } */);
+    // console.log('activate' /* , { ...this } */);
     if (this.activeContent.componentInstance !== null) {
       this.connectedScope.reenableReplacedChildren();
       return Runner.run(
@@ -551,7 +553,7 @@ export class Viewport implements IScopeOwner {
     return Runner.run(
       () => recurse ? this.connectedScope.unload(recurse) : true,
       () => {
-        //console.log(this.connectedScope.toString(), 'viewport content unload', this.content.content.componentName);
+        // console.log(this.connectedScope.toString(), 'viewport content unload', this.content.content.componentName);
         // This shouldn't happen
         // // TODO: Verify this
         // if (this.nextContent === this.content) {

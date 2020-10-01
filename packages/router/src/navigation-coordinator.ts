@@ -100,5 +100,6 @@ export class NavigationCoordinator extends StateCoordinator<IScopeOwner, Navigat
   }
 
   // A new navigation should cancel replaced instructions
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   public cancelReplaced(navigation: Navigation) { }
 }

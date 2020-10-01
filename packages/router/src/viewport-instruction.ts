@@ -215,10 +215,10 @@ export class ViewportInstruction {
       const instance = this.isComponentType()
         ? container.get<IRouteableComponent>(this.componentType!)
         : container.get<IRouteableComponent>(CustomElement.keyFrom(this.componentName!));
-      if (this.isComponentType()) {
-        if (!(instance instanceof this.componentType!)) {
-          console.warn('Failed to instantiate', this.componentType, instance);
-        }
+      if (this.isComponentType() &&
+        !(instance instanceof this.componentType!)
+      ) {
+        console.warn('Failed to instantiate', this.componentType, instance);
       }
       return instance ?? null;
     }

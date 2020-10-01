@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { Navigation } from './navigation';
 import { OpenPromise } from './open-promise';
 
@@ -60,7 +61,7 @@ export class StateCoordinator<T, S> {
         ent.syncPromise = new OpenPromise();
         ent.checkedStates.push(state);
         this.checkedSyncStates.add(state);
-        Promise.resolve().then(() => { this.checkSyncState(state); });
+        Promise.resolve().then(() => { this.checkSyncState(state); }).catch(err => { throw err; });
         return ent.syncPromise.promise;
       }
     }
@@ -113,10 +114,10 @@ export class StateCoordinator<T, S> {
 
   protected resetSyncStates(): void {
     this.syncStates.forEach((promise: OpenPromise, state: S) => {
-      if (!promise.isPending) {
-        if (!this.entities.every(entity => entity.states.includes(state))) {
-          this.addSyncState(state);
-        }
+      if (!promise.isPending &&
+        !this.entities.every(entity => entity.states.includes(state))
+      ) {
+        this.addSyncState(state);
       }
     });
   }

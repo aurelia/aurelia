@@ -4,7 +4,7 @@ import { MyApp } from './my-app';
 Aurelia
   .register(RouterConfiguration.customize({
     useUrlFragmentHash: true,
-    navigationSyncStates: ['guardedUnload', 'swapped', 'completed', 'guardedLoad', 'guarded'],
+    navigationSyncStates: ['completed', 'guarded', 'guardedLoad', 'guardedUnload', 'swapped'],
   }))
   .app(MyApp)
   .start();

@@ -145,7 +145,7 @@ export class ViewportScope implements IScopeOwner {
   }
 
   public transition(coordinator: NavigationCoordinator): void {
-    //console.log('ViewportScope swap'/*, this, coordinator*/);
+    // console.log('ViewportScope swap'/*, this, coordinator*/);
 
     Runner.run(
       () => coordinator.addEntityState(this, 'guardedUnload'),

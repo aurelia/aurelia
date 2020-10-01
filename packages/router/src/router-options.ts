@@ -1,3 +1,4 @@
+/* eslint-disable no-template-curly-in-string */
 import { INavigatorOptions } from './navigator';
 import { IHookDefinition } from './hook-manager';
 import { NavigationState } from './navigation-coordinator';
@@ -74,6 +75,7 @@ export class RouterOptions implements INavigatorOptions {
   public useConfiguredRoutes: boolean = true;
   public additiveInstructionDefault: boolean = true;
   public title: ITitleConfiguration = {
+    // eslint-disable-next-line no-useless-escape
     appTitle: "${componentTitles}\${appTitleSeparator}Aurelia",
     appTitleSeparator: ' | ',
     componentTitleOrder: 'top-down',

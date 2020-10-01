@@ -18,6 +18,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.synchronizeIndices = exports.applyMutationsToIndices = exports.getArrayObserver = exports.ArrayIndexObserver = exports.ArrayObserver = exports.disableArrayObservation = exports.enableArrayObservation = void 0;
     const lifecycle_1 = require("../lifecycle");
     const observation_1 = require("../observation");
     const collection_length_observer_1 = require("./collection-length-observer");
@@ -407,137 +408,143 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     }
     exports.disableArrayObservation = disableArrayObservation;
-    let ArrayObserver = class ArrayObserver {
-        constructor(flags, lifecycle, array) {
-            if (!enableArrayObservationCalled) {
-                enableArrayObservationCalled = true;
-                enableArrayObservation();
+    let ArrayObserver = /** @class */ (() => {
+        let ArrayObserver = class ArrayObserver {
+            constructor(flags, lifecycle, array) {
+                if (!enableArrayObservationCalled) {
+                    enableArrayObservationCalled = true;
+                    enableArrayObservation();
+                }
+                this.inBatch = false;
+                this.indexObservers = {};
+                this.collection = array;
+                this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+                this.indexMap = observation_1.createIndexMap(array.length);
+                this.lifecycle = lifecycle;
+                this.lengthObserver = (void 0);
+                observerLookup.set(array, this);
             }
-            this.inBatch = false;
-            this.indexObservers = {};
-            this.collection = array;
-            this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;
-            this.indexMap = observation_1.createIndexMap(array.length);
-            this.lifecycle = lifecycle;
-            this.lengthObserver = (void 0);
-            observerLookup.set(array, this);
-        }
-        notify() {
-            if (this.lifecycle.batch.depth > 0) {
-                if (!this.inBatch) {
-                    this.inBatch = true;
-                    this.lifecycle.batch.add(this);
+            notify() {
+                if (this.lifecycle.batch.depth > 0) {
+                    if (!this.inBatch) {
+                        this.inBatch = true;
+                        this.lifecycle.batch.add(this);
+                    }
+                }
+                else {
+                    this.flushBatch(0 /* none */);
                 }
             }
-            else {
-                this.flushBatch(0 /* none */);
+            getLengthObserver() {
+                if (this.lengthObserver === void 0) {
+                    this.lengthObserver = new collection_length_observer_1.CollectionLengthObserver(this.collection);
+                }
+                return this.lengthObserver;
             }
-        }
-        getLengthObserver() {
-            if (this.lengthObserver === void 0) {
-                this.lengthObserver = new collection_length_observer_1.CollectionLengthObserver(this.collection);
+            getIndexObserver(index) {
+                return this.getOrCreateIndexObserver(index);
             }
-            return this.lengthObserver;
-        }
-        getIndexObserver(index) {
-            return this.getOrCreateIndexObserver(index);
-        }
-        flushBatch(flags) {
-            this.inBatch = false;
-            const indexMap = this.indexMap;
-            const length = this.collection.length;
-            this.indexMap = observation_1.createIndexMap(length);
-            this.callCollectionSubscribers(indexMap, 16 /* updateTargetInstance */ | this.persistentFlags);
-            if (this.lengthObserver !== void 0) {
-                this.lengthObserver.setValue(length, 16 /* updateTargetInstance */);
+            flushBatch(flags) {
+                this.inBatch = false;
+                const indexMap = this.indexMap;
+                const length = this.collection.length;
+                this.indexMap = observation_1.createIndexMap(length);
+                this.callCollectionSubscribers(indexMap, 8 /* updateTargetInstance */ | this.persistentFlags);
+                if (this.lengthObserver !== void 0) {
+                    this.lengthObserver.setValue(length, 8 /* updateTargetInstance */);
+                }
             }
-        }
-        /**
-         * @internal used by friend class ArrayIndexObserver only
-         */
-        addIndexObserver(indexObserver) {
-            this.addCollectionSubscriber(indexObserver);
-        }
-        /**
-         * @internal used by friend class ArrayIndexObserver only
-         */
-        removeIndexObserver(indexObserver) {
-            this.removeCollectionSubscriber(indexObserver);
-        }
-        /**
-         * @internal
-         */
-        getOrCreateIndexObserver(index) {
-            const indexObservers = this.indexObservers;
-            let observer = indexObservers[index];
-            if (observer === void 0) {
-                observer = indexObservers[index] = new ArrayIndexObserver(this, index);
+            /**
+             * @internal used by friend class ArrayIndexObserver only
+             */
+            addIndexObserver(indexObserver) {
+                this.addCollectionSubscriber(indexObserver);
             }
-            return observer;
-        }
-    };
-    ArrayObserver = __decorate([
-        subscriber_collection_1.collectionSubscriberCollection(),
-        __metadata("design:paramtypes", [Number, Object, Object])
-    ], ArrayObserver);
+            /**
+             * @internal used by friend class ArrayIndexObserver only
+             */
+            removeIndexObserver(indexObserver) {
+                this.removeCollectionSubscriber(indexObserver);
+            }
+            /**
+             * @internal
+             */
+            getOrCreateIndexObserver(index) {
+                const indexObservers = this.indexObservers;
+                let observer = indexObservers[index];
+                if (observer === void 0) {
+                    observer = indexObservers[index] = new ArrayIndexObserver(this, index);
+                }
+                return observer;
+            }
+        };
+        ArrayObserver = __decorate([
+            subscriber_collection_1.collectionSubscriberCollection(),
+            __metadata("design:paramtypes", [Number, Object, Object])
+        ], ArrayObserver);
+        return ArrayObserver;
+    })();
     exports.ArrayObserver = ArrayObserver;
-    let ArrayIndexObserver = class ArrayIndexObserver {
-        constructor(owner, index) {
-            this.owner = owner;
-            this.index = index;
-            this.subscriberCount = 0;
-            this.currentValue = this.getValue();
-        }
-        getValue() {
-            return this.owner.collection[this.index];
-        }
-        setValue(newValue, flags) {
-            if (newValue === this.getValue()) {
-                return;
+    let ArrayIndexObserver = /** @class */ (() => {
+        let ArrayIndexObserver = class ArrayIndexObserver {
+            constructor(owner, index) {
+                this.owner = owner;
+                this.index = index;
+                this.subscriberCount = 0;
+                this.currentValue = this.getValue();
             }
-            const arrayObserver = this.owner;
-            const index = this.index;
-            const indexMap = arrayObserver.indexMap;
-            if (indexMap[index] > -1) {
-                indexMap.deletedItems.push(indexMap[index]);
+            getValue() {
+                return this.owner.collection[this.index];
             }
-            indexMap[index] = -2;
-            // do not need to update current value here
-            // as it will be updated inside handle collection change
-            arrayObserver.collection[index] = newValue;
-            arrayObserver.notify();
-        }
-        /**
-         * From interface `ICollectionSubscriber`
-         */
-        handleCollectionChange(indexMap, flags) {
-            const index = this.index;
-            const noChange = indexMap[index] === index;
-            if (noChange) {
-                return;
+            setValue(newValue, flags) {
+                if (newValue === this.getValue()) {
+                    return;
+                }
+                const arrayObserver = this.owner;
+                const index = this.index;
+                const indexMap = arrayObserver.indexMap;
+                if (indexMap[index] > -1) {
+                    indexMap.deletedItems.push(indexMap[index]);
+                }
+                indexMap[index] = -2;
+                // do not need to update current value here
+                // as it will be updated inside handle collection change
+                arrayObserver.collection[index] = newValue;
+                arrayObserver.notify();
             }
-            const prevValue = this.currentValue;
-            const currValue = this.currentValue = this.getValue();
-            // hmm
-            if (prevValue !== currValue) {
-                this.callSubscribers(currValue, prevValue, flags);
+            /**
+             * From interface `ICollectionSubscriber`
+             */
+            handleCollectionChange(indexMap, flags) {
+                const index = this.index;
+                const noChange = indexMap[index] === index;
+                if (noChange) {
+                    return;
+                }
+                const prevValue = this.currentValue;
+                const currValue = this.currentValue = this.getValue();
+                // hmm
+                if (prevValue !== currValue) {
+                    this.callSubscribers(currValue, prevValue, flags);
+                }
             }
-        }
-        subscribe(subscriber) {
-            if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
-                this.owner.addIndexObserver(this);
+            subscribe(subscriber) {
+                if (this.addSubscriber(subscriber) && ++this.subscriberCount === 1) {
+                    this.owner.addIndexObserver(this);
+                }
             }
-        }
-        unsubscribe(subscriber) {
-            if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
-                this.owner.removeIndexObserver(this);
+            unsubscribe(subscriber) {
+                if (this.removeSubscriber(subscriber) && --this.subscriberCount === 0) {
+                    this.owner.removeIndexObserver(this);
+                }
             }
-        }
-    };
-    ArrayIndexObserver = __decorate([
-        subscriber_collection_1.subscriberCollection(),
-        __metadata("design:paramtypes", [ArrayObserver, Number])
-    ], ArrayIndexObserver);
+        };
+        ArrayIndexObserver = __decorate([
+            subscriber_collection_1.subscriberCollection(),
+            __metadata("design:paramtypes", [ArrayObserver, Number])
+        ], ArrayIndexObserver);
+        return ArrayIndexObserver;
+    })();
     exports.ArrayIndexObserver = ArrayIndexObserver;
     function getArrayObserver(flags, lifecycle, array) {
         const observer = observerLookup.get(array);

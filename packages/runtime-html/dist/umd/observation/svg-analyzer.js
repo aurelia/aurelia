@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ISVGAnalyzer = void 0;
     const kernel_1 = require("@aurelia/kernel");
     exports.ISVGAnalyzer = kernel_1.DI.createInterface('ISVGAnalyzer').withDefault(x => x.singleton(class {
         isStandardSvgAttribute(node, attributeName) {

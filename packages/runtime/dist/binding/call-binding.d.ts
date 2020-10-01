@@ -1,6 +1,6 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { IsBindingBehavior } from '../ast';
-import { LifecycleFlags, State } from '../flags';
+import { LifecycleFlags } from '../flags';
 import { IAccessor, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IConnectableBinding } from './connectable';
@@ -10,7 +10,7 @@ export declare class CallBinding {
     sourceExpression: IsBindingBehavior;
     locator: IServiceLocator;
     interceptor: this;
-    $state: State;
+    isBound: boolean;
     $scope?: IScope;
     part?: string;
     targetObserver: IAccessor;
@@ -20,5 +20,6 @@ export declare class CallBinding {
     $unbind(flags: LifecycleFlags): void;
     observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
+    dispose(): void;
 }
 //# sourceMappingURL=call-binding.d.ts.map

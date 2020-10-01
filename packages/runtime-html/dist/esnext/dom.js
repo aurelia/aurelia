@@ -1,4 +1,4 @@
-import { PLATFORM, Registration, Reporter } from '@aurelia/kernel';
+import { DI, PLATFORM, Registration, Reporter } from '@aurelia/kernel';
 import { DOM, IDOM, INode, CustomElement } from '@aurelia/runtime';
 import { ShadowDOMProjector } from './projectors';
 export var NodeType;
@@ -404,4 +404,7 @@ export class AuMarker {
     proto.nodeName = 'AU-M';
     proto.nodeType = 1 /* Element */;
 })(AuMarker.prototype);
+export const IWindow = DI.createInterface('IWindow').withDefault(x => x.callback(handler => handler.get(HTMLDOM).window));
+export const ILocation = DI.createInterface('ILocation').withDefault(x => x.callback(handler => handler.get(IWindow).location));
+export const IHistory = DI.createInterface('IHistory').withDefault(x => x.callback(handler => handler.get(IWindow).history));
 //# sourceMappingURL=dom.js.map

@@ -21,6 +21,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Blur = exports.BlurManager = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const dom_1 = require("../../dom");
@@ -92,146 +93,149 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     }
     exports.BlurManager = BlurManager;
-    let Blur = class Blur {
-        constructor(element, dom, scheduler) {
-            this.dom = dom;
-            this.element = element;
-            /**
-             * By default, the behavior should be least surprise possible, that:
-             *
-             * it searches for anything from root context,
-             * and root context is document body
-             */
-            this.linkedMultiple = true;
-            this.searchSubTree = true;
-            this.linkingContext = null;
-            this.value = unset;
-            this.manager = BlurManager.createFor(dom, scheduler);
-        }
-        afterAttach() {
-            this.manager.register(this);
-        }
-        beforeDetach() {
-            this.manager.unregister(this);
-        }
-        handleEventTarget(target) {
-            if (this.value === false) {
-                return;
+    let Blur = /** @class */ (() => {
+        let Blur = class Blur {
+            constructor(element, dom, scheduler) {
+                this.dom = dom;
+                this.element = element;
+                /**
+                 * By default, the behavior should be least surprise possible, that:
+                 *
+                 * it searches for anything from root context,
+                 * and root context is document body
+                 */
+                this.linkedMultiple = true;
+                this.searchSubTree = true;
+                this.linkingContext = null;
+                this.value = unset;
+                this.manager = BlurManager.createFor(dom, scheduler);
             }
-            const dom = this.dom;
-            if (target === dom.window || target === dom.document || !this.contains(target)) {
-                this.triggerBlur();
+            afterAttachChildren() {
+                this.manager.register(this);
             }
-        }
-        contains(target) {
-            if (!this.value) {
-                return false;
+            beforeDetach() {
+                this.manager.unregister(this);
             }
-            let els;
-            let i;
-            let j, jj;
-            let link;
-            const element = this.element;
-            if (containsElementOrShadowRoot(element, target)) {
-                return true;
+            handleEventTarget(target) {
+                if (this.value === false) {
+                    return;
+                }
+                const dom = this.dom;
+                if (target === dom.window || target === dom.document || !this.contains(target)) {
+                    this.triggerBlur();
+                }
             }
-            if (!this.linkedWith) {
-                return false;
-            }
-            const doc = this.dom.document;
-            const linkedWith = this.linkedWith;
-            const linkingContext = this.linkingContext;
-            const searchSubTree = this.searchSubTree;
-            const linkedMultiple = this.linkedMultiple;
-            const links = Array.isArray(linkedWith) ? linkedWith : [linkedWith];
-            const contextNode = (typeof linkingContext === 'string'
-                ? doc.querySelector(linkingContext)
-                : linkingContext)
-                || doc.body;
-            const ii = links.length;
-            for (i = 0; ii > i; ++i) {
-                link = links[i];
-                // When user specify to link with something by a string, it acts as a CSS selector
-                // We need to do some querying stuff to determine if target above is contained.
-                if (typeof link === 'string') {
-                    // Default behavior, search the whole tree, from context that user specified, which default to document body
-                    if (searchSubTree) {
-                        // todo: are there too many knobs?? Consider remove "linkedMultiple"??
-                        if (!linkedMultiple) {
-                            const el = contextNode.querySelector(link);
-                            els = el !== null ? [el] : kernel_1.PLATFORM.emptyArray;
+            contains(target) {
+                if (!this.value) {
+                    return false;
+                }
+                let els;
+                let i;
+                let j, jj;
+                let link;
+                const element = this.element;
+                if (containsElementOrShadowRoot(element, target)) {
+                    return true;
+                }
+                if (!this.linkedWith) {
+                    return false;
+                }
+                const doc = this.dom.document;
+                const linkedWith = this.linkedWith;
+                const linkingContext = this.linkingContext;
+                const searchSubTree = this.searchSubTree;
+                const linkedMultiple = this.linkedMultiple;
+                const links = Array.isArray(linkedWith) ? linkedWith : [linkedWith];
+                const contextNode = (typeof linkingContext === 'string'
+                    ? doc.querySelector(linkingContext)
+                    : linkingContext)
+                    || doc.body;
+                const ii = links.length;
+                for (i = 0; ii > i; ++i) {
+                    link = links[i];
+                    // When user specify to link with something by a string, it acts as a CSS selector
+                    // We need to do some querying stuff to determine if target above is contained.
+                    if (typeof link === 'string') {
+                        // Default behavior, search the whole tree, from context that user specified, which default to document body
+                        if (searchSubTree) {
+                            // todo: are there too many knobs?? Consider remove "linkedMultiple"??
+                            if (!linkedMultiple) {
+                                const el = contextNode.querySelector(link);
+                                els = el !== null ? [el] : kernel_1.PLATFORM.emptyArray;
+                            }
+                            else {
+                                els = contextNode.querySelectorAll(link);
+                            }
+                            jj = els.length;
+                            for (j = 0; jj > j; ++j) {
+                                if (els[j].contains(target)) {
+                                    return true;
+                                }
+                            }
                         }
                         else {
-                            els = contextNode.querySelectorAll(link);
-                        }
-                        jj = els.length;
-                        for (j = 0; jj > j; ++j) {
-                            if (els[j].contains(target)) {
-                                return true;
+                            // default to document body, if user didn't define a linking context, and wanted to ignore subtree.
+                            // This is specifically performant and useful for dialogs, plugins
+                            // that usually generate contents to document body
+                            els = contextNode.children;
+                            jj = els.length;
+                            for (j = 0; jj > j; ++j) {
+                                if (els[j].matches(link)) {
+                                    return true;
+                                }
                             }
                         }
                     }
                     else {
-                        // default to document body, if user didn't define a linking context, and wanted to ignore subtree.
-                        // This is specifically performant and useful for dialogs, plugins
-                        // that usually generate contents to document body
-                        els = contextNode.children;
-                        jj = els.length;
-                        for (j = 0; jj > j; ++j) {
-                            if (els[j].matches(link)) {
-                                return true;
-                            }
+                        // When user passed in something that is not a string,
+                        // simply check if has method `contains` (allow duck typing)
+                        // and call it against target.
+                        // This enables flexible usages
+                        if (link && link.contains(target)) {
+                            return true;
                         }
                     }
                 }
-                else {
-                    // When user passed in something that is not a string,
-                    // simply check if has method `contains` (allow duck typing)
-                    // and call it against target.
-                    // This enables flexible usages
-                    if (link && link.contains(target)) {
-                        return true;
-                    }
+                return false;
+            }
+            triggerBlur() {
+                this.value = false;
+                if (typeof this.onBlur === 'function') {
+                    this.onBlur.call(null);
                 }
             }
-            return false;
-        }
-        triggerBlur() {
-            this.value = false;
-            if (typeof this.onBlur === 'function') {
-                this.onBlur.call(null);
-            }
-        }
-    };
-    __decorate([
-        runtime_1.bindable(),
-        __metadata("design:type", Object)
-    ], Blur.prototype, "value", void 0);
-    __decorate([
-        runtime_1.bindable(),
-        __metadata("design:type", Function)
-    ], Blur.prototype, "onBlur", void 0);
-    __decorate([
-        runtime_1.bindable(),
-        __metadata("design:type", Object)
-    ], Blur.prototype, "linkedWith", void 0);
-    __decorate([
-        runtime_1.bindable(),
-        __metadata("design:type", Boolean)
-    ], Blur.prototype, "linkedMultiple", void 0);
-    __decorate([
-        runtime_1.bindable(),
-        __metadata("design:type", Boolean)
-    ], Blur.prototype, "searchSubTree", void 0);
-    __decorate([
-        runtime_1.bindable(),
-        __metadata("design:type", Object)
-    ], Blur.prototype, "linkingContext", void 0);
-    Blur = __decorate([
-        runtime_1.customAttribute('blur'),
-        __param(0, runtime_1.INode), __param(1, runtime_1.IDOM), __param(2, runtime_1.IScheduler),
-        __metadata("design:paramtypes", [Object, dom_1.HTMLDOM, Object])
-    ], Blur);
+        };
+        __decorate([
+            runtime_1.bindable(),
+            __metadata("design:type", Object)
+        ], Blur.prototype, "value", void 0);
+        __decorate([
+            runtime_1.bindable(),
+            __metadata("design:type", Function)
+        ], Blur.prototype, "onBlur", void 0);
+        __decorate([
+            runtime_1.bindable(),
+            __metadata("design:type", Object)
+        ], Blur.prototype, "linkedWith", void 0);
+        __decorate([
+            runtime_1.bindable(),
+            __metadata("design:type", Boolean)
+        ], Blur.prototype, "linkedMultiple", void 0);
+        __decorate([
+            runtime_1.bindable(),
+            __metadata("design:type", Boolean)
+        ], Blur.prototype, "searchSubTree", void 0);
+        __decorate([
+            runtime_1.bindable(),
+            __metadata("design:type", Object)
+        ], Blur.prototype, "linkingContext", void 0);
+        Blur = __decorate([
+            runtime_1.customAttribute('blur'),
+            __param(0, runtime_1.INode), __param(1, runtime_1.IDOM), __param(2, runtime_1.IScheduler),
+            __metadata("design:paramtypes", [Object, dom_1.HTMLDOM, Object])
+        ], Blur);
+        return Blur;
+    })();
     exports.Blur = Blur;
     const containsElementOrShadowRoot = (container, target) => {
         if (container.contains(target)) {

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.TraceConfiguration = exports.DebugConfiguration = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const unparser_1 = require("./binding/unparser");
     const reporter_1 = require("./reporter");

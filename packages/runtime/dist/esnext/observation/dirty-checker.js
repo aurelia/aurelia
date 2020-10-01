@@ -54,91 +54,97 @@ export const DirtyCheckSettings = {
     }
 };
 /** @internal */
-let DirtyChecker = class DirtyChecker {
-    constructor(scheduler) {
-        this.scheduler = scheduler;
-        this.tracked = [];
-        this.task = null;
-        this.elapsedFrames = 0;
-    }
-    createProperty(obj, propertyName) {
-        if (DirtyCheckSettings.throw) {
-            throw Reporter.error(800, propertyName); // TODO: create/organize error code
-        }
-        if (DirtyCheckSettings.warn) {
-            Reporter.write(801, propertyName);
-        }
-        return new DirtyCheckProperty(this, obj, propertyName);
-    }
-    addProperty(property) {
-        this.tracked.push(property);
-        if (this.tracked.length === 1) {
-            this.task = this.scheduler.queueRenderTask(() => this.check(), { persistent: true });
-        }
-    }
-    removeProperty(property) {
-        this.tracked.splice(this.tracked.indexOf(property), 1);
-        if (this.tracked.length === 0) {
-            this.task.cancel();
+let DirtyChecker = /** @class */ (() => {
+    let DirtyChecker = class DirtyChecker {
+        constructor(scheduler) {
+            this.scheduler = scheduler;
+            this.tracked = [];
             this.task = null;
+            this.elapsedFrames = 0;
         }
-    }
-    check(delta) {
-        if (DirtyCheckSettings.disabled) {
-            return;
+        createProperty(obj, propertyName) {
+            if (DirtyCheckSettings.throw) {
+                throw Reporter.error(800, propertyName); // TODO: create/organize error code
+            }
+            if (DirtyCheckSettings.warn) {
+                Reporter.write(801, propertyName);
+            }
+            return new DirtyCheckProperty(this, obj, propertyName);
         }
-        if (++this.elapsedFrames < DirtyCheckSettings.framesPerCheck) {
-            return;
-        }
-        this.elapsedFrames = 0;
-        const tracked = this.tracked;
-        const len = tracked.length;
-        let current;
-        let i = 0;
-        for (; i < len; ++i) {
-            current = tracked[i];
-            if (current.isDirty()) {
-                current.flush(256 /* fromTick */);
+        addProperty(property) {
+            this.tracked.push(property);
+            if (this.tracked.length === 1) {
+                this.task = this.scheduler.queueRenderTask(() => this.check(), { persistent: true });
             }
         }
-    }
-};
-DirtyChecker = __decorate([
-    __param(0, IScheduler),
-    __metadata("design:paramtypes", [Object])
-], DirtyChecker);
+        removeProperty(property) {
+            this.tracked.splice(this.tracked.indexOf(property), 1);
+            if (this.tracked.length === 0) {
+                this.task.cancel();
+                this.task = null;
+            }
+        }
+        check(delta) {
+            if (DirtyCheckSettings.disabled) {
+                return;
+            }
+            if (++this.elapsedFrames < DirtyCheckSettings.framesPerCheck) {
+                return;
+            }
+            this.elapsedFrames = 0;
+            const tracked = this.tracked;
+            const len = tracked.length;
+            let current;
+            let i = 0;
+            for (; i < len; ++i) {
+                current = tracked[i];
+                if (current.isDirty()) {
+                    current.flush(0 /* none */);
+                }
+            }
+        }
+    };
+    DirtyChecker = __decorate([
+        __param(0, IScheduler),
+        __metadata("design:paramtypes", [Object])
+    ], DirtyChecker);
+    return DirtyChecker;
+})();
 export { DirtyChecker };
-let DirtyCheckProperty = class DirtyCheckProperty {
-    constructor(dirtyChecker, obj, propertyKey) {
-        this.dirtyChecker = dirtyChecker;
-        this.obj = obj;
-        this.propertyKey = propertyKey;
-    }
-    isDirty() {
-        return this.oldValue !== this.obj[this.propertyKey];
-    }
-    flush(flags) {
-        const oldValue = this.oldValue;
-        const newValue = this.obj[this.propertyKey];
-        this.callSubscribers(newValue, oldValue, flags | 16 /* updateTargetInstance */);
-        this.oldValue = newValue;
-    }
-    subscribe(subscriber) {
-        if (!this.hasSubscribers()) {
-            this.oldValue = this.obj[this.propertyKey];
-            this.dirtyChecker.addProperty(this);
+let DirtyCheckProperty = /** @class */ (() => {
+    let DirtyCheckProperty = class DirtyCheckProperty {
+        constructor(dirtyChecker, obj, propertyKey) {
+            this.dirtyChecker = dirtyChecker;
+            this.obj = obj;
+            this.propertyKey = propertyKey;
         }
-        this.addSubscriber(subscriber);
-    }
-    unsubscribe(subscriber) {
-        if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
-            this.dirtyChecker.removeProperty(this);
+        isDirty() {
+            return this.oldValue !== this.obj[this.propertyKey];
         }
-    }
-};
-DirtyCheckProperty = __decorate([
-    subscriberCollection(),
-    __metadata("design:paramtypes", [Object, Object, String])
-], DirtyCheckProperty);
+        flush(flags) {
+            const oldValue = this.oldValue;
+            const newValue = this.obj[this.propertyKey];
+            this.callSubscribers(newValue, oldValue, flags | 8 /* updateTargetInstance */);
+            this.oldValue = newValue;
+        }
+        subscribe(subscriber) {
+            if (!this.hasSubscribers()) {
+                this.oldValue = this.obj[this.propertyKey];
+                this.dirtyChecker.addProperty(this);
+            }
+            this.addSubscriber(subscriber);
+        }
+        unsubscribe(subscriber) {
+            if (this.removeSubscriber(subscriber) && !this.hasSubscribers()) {
+                this.dirtyChecker.removeProperty(this);
+            }
+        }
+    };
+    DirtyCheckProperty = __decorate([
+        subscriberCollection(),
+        __metadata("design:paramtypes", [Object, Object, String])
+    ], DirtyCheckProperty);
+    return DirtyCheckProperty;
+})();
 export { DirtyCheckProperty };
 //# sourceMappingURL=dirty-checker.js.map

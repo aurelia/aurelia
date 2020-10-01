@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.deserializePrimitive = exports.serializePrimitive = exports.serializePrimitives = exports.Serializer = exports.Deserializer = void 0;
     const AST = require("@aurelia/runtime");
     var ASTExpressionTypes;
     (function (ASTExpressionTypes) {

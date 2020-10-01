@@ -9,33 +9,32 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.CallBinding = void 0;
     const ast_1 = require("./ast");
     class CallBinding {
         constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
             this.sourceExpression = sourceExpression;
             this.locator = locator;
             this.interceptor = this;
-            this.$state = 0 /* none */;
+            this.isBound = false;
             this.targetObserver = observerLocator.getObserver(0 /* none */, target, targetProperty);
         }
         callSource(args) {
             const overrideContext = this.$scope.overrideContext;
             Object.assign(overrideContext, args);
-            const result = this.sourceExpression.evaluate(2097152 /* mustEvaluate */, this.$scope, this.locator, this.part);
+            const result = this.sourceExpression.evaluate(128 /* mustEvaluate */, this.$scope, this.locator, this.part);
             for (const prop in args) {
                 Reflect.deleteProperty(overrideContext, prop);
             }
             return result;
         }
         $bind(flags, scope, part) {
-            if (this.$state & 4 /* isBound */) {
+            if (this.isBound) {
                 if (this.$scope === scope) {
                     return;
                 }
-                this.interceptor.$unbind(flags | 4096 /* fromBind */);
+                this.interceptor.$unbind(flags | 32 /* fromBind */);
             }
-            // add isBinding flag
-            this.$state |= 1 /* isBinding */;
             this.$scope = scope;
             this.part = part;
             if (ast_1.hasBind(this.sourceExpression)) {
@@ -43,28 +42,30 @@
             }
             this.targetObserver.setValue(($args) => this.interceptor.callSource($args), flags);
             // add isBound flag and remove isBinding flag
-            this.$state |= 4 /* isBound */;
-            this.$state &= ~1 /* isBinding */;
+            this.isBound = true;
         }
         $unbind(flags) {
-            if (!(this.$state & 4 /* isBound */)) {
+            if (!this.isBound) {
                 return;
             }
-            // add isUnbinding flag
-            this.$state |= 2 /* isUnbinding */;
             if (ast_1.hasUnbind(this.sourceExpression)) {
                 this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
             }
             this.$scope = void 0;
             this.targetObserver.setValue(null, flags);
-            // remove isBound and isUnbinding flags
-            this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
+            this.isBound = false;
         }
         observeProperty(flags, obj, propertyName) {
             return;
         }
         handleChange(newValue, previousValue, flags) {
             return;
+        }
+        dispose() {
+            this.interceptor = (void 0);
+            this.sourceExpression = (void 0);
+            this.locator = (void 0);
+            this.targetObserver = (void 0);
         }
     }
     exports.CallBinding = CallBinding;

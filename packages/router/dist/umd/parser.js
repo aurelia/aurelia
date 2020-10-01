@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.parseQuery = void 0;
     /**
      * @internal - Shouldn't be used directly
      */

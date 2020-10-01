@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Reporter = void 0;
     const kernel_1 = require("@aurelia/kernel");
     function applyFormat(message, ...params) {
         while (message.includes('%s')) {

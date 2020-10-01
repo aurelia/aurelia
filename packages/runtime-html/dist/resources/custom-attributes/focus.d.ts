@@ -8,7 +8,7 @@ export declare class Focus implements ICustomAttributeViewModel<HTMLElement> {
     readonly $controller: ICustomAttributeController<HTMLElement, this>;
     value: unknown;
     /**
-     * Indicates whether `apply` should be called when `afterAttach` callback is invoked
+     * Indicates whether `apply` should be called when `afterAttachChildren` callback is invoked
      */
     private needsApply;
     private readonly element;
@@ -21,13 +21,13 @@ export declare class Focus implements ICustomAttributeViewModel<HTMLElement> {
      */
     valueChanged(): void;
     /**
-     * Invoked when the attribute is afterAttach to the DOM.
+     * Invoked when the attribute is afterAttachChildren to the DOM.
      */
-    afterAttach(): void;
+    afterAttachChildren(): void;
     /**
-     * Invoked when the attribute is afterDetach from the DOM.
+     * Invoked when the attribute is afterDetachChildren from the DOM.
      */
-    afterDetach(): void;
+    afterDetachChildren(): void;
     /**
      * EventTarget interface handler for better memory usage
      */

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ServiceHost = exports.EntrySourceFileProvider = exports.SpecificSourceFileProvider = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const path_1 = require("path");
     const typescript_1 = require("typescript");

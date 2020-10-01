@@ -15,16 +15,20 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.DateFormatBindingBehavior = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const utils_1 = require("../utils");
-    let DateFormatBindingBehavior = class DateFormatBindingBehavior {
-        bind(flags, scope, binding) {
-            utils_1.createIntlFormatValueConverterExpression("df" /* dateFormatValueConverterName */, binding);
-        }
-    };
-    DateFormatBindingBehavior = __decorate([
-        runtime_1.bindingBehavior("df" /* dateFormatValueConverterName */)
-    ], DateFormatBindingBehavior);
+    let DateFormatBindingBehavior = /** @class */ (() => {
+        let DateFormatBindingBehavior = class DateFormatBindingBehavior {
+            bind(flags, scope, binding) {
+                utils_1.createIntlFormatValueConverterExpression("df" /* dateFormatValueConverterName */, binding);
+            }
+        };
+        DateFormatBindingBehavior = __decorate([
+            runtime_1.bindingBehavior("df" /* dateFormatValueConverterName */)
+        ], DateFormatBindingBehavior);
+        return DateFormatBindingBehavior;
+    })();
     exports.DateFormatBindingBehavior = DateFormatBindingBehavior;
 });
 //# sourceMappingURL=date-format-binding-behavior.js.map

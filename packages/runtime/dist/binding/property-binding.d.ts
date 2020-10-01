@@ -1,6 +1,6 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { IForOfStatement, IsBindingBehavior } from '../ast';
-import { BindingMode, LifecycleFlags, State } from '../flags';
+import { BindingMode, LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { AccessorOrObserver, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
@@ -16,7 +16,7 @@ export declare class PropertyBinding implements IPartialConnectableBinding {
     locator: IServiceLocator;
     interceptor: this;
     id: number;
-    $state: State;
+    isBound: boolean;
     $lifecycle: ILifecycle;
     $scope?: IScope;
     part?: string;
@@ -28,5 +28,6 @@ export declare class PropertyBinding implements IPartialConnectableBinding {
     handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
     $unbind(flags: LifecycleFlags): void;
+    dispose(): void;
 }
 //# sourceMappingURL=property-binding.d.ts.map

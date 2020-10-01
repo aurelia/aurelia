@@ -71,17 +71,17 @@ export interface IContainerConfiguration {
     defaultResolver(key: Key, handler: IContainer): IResolver;
 }
 export declare const DefaultResolver: {
-    none(key: Key): IResolver<any>;
-    singleton(key: Key): IResolver<any>;
-    transient(key: Key): IResolver<any>;
+    none(key: Key): IResolver;
+    singleton(key: Key): IResolver;
+    transient(key: Key): IResolver;
 };
 export declare const DefaultContainerConfiguration: IContainerConfiguration;
 export declare const DI: {
     createContainer(config?: IContainerConfiguration): IContainer;
-    getDesignParamtypes(Type: Constructable<{}> | Injectable<{}>): readonly Key[] | undefined;
-    getAnnotationParamtypes(Type: Constructable<{}> | Injectable<{}>): readonly Key[] | undefined;
-    getOrCreateAnnotationParamTypes(Type: Constructable<{}> | Injectable<{}>): Key[];
-    getDependencies(Type: Constructable<{}> | Injectable<{}>): Key[];
+    getDesignParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined;
+    getAnnotationParamtypes(Type: Constructable | Injectable): readonly Key[] | undefined;
+    getOrCreateAnnotationParamTypes(Type: Constructable | Injectable): Key[];
+    getDependencies(Type: Constructable | Injectable): Key[];
     /**
      * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.
      * ```ts
@@ -126,7 +126,7 @@ export declare const DI: {
      * - @param friendlyName used to improve error messaging
      */
     createInterface<K extends Key>(friendlyName?: string | undefined): IDefaultableInterfaceSymbol<K>;
-    inject(...dependencies: Key[]): (target: Injectable<{}>, key?: string | number | undefined, descriptor?: number | PropertyDescriptor | undefined) => void;
+    inject(...dependencies: Key[]): (target: Injectable, key?: string | number | undefined, descriptor?: number | PropertyDescriptor | undefined) => void;
     /**
      * Registers the `target` class as a transient dependency; each time the dependency is resolved
      * a new instance will be created.
@@ -167,7 +167,7 @@ export declare const DI: {
 };
 export declare const IContainer: InterfaceSymbol<IContainer>;
 export declare const IServiceLocator: InterfaceSymbol<IServiceLocator>;
-export declare const inject: (...dependencies: Key[]) => (target: Injectable<{}>, key?: string | number | undefined, descriptor?: number | PropertyDescriptor | undefined) => void;
+export declare const inject: (...dependencies: Key[]) => (target: Injectable, key?: string | number | undefined, descriptor?: number | PropertyDescriptor | undefined) => void;
 declare function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
 /**
  * Registers the decorated class as a transient dependency; each time the dependency is resolved

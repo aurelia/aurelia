@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$SpeculativeValue = void 0;
     const _shared_1 = require("./_shared");
     const error_1 = require("./error");
     class $SpeculativeValue {

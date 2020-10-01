@@ -21,6 +21,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.getCollectionObserver = exports.ObserverLocator = exports.ITargetAccessorLocator = exports.ITargetObserverLocator = exports.IObserverLocator = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const lifecycle_1 = require("../lifecycle");
     const array_observer_1 = require("./array-observer");
@@ -47,148 +48,151 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         return pd;
     }
     /** @internal */
-    let ObserverLocator = class ObserverLocator {
-        constructor(lifecycle, scheduler, dirtyChecker, targetObserverLocator, targetAccessorLocator) {
-            this.lifecycle = lifecycle;
-            this.scheduler = scheduler;
-            this.dirtyChecker = dirtyChecker;
-            this.targetObserverLocator = targetObserverLocator;
-            this.targetAccessorLocator = targetAccessorLocator;
-            this.adapters = [];
-        }
-        static register(container) {
-            return kernel_1.Registration.singleton(exports.IObserverLocator, this).register(container);
-        }
-        getObserver(flags, obj, propertyName) {
-            if (flags & 2 /* proxyStrategy */ && typeof obj === 'object') {
-                return proxy_observer_1.ProxyObserver.getOrCreate(obj, propertyName); // TODO: fix typings (and ensure proper contracts ofc)
+    let ObserverLocator = /** @class */ (() => {
+        let ObserverLocator = class ObserverLocator {
+            constructor(lifecycle, scheduler, dirtyChecker, targetObserverLocator, targetAccessorLocator) {
+                this.lifecycle = lifecycle;
+                this.scheduler = scheduler;
+                this.dirtyChecker = dirtyChecker;
+                this.targetObserverLocator = targetObserverLocator;
+                this.targetAccessorLocator = targetAccessorLocator;
+                this.adapters = [];
             }
-            if (isBindingContext(obj)) {
-                return obj.getObservers(flags).getOrCreate(this.lifecycle, flags, obj, propertyName);
+            static register(container) {
+                return kernel_1.Registration.singleton(exports.IObserverLocator, this).register(container);
             }
-            let observersLookup = obj.$observers;
-            if (observersLookup && propertyName in observersLookup) {
-                return observersLookup[propertyName];
-            }
-            const observer = this.createPropertyObserver(flags, obj, propertyName);
-            if (!observer.doNotCache) {
-                if (observersLookup === void 0) {
-                    observersLookup = this.getOrCreateObserversLookup(obj);
+            getObserver(flags, obj, propertyName) {
+                if (flags & 2 /* proxyStrategy */ && typeof obj === 'object') {
+                    return proxy_observer_1.ProxyObserver.getOrCreate(obj, propertyName); // TODO: fix typings (and ensure proper contracts ofc)
                 }
-                observersLookup[propertyName] = observer;
-            }
-            return observer;
-        }
-        addAdapter(adapter) {
-            this.adapters.push(adapter);
-        }
-        getAccessor(flags, obj, propertyName) {
-            if (this.targetAccessorLocator.handles(flags, obj)) {
-                if (this.targetObserverLocator.overridesAccessor(flags, obj, propertyName)) {
-                    return this.getObserver(flags, obj, propertyName);
+                if (isBindingContext(obj)) {
+                    return obj.getObservers(flags).getOrCreate(this.lifecycle, flags, obj, propertyName);
                 }
-                return this.targetAccessorLocator.getAccessor(flags, this.scheduler, this.lifecycle, obj, propertyName);
-            }
-            if (flags & 2 /* proxyStrategy */) {
-                return proxy_observer_1.ProxyObserver.getOrCreate(obj, propertyName);
-            }
-            return new property_accessor_1.PropertyAccessor(obj, propertyName);
-        }
-        getArrayObserver(flags, observedArray) {
-            return array_observer_1.getArrayObserver(flags, this.lifecycle, observedArray);
-        }
-        getMapObserver(flags, observedMap) {
-            return map_observer_1.getMapObserver(flags, this.lifecycle, observedMap);
-        }
-        getSetObserver(flags, observedSet) {
-            return set_observer_1.getSetObserver(flags, this.lifecycle, observedSet);
-        }
-        getOrCreateObserversLookup(obj) {
-            return obj.$observers || this.createObserversLookup(obj);
-        }
-        createObserversLookup(obj) {
-            const value = {};
-            if (!Reflect.defineProperty(obj, '$observers', {
-                enumerable: false,
-                configurable: false,
-                writable: false,
-                value: value
-            })) {
-                kernel_1.Reporter.write(0, obj);
-            }
-            return value;
-        }
-        getAdapterObserver(flags, obj, propertyName, descriptor) {
-            for (let i = 0, ii = this.adapters.length; i < ii; i++) {
-                const adapter = this.adapters[i];
-                const observer = adapter.getObserver(flags, obj, propertyName, descriptor);
-                if (observer != null) {
-                    return observer;
+                let observersLookup = obj.$observers;
+                if (observersLookup && propertyName in observersLookup) {
+                    return observersLookup[propertyName];
                 }
-            }
-            return null;
-        }
-        createPropertyObserver(flags, obj, propertyName) {
-            if (!(obj instanceof Object)) {
-                return new primitive_observer_1.PrimitiveObserver(obj, propertyName);
-            }
-            let isNode = false;
-            if (this.targetObserverLocator.handles(flags, obj)) {
-                const observer = this.targetObserverLocator.getObserver(flags, this.scheduler, this.lifecycle, this, obj, propertyName);
-                if (observer != null) {
-                    return observer;
-                }
-                isNode = true;
-            }
-            const tag = toStringTag.call(obj);
-            switch (tag) {
-                case '[object Array]':
-                    if (propertyName === 'length') {
-                        return this.getArrayObserver(flags, obj).getLengthObserver();
+                const observer = this.createPropertyObserver(flags, obj, propertyName);
+                if (!observer.doNotCache) {
+                    if (observersLookup === void 0) {
+                        observersLookup = this.getOrCreateObserversLookup(obj);
                     }
-                    // is numer only returns true for integer
-                    if (kernel_1.isArrayIndex(propertyName)) {
-                        return this.getArrayObserver(flags, obj).getIndexObserver(Number(propertyName));
-                    }
-                    break;
-                case '[object Map]':
-                    if (propertyName === 'size') {
-                        return this.getMapObserver(flags, obj).getLengthObserver();
-                    }
-                    break;
-                case '[object Set]':
-                    if (propertyName === 'size') {
-                        return this.getSetObserver(flags, obj).getLengthObserver();
-                    }
-                    break;
+                    observersLookup[propertyName] = observer;
+                }
+                return observer;
             }
-            const descriptor = getPropertyDescriptor(obj, propertyName);
-            if (descriptor != null && (descriptor.get != null || descriptor.set != null)) {
-                if (descriptor.get != null && descriptor.get.getObserver != null) {
-                    return descriptor.get.getObserver(obj);
-                }
-                // attempt to use an adapter before resorting to dirty checking.
-                const adapterObserver = this.getAdapterObserver(flags, obj, propertyName, descriptor);
-                if (adapterObserver != null) {
-                    return adapterObserver;
-                }
-                if (isNode) {
-                    // TODO: use MutationObserver
-                    return this.dirtyChecker.createProperty(obj, propertyName);
-                }
-                return computed_observer_1.createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
+            addAdapter(adapter) {
+                this.adapters.push(adapter);
             }
-            return new setter_observer_1.SetterObserver(this.lifecycle, flags, obj, propertyName);
-        }
-    };
-    ObserverLocator = __decorate([
-        __param(0, lifecycle_1.ILifecycle),
-        __param(1, scheduler_1.IScheduler),
-        __param(2, dirty_checker_1.IDirtyChecker),
-        __param(3, exports.ITargetObserverLocator),
-        __param(4, exports.ITargetAccessorLocator),
-        __metadata("design:paramtypes", [Object, Object, Object, Object, Object])
-    ], ObserverLocator);
+            getAccessor(flags, obj, propertyName) {
+                if (this.targetAccessorLocator.handles(flags, obj)) {
+                    if (this.targetObserverLocator.overridesAccessor(flags, obj, propertyName)) {
+                        return this.getObserver(flags, obj, propertyName);
+                    }
+                    return this.targetAccessorLocator.getAccessor(flags, this.scheduler, this.lifecycle, obj, propertyName);
+                }
+                if (flags & 2 /* proxyStrategy */) {
+                    return proxy_observer_1.ProxyObserver.getOrCreate(obj, propertyName);
+                }
+                return new property_accessor_1.PropertyAccessor(obj, propertyName);
+            }
+            getArrayObserver(flags, observedArray) {
+                return array_observer_1.getArrayObserver(flags, this.lifecycle, observedArray);
+            }
+            getMapObserver(flags, observedMap) {
+                return map_observer_1.getMapObserver(flags, this.lifecycle, observedMap);
+            }
+            getSetObserver(flags, observedSet) {
+                return set_observer_1.getSetObserver(flags, this.lifecycle, observedSet);
+            }
+            getOrCreateObserversLookup(obj) {
+                return obj.$observers || this.createObserversLookup(obj);
+            }
+            createObserversLookup(obj) {
+                const value = {};
+                if (!Reflect.defineProperty(obj, '$observers', {
+                    enumerable: false,
+                    configurable: false,
+                    writable: false,
+                    value: value
+                })) {
+                    kernel_1.Reporter.write(0, obj);
+                }
+                return value;
+            }
+            getAdapterObserver(flags, obj, propertyName, descriptor) {
+                for (let i = 0, ii = this.adapters.length; i < ii; i++) {
+                    const adapter = this.adapters[i];
+                    const observer = adapter.getObserver(flags, obj, propertyName, descriptor);
+                    if (observer != null) {
+                        return observer;
+                    }
+                }
+                return null;
+            }
+            createPropertyObserver(flags, obj, propertyName) {
+                if (!(obj instanceof Object)) {
+                    return new primitive_observer_1.PrimitiveObserver(obj, propertyName);
+                }
+                let isNode = false;
+                if (this.targetObserverLocator.handles(flags, obj)) {
+                    const observer = this.targetObserverLocator.getObserver(flags, this.scheduler, this.lifecycle, this, obj, propertyName);
+                    if (observer != null) {
+                        return observer;
+                    }
+                    isNode = true;
+                }
+                const tag = toStringTag.call(obj);
+                switch (tag) {
+                    case '[object Array]':
+                        if (propertyName === 'length') {
+                            return this.getArrayObserver(flags, obj).getLengthObserver();
+                        }
+                        // is numer only returns true for integer
+                        if (kernel_1.isArrayIndex(propertyName)) {
+                            return this.getArrayObserver(flags, obj).getIndexObserver(Number(propertyName));
+                        }
+                        break;
+                    case '[object Map]':
+                        if (propertyName === 'size') {
+                            return this.getMapObserver(flags, obj).getLengthObserver();
+                        }
+                        break;
+                    case '[object Set]':
+                        if (propertyName === 'size') {
+                            return this.getSetObserver(flags, obj).getLengthObserver();
+                        }
+                        break;
+                }
+                const descriptor = getPropertyDescriptor(obj, propertyName);
+                if (descriptor != null && (descriptor.get != null || descriptor.set != null)) {
+                    if (descriptor.get != null && descriptor.get.getObserver != null) {
+                        return descriptor.get.getObserver(obj);
+                    }
+                    // attempt to use an adapter before resorting to dirty checking.
+                    const adapterObserver = this.getAdapterObserver(flags, obj, propertyName, descriptor);
+                    if (adapterObserver != null) {
+                        return adapterObserver;
+                    }
+                    if (isNode) {
+                        // TODO: use MutationObserver
+                        return this.dirtyChecker.createProperty(obj, propertyName);
+                    }
+                    return computed_observer_1.createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
+                }
+                return new setter_observer_1.SetterObserver(this.lifecycle, flags, obj, propertyName);
+            }
+        };
+        ObserverLocator = __decorate([
+            __param(0, lifecycle_1.ILifecycle),
+            __param(1, scheduler_1.IScheduler),
+            __param(2, dirty_checker_1.IDirtyChecker),
+            __param(3, exports.ITargetObserverLocator),
+            __param(4, exports.ITargetAccessorLocator),
+            __metadata("design:paramtypes", [Object, Object, Object, Object, Object])
+        ], ObserverLocator);
+        return ObserverLocator;
+    })();
     exports.ObserverLocator = ObserverLocator;
     function getCollectionObserver(flags, lifecycle, collection) {
         // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want

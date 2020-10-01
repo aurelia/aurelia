@@ -7,77 +7,80 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../router"], factory);
+        define(["require", "exports", "@aurelia/runtime", "../router"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const kernel_1 = require("@aurelia/kernel");
+    exports.NavCustomElement = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const router_1 = require("../router");
-    let NavCustomElement = class NavCustomElement {
-        constructor(router) {
-            this.router = router;
-            this.name = null;
-            this.routes = null;
-            this.level = 0;
-            this.classes = {};
-        }
-        get navRoutes() {
-            const nav = this.router.navs[this.name];
-            return (nav !== void 0 && nav !== null ? nav.routes : []);
-        }
-        get navClasses() {
-            const nav = this.router.navs[this.name];
-            const navClasses = (nav !== void 0 && nav !== null ? nav.classes : {});
-            return {
-                ...{
-                    nav: '',
-                    ul: '',
-                    li: '',
-                    a: '',
-                    ulActive: '',
-                    liActive: 'nav-active',
-                    aActive: '',
-                }, ...navClasses
-            };
-        }
-        active(route) {
-            return 'Active';
-        }
-    };
-    __decorate([
-        runtime_1.bindable,
-        __metadata("design:type", Object)
-    ], NavCustomElement.prototype, "name", void 0);
-    __decorate([
-        runtime_1.bindable,
-        __metadata("design:type", Object)
-    ], NavCustomElement.prototype, "routes", void 0);
-    __decorate([
-        runtime_1.bindable,
-        __metadata("design:type", Number)
-    ], NavCustomElement.prototype, "level", void 0);
-    __decorate([
-        runtime_1.bindable,
-        __metadata("design:type", Object)
-    ], NavCustomElement.prototype, "classes", void 0);
-    NavCustomElement = __decorate([
-        kernel_1.inject(router_1.IRouter, runtime_1.INode),
-        runtime_1.customElement({
-            name: 'au-nav', template: `<template>
+    let NavCustomElement = /** @class */ (() => {
+        let NavCustomElement = class NavCustomElement {
+            constructor(router) {
+                this.router = router;
+                this.name = null;
+                this.routes = null;
+                this.level = 0;
+                this.classes = {};
+            }
+            get navRoutes() {
+                const nav = this.router.navs[this.name];
+                return (nav !== void 0 && nav !== null ? nav.routes : []);
+            }
+            get navClasses() {
+                const nav = this.router.navs[this.name];
+                const navClasses = (nav !== void 0 && nav !== null ? nav.classes : {});
+                return {
+                    ...{
+                        nav: '',
+                        ul: '',
+                        li: '',
+                        a: '',
+                        ulActive: '',
+                        liActive: 'nav-active',
+                        aActive: '',
+                    }, ...navClasses
+                };
+            }
+            active(route) {
+                return 'Active';
+            }
+        };
+        __decorate([
+            runtime_1.bindable,
+            __metadata("design:type", Object)
+        ], NavCustomElement.prototype, "name", void 0);
+        __decorate([
+            runtime_1.bindable,
+            __metadata("design:type", Object)
+        ], NavCustomElement.prototype, "routes", void 0);
+        __decorate([
+            runtime_1.bindable,
+            __metadata("design:type", Number)
+        ], NavCustomElement.prototype, "level", void 0);
+        __decorate([
+            runtime_1.bindable,
+            __metadata("design:type", Object)
+        ], NavCustomElement.prototype, "classes", void 0);
+        NavCustomElement = __decorate([
+            runtime_1.customElement({
+                name: 'au-nav', template: `<template>
   <nav if.bind="name" class="\${name} \${navClasses.nav}">
     <au-nav routes.bind="navRoutes" classes.bind="navClasses" containerless></au-nav>
   </nav>
   <ul if.bind="routes" class="nav-level-\${level} \${classes.ul}">
     <li repeat.for="route of routes" if.bind="route.visible" class="\${route.active ? classes.liActive : ''} \${route.hasChildren} \${classes.li}">
-      <a if.bind="route.link && route.link.length" goto="\${route.link}" class="\${route.active ? classes.aActive : ''} \${classes.a}" innerhtml.bind="route.title"></a>
+      <a if.bind="route.link && route.link.length" load="\${route.link}" class="\${route.active ? classes.aActive : ''} \${classes.a}" innerhtml.bind="route.title"></a>
       <a if.bind="route.execute" click.trigger="route.executeAction($event)" href="" class="\${route.active ? classes.aActive : ''} \${classes.a}" innerhtml.bind="route.title"></a>
       <span if.bind="(!route.link || !route.link.length) && !route.execute && !route.children" class="\${route.active ? classes.aActive : ''} \${classes.span} nav-separator" innerhtml.bind="route.title"></span>
       <a if.bind="(!route.link || !route.link.length) && !route.execute && route.children" click.delegate="route.toggleActive()" href="" class="\${route.active ? classes.aActive : ''} \${classes.a}" innerhtml.bind="route.title"></a>
@@ -85,9 +88,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     </li>
   </ul>
 </template>`
-        }),
-        __metadata("design:paramtypes", [Object])
-    ], NavCustomElement);
+            }),
+            __param(0, router_1.IRouter),
+            __metadata("design:paramtypes", [Object])
+        ], NavCustomElement);
+        return NavCustomElement;
+    })();
     exports.NavCustomElement = NavCustomElement;
 });
 //# sourceMappingURL=nav.js.map

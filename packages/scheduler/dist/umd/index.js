@@ -10,17 +10,17 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var now_1 = require("./now");
-    exports.Now = now_1.Now;
+    Object.defineProperty(exports, "Now", { enumerable: true, get: function () { return now_1.Now; } });
     var scheduler_1 = require("./scheduler");
-    exports.IScheduler = scheduler_1.IScheduler;
-    exports.Scheduler = scheduler_1.Scheduler;
+    Object.defineProperty(exports, "IScheduler", { enumerable: true, get: function () { return scheduler_1.IScheduler; } });
+    Object.defineProperty(exports, "Scheduler", { enumerable: true, get: function () { return scheduler_1.Scheduler; } });
     var task_queue_1 = require("./task-queue");
-    exports.TaskQueue = task_queue_1.TaskQueue;
+    Object.defineProperty(exports, "TaskQueue", { enumerable: true, get: function () { return task_queue_1.TaskQueue; } });
     var task_1 = require("./task");
-    exports.Task = task_1.Task;
-    exports.TaskAbortError = task_1.TaskAbortError;
+    Object.defineProperty(exports, "Task", { enumerable: true, get: function () { return task_1.Task; } });
+    Object.defineProperty(exports, "TaskAbortError", { enumerable: true, get: function () { return task_1.TaskAbortError; } });
     var types_1 = require("./types");
-    exports.createExposedPromise = types_1.createExposedPromise;
-    exports.TaskQueuePriority = types_1.TaskQueuePriority;
+    Object.defineProperty(exports, "createExposedPromise", { enumerable: true, get: function () { return types_1.createExposedPromise; } });
+    Object.defineProperty(exports, "TaskQueuePriority", { enumerable: true, get: function () { return types_1.TaskQueuePriority; } });
 });
 //# sourceMappingURL=index.js.map

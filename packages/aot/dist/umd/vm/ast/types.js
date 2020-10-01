@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$EnumMember = exports.$EnumDeclaration = exports.$enumMemberList = exports.$TypeAliasDeclaration = exports.$InterfaceDeclaration = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
     const _shared_1 = require("./_shared");

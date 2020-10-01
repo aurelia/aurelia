@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.RenderPlan = exports.createElement = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const definitions_1 = require("./definitions");
     const instructions_1 = require("./instructions");

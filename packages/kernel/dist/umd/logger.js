@@ -21,6 +21,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.LoggerConfiguration = exports.DefaultLogger = exports.ConsoleSink = exports.DefaultLogEventFactory = exports.DefaultLogEvent = exports.LogConfig = exports.format = exports.sink = exports.LoggerSink = exports.ILogScopes = exports.ILogger = exports.ILogEventFactory = exports.ISink = exports.ILogConfig = exports.ColorOptions = void 0;
     const di_1 = require("./di");
     const functions_1 = require("./functions");
     const resource_1 = require("./resource");
@@ -168,18 +169,21 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     }
     exports.DefaultLogEvent = DefaultLogEvent;
-    let DefaultLogEventFactory = class DefaultLogEventFactory {
-        constructor(config) {
-            this.config = config;
-        }
-        createLogEvent(logger, level, message, optionalParams) {
-            return new DefaultLogEvent(level, message, optionalParams, logger.scope, this.config.colorOptions, Date.now());
-        }
-    };
-    DefaultLogEventFactory = __decorate([
-        __param(0, exports.ILogConfig),
-        __metadata("design:paramtypes", [Object])
-    ], DefaultLogEventFactory);
+    let DefaultLogEventFactory = /** @class */ (() => {
+        let DefaultLogEventFactory = class DefaultLogEventFactory {
+            constructor(config) {
+                this.config = config;
+            }
+            createLogEvent(logger, level, message, optionalParams) {
+                return new DefaultLogEvent(level, message, optionalParams, logger.scope, this.config.colorOptions, Date.now());
+            }
+        };
+        DefaultLogEventFactory = __decorate([
+            __param(0, exports.ILogConfig),
+            __metadata("design:paramtypes", [Object])
+        ], DefaultLogEventFactory);
+        return DefaultLogEventFactory;
+    })();
     exports.DefaultLogEventFactory = DefaultLogEventFactory;
     class ConsoleSink {
         constructor($console) {
@@ -217,115 +221,118 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     }
     exports.ConsoleSink = ConsoleSink;
-    let DefaultLogger = class DefaultLogger {
-        constructor(config, factory, sinks, scope = [], parent = null) {
-            var _a, _b, _c, _d, _e, _f;
-            this.config = config;
-            this.factory = factory;
-            this.scope = scope;
-            this.scopedLoggers = Object.create(null);
-            let traceSinks;
-            let debugSinks;
-            let infoSinks;
-            let warnSinks;
-            let errorSinks;
-            let fatalSinks;
-            if (parent === null) {
-                this.root = this;
-                this.parent = this;
-                traceSinks = this.traceSinks = [];
-                debugSinks = this.debugSinks = [];
-                infoSinks = this.infoSinks = [];
-                warnSinks = this.warnSinks = [];
-                errorSinks = this.errorSinks = [];
-                fatalSinks = this.fatalSinks = [];
-                for (const $sink of sinks) {
-                    const handles = exports.LoggerSink.getHandles($sink);
-                    if ((_a = handles === null || handles === void 0 ? void 0 : handles.includes(0 /* trace */)) !== null && _a !== void 0 ? _a : true) {
-                        traceSinks.push($sink);
-                    }
-                    if ((_b = handles === null || handles === void 0 ? void 0 : handles.includes(1 /* debug */)) !== null && _b !== void 0 ? _b : true) {
-                        debugSinks.push($sink);
-                    }
-                    if ((_c = handles === null || handles === void 0 ? void 0 : handles.includes(2 /* info */)) !== null && _c !== void 0 ? _c : true) {
-                        infoSinks.push($sink);
-                    }
-                    if ((_d = handles === null || handles === void 0 ? void 0 : handles.includes(3 /* warn */)) !== null && _d !== void 0 ? _d : true) {
-                        warnSinks.push($sink);
-                    }
-                    if ((_e = handles === null || handles === void 0 ? void 0 : handles.includes(4 /* error */)) !== null && _e !== void 0 ? _e : true) {
-                        errorSinks.push($sink);
-                    }
-                    if ((_f = handles === null || handles === void 0 ? void 0 : handles.includes(5 /* fatal */)) !== null && _f !== void 0 ? _f : true) {
-                        fatalSinks.push($sink);
+    let DefaultLogger = /** @class */ (() => {
+        let DefaultLogger = class DefaultLogger {
+            constructor(config, factory, sinks, scope = [], parent = null) {
+                var _a, _b, _c, _d, _e, _f;
+                this.config = config;
+                this.factory = factory;
+                this.scope = scope;
+                this.scopedLoggers = Object.create(null);
+                let traceSinks;
+                let debugSinks;
+                let infoSinks;
+                let warnSinks;
+                let errorSinks;
+                let fatalSinks;
+                if (parent === null) {
+                    this.root = this;
+                    this.parent = this;
+                    traceSinks = this.traceSinks = [];
+                    debugSinks = this.debugSinks = [];
+                    infoSinks = this.infoSinks = [];
+                    warnSinks = this.warnSinks = [];
+                    errorSinks = this.errorSinks = [];
+                    fatalSinks = this.fatalSinks = [];
+                    for (const $sink of sinks) {
+                        const handles = exports.LoggerSink.getHandles($sink);
+                        if ((_a = handles === null || handles === void 0 ? void 0 : handles.includes(0 /* trace */)) !== null && _a !== void 0 ? _a : true) {
+                            traceSinks.push($sink);
+                        }
+                        if ((_b = handles === null || handles === void 0 ? void 0 : handles.includes(1 /* debug */)) !== null && _b !== void 0 ? _b : true) {
+                            debugSinks.push($sink);
+                        }
+                        if ((_c = handles === null || handles === void 0 ? void 0 : handles.includes(2 /* info */)) !== null && _c !== void 0 ? _c : true) {
+                            infoSinks.push($sink);
+                        }
+                        if ((_d = handles === null || handles === void 0 ? void 0 : handles.includes(3 /* warn */)) !== null && _d !== void 0 ? _d : true) {
+                            warnSinks.push($sink);
+                        }
+                        if ((_e = handles === null || handles === void 0 ? void 0 : handles.includes(4 /* error */)) !== null && _e !== void 0 ? _e : true) {
+                            errorSinks.push($sink);
+                        }
+                        if ((_f = handles === null || handles === void 0 ? void 0 : handles.includes(5 /* fatal */)) !== null && _f !== void 0 ? _f : true) {
+                            fatalSinks.push($sink);
+                        }
                     }
                 }
+                else {
+                    this.root = parent.root;
+                    this.parent = parent;
+                    traceSinks = this.traceSinks = parent.traceSinks;
+                    debugSinks = this.debugSinks = parent.debugSinks;
+                    infoSinks = this.infoSinks = parent.infoSinks;
+                    warnSinks = this.warnSinks = parent.warnSinks;
+                    errorSinks = this.errorSinks = parent.errorSinks;
+                    fatalSinks = this.fatalSinks = parent.fatalSinks;
+                }
+                const emit = ($sinks, level, msgOrGetMsg, optionalParams) => {
+                    const message = typeof msgOrGetMsg === 'function' ? msgOrGetMsg() : msgOrGetMsg;
+                    const event = factory.createLogEvent(this, level, message, optionalParams);
+                    for (let i = 0, ii = $sinks.length; i < ii; ++i) {
+                        $sinks[i].handleEvent(event);
+                    }
+                };
+                this.trace = function trace(messageOrGetMessage, ...optionalParams) {
+                    if (config.level <= 0 /* trace */) {
+                        emit(traceSinks, 0 /* trace */, messageOrGetMessage, optionalParams);
+                    }
+                };
+                this.debug = function debug(messageOrGetMessage, ...optionalParams) {
+                    if (config.level <= 1 /* debug */) {
+                        emit(debugSinks, 1 /* debug */, messageOrGetMessage, optionalParams);
+                    }
+                };
+                this.info = function info(messageOrGetMessage, ...optionalParams) {
+                    if (config.level <= 2 /* info */) {
+                        emit(infoSinks, 2 /* info */, messageOrGetMessage, optionalParams);
+                    }
+                };
+                this.warn = function warn(messageOrGetMessage, ...optionalParams) {
+                    if (config.level <= 3 /* warn */) {
+                        emit(warnSinks, 3 /* warn */, messageOrGetMessage, optionalParams);
+                    }
+                };
+                this.error = function error(messageOrGetMessage, ...optionalParams) {
+                    if (config.level <= 4 /* error */) {
+                        emit(errorSinks, 4 /* error */, messageOrGetMessage, optionalParams);
+                    }
+                };
+                this.fatal = function fatal(messageOrGetMessage, ...optionalParams) {
+                    if (config.level <= 5 /* fatal */) {
+                        emit(fatalSinks, 5 /* fatal */, messageOrGetMessage, optionalParams);
+                    }
+                };
             }
-            else {
-                this.root = parent.root;
-                this.parent = parent;
-                traceSinks = this.traceSinks = parent.traceSinks;
-                debugSinks = this.debugSinks = parent.debugSinks;
-                infoSinks = this.infoSinks = parent.infoSinks;
-                warnSinks = this.warnSinks = parent.warnSinks;
-                errorSinks = this.errorSinks = parent.errorSinks;
-                fatalSinks = this.fatalSinks = parent.fatalSinks;
+            scopeTo(name) {
+                const scopedLoggers = this.scopedLoggers;
+                let scopedLogger = scopedLoggers[name];
+                if (scopedLogger === void 0) {
+                    scopedLogger = scopedLoggers[name] = new DefaultLogger(this.config, this.factory, (void 0), this.scope.concat(name), this);
+                }
+                return scopedLogger;
             }
-            const emit = ($sinks, level, msgOrGetMsg, optionalParams) => {
-                const message = typeof msgOrGetMsg === 'function' ? msgOrGetMsg() : msgOrGetMsg;
-                const event = factory.createLogEvent(this, level, message, optionalParams);
-                for (let i = 0, ii = $sinks.length; i < ii; ++i) {
-                    $sinks[i].handleEvent(event);
-                }
-            };
-            this.trace = function trace(messageOrGetMessage, ...optionalParams) {
-                if (config.level <= 0 /* trace */) {
-                    emit(traceSinks, 0 /* trace */, messageOrGetMessage, optionalParams);
-                }
-            };
-            this.debug = function debug(messageOrGetMessage, ...optionalParams) {
-                if (config.level <= 1 /* debug */) {
-                    emit(debugSinks, 1 /* debug */, messageOrGetMessage, optionalParams);
-                }
-            };
-            this.info = function info(messageOrGetMessage, ...optionalParams) {
-                if (config.level <= 2 /* info */) {
-                    emit(infoSinks, 2 /* info */, messageOrGetMessage, optionalParams);
-                }
-            };
-            this.warn = function warn(messageOrGetMessage, ...optionalParams) {
-                if (config.level <= 3 /* warn */) {
-                    emit(warnSinks, 3 /* warn */, messageOrGetMessage, optionalParams);
-                }
-            };
-            this.error = function error(messageOrGetMessage, ...optionalParams) {
-                if (config.level <= 4 /* error */) {
-                    emit(errorSinks, 4 /* error */, messageOrGetMessage, optionalParams);
-                }
-            };
-            this.fatal = function fatal(messageOrGetMessage, ...optionalParams) {
-                if (config.level <= 5 /* fatal */) {
-                    emit(fatalSinks, 5 /* fatal */, messageOrGetMessage, optionalParams);
-                }
-            };
-        }
-        scopeTo(name) {
-            const scopedLoggers = this.scopedLoggers;
-            let scopedLogger = scopedLoggers[name];
-            if (scopedLogger === void 0) {
-                scopedLogger = scopedLoggers[name] = new DefaultLogger(this.config, this.factory, (void 0), this.scope.concat(name), this);
-            }
-            return scopedLogger;
-        }
-    };
-    DefaultLogger = __decorate([
-        __param(0, exports.ILogConfig),
-        __param(1, exports.ILogEventFactory),
-        __param(2, di_1.all(exports.ISink)),
-        __param(3, di_1.optional(exports.ILogScopes)),
-        __param(4, di_1.ignore),
-        __metadata("design:paramtypes", [Object, Object, Array, Array, Object])
-    ], DefaultLogger);
+        };
+        DefaultLogger = __decorate([
+            __param(0, exports.ILogConfig),
+            __param(1, exports.ILogEventFactory),
+            __param(2, di_1.all(exports.ISink)),
+            __param(3, di_1.optional(exports.ILogScopes)),
+            __param(4, di_1.ignore),
+            __metadata("design:paramtypes", [Object, Object, Array, Array, Object])
+        ], DefaultLogger);
+        return DefaultLogger;
+    })();
     exports.DefaultLogger = DefaultLogger;
     /**
      * A basic `ILogger` configuration that configures a single `console` sink based on provided options.

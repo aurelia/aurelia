@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.isRelativeModulePath = exports.resolvePath = exports.joinPath = exports.normalizePath = void 0;
     const path_1 = require("path");
     exports.normalizePath = (function () {
         const cache = Object.create(null);

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$Await_Rejected = exports.$Await_Fulfilled = exports.$Await = void 0;
     const function_1 = require("./function");
     const list_1 = require("./list");
     const undefined_1 = require("./undefined");

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.isIndexMap = exports.cloneIndexMap = exports.createIndexMap = exports.copyIndexMap = exports.CollectionKind = exports.DelegationStrategy = exports.SubscriberFlags = void 0;
     /** @internal */
     var SubscriberFlags;
     (function (SubscriberFlags) {

@@ -8,8 +8,8 @@ export declare type PartialChildrenDefinition<TNode extends INode = INode> = {
     property?: string;
     options?: MutationObserverInit;
     query?: (projector: IElementProjector<TNode>) => ArrayLike<TNode>;
-    filter?: (node: TNode, controller?: ICustomElementController<TNode>, viewModel?: ICustomElementViewModel<TNode>) => boolean;
-    map?: (node: TNode, controller?: ICustomElementController<TNode>, viewModel?: ICustomElementViewModel<TNode>) => any;
+    filter?: (node: TNode, controller?: ICustomElementController<TNode> | null, viewModel?: ICustomElementViewModel<TNode>) => boolean;
+    map?: (node: TNode, controller?: ICustomElementController<TNode> | null, viewModel?: ICustomElementViewModel<TNode>) => any;
 };
 /**
  * Decorator: Specifies custom behavior for an array children property that synchronizes its items with child content nodes of the element.
@@ -33,16 +33,16 @@ export declare function children(target: {}, prop: string): void;
 export declare const Children: {
     name: string;
     keyFrom(name: string): string;
-    from(...childrenObserverLists: readonly (readonly string[] | ChildrenDefinition<INode> | Record<string, PartialChildrenDefinition<INode>> | undefined)[]): Record<string, ChildrenDefinition<INode>>;
-    getAll(Type: Constructable<{}>): readonly ChildrenDefinition<INode>[];
+    from(...childrenObserverLists: readonly (ChildrenDefinition | Record<string, PartialChildrenDefinition> | readonly string[] | undefined)[]): Record<string, ChildrenDefinition>;
+    getAll(Type: Constructable): readonly ChildrenDefinition[];
 };
 export declare class ChildrenDefinition<TNode extends INode = INode> {
     readonly callback: string;
     readonly property: string;
     readonly options?: MutationObserverInit | undefined;
     readonly query?: ((projector: IElementProjector<TNode>) => ArrayLike<TNode>) | undefined;
-    readonly filter?: ((node: TNode, controller?: ICustomElementController<TNode, ICustomElementViewModel<TNode>> | undefined, viewModel?: ICustomElementViewModel<TNode> | undefined) => boolean) | undefined;
-    readonly map?: ((node: TNode, controller?: ICustomElementController<TNode, ICustomElementViewModel<TNode>> | undefined, viewModel?: ICustomElementViewModel<TNode> | undefined) => any) | undefined;
+    readonly filter?: ((node: TNode, controller?: ICustomElementController<TNode, ICustomElementViewModel<TNode>> | null | undefined, viewModel?: ICustomElementViewModel<TNode> | undefined) => boolean) | undefined;
+    readonly map?: ((node: TNode, controller?: ICustomElementController<TNode, ICustomElementViewModel<TNode>> | null | undefined, viewModel?: ICustomElementViewModel<TNode> | undefined) => any) | undefined;
     private constructor();
     static create<TNode extends INode = INode>(prop: string, def?: PartialChildrenDefinition<TNode>): ChildrenDefinition<TNode>;
 }

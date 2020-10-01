@@ -15,19 +15,23 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.TranslationBindingBehavior = void 0;
     const runtime_1 = require("@aurelia/runtime");
-    let TranslationBindingBehavior = class TranslationBindingBehavior {
-        bind(flags, scope, binding) {
-            const expression = binding.sourceExpression.expression;
-            if (!(expression instanceof runtime_1.ValueConverterExpression)) {
-                const vcExpression = new runtime_1.ValueConverterExpression(expression, "t" /* translationValueConverterName */, binding.sourceExpression.args);
-                binding.sourceExpression.expression = vcExpression;
+    let TranslationBindingBehavior = /** @class */ (() => {
+        let TranslationBindingBehavior = class TranslationBindingBehavior {
+            bind(flags, scope, binding) {
+                const expression = binding.sourceExpression.expression;
+                if (!(expression instanceof runtime_1.ValueConverterExpression)) {
+                    const vcExpression = new runtime_1.ValueConverterExpression(expression, "t" /* translationValueConverterName */, binding.sourceExpression.args);
+                    binding.sourceExpression.expression = vcExpression;
+                }
             }
-        }
-    };
-    TranslationBindingBehavior = __decorate([
-        runtime_1.bindingBehavior("t" /* translationValueConverterName */)
-    ], TranslationBindingBehavior);
+        };
+        TranslationBindingBehavior = __decorate([
+            runtime_1.bindingBehavior("t" /* translationValueConverterName */)
+        ], TranslationBindingBehavior);
+        return TranslationBindingBehavior;
+    })();
     exports.TranslationBindingBehavior = TranslationBindingBehavior;
 });
 //# sourceMappingURL=translation-binding-behavior.js.map

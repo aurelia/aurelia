@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$ParameterDeclaration = exports.$ConstructorDeclaration = exports.MethodDefinitionRecord = exports.$ArrowFunction = exports.$FunctionDeclarationInstantiation = exports.$FunctionDeclaration = exports.$FunctionExpression = exports.$FormalParameterList = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
     const environment_record_1 = require("../types/environment-record");

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.createExposedPromise = exports.defaultQueueTaskOptions = exports.TaskQueuePriority = void 0;
     var TaskQueuePriority;
     (function (TaskQueuePriority) {
         TaskQueuePriority[TaskQueuePriority["microTask"] = 0] = "microTask";

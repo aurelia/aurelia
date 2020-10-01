@@ -18,6 +18,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.InterpolationBinding = exports.MultiInterpolationBinding = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const flags_1 = require("../flags");
     const observer_locator_1 = require("../observation/observer-locator");
@@ -32,7 +33,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.mode = mode;
             this.locator = locator;
             this.interceptor = this;
-            this.$state = 0 /* none */;
+            this.isBound = false;
             this.$scope = void 0;
             // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
             // value converters and binding behaviors.
@@ -44,15 +45,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 parts[i] = new InterpolationBinding(expressions[i], interpolation, target, targetProperty, mode, observerLocator, locator, i === 0);
             }
         }
-        ;
         $bind(flags, scope, part) {
-            if (this.$state & 4 /* isBound */) {
+            if (this.isBound) {
                 if (this.$scope === scope) {
                     return;
                 }
                 this.interceptor.$unbind(flags);
             }
-            this.$state |= 4 /* isBound */;
+            this.isBound = true;
             this.$scope = scope;
             this.part = part;
             const parts = this.parts;
@@ -61,97 +61,112 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             }
         }
         $unbind(flags) {
-            if (!(this.$state & 4 /* isBound */)) {
+            if (!this.isBound) {
                 return;
             }
-            this.$state &= ~4 /* isBound */;
+            this.isBound = false;
             this.$scope = void 0;
             const parts = this.parts;
             for (let i = 0, ii = parts.length; i < ii; ++i) {
                 parts[i].interceptor.$unbind(flags);
             }
         }
+        dispose() {
+            this.interceptor = (void 0);
+            this.interpolation = (void 0);
+            this.locator = (void 0);
+            this.target = (void 0);
+        }
     }
     exports.MultiInterpolationBinding = MultiInterpolationBinding;
-    let InterpolationBinding = class InterpolationBinding {
-        constructor(sourceExpression, interpolation, target, targetProperty, mode, observerLocator, locator, isFirst) {
-            this.sourceExpression = sourceExpression;
-            this.interpolation = interpolation;
-            this.target = target;
-            this.targetProperty = targetProperty;
-            this.mode = mode;
-            this.observerLocator = observerLocator;
-            this.locator = locator;
-            this.isFirst = isFirst;
-            this.interceptor = this;
-            this.$state = 0 /* none */;
-            connectable_1.connectable.assignIdTo(this);
-            this.targetObserver = observerLocator.getAccessor(0 /* none */, target, targetProperty);
-        }
-        updateTarget(value, flags) {
-            this.targetObserver.setValue(value, flags | 16 /* updateTargetInstance */);
-        }
-        handleChange(_newValue, _previousValue, flags) {
-            if (!(this.$state & 4 /* isBound */)) {
-                return;
+    let InterpolationBinding = /** @class */ (() => {
+        let InterpolationBinding = class InterpolationBinding {
+            constructor(sourceExpression, interpolation, target, targetProperty, mode, observerLocator, locator, isFirst) {
+                this.sourceExpression = sourceExpression;
+                this.interpolation = interpolation;
+                this.target = target;
+                this.targetProperty = targetProperty;
+                this.mode = mode;
+                this.observerLocator = observerLocator;
+                this.locator = locator;
+                this.isFirst = isFirst;
+                this.interceptor = this;
+                this.isBound = false;
+                connectable_1.connectable.assignIdTo(this);
+                this.targetObserver = observerLocator.getAccessor(0 /* none */, target, targetProperty);
             }
-            const previousValue = this.targetObserver.getValue();
-            const newValue = this.interpolation.evaluate(flags, this.$scope, this.locator, this.part);
-            if (newValue !== previousValue) {
-                this.interceptor.updateTarget(newValue, flags);
+            updateTarget(value, flags) {
+                this.targetObserver.setValue(value, flags | 8 /* updateTargetInstance */);
             }
-            if ((this.mode & oneTime) === 0) {
-                this.version++;
-                this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
-                this.interceptor.unobserve(false);
-            }
-        }
-        $bind(flags, scope, part) {
-            if (this.$state & 4 /* isBound */) {
-                if (this.$scope === scope) {
+            handleChange(_newValue, _previousValue, flags) {
+                if (!this.isBound) {
                     return;
                 }
-                this.interceptor.$unbind(flags);
+                const previousValue = this.targetObserver.getValue();
+                const newValue = this.interpolation.evaluate(flags, this.$scope, this.locator, this.part);
+                if (newValue !== previousValue) {
+                    this.interceptor.updateTarget(newValue, flags);
+                }
+                if ((this.mode & oneTime) === 0) {
+                    this.version++;
+                    this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
+                    this.interceptor.unobserve(false);
+                }
             }
-            this.$state |= 4 /* isBound */;
-            this.$scope = scope;
-            this.part = part;
-            const sourceExpression = this.sourceExpression;
-            if (sourceExpression.bind) {
-                sourceExpression.bind(flags, scope, this.interceptor);
+            $bind(flags, scope, part) {
+                if (this.isBound) {
+                    if (this.$scope === scope) {
+                        return;
+                    }
+                    this.interceptor.$unbind(flags);
+                }
+                this.isBound = true;
+                this.$scope = scope;
+                this.part = part;
+                const sourceExpression = this.sourceExpression;
+                if (sourceExpression.bind) {
+                    sourceExpression.bind(flags, scope, this.interceptor);
+                }
+                if (this.mode !== flags_1.BindingMode.oneTime && this.targetObserver.bind) {
+                    this.targetObserver.bind(flags);
+                }
+                // since the interpolation already gets the whole value, we only need to let the first
+                // text binding do the update if there are multiple
+                if (this.isFirst) {
+                    this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
+                }
+                if (this.mode & toView) {
+                    sourceExpression.connect(flags, scope, this.interceptor, part);
+                }
             }
-            if (this.mode !== flags_1.BindingMode.oneTime && this.targetObserver.bind) {
-                this.targetObserver.bind(flags);
+            $unbind(flags) {
+                if (!this.isBound) {
+                    return;
+                }
+                this.isBound = false;
+                const sourceExpression = this.sourceExpression;
+                if (sourceExpression.unbind) {
+                    sourceExpression.unbind(flags, this.$scope, this.interceptor);
+                }
+                if (this.targetObserver.unbind) {
+                    this.targetObserver.unbind(flags);
+                }
+                this.$scope = void 0;
+                this.interceptor.unobserve(true);
             }
-            // since the interpolation already gets the whole value, we only need to let the first
-            // text binding do the update if there are multiple
-            if (this.isFirst) {
-                this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
+            dispose() {
+                this.interceptor = (void 0);
+                this.sourceExpression = (void 0);
+                this.locator = (void 0);
+                this.targetObserver = (void 0);
             }
-            if (this.mode & toView) {
-                sourceExpression.connect(flags, scope, this.interceptor, part);
-            }
-        }
-        $unbind(flags) {
-            if (!(this.$state & 4 /* isBound */)) {
-                return;
-            }
-            this.$state &= ~4 /* isBound */;
-            const sourceExpression = this.sourceExpression;
-            if (sourceExpression.unbind) {
-                sourceExpression.unbind(flags, this.$scope, this.interceptor);
-            }
-            if (this.targetObserver.unbind) {
-                this.targetObserver.unbind(flags);
-            }
-            this.$scope = void 0;
-            this.interceptor.unobserve(true);
-        }
-    };
-    InterpolationBinding = __decorate([
-        connectable_1.connectable(),
-        __metadata("design:paramtypes", [Object, Object, Object, String, Number, Object, Object, Boolean])
-    ], InterpolationBinding);
+        };
+        InterpolationBinding = __decorate([
+            connectable_1.connectable(),
+            __metadata("design:paramtypes", [Object, Object, Object, String, Number, Object, Object, Boolean])
+        ], InterpolationBinding);
+        return InterpolationBinding;
+    })();
     exports.InterpolationBinding = InterpolationBinding;
 });
 //# sourceMappingURL=interpolation-binding.js.map

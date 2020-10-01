@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$Reference = void 0;
     const operations_1 = require("../operations");
     const error_1 = require("./error");
     // http://www.ecma-international.org/ecma-262/#sec-reference-specification-type

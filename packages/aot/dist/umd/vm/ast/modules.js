@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$QualifiedName = exports.$ExternalModuleReference = exports.$ModuleBlock = exports.$NamespaceExportDeclaration = exports.$ExportSpecifier = exports.$NamedExports = exports.$ExportDeclaration = exports.$ExportAssignment = exports.ExportEntryRecord = exports.$NamespaceImport = exports.$ImportSpecifier = exports.$NamedImports = exports.$ImportClause = exports.$ImportDeclaration = exports.$ImportEqualsDeclaration = exports.ImportEntryRecord = exports.$ModuleDeclaration = exports.$DocumentFragment = exports.$ESModule = exports.$ESScript = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
     const realm_1 = require("../realm");

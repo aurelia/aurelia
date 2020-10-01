@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.StyleElementStyles = exports.AdoptedStyleSheetsStyles = exports.IShadowDOMGlobalStyles = exports.IShadowDOMStyles = exports.noopShadowDOMStyles = void 0;
     const kernel_1 = require("@aurelia/kernel");
     exports.noopShadowDOMStyles = Object.freeze({
         applyTo: kernel_1.PLATFORM.noop

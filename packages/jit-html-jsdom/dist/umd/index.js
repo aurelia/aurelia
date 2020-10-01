@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.JitHtmlJsdomConfiguration = void 0;
     const jit_1 = require("@aurelia/jit");
     const jit_html_1 = require("@aurelia/jit-html");
     const kernel_1 = require("@aurelia/kernel");

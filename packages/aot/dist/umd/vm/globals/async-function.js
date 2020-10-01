@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$AsyncFunctionStart = exports.$AsyncFunctionPrototype = exports.$AsyncFunctionConstructor = void 0;
     const function_1 = require("../types/function");
     const object_1 = require("../types/object");
     const function_2 = require("./function");

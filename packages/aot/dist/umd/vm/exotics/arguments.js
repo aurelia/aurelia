@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$CreateUnmappedArgumentsObject = exports.$ArgSetter = exports.$ArgGetter = exports.$ArgumentsExoticObject = void 0;
     const object_1 = require("../types/object");
     const function_1 = require("../types/function");
     const operations_1 = require("../operations");

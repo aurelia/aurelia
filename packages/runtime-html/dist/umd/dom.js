@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.IHistory = exports.ILocation = exports.IWindow = exports.AuMarker = exports.FragmentNodeSequence = exports.DOM = exports.HTMLDOM = exports.NodeType = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const projectors_1 = require("./projectors");
@@ -418,5 +419,8 @@
         proto.nodeName = 'AU-M';
         proto.nodeType = 1 /* Element */;
     })(AuMarker.prototype);
+    exports.IWindow = kernel_1.DI.createInterface('IWindow').withDefault(x => x.callback(handler => handler.get(HTMLDOM).window));
+    exports.ILocation = kernel_1.DI.createInterface('ILocation').withDefault(x => x.callback(handler => handler.get(exports.IWindow).location));
+    exports.IHistory = kernel_1.DI.createInterface('IHistory').withDefault(x => x.callback(handler => handler.get(exports.IWindow).history));
 });
 //# sourceMappingURL=dom.js.map

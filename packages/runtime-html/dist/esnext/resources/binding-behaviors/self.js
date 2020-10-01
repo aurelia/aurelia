@@ -15,21 +15,24 @@ export function handleSelfEvent(event) {
     }
     return this.selfEventCallSource(event);
 }
-let SelfBindingBehavior = class SelfBindingBehavior {
-    bind(flags, scope, binding) {
-        if (!binding.callSource || !binding.targetEvent) {
-            throw Reporter.error(8);
+let SelfBindingBehavior = /** @class */ (() => {
+    let SelfBindingBehavior = class SelfBindingBehavior {
+        bind(flags, scope, binding) {
+            if (!binding.callSource || !binding.targetEvent) {
+                throw Reporter.error(8);
+            }
+            binding.selfEventCallSource = binding.callSource;
+            binding.callSource = handleSelfEvent;
         }
-        binding.selfEventCallSource = binding.callSource;
-        binding.callSource = handleSelfEvent;
-    }
-    unbind(flags, scope, binding) {
-        binding.callSource = binding.selfEventCallSource;
-        binding.selfEventCallSource = null;
-    }
-};
-SelfBindingBehavior = __decorate([
-    bindingBehavior('self')
-], SelfBindingBehavior);
+        unbind(flags, scope, binding) {
+            binding.callSource = binding.selfEventCallSource;
+            binding.selfEventCallSource = null;
+        }
+    };
+    SelfBindingBehavior = __decorate([
+        bindingBehavior('self')
+    ], SelfBindingBehavior);
+    return SelfBindingBehavior;
+})();
 export { SelfBindingBehavior };
 //# sourceMappingURL=self.js.map

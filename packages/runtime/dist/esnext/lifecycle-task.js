@@ -10,12 +10,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+/* eslint-disable @typescript-eslint/promise-function-async */
 import { DI, IServiceLocator, Registration, } from '@aurelia/kernel';
 export const LifecycleTask = {
     done: {
         done: true,
-        canCancel() { return false; },
-        cancel() { return; },
         wait() { return Promise.resolve(); }
     }
 };
@@ -23,8 +22,9 @@ export var TaskSlot;
 (function (TaskSlot) {
     TaskSlot[TaskSlot["beforeCreate"] = 0] = "beforeCreate";
     TaskSlot[TaskSlot["beforeRender"] = 1] = "beforeRender";
-    TaskSlot[TaskSlot["beforeBind"] = 2] = "beforeBind";
-    TaskSlot[TaskSlot["beforeAttach"] = 3] = "beforeAttach";
+    TaskSlot[TaskSlot["beforeCompileChildren"] = 2] = "beforeCompileChildren";
+    TaskSlot[TaskSlot["beforeBind"] = 3] = "beforeBind";
+    TaskSlot[TaskSlot["afterAttach"] = 4] = "afterAttach";
 })(TaskSlot || (TaskSlot = {}));
 export const IStartTask = DI.createInterface('IStartTask').noDefault();
 var TaskType;
@@ -32,7 +32,6 @@ var TaskType;
     TaskType[TaskType["with"] = 0] = "with";
     TaskType[TaskType["from"] = 1] = "from";
 })(TaskType || (TaskType = {}));
-// eslint-disable-next-line @typescript-eslint/class-name-casing
 export const StartTask = class $StartTask {
     constructor(type) {
         this.type = type;
@@ -95,11 +94,14 @@ export const StartTask = class $StartTask {
     beforeRender() {
         return this.at(1 /* beforeRender */);
     }
-    beforeBind() {
-        return this.at(2 /* beforeBind */);
+    beforeCompileChildren() {
+        return this.at(2 /* beforeCompileChildren */);
     }
-    beforeAttach() {
-        return this.at(3 /* beforeAttach */);
+    beforeBind() {
+        return this.at(3 /* beforeBind */);
+    }
+    afterAttach() {
+        return this.at(4 /* afterAttach */);
     }
     at(slot) {
         this._slot = slot;
@@ -127,51 +129,62 @@ export const StartTask = class $StartTask {
     }
 };
 export const IStartTaskManager = DI.createInterface('IStartTaskManager').noDefault();
-let StartTaskManager = class StartTaskManager {
-    constructor(locator) {
-        this.locator = locator;
-    }
-    static register(container) {
-        return Registration.singleton(IStartTaskManager, this).register(container);
-    }
-    runBeforeCreate(locator = this.locator) {
-        return this.run(0 /* beforeCreate */, locator);
-    }
-    runBeforeRender(locator = this.locator) {
-        return this.run(1 /* beforeRender */, locator);
-    }
-    runBeforeBind(locator = this.locator) {
-        return this.run(2 /* beforeBind */, locator);
-    }
-    runBeforeAttach(locator = this.locator) {
-        return this.run(3 /* beforeAttach */, locator);
-    }
-    run(slot, locator = this.locator) {
-        const tasks = locator.getAll(IStartTask)
-            .filter(startTask => startTask.slot === slot)
-            .map(startTask => startTask.resolveTask())
-            .filter(task => !task.done);
-        if (tasks.length === 0) {
+let StartTaskManager = /** @class */ (() => {
+    let StartTaskManager = class StartTaskManager {
+        constructor(locator) {
+            this.locator = locator;
+            this.beforeCompileChildrenQueued = false;
+        }
+        static register(container) {
+            return Registration.singleton(IStartTaskManager, this).register(container);
+        }
+        enqueueBeforeCompileChildren() {
+            if (this.beforeCompileChildrenQueued) {
+                throw new Error(`BeforeCompileChildren already queued`);
+            }
+            this.beforeCompileChildrenQueued = true;
+        }
+        runBeforeCreate(locator = this.locator) {
+            return this.run(0 /* beforeCreate */, locator);
+        }
+        runBeforeRender(locator = this.locator) {
+            return this.run(1 /* beforeRender */, locator);
+        }
+        runBeforeCompileChildren(locator = this.locator) {
+            if (this.beforeCompileChildrenQueued) {
+                this.beforeCompileChildrenQueued = false;
+                return this.run(2 /* beforeCompileChildren */, locator);
+            }
             return LifecycleTask.done;
         }
-        return new AggregateTerminalTask(tasks);
-    }
-};
-StartTaskManager = __decorate([
-    __param(0, IServiceLocator),
-    __metadata("design:paramtypes", [Object])
-], StartTaskManager);
+        runBeforeBind(locator = this.locator) {
+            return this.run(3 /* beforeBind */, locator);
+        }
+        runAfterAttach(locator = this.locator) {
+            return this.run(4 /* afterAttach */, locator);
+        }
+        run(slot, locator = this.locator) {
+            const tasks = locator.getAll(IStartTask)
+                .filter(startTask => startTask.slot === slot)
+                .map(startTask => startTask.resolveTask())
+                .filter(task => !task.done);
+            if (tasks.length === 0) {
+                return LifecycleTask.done;
+            }
+            return new AggregateTerminalTask(tasks);
+        }
+    };
+    StartTaskManager = __decorate([
+        __param(0, IServiceLocator),
+        __metadata("design:paramtypes", [Object])
+    ], StartTaskManager);
+    return StartTaskManager;
+})();
 export { StartTaskManager };
 export class PromiseTask {
     constructor(promise, next, context, ...args) {
         this.done = false;
-        this.hasStarted = false;
-        this.isCancelled = false;
         this.promise = promise.then(value => {
-            if (this.isCancelled === true) {
-                return;
-            }
-            this.hasStarted = true;
             if (next !== null) {
                 const nextResult = next.call(context, value, ...args);
                 if (nextResult === void 0) {
@@ -188,14 +201,6 @@ export class PromiseTask {
             }
         });
     }
-    canCancel() {
-        return !this.hasStarted;
-    }
-    cancel() {
-        if (this.canCancel()) {
-            this.isCancelled = true;
-        }
-    }
     wait() {
         return this.promise;
     }
@@ -206,12 +211,6 @@ export class ProviderTask {
         this.key = key;
         this.callback = callback;
         this.done = false;
-    }
-    canCancel() {
-        return false;
-    }
-    cancel() {
-        return;
     }
     wait() {
         if (this.promise === void 0) {
@@ -235,16 +234,10 @@ export class ProviderTask {
 export class ContinuationTask {
     constructor(antecedent, next, context, ...args) {
         this.done = false;
-        this.hasStarted = false;
-        this.isCancelled = false;
         const promise = antecedent.then instanceof Function
             ? antecedent
             : antecedent.wait();
         this.promise = promise.then(() => {
-            if (this.isCancelled === true) {
-                return;
-            }
-            this.hasStarted = true;
             const nextResult = next.call(context, ...args);
             if (nextResult === void 0) {
                 this.done = true;
@@ -258,14 +251,6 @@ export class ContinuationTask {
                 });
             }
         });
-    }
-    canCancel() {
-        return !this.hasStarted;
-    }
-    cancel() {
-        if (this.canCancel()) {
-            this.isCancelled = true;
-        }
     }
     wait() {
         return this.promise;
@@ -281,12 +266,6 @@ export class TerminalTask {
             this.done = true;
         }).catch(e => { throw e; });
     }
-    canCancel() {
-        return false;
-    }
-    cancel() {
-        return;
-    }
     wait() {
         return this.promise;
     }
@@ -294,13 +273,7 @@ export class TerminalTask {
 export class AggregateContinuationTask {
     constructor(antecedents, next, context, ...args) {
         this.done = false;
-        this.hasStarted = false;
-        this.isCancelled = false;
         this.promise = Promise.all(antecedents.map(t => t.wait())).then(() => {
-            if (this.isCancelled === true) {
-                return;
-            }
-            this.hasStarted = true;
             const nextResult = next.call(context, ...args);
             if (nextResult === void 0) {
                 this.done = true;
@@ -312,14 +285,6 @@ export class AggregateContinuationTask {
             }
         });
     }
-    canCancel() {
-        return !this.hasStarted;
-    }
-    cancel() {
-        if (this.canCancel()) {
-            this.isCancelled = true;
-        }
-    }
     wait() {
         return this.promise;
     }
@@ -330,12 +295,6 @@ export class AggregateTerminalTask {
         this.promise = Promise.all(antecedents.map(t => t.wait())).then(() => {
             this.done = true;
         });
-    }
-    canCancel() {
-        return false;
-    }
-    cancel() {
-        return;
     }
     wait() {
         return this.promise;

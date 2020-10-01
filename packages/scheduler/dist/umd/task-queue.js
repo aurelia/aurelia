@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.TaskQueue = void 0;
     const types_1 = require("./types");
     const task_1 = require("./task");
     const log_1 = require("./log");

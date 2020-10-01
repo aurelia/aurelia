@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.NodeSequence = exports.DOM = exports.IDOM = exports.IRenderLocation = exports.INode = void 0;
     const kernel_1 = require("@aurelia/kernel");
     exports.INode = kernel_1.DI.createInterface('INode').noDefault();
     exports.IRenderLocation = kernel_1.DI.createInterface('IRenderLocation').noDefault();

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.IAttrSyntaxTransformer = void 0;
     const kernel_1 = require("@aurelia/kernel");
     exports.IAttrSyntaxTransformer = kernel_1.DI
         .createInterface('IAttrSyntaxTransformer')

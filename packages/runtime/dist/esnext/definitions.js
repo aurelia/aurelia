@@ -62,24 +62,29 @@ export function isTargetedInstruction(value) {
     const type = value.type;
     return typeof type === 'string' && type.length === 2;
 }
-export class HooksDefinition {
-    constructor(target) {
-        this.hasCreate = 'create' in target;
-        this.hasBeforeCompile = 'beforeCompile' in target;
-        this.hasAfterCompile = 'afterCompile' in target;
-        this.hasAfterCompileChildren = 'afterCompileChildren' in target;
-        this.hasBeforeBind = 'beforeBind' in target;
-        this.hasAfterBind = 'afterBind' in target;
-        this.hasBeforeUnbind = 'beforeUnbind' in target;
-        this.hasAfterUnbind = 'afterUnbind' in target;
-        this.hasBeforeAttach = 'beforeAttach' in target;
-        this.hasAfterAttach = 'afterAttach' in target;
-        this.hasBeforeDetach = 'beforeDetach' in target;
-        this.hasAfterDetach = 'afterDetach' in target;
-        this.hasCaching = 'caching' in target;
+let HooksDefinition = /** @class */ (() => {
+    class HooksDefinition {
+        constructor(target) {
+            this.hasCreate = 'create' in target;
+            this.hasBeforeCompile = 'beforeCompile' in target;
+            this.hasAfterCompile = 'afterCompile' in target;
+            this.hasAfterCompileChildren = 'afterCompileChildren' in target;
+            this.hasBeforeBind = 'beforeBind' in target;
+            this.hasAfterBind = 'afterBind' in target;
+            this.hasAfterAttach = 'afterAttach' in target;
+            this.hasAfterAttachChildren = 'afterAttachChildren' in target;
+            this.hasBeforeDetach = 'beforeDetach' in target;
+            this.hasBeforeUnbind = 'beforeUnbind' in target;
+            this.hasAfterUnbind = 'afterUnbind' in target;
+            this.hasAfterUnbindChildren = 'afterUnbindChildren' in target;
+            this.hasDispose = 'dispose' in target;
+            this.hasAccept = 'accept' in target;
+        }
     }
-}
-HooksDefinition.none = new HooksDefinition({});
+    HooksDefinition.none = new HooksDefinition({});
+    return HooksDefinition;
+})();
+export { HooksDefinition };
 export function alias(...aliases) {
     return function (target) {
         const key = Protocol.annotation.keyFor('aliases');

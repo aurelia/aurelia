@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.preprocessHtmlTemplate = void 0;
     const path = require("path");
     const kernel_1 = require("@aurelia/kernel");
     const modify_code_1 = require("modify-code");

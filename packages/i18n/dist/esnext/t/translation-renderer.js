@@ -37,21 +37,24 @@ export class TranslationBindingCommand {
         return new TranslationBindingInstruction(binding.expression, getTarget(binding, false));
     }
 }
-let TranslationBindingRenderer = class TranslationBindingRenderer {
-    constructor(parser, observerLocator) {
-        this.parser = parser;
-        this.observerLocator = observerLocator;
-    }
-    render(flags, context, controller, target, instruction) {
-        TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
-    }
-};
-TranslationBindingRenderer = __decorate([
-    instructionRenderer(TranslationInstructionType),
-    __param(0, IExpressionParser),
-    __param(1, IObserverLocator),
-    __metadata("design:paramtypes", [Object, Object])
-], TranslationBindingRenderer);
+let TranslationBindingRenderer = /** @class */ (() => {
+    let TranslationBindingRenderer = class TranslationBindingRenderer {
+        constructor(parser, observerLocator) {
+            this.parser = parser;
+            this.observerLocator = observerLocator;
+        }
+        render(flags, context, controller, target, instruction) {
+            TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
+        }
+    };
+    TranslationBindingRenderer = __decorate([
+        instructionRenderer(TranslationInstructionType),
+        __param(0, IExpressionParser),
+        __param(1, IObserverLocator),
+        __metadata("design:paramtypes", [Object, Object])
+    ], TranslationBindingRenderer);
+    return TranslationBindingRenderer;
+})();
 export { TranslationBindingRenderer };
 export const TranslationBindInstructionType = 'tbt';
 export class TranslationBindAttributePattern {
@@ -78,20 +81,23 @@ export class TranslationBindBindingCommand {
         return new TranslationBindBindingInstruction(binding.expression, getTarget(binding, false));
     }
 }
-let TranslationBindBindingRenderer = class TranslationBindBindingRenderer {
-    constructor(parser, observerLocator) {
-        this.parser = parser;
-        this.observerLocator = observerLocator;
-    }
-    render(flags, context, controller, target, instruction) {
-        TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
-    }
-};
-TranslationBindBindingRenderer = __decorate([
-    instructionRenderer(TranslationBindInstructionType),
-    __param(0, IExpressionParser),
-    __param(1, IObserverLocator),
-    __metadata("design:paramtypes", [Object, Object])
-], TranslationBindBindingRenderer);
+let TranslationBindBindingRenderer = /** @class */ (() => {
+    let TranslationBindBindingRenderer = class TranslationBindBindingRenderer {
+        constructor(parser, observerLocator) {
+            this.parser = parser;
+            this.observerLocator = observerLocator;
+        }
+        render(flags, context, controller, target, instruction) {
+            TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
+        }
+    };
+    TranslationBindBindingRenderer = __decorate([
+        instructionRenderer(TranslationBindInstructionType),
+        __param(0, IExpressionParser),
+        __param(1, IObserverLocator),
+        __metadata("design:paramtypes", [Object, Object])
+    ], TranslationBindBindingRenderer);
+    return TranslationBindBindingRenderer;
+})();
 export { TranslationBindBindingRenderer };
 //# sourceMappingURL=translation-renderer.js.map

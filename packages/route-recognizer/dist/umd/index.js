@@ -10,6 +10,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.RouteRecognizer = exports.RecognizedRoute = exports.Endpoint = exports.ConfigurableRoute = void 0;
     class ConfigurableRoute {
         constructor(path, caseSensitive, handler) {
             this.path = path;

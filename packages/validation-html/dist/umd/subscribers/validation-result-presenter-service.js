@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ValidationResultPresenterService = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const resultIdAttribute = 'validation-result-id';
     const resultContainerAttribute = 'validation-result-container';

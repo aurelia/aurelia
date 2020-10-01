@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.trace = exports.stopRecordingCalls = exports.recordCalls = exports.CallCollection = exports.Call = exports.SymbolTraceWriter = exports.disableTracing = exports.enableTracing = void 0;
     const debug_1 = require("@aurelia/debug");
     const kernel_1 = require("@aurelia/kernel");
     const util_1 = require("./util");

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.createNodeScheduler = void 0;
     const scheduler_1 = require("@aurelia/scheduler");
     const kernel_1 = require("@aurelia/kernel");
     function createMicroTaskFlushRequestorFactory() {

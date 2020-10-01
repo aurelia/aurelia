@@ -18,6 +18,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.getSetObserver = exports.SetObserver = exports.disableSetObservation = exports.enableSetObservation = void 0;
     const lifecycle_1 = require("../lifecycle");
     const observation_1 = require("../observation");
     const collection_size_observer_1 = require("./collection-size-observer");
@@ -139,55 +140,58 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     }
     exports.disableSetObservation = disableSetObservation;
     const slice = Array.prototype.slice;
-    let SetObserver = class SetObserver {
-        constructor(flags, lifecycle, observedSet) {
-            if (!enableSetObservationCalled) {
-                enableSetObservationCalled = true;
-                enableSetObservation();
+    let SetObserver = /** @class */ (() => {
+        let SetObserver = class SetObserver {
+            constructor(flags, lifecycle, observedSet) {
+                if (!enableSetObservationCalled) {
+                    enableSetObservationCalled = true;
+                    enableSetObservation();
+                }
+                this.inBatch = false;
+                this.collection = observedSet;
+                this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+                this.indexMap = observation_1.createIndexMap(observedSet.size);
+                this.lifecycle = lifecycle;
+                this.lengthObserver = (void 0);
+                observerLookup.set(observedSet, this);
             }
-            this.inBatch = false;
-            this.collection = observedSet;
-            this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;
-            this.indexMap = observation_1.createIndexMap(observedSet.size);
-            this.lifecycle = lifecycle;
-            this.lengthObserver = (void 0);
-            observerLookup.set(observedSet, this);
-        }
-        notify() {
-            if (this.lifecycle.batch.depth > 0) {
-                if (!this.inBatch) {
-                    this.inBatch = true;
-                    this.lifecycle.batch.add(this);
+            notify() {
+                if (this.lifecycle.batch.depth > 0) {
+                    if (!this.inBatch) {
+                        this.inBatch = true;
+                        this.lifecycle.batch.add(this);
+                    }
+                }
+                else {
+                    this.flushBatch(0 /* none */);
                 }
             }
-            else {
-                this.flushBatch(0 /* none */);
+            getLengthObserver() {
+                if (this.lengthObserver === void 0) {
+                    this.lengthObserver = new collection_size_observer_1.CollectionSizeObserver(this.collection);
+                }
+                return this.lengthObserver;
             }
-        }
-        getLengthObserver() {
-            if (this.lengthObserver === void 0) {
-                this.lengthObserver = new collection_size_observer_1.CollectionSizeObserver(this.collection);
+            getIndexObserver(index) {
+                throw new Error('Set index observation not supported');
             }
-            return this.lengthObserver;
-        }
-        getIndexObserver(index) {
-            throw new Error('Set index observation not supported');
-        }
-        flushBatch(flags) {
-            this.inBatch = false;
-            const { indexMap, collection } = this;
-            const { size } = collection;
-            this.indexMap = observation_1.createIndexMap(size);
-            this.callCollectionSubscribers(indexMap, 16 /* updateTargetInstance */ | this.persistentFlags);
-            if (this.lengthObserver !== void 0) {
-                this.lengthObserver.setValue(size, 16 /* updateTargetInstance */);
+            flushBatch(flags) {
+                this.inBatch = false;
+                const { indexMap, collection } = this;
+                const { size } = collection;
+                this.indexMap = observation_1.createIndexMap(size);
+                this.callCollectionSubscribers(indexMap, 8 /* updateTargetInstance */ | this.persistentFlags);
+                if (this.lengthObserver !== void 0) {
+                    this.lengthObserver.setValue(size, 8 /* updateTargetInstance */);
+                }
             }
-        }
-    };
-    SetObserver = __decorate([
-        subscriber_collection_1.collectionSubscriberCollection(),
-        __metadata("design:paramtypes", [Number, Object, Object])
-    ], SetObserver);
+        };
+        SetObserver = __decorate([
+            subscriber_collection_1.collectionSubscriberCollection(),
+            __metadata("design:paramtypes", [Number, Object, Object])
+        ], SetObserver);
+        return SetObserver;
+    })();
     exports.SetObserver = SetObserver;
     function getSetObserver(flags, lifecycle, observedSet) {
         const observer = observerLookup.get(observedSet);

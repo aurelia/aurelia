@@ -1,22 +1,23 @@
 import { IContainer, Key } from '@aurelia/kernel';
-import { ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime';
-import { InstructionResolver, IRouteSeparators } from './instruction-resolver';
-import { INavigatorInstruction, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
-import { AnchorEventInfo, LinkHandler } from './link-handler';
+import { ICustomElementViewModel } from '@aurelia/runtime';
+import { InstructionResolver } from './instruction-resolver';
+import { NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
+import { LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
-import { INavigatorOptions, Navigator } from './navigator';
-import { QueueItem } from './queue';
+import { Navigator } from './navigator';
 import { INavClasses } from './resources/nav';
-import { IViewportOptions, Viewport } from './viewport';
+import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
-import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction } from './hook-manager';
-import { Scope } from './scope';
-import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
+import { HookManager, IHookDefinition, HookIdentity, HookFunction, IHookOptions, BeforeNavigationHookFunction, TransformFromUrlHookFunction, TransformToUrlHookFunction, SetTitleHookFunction } from './hook-manager';
+import { ViewportScope } from './viewport-scope';
 import { BrowserViewerStore } from './browser-viewer-store';
+import { IConnectedCustomElement } from './resources/viewport';
+import { IRouterActivateOptions, RouterOptions } from './router-options';
+import { OpenPromise } from './open-promise';
 /**
  * Public API
  */
-export interface IGotoOptions {
+export interface ILoadOptions {
     title?: string;
     query?: string;
     data?: Record<string, unknown>;
@@ -27,69 +28,12 @@ export interface IGotoOptions {
 /**
  * Public API
  */
-export interface IRouterOptions extends INavigatorOptions {
-    separators?: IRouteSeparators;
-    useUrlFragmentHash?: boolean;
-    useHref?: boolean;
-    statefulHistoryLength?: number;
-    useDirectRoutes?: boolean;
-    useConfiguredRoutes?: boolean;
-    hooks?: IHookDefinition[];
-    reportCallback?(instruction: INavigatorInstruction): void;
-}
-/**
- * Public API
- */
-export interface IRouter {
-    readonly isNavigating: boolean;
-    activeComponents: ViewportInstruction[];
-    readonly rootScope: ViewportScope | null;
-    readonly activeRoute?: IRoute;
-    readonly container: IContainer;
-    readonly instructionResolver: InstructionResolver;
-    navigator: Navigator;
-    readonly navigation: BrowserViewerStore;
-    readonly hookManager: HookManager;
-    readonly linkHandler: LinkHandler;
-    readonly navs: Readonly<Record<string, Nav>>;
-    readonly options: IRouterOptions;
-    readonly statefulHistory: boolean;
-    activate(options?: IRouterOptions): void;
-    loadUrl(): Promise<void>;
-    deactivate(): void;
-    linkCallback(info: AnchorEventInfo): void;
-    processNavigations(qInstruction: QueueItem<INavigatorInstruction>): Promise<void>;
-    getViewport(name: string): Viewport | null;
-    setClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer, scope: Scope): void;
-    getClosestScope(viewModelOrElement: ICustomElementViewModel | Element | ICustomElementController | IContainer): Scope | null;
-    unsetClosestScope(viewModelOrContainer: ICustomElementViewModel | IContainer): void;
-    connectViewport(viewport: Viewport | null, container: IContainer, name: string, element: Element, options?: IViewportOptions): Viewport;
-    disconnectViewport(viewport: Viewport, container: IContainer, element: Element | null): void;
-    connectViewportScope(viewportScope: ViewportScope | null, name: string, container: IContainer, element: Element, options?: IViewportScopeOptions): ViewportScope;
-    disconnectViewportScope(viewportScope: ViewportScope, container: IContainer): void;
-    allViewports(includeDisabled?: boolean): Viewport[];
-    findScope(elementOrViewmodelOrviewport: Element | ICustomElementViewModel | Viewport | ICustomElementController | null): Scope;
-    goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void>;
-    refresh(): Promise<void>;
-    back(): Promise<void>;
-    forward(): Promise<void>;
-    checkActive(instructions: ViewportInstruction[]): boolean;
-    setNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
-    addNav(name: string, routes: INavRoute[], classes?: INavClasses): void;
-    updateNav(name?: string): void;
-    findNav(name: string): Nav;
-    addRoutes(routes: IRoute[], context?: ICustomElementViewModel | Element): IRoute[];
-    removeRoutes(routes: IRoute[] | string[], context?: ICustomElementViewModel | Element): void;
-    addHooks(hooks: IHookDefinition[]): HookIdentity[];
-    addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
-    addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
-    addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
-    addHook(hook: HookFunction, options: IHookOptions): HookIdentity;
-    removeHooks(hooks: HookIdentity[]): void;
-    createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope?: boolean, nextScopeInstructions?: ViewportInstruction[] | null): ViewportInstruction;
-}
 export declare const IRouter: import("@aurelia/kernel").InterfaceSymbol<IRouter>;
+export interface IRouter extends Router {
+}
 export declare class Router implements IRouter {
+    navigation: BrowserViewerStore;
+    options: RouterOptions;
     static readonly inject: readonly Key[];
     rootScope: ViewportScope | null;
     /**
@@ -100,9 +44,9 @@ export declare class Router implements IRouter {
      * Public API
      */
     activeRoute?: IRoute;
-    private isActive;
+    isActive: boolean;
+    pendingConnects: Map<IConnectedCustomElement, OpenPromise>;
     private loadedFirst;
-    private processingNavigation;
     private lastNavigation;
     private staleChecks;
     constructor(
@@ -113,11 +57,7 @@ export declare class Router implements IRouter {
     /**
      * @internal - Shouldn't be used directly.
      */
-    navigator: Navigator, 
-    /**
-     * @internal - Shouldn't be used directly.
-     */
-    navigation: BrowserViewerStore, 
+    navigator: Navigator, navigation: BrowserViewerStore, 
     /**
      * @internal - Shouldn't be used directly.
      */
@@ -125,15 +65,21 @@ export declare class Router implements IRouter {
     /**
      * @internal - Shouldn't be used directly. Probably.
      */
-    instructionResolver: InstructionResolver);
+    instructionResolver: InstructionResolver, 
+    /**
+     * @internal - Shouldn't be used directly. Probably.
+     */
+    hookManager: HookManager, options: RouterOptions);
     /**
      * Public API
      */
     get isNavigating(): boolean;
+    get isRestrictedNavigation(): boolean;
+    starters: any[];
     /**
      * Public API
      */
-    activate(options?: IRouterOptions): void;
+    start(options?: IRouterActivateOptions): void;
     /**
      * Public API
      */
@@ -141,7 +87,7 @@ export declare class Router implements IRouter {
     /**
      * Public API
      */
-    deactivate(): void;
+    stop(): void;
     /**
      * Public API - Get viewport by name
      */
@@ -158,10 +104,12 @@ export declare class Router implements IRouter {
      * Public API (not yet implemented)
      */
     addViewportScope(...args: unknown[]): unknown;
+    allViewports(includeDisabled?: boolean, includeReplaced?: boolean): Viewport[];
     /**
      * Public API - THE navigation API
      */
-    goto(instructions: NavigationInstruction | NavigationInstruction[], options?: IGotoOptions): Promise<void>;
+    goto(instructions: NavigationInstruction | NavigationInstruction[], options?: ILoadOptions): Promise<void>;
+    load(instructions: NavigationInstruction | NavigationInstruction[], options?: ILoadOptions): Promise<void>;
     /**
      * Public API
      */
@@ -174,6 +122,10 @@ export declare class Router implements IRouter {
      * Public API
      */
     forward(): Promise<void>;
+    /**
+     * Public API
+     */
+    go(delta: number): Promise<void>;
     /**
      * Public API
      */
@@ -212,6 +164,7 @@ export declare class Router implements IRouter {
     addHook(beforeNavigationHookFunction: BeforeNavigationHookFunction, options?: IHookOptions): HookIdentity;
     addHook(transformFromUrlHookFunction: TransformFromUrlHookFunction, options?: IHookOptions): HookIdentity;
     addHook(transformToUrlHookFunction: TransformToUrlHookFunction, options?: IHookOptions): HookIdentity;
+    addHook(setTitleHookFunction: SetTitleHookFunction, options?: IHookOptions): HookIdentity;
     addHook(hookFunction: HookFunction, options?: IHookOptions): HookIdentity;
     /**
      * Public API
@@ -221,8 +174,7 @@ export declare class Router implements IRouter {
      * Public API - The right way to create ViewportInstructions
      */
     createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope?: boolean, nextScopeInstructions?: ViewportInstruction[] | null): ViewportInstruction;
-    private findInstructions;
-    private hasSiblingInstructions;
+    hasSiblingInstructions(instructions: ViewportInstruction[] | null): boolean;
     private appendInstructions;
     private checkStale;
     private unknownRoute;
@@ -230,6 +182,10 @@ export declare class Router implements IRouter {
     private cancelNavigation;
     private ensureRootScope;
     private replacePaths;
+    private getTitle;
+    private stringifyTitles;
+    private stringifyTitle;
+    private resolveTitle;
     private freeComponents;
     private getClosestContainer;
     private getContainer;

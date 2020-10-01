@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$ImmutablePrototypeExoticObject = void 0;
     const object_1 = require("../types/object");
     // http://www.ecma-international.org/ecma-262/#sec-string-exotic-objects
     class $ImmutablePrototypeExoticObject extends object_1.$Object {

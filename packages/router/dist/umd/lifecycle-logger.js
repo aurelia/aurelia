@@ -9,13 +9,14 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.LifecycleClass = exports.lifecycleLogger = void 0;
     /**
      * @internal - Will be removed
      */
     function lifecycleLogger(name) {
         const lifecycles = [
-            'canLeave', 'leave',
-            'canEnter', 'enter',
+            'canUnload', 'unload',
+            'canLoad', 'load',
             'created',
             'beforeBind', 'afterBind',
             'beforeAttach', 'afterAttach',
@@ -44,15 +45,15 @@
     }
     exports.lifecycleLogger = lifecycleLogger;
     class LifecycleClass {
-        canEnter() { console.log(`name canEnter`); return true; }
-        enter(params) { console.log(`name enter`); }
+        canLoad() { console.log(`name canLoad`); return true; }
+        load(params) { console.log(`name load`); }
         created() { console.log(`name created`); }
         beforeBind() { console.log(`name binding`); }
         afterBind() { console.log(`name bound`); }
         beforeAttach() { console.log(`name beforeAttach`); }
         afterAttach() { console.log(`name afterAttach`); }
-        canLeave() { console.log(`name canLeave`); return true; }
-        leave() { console.log(`name leave`); }
+        canUnload() { console.log(`name canUnload`); return true; }
+        unload() { console.log(`name unload`); }
         beforeDetach() { console.log(`name beforeDetach`); }
         afterDetach() { console.log(`name afterDetach`); }
         beforeUnbind() { console.log(`name beforeUnbind`); }

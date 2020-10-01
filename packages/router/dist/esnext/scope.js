@@ -5,6 +5,7 @@ import { Viewport } from './viewport';
 import { arrayRemove } from './utils';
 import { Collection } from './collection';
 import { RouteRecognizer } from './route-recognizer';
+import { Runner } from './runner';
 /**
  * @internal - Shouldn't be used directly
  */
@@ -24,8 +25,14 @@ export class Scope {
         this.enabled = true;
         // Support collection feature in viewport scopes
         this.childCollections = {};
-        this.owningScope = owningScope || this;
-        this.scope = this.hasScope ? this : this.owningScope;
+        this.owningScope = owningScope !== null && owningScope !== void 0 ? owningScope : this;
+        this.scope = this.hasScope ? this : this.owningScope.scope;
+        // console.log('Created scope', this.toString());
+    }
+    toString(recurse = false) {
+        return `${this.owningScope !== this ? this.owningScope.toString() : ''}/${this.owner.toString()}` +
+            // eslint-disable-next-line prefer-template
+            `${recurse ? `\n` + this.children.map(child => child.toString(true)).join('') : ''}`;
     }
     get isViewport() {
         return this.viewport !== null;
@@ -61,7 +68,8 @@ export class Scope {
         return scopes;
     }
     get enabledViewports() {
-        return this.children.filter(scope => scope.isViewport && scope.enabled)
+        return this.children
+            .filter(scope => scope.isViewport && scope.enabled)
             .map(scope => scope.viewport);
     }
     get viewportInstruction() {
@@ -73,8 +81,21 @@ export class Scope {
         }
         return null;
     }
+    get parentNextContentAction() {
+        if (this.parent === null) {
+            return '';
+        }
+        const parentAction = this.parent.owner.nextContentAction;
+        if (parentAction === 'swap' || parentAction === 'skip') {
+            return parentAction;
+        }
+        return this.parent.parentNextContentAction;
+    }
     getEnabledViewports(viewportScopes) {
-        return viewportScopes.filter(scope => !scope.isViewportScope).map(scope => scope.viewport).reduce((viewports, viewport) => {
+        return viewportScopes
+            .filter(scope => !scope.isViewportScope)
+            .map(scope => scope.viewport)
+            .reduce((viewports, viewport) => {
             viewports[viewport.name] = viewport;
             return viewports;
         }, {});
@@ -93,8 +114,45 @@ export class Scope {
         }
         return scopes;
     }
+    findInstructions(instruction) {
+        var _a, _b;
+        let route = new FoundRoute();
+        if (typeof instruction === 'string') {
+            const instructions = this.router.instructionResolver.parseViewportInstructions(instruction);
+            if (this.router.options.useConfiguredRoutes && !this.router.hasSiblingInstructions(instructions)) {
+                const foundRoute = this.findMatchingRoute(instruction);
+                if ((_a = foundRoute === null || foundRoute === void 0 ? void 0 : foundRoute.foundConfiguration) !== null && _a !== void 0 ? _a : false) {
+                    route = foundRoute;
+                }
+                else {
+                    if (this.router.options.useDirectRoutes) {
+                        route.instructions = instructions;
+                        if (route.instructions.length > 0) {
+                            const nextInstructions = (_b = route.instructions[0].nextScopeInstructions) !== null && _b !== void 0 ? _b : [];
+                            route.remaining = this.router.instructionResolver.stringifyViewportInstructions(nextInstructions);
+                            // TODO: Verify that it's okay to leave this in
+                            route.instructions[0].nextScopeInstructions = null;
+                        }
+                    }
+                }
+            }
+            else if (this.router.options.useDirectRoutes) {
+                route.instructions = instructions;
+            }
+        }
+        else {
+            route.instructions = instruction;
+        }
+        for (const instr of route.instructions) {
+            if (instr.scope === null) {
+                instr.scope = this;
+            }
+        }
+        return route;
+    }
     // Note: This can't change state other than the instructions!
     findViewports(instructions, alreadyFound, disregardViewports = false) {
+        var _a;
         const foundViewports = [];
         let remainingInstructions = [];
         const ownedScopes = this.getOwnedScopes();
@@ -120,7 +178,7 @@ export class Scope {
         // The viewport is already known
         if (!disregardViewports) {
             while ((instruction = viewportInstructions.next()) !== null) {
-                if (instruction.viewport) {
+                if (instruction.viewport !== null) {
                     remainingInstructions.push(...this.foundViewport(instruction, instruction.viewport, disregardViewports));
                     foundViewports.push(instruction);
                     availableViewports[instruction.viewport.name] = null;
@@ -156,17 +214,15 @@ export class Scope {
         while ((instruction = viewportInstructions.next()) !== null) {
             instruction.needsViewportDescribed = true;
             for (const name in availableViewports) {
-                if (Object.prototype.hasOwnProperty.call(availableViewports, name)) {
-                    const viewport = availableViewports[name];
-                    // TODO: Also check if (resolved) component wants a specific viewport
-                    if (viewport && viewport.wantComponent(instruction.componentName)) {
-                        const remaining = this.foundViewport(instruction, viewport, disregardViewports, true);
-                        foundViewports.push(instruction);
-                        remainingInstructions.push(...remaining);
-                        availableViewports[name] = null;
-                        viewportInstructions.removeCurrent();
-                        break;
-                    }
+                const viewport = availableViewports[name];
+                // TODO: Also check if (resolved) component wants a specific viewport
+                if (viewport === null || viewport === void 0 ? void 0 : viewport.wantComponent(instruction.componentName)) {
+                    const remaining = this.foundViewport(instruction, viewport, disregardViewports, true);
+                    foundViewports.push(instruction);
+                    remainingInstructions.push(...remaining);
+                    availableViewports[name] = null;
+                    viewportInstructions.removeCurrent();
+                    break;
                 }
             }
         }
@@ -181,11 +237,11 @@ export class Scope {
                 if (!this.getEnabledViewports(ownedScopes)[name]) {
                     continue;
                     // TODO: No longer pre-creating viewports. Evaluate!
-                    this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
+                    this.addViewport(name, null, { scope: newScope, forceDescription: true });
                     availableViewports[name] = this.getEnabledViewports(ownedScopes)[name];
                 }
                 const viewport = availableViewports[name];
-                if (viewport && viewport.acceptComponent(instruction.componentName)) {
+                if (viewport === null || viewport === void 0 ? void 0 : viewport.acceptComponent(instruction.componentName)) {
                     const remaining = this.foundViewport(instruction, viewport, disregardViewports, true);
                     foundViewports.push(instruction);
                     remainingInstructions.push(...remaining);
@@ -198,11 +254,9 @@ export class Scope {
         while ((instruction = viewportInstructions.next()) !== null) {
             const remainingViewports = [];
             for (const name in availableViewports) {
-                if (Object.prototype.hasOwnProperty.call(availableViewports, name)) {
-                    const viewport = availableViewports[name];
-                    if (viewport && viewport.acceptComponent(instruction.componentName)) {
-                        remainingViewports.push(viewport);
-                    }
+                const viewport = availableViewports[name];
+                if (viewport === null || viewport === void 0 ? void 0 : viewport.acceptComponent(instruction.componentName)) {
+                    remainingViewports.push(viewport);
                 }
             }
             if (remainingViewports.length === 1) {
@@ -220,19 +274,19 @@ export class Scope {
                 let viewport = instruction.viewport;
                 if (!viewport) {
                     const name = instruction.viewportName;
-                    if (!name || !name.length) {
+                    if (((_a = name === null || name === void 0 ? void 0 : name.length) !== null && _a !== void 0 ? _a : 0) === 0) {
                         continue;
                     }
                     const newScope = instruction.ownsScope;
                     if (!this.getEnabledViewports(ownedScopes)[name]) {
                         continue;
                         // TODO: No longer pre-creating viewports. Evaluate!
-                        this.addViewport(name, null, null, { scope: newScope, forceDescription: true });
+                        this.addViewport(name, null, { scope: newScope, forceDescription: true });
                         availableViewports[name] = this.getEnabledViewports(ownedScopes)[name];
                     }
                     viewport = availableViewports[name];
                 }
-                if (viewport && viewport.acceptComponent(instruction.componentName)) {
+                if (viewport === null || viewport === void 0 ? void 0 : viewport.acceptComponent(instruction.componentName)) {
                     const remaining = this.foundViewport(instruction, viewport, disregardViewports);
                     foundViewports.push(instruction);
                     remainingInstructions.push(...remaining);
@@ -248,9 +302,10 @@ export class Scope {
         };
     }
     foundViewportScope(instruction, viewportScope) {
+        var _a, _b;
         instruction.viewportScope = viewportScope;
         instruction.needsViewportDescribed = false;
-        const remaining = (instruction.nextScopeInstructions || []).slice();
+        const remaining = (_b = (_a = instruction.nextScopeInstructions) === null || _a === void 0 ? void 0 : _a.slice()) !== null && _b !== void 0 ? _b : [];
         for (const rem of remaining) {
             if (rem.scope === null) {
                 rem.scope = viewportScope.scope.scope;
@@ -259,11 +314,12 @@ export class Scope {
         return remaining;
     }
     foundViewport(instruction, viewport, withoutViewports, doesntNeedViewportDescribed = false) {
+        var _a, _b;
         instruction.setViewport(viewport);
         if (doesntNeedViewportDescribed) {
             instruction.needsViewportDescribed = false;
         }
-        const remaining = (instruction.nextScopeInstructions || []).slice();
+        const remaining = (_b = (_a = instruction.nextScopeInstructions) === null || _a === void 0 ? void 0 : _a.slice()) !== null && _b !== void 0 ? _b : [];
         for (const rem of remaining) {
             if (rem.scope === null) {
                 rem.scope = viewport.scope;
@@ -271,35 +327,37 @@ export class Scope {
         }
         return remaining;
     }
-    addViewport(name, element, container, options = {}) {
+    addViewport(name, connectedCE, options = {}) {
+        var _a, _b;
         let viewport = this.getEnabledViewports(this.getOwnedScopes())[name];
         // Each au-viewport element has its own Viewport
-        if (element && viewport && viewport.element !== null && viewport.element !== element) {
+        if (((connectedCE !== null && connectedCE !== void 0 ? connectedCE : null) !== null) &&
+            (((_a = viewport === null || viewport === void 0 ? void 0 : viewport.connectedCE) !== null && _a !== void 0 ? _a : null) !== null) &&
+            viewport.connectedCE !== connectedCE) {
             viewport.enabled = false;
-            viewport = this.getOwnedViewports(true).find(child => child.name === name && child.element === element) || null;
-            if (viewport) {
+            viewport = (_b = this.getOwnedViewports(true).find(child => child.name === name && child.connectedCE === connectedCE)) !== null && _b !== void 0 ? _b : null;
+            if ((viewport !== null && viewport !== void 0 ? viewport : null) !== null) {
                 viewport.enabled = true;
             }
         }
-        if (!viewport) {
-            viewport = new Viewport(this.router, name, null, null, this.scope, !!options.scope, options);
+        if ((viewport !== null && viewport !== void 0 ? viewport : null) === null) {
+            viewport = new Viewport(this.router, name, connectedCE, this.scope, !!options.scope, options);
             this.addChild(viewport.connectedScope);
         }
-        // TODO: Either explain why || instead of && here (might only need one) or change it to && if that should turn out to not be relevant
-        if (element || container) {
-            viewport.setElement(element, container, options);
+        if ((connectedCE !== null && connectedCE !== void 0 ? connectedCE : null) !== null) {
+            viewport.setConnectedCE(connectedCE, options);
         }
         return viewport;
     }
-    removeViewport(viewport, element, container) {
-        if ((!element && !container) || viewport.remove(element, container)) {
+    removeViewport(viewport, connectedCE) {
+        if (((connectedCE !== null && connectedCE !== void 0 ? connectedCE : null) !== null) || viewport.remove(connectedCE)) {
             this.removeChild(viewport.connectedScope);
             return true;
         }
         return false;
     }
-    addViewportScope(name, element, options = {}) {
-        const viewportScope = new ViewportScope(name, this.router, element, this.scope, true, null, options);
+    addViewportScope(name, connectedCE, options = {}) {
+        const viewportScope = new ViewportScope(name, this.router, connectedCE, this.scope, true, null, options);
         this.addChild(viewportScope.connectedScope);
         return viewportScope;
     }
@@ -377,11 +435,49 @@ export class Scope {
         }
         return null;
     }
-    async canLeave() {
-        const results = await Promise.all(this.children.map(child => child.viewport !== null
-            ? child.viewport.canLeave()
-            : child.canLeave()));
-        return !results.some(result => result === false);
+    canLoad(recurse) {
+        const results = Runner.runAll(this.children.map(child => child.viewport !== null
+            ? child.viewport.canLoad(recurse)
+            : child.canLoad(recurse)));
+        if (results instanceof Promise) {
+            return results.then(resolvedResults => resolvedResults.every(result => result));
+        }
+        return results.every(result => result);
+    }
+    canUnload() {
+        const results = Runner.runAll(this.children.map(child => child.viewport !== null
+            ? child.viewport.canUnload()
+            : child.canUnload()));
+        if (results instanceof Promise) {
+            return results.then(resolvedResults => {
+                return resolvedResults.every(result => result);
+            });
+        }
+        return results.every(result => result);
+    }
+    load(recurse) {
+        const results = Runner.runAll(this.children.map(child => child.viewport !== null
+            ? child.viewport.load(recurse)
+            : child.load(recurse)));
+        if (results instanceof Promise) {
+            return results;
+        }
+    }
+    unload(recurse) {
+        const results = Runner.runAll(this.children.map(child => child.viewport !== null
+            ? child.viewport.unload(recurse)
+            : child.unload(recurse)));
+        if (results instanceof Promise) {
+            return results;
+        }
+    }
+    removeContent() {
+        const results = Runner.runAll(this.children.map(child => child.viewport !== null
+            ? child.viewport.removeContent()
+            : child.removeContent()));
+        if (results instanceof Promise) {
+            return results;
+        }
     }
     findMatchingRouteInRoutes(path, routes) {
         if (!Array.isArray(routes)) {
@@ -400,7 +496,6 @@ export class Scope {
             });
         }
         const found = new FoundRoute();
-        let params = {};
         if (path.startsWith('/') || path.startsWith('+')) {
             path = path.slice(1);
         }
@@ -416,7 +511,7 @@ export class Scope {
                 Reflect.deleteProperty($params, 'remainingPath');
                 found.matching = found.matching.slice(0, found.matching.indexOf(found.remaining));
             }
-            params = $params;
+            found.params = $params;
         }
         if (found.foundConfiguration) {
             // clone it so config doesn't get modified
@@ -424,14 +519,14 @@ export class Scope {
             const instructions = found.instructions.slice();
             while (instructions.length > 0) {
                 const instruction = instructions.shift();
-                instruction.addParameters(params);
+                instruction.addParameters(found.params);
                 instruction.route = '';
                 if (instruction.nextScopeInstructions !== null) {
                     instructions.unshift(...instruction.nextScopeInstructions);
                 }
             }
             if (found.instructions.length > 0) {
-                found.instructions[0].route = found.matching;
+                found.instructions[0].route = found;
             }
         }
         return found;
@@ -439,6 +534,14 @@ export class Scope {
     ensureProperRoute(route) {
         if (route.id === void 0) {
             route.id = route.path;
+        }
+        if (route.instructions === void 0) {
+            route.instructions = [{
+                    component: route.component,
+                    viewport: route.viewport,
+                    parameters: route.parameters,
+                    children: route.children,
+                }];
         }
         route.instructions = NavigationInstructionResolver.toViewportInstructions(this.router, route.instructions);
         return route;

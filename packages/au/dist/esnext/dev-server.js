@@ -12,27 +12,30 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { IHttpServer, RuntimeNodeConfiguration } from '@aurelia/http-server';
 import { DI, IContainer } from '@aurelia/kernel';
-let DevServer = class DevServer {
-    constructor(container) {
-        this.container = container;
-    }
-    static create(container = DI.createContainer()) {
-        return new DevServer(container);
-    }
-    async run(option) {
-        // wireup
-        const container = this.container.createChild();
-        container.register(RuntimeNodeConfiguration.create(option));
-        // TODO compile/bundle
-        // TODO inject the entry script to index.html template (from user-space)
-        // start the http/file/websocket server
-        const server = container.get(IHttpServer);
-        await server.start();
-    }
-};
-DevServer = __decorate([
-    __param(0, IContainer),
-    __metadata("design:paramtypes", [Object])
-], DevServer);
+let DevServer = /** @class */ (() => {
+    let DevServer = class DevServer {
+        constructor(container) {
+            this.container = container;
+        }
+        static create(container = DI.createContainer()) {
+            return new DevServer(container);
+        }
+        async run(option) {
+            // wireup
+            const container = this.container.createChild();
+            container.register(RuntimeNodeConfiguration.create(option));
+            // TODO compile/bundle
+            // TODO inject the entry script to index.html template (from user-space)
+            // start the http/file/websocket server
+            const server = container.get(IHttpServer);
+            await server.start();
+        }
+    };
+    DevServer = __decorate([
+        __param(0, IContainer),
+        __metadata("design:paramtypes", [Object])
+    ], DevServer);
+    return DevServer;
+})();
 export { DevServer };
 //# sourceMappingURL=dev-server.js.map

@@ -15,124 +15,146 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ForBindingCommand = exports.CallBindingCommand = exports.DefaultBindingCommand = exports.TwoWayBindingCommand = exports.FromViewBindingCommand = exports.ToViewBindingCommand = exports.OneTimeBindingCommand = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const binding_command_1 = require("./binding-command");
     const semantic_model_1 = require("./semantic-model");
-    let OneTimeBindingCommand = class OneTimeBindingCommand {
-        constructor() {
-            this.bindingType = 49 /* OneTimeCommand */;
-        }
-        compile(binding) {
-            return new runtime_1.OneTimeBindingInstruction(binding.expression, binding_command_1.getTarget(binding, false));
-        }
-    };
-    OneTimeBindingCommand = __decorate([
-        binding_command_1.bindingCommand('one-time')
-    ], OneTimeBindingCommand);
-    exports.OneTimeBindingCommand = OneTimeBindingCommand;
-    let ToViewBindingCommand = class ToViewBindingCommand {
-        constructor() {
-            this.bindingType = 50 /* ToViewCommand */;
-        }
-        compile(binding) {
-            return new runtime_1.ToViewBindingInstruction(binding.expression, binding_command_1.getTarget(binding, false));
-        }
-    };
-    ToViewBindingCommand = __decorate([
-        binding_command_1.bindingCommand('to-view')
-    ], ToViewBindingCommand);
-    exports.ToViewBindingCommand = ToViewBindingCommand;
-    let FromViewBindingCommand = class FromViewBindingCommand {
-        constructor() {
-            this.bindingType = 51 /* FromViewCommand */;
-        }
-        compile(binding) {
-            return new runtime_1.FromViewBindingInstruction(binding.expression, binding_command_1.getTarget(binding, false));
-        }
-    };
-    FromViewBindingCommand = __decorate([
-        binding_command_1.bindingCommand('from-view')
-    ], FromViewBindingCommand);
-    exports.FromViewBindingCommand = FromViewBindingCommand;
-    let TwoWayBindingCommand = class TwoWayBindingCommand {
-        constructor() {
-            this.bindingType = 52 /* TwoWayCommand */;
-        }
-        compile(binding) {
-            return new runtime_1.TwoWayBindingInstruction(binding.expression, binding_command_1.getTarget(binding, false));
-        }
-    };
-    TwoWayBindingCommand = __decorate([
-        binding_command_1.bindingCommand('two-way')
-    ], TwoWayBindingCommand);
-    exports.TwoWayBindingCommand = TwoWayBindingCommand;
-    let DefaultBindingCommand = class DefaultBindingCommand {
-        constructor() {
-            this.bindingType = 53 /* BindCommand */;
-        }
-        compile(binding) {
-            let mode = runtime_1.BindingMode.default;
-            if (binding instanceof semantic_model_1.BindingSymbol) {
-                mode = binding.bindable.mode;
+    let OneTimeBindingCommand = /** @class */ (() => {
+        let OneTimeBindingCommand = class OneTimeBindingCommand {
+            constructor() {
+                this.bindingType = 49 /* OneTimeCommand */;
             }
-            else {
-                const command = binding.syntax.command;
-                switch (command) {
-                    case 'bind':
-                    case 'to-view':
-                        mode = runtime_1.BindingMode.toView;
-                        break;
-                    case 'one-time':
-                        mode = runtime_1.BindingMode.oneTime;
-                        break;
-                    case 'from-view':
-                        mode = runtime_1.BindingMode.fromView;
-                        break;
-                    case 'two-way':
-                        mode = runtime_1.BindingMode.twoWay;
-                        break;
+            compile(binding) {
+                return new runtime_1.OneTimeBindingInstruction(binding.expression, binding_command_1.getTarget(binding, false));
+            }
+        };
+        OneTimeBindingCommand = __decorate([
+            binding_command_1.bindingCommand('one-time')
+        ], OneTimeBindingCommand);
+        return OneTimeBindingCommand;
+    })();
+    exports.OneTimeBindingCommand = OneTimeBindingCommand;
+    let ToViewBindingCommand = /** @class */ (() => {
+        let ToViewBindingCommand = class ToViewBindingCommand {
+            constructor() {
+                this.bindingType = 50 /* ToViewCommand */;
+            }
+            compile(binding) {
+                return new runtime_1.ToViewBindingInstruction(binding.expression, binding_command_1.getTarget(binding, false));
+            }
+        };
+        ToViewBindingCommand = __decorate([
+            binding_command_1.bindingCommand('to-view')
+        ], ToViewBindingCommand);
+        return ToViewBindingCommand;
+    })();
+    exports.ToViewBindingCommand = ToViewBindingCommand;
+    let FromViewBindingCommand = /** @class */ (() => {
+        let FromViewBindingCommand = class FromViewBindingCommand {
+            constructor() {
+                this.bindingType = 51 /* FromViewCommand */;
+            }
+            compile(binding) {
+                return new runtime_1.FromViewBindingInstruction(binding.expression, binding_command_1.getTarget(binding, false));
+            }
+        };
+        FromViewBindingCommand = __decorate([
+            binding_command_1.bindingCommand('from-view')
+        ], FromViewBindingCommand);
+        return FromViewBindingCommand;
+    })();
+    exports.FromViewBindingCommand = FromViewBindingCommand;
+    let TwoWayBindingCommand = /** @class */ (() => {
+        let TwoWayBindingCommand = class TwoWayBindingCommand {
+            constructor() {
+                this.bindingType = 52 /* TwoWayCommand */;
+            }
+            compile(binding) {
+                return new runtime_1.TwoWayBindingInstruction(binding.expression, binding_command_1.getTarget(binding, false));
+            }
+        };
+        TwoWayBindingCommand = __decorate([
+            binding_command_1.bindingCommand('two-way')
+        ], TwoWayBindingCommand);
+        return TwoWayBindingCommand;
+    })();
+    exports.TwoWayBindingCommand = TwoWayBindingCommand;
+    let DefaultBindingCommand = /** @class */ (() => {
+        let DefaultBindingCommand = class DefaultBindingCommand {
+            constructor() {
+                this.bindingType = 53 /* BindCommand */;
+            }
+            compile(binding) {
+                let mode = runtime_1.BindingMode.default;
+                if (binding instanceof semantic_model_1.BindingSymbol) {
+                    mode = binding.bindable.mode;
+                }
+                else {
+                    const command = binding.syntax.command;
+                    switch (command) {
+                        case 'bind':
+                        case 'to-view':
+                            mode = runtime_1.BindingMode.toView;
+                            break;
+                        case 'one-time':
+                            mode = runtime_1.BindingMode.oneTime;
+                            break;
+                        case 'from-view':
+                            mode = runtime_1.BindingMode.fromView;
+                            break;
+                        case 'two-way':
+                            mode = runtime_1.BindingMode.twoWay;
+                            break;
+                    }
+                }
+                switch (mode) {
+                    case runtime_1.BindingMode.default:
+                    case runtime_1.BindingMode.toView:
+                        return ToViewBindingCommand.prototype.compile(binding);
+                    case runtime_1.BindingMode.oneTime:
+                        return OneTimeBindingCommand.prototype.compile(binding);
+                    case runtime_1.BindingMode.fromView:
+                        return FromViewBindingCommand.prototype.compile(binding);
+                    case runtime_1.BindingMode.twoWay:
+                        return TwoWayBindingCommand.prototype.compile(binding);
                 }
             }
-            switch (mode) {
-                case runtime_1.BindingMode.default:
-                case runtime_1.BindingMode.toView:
-                    return ToViewBindingCommand.prototype.compile(binding);
-                case runtime_1.BindingMode.oneTime:
-                    return OneTimeBindingCommand.prototype.compile(binding);
-                case runtime_1.BindingMode.fromView:
-                    return FromViewBindingCommand.prototype.compile(binding);
-                case runtime_1.BindingMode.twoWay:
-                    return TwoWayBindingCommand.prototype.compile(binding);
-            }
-        }
-    };
-    DefaultBindingCommand = __decorate([
-        binding_command_1.bindingCommand('bind')
-    ], DefaultBindingCommand);
+        };
+        DefaultBindingCommand = __decorate([
+            binding_command_1.bindingCommand('bind')
+        ], DefaultBindingCommand);
+        return DefaultBindingCommand;
+    })();
     exports.DefaultBindingCommand = DefaultBindingCommand;
-    let CallBindingCommand = class CallBindingCommand {
-        constructor() {
-            this.bindingType = 153 /* CallCommand */;
-        }
-        compile(binding) {
-            return new runtime_1.CallBindingInstruction(binding.expression, binding_command_1.getTarget(binding, true));
-        }
-    };
-    CallBindingCommand = __decorate([
-        binding_command_1.bindingCommand('call')
-    ], CallBindingCommand);
+    let CallBindingCommand = /** @class */ (() => {
+        let CallBindingCommand = class CallBindingCommand {
+            constructor() {
+                this.bindingType = 153 /* CallCommand */;
+            }
+            compile(binding) {
+                return new runtime_1.CallBindingInstruction(binding.expression, binding_command_1.getTarget(binding, true));
+            }
+        };
+        CallBindingCommand = __decorate([
+            binding_command_1.bindingCommand('call')
+        ], CallBindingCommand);
+        return CallBindingCommand;
+    })();
     exports.CallBindingCommand = CallBindingCommand;
-    let ForBindingCommand = class ForBindingCommand {
-        constructor() {
-            this.bindingType = 539 /* ForCommand */;
-        }
-        compile(binding) {
-            return new runtime_1.IteratorBindingInstruction(binding.expression, binding_command_1.getTarget(binding, false));
-        }
-    };
-    ForBindingCommand = __decorate([
-        binding_command_1.bindingCommand('for')
-    ], ForBindingCommand);
+    let ForBindingCommand = /** @class */ (() => {
+        let ForBindingCommand = class ForBindingCommand {
+            constructor() {
+                this.bindingType = 539 /* ForCommand */;
+            }
+            compile(binding) {
+                return new runtime_1.IteratorBindingInstruction(binding.expression, binding_command_1.getTarget(binding, false));
+            }
+        };
+        ForBindingCommand = __decorate([
+            binding_command_1.bindingCommand('for')
+        ], ForBindingCommand);
+        return ForBindingCommand;
+    })();
     exports.ForBindingCommand = ForBindingCommand;
 });
 //# sourceMappingURL=binding-commands.js.map

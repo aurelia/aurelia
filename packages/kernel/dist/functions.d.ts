@@ -110,4 +110,23 @@ export declare function toLookup<T1 extends {}, T2 extends {}, T3 extends {}, T4
  * @returns `true` is the function is a native function, otherwise `false`
  */
 export declare const isNativeFunction: (fn: Function) => boolean;
+declare type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
+declare type MaybePromise<T> = T extends Promise<infer R> ? (T | R) : (T | Promise<T>);
+/**
+ * Normalize a potential promise via a callback, to ensure things stay synchronous when they can.
+ *
+ * If the value is a promise, it is `then`ed before the callback is invoked. Otherwise the callback is invoked synchronously.
+ */
+export declare function onResolve<TValue, TRet>(maybePromise: TValue, resolveCallback: (value: UnwrapPromise<TValue>) => TRet): MaybePromise<TRet>;
+/**
+ * Normalize an array of potential promises, to ensure things stay synchronous when they can.
+ *
+ * If exactly one value is a promise, then that promise is returned.
+ *
+ * If more than one value is a promise, a new `Promise.all` is returned.
+ *
+ * If none of the values is a promise, nothing is returned, to indicate that things can stay synchronous.
+ */
+export declare function resolveAll(...maybePromises: (void | Promise<void>)[]): void | Promise<void>;
+export {};
 //# sourceMappingURL=functions.d.ts.map

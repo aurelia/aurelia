@@ -73,14 +73,14 @@ function $getVisibleText(root, context) {
     if (root == void 0) {
         return;
     }
-    const { controllers } = root;
-    if (controllers == void 0) {
+    const { children } = root;
+    if (children == void 0) {
         return;
     }
-    const { length } = controllers;
+    const { length } = children;
     let controller;
     for (let i = 0; i < length; ++i) {
-        controller = controllers[i];
+        controller = children[i];
         switch (controller.vmKind) {
             case 0 /* customElement */:
                 if (isShadowDOMProjector(controller.projector)) {

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.unlink = exports.rmdir = exports.readdir = exports.getStats = exports.rimraf = exports.mkdir = exports.exists = exports.ensureDir = exports.isReadable = exports.readFile = void 0;
     const fs_1 = require("fs");
     const path_1 = require("path");
     async function readFile(path, options) {

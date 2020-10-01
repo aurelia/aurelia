@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.join = exports.relativeToFile = void 0;
     function trimDots(ary) {
         const len = ary.length;
         let i = 0;

@@ -4,13 +4,16 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./queue"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./queue", "./navigation", "./runner"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Navigator = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const queue_1 = require("./queue");
+    const navigation_1 = require("./navigation");
+    const runner_1 = require("./runner");
     /**
      * @internal - Shouldn't be used directly
      */
@@ -23,7 +26,14 @@
             this.isActive = false;
             this.processNavigations = (qEntry) => {
                 const entry = qEntry;
-                const navigationFlags = {};
+                const navigationFlags = {
+                    first: false,
+                    new: false,
+                    refresh: false,
+                    forward: false,
+                    back: false,
+                    replace: false,
+                };
                 if (this.currentEntry === this.uninitializedEntry) { // Refresh or first entry
                     this.loadState();
                     if (this.currentEntry !== this.uninitializedEntry) {
@@ -33,11 +43,11 @@
                         navigationFlags.first = true;
                         navigationFlags.new = true;
                         // TODO: Should this really be created here? Shouldn't it be in the viewer?
-                        this.currentEntry = {
+                        this.currentEntry = new navigation_1.Navigation({
                             index: 0,
                             instruction: '',
                             fullStateInstruction: '',
-                        };
+                        });
                         this.entries = [];
                     }
                 }
@@ -66,35 +76,35 @@
                 }
                 this.invokeCallback(entry, navigationFlags, this.currentEntry);
             };
-            this.uninitializedEntry = {
+            this.uninitializedEntry = new navigation_1.Navigation({
                 instruction: 'NAVIGATOR UNINITIALIZED',
                 fullStateInstruction: '',
-            };
+            });
             this.currentEntry = this.uninitializedEntry;
             this.pendingNavigations = new queue_1.Queue(this.processNavigations);
         }
         get queued() {
             return this.pendingNavigations.length;
         }
-        activate(router, options) {
+        start(router, options) {
             if (this.isActive) {
-                throw new Error('Navigator has already been activated');
+                throw new Error('Navigator has already been started');
             }
             this.isActive = true;
             this.router = router;
             this.options = { ...options };
         }
-        deactivate() {
+        stop() {
             if (!this.isActive) {
-                throw new Error('Navigator has not been activated');
+                throw new Error('Navigator has not been started');
             }
             this.pendingNavigations.clear();
             this.isActive = false;
         }
-        navigate(entry) {
+        async navigate(entry) {
             return this.pendingNavigations.enqueue(entry);
         }
-        refresh() {
+        async refresh() {
             const entry = this.currentEntry;
             if (entry === this.uninitializedEntry) {
                 return Promise.reject();
@@ -103,7 +113,7 @@
             entry.refreshing = true;
             return this.navigate(entry);
         }
-        go(movement) {
+        async go(movement) {
             const newIndex = (this.currentEntry.index !== undefined ? this.currentEntry.index : 0) + movement;
             if (newIndex >= this.entries.length) {
                 return Promise.reject();
@@ -111,40 +121,48 @@
             const entry = this.entries[newIndex];
             return this.navigate(entry);
         }
-        setEntryTitle(title) {
+        async setEntryTitle(title) {
             this.currentEntry.title = title;
             return this.saveState();
         }
         get titles() {
-            if (this.currentEntry == this.uninitializedEntry) {
+            if (this.currentEntry === this.uninitializedEntry) {
                 return [];
             }
             const index = this.currentEntry.index !== void 0 ? this.currentEntry.index : 0;
             return this.entries.slice(0, index + 1).filter((value) => !!value.title).map((value) => value.title ? value.title : '');
         }
+        // Get the stored navigator state (json okay)
         getState() {
+            var _a, _b;
             const state = this.options.store ? { ...this.options.store.state } : {};
-            const entries = (state.entries || []);
-            const currentEntry = (state.currentEntry || this.uninitializedEntry);
+            const entries = ((_a = state.entries) !== null && _a !== void 0 ? _a : []);
+            const currentEntry = ((_b = state.currentEntry) !== null && _b !== void 0 ? _b : null);
             return { state, entries, currentEntry };
         }
+        // Load a stored state into Navigation entries
         loadState() {
             const state = this.getState();
-            this.entries = state.entries;
-            this.currentEntry = state.currentEntry;
+            this.entries = state.entries.map(entry => new navigation_1.Navigation(entry));
+            this.currentEntry = state.currentEntry !== null
+                ? new navigation_1.Navigation(state.currentEntry)
+                : this.uninitializedEntry;
         }
+        // Save storeable versions of Navigation entries
         async saveState(push = false) {
+            var _a;
             if (this.currentEntry === this.uninitializedEntry) {
                 return Promise.resolve();
             }
-            const storedEntry = this.toStoredEntry(this.currentEntry);
-            this.entries[storedEntry.index !== undefined ? storedEntry.index : 0] = storedEntry;
-            if (this.options.serializeCallback !== void 0 && this.options.statefulHistoryLength > 0) {
+            const storedEntry = this.currentEntry.toStored();
+            this.entries[storedEntry.index !== void 0 ? storedEntry.index : 0] = new navigation_1.Navigation(storedEntry);
+            // If preserving history, serialize entries that aren't preserved
+            if (this.options.statefulHistoryLength > 0) {
                 const index = this.entries.length - this.options.statefulHistoryLength;
                 for (let i = 0; i < index; i++) {
                     const entry = this.entries[i];
                     if (typeof entry.instruction !== 'string' || typeof entry.fullStateInstruction !== 'string') {
-                        this.entries[i] = await this.options.serializeCallback(entry, this.entries.slice(index));
+                        await this.serializeEntry(entry, this.entries.slice(index));
                     }
                 }
             }
@@ -152,11 +170,14 @@
                 return Promise.resolve();
             }
             const state = {
-                entries: [],
-                currentEntry: { ...this.toStoreableEntry(storedEntry) },
+                entries: ((_a = this.entries) !== null && _a !== void 0 ? _a : []).map((entry) => this.toStoreableEntry(entry)),
+                currentEntry: this.toStoreableEntry(storedEntry),
             };
-            for (const entry of this.entries) {
-                state.entries.push(this.toStoreableEntry(entry));
+            // for (const entry of this.entries) {
+            //   state.entries.push(this.toStoreableEntry(entry));
+            // }
+            if (state.currentEntry.title !== void 0) {
+                this.options.store.setTitle(state.currentEntry.title);
             }
             if (push) {
                 return this.options.store.pushNavigatorState(state);
@@ -166,7 +187,7 @@
             }
         }
         toStoredEntry(entry) {
-            const { previous, fromBrowser, replacing, refreshing, untracked, historyMovement, navigation, scope, resolve, reject, ...storableEntry } = entry;
+            const { previous, fromBrowser, origin, replacing, refreshing, untracked, historyMovement, navigation, scope, resolve, reject, ...storableEntry } = entry;
             return storableEntry;
         }
         async finalize(instruction) {
@@ -178,11 +199,11 @@
                 }
                 index--;
                 this.currentEntry.index = index;
-                this.entries[index] = this.toStoredEntry(this.currentEntry);
+                this.entries[index] = this.currentEntry;
                 await this.saveState();
             }
             else if (this.currentEntry.replacing) {
-                this.entries[index] = this.toStoredEntry(this.currentEntry);
+                this.entries[index] = this.currentEntry;
                 await this.saveState();
             }
             else { // New entry (add and discard later entries)
@@ -196,7 +217,7 @@
                     }
                 }
                 this.entries = this.entries.slice(0, index);
-                this.entries.push(this.toStoredEntry(this.currentEntry));
+                this.entries.push(this.currentEntry);
                 await this.saveState(true);
             }
             if (this.currentEntry.resolve) {
@@ -217,23 +238,77 @@
             }
         }
         invokeCallback(entry, navigationFlags, previousEntry) {
-            const instruction = { ...entry };
+            const instruction = new navigation_1.Navigation({ ...entry });
             instruction.navigation = navigationFlags;
-            instruction.previous = this.toStoredEntry(previousEntry);
+            instruction.previous = previousEntry;
             kernel_1.Reporter.write(10000, 'callback', instruction, instruction.previous, this.entries);
             if (this.options.callback) {
                 this.options.callback(instruction);
             }
         }
         toStoreableEntry(entry) {
-            const storeable = { ...entry };
-            if (storeable.instruction && typeof storeable.instruction !== 'string') {
-                storeable.instruction = this.router.instructionResolver.stringifyViewportInstructions(storeable.instruction);
-            }
-            if (storeable.fullStateInstruction && typeof storeable.fullStateInstruction !== 'string') {
-                storeable.fullStateInstruction = this.router.instructionResolver.stringifyViewportInstructions(storeable.fullStateInstruction);
+            const storeable = entry instanceof navigation_1.Navigation ? entry.toStored() : entry;
+            storeable.instruction = this.router.instructionResolver.stringifyViewportInstructions(storeable.instruction);
+            storeable.fullStateInstruction = this.router.instructionResolver.stringifyViewportInstructions(storeable.fullStateInstruction);
+            if (typeof storeable.scope !== 'string') {
+                storeable.scope = null;
             }
             return storeable;
+        }
+        async serializeEntry(entry, preservedEntries) {
+            const instructionResolver = this.router.instructionResolver;
+            let excludeComponents = [];
+            // Components in preserved entries should not be serialized/freed
+            for (const preservedEntry of preservedEntries) {
+                if (typeof preservedEntry.instruction !== 'string') {
+                    excludeComponents.push(...instructionResolver.flattenViewportInstructions(preservedEntry.instruction)
+                        .filter(instruction => instruction.viewport !== null)
+                        .map(instruction => instruction.componentInstance));
+                }
+                if (typeof preservedEntry.fullStateInstruction !== 'string') {
+                    excludeComponents.push(...instructionResolver.flattenViewportInstructions(preservedEntry.fullStateInstruction)
+                        .filter(instruction => instruction.viewport !== null)
+                        .map(instruction => instruction.componentInstance));
+                }
+            }
+            // Make unique
+            excludeComponents = excludeComponents.filter((component, i, arr) => component !== null && arr.indexOf(component) === i);
+            let instructions = [];
+            // The instructions, one or two, with possible components to free
+            if (typeof entry.fullStateInstruction !== 'string') {
+                instructions.push(...entry.fullStateInstruction);
+                entry.fullStateInstruction = instructionResolver.stringifyViewportInstructions(entry.fullStateInstruction);
+            }
+            if (typeof entry.instruction !== 'string') {
+                instructions.push(...entry.instruction);
+                entry.instruction = instructionResolver.stringifyViewportInstructions(entry.instruction);
+            }
+            // Process only those with instances and make unique
+            instructions = instructions.filter((instruction, i, arr) => instruction !== null
+                && instruction.componentInstance !== null
+                && arr.indexOf(instruction) === i);
+            // Already freed components (updated when component is freed)
+            const alreadyDone = [];
+            for (const instruction of instructions) {
+                await this.freeInstructionComponents(instruction, excludeComponents, alreadyDone);
+            }
+        }
+        freeInstructionComponents(instruction, excludeComponents, alreadyDone) {
+            const component = instruction.componentInstance;
+            const viewport = instruction.viewport;
+            if (component === null || viewport === null || alreadyDone.some(done => done === component)) {
+                return;
+            }
+            if (!excludeComponents.some(exclude => exclude === component)) {
+                return runner_1.Runner.run(() => viewport.freeContent(component), () => {
+                    alreadyDone.push(component);
+                });
+            }
+            if (instruction.nextScopeInstructions !== null) {
+                for (const nextInstruction of instruction.nextScopeInstructions) {
+                    return runner_1.Runner.run(() => this.freeInstructionComponents(nextInstruction, excludeComponents, alreadyDone));
+                }
+            }
         }
     }
     exports.Navigator = Navigator;

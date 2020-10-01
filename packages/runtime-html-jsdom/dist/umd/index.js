@@ -21,50 +21,54 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.JSDOMInitializer = exports.RuntimeHtmlJsdomConfiguration = exports.DefaultComponents = exports.IDOMInitializerRegistration = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const runtime_html_1 = require("@aurelia/runtime-html");
     const scheduler_dom_1 = require("@aurelia/scheduler-dom");
     const jsdom_1 = require("jsdom");
-    let JSDOMInitializer = class JSDOMInitializer {
-        constructor(container) {
-            this.container = container;
-            this.jsdom = new jsdom_1.JSDOM('', { pretendToBeVisual: true });
-        }
-        static register(container) {
-            return kernel_1.Registration.singleton(runtime_1.IDOMInitializer, this).register(container);
-        }
-        initialize(config) {
-            if (this.container.has(runtime_1.IDOM, false)) {
-                return this.container.get(runtime_1.IDOM);
+    let JSDOMInitializer = /** @class */ (() => {
+        let JSDOMInitializer = class JSDOMInitializer {
+            constructor(container) {
+                this.container = container;
+                this.jsdom = new jsdom_1.JSDOM('', { pretendToBeVisual: true });
             }
-            let dom;
-            if (config !== undefined) {
-                if (config.dom !== undefined) {
-                    dom = config.dom;
+            static register(container) {
+                return kernel_1.Registration.singleton(runtime_1.IDOMInitializer, this).register(container);
+            }
+            initialize(config) {
+                if (this.container.has(runtime_1.IDOM, false)) {
+                    return this.container.get(runtime_1.IDOM);
                 }
-                else if (config.host.ownerDocument) {
-                    dom = new runtime_html_1.HTMLDOM(this.jsdom.window, config.host.ownerDocument, this.jsdom.window.Node, this.jsdom.window.Element, this.jsdom.window.HTMLElement, this.jsdom.window.CustomEvent, this.jsdom.window.CSSStyleSheet, this.jsdom.window.ShadowRoot);
+                let dom;
+                if (config !== undefined) {
+                    if (config.dom !== undefined) {
+                        dom = config.dom;
+                    }
+                    else if (config.host.ownerDocument) {
+                        dom = new runtime_html_1.HTMLDOM(this.jsdom.window, config.host.ownerDocument, this.jsdom.window.Node, this.jsdom.window.Element, this.jsdom.window.HTMLElement, this.jsdom.window.CustomEvent, this.jsdom.window.CSSStyleSheet, this.jsdom.window.ShadowRoot);
+                    }
+                    else {
+                        if (config.host !== undefined) {
+                            this.jsdom.window.document.body.appendChild(config.host);
+                        }
+                        dom = new runtime_html_1.HTMLDOM(this.jsdom.window, this.jsdom.window.document, this.jsdom.window.Node, this.jsdom.window.Element, this.jsdom.window.HTMLElement, this.jsdom.window.CustomEvent, this.jsdom.window.CSSStyleSheet, this.jsdom.window.ShadowRoot);
+                    }
                 }
                 else {
-                    if (config.host !== undefined) {
-                        this.jsdom.window.document.body.appendChild(config.host);
-                    }
                     dom = new runtime_html_1.HTMLDOM(this.jsdom.window, this.jsdom.window.document, this.jsdom.window.Node, this.jsdom.window.Element, this.jsdom.window.HTMLElement, this.jsdom.window.CustomEvent, this.jsdom.window.CSSStyleSheet, this.jsdom.window.ShadowRoot);
                 }
+                kernel_1.Registration.instance(runtime_1.IDOM, dom).register(this.container);
+                kernel_1.Registration.instance(runtime_1.IScheduler, scheduler_dom_1.createDOMScheduler(this.container, this.jsdom.window)).register(this.container);
+                return dom;
             }
-            else {
-                dom = new runtime_html_1.HTMLDOM(this.jsdom.window, this.jsdom.window.document, this.jsdom.window.Node, this.jsdom.window.Element, this.jsdom.window.HTMLElement, this.jsdom.window.CustomEvent, this.jsdom.window.CSSStyleSheet, this.jsdom.window.ShadowRoot);
-            }
-            kernel_1.Registration.instance(runtime_1.IDOM, dom).register(this.container);
-            kernel_1.Registration.instance(runtime_1.IScheduler, scheduler_dom_1.createDOMScheduler(this.container, this.jsdom.window)).register(this.container);
-            return dom;
-        }
-    };
-    JSDOMInitializer = __decorate([
-        __param(0, kernel_1.IContainer),
-        __metadata("design:paramtypes", [Object])
-    ], JSDOMInitializer);
+        };
+        JSDOMInitializer = __decorate([
+            __param(0, kernel_1.IContainer),
+            __metadata("design:paramtypes", [Object])
+        ], JSDOMInitializer);
+        return JSDOMInitializer;
+    })();
     exports.JSDOMInitializer = JSDOMInitializer;
     exports.IDOMInitializerRegistration = JSDOMInitializer;
     /**

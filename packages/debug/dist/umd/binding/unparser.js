@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Unparser = exports.adoptDebugMethods = exports.enableImprovedExpressionDebugging = void 0;
     const AST = require("@aurelia/runtime");
     const astTypeMap = [
         { type: AST.AccessKeyedExpression, name: 'AccessKeyedExpression' },

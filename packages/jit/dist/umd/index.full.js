@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.jit = exports.runtime = exports.kernel = void 0;
     const kernel = require("@aurelia/kernel");
     exports.kernel = kernel;
     const runtime = require("@aurelia/runtime");

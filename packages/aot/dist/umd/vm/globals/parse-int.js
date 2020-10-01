@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$ParseInt = void 0;
     const function_1 = require("../types/function");
     // http://www.ecma-international.org/ecma-262/#sec-parseint-string-radix
     // 18.2.5 parseInt ( string , radix )

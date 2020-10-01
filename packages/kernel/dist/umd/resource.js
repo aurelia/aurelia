@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.fromDefinitionOrDefault = exports.fromAnnotationOrTypeOrDefault = exports.fromAnnotationOrDefinitionOrTypeOrDefault = exports.Protocol = void 0;
     const metadata_1 = require("@aurelia/metadata");
     const platform_1 = require("./platform");
     const annotation = {

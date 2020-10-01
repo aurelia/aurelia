@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.HostProjector = exports.ContainerlessProjector = exports.ShadowDOMProjector = exports.HTMLProjectorLocator = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const shadow_dom_styles_1 = require("./styles/shadow-dom-styles");

@@ -4,23 +4,26 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./resources/nav", "./resources/viewport", "./resources/viewport-scope", "./resources/goto", "./resources/href", "./router"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./resources/nav", "./resources/viewport", "./resources/viewport-scope", "./resources/goto", "./resources/load", "./resources/href", "./router"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.RouterConfiguration = exports.DefaultResources = exports.HrefCustomAttributeRegistration = exports.LoadCustomAttributeRegistration = exports.GotoCustomAttributeRegistration = exports.NavCustomElementRegistration = exports.ViewportScopeCustomElementRegistration = exports.ViewportCustomElementRegistration = exports.HrefCustomAttribute = exports.LoadCustomAttribute = exports.GotoCustomAttribute = exports.NavCustomElement = exports.ViewportScopeCustomElement = exports.ViewportCustomElement = exports.DefaultComponents = exports.RouterRegistration = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const nav_1 = require("./resources/nav");
-    exports.NavCustomElement = nav_1.NavCustomElement;
+    Object.defineProperty(exports, "NavCustomElement", { enumerable: true, get: function () { return nav_1.NavCustomElement; } });
     const viewport_1 = require("./resources/viewport");
-    exports.ViewportCustomElement = viewport_1.ViewportCustomElement;
+    Object.defineProperty(exports, "ViewportCustomElement", { enumerable: true, get: function () { return viewport_1.ViewportCustomElement; } });
     const viewport_scope_1 = require("./resources/viewport-scope");
-    exports.ViewportScopeCustomElement = viewport_scope_1.ViewportScopeCustomElement;
+    Object.defineProperty(exports, "ViewportScopeCustomElement", { enumerable: true, get: function () { return viewport_scope_1.ViewportScopeCustomElement; } });
     const goto_1 = require("./resources/goto");
-    exports.GotoCustomAttribute = goto_1.GotoCustomAttribute;
+    Object.defineProperty(exports, "GotoCustomAttribute", { enumerable: true, get: function () { return goto_1.GotoCustomAttribute; } });
+    const load_1 = require("./resources/load");
+    Object.defineProperty(exports, "LoadCustomAttribute", { enumerable: true, get: function () { return load_1.LoadCustomAttribute; } });
     const href_1 = require("./resources/href");
-    exports.HrefCustomAttribute = href_1.HrefCustomAttribute;
+    Object.defineProperty(exports, "HrefCustomAttribute", { enumerable: true, get: function () { return href_1.HrefCustomAttribute; } });
     const router_1 = require("./router");
     exports.RouterRegistration = router_1.IRouter;
     /**
@@ -34,22 +37,24 @@
     exports.ViewportScopeCustomElementRegistration = viewport_scope_1.ViewportScopeCustomElement;
     exports.NavCustomElementRegistration = nav_1.NavCustomElement;
     exports.GotoCustomAttributeRegistration = goto_1.GotoCustomAttribute;
+    exports.LoadCustomAttributeRegistration = load_1.LoadCustomAttribute;
     exports.HrefCustomAttributeRegistration = href_1.HrefCustomAttribute;
     /**
      * Default router resources:
      * - Custom Elements: `au-viewport`, `au-nav`
-     * - Custom Attributes: `goto`, `href`
+     * - Custom Attributes: `goto`, `load`, `href`
      */
     exports.DefaultResources = [
         viewport_1.ViewportCustomElement,
         viewport_scope_1.ViewportScopeCustomElement,
         nav_1.NavCustomElement,
         goto_1.GotoCustomAttribute,
+        load_1.LoadCustomAttribute,
         href_1.HrefCustomAttribute,
     ];
     let configurationOptions = {};
     let configurationCall = (router) => {
-        router.activate(configurationOptions);
+        router.start(configurationOptions);
     };
     /**
      * A DI configuration object containing router resource registrations.
@@ -59,7 +64,7 @@
          * Apply this configuration to the provided container.
          */
         register(container) {
-            return container.register(...exports.DefaultComponents, ...exports.DefaultResources, runtime_1.StartTask.with(router_1.IRouter).beforeBind().call(configurationCall), runtime_1.StartTask.with(router_1.IRouter).beforeAttach().call(router => router.loadUrl()));
+            return container.register(...exports.DefaultComponents, ...exports.DefaultResources, runtime_1.StartTask.with(router_1.IRouter).beforeBind().call(configurationCall), runtime_1.StartTask.with(router_1.IRouter).afterAttach().call(router => router.loadUrl()));
         },
         /**
          * Create a new container with this configuration applied to it.
@@ -71,14 +76,14 @@
     exports.RouterConfiguration = {
         /**
          * Make it possible to specify options to Router activation.
-         * Parameter is either a config object that's passed to Router's activate
-         * or a config function that's called instead of Router's activate.
+         * Parameter is either a config object that's passed to Router's start
+         * or a config function that's called instead of Router's start.
          */
         customize(config) {
             if (config === undefined) {
                 configurationOptions = {};
                 configurationCall = (router) => {
-                    router.activate(configurationOptions);
+                    router.start(configurationOptions);
                 };
             }
             else if (config instanceof Function) {

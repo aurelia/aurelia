@@ -40,24 +40,27 @@ export function validationRule(definition) {
 /**
  * Abstract validation rule.
  */
-let BaseValidationRule = class BaseValidationRule {
-    constructor(messageKey = (void 0)) {
-        this.messageKey = messageKey;
-        this.tag = (void 0);
-    }
-    canExecute(_object) { return true; }
-    execute(_value, _object) {
-        throw new Error('No base implementation of execute. Did you forget to implement the execute method?'); // TODO: reporter
-    }
-    accept(_visitor) {
-        throw new Error('No base implementation of accept. Did you forget to implement the accept method?'); // TODO: reporter
-    }
-};
-BaseValidationRule.$TYPE = '';
-BaseValidationRule = __decorate([
-    validationRule({ aliases: [{ name: (void 0), defaultMessage: `\${$displayName} is invalid.` }] }),
-    __metadata("design:paramtypes", [String])
-], BaseValidationRule);
+let BaseValidationRule = /** @class */ (() => {
+    let BaseValidationRule = class BaseValidationRule {
+        constructor(messageKey = (void 0)) {
+            this.messageKey = messageKey;
+            this.tag = (void 0);
+        }
+        canExecute(_object) { return true; }
+        execute(_value, _object) {
+            throw new Error('No base implementation of execute. Did you forget to implement the execute method?'); // TODO: reporter
+        }
+        accept(_visitor) {
+            throw new Error('No base implementation of accept. Did you forget to implement the accept method?'); // TODO: reporter
+        }
+    };
+    BaseValidationRule.$TYPE = '';
+    BaseValidationRule = __decorate([
+        validationRule({ aliases: [{ name: (void 0), defaultMessage: `\${$displayName} is invalid.` }] }),
+        __metadata("design:paramtypes", [String])
+    ], BaseValidationRule);
+    return BaseValidationRule;
+})();
 export { BaseValidationRule };
 /**
  * Passes the validation if the value is not `null`, and not `undefined`.
@@ -65,22 +68,25 @@ export { BaseValidationRule };
  *
  * @see PropertyRule#required
  */
-let RequiredRule = class RequiredRule extends BaseValidationRule {
-    constructor() { super('required'); }
-    execute(value) {
-        return value !== null
-            && value !== void 0
-            && !(typeof value === 'string' && !/\S/.test(value));
-    }
-    accept(visitor) {
-        return visitor.visitRequiredRule(this);
-    }
-};
-RequiredRule.$TYPE = 'RequiredRule';
-RequiredRule = __decorate([
-    validationRule({ aliases: [{ name: 'required', defaultMessage: `\${$displayName} is required.` }] }),
-    __metadata("design:paramtypes", [])
-], RequiredRule);
+let RequiredRule = /** @class */ (() => {
+    let RequiredRule = class RequiredRule extends BaseValidationRule {
+        constructor() { super('required'); }
+        execute(value) {
+            return value !== null
+                && value !== void 0
+                && !(typeof value === 'string' && !/\S/.test(value));
+        }
+        accept(visitor) {
+            return visitor.visitRequiredRule(this);
+        }
+    };
+    RequiredRule.$TYPE = 'RequiredRule';
+    RequiredRule = __decorate([
+        validationRule({ aliases: [{ name: 'required', defaultMessage: `\${$displayName} is required.` }] }),
+        __metadata("design:paramtypes", [])
+    ], RequiredRule);
+    return RequiredRule;
+})();
 export { RequiredRule };
 /**
  * Passes the validation if the non-`null`, non-`undefined`, and non-empty string value matches the given pattern described by a regular expression.
@@ -89,31 +95,34 @@ export { RequiredRule };
  * @see PropertyRule#matches
  * @see PropertyRule#email
  */
-let RegexRule = class RegexRule extends BaseValidationRule {
-    constructor(pattern, messageKey = 'matches') {
-        super(messageKey);
-        this.pattern = pattern;
-    }
-    execute(value) {
-        return value === null
-            || value === undefined
-            || value.length === 0
-            || this.pattern.test(value);
-    }
-    accept(visitor) {
-        return visitor.visitRegexRule(this);
-    }
-};
-RegexRule.$TYPE = 'RegexRule';
-RegexRule = __decorate([
-    validationRule({
-        aliases: [
-            { name: 'matches', defaultMessage: `\${$displayName} is not correctly formatted.` },
-            { name: 'email', defaultMessage: `\${$displayName} is not a valid email.` },
-        ]
-    }),
-    __metadata("design:paramtypes", [RegExp, String])
-], RegexRule);
+let RegexRule = /** @class */ (() => {
+    let RegexRule = class RegexRule extends BaseValidationRule {
+        constructor(pattern, messageKey = 'matches') {
+            super(messageKey);
+            this.pattern = pattern;
+        }
+        execute(value) {
+            return value === null
+                || value === undefined
+                || value.length === 0
+                || this.pattern.test(value);
+        }
+        accept(visitor) {
+            return visitor.visitRegexRule(this);
+        }
+    };
+    RegexRule.$TYPE = 'RegexRule';
+    RegexRule = __decorate([
+        validationRule({
+            aliases: [
+                { name: 'matches', defaultMessage: `\${$displayName} is not correctly formatted.` },
+                { name: 'email', defaultMessage: `\${$displayName} is not a valid email.` },
+            ]
+        }),
+        __metadata("design:paramtypes", [RegExp, String])
+    ], RegexRule);
+    return RegexRule;
+})();
 export { RegexRule };
 /**
  * Passes the validation if the non-`null`, non-`undefined`, and non-empty string value matches the given length constraint.
@@ -122,32 +131,35 @@ export { RegexRule };
  * @see PropertyRule#minLength
  * @see PropertyRule#maxLength
  */
-let LengthRule = class LengthRule extends BaseValidationRule {
-    constructor(length, isMax) {
-        super(isMax ? 'maxLength' : 'minLength');
-        this.length = length;
-        this.isMax = isMax;
-    }
-    execute(value) {
-        return value === null
-            || value === undefined
-            || value.length === 0
-            || (this.isMax ? value.length <= this.length : value.length >= this.length);
-    }
-    accept(visitor) {
-        return visitor.visitLengthRule(this);
-    }
-};
-LengthRule.$TYPE = 'LengthRule';
-LengthRule = __decorate([
-    validationRule({
-        aliases: [
-            { name: 'minLength', defaultMessage: `\${$displayName} must be at least \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
-            { name: 'maxLength', defaultMessage: `\${$displayName} cannot be longer than \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
-        ]
-    }),
-    __metadata("design:paramtypes", [Number, Boolean])
-], LengthRule);
+let LengthRule = /** @class */ (() => {
+    let LengthRule = class LengthRule extends BaseValidationRule {
+        constructor(length, isMax) {
+            super(isMax ? 'maxLength' : 'minLength');
+            this.length = length;
+            this.isMax = isMax;
+        }
+        execute(value) {
+            return value === null
+                || value === undefined
+                || value.length === 0
+                || (this.isMax ? value.length <= this.length : value.length >= this.length);
+        }
+        accept(visitor) {
+            return visitor.visitLengthRule(this);
+        }
+    };
+    LengthRule.$TYPE = 'LengthRule';
+    LengthRule = __decorate([
+        validationRule({
+            aliases: [
+                { name: 'minLength', defaultMessage: `\${$displayName} must be at least \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
+                { name: 'maxLength', defaultMessage: `\${$displayName} cannot be longer than \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
+            ]
+        }),
+        __metadata("design:paramtypes", [Number, Boolean])
+    ], LengthRule);
+    return LengthRule;
+})();
 export { LengthRule };
 /**
  * Passes the validation if the non-`null`, and non-`undefined` array value matches the given count constraint.
@@ -156,31 +168,34 @@ export { LengthRule };
  * @see PropertyRule#minItems
  * @see PropertyRule#maxItems
  */
-let SizeRule = class SizeRule extends BaseValidationRule {
-    constructor(count, isMax) {
-        super(isMax ? 'maxItems' : 'minItems');
-        this.count = count;
-        this.isMax = isMax;
-    }
-    execute(value) {
-        return value === null
-            || value === undefined
-            || (this.isMax ? value.length <= this.count : value.length >= this.count);
-    }
-    accept(visitor) {
-        return visitor.visitSizeRule(this);
-    }
-};
-SizeRule.$TYPE = 'SizeRule';
-SizeRule = __decorate([
-    validationRule({
-        aliases: [
-            { name: 'minItems', defaultMessage: `\${$displayName} must contain at least \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
-            { name: 'maxItems', defaultMessage: `\${$displayName} cannot contain more than \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
-        ]
-    }),
-    __metadata("design:paramtypes", [Number, Boolean])
-], SizeRule);
+let SizeRule = /** @class */ (() => {
+    let SizeRule = class SizeRule extends BaseValidationRule {
+        constructor(count, isMax) {
+            super(isMax ? 'maxItems' : 'minItems');
+            this.count = count;
+            this.isMax = isMax;
+        }
+        execute(value) {
+            return value === null
+                || value === undefined
+                || (this.isMax ? value.length <= this.count : value.length >= this.count);
+        }
+        accept(visitor) {
+            return visitor.visitSizeRule(this);
+        }
+    };
+    SizeRule.$TYPE = 'SizeRule';
+    SizeRule = __decorate([
+        validationRule({
+            aliases: [
+                { name: 'minItems', defaultMessage: `\${$displayName} must contain at least \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
+                { name: 'maxItems', defaultMessage: `\${$displayName} cannot contain more than \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
+            ]
+        }),
+        __metadata("design:paramtypes", [Number, Boolean])
+    ], SizeRule);
+    return SizeRule;
+})();
 export { SizeRule };
 /**
  * Passes the validation if the non-`null`, and non-`undefined` numeric value matches the given interval constraint.
@@ -191,69 +206,75 @@ export { SizeRule };
  * @see PropertyRule#range
  * @see PropertyRule#between
  */
-let RangeRule = class RangeRule extends BaseValidationRule {
-    constructor(isInclusive, { min, max }) {
-        super(min !== void 0 && max !== void 0
-            ? (isInclusive ? 'range' : 'between')
-            : (min !== void 0 ? 'min' : 'max'));
-        this.isInclusive = isInclusive;
-        this.min = Number.NEGATIVE_INFINITY;
-        this.max = Number.POSITIVE_INFINITY;
-        this.min = min !== null && min !== void 0 ? min : this.min;
-        this.max = max !== null && max !== void 0 ? max : this.max;
-    }
-    execute(value, _object) {
-        return value === null
-            || value === undefined
-            || (this.isInclusive
-                ? value >= this.min && value <= this.max
-                : value > this.min && value < this.max);
-    }
-    accept(visitor) {
-        return visitor.visitRangeRule(this);
-    }
-};
-RangeRule.$TYPE = 'RangeRule';
-RangeRule = __decorate([
-    validationRule({
-        aliases: [
-            { name: 'min', defaultMessage: `\${$displayName} must be at least \${$rule.min}.` },
-            { name: 'max', defaultMessage: `\${$displayName} must be at most \${$rule.max}.` },
-            { name: 'range', defaultMessage: `\${$displayName} must be between or equal to \${$rule.min} and \${$rule.max}.` },
-            { name: 'between', defaultMessage: `\${$displayName} must be between but not equal to \${$rule.min} and \${$rule.max}.` },
-        ]
-    }),
-    __metadata("design:paramtypes", [Boolean, Object])
-], RangeRule);
+let RangeRule = /** @class */ (() => {
+    let RangeRule = class RangeRule extends BaseValidationRule {
+        constructor(isInclusive, { min, max }) {
+            super(min !== void 0 && max !== void 0
+                ? (isInclusive ? 'range' : 'between')
+                : (min !== void 0 ? 'min' : 'max'));
+            this.isInclusive = isInclusive;
+            this.min = Number.NEGATIVE_INFINITY;
+            this.max = Number.POSITIVE_INFINITY;
+            this.min = min !== null && min !== void 0 ? min : this.min;
+            this.max = max !== null && max !== void 0 ? max : this.max;
+        }
+        execute(value, _object) {
+            return value === null
+                || value === undefined
+                || (this.isInclusive
+                    ? value >= this.min && value <= this.max
+                    : value > this.min && value < this.max);
+        }
+        accept(visitor) {
+            return visitor.visitRangeRule(this);
+        }
+    };
+    RangeRule.$TYPE = 'RangeRule';
+    RangeRule = __decorate([
+        validationRule({
+            aliases: [
+                { name: 'min', defaultMessage: `\${$displayName} must be at least \${$rule.min}.` },
+                { name: 'max', defaultMessage: `\${$displayName} must be at most \${$rule.max}.` },
+                { name: 'range', defaultMessage: `\${$displayName} must be between or equal to \${$rule.min} and \${$rule.max}.` },
+                { name: 'between', defaultMessage: `\${$displayName} must be between but not equal to \${$rule.min} and \${$rule.max}.` },
+            ]
+        }),
+        __metadata("design:paramtypes", [Boolean, Object])
+    ], RangeRule);
+    return RangeRule;
+})();
 export { RangeRule };
 /**
  * Passes the validation if the the non-`null`, non-`undefined`, non-empty value matches given expected value.
  *
  * @see PropertyRule#equals
  */
-let EqualsRule = class EqualsRule extends BaseValidationRule {
-    constructor(expectedValue) {
-        super('equals');
-        this.expectedValue = expectedValue;
-    }
-    execute(value) {
-        return value === null
-            || value === undefined
-            || value === ''
-            || value === this.expectedValue;
-    }
-    accept(visitor) {
-        return visitor.visitEqualsRule(this);
-    }
-};
-EqualsRule.$TYPE = 'EqualsRule';
-EqualsRule = __decorate([
-    validationRule({
-        aliases: [
-            { name: 'equals', defaultMessage: `\${$displayName} must be \${$rule.expectedValue}.` },
-        ]
-    }),
-    __metadata("design:paramtypes", [Object])
-], EqualsRule);
+let EqualsRule = /** @class */ (() => {
+    let EqualsRule = class EqualsRule extends BaseValidationRule {
+        constructor(expectedValue) {
+            super('equals');
+            this.expectedValue = expectedValue;
+        }
+        execute(value) {
+            return value === null
+                || value === undefined
+                || value === ''
+                || value === this.expectedValue;
+        }
+        accept(visitor) {
+            return visitor.visitEqualsRule(this);
+        }
+    };
+    EqualsRule.$TYPE = 'EqualsRule';
+    EqualsRule = __decorate([
+        validationRule({
+            aliases: [
+                { name: 'equals', defaultMessage: `\${$displayName} must be \${$rule.expectedValue}.` },
+            ]
+        }),
+        __metadata("design:paramtypes", [Object])
+    ], EqualsRule);
+    return EqualsRule;
+})();
 export { EqualsRule };
 //# sourceMappingURL=rules.js.map

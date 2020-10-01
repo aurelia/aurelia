@@ -9,11 +9,12 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.PixiConfiguration = exports.DefaultResources = exports.PixiSpriteRegistration = exports.PixiAppRegistration = exports.PixiSprite = exports.PixiApp = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const pixi_app_1 = require("./resources/custom-elements/pixi-app");
-    exports.PixiApp = pixi_app_1.PixiApp;
+    Object.defineProperty(exports, "PixiApp", { enumerable: true, get: function () { return pixi_app_1.PixiApp; } });
     const pixi_sprite_1 = require("./resources/custom-elements/pixi-sprite");
-    exports.PixiSprite = pixi_sprite_1.PixiSprite;
+    Object.defineProperty(exports, "PixiSprite", { enumerable: true, get: function () { return pixi_sprite_1.PixiSprite; } });
     exports.PixiAppRegistration = pixi_app_1.PixiApp;
     exports.PixiSpriteRegistration = pixi_sprite_1.PixiSprite;
     /**

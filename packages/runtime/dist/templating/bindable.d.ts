@@ -58,9 +58,9 @@ declare type B12345 = B2345 & B1<B2345>;
 export declare const Bindable: {
     name: string;
     keyFrom(name: string): string;
-    from(...bindableLists: readonly (readonly string[] | BindableDefinition | Record<string, PartialBindableDefinition> | undefined)[]): Record<string, BindableDefinition>;
-    for(Type: Constructable<{}>): BFluent;
-    getAll(Type: Constructable<{}>): readonly BindableDefinition[];
+    from(...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition>;
+    for(Type: Constructable): BFluent;
+    getAll(Type: Constructable): readonly BindableDefinition[];
 };
 export declare class BindableDefinition {
     readonly attribute: string;

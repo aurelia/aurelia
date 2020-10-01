@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.HttpClientConfiguration = void 0;
     const retry_interceptor_1 = require("./retry-interceptor");
     /**
      * A class for configuring HttpClients.

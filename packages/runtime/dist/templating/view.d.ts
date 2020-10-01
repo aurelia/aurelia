@@ -24,28 +24,8 @@ export declare class ViewFactory<T extends INode = INode> implements IViewFactor
 export declare const Views: {
     name: string;
     has(value: object): boolean;
-    get(value: object | Constructable<{}>): readonly CustomElementDefinition<Constructable<{}>>[];
-    add<T extends Constructable<{}>>(Type: T, partialDefinition: import("@aurelia/kernel").PartialResourceDefinition<{
-        readonly cache?: number | "*" | undefined;
-        readonly template?: unknown;
-        readonly instructions?: readonly (readonly import("../definitions").ITargetedInstruction[])[] | undefined;
-        readonly dependencies?: readonly import("@aurelia/kernel").Key[] | undefined;
-        readonly injectable?: import("../resources/custom-element").InjectableToken<any> | null | undefined;
-        readonly needsCompile?: boolean | undefined;
-        readonly surrogates?: readonly import("../definitions").ITargetedInstruction[] | undefined;
-        readonly bindables?: readonly string[] | Record<string, import("./bindable").PartialBindableDefinition> | undefined;
-        readonly childrenObservers?: Record<string, import("./children").PartialChildrenDefinition<INode>> | undefined;
-        readonly containerless?: boolean | undefined;
-        readonly isStrictBinding?: boolean | undefined;
-        readonly shadowOptions?: {
-            mode: "open" | "closed";
-        } | null | undefined;
-        readonly hasSlots?: boolean | undefined;
-        readonly strategy?: import("../flags").BindingStrategy | undefined;
-        readonly hooks?: Readonly<import("../definitions").HooksDefinition> | undefined;
-        readonly scopeParts?: readonly string[] | undefined;
-        readonly enhance?: boolean | undefined;
-    }>): readonly CustomElementDefinition<Constructable<{}>>[];
+    get(value: object | Constructable): readonly CustomElementDefinition[];
+    add<T extends Constructable<{}>>(Type: T, partialDefinition: PartialCustomElementDefinition): readonly CustomElementDefinition[];
 };
 export declare function view(v: PartialCustomElementDefinition): <T extends Constructable<{}>>(target: T) => void;
 export declare const IViewLocator: import("@aurelia/kernel").InterfaceSymbol<IViewLocator>;

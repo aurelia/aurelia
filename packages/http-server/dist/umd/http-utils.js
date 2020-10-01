@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.QualifiedHeaderValues = exports.getContentEncoding = exports.getContentType = exports.readBuffer = exports.HTTPError = exports.ContentEncoding = exports.ContentType = exports.HTTPStatusCode = void 0;
     var HTTPStatusCode;
     (function (HTTPStatusCode) {
         HTTPStatusCode[HTTPStatusCode["SwitchingProtocols"] = 101] = "SwitchingProtocols";

@@ -18,6 +18,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.BindingBehavior = exports.BindingInterceptor = exports.BindingBehaviorFactory = exports.BindingBehaviorDefinition = exports.bindingBehavior = exports.BindingBehaviorStrategy = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const definitions_1 = require("../definitions");
     const connectable_1 = require("../binding/connectable");
@@ -82,6 +83,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 case 0:
                 case 1:
                 case 2:
+                    // TODO(fkleuver): fix this cast
                     return new this.Type(binding, expr);
                 case 3:
                     return new this.Type(container.get(deps[0]), binding, expr);
@@ -93,59 +95,62 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     }
     exports.BindingBehaviorFactory = BindingBehaviorFactory;
-    let BindingInterceptor = class BindingInterceptor {
-        constructor(binding, expr) {
-            this.binding = binding;
-            this.expr = expr;
-            this.interceptor = this;
-            let interceptor;
-            while (binding.interceptor !== this) {
-                interceptor = binding.interceptor;
-                binding.interceptor = this;
-                binding = interceptor;
+    let BindingInterceptor = /** @class */ (() => {
+        let BindingInterceptor = class BindingInterceptor {
+            constructor(binding, expr) {
+                this.binding = binding;
+                this.expr = expr;
+                this.interceptor = this;
+                let interceptor;
+                while (binding.interceptor !== this) {
+                    interceptor = binding.interceptor;
+                    binding.interceptor = this;
+                    binding = interceptor;
+                }
             }
-        }
-        get id() {
-            return this.binding.id;
-        }
-        get observerLocator() {
-            return this.binding.observerLocator;
-        }
-        get locator() {
-            return this.binding.locator;
-        }
-        get $scope() {
-            return this.binding.$scope;
-        }
-        get part() {
-            return this.binding.part;
-        }
-        get $state() {
-            return this.binding.$state;
-        }
-        updateTarget(value, flags) {
-            this.binding.updateTarget(value, flags);
-        }
-        updateSource(value, flags) {
-            this.binding.updateSource(value, flags);
-        }
-        callSource(args) {
-            return this.binding.callSource(args);
-        }
-        handleChange(newValue, previousValue, flags) {
-            this.binding.handleChange(newValue, previousValue, flags);
-        }
-        $bind(flags, scope, part) {
-            this.binding.$bind(flags, scope, part);
-        }
-        $unbind(flags) {
-            this.binding.$unbind(flags);
-        }
-    };
-    BindingInterceptor = __decorate([
-        connectable_1.connectable,
-        __metadata("design:paramtypes", [Object, Object])
-    ], BindingInterceptor);
+            get id() {
+                return this.binding.id;
+            }
+            get observerLocator() {
+                return this.binding.observerLocator;
+            }
+            get locator() {
+                return this.binding.locator;
+            }
+            get $scope() {
+                return this.binding.$scope;
+            }
+            get part() {
+                return this.binding.part;
+            }
+            get isBound() {
+                return this.binding.isBound;
+            }
+            updateTarget(value, flags) {
+                this.binding.updateTarget(value, flags);
+            }
+            updateSource(value, flags) {
+                this.binding.updateSource(value, flags);
+            }
+            callSource(args) {
+                return this.binding.callSource(args);
+            }
+            handleChange(newValue, previousValue, flags) {
+                this.binding.handleChange(newValue, previousValue, flags);
+            }
+            $bind(flags, scope, part) {
+                this.binding.$bind(flags, scope, part);
+            }
+            $unbind(flags) {
+                this.binding.$unbind(flags);
+            }
+        };
+        BindingInterceptor = __decorate([
+            connectable_1.connectable,
+            __metadata("design:paramtypes", [Object, Object])
+        ], BindingInterceptor);
+        return BindingInterceptor;
+    })();
     exports.BindingInterceptor = BindingInterceptor;
     exports.BindingBehavior = {
         name: kernel_1.Protocol.resource.keyFor('binding-behavior'),

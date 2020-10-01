@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.writeProfilerReport = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const string_manipulation_1 = require("./string-manipulation");
     function writeProfilerReport(testName) {

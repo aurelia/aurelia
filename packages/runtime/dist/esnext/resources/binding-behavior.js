@@ -69,6 +69,7 @@ export class BindingBehaviorFactory {
             case 0:
             case 1:
             case 2:
+                // TODO(fkleuver): fix this cast
                 return new this.Type(binding, expr);
             case 3:
                 return new this.Type(container.get(deps[0]), binding, expr);
@@ -79,59 +80,62 @@ export class BindingBehaviorFactory {
         }
     }
 }
-let BindingInterceptor = class BindingInterceptor {
-    constructor(binding, expr) {
-        this.binding = binding;
-        this.expr = expr;
-        this.interceptor = this;
-        let interceptor;
-        while (binding.interceptor !== this) {
-            interceptor = binding.interceptor;
-            binding.interceptor = this;
-            binding = interceptor;
+let BindingInterceptor = /** @class */ (() => {
+    let BindingInterceptor = class BindingInterceptor {
+        constructor(binding, expr) {
+            this.binding = binding;
+            this.expr = expr;
+            this.interceptor = this;
+            let interceptor;
+            while (binding.interceptor !== this) {
+                interceptor = binding.interceptor;
+                binding.interceptor = this;
+                binding = interceptor;
+            }
         }
-    }
-    get id() {
-        return this.binding.id;
-    }
-    get observerLocator() {
-        return this.binding.observerLocator;
-    }
-    get locator() {
-        return this.binding.locator;
-    }
-    get $scope() {
-        return this.binding.$scope;
-    }
-    get part() {
-        return this.binding.part;
-    }
-    get $state() {
-        return this.binding.$state;
-    }
-    updateTarget(value, flags) {
-        this.binding.updateTarget(value, flags);
-    }
-    updateSource(value, flags) {
-        this.binding.updateSource(value, flags);
-    }
-    callSource(args) {
-        return this.binding.callSource(args);
-    }
-    handleChange(newValue, previousValue, flags) {
-        this.binding.handleChange(newValue, previousValue, flags);
-    }
-    $bind(flags, scope, part) {
-        this.binding.$bind(flags, scope, part);
-    }
-    $unbind(flags) {
-        this.binding.$unbind(flags);
-    }
-};
-BindingInterceptor = __decorate([
-    connectable,
-    __metadata("design:paramtypes", [Object, Object])
-], BindingInterceptor);
+        get id() {
+            return this.binding.id;
+        }
+        get observerLocator() {
+            return this.binding.observerLocator;
+        }
+        get locator() {
+            return this.binding.locator;
+        }
+        get $scope() {
+            return this.binding.$scope;
+        }
+        get part() {
+            return this.binding.part;
+        }
+        get isBound() {
+            return this.binding.isBound;
+        }
+        updateTarget(value, flags) {
+            this.binding.updateTarget(value, flags);
+        }
+        updateSource(value, flags) {
+            this.binding.updateSource(value, flags);
+        }
+        callSource(args) {
+            return this.binding.callSource(args);
+        }
+        handleChange(newValue, previousValue, flags) {
+            this.binding.handleChange(newValue, previousValue, flags);
+        }
+        $bind(flags, scope, part) {
+            this.binding.$bind(flags, scope, part);
+        }
+        $unbind(flags) {
+            this.binding.$unbind(flags);
+        }
+    };
+    BindingInterceptor = __decorate([
+        connectable,
+        __metadata("design:paramtypes", [Object, Object])
+    ], BindingInterceptor);
+    return BindingInterceptor;
+})();
 export { BindingInterceptor };
 export const BindingBehavior = {
     name: Protocol.resource.keyFor('binding-behavior'),

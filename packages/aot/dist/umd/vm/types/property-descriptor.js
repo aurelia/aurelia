@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$IsGenericDescriptor = exports.$IsDataDescriptor = exports.$IsAccessorDescriptor = exports.$PropertyDescriptor = void 0;
     let descriptorId = 0;
     // http://www.ecma-international.org/ecma-262/#sec-property-descriptor-specification-type
     class $PropertyDescriptor {

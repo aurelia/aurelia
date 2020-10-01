@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.PLATFORM = void 0;
     function $noop() { return; }
     const $global = (function () {
         if (typeof global !== 'undefined') {

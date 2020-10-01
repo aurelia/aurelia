@@ -45,7 +45,7 @@ export declare class Blur implements ICustomAttributeViewModel<HTMLElement> {
     linkingContext: string | Element | null;
     private readonly element;
     constructor(element: INode, dom: HTMLDOM, scheduler: IScheduler);
-    afterAttach(): void;
+    afterAttachChildren(): void;
     beforeDetach(): void;
     handleEventTarget(target: EventTarget): void;
     contains(target: Element): boolean;

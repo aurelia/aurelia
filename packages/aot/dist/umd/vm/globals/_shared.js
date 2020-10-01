@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$GetSpecies = exports.$ValueRecord = void 0;
     const function_1 = require("../types/function");
     class $ValueRecord {
         constructor(value) {

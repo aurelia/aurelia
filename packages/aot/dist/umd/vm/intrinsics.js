@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Intrinsics = void 0;
     const realm_1 = require("./realm");
     const boolean_1 = require("./types/boolean");
     const empty_1 = require("./types/empty");

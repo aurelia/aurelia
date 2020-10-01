@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$StringExoticObject = void 0;
     const object_1 = require("../types/object");
     const string_1 = require("../types/string");
     const operations_1 = require("../operations");

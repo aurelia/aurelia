@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Signaler = exports.ISignaler = void 0;
     const kernel_1 = require("@aurelia/kernel");
     exports.ISignaler = kernel_1.DI.createInterface('ISignaler').withDefault(x => x.singleton(Signaler));
     /** @internal */
@@ -22,7 +23,7 @@
                 return;
             }
             for (const listener of listeners.keys()) {
-                listener.handleChange(undefined, undefined, flags | 16 /* updateTargetInstance */);
+                listener.handleChange(undefined, undefined, flags | 8 /* updateTargetInstance */);
             }
         }
         addSignalListener(name, listener) {

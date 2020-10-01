@@ -30,7 +30,7 @@ export declare class PixiApp {
     constructor(...args: unknown[]);
     afterBind(): void;
     afterAttach(): void;
-    afterDetach(): void;
-    afterUnbind(): void;
+    beforeUnbind(): void;
+    afterUnbindChildren(): void;
 }
 //# sourceMappingURL=pixi-app.d.ts.map

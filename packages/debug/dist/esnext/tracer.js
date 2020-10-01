@@ -7,45 +7,48 @@ const marker = {
     prev: null,
     next: null
 };
-class TraceInfo {
-    constructor(objName, methodName, params) {
-        this.objName = objName;
-        this.methodName = methodName;
-        this.params = params;
-        this.objName = objName;
-        this.methodName = methodName;
-        this.depth = TraceInfo.stack.length;
-        this.params = params;
-        this.next = marker;
-        this.prev = TraceInfo.tail;
-        TraceInfo.tail.next = this;
-        TraceInfo.tail = this;
-        TraceInfo.stack.push(this);
-    }
-    static reset() {
-        let current = TraceInfo.head;
-        let next = null;
-        while (current != null) {
-            next = current.next;
-            current.next = null;
-            current.prev = null;
-            current.params = null;
-            current = next;
+let TraceInfo = /** @class */ (() => {
+    class TraceInfo {
+        constructor(objName, methodName, params) {
+            this.objName = objName;
+            this.methodName = methodName;
+            this.params = params;
+            this.objName = objName;
+            this.methodName = methodName;
+            this.depth = TraceInfo.stack.length;
+            this.params = params;
+            this.next = marker;
+            this.prev = TraceInfo.tail;
+            TraceInfo.tail.next = this;
+            TraceInfo.tail = this;
+            TraceInfo.stack.push(this);
         }
-        TraceInfo.head = marker;
-        TraceInfo.tail = marker;
-        TraceInfo.stack = [];
+        static reset() {
+            let current = TraceInfo.head;
+            let next = null;
+            while (current != null) {
+                next = current.next;
+                current.next = null;
+                current.prev = null;
+                current.params = null;
+                current = next;
+            }
+            TraceInfo.head = marker;
+            TraceInfo.tail = marker;
+            TraceInfo.stack = [];
+        }
+        static enter(objName, methodName, params) {
+            return new TraceInfo(objName, methodName, params);
+        }
+        static leave() {
+            return TraceInfo.stack.pop();
+        }
     }
-    static enter(objName, methodName, params) {
-        return new TraceInfo(objName, methodName, params);
-    }
-    static leave() {
-        return TraceInfo.stack.pop();
-    }
-}
-TraceInfo.head = marker;
-TraceInfo.tail = marker;
-TraceInfo.stack = [];
+    TraceInfo.head = marker;
+    TraceInfo.tail = marker;
+    TraceInfo.stack = [];
+    return TraceInfo;
+})();
 export const DebugTracer = {
     ...Tracer,
     /**
@@ -124,7 +127,7 @@ const defaultOptions = {
     rendering: true,
     binding: true,
     observation: true,
-    beforeAttach: true,
+    attaching: true,
     mounting: true,
     di: true,
     lifecycle: true,
@@ -365,20 +368,11 @@ const AttachingArgsProcessor = {
     $cache(info) {
         return flagsText(info);
     },
-    hold(info) {
+    setLocation(info) {
         return `Node{'${(info.params[0]).textContent}'}`;
     },
-    release(info) {
-        return flagsText(info);
-    }
 };
 const MountingArgsProcessor = {
-    $mount(info) {
-        return flagsText(info);
-    },
-    $unmount(info) {
-        return flagsText(info);
-    },
     project(info) {
         return ctorName(info);
     },
@@ -464,7 +458,7 @@ function createLiveTraceWriter(options) {
     if (options.observation) {
         Object.assign(Processors, ObservationArgsProcessor);
     }
-    if (options.beforeAttach) {
+    if (options.attaching) {
         Object.assign(Processors, AttachingArgsProcessor);
     }
     if (options.mounting) {
@@ -497,58 +491,25 @@ function createLiveTraceWriter(options) {
 }
 export function stringifyLifecycleFlags(flags) {
     const flagNames = [];
-    if (flags & 2097152 /* mustEvaluate */) {
+    if (flags & 128 /* mustEvaluate */) {
         flagNames.push('mustEvaluate');
     }
-    if (flags & 16777216 /* isCollectionMutation */) {
-        flagNames.push('isCollectionMutation');
-    }
-    if (flags & 16 /* updateTargetInstance */) {
+    if (flags & 8 /* updateTargetInstance */) {
         flagNames.push('updateTargetInstance');
     }
-    if (flags & 32 /* updateSourceExpression */) {
+    if (flags & 16 /* updateSourceExpression */) {
         flagNames.push('updateSourceExpression');
     }
-    if (flags & 64 /* fromAsyncFlush */) {
-        flagNames.push('fromAsyncFlush');
-    }
-    if (flags & 128 /* fromSyncFlush */) {
-        flagNames.push('fromSyncFlush');
-    }
-    if (flags & 256 /* fromTick */) {
-        flagNames.push('fromTick');
-    }
-    if (flags & 1024 /* fromStartTask */) {
-        flagNames.push('fromStartTask');
-    }
-    if (flags & 2048 /* fromStopTask */) {
-        flagNames.push('fromStopTask');
-    }
-    if (flags & 4096 /* fromBind */) {
+    if (flags & 32 /* fromBind */) {
         flagNames.push('fromBind');
     }
-    if (flags & 8192 /* fromUnbind */) {
+    if (flags & 64 /* fromUnbind */) {
         flagNames.push('fromUnbind');
     }
-    if (flags & 16384 /* fromAttach */) {
-        flagNames.push('fromAttach');
-    }
-    if (flags & 32768 /* fromDetach */) {
-        flagNames.push('fromDetach');
-    }
-    if (flags & 65536 /* fromCache */) {
-        flagNames.push('fromCache');
-    }
-    if (flags & 131072 /* fromDOMEvent */) {
-        flagNames.push('fromDOMEvent');
-    }
-    if (flags & 262144 /* fromLifecycleTask */) {
-        flagNames.push('fromLifecycleTask');
-    }
-    if (flags & 4194304 /* isTraversingParentScope */) {
+    if (flags & 256 /* isTraversingParentScope */) {
         flagNames.push('isTraversingParentScope');
     }
-    if (flags & 67108864 /* allowParentScopeTraversal */) {
+    if (flags & 1024 /* allowParentScopeTraversal */) {
         flagNames.push('allowParentScopeTraversal');
     }
     if (flags & 1 /* getterSetterStrategy */) {
@@ -557,7 +518,7 @@ export function stringifyLifecycleFlags(flags) {
     if (flags & 2 /* proxyStrategy */) {
         flagNames.push('proxyStrategy');
     }
-    if (flags & 1073741824 /* secondaryExpression */) {
+    if (flags & 16384 /* secondaryExpression */) {
         flagNames.push('secondaryExpression');
     }
     if (flagNames.length === 0) {

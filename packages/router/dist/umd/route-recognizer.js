@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Endpoint = exports.RecognizedRoute = exports.ConfigurableRoute = exports.RouteRecognizer = void 0;
     const route_recognizer_1 = require("@aurelia/route-recognizer");
     exports.RouteRecognizer = route_recognizer_1.RouteRecognizer;
     exports.ConfigurableRoute = route_recognizer_1.ConfigurableRoute;

@@ -1,4 +1,4 @@
-import { IController } from '@aurelia/runtime';
+import { ICustomElementController } from '@aurelia/runtime';
 import { Circle, Container, DisplayObject, Ellipse, Filter, Graphics, Matrix, ObservablePoint, Polygon, Rectangle, RoundedRectangle, Shader, Sprite, Texture, TransformBase } from 'pixi.js';
 export declare class PixiSprite {
     get sprite(): Sprite & {
@@ -50,10 +50,10 @@ export declare class PixiSprite {
     shader?: Filter<Object> | Shader;
     texture?: Texture;
     tint?: number;
-    $controller: IController<Element, this>;
+    $controller: ICustomElementController<Element, this>;
     private _sprite;
     constructor();
     afterAttach(): void;
-    afterDetach(): void;
+    beforeUnbind(): void;
 }
 //# sourceMappingURL=pixi-sprite.d.ts.map

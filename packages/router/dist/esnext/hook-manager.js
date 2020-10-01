@@ -7,6 +7,7 @@ export var HookTypes;
     HookTypes["BeforeNavigation"] = "beforeNavigation";
     HookTypes["TransformFromUrl"] = "transformFromUrl";
     HookTypes["TransformToUrl"] = "transformToUrl";
+    HookTypes["SetTitle"] = "setTitle";
 })(HookTypes || (HookTypes = {}));
 /**
  * @internal - Shouldn't be used directly
@@ -17,6 +18,7 @@ export class HookManager {
             beforeNavigation: [],
             transformFromUrl: [],
             transformToUrl: [],
+            setTitle: [],
         };
         this.lastIdentity = 0;
     }
@@ -35,14 +37,17 @@ export class HookManager {
             }
         }
     }
-    invokeBeforeNavigation(viewportInstructions, navigationInstruction) {
+    async invokeBeforeNavigation(viewportInstructions, navigationInstruction) {
         return this.invoke("beforeNavigation" /* BeforeNavigation */, navigationInstruction, viewportInstructions);
     }
-    invokeTransformFromUrl(url, navigationInstruction) {
+    async invokeTransformFromUrl(url, navigationInstruction) {
         return this.invoke("transformFromUrl" /* TransformFromUrl */, navigationInstruction, url);
     }
-    invokeTransformToUrl(state, navigationInstruction) {
+    async invokeTransformToUrl(state, navigationInstruction) {
         return this.invoke("transformToUrl" /* TransformToUrl */, navigationInstruction, state);
+    }
+    async invokeSetTitle(title, navigationInstruction) {
+        return this.invoke("setTitle" /* SetTitle */, navigationInstruction, title);
     }
     async invoke(type, navigationInstruction, arg) {
         for (const hook of this.hooks[type]) {

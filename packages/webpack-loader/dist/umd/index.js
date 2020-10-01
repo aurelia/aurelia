@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.loader = void 0;
     const plugin_conventions_1 = require("@aurelia/plugin-conventions");
     const loader_utils_1 = require("loader-utils");
     function default_1(contents, sourceMap) {

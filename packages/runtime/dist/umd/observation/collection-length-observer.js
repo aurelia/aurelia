@@ -18,27 +18,31 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.CollectionLengthObserver = void 0;
     const subscriber_collection_1 = require("./subscriber-collection");
-    let CollectionLengthObserver = class CollectionLengthObserver {
-        constructor(obj) {
-            this.obj = obj;
-            this.currentValue = obj.length;
-        }
-        getValue() {
-            return this.obj.length;
-        }
-        setValue(newValue, flags) {
-            const { currentValue } = this;
-            if (newValue !== currentValue) {
-                this.currentValue = newValue;
-                this.callSubscribers(newValue, currentValue, flags | 16 /* updateTargetInstance */);
+    let CollectionLengthObserver = /** @class */ (() => {
+        let CollectionLengthObserver = class CollectionLengthObserver {
+            constructor(obj) {
+                this.obj = obj;
+                this.currentValue = obj.length;
             }
-        }
-    };
-    CollectionLengthObserver = __decorate([
-        subscriber_collection_1.subscriberCollection(),
-        __metadata("design:paramtypes", [Array])
-    ], CollectionLengthObserver);
+            getValue() {
+                return this.obj.length;
+            }
+            setValue(newValue, flags) {
+                const { currentValue } = this;
+                if (newValue !== currentValue) {
+                    this.currentValue = newValue;
+                    this.callSubscribers(newValue, currentValue, flags | 8 /* updateTargetInstance */);
+                }
+            }
+        };
+        CollectionLengthObserver = __decorate([
+            subscriber_collection_1.subscriberCollection(),
+            __metadata("design:paramtypes", [Array])
+        ], CollectionLengthObserver);
+        return CollectionLengthObserver;
+    })();
     exports.CollectionLengthObserver = CollectionLengthObserver;
 });
 //# sourceMappingURL=collection-length-observer.js.map

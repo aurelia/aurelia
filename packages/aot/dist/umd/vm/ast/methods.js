@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$SetAccessorDeclaration = exports.$GetAccessorDeclaration = exports.$MethodDeclaration = void 0;
     const typescript_1 = require("typescript");
     const operations_1 = require("../operations");
     const string_1 = require("../types/string");

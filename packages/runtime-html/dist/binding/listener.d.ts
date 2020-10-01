@@ -1,5 +1,5 @@
 import { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { DelegationStrategy, IBinding, IConnectableBinding, IDOM, IsBindingBehavior, IScope, LifecycleFlags, State } from '@aurelia/runtime';
+import { DelegationStrategy, IBinding, IConnectableBinding, IDOM, IsBindingBehavior, IScope, LifecycleFlags } from '@aurelia/runtime';
 import { IEventManager } from '../observation/event-manager';
 export interface Listener extends IConnectableBinding {
 }
@@ -16,7 +16,7 @@ export declare class Listener implements IBinding {
     eventManager: IEventManager;
     locator: IServiceLocator;
     interceptor: this;
-    $state: State;
+    isBound: boolean;
     $scope: IScope;
     part?: string;
     private handler;
@@ -27,5 +27,6 @@ export declare class Listener implements IBinding {
     $unbind(flags: LifecycleFlags): void;
     observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
+    dispose(): void;
 }
 //# sourceMappingURL=listener.d.ts.map

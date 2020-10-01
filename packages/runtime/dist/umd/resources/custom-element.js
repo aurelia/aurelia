@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.IProjectorLocator = exports.CustomElement = exports.CustomElementDefinition = exports.strict = exports.containerless = exports.useShadowDOM = exports.customElement = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const definitions_1 = require("../definitions");
     const dom_1 = require("../dom");
@@ -134,6 +135,11 @@
         }
     }
     exports.CustomElementDefinition = CustomElementDefinition;
+    const defaultForOpts = {
+        name: undefined,
+        searchParents: false,
+        optional: false,
+    };
     exports.CustomElement = {
         name: kernel_1.Protocol.resource.keyFor('custom-element'),
         keyFrom(name) {
@@ -142,30 +148,44 @@
         isType(value) {
             return typeof value === 'function' && kernel_1.Metadata.hasOwn(exports.CustomElement.name, value);
         },
-        for(node, nameOrSearchParents, searchParents) {
-            if (nameOrSearchParents === void 0) {
-                return kernel_1.Metadata.getOwn(exports.CustomElement.name, node);
+        for(node, opts = defaultForOpts) {
+            if (opts.name === void 0 && opts.searchParents !== true) {
+                const controller = kernel_1.Metadata.getOwn(exports.CustomElement.name, node);
+                if (controller === void 0) {
+                    if (opts.optional === true) {
+                        return null;
+                    }
+                    throw new Error(`The provided node is not a custom element or containerless host.`);
+                }
+                return controller;
             }
-            if (typeof nameOrSearchParents === 'string') {
-                if (searchParents !== true) {
+            if (opts.name !== void 0) {
+                if (opts.searchParents !== true) {
                     const controller = kernel_1.Metadata.getOwn(exports.CustomElement.name, node);
                     if (controller === void 0) {
-                        return (void 0);
+                        throw new Error(`The provided node is not a custom element or containerless host.`);
                     }
-                    if (controller.is(nameOrSearchParents)) {
+                    if (controller.is(opts.name)) {
                         return controller;
                     }
                     return (void 0);
                 }
                 let cur = node;
+                let foundAController = false;
                 while (cur !== null) {
                     const controller = kernel_1.Metadata.getOwn(exports.CustomElement.name, cur);
-                    if (controller !== void 0 && controller.is(nameOrSearchParents)) {
-                        return controller;
+                    if (controller !== void 0) {
+                        foundAController = true;
+                        if (controller.is(opts.name)) {
+                            return controller;
+                        }
                     }
                     cur = dom_1.DOM.getEffectiveParentNode(cur);
                 }
-                return (void 0);
+                if (foundAController) {
+                    return (void 0);
+                }
+                throw new Error(`The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
             }
             let cur = node;
             while (cur !== null) {
@@ -175,7 +195,7 @@
                 }
                 cur = dom_1.DOM.getEffectiveParentNode(cur);
             }
-            return (void 0);
+            throw new Error(`The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
         },
         define(nameOrDef, Type) {
             const definition = CustomElementDefinition.create(nameOrDef, Type);

@@ -21,6 +21,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ValidationErrorsCustomAttribute = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const validation_controller_1 = require("../validation-controller");
     const common_1 = require("./common");
@@ -43,60 +44,63 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
      * </div>
      * ```
      */
-    let ValidationErrorsCustomAttribute = class ValidationErrorsCustomAttribute {
-        constructor(host, scopedController) {
-            this.scopedController = scopedController;
-            this.errors = [];
-            this.errorsInternal = [];
-            this.host = host;
-        }
-        handleValidationEvent(event) {
-            for (const { result } of event.removedResults) {
-                const index = this.errorsInternal.findIndex((x) => x.result === result);
-                if (index !== -1) {
-                    this.errorsInternal.splice(index, 1);
-                }
+    let ValidationErrorsCustomAttribute = /** @class */ (() => {
+        let ValidationErrorsCustomAttribute = class ValidationErrorsCustomAttribute {
+            constructor(host, scopedController) {
+                this.scopedController = scopedController;
+                this.errors = [];
+                this.errorsInternal = [];
+                this.host = host;
             }
-            for (const { result, targets: elements } of event.addedResults) {
-                if (result.valid) {
-                    continue;
+            handleValidationEvent(event) {
+                for (const { result } of event.removedResults) {
+                    const index = this.errorsInternal.findIndex((x) => x.result === result);
+                    if (index !== -1) {
+                        this.errorsInternal.splice(index, 1);
+                    }
                 }
-                const targets = elements.filter((e) => this.host.contains(e));
-                if (targets.length > 0) {
-                    this.errorsInternal.push(new validation_controller_1.ValidationResultTarget(result, targets));
+                for (const { result, targets: elements } of event.addedResults) {
+                    if (result.valid) {
+                        continue;
+                    }
+                    const targets = elements.filter((e) => this.host.contains(e));
+                    if (targets.length > 0) {
+                        this.errorsInternal.push(new validation_controller_1.ValidationResultTarget(result, targets));
+                    }
                 }
+                this.errorsInternal.sort((a, b) => {
+                    if (a.targets[0] === b.targets[0]) {
+                        return 0;
+                    }
+                    return common_1.compareDocumentPositionFlat(a.targets[0], b.targets[0]);
+                });
+                this.errors = this.errorsInternal;
             }
-            this.errorsInternal.sort((a, b) => {
-                if (a.targets[0] === b.targets[0]) {
-                    return 0;
-                }
-                return common_1.compareDocumentPositionFlat(a.targets[0], b.targets[0]);
-            });
-            this.errors = this.errorsInternal;
-        }
-        beforeBind() {
-            var _a;
-            this.controller = (_a = this.controller) !== null && _a !== void 0 ? _a : this.scopedController;
-            this.controller.addSubscriber(this);
-        }
-        beforeUnbind() {
-            this.controller.removeSubscriber(this);
-        }
-    };
-    __decorate([
-        runtime_1.bindable,
-        __metadata("design:type", Object)
-    ], ValidationErrorsCustomAttribute.prototype, "controller", void 0);
-    __decorate([
-        runtime_1.bindable({ primary: true, mode: runtime_1.BindingMode.twoWay }),
-        __metadata("design:type", Array)
-    ], ValidationErrorsCustomAttribute.prototype, "errors", void 0);
-    ValidationErrorsCustomAttribute = __decorate([
-        runtime_1.customAttribute('validation-errors'),
-        __param(0, runtime_1.INode),
-        __param(1, kernel_1.optional(validation_controller_1.IValidationController)),
-        __metadata("design:paramtypes", [Object, Object])
-    ], ValidationErrorsCustomAttribute);
+            beforeBind() {
+                var _a;
+                this.controller = (_a = this.controller) !== null && _a !== void 0 ? _a : this.scopedController;
+                this.controller.addSubscriber(this);
+            }
+            beforeUnbind() {
+                this.controller.removeSubscriber(this);
+            }
+        };
+        __decorate([
+            runtime_1.bindable,
+            __metadata("design:type", Object)
+        ], ValidationErrorsCustomAttribute.prototype, "controller", void 0);
+        __decorate([
+            runtime_1.bindable({ primary: true, mode: runtime_1.BindingMode.twoWay }),
+            __metadata("design:type", Array)
+        ], ValidationErrorsCustomAttribute.prototype, "errors", void 0);
+        ValidationErrorsCustomAttribute = __decorate([
+            runtime_1.customAttribute('validation-errors'),
+            __param(0, runtime_1.INode),
+            __param(1, kernel_1.optional(validation_controller_1.IValidationController)),
+            __metadata("design:paramtypes", [Object, Object])
+        ], ValidationErrorsCustomAttribute);
+        return ValidationErrorsCustomAttribute;
+    })();
     exports.ValidationErrorsCustomAttribute = ValidationErrorsCustomAttribute;
 });
 //# sourceMappingURL=validation-errors-custom-attribute.js.map

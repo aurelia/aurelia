@@ -1,25 +1,31 @@
-import { INavigatorInstruction, ComponentAppellation, IComponentAndOrViewportOrNothing } from './interfaces';
+import { ComponentAppellation, IComponentAndOrViewportOrNothing } from './interfaces';
 import { ViewportInstruction } from './viewport-instruction';
+import { Navigation } from './navigation';
 /**
  * Public API
  */
 export declare const enum HookTypes {
     BeforeNavigation = "beforeNavigation",
     TransformFromUrl = "transformFromUrl",
-    TransformToUrl = "transformToUrl"
+    TransformToUrl = "transformToUrl",
+    SetTitle = "setTitle"
 }
 /**
  * Public API
  */
-export declare type BeforeNavigationHookFunction = (viewportInstructions: ViewportInstruction[], navigationInstruction: INavigatorInstruction) => Promise<boolean | ViewportInstruction[]>;
+export declare type BeforeNavigationHookFunction = (viewportInstructions: ViewportInstruction[], navigationInstruction: Navigation) => Promise<boolean | ViewportInstruction[]>;
 /**
  * Public API
  */
-export declare type TransformFromUrlHookFunction = (url: string, navigationInstruction: INavigatorInstruction) => Promise<string | ViewportInstruction[]>;
+export declare type TransformFromUrlHookFunction = (url: string, navigationInstruction: Navigation) => Promise<string | ViewportInstruction[]>;
 /**
  * Public API
  */
-export declare type TransformToUrlHookFunction = (state: string | ViewportInstruction[], navigationInstruction: INavigatorInstruction) => Promise<string | ViewportInstruction[]>;
+export declare type TransformToUrlHookFunction = (state: string | ViewportInstruction[], navigationInstruction: Navigation) => Promise<string | ViewportInstruction[]>;
+/**
+ * Public API
+ */
+export declare type SetTitleHookFunction = (title: string | ViewportInstruction[], navigationInstruction: Navigation) => Promise<string | ViewportInstruction[]>;
 export declare type HookTarget = ComponentAppellation | IComponentAndOrViewportOrNothing;
 /**
  * Public API

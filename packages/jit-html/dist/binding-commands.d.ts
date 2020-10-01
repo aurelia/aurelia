@@ -44,7 +44,7 @@ export declare class ClassBindingCommand implements BindingCommandInstance {
     compile(binding: PlainAttributeSymbol | BindingSymbol): HTMLAttributeInstruction;
 }
 /**
- * Binding command to refer different targets (element, custom element/attribute view models, controller) afterAttach to an element
+ * Binding command to refer different targets (element, custom element/attribute view models, controller) afterAttachChildren to an element
  */
 export declare class RefBindingCommand implements BindingCommandInstance {
     readonly bindingType: BindingType.IsProperty | BindingType.IgnoreCustomAttr;

@@ -66,113 +66,119 @@ const overrideProps = Object.assign(Object.create(null), {
     'xmlns': true,
     'xmlns:xlink': true,
 });
-let TargetObserverLocator = class TargetObserverLocator {
-    constructor(dom, svgAnalyzer) {
-        this.dom = dom;
-        this.svgAnalyzer = svgAnalyzer;
-    }
-    static register(container) {
-        return Registration.singleton(ITargetObserverLocator, this).register(container);
-    }
-    getObserver(flags, scheduler, lifecycle, observerLocator, obj, propertyName) {
-        switch (propertyName) {
-            case 'checked':
-                return new CheckedObserver(scheduler, flags, lifecycle, new EventSubscriber(this.dom, inputEvents), obj);
-            case 'value':
-                if (obj.tagName === 'SELECT') {
-                    return new SelectValueObserver(scheduler, flags, observerLocator, this.dom, new EventSubscriber(this.dom, selectEvents), obj);
-                }
-                return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(this.dom, inputEvents), obj, propertyName);
-            case 'files':
-                return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(this.dom, inputEvents), obj, propertyName);
-            case 'textContent':
-            case 'innerHTML':
-                return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(this.dom, contentEvents), obj, propertyName);
-            case 'scrollTop':
-            case 'scrollLeft':
-                return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(this.dom, scrollEvents), obj, propertyName);
-            case 'class':
-                return new ClassAttributeAccessor(scheduler, flags, obj);
-            case 'style':
-            case 'css':
-                return new StyleAttributeAccessor(scheduler, flags, obj);
-            case 'model':
-                return new SetterObserver(lifecycle, flags, obj, propertyName);
-            case 'role':
-                return new DataAttributeAccessor(scheduler, flags, obj, propertyName);
-            default:
-                if (nsAttributes[propertyName] !== undefined) {
-                    const nsProps = nsAttributes[propertyName];
-                    return new AttributeNSAccessor(scheduler, flags, obj, nsProps[0], nsProps[1]);
-                }
-                if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
-                    return new DataAttributeAccessor(scheduler, flags, obj, propertyName);
-                }
+let TargetObserverLocator = /** @class */ (() => {
+    let TargetObserverLocator = class TargetObserverLocator {
+        constructor(dom, svgAnalyzer) {
+            this.dom = dom;
+            this.svgAnalyzer = svgAnalyzer;
         }
-        return null;
-    }
-    overridesAccessor(flags, obj, propertyName) {
-        return overrideProps[propertyName] === true;
-    }
-    // consider a scenario where user would want to provide a Date object observation via patching a few mutation method on it
-    // then this extension point of this default implementaion cannot be used,
-    // and a new implementation of ITargetObserverLocator should be used instead
-    // This default implementation only accounts for the most common target scenarios
-    handles(flags, obj) {
-        return this.dom.isNodeInstance(obj);
-    }
-};
-TargetObserverLocator = __decorate([
-    __param(0, IDOM),
-    __param(1, ISVGAnalyzer),
-    __metadata("design:paramtypes", [Object, Object])
-], TargetObserverLocator);
+        static register(container) {
+            return Registration.singleton(ITargetObserverLocator, this).register(container);
+        }
+        getObserver(flags, scheduler, lifecycle, observerLocator, obj, propertyName) {
+            switch (propertyName) {
+                case 'checked':
+                    return new CheckedObserver(scheduler, flags, lifecycle, new EventSubscriber(this.dom, inputEvents), obj);
+                case 'value':
+                    if (obj.tagName === 'SELECT') {
+                        return new SelectValueObserver(scheduler, flags, observerLocator, this.dom, new EventSubscriber(this.dom, selectEvents), obj);
+                    }
+                    return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(this.dom, inputEvents), obj, propertyName);
+                case 'files':
+                    return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(this.dom, inputEvents), obj, propertyName);
+                case 'textContent':
+                case 'innerHTML':
+                    return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(this.dom, contentEvents), obj, propertyName);
+                case 'scrollTop':
+                case 'scrollLeft':
+                    return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(this.dom, scrollEvents), obj, propertyName);
+                case 'class':
+                    return new ClassAttributeAccessor(scheduler, flags, obj);
+                case 'style':
+                case 'css':
+                    return new StyleAttributeAccessor(scheduler, flags, obj);
+                case 'model':
+                    return new SetterObserver(lifecycle, flags, obj, propertyName);
+                case 'role':
+                    return new DataAttributeAccessor(scheduler, flags, obj, propertyName);
+                default:
+                    if (nsAttributes[propertyName] !== undefined) {
+                        const nsProps = nsAttributes[propertyName];
+                        return new AttributeNSAccessor(scheduler, flags, obj, nsProps[0], nsProps[1]);
+                    }
+                    if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
+                        return new DataAttributeAccessor(scheduler, flags, obj, propertyName);
+                    }
+            }
+            return null;
+        }
+        overridesAccessor(flags, obj, propertyName) {
+            return overrideProps[propertyName] === true;
+        }
+        // consider a scenario where user would want to provide a Date object observation via patching a few mutation method on it
+        // then this extension point of this default implementaion cannot be used,
+        // and a new implementation of ITargetObserverLocator should be used instead
+        // This default implementation only accounts for the most common target scenarios
+        handles(flags, obj) {
+            return this.dom.isNodeInstance(obj);
+        }
+    };
+    TargetObserverLocator = __decorate([
+        __param(0, IDOM),
+        __param(1, ISVGAnalyzer),
+        __metadata("design:paramtypes", [Object, Object])
+    ], TargetObserverLocator);
+    return TargetObserverLocator;
+})();
 export { TargetObserverLocator };
-let TargetAccessorLocator = class TargetAccessorLocator {
-    constructor(dom, svgAnalyzer) {
-        this.dom = dom;
-        this.svgAnalyzer = svgAnalyzer;
-    }
-    static register(container) {
-        return Registration.singleton(ITargetAccessorLocator, this).register(container);
-    }
-    getAccessor(flags, scheduler, lifecycle, obj, propertyName) {
-        switch (propertyName) {
-            case 'textContent':
-                // note: this case is just an optimization (textContent is the most often used property)
-                return new ElementPropertyAccessor(scheduler, flags, obj, propertyName);
-            case 'class':
-                return new ClassAttributeAccessor(scheduler, flags, obj);
-            case 'style':
-            case 'css':
-                return new StyleAttributeAccessor(scheduler, flags, obj);
-            // TODO: there are (many) more situation where we want to default to DataAttributeAccessor,
-            // but for now stick to what vCurrent does
-            case 'src':
-            case 'href':
-            // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
-            case 'role':
-                return new DataAttributeAccessor(scheduler, flags, obj, propertyName);
-            default:
-                if (nsAttributes[propertyName] !== undefined) {
-                    const nsProps = nsAttributes[propertyName];
-                    return new AttributeNSAccessor(scheduler, flags, obj, nsProps[0], nsProps[1]);
-                }
-                if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
-                    return new DataAttributeAccessor(scheduler, flags, obj, propertyName);
-                }
-                return new ElementPropertyAccessor(scheduler, flags, obj, propertyName);
+let TargetAccessorLocator = /** @class */ (() => {
+    let TargetAccessorLocator = class TargetAccessorLocator {
+        constructor(dom, svgAnalyzer) {
+            this.dom = dom;
+            this.svgAnalyzer = svgAnalyzer;
         }
-    }
-    handles(flags, obj) {
-        return this.dom.isNodeInstance(obj);
-    }
-};
-TargetAccessorLocator = __decorate([
-    __param(0, IDOM),
-    __param(1, ISVGAnalyzer),
-    __metadata("design:paramtypes", [Object, Object])
-], TargetAccessorLocator);
+        static register(container) {
+            return Registration.singleton(ITargetAccessorLocator, this).register(container);
+        }
+        getAccessor(flags, scheduler, lifecycle, obj, propertyName) {
+            switch (propertyName) {
+                case 'textContent':
+                    // note: this case is just an optimization (textContent is the most often used property)
+                    return new ElementPropertyAccessor(scheduler, flags, obj, propertyName);
+                case 'class':
+                    return new ClassAttributeAccessor(scheduler, flags, obj);
+                case 'style':
+                case 'css':
+                    return new StyleAttributeAccessor(scheduler, flags, obj);
+                // TODO: there are (many) more situation where we want to default to DataAttributeAccessor,
+                // but for now stick to what vCurrent does
+                case 'src':
+                case 'href':
+                // https://html.spec.whatwg.org/multipage/dom.html#wai-aria
+                case 'role':
+                    return new DataAttributeAccessor(scheduler, flags, obj, propertyName);
+                default:
+                    if (nsAttributes[propertyName] !== undefined) {
+                        const nsProps = nsAttributes[propertyName];
+                        return new AttributeNSAccessor(scheduler, flags, obj, nsProps[0], nsProps[1]);
+                    }
+                    if (isDataAttribute(obj, propertyName, this.svgAnalyzer)) {
+                        return new DataAttributeAccessor(scheduler, flags, obj, propertyName);
+                    }
+                    return new ElementPropertyAccessor(scheduler, flags, obj, propertyName);
+            }
+        }
+        handles(flags, obj) {
+            return this.dom.isNodeInstance(obj);
+        }
+    };
+    TargetAccessorLocator = __decorate([
+        __param(0, IDOM),
+        __param(1, ISVGAnalyzer),
+        __metadata("design:paramtypes", [Object, Object])
+    ], TargetAccessorLocator);
+    return TargetAccessorLocator;
+})();
 export { TargetAccessorLocator };
 const IsDataAttribute = {};
 function isDataAttribute(obj, propertyName, svgAnalyzer) {

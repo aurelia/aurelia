@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.preprocess = void 0;
     const fs = require("fs");
     const path = require("path");
     const options_1 = require("./options");

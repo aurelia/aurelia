@@ -21,22 +21,26 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.TranslationValueConverter = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const i18n_1 = require("../i18n");
-    let TranslationValueConverter = class TranslationValueConverter {
-        constructor(i18n) {
-            this.i18n = i18n;
-            this.signals = ["aurelia-translation-signal" /* I18N_SIGNAL */];
-        }
-        toView(value, options) {
-            return this.i18n.tr(value, options);
-        }
-    };
-    TranslationValueConverter = __decorate([
-        runtime_1.valueConverter("t" /* translationValueConverterName */),
-        __param(0, i18n_1.I18N),
-        __metadata("design:paramtypes", [Object])
-    ], TranslationValueConverter);
+    let TranslationValueConverter = /** @class */ (() => {
+        let TranslationValueConverter = class TranslationValueConverter {
+            constructor(i18n) {
+                this.i18n = i18n;
+                this.signals = ["aurelia-translation-signal" /* I18N_SIGNAL */];
+            }
+            toView(value, options) {
+                return this.i18n.tr(value, options);
+            }
+        };
+        TranslationValueConverter = __decorate([
+            runtime_1.valueConverter("t" /* translationValueConverterName */),
+            __param(0, i18n_1.I18N),
+            __metadata("design:paramtypes", [Object])
+        ], TranslationValueConverter);
+        return TranslationValueConverter;
+    })();
     exports.TranslationValueConverter = TranslationValueConverter;
 });
 //# sourceMappingURL=translation-value-converter.js.map

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ExecutionContext = exports.ExecutionContextStack = exports.Realm = exports.DeferredModule = exports.ResolvedBindingRecord = exports.ResolveSet = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const intrinsics_1 = require("./intrinsics");
     const environment_record_1 = require("./types/environment-record");

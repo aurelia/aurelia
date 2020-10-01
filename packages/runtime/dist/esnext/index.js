@@ -41,13 +41,13 @@ export { Now, IScheduler, Task, TaskAbortError, TaskQueue, TaskQueuePriority, } 
 export { bindable, BindableDefinition, Bindable, } from './templating/bindable';
 export { ChildrenDefinition, Children, children, ChildrenObserver, } from './templating/children';
 // These exports are temporary until we have a proper way to unit test them
-export { Controller, } from './templating/controller';
+export { Controller, isCustomElementController, isCustomElementViewModel, } from './templating/controller';
 export { ViewFactory, IViewLocator, ViewLocator, view, Views, } from './templating/view';
 export { Aurelia, IDOMInitializer, CompositionRoot, } from './aurelia';
 export { IfRegistration, ElseRegistration, RepeatRegistration, ReplaceableRegistration, WithRegistration, SanitizeValueConverterRegistration, DebounceBindingBehaviorRegistration, OneTimeBindingBehaviorRegistration, ToViewBindingBehaviorRegistration, FromViewBindingBehaviorRegistration, SignalBindingBehaviorRegistration, ThrottleBindingBehaviorRegistration, TwoWayBindingBehaviorRegistration, RefBindingRendererRegistration, CallBindingRendererRegistration, CustomAttributeRendererRegistration, CustomElementRendererRegistration, InterpolationBindingRendererRegistration, IteratorBindingRendererRegistration, LetElementRendererRegistration, PropertyBindingRendererRegistration, SetPropertyRendererRegistration, TemplateControllerRendererRegistration, DefaultResources, IObserverLocatorRegistration, ILifecycleRegistration, IRendererRegistration, RuntimeConfiguration } from './configuration';
 export { HooksDefinition, isTargetedInstruction, ITargetedInstruction, TargetedInstructionType, alias, registerAliases } from './definitions';
 export { DOM, INode, IRenderLocation, IDOM, NodeSequence } from './dom';
-export { BindingMode, BindingStrategy, ExpressionKind, LifecycleFlags, State } from './flags';
+export { BindingMode, BindingStrategy, ExpressionKind, LifecycleFlags, } from './flags';
 export { CallBindingInstruction, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, InterpolationInstruction, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, OneTimeBindingInstruction, RefBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TwoWayBindingInstruction } from './instructions';
 export { ViewModelKind, ILifecycle, IController, IViewFactory, MountStrategy, } from './lifecycle';
 export { getRenderContext, isRenderContext, } from './templating/render-context';

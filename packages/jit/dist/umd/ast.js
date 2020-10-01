@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.AttrSyntax = void 0;
     class AttrSyntax {
         constructor(rawName, rawValue, target, command) {
             this.rawName = rawName;

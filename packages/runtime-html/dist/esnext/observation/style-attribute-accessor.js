@@ -9,7 +9,7 @@ export class StyleAttributeAccessor {
         this.hasChanges = false;
         this.task = null;
         this.obj = obj;
-        this.persistentFlags = flags & 805306383 /* targetObserverFlags */;
+        this.persistentFlags = flags & 12295 /* targetObserverFlags */;
     }
     getValue() {
         return this.obj.style.cssText;
@@ -17,10 +17,10 @@ export class StyleAttributeAccessor {
     setValue(newValue, flags) {
         this.currentValue = newValue;
         this.hasChanges = newValue !== this.oldValue;
-        if ((flags & 4096 /* fromBind */) > 0 || this.persistentFlags === 268435456 /* noTargetObserverQueue */) {
+        if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noTargetObserverQueue */) {
             this.flushChanges(flags);
         }
-        else if (this.persistentFlags !== 536870912 /* persistentTargetObserverQueue */ && this.task === null) {
+        else if (this.persistentFlags !== 8192 /* persistentTargetObserverQueue */ && this.task === null) {
             this.task = this.scheduler.queueRenderTask(() => {
                 this.flushChanges(flags);
                 this.task = null;
@@ -123,7 +123,7 @@ export class StyleAttributeAccessor {
         this.obj.style.setProperty(style, value, priority);
     }
     bind(flags) {
-        if (this.persistentFlags === 536870912 /* persistentTargetObserverQueue */) {
+        if (this.persistentFlags === 8192 /* persistentTargetObserverQueue */) {
             if (this.task !== null) {
                 this.task.cancel();
             }

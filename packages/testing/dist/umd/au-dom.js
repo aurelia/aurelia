@@ -18,6 +18,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.AuDOMTest = exports.AuDOMConfiguration = exports.AuTextRenderer = exports.AuTextInstruction = exports.AuObserverLocator = exports.AuDOMInitializer = exports.AuNodeSequenceFactory = exports.AuNodeSequence = exports.AuProjector = exports.AuProjectorLocator = exports.AuDOM = exports.AuNode = void 0;
     const jit_1 = require("@aurelia/jit");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
@@ -479,21 +480,24 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     }
     exports.AuNodeSequenceFactory = AuNodeSequenceFactory;
-    class AuDOMInitializer {
-        constructor(container) {
-            this.container = container;
-        }
-        initialize(config) {
-            if (this.container.has(runtime_1.IDOM, false)) {
-                return this.container.get(runtime_1.IDOM);
+    let AuDOMInitializer = /** @class */ (() => {
+        class AuDOMInitializer {
+            constructor(container) {
+                this.container = container;
             }
-            const dom = new AuDOM();
-            kernel_1.Registration.instance(runtime_1.IDOM, dom).register(this.container, runtime_1.IDOM);
-            return dom;
+            initialize(config) {
+                if (this.container.has(runtime_1.IDOM, false)) {
+                    return this.container.get(runtime_1.IDOM);
+                }
+                const dom = new AuDOM();
+                kernel_1.Registration.instance(runtime_1.IDOM, dom).register(this.container, runtime_1.IDOM);
+                return dom;
+            }
         }
-    }
+        AuDOMInitializer.inject = [kernel_1.IContainer];
+        return AuDOMInitializer;
+    })();
     exports.AuDOMInitializer = AuDOMInitializer;
-    AuDOMInitializer.inject = [kernel_1.IContainer];
     class AuObserverLocator {
         getObserver(flags, scheduler, lifecycle, observerLocator, obj, propertyName) {
             return null;
@@ -516,32 +520,35 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     }
     exports.AuTextInstruction = AuTextInstruction;
-    let AuTextRenderer = 
-    /** @internal */
-    class AuTextRenderer {
-        constructor(observerLocator) {
-            this.observerLocator = observerLocator;
-        }
-        render(flags, context, controller, target, instruction) {
-            let realTarget;
-            if (target.isRenderLocation) {
-                realTarget = AuNode.createText();
-                target.parentNode.insertBefore(realTarget, target);
-            }
-            else {
-                realTarget = target;
-            }
-            const bindable = new runtime_1.PropertyBinding(instruction.from, realTarget, 'textContent', runtime_1.BindingMode.toView, this.observerLocator, context);
-            controller.addBinding(bindable);
-        }
-    };
-    AuTextRenderer = __decorate([
-        kernel_1.inject(runtime_1.IObserverLocator),
-        runtime_1.instructionRenderer('au')
+    let AuTextRenderer = /** @class */ (() => {
+        let AuTextRenderer = 
         /** @internal */
-        ,
-        __metadata("design:paramtypes", [Object])
-    ], AuTextRenderer);
+        class AuTextRenderer {
+            constructor(observerLocator) {
+                this.observerLocator = observerLocator;
+            }
+            render(flags, context, controller, target, instruction) {
+                let realTarget;
+                if (target.isRenderLocation) {
+                    realTarget = AuNode.createText();
+                    target.parentNode.insertBefore(realTarget, target);
+                }
+                else {
+                    realTarget = target;
+                }
+                const bindable = new runtime_1.PropertyBinding(instruction.from, realTarget, 'textContent', runtime_1.BindingMode.toView, this.observerLocator, context);
+                controller.addBinding(bindable);
+            }
+        };
+        AuTextRenderer = __decorate([
+            kernel_1.inject(runtime_1.IObserverLocator),
+            runtime_1.instructionRenderer('au')
+            /** @internal */
+            ,
+            __metadata("design:paramtypes", [Object])
+        ], AuTextRenderer);
+        return AuTextRenderer;
+    })();
     exports.AuTextRenderer = AuTextRenderer;
     exports.AuDOMConfiguration = {
         register(container) {

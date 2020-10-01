@@ -338,7 +338,7 @@ function callSubscribers(newValue, previousValue, flags) {
     }
 }
 function callSubscriber(subscriber, newValue, previousValue, flags, ownFlags) {
-    subscriber.handleChange(newValue, previousValue, ((flags | 48 /* update */) ^ 48 /* update */) | ownFlags);
+    subscriber.handleChange(newValue, previousValue, ((flags | 24 /* update */) ^ 24 /* update */) | ownFlags);
 }
 function callProxySubscribers(key, newValue, previousValue, flags) {
     const subscriber0 = this._proxySubscriber0;

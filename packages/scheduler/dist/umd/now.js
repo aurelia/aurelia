@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Now = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const defaultNow = kernel_1.PLATFORM.now.bind(kernel_1.PLATFORM);
     exports.Now = kernel_1.DI.createInterface('Now').withDefault(x => x.instance(defaultNow));

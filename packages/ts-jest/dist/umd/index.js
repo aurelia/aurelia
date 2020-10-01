@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports._createTransformer = exports.createTransformer = exports.process = exports.getCacheKey = exports.canInstrument = void 0;
     const plugin_conventions_1 = require("@aurelia/plugin-conventions");
     const ts_jest_1 = require("ts-jest");
     const path = require("path");

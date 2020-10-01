@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Scheduler = exports.IScheduler = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const types_1 = require("./types");
     const task_queue_1 = require("./task-queue");

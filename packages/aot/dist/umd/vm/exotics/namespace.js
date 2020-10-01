@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$NamespaceExoticObject = void 0;
     const object_1 = require("../types/object");
     const realm_1 = require("../realm");
     const operations_1 = require("../operations");

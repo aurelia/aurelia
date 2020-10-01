@@ -11,6 +11,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.isDeepStrictEqual = exports.isDeepEqual = exports.objEquiv = exports.mapEquiv = exports.mapHasEqualEntry = exports.setEquiv = exports.mapMightHaveLoosePrimitive = exports.setMightHaveLoosePrimitive = exports.findLooseMatchingPrimitives = exports.setHasEqualElement = exports.keyCheck = exports.innerDeepEqual = exports.isEqualBoxedPrimitive = exports.areEqualArrayBuffers = exports.areSimilarTypedArrays = exports.compare = exports.areSimilarFloatArrays = exports.areSimilarRegExps = exports.IterationType = void 0;
     const util_1 = require("./util");
     /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion, @typescript-eslint/ban-types */
     var IterationType;

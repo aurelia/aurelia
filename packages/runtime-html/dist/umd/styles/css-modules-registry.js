@@ -21,6 +21,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.CSSModulesProcessorRegistry = exports.cssModules = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const class_attribute_accessor_1 = require("../observation/class-attribute-accessor");
     function cssModules(...cssModules) {
@@ -33,32 +34,35 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         register(container) {
             const classLookup = Object.assign({}, ...this.cssModules);
-            let ClassCustomAttribute = class ClassCustomAttribute {
-                constructor(element /* TODO(fkleuver): fix this type annotation reflection issue in AOT */) {
-                    this.element = element;
-                }
-                beforeBind() {
-                    this.valueChanged();
-                }
-                valueChanged() {
-                    if (!this.value) {
-                        this.element.className = '';
-                        return;
+            let ClassCustomAttribute = /** @class */ (() => {
+                let ClassCustomAttribute = class ClassCustomAttribute {
+                    constructor(element /* TODO(fkleuver): fix this type annotation reflection issue in AOT */) {
+                        this.element = element;
                     }
-                    this.element.className = class_attribute_accessor_1.getClassesToAdd(this.value)
-                        .map(x => classLookup[x] || x)
-                        .join(' ');
-                }
-            };
-            __decorate([
-                runtime_1.bindable,
-                __metadata("design:type", String)
-            ], ClassCustomAttribute.prototype, "value", void 0);
-            ClassCustomAttribute = __decorate([
-                runtime_1.customAttribute('class'),
-                __param(0, runtime_1.INode),
-                __metadata("design:paramtypes", [Object])
-            ], ClassCustomAttribute);
+                    beforeBind() {
+                        this.valueChanged();
+                    }
+                    valueChanged() {
+                        if (!this.value) {
+                            this.element.className = '';
+                            return;
+                        }
+                        this.element.className = class_attribute_accessor_1.getClassesToAdd(this.value)
+                            .map(x => classLookup[x] || x)
+                            .join(' ');
+                    }
+                };
+                __decorate([
+                    runtime_1.bindable,
+                    __metadata("design:type", String)
+                ], ClassCustomAttribute.prototype, "value", void 0);
+                ClassCustomAttribute = __decorate([
+                    runtime_1.customAttribute('class'),
+                    __param(0, runtime_1.INode),
+                    __metadata("design:paramtypes", [Object])
+                ], ClassCustomAttribute);
+                return ClassCustomAttribute;
+            })();
             container.register(ClassCustomAttribute);
         }
     }

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.EventAggregator = exports.IEventAggregator = void 0;
     const di_1 = require("./di");
     const reporter_1 = require("./reporter");
     /**

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ViewportInstructionCollection = void 0;
     const utils_1 = require("./utils");
     /**
      * @internal - Shouldn't be used directly

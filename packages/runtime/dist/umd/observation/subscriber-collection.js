@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.collectionSubscriberCollection = exports.proxySubscriberCollection = exports.subscriberCollection = void 0;
     // TODO: see if we can de-duplicate these 3 decorators and their functions without killing performance or readability
     function subscriberCollection() {
         // eslint-disable-next-line @typescript-eslint/ban-types
@@ -352,7 +353,7 @@
         }
     }
     function callSubscriber(subscriber, newValue, previousValue, flags, ownFlags) {
-        subscriber.handleChange(newValue, previousValue, ((flags | 48 /* update */) ^ 48 /* update */) | ownFlags);
+        subscriber.handleChange(newValue, previousValue, ((flags | 24 /* update */) ^ 24 /* update */) | ownFlags);
     }
     function callProxySubscribers(key, newValue, previousValue, flags) {
         const subscriber0 = this._proxySubscriber0;

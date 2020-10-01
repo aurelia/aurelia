@@ -1,15 +1,15 @@
-import { ViewportInstruction } from './viewport-instruction';
 import { Scope } from './scope';
 import { arrayRemove } from './utils';
+import { Runner } from './runner';
 export class ViewportScope {
-    constructor(name, router, element, owningScope, scope, rootComponentType = null, // temporary. Metadata will probably eliminate it
+    constructor(name, router, connectedCE, owningScope, scope, rootComponentType = null, // temporary. Metadata will probably eliminate it
     options = {
         catches: [],
         source: null,
     }) {
         this.name = name;
         this.router = router;
-        this.element = element;
+        this.connectedCE = connectedCE;
         this.rootComponentType = rootComponentType;
         this.options = options;
         this.path = null;
@@ -73,19 +73,24 @@ export class ViewportScope {
             return this.catches[0];
         }
     }
-    setNextContent(content, instruction) {
-        let viewportInstruction;
-        if (content instanceof ViewportInstruction) {
-            viewportInstruction = content;
-        }
-        else {
-            if (typeof content === 'string') {
-                viewportInstruction = this.router.instructionResolver.parseViewportInstruction(content);
-            }
-            else {
-                viewportInstruction = this.router.createViewportInstruction(content);
-            }
-        }
+    get nextContentActivated() {
+        var _a, _b, _c;
+        return (_c = (_b = (_a = this.scope.parent) === null || _a === void 0 ? void 0 : _a.owner) === null || _b === void 0 ? void 0 : _b.nextContentActivated) !== null && _c !== void 0 ? _c : false;
+    }
+    get parentNextContentActivated() {
+        var _a, _b, _c;
+        return (_c = (_b = (_a = this.scope.parent) === null || _a === void 0 ? void 0 : _a.owner) === null || _b === void 0 ? void 0 : _b.nextContentActivated) !== null && _c !== void 0 ? _c : false;
+    }
+    get nextContentAction() {
+        return '';
+    }
+    toString() {
+        var _a, _b, _c, _d;
+        const contentName = (_b = (_a = this.content) === null || _a === void 0 ? void 0 : _a.componentName) !== null && _b !== void 0 ? _b : '';
+        const nextContentName = (_d = (_c = this.nextContent) === null || _c === void 0 ? void 0 : _c.componentName) !== null && _d !== void 0 ? _d : '';
+        return `vs:${this.name}[${contentName}->${nextContentName}]`;
+    }
+    setNextContent(viewportInstruction, navigation) {
         viewportInstruction.viewportScope = this;
         this.remove = this.router.instructionResolver.isClearViewportInstruction(viewportInstruction)
             || this.router.instructionResolver.isClearAllViewportsInstruction(viewportInstruction);
@@ -98,22 +103,33 @@ export class ViewportScope {
             viewportInstruction.componentName = this.default;
         }
         this.nextContent = viewportInstruction;
+        return 'swap';
+    }
+    transition(coordinator) {
+        // console.log('ViewportScope swap'/*, this, coordinator*/);
+        Runner.run(() => coordinator.addEntityState(this, 'guardedUnload'), () => coordinator.addEntityState(this, 'guardedLoad'), () => coordinator.addEntityState(this, 'guarded'), () => coordinator.addEntityState(this, 'loaded'), () => coordinator.addEntityState(this, 'unloaded'), () => coordinator.addEntityState(this, 'routed'), () => coordinator.addEntityState(this, 'swapped'), () => {
+            this.content = !this.remove ? this.nextContent : null;
+            this.nextContent = null;
+            coordinator.addEntityState(this, 'completed');
+        });
+    }
+    canUnload() {
         return true;
     }
-    canLeave() {
-        return Promise.resolve(true);
+    canLoad() {
+        return true;
     }
-    canEnter() {
-        return Promise.resolve(true);
+    unload() {
+        return;
     }
-    enter() {
-        return Promise.resolve(true);
+    load() {
+        return;
     }
-    loadContent() {
-        this.content = !this.remove ? this.nextContent : null;
-        this.nextContent = null;
-        return Promise.resolve(true);
-    }
+    // public loadContent(): Promise<boolean> {
+    //   this.content = !this.remove ? this.nextContent : null;
+    //   this.nextContent = null;
+    //   return Promise.resolve(true);
+    // }
     finalizeContentChange() {
         // console.log('ViewportScope finalizing', this.content);
         if (this.remove && Array.isArray(this.source)) {

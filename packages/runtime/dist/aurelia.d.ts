@@ -1,4 +1,4 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, InstanceProvider } from '@aurelia/kernel';
 import { IActivator } from './activator';
 import { IDOM, INode } from './dom';
 import { BindingStrategy } from './flags';
@@ -25,7 +25,7 @@ export declare class CompositionRoot<T extends INode = INode> {
     viewModel?: ICustomElementViewModel<T>;
     private createTask?;
     private readonly enhanceDefinition;
-    constructor(config: ISinglePageApp<T>, container: IContainer, enhance?: boolean);
+    constructor(config: ISinglePageApp<T>, container: IContainer, rootProvider: InstanceProvider<CompositionRoot<T>>, enhance?: boolean);
     activate(antecedent?: ILifecycleTask): ILifecycleTask;
     deactivate(antecedent?: ILifecycleTask): ILifecycleTask;
     private create;
@@ -42,6 +42,7 @@ export declare class Aurelia<TNode extends INode = INode> {
     private _isStopping;
     private _root?;
     private next?;
+    private readonly rootProvider;
     constructor(container?: IContainer);
     register(...params: any[]): this;
     app(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app' | 'enhance'>;

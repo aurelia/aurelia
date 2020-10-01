@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Aurelia = void 0;
     const debug_1 = require("@aurelia/debug");
     const jit_html_browser_1 = require("@aurelia/jit-html-browser");
     const kernel_1 = require("@aurelia/kernel");

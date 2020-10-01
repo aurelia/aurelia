@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.resolveAll = exports.onResolve = exports.isNativeFunction = exports.toLookup = exports.getPrototypeChain = exports.firstDefined = exports.mergeObjects = exports.mergeArrays = exports.bound = exports.mergeDistinct = exports.compareNumber = exports.resetId = exports.nextId = exports.toArray = exports.kebabCase = exports.pascalCase = exports.camelCase = exports.isStringOrDate = exports.isNumberOrBigInt = exports.isArrayIndex = void 0;
     const platform_1 = require("./platform");
     const isNumericLookup = {};
     /**
@@ -453,5 +454,50 @@
             return isNative;
         };
     })();
+    /**
+     * Normalize a potential promise via a callback, to ensure things stay synchronous when they can.
+     *
+     * If the value is a promise, it is `then`ed before the callback is invoked. Otherwise the callback is invoked synchronously.
+     */
+    function onResolve(maybePromise, resolveCallback) {
+        if (maybePromise instanceof Promise) {
+            return maybePromise.then(resolveCallback);
+        }
+        return resolveCallback(maybePromise);
+    }
+    exports.onResolve = onResolve;
+    /**
+     * Normalize an array of potential promises, to ensure things stay synchronous when they can.
+     *
+     * If exactly one value is a promise, then that promise is returned.
+     *
+     * If more than one value is a promise, a new `Promise.all` is returned.
+     *
+     * If none of the values is a promise, nothing is returned, to indicate that things can stay synchronous.
+     */
+    function resolveAll(...maybePromises) {
+        let maybePromise = void 0;
+        let firstPromise = void 0;
+        let promises = void 0;
+        for (let i = 0, ii = maybePromises.length; i < ii; ++i) {
+            maybePromise = maybePromises[i];
+            if ((maybePromise = maybePromises[i]) instanceof Promise) {
+                if (firstPromise === void 0) {
+                    firstPromise = maybePromise;
+                }
+                else if (promises === void 0) {
+                    promises = [firstPromise, maybePromise];
+                }
+                else {
+                    promises.push(maybePromise);
+                }
+            }
+        }
+        if (promises === void 0) {
+            return firstPromise;
+        }
+        return Promise.all(promises);
+    }
+    exports.resolveAll = resolveAll;
 });
 //# sourceMappingURL=functions.js.map

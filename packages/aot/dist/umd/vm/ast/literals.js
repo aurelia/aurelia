@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$BooleanLiteral = exports.$NullLiteral = exports.$NoSubstitutionTemplateLiteral = exports.$RegularExpressionLiteral = exports.$StringLiteral = exports.$BigIntLiteral = exports.$NumericLiteral = exports.$TemplateSpan = exports.$TemplateTail = exports.$TemplateMiddle = exports.$TemplateHead = void 0;
     const typescript_1 = require("typescript");
     const string_1 = require("../types/string");
     const number_1 = require("../types/number");

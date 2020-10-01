@@ -15,49 +15,62 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.AtPrefixedTriggerAttributePattern = exports.ColonPrefixedBindAttributePattern = exports.RefAttributePattern = exports.DotSeparatedAttributePattern = void 0;
     const ast_1 = require("./ast");
     const attribute_pattern_1 = require("./attribute-pattern");
-    let DotSeparatedAttributePattern = class DotSeparatedAttributePattern {
-        ['PART.PART'](rawName, rawValue, parts) {
-            return new ast_1.AttrSyntax(rawName, rawValue, parts[0], parts[1]);
-        }
-        ['PART.PART.PART'](rawName, rawValue, parts) {
-            return new ast_1.AttrSyntax(rawName, rawValue, parts[0], parts[2]);
-        }
-    };
-    DotSeparatedAttributePattern = __decorate([
-        attribute_pattern_1.attributePattern({ pattern: 'PART.PART', symbols: '.' }, { pattern: 'PART.PART.PART', symbols: '.' })
-    ], DotSeparatedAttributePattern);
+    let DotSeparatedAttributePattern = /** @class */ (() => {
+        let DotSeparatedAttributePattern = class DotSeparatedAttributePattern {
+            ['PART.PART'](rawName, rawValue, parts) {
+                return new ast_1.AttrSyntax(rawName, rawValue, parts[0], parts[1]);
+            }
+            ['PART.PART.PART'](rawName, rawValue, parts) {
+                return new ast_1.AttrSyntax(rawName, rawValue, parts[0], parts[2]);
+            }
+        };
+        DotSeparatedAttributePattern = __decorate([
+            attribute_pattern_1.attributePattern({ pattern: 'PART.PART', symbols: '.' }, { pattern: 'PART.PART.PART', symbols: '.' })
+        ], DotSeparatedAttributePattern);
+        return DotSeparatedAttributePattern;
+    })();
     exports.DotSeparatedAttributePattern = DotSeparatedAttributePattern;
-    let RefAttributePattern = class RefAttributePattern {
-        ['ref'](rawName, rawValue, parts) {
-            return new ast_1.AttrSyntax(rawName, rawValue, 'element', 'ref');
-        }
-        ['PART.ref'](rawName, rawValue, parts) {
-            return new ast_1.AttrSyntax(rawName, rawValue, parts[0], 'ref');
-        }
-    };
-    RefAttributePattern = __decorate([
-        attribute_pattern_1.attributePattern({ pattern: 'ref', symbols: '' }, { pattern: 'PART.ref', symbols: '.' })
-    ], RefAttributePattern);
+    let RefAttributePattern = /** @class */ (() => {
+        let RefAttributePattern = class RefAttributePattern {
+            ['ref'](rawName, rawValue, parts) {
+                return new ast_1.AttrSyntax(rawName, rawValue, 'element', 'ref');
+            }
+            ['PART.ref'](rawName, rawValue, parts) {
+                return new ast_1.AttrSyntax(rawName, rawValue, parts[0], 'ref');
+            }
+        };
+        RefAttributePattern = __decorate([
+            attribute_pattern_1.attributePattern({ pattern: 'ref', symbols: '' }, { pattern: 'PART.ref', symbols: '.' })
+        ], RefAttributePattern);
+        return RefAttributePattern;
+    })();
     exports.RefAttributePattern = RefAttributePattern;
-    let ColonPrefixedBindAttributePattern = class ColonPrefixedBindAttributePattern {
-        [':PART'](rawName, rawValue, parts) {
-            return new ast_1.AttrSyntax(rawName, rawValue, parts[0], 'bind');
-        }
-    };
-    ColonPrefixedBindAttributePattern = __decorate([
-        attribute_pattern_1.attributePattern({ pattern: ':PART', symbols: ':' })
-    ], ColonPrefixedBindAttributePattern);
+    let ColonPrefixedBindAttributePattern = /** @class */ (() => {
+        let ColonPrefixedBindAttributePattern = class ColonPrefixedBindAttributePattern {
+            [':PART'](rawName, rawValue, parts) {
+                return new ast_1.AttrSyntax(rawName, rawValue, parts[0], 'bind');
+            }
+        };
+        ColonPrefixedBindAttributePattern = __decorate([
+            attribute_pattern_1.attributePattern({ pattern: ':PART', symbols: ':' })
+        ], ColonPrefixedBindAttributePattern);
+        return ColonPrefixedBindAttributePattern;
+    })();
     exports.ColonPrefixedBindAttributePattern = ColonPrefixedBindAttributePattern;
-    let AtPrefixedTriggerAttributePattern = class AtPrefixedTriggerAttributePattern {
-        ['@PART'](rawName, rawValue, parts) {
-            return new ast_1.AttrSyntax(rawName, rawValue, parts[0], 'trigger');
-        }
-    };
-    AtPrefixedTriggerAttributePattern = __decorate([
-        attribute_pattern_1.attributePattern({ pattern: '@PART', symbols: '@' })
-    ], AtPrefixedTriggerAttributePattern);
+    let AtPrefixedTriggerAttributePattern = /** @class */ (() => {
+        let AtPrefixedTriggerAttributePattern = class AtPrefixedTriggerAttributePattern {
+            ['@PART'](rawName, rawValue, parts) {
+                return new ast_1.AttrSyntax(rawName, rawValue, parts[0], 'trigger');
+            }
+        };
+        AtPrefixedTriggerAttributePattern = __decorate([
+            attribute_pattern_1.attributePattern({ pattern: '@PART', symbols: '@' })
+        ], AtPrefixedTriggerAttributePattern);
+        return AtPrefixedTriggerAttributePattern;
+    })();
     exports.AtPrefixedTriggerAttributePattern = AtPrefixedTriggerAttributePattern;
 });
 //# sourceMappingURL=attribute-patterns.js.map

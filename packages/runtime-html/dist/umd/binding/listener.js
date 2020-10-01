@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Listener = void 0;
     const runtime_1 = require("@aurelia/runtime");
     /**
      * Listener binding. Handle event binding between view and view model
@@ -24,12 +25,12 @@
             this.eventManager = eventManager;
             this.locator = locator;
             this.interceptor = this;
-            this.$state = 0 /* none */;
+            this.isBound = false;
         }
         callSource(event) {
             const overrideContext = this.$scope.overrideContext;
             overrideContext.$event = event;
-            const result = this.sourceExpression.evaluate(2097152 /* mustEvaluate */, this.$scope, this.locator, this.part);
+            const result = this.sourceExpression.evaluate(128 /* mustEvaluate */, this.$scope, this.locator, this.part);
             Reflect.deleteProperty(overrideContext, '$event');
             if (result !== true && this.preventDefault) {
                 event.preventDefault();
@@ -40,14 +41,12 @@
             this.interceptor.callSource(event);
         }
         $bind(flags, scope, part) {
-            if (this.$state & 4 /* isBound */) {
+            if (this.isBound) {
                 if (this.$scope === scope) {
                     return;
                 }
-                this.interceptor.$unbind(flags | 4096 /* fromBind */);
+                this.interceptor.$unbind(flags | 32 /* fromBind */);
             }
-            // add isBinding flag
-            this.$state |= 1 /* isBinding */;
             this.$scope = scope;
             this.part = part;
             const sourceExpression = this.sourceExpression;
@@ -56,15 +55,12 @@
             }
             this.handler = this.eventManager.addEventListener(this.dom, this.target, this.targetEvent, this, this.delegationStrategy);
             // add isBound flag and remove isBinding flag
-            this.$state |= 4 /* isBound */;
-            this.$state &= ~1 /* isBinding */;
+            this.isBound = true;
         }
         $unbind(flags) {
-            if (!(this.$state & 4 /* isBound */)) {
+            if (!this.isBound) {
                 return;
             }
-            // add isUnbinding flag
-            this.$state |= 2 /* isUnbinding */;
             const sourceExpression = this.sourceExpression;
             if (runtime_1.hasUnbind(sourceExpression)) {
                 sourceExpression.unbind(flags, this.$scope, this.interceptor);
@@ -73,13 +69,19 @@
             this.handler.dispose();
             this.handler = null;
             // remove isBound and isUnbinding flags
-            this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
+            this.isBound = false;
         }
         observeProperty(flags, obj, propertyName) {
             return;
         }
         handleChange(newValue, previousValue, flags) {
             return;
+        }
+        dispose() {
+            this.interceptor = (void 0);
+            this.sourceExpression = (void 0);
+            this.locator = (void 0);
+            this.target = (void 0);
         }
     }
     exports.Listener = Listener;

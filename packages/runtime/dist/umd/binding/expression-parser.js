@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.BindingType = exports.ExpressionParser = exports.IExpressionParser = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const ast_1 = require("./ast");
     exports.IExpressionParser = kernel_1.DI.createInterface('IExpressionParser').withDefault(x => x.singleton(ExpressionParser));

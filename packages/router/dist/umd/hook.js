@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Hook = void 0;
     const type_resolvers_1 = require("./type-resolvers");
     const viewport_instruction_1 = require("./viewport-instruction");
     /**
@@ -79,7 +80,8 @@
         matches(viewportInstructions) {
             const instructions = viewportInstructions.slice();
             if (!instructions.length) {
-                instructions.push(new viewport_instruction_1.ViewportInstruction(''));
+                // instructions.push(new ViewportInstruction(''));
+                instructions.push(viewport_instruction_1.ViewportInstruction.create(null, ''));
             }
             for (const instruction of instructions) {
                 if ((this.componentName !== null && this.componentName === instruction.componentName) ||

@@ -1,7 +1,9 @@
-import { Reporter } from '@aurelia/kernel';
-import { Controller, ILifecycle, CustomElement } from '@aurelia/runtime';
+import { Controller, ILifecycle } from '@aurelia/runtime';
 import { parseQuery } from './parser';
 import { ViewportInstruction } from './viewport-instruction';
+import { Navigation } from './navigation';
+import { Runner } from './runner';
+import { AwaitableMap } from './awaitable-map';
 /**
  * @internal - Shouldn't be used directly
  */
@@ -9,9 +11,7 @@ export var ContentStatus;
 (function (ContentStatus) {
     ContentStatus[ContentStatus["none"] = 0] = "none";
     ContentStatus[ContentStatus["created"] = 1] = "created";
-    ContentStatus[ContentStatus["loaded"] = 2] = "loaded";
-    ContentStatus[ContentStatus["initialized"] = 3] = "initialized";
-    ContentStatus[ContentStatus["added"] = 4] = "added";
+    ContentStatus[ContentStatus["activated"] = 3] = "activated";
 })(ContentStatus || (ContentStatus = {}));
 /**
  * @internal - Shouldn't be used directly
@@ -19,20 +19,24 @@ export var ContentStatus;
 export class ViewportContent {
     constructor(
     // Can (and wants) be a (resolved) type or a string (to be resolved later)
-    content = new ViewportInstruction(''), instruction = {
+    // public content: ViewportInstruction = new ViewportInstruction(''),
+    content = ViewportInstruction.create(null, ''), instruction = new Navigation({
         instruction: '',
         fullStateInstruction: '',
-    }, container = null) {
+    }), connectedCE = null) {
+        var _a;
         this.content = content;
         this.instruction = instruction;
-        this.contentStatus = 0 /* none */;
-        this.entered = false;
+        // public contentStatus: ContentStatus = ContentStatus.none;
+        this.contentStates = new AwaitableMap();
+        // public contentStates: Map<ContentState, undefined> = new Map();
+        this.loaded = false;
         this.fromCache = false;
         this.fromHistory = false;
         this.reentry = false;
         // If we've got a container, we're good to resolve type
-        if (!this.content.isComponentType() && container !== null) {
-            this.content.componentType = this.toComponentType(container);
+        if (!this.content.isComponentType() && ((_a = connectedCE === null || connectedCE === void 0 ? void 0 : connectedCE.container) !== null && _a !== void 0 ? _a : null) !== null) {
+            this.content.componentType = this.toComponentType(connectedCE.container);
         }
     }
     get componentInstance() {
@@ -59,21 +63,25 @@ export class ViewportContent {
     isCacheEqual(other) {
         return this.content.sameComponent(other.content, true);
     }
-    createComponent(container, fallback) {
-        if (this.contentStatus !== 0 /* none */) {
+    contentController(connectedCE) {
+        return Controller.forCustomElement(this.content.componentInstance, connectedCE.container.get(ILifecycle), connectedCE.element, connectedCE.container, void 0, void 0);
+    }
+    createComponent(connectedCE, fallback) {
+        // if (this.contentStatus !== ContentStatus.none) {
+        if (this.contentStates.has('created')) {
             return;
         }
         // Don't load cached content or instantiated history content
         if (!this.fromCache && !this.fromHistory) {
             try {
-                this.content.componentInstance = this.toComponentInstance(container);
+                this.content.componentInstance = this.toComponentInstance(connectedCE.container);
             }
             catch (e) {
                 if (fallback !== void 0) {
                     this.content.setParameters({ id: this.content.componentName });
                     this.content.setComponent(fallback);
                     try {
-                        this.content.componentInstance = this.toComponentInstance(container);
+                        this.content.componentInstance = this.toComponentInstance(connectedCE.container);
                     }
                     catch (ee) {
                         throw e;
@@ -84,28 +92,45 @@ export class ViewportContent {
                 }
             }
         }
-        this.contentStatus = 1 /* created */;
-    }
-    destroyComponent() {
-        // TODO: We might want to do something here eventually, who knows?
-        if (this.contentStatus !== 1 /* created */) {
+        this.contentStates.set('created', void 0);
+        // this.contentStatus = ContentStatus.created;
+        // if (this.contentStatus !== ContentStatus.created || !this.loaded || !this.content.componentInstance) {
+        // if (this.contentStatus !== ContentStatus.created || this.loaded || !this.content.componentInstance) {
+        if (this.contentStates.has('loaded') || !this.content.componentInstance) {
             return;
         }
-        // Don't destroy components when stateful
-        this.contentStatus = 0 /* none */;
+        // this.contentStatus = ContentStatus.loaded;
+        // Don't load cached content or instantiated history content
+        if (!this.fromCache || !this.fromHistory) {
+            const controller = this.contentController(connectedCE);
+            controller.parent = connectedCE.controller; // CustomElement.for(connectedCE.element)!;
+        }
     }
-    async canEnter(viewport, previousInstruction) {
+    // public destroyComponent(): void {
+    //   // TODO: We might want to do something here eventually, who knows?
+    //   // if (this.contentStatus !== ContentStatus.created) {
+    //   if (!this.contentStates.has('created')) {
+    //     return;
+    //   }
+    //   // Don't destroy components when stateful
+    //   // this.contentStatus = ContentStatus.none;
+    //   this.contentStates.delete('created');
+    // }
+    canLoad(viewport, previousInstruction) {
+        if (!this.contentStates.has('created') || (this.contentStates.has('guarded') && !this.reentry)) {
+            return true;
+        }
+        this.contentStates.set('guarded', void 0);
         if (!this.content.componentInstance) {
             return false;
         }
-        if (!this.content.componentInstance.canEnter) {
+        if (!this.content.componentInstance.canLoad) {
             return true;
         }
         const typeParameters = this.content.componentType ? this.content.componentType.parameters : null;
         this.instruction.parameters = this.content.toSpecifiedParameters(typeParameters);
         const merged = { ...parseQuery(this.instruction.query), ...this.instruction.parameters };
-        const result = this.content.componentInstance.canEnter(merged, this.instruction, previousInstruction);
-        Reporter.write(10000, 'viewport canEnter', result);
+        const result = this.content.componentInstance.canLoad(merged, this.instruction, previousInstruction);
         if (typeof result === 'boolean') {
             return result;
         }
@@ -114,133 +139,179 @@ export class ViewportContent {
         }
         return result;
     }
-    async canLeave(nextInstruction) {
-        if (!this.content.componentInstance || !this.content.componentInstance.canLeave) {
+    canUnload(nextInstruction) {
+        if (!this.content.componentInstance || !this.content.componentInstance.canUnload) {
             return true;
         }
-        const result = this.content.componentInstance.canLeave(nextInstruction, this.instruction);
-        Reporter.write(10000, 'viewport canLeave', result);
-        if (typeof result === 'boolean') {
-            return result;
+        if (!this.contentStates.has('loaded')) {
+            return true;
         }
-        return result;
+        return this.content.componentInstance.canUnload(nextInstruction, this.instruction);
     }
-    async enter(previousInstruction) {
-        // if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.entered)) {
-        if (!this.reentry && (this.contentStatus !== 2 /* loaded */ || this.entered)) {
-            return;
-        }
-        if (this.content.componentInstance && this.content.componentInstance.enter) {
-            const typeParameters = this.content.componentType ? this.content.componentType.parameters : null;
-            this.instruction.parameters = this.content.toSpecifiedParameters(typeParameters);
-            const merged = { ...parseQuery(this.instruction.query), ...this.instruction.parameters };
-            await this.content.componentInstance.enter(merged, this.instruction, previousInstruction);
-        }
-        this.entered = true;
-    }
-    async leave(nextInstruction) {
-        if (this.contentStatus !== 4 /* added */ || !this.entered) {
-            return;
-        }
-        if (this.content.componentInstance && this.content.componentInstance.leave) {
-            await this.content.componentInstance.leave(nextInstruction, this.instruction);
-        }
-        this.entered = false;
-    }
-    // eslint-disable-next-line @typescript-eslint/require-await
-    async loadComponent(container, element, viewport) {
-        // if (this.contentStatus !== ContentStatus.created || !this.entered || !this.content.componentInstance) {
-        if (this.contentStatus !== 1 /* created */ || this.entered || !this.content.componentInstance) {
-            return;
-        }
-        // Don't load cached content or instantiated history content
-        if (!this.fromCache || !this.fromHistory) {
-            const host = element;
-            const controller = Controller.forCustomElement(this.content.componentInstance, container.get(ILifecycle), host, container, void 0, void 0);
-            controller.parent = CustomElement.for(element);
-        }
-        this.contentStatus = 2 /* loaded */;
-    }
-    unloadComponent(cache, stateful = false) {
-        // TODO: We might want to do something here eventually, who knows?
-        if (this.contentStatus !== 2 /* loaded */) {
-            return;
-        }
-        // Don't unload components when stateful
-        if (!stateful) {
-            this.contentStatus = 1 /* created */;
-        }
-        else {
-            cache.push(this);
-        }
-    }
-    initializeComponent(parent) {
-        if (this.contentStatus !== 2 /* loaded */) {
-            return;
-        }
-        // Don't initialize cached content or instantiated history content
-        // if (!this.fromCache || !this.fromHistory) {
-        // ((this.content.componentInstance as IRouteableComponent).$controller as IController).parent = parent;
-        this.content.componentInstance.$controller.bind(1024 /* fromStartTask */ | 4096 /* fromBind */);
+    // public async canUnload(nextInstruction: Navigation | null): Promise<boolean> {
+    //   if (!this.content.componentInstance || !this.content.componentInstance.canUnload) {
+    //     return true;
+    //   }
+    //   const result = this.content.componentInstance.canUnload(nextInstruction, this.instruction);
+    //   if (typeof result === 'boolean') {
+    //     return result;
+    //   }
+    //   return result;
+    // }
+    load(previousInstruction) {
+        // if (!this.reentry && (this.contentStatus !== ContentStatus.created || this.loaded)) {
+        // if (!this.reentry && this.loaded) {
+        // if (!this.contentStates.has('created') || (this.contentStates.has('loaded') && !this.reentry)) {
+        //   return;
         // }
-        this.contentStatus = 3 /* initialized */;
+        // this.reentry = false;
+        return Runner.run(() => this.contentStates.await('guarded'), () => {
+            if (!this.contentStates.has('created') || (this.contentStates.has('loaded') && !this.reentry)) {
+                return;
+            }
+            this.reentry = false;
+            // this.loaded = true;
+            // console.log('loaded', this.content.componentName);
+            this.contentStates.set('loaded', void 0);
+            if (this.content.componentInstance && this.content.componentInstance.load) {
+                const typeParameters = this.content.componentType ? this.content.componentType.parameters : null;
+                this.instruction.parameters = this.content.toSpecifiedParameters(typeParameters);
+                const merged = { ...parseQuery(this.instruction.query), ...this.instruction.parameters };
+                return this.content.componentInstance.load(merged, this.instruction, previousInstruction);
+            }
+        });
     }
-    async terminateComponent(stateful = false) {
-        if (this.contentStatus !== 3 /* initialized */) {
+    unload(nextInstruction) {
+        // if (!this.loaded) {
+        if (!this.contentStates.has('loaded')) {
             return;
         }
-        // Don't terminate cached content
-        // if (!stateful) {
-        await this.content.componentInstance.$controller.unbind(2048 /* fromStopTask */ | 8192 /* fromUnbind */).wait();
-        // ((this.content.componentInstance as IRouteableComponent).$controller as IController).parent = void 0;
+        // this.loaded = false;
+        // console.log('loaded', this.content.componentName, 'deleted');
+        this.contentStates.delete('loaded');
+        if (this.content.componentInstance && this.content.componentInstance.unload) {
+            return this.content.componentInstance.unload(nextInstruction, this.instruction);
+        }
+    }
+    // public unloadComponent(cache: ViewportContent[], stateful: boolean = false): void {
+    //   // TODO: We might want to do something here eventually, who knows?
+    //   // if (this.contentStatus !== ContentStatus.activated) {
+    //   if (!this.contentStates.has('created')) {
+    //     return;
+    //   }
+    //   // Don't unload components when stateful
+    //   // TODO: We're missing stuff here
+    //   if (!stateful) {
+    //     // this.contentStatus = ContentStatus.created;
+    //     this.contentStates.delete('created');
+    //   } else {
+    //     cache.push(this);
+    //   }
+    // }
+    activateComponent(initiator, parent, flags, connectedCE, parentActivated) {
+        // if (this.contentStates.has('activated') || !this.contentStates.has('created')) {
+        // if (this.contentStates.has('activated')) {
+        //   return;
         // }
-        this.contentStatus = 2 /* loaded */;
-    }
-    addComponent(element) {
-        if (this.contentStatus !== 3 /* initialized */) {
-            return;
-        }
-        this.content.componentInstance.$controller.attach(1024 /* fromStartTask */);
-        if (this.fromCache || this.fromHistory) {
-            const elements = Array.from(element.getElementsByTagName('*'));
-            for (const el of elements) {
-                const attr = el.getAttribute('au-element-scroll');
-                if (attr) {
-                    const [top, left] = attr.split(',');
-                    el.removeAttribute('au-element-scroll');
-                    el.scrollTo(+left, +top);
+        // this.contentStates.set('activated', void 0);
+        // // if (parentActivated) { // Parent is already part of an activation
+        // //   return ;
+        // // }
+        // const contentController = this.contentController(connectedCE);
+        return Runner.run(() => this.contentStates.await('loaded'), () => {
+            if (this.contentStates.has('activated')) {
+                return;
+            }
+            this.contentStates.set('activated', void 0);
+            // if (parentActivated) { // Parent is already part of an activation
+            //   return ;
+            // }
+            const contentController = this.contentController(connectedCE);
+            return contentController.activate(initiator !== null && initiator !== void 0 ? initiator : contentController, null /* TODO: take back: parent! */, flags);
+        }, () => {
+            if (this.fromCache || this.fromHistory) {
+                const elements = Array.from(connectedCE.element.getElementsByTagName('*'));
+                for (const el of elements) {
+                    const attr = el.getAttribute('au-element-scroll');
+                    if (attr) {
+                        const [top, left] = attr.split(',');
+                        el.removeAttribute('au-element-scroll');
+                        el.scrollTo(+left, +top);
+                    }
                 }
             }
-        }
-        this.contentStatus = 4 /* added */;
+        });
     }
-    removeComponent(element, stateful = false) {
-        if (this.contentStatus !== 4 /* added */ || this.entered) {
+    // public async activateComponent(initiator: IHydratedController<Element> | null, parent: ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement): Promise<void> {
+    //   // if (this.contentStatus !== ContentStatus.created) {
+    //   if (!this.contentStates.has('created')) {
+    //     return;
+    //   }
+    //   // this.contentStatus = ContentStatus.activated;
+    //   this.contentStates.add('activated');
+    //   const contentController = this.contentController(connectedCE);
+    //   await contentController.activate(initiator ?? contentController, parent!, flags);
+    //   if (this.fromCache || this.fromHistory) {
+    //     const elements = Array.from(connectedCE.element.getElementsByTagName('*'));
+    //     for (const el of elements) {
+    //       const attr = el.getAttribute('au-element-scroll');
+    //       if (attr) {
+    //         const [top, left] = attr.split(',');
+    //         el.removeAttribute('au-element-scroll');
+    //         el.scrollTo(+left, +top);
+    //       }
+    //     }
+    //   }
+    // }
+    deactivateComponent(initiator, parent, flags, connectedCE, stateful = false) {
+        // if (this.contentStatus !== ContentStatus.activated) {
+        if (!this.contentStates.has('activated')) {
             return;
         }
-        if (stateful && element !== null) {
-            const elements = Array.from(element.getElementsByTagName('*'));
+        // this.contentStatus = ContentStatus.created;
+        this.contentStates.delete('activated');
+        if (stateful && connectedCE.element !== null) {
+            // const contentController = this.content.componentInstance!.$controller!;
+            const elements = Array.from(connectedCE.element.getElementsByTagName('*'));
             for (const el of elements) {
                 if (el.scrollTop > 0 || el.scrollLeft) {
                     el.setAttribute('au-element-scroll', `${el.scrollTop},${el.scrollLeft}`);
                 }
             }
         }
-        this.content.componentInstance.$controller.detach(2048 /* fromStopTask */);
-        this.contentStatus = 3 /* initialized */;
+        const contentController = this.contentController(connectedCE);
+        return Runner.run(() => contentController.deactivate(initiator !== null && initiator !== void 0 ? initiator : contentController, parent, flags));
     }
-    async freeContent(element, nextInstruction, cache, stateful = false) {
-        switch (this.contentStatus) {
-            case 4 /* added */:
-                await this.leave(nextInstruction);
-                this.removeComponent(element, stateful);
-            case 3 /* initialized */:
-                await this.terminateComponent(stateful);
-            case 2 /* loaded */:
-                this.unloadComponent(cache, stateful);
-            case 1 /* created */:
-                this.destroyComponent();
+    disposeComponent(connectedCE, cache, stateful = false) {
+        if (!this.contentStates.has('created')) {
+            return;
         }
+        // Don't unload components when stateful
+        // TODO: We're missing stuff here
+        if (!stateful) {
+            this.contentStates.delete('created');
+            const contentController = this.contentController(connectedCE);
+            return contentController.dispose();
+        }
+        else {
+            cache.push(this);
+        }
+    }
+    freeContent(connectedCE, nextInstruction, cache, stateful = false) {
+        // switch (this.contentStatus) {
+        //   case ContentStatus.activated:
+        //     await this.unload(nextInstruction);
+        //     await this.deactivateComponent(null, connectedCE!.controller, LifecycleFlags.none, connectedCE!, stateful);
+        //     this.unloadComponent(cache, stateful); // TODO: Hook up to new dispose
+        //   case ContentStatus.created:
+        //     this.destroyComponent();
+        // }
+        // TODO: Fix execution order on these
+        // These are all safe to run
+        return Runner.run(() => this.unload(nextInstruction), () => this.deactivateComponent(null, connectedCE.controller, 0 /* none */, connectedCE, stateful), 
+        // () => this.unloadComponent(cache, stateful), // TODO: Hook up to new dispose
+        // () => this.destroyComponent(),
+        () => this.disposeComponent(connectedCE, cache, stateful));
     }
     toComponentName() {
         return this.content.componentName;

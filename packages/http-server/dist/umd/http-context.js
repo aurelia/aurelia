@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.HttpContext = exports.HttpContextState = void 0;
     var HttpContextState;
     (function (HttpContextState) {
         HttpContextState[HttpContextState["head"] = 1] = "head";

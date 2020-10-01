@@ -29,7 +29,7 @@ export declare const Object_create: {
     (o: object | null): any;
     (o: object | null, properties: PropertyDescriptorMap & ThisType<any>): any;
 };
-export declare const Number_isNaN: (number: number) => boolean;
+export declare const Number_isNaN: (number: unknown) => boolean;
 export declare const Reflect_apply: typeof Reflect.apply;
 export declare const ArrayBuffer_isView: (arg: any) => arg is ArrayBufferView;
 export declare function uncurryThis<TArgs extends any[], TRet>(func: (...args: TArgs) => TRet): (thisArg: unknown, ...args: TArgs) => TRet;

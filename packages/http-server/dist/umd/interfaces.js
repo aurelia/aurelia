@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.IHttp2FileServer = exports.IRequestHandler = exports.IHttpServer = exports.IHttpServerOptions = exports.StartOutput = exports.Encoding = void 0;
     const kernel_1 = require("@aurelia/kernel");
     var Encoding;
     (function (Encoding) {

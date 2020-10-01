@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.HtmlAttrSyntaxTransformer = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const attribute_syntax_transformer_1 = require("./attribute-syntax-transformer");
     class HtmlAttrSyntaxTransformer {

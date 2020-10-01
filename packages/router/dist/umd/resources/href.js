@@ -21,57 +21,61 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.HrefCustomAttribute = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const router_1 = require("../router");
     const configuration_1 = require("../configuration");
     const runtime_html_1 = require("@aurelia/runtime-html");
-    let HrefCustomAttribute = class HrefCustomAttribute {
-        constructor(dom, element, router, eventManager) {
-            this.dom = dom;
-            this.router = router;
-            this.eventManager = eventManager;
-            this.eventListener = null;
-            this.element = element;
-        }
-        beforeBind() {
-            if (this.router.options.useHref && !this.hasGoto()) {
-                this.eventListener = this.eventManager.addEventListener(this.dom, this.element, 'click', this.router.linkHandler.handler, runtime_1.DelegationStrategy.none);
+    let HrefCustomAttribute = /** @class */ (() => {
+        let HrefCustomAttribute = class HrefCustomAttribute {
+            constructor(dom, element, router, eventManager) {
+                this.dom = dom;
+                this.router = router;
+                this.eventManager = eventManager;
+                this.eventListener = null;
+                this.element = element;
             }
-            this.updateValue();
-        }
-        beforeUnbind() {
-            if (this.eventListener !== null) {
-                this.eventListener.dispose();
+            beforeBind() {
+                if (this.router.options.useHref && !this.hasGoto()) {
+                    this.eventListener = this.eventManager.addEventListener(this.dom, this.element, 'click', this.router.linkHandler.handler, runtime_1.DelegationStrategy.none);
+                }
+                this.updateValue();
             }
-        }
-        valueChanged() {
-            this.updateValue();
-        }
-        updateValue() {
-            this.element.setAttribute('href', this.value);
-        }
-        hasGoto() {
-            const parent = this.$controller.parent;
-            const siblings = parent.vmKind !== 1 /* customAttribute */ ? parent.controllers : void 0;
-            return siblings !== void 0
-                && siblings.some(c => c.vmKind === 1 /* customAttribute */ && c.viewModel instanceof configuration_1.GotoCustomAttribute);
-        }
-    };
-    __decorate([
-        runtime_1.bindable({ mode: runtime_1.BindingMode.toView }),
-        __metadata("design:type", Object)
-    ], HrefCustomAttribute.prototype, "value", void 0);
-    HrefCustomAttribute = __decorate([
-        runtime_1.customAttribute({
-            name: 'href',
-            noMultiBindings: true
-        }),
-        __param(0, runtime_1.IDOM),
-        __param(1, runtime_1.INode),
-        __param(2, router_1.IRouter),
-        __param(3, runtime_html_1.IEventManager),
-        __metadata("design:paramtypes", [Object, Object, Object, Object])
-    ], HrefCustomAttribute);
+            beforeUnbind() {
+                if (this.eventListener !== null) {
+                    this.eventListener.dispose();
+                }
+            }
+            valueChanged() {
+                this.updateValue();
+            }
+            updateValue() {
+                this.element.setAttribute('href', this.value);
+            }
+            hasGoto() {
+                const parent = this.$controller.parent;
+                const siblings = parent.children;
+                return siblings !== void 0
+                    && siblings.some(c => c.vmKind === 1 /* customAttribute */ && c.viewModel instanceof configuration_1.GotoCustomAttribute);
+            }
+        };
+        __decorate([
+            runtime_1.bindable({ mode: runtime_1.BindingMode.toView }),
+            __metadata("design:type", Object)
+        ], HrefCustomAttribute.prototype, "value", void 0);
+        HrefCustomAttribute = __decorate([
+            runtime_1.customAttribute({
+                name: 'href',
+                noMultiBindings: true
+            }),
+            __param(0, runtime_1.IDOM),
+            __param(1, runtime_1.INode),
+            __param(2, router_1.IRouter),
+            __param(3, runtime_html_1.IEventManager),
+            __metadata("design:paramtypes", [Object, Object, Object, Object])
+        ], HrefCustomAttribute);
+        return HrefCustomAttribute;
+    })();
     exports.HrefCustomAttribute = HrefCustomAttribute;
 });
 //# sourceMappingURL=href.js.map

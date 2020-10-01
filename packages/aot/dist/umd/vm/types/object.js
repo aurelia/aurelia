@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$Object = void 0;
     const _shared_1 = require("./_shared");
     const property_descriptor_1 = require("./property-descriptor");
     const operations_1 = require("../operations");

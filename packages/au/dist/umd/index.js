@@ -9,11 +9,12 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.AuConfigurationOptions = void 0;
     const debug_1 = require("@aurelia/debug");
     const fs_1 = require("fs");
     const path_1 = require("path");
     const au_configuration_options_1 = require("./au-configuration-options");
-    exports.AuConfigurationOptions = au_configuration_options_1.AuConfigurationOptions;
+    Object.defineProperty(exports, "AuConfigurationOptions", { enumerable: true, get: function () { return au_configuration_options_1.AuConfigurationOptions; } });
     const dev_server_1 = require("./dev-server");
     class ParsedArgs {
         constructor(cmd, configuration, unknownCommand = undefined, unconsumedArgs = []) {

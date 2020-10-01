@@ -18,7 +18,7 @@ export class InstructionResolver {
             action: '.',
         };
     }
-    activate(options) {
+    start(options) {
         options = options || {};
         this.separators = { ...this.separators, ...options.separators };
     }
@@ -55,9 +55,15 @@ export class InstructionResolver {
             : instruction === this.addViewportInstruction;
     }
     createViewportInstruction(component, viewport, parameters, ownsScope = true, nextScopeInstructions = null) {
-        const instruction = new ViewportInstruction(component, viewport, parameters, ownsScope, nextScopeInstructions);
-        instruction.setInstructionResolver(this);
-        return instruction;
+        if (component instanceof Promise) {
+            return component.then((resolvedComponent) => {
+                return this.createViewportInstruction(resolvedComponent, viewport, parameters, ownsScope, nextScopeInstructions);
+            });
+        }
+        // const instruction: ViewportInstruction = new ViewportInstruction(component, viewport, parameters, ownsScope, nextScopeInstructions);
+        // instruction.setInstructionResolver(this);
+        // return instruction;
+        return ViewportInstruction.create(this, component, viewport, parameters, ownsScope, nextScopeInstructions);
     }
     parseViewportInstructions(instructions) {
         const match = /^[./]+/.exec(instructions);
@@ -80,12 +86,15 @@ export class InstructionResolver {
         return this.createViewportInstruction('');
     }
     stringifyViewportInstructions(instructions, excludeViewport = false, viewportContext = false) {
-        return instructions
-            .map(instruction => this.stringifyViewportInstruction(instruction, excludeViewport, viewportContext))
-            .filter(instruction => instruction && instruction.length)
-            .join(this.separators.sibling);
+        return typeof (instructions) === 'string'
+            ? instructions
+            : instructions
+                .map(instruction => this.stringifyViewportInstruction(instruction, excludeViewport, viewportContext))
+                .filter(instruction => instruction && instruction.length)
+                .join(this.separators.sibling);
     }
     stringifyViewportInstruction(instruction, excludeViewport = false, viewportContext = false) {
+        var _a;
         if (typeof instruction === 'string') {
             return this.stringifyAViewportInstruction(instruction, excludeViewport);
         }
@@ -106,7 +115,7 @@ export class InstructionResolver {
                     excludeCurrentViewport = true;
                 }
             }
-            const route = instruction.route;
+            let route = (_a = instruction.route) !== null && _a !== void 0 ? _a : null;
             const nextInstructions = instruction.nextScopeInstructions;
             let stringified = instruction.context;
             // It's a configured route
@@ -117,6 +126,7 @@ export class InstructionResolver {
                         ? this.stringifyViewportInstructions(nextInstructions, excludeViewport, viewportContext)
                         : '';
                 }
+                route = route.matching;
                 stringified += route.endsWith(this.separators.scope) ? route.slice(0, -this.separators.scope.length) : route;
             }
             else {
@@ -183,9 +193,14 @@ export class InstructionResolver {
         return flat;
     }
     cloneViewportInstructions(instructions, keepInstances = false, context = false) {
+        var _a, _b, _c;
         const clones = [];
         for (const instruction of instructions) {
-            const clone = this.createViewportInstruction((keepInstances ? instruction.componentInstance : null) || instruction.componentType || instruction.componentName, keepInstances ? instruction.viewport || instruction.viewportName : instruction.viewportName, instruction.typedParameters !== null ? instruction.typedParameters : void 0);
+            const clone = this.createViewportInstruction(instruction.componentName, instruction.viewportName, instruction.typedParameters !== null ? instruction.typedParameters : void 0);
+            if (keepInstances) {
+                clone.setComponent((_b = (_a = instruction.componentInstance) !== null && _a !== void 0 ? _a : instruction.componentType) !== null && _b !== void 0 ? _b : instruction.componentName);
+                clone.setViewport((_c = instruction.viewport) !== null && _c !== void 0 ? _c : instruction.viewportName);
+            }
             clone.needsViewportDescribed = instruction.needsViewportDescribed;
             clone.route = instruction.route;
             if (context) {

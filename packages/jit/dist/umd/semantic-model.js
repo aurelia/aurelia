@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.TextSymbol = exports.PlainElementSymbol = exports.LetElementSymbol = exports.CustomElementSymbol = exports.BindingSymbol = exports.PlainAttributeSymbol = exports.CustomAttributeSymbol = exports.ReplacePartSymbol = exports.TemplateControllerSymbol = exports.SymbolFlags = void 0;
     var SymbolFlags;
     (function (SymbolFlags) {
         SymbolFlags[SymbolFlags["type"] = 511] = "type";

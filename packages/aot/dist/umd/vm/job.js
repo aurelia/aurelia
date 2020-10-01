@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.JobQueue = exports.Job = void 0;
     const empty_1 = require("./types/empty");
     // http://www.ecma-international.org/ecma-262/#table-25
     class Job {

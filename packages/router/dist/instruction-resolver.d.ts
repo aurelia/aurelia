@@ -1,26 +1,9 @@
 import { ComponentParameters, ComponentAppellation, ViewportHandle } from './interfaces';
 import { ViewportInstruction } from './viewport-instruction';
 import { Scope } from './scope';
+import { IRouteSeparators, ISeparators } from './router-options';
 export interface IInstructionResolverOptions {
     separators?: IRouteSeparators;
-}
-export interface IRouteSeparators extends Partial<ISeparators> {
-}
-interface ISeparators {
-    viewport: string;
-    sibling: string;
-    scope: string;
-    scopeStart: string;
-    scopeEnd: string;
-    noScope: string;
-    parameters: string;
-    parametersEnd: string;
-    parameterSeparator: string;
-    parameterKeySeparator: string;
-    parameter?: string;
-    add: string;
-    clear: string;
-    action: string;
 }
 export interface IComponentParameter {
     key?: string | undefined;
@@ -28,7 +11,7 @@ export interface IComponentParameter {
 }
 export declare class InstructionResolver {
     separators: ISeparators;
-    activate(options?: IInstructionResolverOptions): void;
+    start(options?: IInstructionResolverOptions): void;
     get clearViewportInstruction(): string;
     get addViewportInstruction(): string;
     isClearViewportInstruction(instruction: string | ViewportInstruction): boolean;
@@ -36,10 +19,10 @@ export declare class InstructionResolver {
     isClearViewportScopeInstruction(instruction: string | ViewportInstruction): boolean;
     isClearAllViewportsInstruction(instruction: string | ViewportInstruction): boolean;
     isAddAllViewportsInstruction(instruction: string | ViewportInstruction): boolean;
-    createViewportInstruction(component: ComponentAppellation, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope?: boolean, nextScopeInstructions?: ViewportInstruction[] | null): ViewportInstruction;
+    createViewportInstruction(component: ComponentAppellation | Promise<ComponentAppellation>, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope?: boolean, nextScopeInstructions?: ViewportInstruction[] | null): ViewportInstruction | Promise<ViewportInstruction>;
     parseViewportInstructions(instructions: string): ViewportInstruction[];
     parseViewportInstruction(instruction: string): ViewportInstruction;
-    stringifyViewportInstructions(instructions: ViewportInstruction[], excludeViewport?: boolean, viewportContext?: boolean): string;
+    stringifyViewportInstructions(instructions: ViewportInstruction[] | string, excludeViewport?: boolean, viewportContext?: boolean): string;
     stringifyViewportInstruction(instruction: ViewportInstruction | string, excludeViewport?: boolean, viewportContext?: boolean): string;
     stringifyScopedViewportInstructions(instructions: ViewportInstruction | string | (ViewportInstruction | string)[]): string;
     encodeViewportInstructions(instructions: ViewportInstruction[]): string;
@@ -61,5 +44,4 @@ export declare class InstructionResolver {
     private parseAViewportInstruction;
     private stringifyAViewportInstruction;
 }
-export {};
 //# sourceMappingURL=instruction-resolver.d.ts.map

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$NumberPrototype = exports.$NumberConstructor = void 0;
     const function_1 = require("../types/function");
     const number_1 = require("../types/number");
     const object_1 = require("../types/object");

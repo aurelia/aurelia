@@ -12,18 +12,21 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { IViewLocator } from '../../templating/view';
 import { valueConverter } from '../value-converter';
-let ViewValueConverter = class ViewValueConverter {
-    constructor(viewLocator) {
-        this.viewLocator = viewLocator;
-    }
-    toView(object, viewNameOrSelector) {
-        return this.viewLocator.getViewComponentForObject(object, viewNameOrSelector);
-    }
-};
-ViewValueConverter = __decorate([
-    valueConverter('view'),
-    __param(0, IViewLocator),
-    __metadata("design:paramtypes", [Object])
-], ViewValueConverter);
+let ViewValueConverter = /** @class */ (() => {
+    let ViewValueConverter = class ViewValueConverter {
+        constructor(viewLocator) {
+            this.viewLocator = viewLocator;
+        }
+        toView(object, viewNameOrSelector) {
+            return this.viewLocator.getViewComponentForObject(object, viewNameOrSelector);
+        }
+    };
+    ViewValueConverter = __decorate([
+        valueConverter('view'),
+        __param(0, IViewLocator),
+        __metadata("design:paramtypes", [Object])
+    ], ViewValueConverter);
+    return ViewValueConverter;
+})();
 export { ViewValueConverter };
 //# sourceMappingURL=view.js.map

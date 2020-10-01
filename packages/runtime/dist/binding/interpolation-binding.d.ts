@@ -1,6 +1,6 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { IExpression, IInterpolationExpression } from '../ast';
-import { BindingMode, LifecycleFlags, State } from '../flags';
+import { BindingMode, LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
 import { IBindingTargetAccessor, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
@@ -13,13 +13,14 @@ export declare class MultiInterpolationBinding implements IBinding {
     mode: BindingMode;
     locator: IServiceLocator;
     interceptor: this;
-    $state: State;
+    isBound: boolean;
     $scope?: IScope;
     part?: string;
     parts: InterpolationBinding[];
     constructor(observerLocator: IObserverLocator, interpolation: IInterpolationExpression, target: object, targetProperty: string, mode: BindingMode, locator: IServiceLocator);
     $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
     $unbind(flags: LifecycleFlags): void;
+    dispose(): void;
 }
 export interface InterpolationBinding extends IConnectableBinding {
 }
@@ -36,12 +37,13 @@ export declare class InterpolationBinding implements IPartialConnectableBinding 
     id: number;
     $scope?: IScope;
     part?: string;
-    $state: State;
+    isBound: boolean;
     targetObserver: IBindingTargetAccessor;
     constructor(sourceExpression: IExpression, interpolation: IInterpolationExpression, target: object, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
     $unbind(flags: LifecycleFlags): void;
+    dispose(): void;
 }
 //# sourceMappingURL=interpolation-binding.d.ts.map

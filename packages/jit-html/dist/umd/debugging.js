@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.stringifyTemplateDefinition = exports.stringifyInstructions = exports.stringifyDOM = void 0;
     function stringifyDOM(node, depth) {
         const indent = ' '.repeat(depth);
         let output = indent;

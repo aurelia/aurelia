@@ -17,138 +17,142 @@ import { connectable, } from './connectable';
 const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
-let PropertyBinding = class PropertyBinding {
-    constructor(sourceExpression, target, targetProperty, mode, observerLocator, locator) {
-        this.sourceExpression = sourceExpression;
-        this.target = target;
-        this.targetProperty = targetProperty;
-        this.mode = mode;
-        this.observerLocator = observerLocator;
-        this.locator = locator;
-        this.interceptor = this;
-        this.$state = 0 /* none */;
-        this.$scope = void 0;
-        this.targetObserver = void 0;
-        this.persistentFlags = 0 /* none */;
-        connectable.assignIdTo(this);
-        this.$lifecycle = locator.get(ILifecycle);
-    }
-    ;
-    updateTarget(value, flags) {
-        flags |= this.persistentFlags;
-        this.targetObserver.setValue(value, flags);
-    }
-    updateSource(value, flags) {
-        flags |= this.persistentFlags;
-        this.sourceExpression.assign(flags, this.$scope, this.locator, value, this.part);
-    }
-    handleChange(newValue, _previousValue, flags) {
-        if ((this.$state & 4 /* isBound */) === 0) {
-            return;
+let PropertyBinding = /** @class */ (() => {
+    let PropertyBinding = class PropertyBinding {
+        constructor(sourceExpression, target, targetProperty, mode, observerLocator, locator) {
+            this.sourceExpression = sourceExpression;
+            this.target = target;
+            this.targetProperty = targetProperty;
+            this.mode = mode;
+            this.observerLocator = observerLocator;
+            this.locator = locator;
+            this.interceptor = this;
+            this.isBound = false;
+            this.$scope = void 0;
+            this.targetObserver = void 0;
+            this.persistentFlags = 0 /* none */;
+            connectable.assignIdTo(this);
+            this.$lifecycle = locator.get(ILifecycle);
         }
-        flags |= this.persistentFlags;
-        if ((flags & 16 /* updateTargetInstance */) > 0) {
-            const previousValue = this.targetObserver.getValue();
-            // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-            if (this.sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
-                newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
-            }
-            if (newValue !== previousValue) {
-                this.interceptor.updateTarget(newValue, flags);
-            }
-            if ((this.mode & oneTime) === 0) {
-                this.version++;
-                this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
-                this.interceptor.unobserve(false);
-            }
-            return;
+        ;
+        updateTarget(value, flags) {
+            flags |= this.persistentFlags;
+            this.targetObserver.setValue(value, flags);
         }
-        if ((flags & 32 /* updateSourceExpression */) > 0) {
-            if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
-                this.interceptor.updateSource(newValue, flags);
-            }
-            return;
+        updateSource(value, flags) {
+            flags |= this.persistentFlags;
+            this.sourceExpression.assign(flags, this.$scope, this.locator, value, this.part);
         }
-        throw Reporter.error(15, flags);
-    }
-    $bind(flags, scope, part) {
-        if (this.$state & 4 /* isBound */) {
-            if (this.$scope === scope) {
+        handleChange(newValue, _previousValue, flags) {
+            if (!this.isBound) {
                 return;
             }
-            this.interceptor.$unbind(flags | 4096 /* fromBind */);
+            flags |= this.persistentFlags;
+            if ((flags & 8 /* updateTargetInstance */) > 0) {
+                const previousValue = this.targetObserver.getValue();
+                // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
+                if (this.sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
+                    newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
+                }
+                if (newValue !== previousValue) {
+                    this.interceptor.updateTarget(newValue, flags);
+                }
+                if ((this.mode & oneTime) === 0) {
+                    this.version++;
+                    this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
+                    this.interceptor.unobserve(false);
+                }
+                return;
+            }
+            if ((flags & 16 /* updateSourceExpression */) > 0) {
+                if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
+                    this.interceptor.updateSource(newValue, flags);
+                }
+                return;
+            }
+            throw Reporter.error(15, flags);
         }
-        // add isBinding flag
-        this.$state |= 1 /* isBinding */;
-        // Force property binding to always be strict
-        flags |= 4 /* isStrictBindingStrategy */;
-        // Store flags which we can only receive during $bind and need to pass on
-        // to the AST during evaluate/connect/assign
-        this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;
-        this.$scope = scope;
-        this.part = part;
-        let sourceExpression = this.sourceExpression;
-        if (hasBind(sourceExpression)) {
-            sourceExpression.bind(flags, scope, this.interceptor);
-        }
-        let targetObserver = this.targetObserver;
-        if (!targetObserver) {
+        $bind(flags, scope, part) {
+            if (this.isBound) {
+                if (this.$scope === scope) {
+                    return;
+                }
+                this.interceptor.$unbind(flags | 32 /* fromBind */);
+            }
+            // Force property binding to always be strict
+            flags |= 4 /* isStrictBindingStrategy */;
+            // Store flags which we can only receive during $bind and need to pass on
+            // to the AST during evaluate/connect/assign
+            this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+            this.$scope = scope;
+            this.part = part;
+            let sourceExpression = this.sourceExpression;
+            if (hasBind(sourceExpression)) {
+                sourceExpression.bind(flags, scope, this.interceptor);
+            }
+            let targetObserver = this.targetObserver;
+            if (!targetObserver) {
+                if (this.mode & fromView) {
+                    targetObserver = this.targetObserver = this.observerLocator.getObserver(flags, this.target, this.targetProperty);
+                }
+                else {
+                    targetObserver = this.targetObserver = this.observerLocator.getAccessor(flags, this.target, this.targetProperty);
+                }
+            }
+            if (this.mode !== BindingMode.oneTime && targetObserver.bind) {
+                targetObserver.bind(flags);
+            }
+            // during bind, binding behavior might have changed sourceExpression
+            sourceExpression = this.sourceExpression;
+            if (this.mode & toViewOrOneTime) {
+                this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+            }
+            if (this.mode & toView) {
+                sourceExpression.connect(flags, scope, this.interceptor, part);
+            }
             if (this.mode & fromView) {
-                targetObserver = this.targetObserver = this.observerLocator.getObserver(flags, this.target, this.targetProperty);
+                targetObserver.subscribe(this.interceptor);
+                if ((this.mode & toView) === 0) {
+                    this.interceptor.updateSource(targetObserver.getValue(), flags);
+                }
+                targetObserver[this.id] |= 16 /* updateSourceExpression */;
             }
-            else {
-                targetObserver = this.targetObserver = this.observerLocator.getAccessor(flags, this.target, this.targetProperty);
+            // add isBound flag and remove isBinding flag
+            this.isBound = true;
+        }
+        $unbind(flags) {
+            if (!this.isBound) {
+                return;
             }
-        }
-        if (this.mode !== BindingMode.oneTime && targetObserver.bind) {
-            targetObserver.bind(flags);
-        }
-        // during bind, binding behavior might have changed sourceExpression
-        sourceExpression = this.sourceExpression;
-        if (this.mode & toViewOrOneTime) {
-            this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
-        }
-        if (this.mode & toView) {
-            sourceExpression.connect(flags, scope, this.interceptor, part);
-        }
-        if (this.mode & fromView) {
-            targetObserver.subscribe(this.interceptor);
-            if ((this.mode & toView) === 0) {
-                this.interceptor.updateSource(targetObserver.getValue(), flags);
+            // clear persistent flags
+            this.persistentFlags = 0 /* none */;
+            if (hasUnbind(this.sourceExpression)) {
+                this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
             }
-            targetObserver[this.id] |= 32 /* updateSourceExpression */;
+            this.$scope = void 0;
+            if (this.targetObserver.unbind) {
+                this.targetObserver.unbind(flags);
+            }
+            if (this.targetObserver.unsubscribe) {
+                this.targetObserver.unsubscribe(this.interceptor);
+                this.targetObserver[this.id] &= ~16 /* updateSourceExpression */;
+            }
+            this.interceptor.unobserve(true);
+            this.isBound = false;
         }
-        // add isBound flag and remove isBinding flag
-        this.$state |= 4 /* isBound */;
-        this.$state &= ~1 /* isBinding */;
-    }
-    $unbind(flags) {
-        if (!(this.$state & 4 /* isBound */)) {
-            return;
+        dispose() {
+            this.interceptor = (void 0);
+            this.sourceExpression = (void 0);
+            this.locator = (void 0);
+            this.targetObserver = (void 0);
+            this.target = (void 0);
         }
-        // add isUnbinding flag
-        this.$state |= 2 /* isUnbinding */;
-        // clear persistent flags
-        this.persistentFlags = 0 /* none */;
-        if (hasUnbind(this.sourceExpression)) {
-            this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
-        }
-        this.$scope = void 0;
-        if (this.targetObserver.unbind) {
-            this.targetObserver.unbind(flags);
-        }
-        if (this.targetObserver.unsubscribe) {
-            this.targetObserver.unsubscribe(this.interceptor);
-            this.targetObserver[this.id] &= ~32 /* updateSourceExpression */;
-        }
-        this.interceptor.unobserve(true);
-        // remove isBound and isUnbinding flags
-        this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
-    }
-};
-PropertyBinding = __decorate([
-    connectable(),
-    __metadata("design:paramtypes", [Object, Object, String, Number, Object, Object])
-], PropertyBinding);
+    };
+    PropertyBinding = __decorate([
+        connectable(),
+        __metadata("design:paramtypes", [Object, Object, String, Number, Object, Object])
+    ], PropertyBinding);
+    return PropertyBinding;
+})();
 export { PropertyBinding };
 //# sourceMappingURL=property-binding.js.map

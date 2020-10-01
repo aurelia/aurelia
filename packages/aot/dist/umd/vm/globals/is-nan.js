@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$IsNaN = void 0;
     const function_1 = require("../types/function");
     // http://www.ecma-international.org/ecma-262/#sec-isnan-number
     // 18.2.3 isNaN ( number )

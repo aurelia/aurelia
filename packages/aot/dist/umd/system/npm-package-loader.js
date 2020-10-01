@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.NPMPackageDependency = exports.NPMPackage = exports.NPMPackageLoader = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const interfaces_1 = require("./interfaces");
     const path_utils_1 = require("./path-utils");

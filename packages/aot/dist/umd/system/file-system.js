@@ -21,6 +21,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.NodeFileSystem = exports.File = void 0;
     const fs_1 = require("fs");
     const path_1 = require("path");
     const kernel_1 = require("@aurelia/kernel");
@@ -150,282 +151,285 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             return tick.current;
         }
     };
-    let NodeFileSystem = class NodeFileSystem {
-        constructor(logger) {
-            this.logger = logger;
-            this.childrenCache = new Map();
-            this.realPathCache = new Map();
-            this.contentCache = new Map();
-            this.pendingReads = 0;
-            this.maxConcurrentReads = 0;
-            this.logger = logger.scopeTo(this.constructor.name);
-            this.logger.info('constructor');
-        }
-        async realpath(path) {
-            this.logger.trace(`realpath(path: ${path})`);
-            return realpath(path);
-        }
-        realpathSync(path) {
-            this.logger.trace(`realpathSync(path: ${path})`);
-            return fs_1.realpathSync(path);
-        }
-        async readdir(path, withFileTypes) {
-            this.logger.trace(`readdir(path: ${path}, withFileTypes: ${withFileTypes})`);
-            if (withFileTypes === true) {
-                return readdir(path, { withFileTypes: true });
+    let NodeFileSystem = /** @class */ (() => {
+        let NodeFileSystem = class NodeFileSystem {
+            constructor(logger) {
+                this.logger = logger;
+                this.childrenCache = new Map();
+                this.realPathCache = new Map();
+                this.contentCache = new Map();
+                this.pendingReads = 0;
+                this.maxConcurrentReads = 0;
+                this.logger = logger.scopeTo(this.constructor.name);
+                this.logger.info('constructor');
             }
-            return readdir(path);
-        }
-        readdirSync(path, withFileTypes) {
-            this.logger.trace(`readdirSync(path: ${path}, withFileTypes: ${withFileTypes})`);
-            if (withFileTypes === true) {
-                return fs_1.readdirSync(path, { withFileTypes: true });
+            async realpath(path) {
+                this.logger.trace(`realpath(path: ${path})`);
+                return realpath(path);
             }
-            return fs_1.readdirSync(path);
-        }
-        async mkdir(path) {
-            this.logger.trace(`mkdir(path: ${path})`);
-            return mkdir(path, { recursive: true });
-        }
-        mkdirSync(path) {
-            this.logger.trace(`mkdirSync(path: ${path})`);
-            fs_1.mkdirSync(path, { recursive: true });
-        }
-        async isReadable(path) {
-            this.logger.trace(`isReadable(path: ${path})`);
-            try {
-                await access(path, fs_1.constants.F_OK);
-                return true;
+            realpathSync(path) {
+                this.logger.trace(`realpathSync(path: ${path})`);
+                return fs_1.realpathSync(path);
             }
-            catch (err) {
-                return false;
+            async readdir(path, withFileTypes) {
+                this.logger.trace(`readdir(path: ${path}, withFileTypes: ${withFileTypes})`);
+                if (withFileTypes === true) {
+                    return readdir(path, { withFileTypes: true });
+                }
+                return readdir(path);
             }
-        }
-        isReadableSync(path) {
-            this.logger.trace(`isReadableSync(path: ${path})`);
-            try {
-                fs_1.accessSync(path, fs_1.constants.F_OK);
-                return true;
+            readdirSync(path, withFileTypes) {
+                this.logger.trace(`readdirSync(path: ${path}, withFileTypes: ${withFileTypes})`);
+                if (withFileTypes === true) {
+                    return fs_1.readdirSync(path, { withFileTypes: true });
+                }
+                return fs_1.readdirSync(path);
             }
-            catch (err) {
-                return false;
+            async mkdir(path) {
+                this.logger.trace(`mkdir(path: ${path})`);
+                return mkdir(path, { recursive: true });
             }
-        }
-        async fileExists(path) {
-            this.logger.trace(`fileExists(path: ${path})`);
-            try {
-                return (await stat(path)).isFile();
+            mkdirSync(path) {
+                this.logger.trace(`mkdirSync(path: ${path})`);
+                fs_1.mkdirSync(path, { recursive: true });
             }
-            catch (err) {
-                return false;
-            }
-        }
-        fileExistsSync(path) {
-            this.logger.trace(`fileExistsSync(path: ${path})`);
-            try {
-                return fs_1.statSync(path).isFile();
-            }
-            catch (err) {
-                return false;
-            }
-        }
-        async stat(path) {
-            this.logger.trace(`stat(path: ${path})`);
-            return stat(path);
-        }
-        statSync(path) {
-            this.logger.trace(`statSync(path: ${path})`);
-            return fs_1.statSync(path);
-        }
-        async lstat(path) {
-            this.logger.trace(`lstat(path: ${path})`);
-            return lstat(path);
-        }
-        lstatSync(path) {
-            this.logger.trace(`lstatSync(path: ${path})`);
-            return fs_1.lstatSync(path);
-        }
-        async readFile(path, encoding, cache = false, force = false) {
-            this.logger.trace(`readFile(path: ${path}, encoding: ${encoding}, cache: ${cache}, force: ${force})`);
-            const contentCache = this.contentCache;
-            let content = contentCache.get(path);
-            if (content === void 0 || force) {
+            async isReadable(path) {
+                this.logger.trace(`isReadable(path: ${path})`);
                 try {
-                    while (this.maxConcurrentReads > 0 && this.maxConcurrentReads < this.pendingReads) {
-                        // eslint-disable-next-line no-await-in-loop
-                        await tick.wait();
-                    }
-                    ++this.pendingReads;
-                    content = await readFile(path, encoding);
-                    --this.pendingReads;
+                    await access(path, fs_1.constants.F_OK);
+                    return true;
                 }
                 catch (err) {
-                    if (err.code === 'EMFILE') {
+                    return false;
+                }
+            }
+            isReadableSync(path) {
+                this.logger.trace(`isReadableSync(path: ${path})`);
+                try {
+                    fs_1.accessSync(path, fs_1.constants.F_OK);
+                    return true;
+                }
+                catch (err) {
+                    return false;
+                }
+            }
+            async fileExists(path) {
+                this.logger.trace(`fileExists(path: ${path})`);
+                try {
+                    return (await stat(path)).isFile();
+                }
+                catch (err) {
+                    return false;
+                }
+            }
+            fileExistsSync(path) {
+                this.logger.trace(`fileExistsSync(path: ${path})`);
+                try {
+                    return fs_1.statSync(path).isFile();
+                }
+                catch (err) {
+                    return false;
+                }
+            }
+            async stat(path) {
+                this.logger.trace(`stat(path: ${path})`);
+                return stat(path);
+            }
+            statSync(path) {
+                this.logger.trace(`statSync(path: ${path})`);
+                return fs_1.statSync(path);
+            }
+            async lstat(path) {
+                this.logger.trace(`lstat(path: ${path})`);
+                return lstat(path);
+            }
+            lstatSync(path) {
+                this.logger.trace(`lstatSync(path: ${path})`);
+                return fs_1.lstatSync(path);
+            }
+            async readFile(path, encoding, cache = false, force = false) {
+                this.logger.trace(`readFile(path: ${path}, encoding: ${encoding}, cache: ${cache}, force: ${force})`);
+                const contentCache = this.contentCache;
+                let content = contentCache.get(path);
+                if (content === void 0 || force) {
+                    try {
+                        while (this.maxConcurrentReads > 0 && this.maxConcurrentReads < this.pendingReads) {
+                            // eslint-disable-next-line no-await-in-loop
+                            await tick.wait();
+                        }
+                        ++this.pendingReads;
+                        content = await readFile(path, encoding);
                         --this.pendingReads;
-                        this.maxConcurrentReads = this.pendingReads;
-                        await tick.wait();
-                        // eslint-disable-next-line @typescript-eslint/return-await
-                        return this.readFile(path, encoding, cache, force);
                     }
-                    throw err;
+                    catch (err) {
+                        if (err.code === 'EMFILE') {
+                            --this.pendingReads;
+                            this.maxConcurrentReads = this.pendingReads;
+                            await tick.wait();
+                            // eslint-disable-next-line @typescript-eslint/return-await
+                            return this.readFile(path, encoding, cache, force);
+                        }
+                        throw err;
+                    }
+                    if (cache) {
+                        contentCache.set(path, content);
+                    }
                 }
-                if (cache) {
-                    contentCache.set(path, content);
+                return content;
+            }
+            readFileSync(path, encoding, cache = false, force = false) {
+                this.logger.trace(`readFileSync(path: ${path}, encoding: ${encoding}, cache: ${cache}, force: ${force})`);
+                const contentCache = this.contentCache;
+                let content = contentCache.get(path);
+                if (content === void 0 || force) {
+                    content = fs_1.readFileSync(path, encoding);
+                    if (cache) {
+                        contentCache.set(path, content);
+                    }
+                }
+                return content;
+            }
+            async ensureDir(path) {
+                this.logger.trace(`ensureDir(path: ${path})`);
+                if (await new Promise(res => { fs_1.exists(path, res); })) {
+                    return;
+                }
+                return this.mkdir(path);
+            }
+            ensureDirSync(path) {
+                this.logger.trace(`ensureDirSync(path: ${path})`);
+                if (fs_1.existsSync(path)) {
+                    return;
+                }
+                this.mkdirSync(path);
+            }
+            async writeFile(path, content, encoding) {
+                this.logger.trace(`writeFile(path: ${path}, content: ${content}, encoding: ${encoding})`);
+                await this.ensureDir(path_1.dirname(path));
+                return writeFile(path, content, { encoding });
+            }
+            writeFileSync(path, content, encoding) {
+                this.logger.trace(`readFileSync(path: ${path}, content: ${content}, encoding: ${encoding})`);
+                this.ensureDirSync(path_1.dirname(path));
+                fs_1.writeFileSync(path, content, encoding);
+            }
+            async rimraf(path) {
+                this.logger.trace(`rimraf(path: ${path})`);
+                try {
+                    const stats = await lstat(path);
+                    if (stats.isDirectory()) {
+                        await Promise.all((await readdir(path)).map(async (x) => this.rimraf(path_1.join(path, x))));
+                        await rmdir(path);
+                    }
+                    else if (stats.isFile() || stats.isSymbolicLink()) {
+                        await unlink(path);
+                    }
+                }
+                catch (err) {
+                    this.logger.error(`rimraf failed`, err);
                 }
             }
-            return content;
-        }
-        readFileSync(path, encoding, cache = false, force = false) {
-            this.logger.trace(`readFileSync(path: ${path}, encoding: ${encoding}, cache: ${cache}, force: ${force})`);
-            const contentCache = this.contentCache;
-            let content = contentCache.get(path);
-            if (content === void 0 || force) {
-                content = fs_1.readFileSync(path, encoding);
-                if (cache) {
-                    contentCache.set(path, content);
+            async getRealPath(path) {
+                path = path_utils_1.normalizePath(path);
+                const realPathCache = this.realPathCache;
+                let real = realPathCache.get(path);
+                if (real === void 0) {
+                    real = path_utils_1.normalizePath(await realpath(path));
+                    realPathCache.set(path, real);
                 }
+                return real;
             }
-            return content;
-        }
-        async ensureDir(path) {
-            this.logger.trace(`ensureDir(path: ${path})`);
-            if (await new Promise(res => { fs_1.exists(path, res); })) {
-                return;
-            }
-            return this.mkdir(path);
-        }
-        ensureDirSync(path) {
-            this.logger.trace(`ensureDirSync(path: ${path})`);
-            if (fs_1.existsSync(path)) {
-                return;
-            }
-            this.mkdirSync(path);
-        }
-        async writeFile(path, content, encoding) {
-            this.logger.trace(`writeFile(path: ${path}, content: ${content}, encoding: ${encoding})`);
-            await this.ensureDir(path_1.dirname(path));
-            return writeFile(path, content, { encoding });
-        }
-        writeFileSync(path, content, encoding) {
-            this.logger.trace(`readFileSync(path: ${path}, content: ${content}, encoding: ${encoding})`);
-            this.ensureDirSync(path_1.dirname(path));
-            fs_1.writeFileSync(path, content, encoding);
-        }
-        async rimraf(path) {
-            this.logger.trace(`rimraf(path: ${path})`);
-            try {
-                const stats = await lstat(path);
-                if (stats.isDirectory()) {
-                    await Promise.all((await readdir(path)).map(async (x) => this.rimraf(path_1.join(path, x))));
-                    await rmdir(path);
+            getRealPathSync(path) {
+                path = path_utils_1.normalizePath(path);
+                const realPathCache = this.realPathCache;
+                let real = realPathCache.get(path);
+                if (real === void 0) {
+                    real = path_utils_1.normalizePath(fs_1.realpathSync(path));
+                    realPathCache.set(path, real);
                 }
-                else if (stats.isFile() || stats.isSymbolicLink()) {
-                    await unlink(path);
+                return real;
+            }
+            async getChildren(path) {
+                const childrenCache = this.childrenCache;
+                let children = childrenCache.get(path);
+                if (children === void 0) {
+                    children = (await readdir(path)).filter(shouldTraverse);
+                    childrenCache.set(path, children);
                 }
+                return children;
             }
-            catch (err) {
-                this.logger.error(`rimraf failed`, err);
+            getChildrenSync(path) {
+                const childrenCache = this.childrenCache;
+                let children = childrenCache.get(path);
+                if (children === void 0) {
+                    children = fs_1.readdirSync(path).filter(shouldTraverse);
+                    childrenCache.set(path, children);
+                }
+                return children;
             }
-        }
-        async getRealPath(path) {
-            path = path_utils_1.normalizePath(path);
-            const realPathCache = this.realPathCache;
-            let real = realPathCache.get(path);
-            if (real === void 0) {
-                real = path_utils_1.normalizePath(await realpath(path));
-                realPathCache.set(path, real);
-            }
-            return real;
-        }
-        getRealPathSync(path) {
-            path = path_utils_1.normalizePath(path);
-            const realPathCache = this.realPathCache;
-            let real = realPathCache.get(path);
-            if (real === void 0) {
-                real = path_utils_1.normalizePath(fs_1.realpathSync(path));
-                realPathCache.set(path, real);
-            }
-            return real;
-        }
-        async getChildren(path) {
-            const childrenCache = this.childrenCache;
-            let children = childrenCache.get(path);
-            if (children === void 0) {
-                children = (await readdir(path)).filter(shouldTraverse);
-                childrenCache.set(path, children);
-            }
-            return children;
-        }
-        getChildrenSync(path) {
-            const childrenCache = this.childrenCache;
-            let children = childrenCache.get(path);
-            if (children === void 0) {
-                children = fs_1.readdirSync(path).filter(shouldTraverse);
-                childrenCache.set(path, children);
-            }
-            return children;
-        }
-        async getFiles(root, loadContent = false) {
-            const files = [];
-            const seen = {};
-            const walk = async (dir, name) => {
-                const path = await this.getRealPath(path_utils_1.joinPath(dir, name));
-                if (seen[path] === void 0) {
-                    seen[path] = true;
-                    const stats = await stat(path);
-                    if (stats.isFile()) {
-                        const ext = File.getExtension(path);
-                        if (ext !== void 0) {
-                            const rootlessPath = path.slice(path_1.dirname(root).length);
-                            const shortName = name.slice(0, -ext.length);
-                            const file = new File(this, path, dir, rootlessPath, name, shortName, ext);
-                            if (loadContent) {
-                                await this.readFile(path, "utf8" /* utf8 */, true);
+            async getFiles(root, loadContent = false) {
+                const files = [];
+                const seen = {};
+                const walk = async (dir, name) => {
+                    const path = await this.getRealPath(path_utils_1.joinPath(dir, name));
+                    if (seen[path] === void 0) {
+                        seen[path] = true;
+                        const stats = await stat(path);
+                        if (stats.isFile()) {
+                            const ext = File.getExtension(path);
+                            if (ext !== void 0) {
+                                const rootlessPath = path.slice(path_1.dirname(root).length);
+                                const shortName = name.slice(0, -ext.length);
+                                const file = new File(this, path, dir, rootlessPath, name, shortName, ext);
+                                if (loadContent) {
+                                    await this.readFile(path, "utf8" /* utf8 */, true);
+                                }
+                                files.push(file);
                             }
-                            files.push(file);
+                        }
+                        else if (stats.isDirectory()) {
+                            await Promise.all((await this.getChildren(path)).map(async (x) => walk(path, x)));
                         }
                     }
-                    else if (stats.isDirectory()) {
-                        await Promise.all((await this.getChildren(path)).map(async (x) => walk(path, x)));
-                    }
-                }
-            };
-            await Promise.all((await this.getChildren(root)).map(async (x) => walk(root, x)));
-            return files.sort(compareFilePath);
-        }
-        getFilesSync(root, loadContent = false) {
-            const files = [];
-            const seen = {};
-            const walk = (dir, name) => {
-                const path = this.getRealPathSync(path_utils_1.joinPath(dir, name));
-                if (seen[path] === void 0) {
-                    seen[path] = true;
-                    const stats = fs_1.statSync(path);
-                    if (stats.isFile()) {
-                        const ext = File.getExtension(path);
-                        if (ext !== void 0) {
-                            const rootlessPath = path.slice(path_1.dirname(root).length);
-                            const shortName = name.slice(0, -ext.length);
-                            const file = new File(this, path, dir, rootlessPath, name, shortName, ext);
-                            if (loadContent) {
-                                this.readFileSync(path, "utf8" /* utf8 */, true);
+                };
+                await Promise.all((await this.getChildren(root)).map(async (x) => walk(root, x)));
+                return files.sort(compareFilePath);
+            }
+            getFilesSync(root, loadContent = false) {
+                const files = [];
+                const seen = {};
+                const walk = (dir, name) => {
+                    const path = this.getRealPathSync(path_utils_1.joinPath(dir, name));
+                    if (seen[path] === void 0) {
+                        seen[path] = true;
+                        const stats = fs_1.statSync(path);
+                        if (stats.isFile()) {
+                            const ext = File.getExtension(path);
+                            if (ext !== void 0) {
+                                const rootlessPath = path.slice(path_1.dirname(root).length);
+                                const shortName = name.slice(0, -ext.length);
+                                const file = new File(this, path, dir, rootlessPath, name, shortName, ext);
+                                if (loadContent) {
+                                    this.readFileSync(path, "utf8" /* utf8 */, true);
+                                }
+                                files.push(file);
                             }
-                            files.push(file);
+                        }
+                        else if (stats.isDirectory()) {
+                            this.getChildrenSync(path).forEach(x => { walk(path, x); });
                         }
                     }
-                    else if (stats.isDirectory()) {
-                        this.getChildrenSync(path).forEach(x => { walk(path, x); });
-                    }
-                }
-            };
-            this.getChildrenSync(root).forEach(x => { walk(root, x); });
-            return files.sort(compareFilePath);
-        }
-    };
-    NodeFileSystem = __decorate([
-        __param(0, kernel_1.ILogger),
-        __metadata("design:paramtypes", [Object])
-    ], NodeFileSystem);
+                };
+                this.getChildrenSync(root).forEach(x => { walk(root, x); });
+                return files.sort(compareFilePath);
+            }
+        };
+        NodeFileSystem = __decorate([
+            __param(0, kernel_1.ILogger),
+            __metadata("design:paramtypes", [Object])
+        ], NodeFileSystem);
+        return NodeFileSystem;
+    })();
     exports.NodeFileSystem = NodeFileSystem;
 });
 //# sourceMappingURL=file-system.js.map

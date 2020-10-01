@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.isHTMLTargetedInstruction = exports.HTMLTargetedInstructionType = void 0;
     var HTMLTargetedInstructionType;
     (function (HTMLTargetedInstructionType) {
         HTMLTargetedInstructionType["textBinding"] = "ha";

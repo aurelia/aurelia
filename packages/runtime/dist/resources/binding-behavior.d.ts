@@ -1,5 +1,5 @@
 import { Constructable, IContainer, ResourceDefinition, IResourceKind, ResourceType, PartialResourceDefinition, IServiceLocator } from '@aurelia/kernel';
-import { LifecycleFlags, State } from '../flags';
+import { LifecycleFlags } from '../flags';
 import { IScope, ISubscribable, IProxySubscribable } from '../observation';
 import { IBinding } from '../lifecycle';
 import { IConnectableBinding } from '../binding/connectable';
@@ -69,7 +69,7 @@ export declare class BindingInterceptor implements IInterceptableBinding {
     get locator(): IServiceLocator;
     get $scope(): IScope | undefined;
     get part(): string | undefined;
-    get $state(): State;
+    get isBound(): boolean;
     constructor(binding: IInterceptableBinding, expr: IBindingBehaviorExpression);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;

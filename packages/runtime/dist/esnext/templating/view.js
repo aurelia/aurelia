@@ -4,70 +4,73 @@ import { CustomElement, CustomElementDefinition } from '../resources/custom-elem
 import { Controller } from './controller';
 import { mergeParts } from '../definitions';
 import { getRenderContext } from './render-context';
-export class ViewFactory {
-    constructor(name, context, lifecycle, parts) {
-        this.name = name;
-        this.context = context;
-        this.lifecycle = lifecycle;
-        this.parts = parts;
-        this.isCaching = false;
-        this.cache = null;
-        this.cacheSize = -1;
-    }
-    setCacheSize(size, doNotOverrideIfAlreadySet) {
-        if (size) {
-            if (size === '*') {
-                size = ViewFactory.maxCacheSize;
-            }
-            else if (typeof size === 'string') {
-                size = parseInt(size, 10);
-            }
-            if (this.cacheSize === -1 || !doNotOverrideIfAlreadySet) {
-                this.cacheSize = size;
-            }
-        }
-        if (this.cacheSize > 0) {
-            this.cache = [];
-        }
-        else {
+let ViewFactory = /** @class */ (() => {
+    class ViewFactory {
+        constructor(name, context, lifecycle, parts) {
+            this.name = name;
+            this.context = context;
+            this.lifecycle = lifecycle;
+            this.parts = parts;
+            this.isCaching = false;
             this.cache = null;
+            this.cacheSize = -1;
         }
-        this.isCaching = this.cacheSize > 0;
-    }
-    canReturnToCache(controller) {
-        return this.cache != null && this.cache.length < this.cacheSize;
-    }
-    tryReturnToCache(controller) {
-        if (this.canReturnToCache(controller)) {
-            controller.cache(0 /* none */);
-            this.cache.push(controller);
-            return true;
+        setCacheSize(size, doNotOverrideIfAlreadySet) {
+            if (size) {
+                if (size === '*') {
+                    size = ViewFactory.maxCacheSize;
+                }
+                else if (typeof size === 'string') {
+                    size = parseInt(size, 10);
+                }
+                if (this.cacheSize === -1 || !doNotOverrideIfAlreadySet) {
+                    this.cacheSize = size;
+                }
+            }
+            if (this.cacheSize > 0) {
+                this.cache = [];
+            }
+            else {
+                this.cache = null;
+            }
+            this.isCaching = this.cacheSize > 0;
         }
-        return false;
-    }
-    create(flags) {
-        const cache = this.cache;
-        let controller;
-        if (cache != null && cache.length > 0) {
-            controller = cache.pop();
+        canReturnToCache(controller) {
+            return this.cache != null && this.cache.length < this.cacheSize;
+        }
+        tryReturnToCache(controller) {
+            if (this.canReturnToCache(controller)) {
+                this.cache.push(controller);
+                return true;
+            }
+            return false;
+        }
+        create(flags) {
+            const cache = this.cache;
+            let controller;
+            if (cache != null && cache.length > 0) {
+                controller = cache.pop();
+                return controller;
+            }
+            controller = Controller.forSyntheticView(this, this.lifecycle, this.context, flags);
             return controller;
         }
-        controller = Controller.forSyntheticView(this, this.lifecycle, this.context, flags);
-        return controller;
-    }
-    resolve(requestor, parts) {
-        parts = mergeParts(this.parts, parts);
-        if (parts === void 0) {
-            return this;
+        resolve(requestor, parts) {
+            parts = mergeParts(this.parts, parts);
+            if (parts === void 0) {
+                return this;
+            }
+            const part = parts[this.name];
+            if (part === void 0) {
+                return this;
+            }
+            return getRenderContext(part, requestor, parts).getViewFactory(this.name);
         }
-        const part = parts[this.name];
-        if (part === void 0) {
-            return this;
-        }
-        return getRenderContext(part, requestor, parts).getViewFactory(this.name);
     }
-}
-ViewFactory.maxCacheSize = 0xFFFF;
+    ViewFactory.maxCacheSize = 0xFFFF;
+    return ViewFactory;
+})();
+export { ViewFactory };
 const seenViews = new WeakSet();
 function notYetSeen($view) {
     return !seenViews.has($view);
@@ -194,48 +197,48 @@ export class ViewLocator {
                 };
             }
             if ('beforeBind' in object) {
-                proto.beforeBind = function beforeBind(flags) {
-                    return this.viewModel.beforeBind(flags);
+                proto.beforeBind = function beforeBind(initiator, parent, flags) {
+                    return this.viewModel.beforeBind(initiator, parent, flags);
                 };
             }
             if ('afterBind' in object) {
-                proto.afterBind = function afterBind(flags) {
-                    this.viewModel.afterBind(flags);
-                };
-            }
-            if ('beforeUnbind' in object) {
-                proto.beforeUnbind = function beforeUnbind(flags) {
-                    return this.viewModel.beforeUnbind(flags);
-                };
-            }
-            if ('afterUnbind' in object) {
-                proto.afterUnbind = function afterUnbind(flags) {
-                    this.viewModel.afterUnbind(flags);
-                };
-            }
-            if ('beforeAttach' in object) {
-                proto.beforeAttach = function beforeAttach(flags) {
-                    this.viewModel.beforeAttach(flags);
+                proto.afterBind = function afterBind(initiator, parent, flags) {
+                    return this.viewModel.afterBind(initiator, parent, flags);
                 };
             }
             if ('afterAttach' in object) {
-                proto.afterAttach = function afterAttach(flags) {
-                    this.viewModel.afterAttach(flags);
+                proto.afterAttach = function afterAttach(initiator, parent, flags) {
+                    return this.viewModel.afterAttach(initiator, parent, flags);
+                };
+            }
+            if ('afterAttachChildren' in object) {
+                proto.afterAttachChildren = function afterAttachChildren(initiator, flags) {
+                    return this.viewModel.afterAttachChildren(initiator, flags);
                 };
             }
             if ('beforeDetach' in object) {
-                proto.beforeDetach = function beforeDetach(flags) {
-                    this.viewModel.beforeDetach(flags);
+                proto.beforeDetach = function beforeDetach(initiator, parent, flags) {
+                    return this.viewModel.beforeDetach(initiator, parent, flags);
                 };
             }
-            if ('afterDetach' in object) {
-                proto.afterDetach = function afterDetach(flags) {
-                    this.viewModel.afterDetach(flags);
+            if ('beforeUnbind' in object) {
+                proto.beforeUnbind = function beforeUnbind(initiator, parent, flags) {
+                    return this.viewModel.beforeUnbind(initiator, parent, flags);
                 };
             }
-            if ('caching' in object) {
-                proto.caching = function caching(flags) {
-                    this.viewModel.caching(flags);
+            if ('afterUnbind' in object) {
+                proto.afterUnbind = function afterUnbind(initiator, parent, flags) {
+                    return this.viewModel.afterUnbind(initiator, parent, flags);
+                };
+            }
+            if ('afterUnbindChildren' in object) {
+                proto.afterUnbindChildren = function afterUnbindChildren(initiator, flags) {
+                    return this.viewModel.afterUnbindChildren(initiator, flags);
+                };
+            }
+            if ('dispose' in object) {
+                proto.dispose = function dispose() {
+                    this.viewModel.dispose();
                 };
             }
             lookup[resolvedViewName] = UnboundComponent;

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$Undefined = void 0;
     const _shared_1 = require("./_shared");
     const string_1 = require("./string");
     const number_1 = require("./number");

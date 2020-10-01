@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Task = exports.TaskAbortError = void 0;
     const types_1 = require("./types");
     const log_1 = require("./log");
     class TaskAbortError extends Error {

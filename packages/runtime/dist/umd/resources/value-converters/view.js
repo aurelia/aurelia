@@ -21,21 +21,25 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ViewValueConverter = void 0;
     const view_1 = require("../../templating/view");
     const value_converter_1 = require("../value-converter");
-    let ViewValueConverter = class ViewValueConverter {
-        constructor(viewLocator) {
-            this.viewLocator = viewLocator;
-        }
-        toView(object, viewNameOrSelector) {
-            return this.viewLocator.getViewComponentForObject(object, viewNameOrSelector);
-        }
-    };
-    ViewValueConverter = __decorate([
-        value_converter_1.valueConverter('view'),
-        __param(0, view_1.IViewLocator),
-        __metadata("design:paramtypes", [Object])
-    ], ViewValueConverter);
+    let ViewValueConverter = /** @class */ (() => {
+        let ViewValueConverter = class ViewValueConverter {
+            constructor(viewLocator) {
+                this.viewLocator = viewLocator;
+            }
+            toView(object, viewNameOrSelector) {
+                return this.viewLocator.getViewComponentForObject(object, viewNameOrSelector);
+            }
+        };
+        ViewValueConverter = __decorate([
+            value_converter_1.valueConverter('view'),
+            __param(0, view_1.IViewLocator),
+            __metadata("design:paramtypes", [Object])
+        ], ViewValueConverter);
+        return ViewValueConverter;
+    })();
     exports.ViewValueConverter = ViewValueConverter;
 });
 //# sourceMappingURL=view.js.map

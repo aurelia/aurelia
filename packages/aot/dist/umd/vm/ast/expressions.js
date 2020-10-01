@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$Identifier = exports.$AsExpression = exports.$YieldExpression = exports.$ConditionalExpression = exports.$BinaryExpression = exports.$TypeAssertion = exports.$PostfixUnaryExpression = exports.$PrefixUnaryExpression = exports.$AwaitExpression = exports.$VoidExpression = exports.$TypeOfExpression = exports.$DeleteExpression = exports.$MetaProperty = exports.$NonNullExpression = exports.$ParenthesizedExpression = exports.$TemplateExpression = exports.$$templateSpanList = exports.$TaggedTemplateExpression = exports.$NewExpression = exports.$ArgumentListEvaluation = exports.$EvaluateCall = exports.$CallExpression = exports.$ElementAccessExpression = exports.$PropertyAccessExpression = exports.$SpreadAssignment = exports.$ShorthandPropertyAssignment = exports.$PropertyAssignment = exports.$ObjectLiteralExpression = exports.$$objectLiteralElementLikeList = exports.$ArrayLiteralExpression = exports.$argumentOrArrayLiteralElementList = exports.$argumentOrArrayLiteralElement = exports.$SuperExpression = exports.$ThisExpression = exports.$Decorator = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
     const operations_1 = require("../operations");

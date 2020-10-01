@@ -18,53 +18,63 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.TestConfiguration = exports.JsonValueConverter = exports.SortValueConverter = void 0;
     const runtime_1 = require("@aurelia/runtime");
-    let SortValueConverter = class SortValueConverter {
-        toView(arr, prop, dir = 'asc') {
-            if (Array.isArray(arr)) {
-                const factor = dir === 'asc' ? 1 : -1;
-                if (prop && prop.length) {
-                    arr.sort((a, b) => a[prop] - b[prop] * factor);
+    let SortValueConverter = /** @class */ (() => {
+        let SortValueConverter = class SortValueConverter {
+            toView(arr, prop, dir = 'asc') {
+                if (Array.isArray(arr)) {
+                    const factor = dir === 'asc' ? 1 : -1;
+                    if (prop && prop.length) {
+                        arr.sort((a, b) => a[prop] - b[prop] * factor);
+                    }
+                    else {
+                        arr.sort((a, b) => a - b * factor);
+                    }
                 }
-                else {
-                    arr.sort((a, b) => a - b * factor);
-                }
+                return arr;
             }
-            return arr;
-        }
-    };
-    SortValueConverter = __decorate([
-        runtime_1.valueConverter('sort')
-    ], SortValueConverter);
+        };
+        SortValueConverter = __decorate([
+            runtime_1.valueConverter('sort')
+        ], SortValueConverter);
+        return SortValueConverter;
+    })();
     exports.SortValueConverter = SortValueConverter;
-    let JsonValueConverter = class JsonValueConverter {
-        toView(input) {
-            return JSON.stringify(input);
-        }
-        fromView(input) {
-            return JSON.parse(input);
-        }
-    };
-    JsonValueConverter = __decorate([
-        runtime_1.valueConverter('json')
-    ], JsonValueConverter);
+    let JsonValueConverter = /** @class */ (() => {
+        let JsonValueConverter = class JsonValueConverter {
+            toView(input) {
+                return JSON.stringify(input);
+            }
+            fromView(input) {
+                return JSON.parse(input);
+            }
+        };
+        JsonValueConverter = __decorate([
+            runtime_1.valueConverter('json')
+        ], JsonValueConverter);
+        return JsonValueConverter;
+    })();
     exports.JsonValueConverter = JsonValueConverter;
-    let NameTag = class NameTag {
-    };
-    __decorate([
-        runtime_1.bindable(),
-        __metadata("design:type", String)
-    ], NameTag.prototype, "name", void 0);
-    NameTag = __decorate([
-        runtime_1.customElement({
-            name: 'name-tag',
-            template: `<template>\${name}</template>`,
-            needsCompile: true,
-            dependencies: [],
-            instructions: [],
-            surrogates: []
-        })
-    ], NameTag);
+    let NameTag = /** @class */ (() => {
+        let NameTag = class NameTag {
+        };
+        __decorate([
+            runtime_1.bindable(),
+            __metadata("design:type", String)
+        ], NameTag.prototype, "name", void 0);
+        NameTag = __decorate([
+            runtime_1.customElement({
+                name: 'name-tag',
+                template: `<template>\${name}</template>`,
+                needsCompile: true,
+                dependencies: [],
+                instructions: [],
+                surrogates: []
+            })
+        ], NameTag);
+        return NameTag;
+    })();
     const globalResources = [
         SortValueConverter,
         JsonValueConverter,

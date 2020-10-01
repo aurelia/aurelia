@@ -120,15 +120,16 @@ export declare class HooksDefinition {
     readonly hasAfterCompileChildren: boolean;
     readonly hasBeforeBind: boolean;
     readonly hasAfterBind: boolean;
+    readonly hasAfterAttach: boolean;
+    readonly hasAfterAttachChildren: boolean;
+    readonly hasBeforeDetach: boolean;
     readonly hasBeforeUnbind: boolean;
     readonly hasAfterUnbind: boolean;
-    readonly hasBeforeAttach: boolean;
-    readonly hasAfterAttach: boolean;
-    readonly hasBeforeDetach: boolean;
-    readonly hasAfterDetach: boolean;
-    readonly hasCaching: boolean;
+    readonly hasAfterUnbindChildren: boolean;
+    readonly hasDispose: boolean;
+    readonly hasAccept: boolean;
     constructor(target: object);
 }
-export declare function alias(...aliases: readonly string[]): (target: Constructable<{}>) => void;
+export declare function alias(...aliases: readonly string[]): (target: Constructable) => void;
 export declare function registerAliases(aliases: readonly string[], resource: IResourceKind<Constructable, ResourceDefinition>, key: string, container: IContainer): void;
 //# sourceMappingURL=definitions.d.ts.map

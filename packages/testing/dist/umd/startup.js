@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.createFixture = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const html_test_context_1 = require("./html-test-context");
     function createFixture(template, $class, registrations = [], autoStart = true, ctx = html_test_context_1.TestContext.createHTMLTestContext()) {

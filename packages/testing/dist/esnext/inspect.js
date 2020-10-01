@@ -930,29 +930,21 @@ const methodNamesWithFlags = [
     'attachCustomAttribute',
     'attachSynthetic',
     'attachControllers',
-    'beforeAttach',
     'afterAttach',
-    'mount',
-    'mountCustomElement',
-    'mountCustomAttribute',
-    'mountSynthetic',
+    'afterAttachChildren',
     'detach',
     'detachCustomElement',
     'detachCustomAttribute',
     'detachSynthetic',
     'detachControllers',
     'beforeDetach',
-    'afterDetach',
-    'unmount',
-    'unmountCustomElement',
-    'unmountCustomAttribute',
-    'unmountSynthetic',
-    'release',
+    'afterDetachChildren',
+    'tryReturnToCache',
     'cache',
     'cacheCustomElement',
     'cacheCustomAttribute',
     'cacheSynthetic',
-    'caching',
+    'dispose',
     'unbind',
     'unbindCustomElement',
     'unbindCustomAttribute',
@@ -961,7 +953,7 @@ const methodNamesWithFlags = [
     'unbindControllers',
     'endUnbind',
     'beforeUnbind',
-    'afterUnbind',
+    'afterUnbindChildren',
 ];
 export function formatProperty(ctx, value, recurseTimes, key, type) {
     switch (key) {
@@ -986,29 +978,21 @@ export function formatProperty(ctx, value, recurseTimes, key, type) {
                     case 'attachCustomAttribute':
                     case 'attachSynthetic':
                     case 'attachControllers':
-                    case 'beforeAttach':
                     case 'afterAttach':
-                    case 'mount':
-                    case 'mountCustomElement':
-                    case 'mountCustomAttribute':
-                    case 'mountSynthetic':
+                    case 'afterAttachChildren':
                     case 'detach':
                     case 'detachCustomElement':
                     case 'detachCustomAttribute':
                     case 'detachSynthetic':
                     case 'detachControllers':
                     case 'beforeDetach':
-                    case 'afterDetach':
-                    case 'unmount':
-                    case 'unmountCustomElement':
-                    case 'unmountCustomAttribute':
-                    case 'unmountSynthetic':
-                    case 'release':
+                    case 'afterDetachChildren':
+                    case 'tryReturnToCache':
                     case 'cache':
                     case 'cacheCustomElement':
                     case 'cacheCustomAttribute':
                     case 'cacheSynthetic':
-                    case 'caching':
+                    case 'dispose':
                     case 'unbind':
                     case 'unbindCustomElement':
                     case 'unbindCustomAttribute':
@@ -1017,7 +1001,7 @@ export function formatProperty(ctx, value, recurseTimes, key, type) {
                     case 'unbindControllers':
                     case 'endUnbind':
                     case 'beforeUnbind':
-                    case 'afterUnbind':
+                    case 'afterUnbindChildren':
                         value.args[0] = stringifyLifecycleFlags(value.args[0]);
                         break;
                     case 'valueChanged':

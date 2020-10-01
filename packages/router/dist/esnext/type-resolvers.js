@@ -2,16 +2,16 @@ import { CustomElement } from '@aurelia/runtime';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 export const ComponentAppellationResolver = {
-    isName: function (component) {
+    isName(component) {
         return typeof component === 'string';
     },
-    isType: function (component) {
+    isType(component) {
         return CustomElement.isType(component);
     },
-    isInstance: function (component) {
+    isInstance(component) {
         return !ComponentAppellationResolver.isName(component) && !ComponentAppellationResolver.isType(component);
     },
-    getName: function (component) {
+    getName(component) {
         if (ComponentAppellationResolver.isName(component)) {
             return component;
         }
@@ -22,7 +22,7 @@ export const ComponentAppellationResolver = {
             return ComponentAppellationResolver.getName(component.constructor);
         }
     },
-    getType: function (component) {
+    getType(component) {
         if (ComponentAppellationResolver.isName(component)) {
             return null;
         }
@@ -33,7 +33,7 @@ export const ComponentAppellationResolver = {
             return component.constructor;
         }
     },
-    getInstance: function (component) {
+    getInstance(component) {
         if (ComponentAppellationResolver.isName(component) || ComponentAppellationResolver.isType(component)) {
             return null;
         }
@@ -43,13 +43,13 @@ export const ComponentAppellationResolver = {
     },
 };
 export const ViewportHandleResolver = {
-    isName: function (viewport) {
+    isName(viewport) {
         return typeof viewport === 'string';
     },
-    isInstance: function (viewport) {
+    isInstance(viewport) {
         return viewport instanceof Viewport;
     },
-    getName: function (viewport) {
+    getName(viewport) {
         if (ViewportHandleResolver.isName(viewport)) {
             return viewport;
         }
@@ -57,7 +57,7 @@ export const ViewportHandleResolver = {
             return viewport ? (viewport).name : null;
         }
     },
-    getInstance: function (viewport) {
+    getInstance(viewport) {
         if (ViewportHandleResolver.isName(viewport)) {
             return null;
         }
@@ -67,7 +67,7 @@ export const ViewportHandleResolver = {
     },
 };
 export const NavigationInstructionResolver = {
-    createViewportInstructions: function (router, navigationInstructions, options) {
+    createViewportInstructions(router, navigationInstructions, options) {
         options = options || {};
         let scope = null;
         if (options.context) {
@@ -110,7 +110,7 @@ export const NavigationInstructionResolver = {
             scope,
         };
     },
-    toViewportInstructions: function (router, navigationInstructions) {
+    toViewportInstructions(router, navigationInstructions) {
         if (!Array.isArray(navigationInstructions)) {
             return NavigationInstructionResolver.toViewportInstructions(router, [navigationInstructions]);
         }

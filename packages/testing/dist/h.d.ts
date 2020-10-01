@@ -3,5 +3,5 @@ export declare function h<T extends string, TChildren extends H[]>(name: T, attr
 /**
  * jsx with aurelia binding command friendly version of h
  */
-export declare const hJsx: (name: string, attrs: Record<string, string> | null, ...children: (string | Node | (string | Node)[])[]) => HTMLElement;
+export declare const hJsx: (name: string, attrs: Record<string, string> | null, ...children: (Node | string | (Node | string)[])[]) => HTMLElement;
 //# sourceMappingURL=h.d.ts.map

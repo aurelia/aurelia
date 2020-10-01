@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.padLeft = exports.padRight = exports.htmlStringify = exports.jsonStringify = exports.stringify = exports._ = void 0;
     /**
      * Template tag function that properly stringifies the template parameters. Currently supports:
      *

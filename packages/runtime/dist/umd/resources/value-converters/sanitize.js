@@ -21,6 +21,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.SanitizeValueConverter = exports.ISanitizer = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const value_converter_1 = require("../value-converter");
     const SCRIPT_REGEX = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
@@ -32,27 +33,30 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     /**
      * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
      */
-    let SanitizeValueConverter = class SanitizeValueConverter {
-        constructor(sanitizer) {
-            this.sanitizer = sanitizer;
-        }
-        /**
-         * Process the provided markup that flows to the view.
-         *
-         * @param untrustedMarkup - The untrusted markup to be sanitized.
-         */
-        toView(untrustedMarkup) {
-            if (untrustedMarkup == null) {
-                return null;
+    let SanitizeValueConverter = /** @class */ (() => {
+        let SanitizeValueConverter = class SanitizeValueConverter {
+            constructor(sanitizer) {
+                this.sanitizer = sanitizer;
             }
-            return this.sanitizer.sanitize(untrustedMarkup);
-        }
-    };
-    SanitizeValueConverter = __decorate([
-        value_converter_1.valueConverter('sanitize'),
-        __param(0, exports.ISanitizer),
-        __metadata("design:paramtypes", [Object])
-    ], SanitizeValueConverter);
+            /**
+             * Process the provided markup that flows to the view.
+             *
+             * @param untrustedMarkup - The untrusted markup to be sanitized.
+             */
+            toView(untrustedMarkup) {
+                if (untrustedMarkup == null) {
+                    return null;
+                }
+                return this.sanitizer.sanitize(untrustedMarkup);
+            }
+        };
+        SanitizeValueConverter = __decorate([
+            value_converter_1.valueConverter('sanitize'),
+            __param(0, exports.ISanitizer),
+            __metadata("design:paramtypes", [Object])
+        ], SanitizeValueConverter);
+        return SanitizeValueConverter;
+    })();
     exports.SanitizeValueConverter = SanitizeValueConverter;
 });
 //# sourceMappingURL=sanitize.js.map

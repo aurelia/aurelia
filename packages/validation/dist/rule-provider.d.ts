@@ -21,10 +21,10 @@ export declare type RuleCondition<TObject extends IValidateable = IValidateable,
 export declare const validationRulesRegistrar: Readonly<{
     name: string;
     defaultRuleSetName: string;
-    set(target: IValidateable<any>, rules: IPropertyRule[], tag?: string | undefined): void;
-    get(target: IValidateable<any>, tag?: string | undefined): PropertyRule<IValidateable<any>, unknown>[];
-    unset(target: IValidateable<any>, tag?: string | undefined): void;
-    isValidationRulesSet(target: IValidateable<any>): boolean;
+    set(target: IValidateable, rules: IPropertyRule[], tag?: string | undefined): void;
+    get(target: IValidateable, tag?: string | undefined): PropertyRule[];
+    unset(target: IValidateable, tag?: string | undefined): void;
+    isValidationRulesSet(target: IValidateable): boolean;
 }>;
 export declare class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> implements IPropertyRule {
     readonly validationRules: IValidationRules;

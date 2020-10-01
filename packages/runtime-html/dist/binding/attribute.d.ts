@@ -1,5 +1,5 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { AccessorOrObserver, BindingMode, IConnectableBinding, IForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, State, IScheduler, INode } from '@aurelia/runtime';
+import { AccessorOrObserver, BindingMode, IConnectableBinding, IForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, IScheduler, INode } from '@aurelia/runtime';
 export interface AttributeBinding extends IConnectableBinding {
 }
 /**
@@ -14,7 +14,7 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     locator: IServiceLocator;
     interceptor: this;
     id: number;
-    $state: State;
+    isBound: boolean;
     $scheduler: IScheduler;
     $scope: IScope;
     part?: string;
@@ -31,5 +31,6 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
     $unbind(flags: LifecycleFlags): void;
     connect(flags: LifecycleFlags): void;
+    dispose(): void;
 }
 //# sourceMappingURL=attribute.d.ts.map

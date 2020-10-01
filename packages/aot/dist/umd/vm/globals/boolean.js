@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$BooleanPrototype = exports.$BooleanConstructor = void 0;
     const function_1 = require("../types/function");
     const boolean_1 = require("../types/boolean");
     const object_1 = require("../types/object");

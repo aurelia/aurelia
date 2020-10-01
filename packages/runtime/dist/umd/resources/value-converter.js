@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ValueConverter = exports.ValueConverterDefinition = exports.valueConverter = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const definitions_1 = require("../definitions");
     function valueConverter(nameOrDef) {

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$OmittedExpression = exports.$SpreadElement = exports.$BindingElement = exports.$ArrayBindingPattern = exports.$bindingElementList = exports.$$arrayBindingElementList = exports.$$arrayBindingElement = exports.$ObjectBindingPattern = exports.$ComputedPropertyName = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
     const empty_1 = require("../types/empty");

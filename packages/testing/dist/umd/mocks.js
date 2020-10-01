@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.SpySubscriber = exports.CollectionChangeSet = exports.ProxyChangeSet = exports.ChangeSet = exports.MockBrowserHistoryLocation = exports.MockContext = exports.MockValueConverter = exports.MockTracingExpression = exports.MockPropertySubscriber = exports.MockSignaler = exports.MockServiceLocator = exports.MockBindingBehavior = exports.MockBinding = void 0;
     const kernel_1 = require("@aurelia/kernel");
     class MockBinding {
         constructor() {
@@ -41,6 +42,9 @@
         }
         trace(fnName, ...args) {
             this.calls.push([fnName, ...args]);
+        }
+        dispose() {
+            this.trace('dispose');
         }
     }
     exports.MockBinding = MockBinding;

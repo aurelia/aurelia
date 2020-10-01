@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$ProxyExoticObject = void 0;
     const object_1 = require("../types/object");
     const operations_1 = require("../operations");
     const array_1 = require("./array");

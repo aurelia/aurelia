@@ -4,6 +4,7 @@ import { NavCustomElement } from './resources/nav';
 import { ViewportCustomElement } from './resources/viewport';
 import { ViewportScopeCustomElement } from './resources/viewport-scope';
 import { GotoCustomAttribute } from './resources/goto';
+import { LoadCustomAttribute } from './resources/load';
 import { HrefCustomAttribute } from './resources/href';
 import { IRouter } from './router';
 export const RouterRegistration = IRouter;
@@ -14,27 +15,29 @@ export const RouterRegistration = IRouter;
 export const DefaultComponents = [
     RouterRegistration,
 ];
-export { ViewportCustomElement, ViewportScopeCustomElement, NavCustomElement, GotoCustomAttribute, HrefCustomAttribute, };
+export { ViewportCustomElement, ViewportScopeCustomElement, NavCustomElement, GotoCustomAttribute, LoadCustomAttribute, HrefCustomAttribute, };
 export const ViewportCustomElementRegistration = ViewportCustomElement;
 export const ViewportScopeCustomElementRegistration = ViewportScopeCustomElement;
 export const NavCustomElementRegistration = NavCustomElement;
 export const GotoCustomAttributeRegistration = GotoCustomAttribute;
+export const LoadCustomAttributeRegistration = LoadCustomAttribute;
 export const HrefCustomAttributeRegistration = HrefCustomAttribute;
 /**
  * Default router resources:
  * - Custom Elements: `au-viewport`, `au-nav`
- * - Custom Attributes: `goto`, `href`
+ * - Custom Attributes: `goto`, `load`, `href`
  */
 export const DefaultResources = [
     ViewportCustomElement,
     ViewportScopeCustomElement,
     NavCustomElement,
     GotoCustomAttribute,
+    LoadCustomAttribute,
     HrefCustomAttribute,
 ];
 let configurationOptions = {};
 let configurationCall = (router) => {
-    router.activate(configurationOptions);
+    router.start(configurationOptions);
 };
 /**
  * A DI configuration object containing router resource registrations.
@@ -44,7 +47,7 @@ const routerConfiguration = {
      * Apply this configuration to the provided container.
      */
     register(container) {
-        return container.register(...DefaultComponents, ...DefaultResources, StartTask.with(IRouter).beforeBind().call(configurationCall), StartTask.with(IRouter).beforeAttach().call(router => router.loadUrl()));
+        return container.register(...DefaultComponents, ...DefaultResources, StartTask.with(IRouter).beforeBind().call(configurationCall), StartTask.with(IRouter).afterAttach().call(router => router.loadUrl()));
     },
     /**
      * Create a new container with this configuration applied to it.
@@ -56,14 +59,14 @@ const routerConfiguration = {
 export const RouterConfiguration = {
     /**
      * Make it possible to specify options to Router activation.
-     * Parameter is either a config object that's passed to Router's activate
-     * or a config function that's called instead of Router's activate.
+     * Parameter is either a config object that's passed to Router's start
+     * or a config function that's called instead of Router's start.
      */
     customize(config) {
         if (config === undefined) {
             configurationOptions = {};
             configurationCall = (router) => {
-                router.activate(configurationOptions);
+                router.start(configurationOptions);
             };
         }
         else if (config instanceof Function) {

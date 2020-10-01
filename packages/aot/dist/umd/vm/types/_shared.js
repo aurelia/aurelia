@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.compareIndices = exports.Uint8Clamp = exports.Uint8 = exports.Int8 = exports.Uint16 = exports.Int16 = exports.Uint32 = exports.Int32 = exports.getPath = exports.nextValueId = exports.CompletionType = void 0;
     var CompletionType;
     (function (CompletionType) {
         CompletionType[CompletionType["normal"] = 1] = "normal";

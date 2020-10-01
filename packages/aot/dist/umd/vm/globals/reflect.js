@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$Reflect_setPrototypeOf = exports.$Reflect_set = exports.$Reflect_preventExtensions = exports.$Reflect_ownKeys = exports.$Reflect_isExtensible = exports.$Reflect_has = exports.$Reflect_getPrototypeOf = exports.$Reflect_getOwnPropertyDescriptor = exports.$Reflect_get = exports.$Reflect_deleteProperty = exports.$Reflect_defineProperty = exports.$Reflect_construct = exports.$Reflect_apply = exports.$Reflect = void 0;
     const function_1 = require("../types/function");
     const error_1 = require("../types/error");
     const object_1 = require("../types/object");

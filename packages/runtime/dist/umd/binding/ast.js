@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Interpolation = exports.ForOfStatement = exports.BindingIdentifier = exports.ObjectBindingPattern = exports.ArrayBindingPattern = exports.TaggedTemplateExpression = exports.TemplateExpression = exports.ObjectLiteralExpression = exports.ArrayLiteralExpression = exports.HtmlLiteralExpression = exports.PrimitiveLiteralExpression = exports.UnaryExpression = exports.BinaryExpression = exports.CallFunctionExpression = exports.CallMemberExpression = exports.CallScopeExpression = exports.AccessKeyedExpression = exports.AccessMemberExpression = exports.AccessScopeExpression = exports.AccessThisExpression = exports.ConditionalExpression = exports.AssignExpression = exports.ValueConverterExpression = exports.BindingBehaviorExpression = exports.CustomExpression = exports.isPureLiteral = exports.arePureLiterals = exports.isLiteral = exports.hasUnbind = exports.hasBind = exports.isResource = exports.isPrimary = exports.isLeftHandSide = exports.isAssignable = exports.hasAncestor = exports.callsFunction = exports.observes = exports.connects = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const binding_context_1 = require("../observation/binding-context");
     const proxy_observer_1 = require("../observation/proxy-observer");
@@ -307,46 +308,49 @@
         }
     }
     exports.ConditionalExpression = ConditionalExpression;
-    class AccessThisExpression {
-        constructor(ancestor = 0) {
-            this.ancestor = ancestor;
-            this.$kind = 1793 /* AccessThis */;
-        }
-        evaluate(flags, scope, locator, part) {
-            if (scope == null) {
-                throw kernel_1.Reporter.error(250 /* NilScope */, this);
+    let AccessThisExpression = /** @class */ (() => {
+        class AccessThisExpression {
+            constructor(ancestor = 0) {
+                this.ancestor = ancestor;
+                this.$kind = 1793 /* AccessThis */;
             }
-            if ((flags & 67108864 /* allowParentScopeTraversal */) > 0) {
-                let parent = scope.parentScope;
-                while (parent !== null) {
-                    if (!parent.scopeParts.includes(part)) {
-                        parent = parent.parentScope;
+            evaluate(flags, scope, locator, part) {
+                if (scope == null) {
+                    throw kernel_1.Reporter.error(250 /* NilScope */, this);
+                }
+                if ((flags & 1024 /* allowParentScopeTraversal */) > 0) {
+                    let parent = scope.parentScope;
+                    while (parent !== null) {
+                        if (!parent.scopeParts.includes(part)) {
+                            parent = parent.parentScope;
+                        }
+                    }
+                    if (parent === null) {
+                        throw new Error(`No target scope cold be found for part "${part}"`);
                     }
                 }
-                if (parent === null) {
-                    throw new Error(`No target scope cold be found for part "${part}"`);
+                let oc = scope.overrideContext;
+                let i = this.ancestor;
+                while (i-- && oc) {
+                    oc = oc.parentOverrideContext;
                 }
+                return i < 1 && oc ? oc.bindingContext : void 0;
             }
-            let oc = scope.overrideContext;
-            let i = this.ancestor;
-            while (i-- && oc) {
-                oc = oc.parentOverrideContext;
+            assign(flags, scope, locator, obj, part) {
+                return void 0;
             }
-            return i < 1 && oc ? oc.bindingContext : void 0;
+            connect(flags, scope, binding, part) {
+                return;
+            }
+            accept(visitor) {
+                return visitor.visitAccessThis(this);
+            }
         }
-        assign(flags, scope, locator, obj, part) {
-            return void 0;
-        }
-        connect(flags, scope, binding, part) {
-            return;
-        }
-        accept(visitor) {
-            return visitor.visitAccessThis(this);
-        }
-    }
+        AccessThisExpression.$this = new AccessThisExpression(0);
+        AccessThisExpression.$parent = new AccessThisExpression(1);
+        return AccessThisExpression;
+    })();
     exports.AccessThisExpression = AccessThisExpression;
-    AccessThisExpression.$this = new AccessThisExpression(0);
-    AccessThisExpression.$parent = new AccessThisExpression(1);
     class AccessScopeExpression {
         constructor(name, ancestor = 0) {
             this.name = name;
@@ -413,7 +417,7 @@
         }
         connect(flags, scope, binding, part) {
             const obj = this.object.evaluate(flags, scope, null, part);
-            if ((flags & 134217728 /* observeLeafPropertiesOnly */) === 0) {
+            if ((flags & 2048 /* observeLeafPropertiesOnly */) === 0) {
                 this.object.connect(flags, scope, binding, part);
             }
             if (obj instanceof Object) {
@@ -446,7 +450,7 @@
         }
         connect(flags, scope, binding, part) {
             const obj = this.object.evaluate(flags, scope, null, part);
-            if ((flags & 134217728 /* observeLeafPropertiesOnly */) === 0) {
+            if ((flags & 2048 /* observeLeafPropertiesOnly */) === 0) {
                 this.object.connect(flags, scope, binding, part);
             }
             if (obj instanceof Object) {
@@ -512,10 +516,10 @@
         }
         connect(flags, scope, binding, part) {
             const obj = this.object.evaluate(flags, scope, null, part);
-            if ((flags & 134217728 /* observeLeafPropertiesOnly */) === 0) {
+            if ((flags & 2048 /* observeLeafPropertiesOnly */) === 0) {
                 this.object.connect(flags, scope, binding, part);
             }
-            if (getFunction(flags & ~2097152 /* mustEvaluate */, obj, this.name)) {
+            if (getFunction(flags & ~128 /* mustEvaluate */, obj, this.name)) {
                 const args = this.args;
                 for (let i = 0, ii = args.length; i < ii; ++i) {
                     args[i].connect(flags, scope, binding, part);
@@ -538,7 +542,7 @@
             if (typeof func === 'function') {
                 return func(...evalList(flags, scope, locator, this.args, part));
             }
-            if (!(flags & 2097152 /* mustEvaluate */) && (func == null)) {
+            if (!(flags & 128 /* mustEvaluate */) && (func == null)) {
                 return void 0;
             }
             throw kernel_1.Reporter.error(207 /* NotAFunction */, this);
@@ -705,30 +709,33 @@
         }
     }
     exports.UnaryExpression = UnaryExpression;
-    class PrimitiveLiteralExpression {
-        constructor(value) {
-            this.value = value;
-            this.$kind = 17925 /* PrimitiveLiteral */;
+    let PrimitiveLiteralExpression = /** @class */ (() => {
+        class PrimitiveLiteralExpression {
+            constructor(value) {
+                this.value = value;
+                this.$kind = 17925 /* PrimitiveLiteral */;
+            }
+            evaluate(flags, scope, locator, part) {
+                return this.value;
+            }
+            assign(flags, scope, locator, obj, part) {
+                return void 0;
+            }
+            connect(flags, scope, binding, part) {
+                return;
+            }
+            accept(visitor) {
+                return visitor.visitPrimitiveLiteral(this);
+            }
         }
-        evaluate(flags, scope, locator, part) {
-            return this.value;
-        }
-        assign(flags, scope, locator, obj, part) {
-            return void 0;
-        }
-        connect(flags, scope, binding, part) {
-            return;
-        }
-        accept(visitor) {
-            return visitor.visitPrimitiveLiteral(this);
-        }
-    }
+        PrimitiveLiteralExpression.$undefined = new PrimitiveLiteralExpression(void 0);
+        PrimitiveLiteralExpression.$null = new PrimitiveLiteralExpression(null);
+        PrimitiveLiteralExpression.$true = new PrimitiveLiteralExpression(true);
+        PrimitiveLiteralExpression.$false = new PrimitiveLiteralExpression(false);
+        PrimitiveLiteralExpression.$empty = new PrimitiveLiteralExpression('');
+        return PrimitiveLiteralExpression;
+    })();
     exports.PrimitiveLiteralExpression = PrimitiveLiteralExpression;
-    PrimitiveLiteralExpression.$undefined = new PrimitiveLiteralExpression(void 0);
-    PrimitiveLiteralExpression.$null = new PrimitiveLiteralExpression(null);
-    PrimitiveLiteralExpression.$true = new PrimitiveLiteralExpression(true);
-    PrimitiveLiteralExpression.$false = new PrimitiveLiteralExpression(false);
-    PrimitiveLiteralExpression.$empty = new PrimitiveLiteralExpression('');
     class HtmlLiteralExpression {
         constructor(parts) {
             this.parts = parts;
@@ -760,98 +767,107 @@
         }
     }
     exports.HtmlLiteralExpression = HtmlLiteralExpression;
-    class ArrayLiteralExpression {
-        constructor(elements) {
-            this.elements = elements;
-            this.$kind = 17955 /* ArrayLiteral */;
-        }
-        evaluate(flags, scope, locator, part) {
-            const elements = this.elements;
-            const length = elements.length;
-            const result = Array(length);
-            for (let i = 0; i < length; ++i) {
-                result[i] = elements[i].evaluate(flags, scope, locator, part);
+    let ArrayLiteralExpression = /** @class */ (() => {
+        class ArrayLiteralExpression {
+            constructor(elements) {
+                this.elements = elements;
+                this.$kind = 17955 /* ArrayLiteral */;
             }
-            return result;
-        }
-        assign(flags, scope, locator, obj, part) {
-            return void 0;
-        }
-        connect(flags, scope, binding, part) {
-            const elements = this.elements;
-            for (let i = 0, ii = elements.length; i < ii; ++i) {
-                elements[i].connect(flags, scope, binding, part);
+            evaluate(flags, scope, locator, part) {
+                const elements = this.elements;
+                const length = elements.length;
+                const result = Array(length);
+                for (let i = 0; i < length; ++i) {
+                    result[i] = elements[i].evaluate(flags, scope, locator, part);
+                }
+                return result;
+            }
+            assign(flags, scope, locator, obj, part) {
+                return void 0;
+            }
+            connect(flags, scope, binding, part) {
+                const elements = this.elements;
+                for (let i = 0, ii = elements.length; i < ii; ++i) {
+                    elements[i].connect(flags, scope, binding, part);
+                }
+            }
+            accept(visitor) {
+                return visitor.visitArrayLiteral(this);
             }
         }
-        accept(visitor) {
-            return visitor.visitArrayLiteral(this);
-        }
-    }
+        ArrayLiteralExpression.$empty = new ArrayLiteralExpression(kernel_1.PLATFORM.emptyArray);
+        return ArrayLiteralExpression;
+    })();
     exports.ArrayLiteralExpression = ArrayLiteralExpression;
-    ArrayLiteralExpression.$empty = new ArrayLiteralExpression(kernel_1.PLATFORM.emptyArray);
-    class ObjectLiteralExpression {
-        constructor(keys, values) {
-            this.keys = keys;
-            this.values = values;
-            this.$kind = 17956 /* ObjectLiteral */;
-        }
-        evaluate(flags, scope, locator, part) {
-            const instance = {};
-            const keys = this.keys;
-            const values = this.values;
-            for (let i = 0, ii = keys.length; i < ii; ++i) {
-                instance[keys[i]] = values[i].evaluate(flags, scope, locator, part);
+    let ObjectLiteralExpression = /** @class */ (() => {
+        class ObjectLiteralExpression {
+            constructor(keys, values) {
+                this.keys = keys;
+                this.values = values;
+                this.$kind = 17956 /* ObjectLiteral */;
             }
-            return instance;
-        }
-        assign(flags, scope, locator, obj, part) {
-            return void 0;
-        }
-        connect(flags, scope, binding, part) {
-            const keys = this.keys;
-            const values = this.values;
-            for (let i = 0, ii = keys.length; i < ii; ++i) {
-                values[i].connect(flags, scope, binding, part);
+            evaluate(flags, scope, locator, part) {
+                const instance = {};
+                const keys = this.keys;
+                const values = this.values;
+                for (let i = 0, ii = keys.length; i < ii; ++i) {
+                    instance[keys[i]] = values[i].evaluate(flags, scope, locator, part);
+                }
+                return instance;
+            }
+            assign(flags, scope, locator, obj, part) {
+                return void 0;
+            }
+            connect(flags, scope, binding, part) {
+                const keys = this.keys;
+                const values = this.values;
+                for (let i = 0, ii = keys.length; i < ii; ++i) {
+                    values[i].connect(flags, scope, binding, part);
+                }
+            }
+            accept(visitor) {
+                return visitor.visitObjectLiteral(this);
             }
         }
-        accept(visitor) {
-            return visitor.visitObjectLiteral(this);
-        }
-    }
+        ObjectLiteralExpression.$empty = new ObjectLiteralExpression(kernel_1.PLATFORM.emptyArray, kernel_1.PLATFORM.emptyArray);
+        return ObjectLiteralExpression;
+    })();
     exports.ObjectLiteralExpression = ObjectLiteralExpression;
-    ObjectLiteralExpression.$empty = new ObjectLiteralExpression(kernel_1.PLATFORM.emptyArray, kernel_1.PLATFORM.emptyArray);
-    class TemplateExpression {
-        constructor(cooked, expressions = kernel_1.PLATFORM.emptyArray) {
-            this.cooked = cooked;
-            this.expressions = expressions;
-            this.$kind = 17958 /* Template */;
-        }
-        evaluate(flags, scope, locator, part) {
-            const expressions = this.expressions;
-            const cooked = this.cooked;
-            let result = cooked[0];
-            for (let i = 0, ii = expressions.length; i < ii; ++i) {
-                result += expressions[i].evaluate(flags, scope, locator, part);
-                result += cooked[i + 1];
+    let TemplateExpression = /** @class */ (() => {
+        class TemplateExpression {
+            constructor(cooked, expressions = kernel_1.PLATFORM.emptyArray) {
+                this.cooked = cooked;
+                this.expressions = expressions;
+                this.$kind = 17958 /* Template */;
             }
-            return result;
-        }
-        assign(flags, scope, locator, obj, part) {
-            return void 0;
-        }
-        connect(flags, scope, binding, part) {
-            const expressions = this.expressions;
-            for (let i = 0, ii = expressions.length; i < ii; ++i) {
-                expressions[i].connect(flags, scope, binding, part);
-                i++;
+            evaluate(flags, scope, locator, part) {
+                const expressions = this.expressions;
+                const cooked = this.cooked;
+                let result = cooked[0];
+                for (let i = 0, ii = expressions.length; i < ii; ++i) {
+                    result += expressions[i].evaluate(flags, scope, locator, part);
+                    result += cooked[i + 1];
+                }
+                return result;
+            }
+            assign(flags, scope, locator, obj, part) {
+                return void 0;
+            }
+            connect(flags, scope, binding, part) {
+                const expressions = this.expressions;
+                for (let i = 0, ii = expressions.length; i < ii; ++i) {
+                    expressions[i].connect(flags, scope, binding, part);
+                    i++;
+                }
+            }
+            accept(visitor) {
+                return visitor.visitTemplate(this);
             }
         }
-        accept(visitor) {
-            return visitor.visitTemplate(this);
-        }
-    }
+        TemplateExpression.$empty = new TemplateExpression(['']);
+        return TemplateExpression;
+    })();
     exports.TemplateExpression = TemplateExpression;
-    TemplateExpression.$empty = new TemplateExpression(['']);
     class TaggedTemplateExpression {
         constructor(cooked, raw, func, expressions = kernel_1.PLATFORM.emptyArray) {
             this.cooked = cooked;
@@ -977,10 +993,10 @@
         }
         iterate(flags, result, func) {
             switch (toStringTag.call(result)) {
-                case '[object Array]': return $array(flags | 8388608 /* isOriginalArray */, result, func);
-                case '[object Map]': return $map(flags | 8388608 /* isOriginalArray */, result, func);
-                case '[object Set]': return $set(flags | 8388608 /* isOriginalArray */, result, func);
-                case '[object Number]': return $number(flags | 8388608 /* isOriginalArray */, result, func);
+                case '[object Array]': return $array(flags, result, func);
+                case '[object Map]': return $map(flags, result, func);
+                case '[object Set]': return $set(flags, result, func);
+                case '[object Number]': return $number(flags, result, func);
                 case '[object Null]': return;
                 case '[object Undefined]': return;
                 default: throw kernel_1.Reporter.error(0); // TODO: Set error code
@@ -1059,12 +1075,12 @@
         if (typeof func === 'function') {
             return func;
         }
-        if (!(flags & 2097152 /* mustEvaluate */) && func == null) {
+        if (!(flags & 128 /* mustEvaluate */) && func == null) {
             return null;
         }
         throw kernel_1.Reporter.error(207 /* NotAFunction */, obj, name, func);
     }
-    const proxyAndOriginalArray = 2 /* proxyStrategy */ | 8388608 /* isOriginalArray */;
+    const proxyAndOriginalArray = 2 /* proxyStrategy */;
     function $array(flags, result, func) {
         if ((flags & proxyAndOriginalArray) === proxyAndOriginalArray) {
             // If we're in proxy mode, and the array is the original "items" (and not an array we created here to iterate over e.g. a set)
@@ -1094,7 +1110,7 @@
         for (const entry of result.entries()) {
             arr[++i] = entry;
         }
-        $array(flags & ~8388608 /* isOriginalArray */, arr, func);
+        $array(flags, arr, func);
     }
     function $set(flags, result, func) {
         const arr = Array(result.size);
@@ -1102,14 +1118,14 @@
         for (const key of result.keys()) {
             arr[++i] = key;
         }
-        $array(flags & ~8388608 /* isOriginalArray */, arr, func);
+        $array(flags, arr, func);
     }
     function $number(flags, result, func) {
         const arr = Array(result);
         for (let i = 0; i < result; ++i) {
             arr[i] = i;
         }
-        $array(flags & ~8388608 /* isOriginalArray */, arr, func);
+        $array(flags, arr, func);
     }
 });
 //# sourceMappingURL=ast.js.map

@@ -2,11 +2,14 @@
  * @internal - Used when founding route/instructions
  */
 export class FoundRoute {
-    constructor(match = null, matching = '', instructions = [], remaining = '') {
+    constructor(match = null, matching = '', instructions = [], remaining = '', 
+    // public remaining: string | null = null,
+    params = {}) {
         this.match = match;
         this.matching = matching;
         this.instructions = instructions;
         this.remaining = remaining;
+        this.params = params;
     }
     get foundConfiguration() {
         return this.match !== null;

@@ -1,4 +1,4 @@
-import { DI, PLATFORM, Registration, } from '@aurelia/kernel';
+import { DI, PLATFORM, Registration, InstanceProvider } from '@aurelia/kernel';
 import { IActivator } from './activator';
 import { INode } from './dom';
 import { ILifecycle, } from './lifecycle';
@@ -7,8 +7,9 @@ import { CustomElement } from './resources/custom-element';
 import { Controller } from './templating/controller';
 import { HooksDefinition } from './definitions';
 export class CompositionRoot {
-    constructor(config, container, enhance = false) {
+    constructor(config, container, rootProvider, enhance = false) {
         this.config = config;
+        rootProvider.prepare(this);
         if (config.host != void 0) {
             if (container.has(INode, false)) {
                 this.container = container.createChild();
@@ -49,7 +50,7 @@ export class CompositionRoot {
     }
     activate(antecedent) {
         const { task, host, viewModel, container, activator, strategy } = this;
-        const flags = strategy | 1024 /* fromStartTask */;
+        const flags = strategy;
         if (viewModel === void 0) {
             if (this.createTask === void 0) {
                 this.createTask = new ContinuationTask(task, this.activate, this, antecedent);
@@ -77,7 +78,7 @@ export class CompositionRoot {
     }
     deactivate(antecedent) {
         const { task, viewModel, activator, strategy } = this;
-        const flags = strategy | 2048 /* fromStopTask */;
+        const flags = strategy;
         if (viewModel === void 0) {
             if (this.createTask === void 0) {
                 this.createTask = new ContinuationTask(task, this.deactivate, this, antecedent);
@@ -110,7 +111,11 @@ export class CompositionRoot {
             : config.component;
         const container = this.container;
         const lifecycle = container.get(ILifecycle);
-        this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy, this.enhanceDefinition);
+        const taskManager = container.get(IStartTaskManager);
+        taskManager.enqueueBeforeCompileChildren();
+        // This hack with delayed hydration is to make the controller instance accessible to the `beforeCompileChildren` hook via the composition root.
+        this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy, false, this.enhanceDefinition);
+        this.controller['hydrateCustomElement'](container, void 0);
     }
 }
 export class Aurelia {
@@ -126,6 +131,7 @@ export class Aurelia {
         this._root = void 0;
         this.next = (void 0);
         Registration.instance(Aurelia, this).register(container);
+        container.registerResolver(CompositionRoot, this.rootProvider = new InstanceProvider());
     }
     get isRunning() {
         return this._isRunning;
@@ -197,7 +203,7 @@ export class Aurelia {
         return this.task.wait();
     }
     configureRoot(config, enhance) {
-        this.next = new CompositionRoot(config, this.container, enhance);
+        this.next = new CompositionRoot(config, this.container, this.rootProvider, enhance);
         if (this.isRunning) {
             this.start();
         }
@@ -205,7 +211,7 @@ export class Aurelia {
     }
     onBeforeStart(root) {
         Reflect.set(root.host, '$aurelia', this);
-        this._root = root;
+        this.rootProvider.prepare(this._root = root);
         this._isStarting = true;
     }
     onAfterStart(root) {
@@ -222,6 +228,7 @@ export class Aurelia {
     onAfterStop(root) {
         Reflect.deleteProperty(root.host, '$aurelia');
         this._root = void 0;
+        this.rootProvider.dispose();
         this._isStopping = false;
         this.dispatchEvent(root, 'au-stopped', root.host);
         return LifecycleTask.done;

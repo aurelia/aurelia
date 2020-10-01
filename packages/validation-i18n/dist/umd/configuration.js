@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ValidationI18nConfiguration = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const validation_html_1 = require("@aurelia/validation-html");
     const localization_1 = require("./localization");

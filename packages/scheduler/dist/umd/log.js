@@ -10,6 +10,7 @@
     "use strict";
     var _a;
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.trace = exports.leave = exports.enter = void 0;
     const task_queue_1 = require("./task-queue");
     _a = (function () {
         const enabled = false;

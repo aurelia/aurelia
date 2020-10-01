@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$JsxExpression = exports.$JsxSpreadAttribute = exports.$JsxAttributes = exports.$$jsxAttributeLikeList = exports.$JsxAttribute = exports.$JsxClosingFragment = exports.$JsxOpeningFragment = exports.$JsxClosingElement = exports.$JsxOpeningElement = exports.$JsxText = exports.$JsxFragment = exports.$JsxSelfClosingElement = exports.$$jsxTagNameExpression = exports.$JsxElement = exports.$$jsxChildList = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
     const _shared_1 = require("./_shared");

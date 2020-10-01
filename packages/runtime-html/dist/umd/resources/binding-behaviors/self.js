@@ -15,6 +15,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.SelfBindingBehavior = exports.handleSelfEvent = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const event_manager_1 = require("../../observation/event-manager");
@@ -27,22 +28,25 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         return this.selfEventCallSource(event);
     }
     exports.handleSelfEvent = handleSelfEvent;
-    let SelfBindingBehavior = class SelfBindingBehavior {
-        bind(flags, scope, binding) {
-            if (!binding.callSource || !binding.targetEvent) {
-                throw kernel_1.Reporter.error(8);
+    let SelfBindingBehavior = /** @class */ (() => {
+        let SelfBindingBehavior = class SelfBindingBehavior {
+            bind(flags, scope, binding) {
+                if (!binding.callSource || !binding.targetEvent) {
+                    throw kernel_1.Reporter.error(8);
+                }
+                binding.selfEventCallSource = binding.callSource;
+                binding.callSource = handleSelfEvent;
             }
-            binding.selfEventCallSource = binding.callSource;
-            binding.callSource = handleSelfEvent;
-        }
-        unbind(flags, scope, binding) {
-            binding.callSource = binding.selfEventCallSource;
-            binding.selfEventCallSource = null;
-        }
-    };
-    SelfBindingBehavior = __decorate([
-        runtime_1.bindingBehavior('self')
-    ], SelfBindingBehavior);
+            unbind(flags, scope, binding) {
+                binding.callSource = binding.selfEventCallSource;
+                binding.selfEventCallSource = null;
+            }
+        };
+        SelfBindingBehavior = __decorate([
+            runtime_1.bindingBehavior('self')
+        ], SelfBindingBehavior);
+        return SelfBindingBehavior;
+    })();
     exports.SelfBindingBehavior = SelfBindingBehavior;
 });
 //# sourceMappingURL=self.js.map

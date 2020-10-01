@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.NavRoute = void 0;
     const type_resolvers_1 = require("./type-resolvers");
     /**
      * @internal - Used by au-nav

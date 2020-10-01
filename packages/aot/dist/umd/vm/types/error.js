@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$URIError = exports.$RangeError = exports.$ReferenceError = exports.$TypeError = exports.$SyntaxError = exports.$Error = void 0;
     const _shared_1 = require("./_shared");
     class $Error {
         constructor(realm, err, intrinsicName) {

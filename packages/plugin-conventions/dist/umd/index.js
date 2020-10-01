@@ -10,19 +10,19 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var name_convention_1 = require("./name-convention");
-    exports.nameConvention = name_convention_1.nameConvention;
+    Object.defineProperty(exports, "nameConvention", { enumerable: true, get: function () { return name_convention_1.nameConvention; } });
     var preprocess_resource_1 = require("./preprocess-resource");
-    exports.preprocessResource = preprocess_resource_1.preprocessResource;
+    Object.defineProperty(exports, "preprocessResource", { enumerable: true, get: function () { return preprocess_resource_1.preprocessResource; } });
     var preprocess_html_template_1 = require("./preprocess-html-template");
-    exports.preprocessHtmlTemplate = preprocess_html_template_1.preprocessHtmlTemplate;
+    Object.defineProperty(exports, "preprocessHtmlTemplate", { enumerable: true, get: function () { return preprocess_html_template_1.preprocessHtmlTemplate; } });
     var strip_meta_data_1 = require("./strip-meta-data");
-    exports.stripMetaData = strip_meta_data_1.stripMetaData;
+    Object.defineProperty(exports, "stripMetaData", { enumerable: true, get: function () { return strip_meta_data_1.stripMetaData; } });
     var preprocess_1 = require("./preprocess");
-    exports.preprocess = preprocess_1.preprocess;
+    Object.defineProperty(exports, "preprocess", { enumerable: true, get: function () { return preprocess_1.preprocess; } });
     var options_1 = require("./options");
-    exports.defaultCssExtensions = options_1.defaultCssExtensions;
-    exports.defaultJsExtensions = options_1.defaultJsExtensions;
-    exports.defaultTemplateExtensions = options_1.defaultTemplateExtensions;
-    exports.preprocessOptions = options_1.preprocessOptions;
+    Object.defineProperty(exports, "defaultCssExtensions", { enumerable: true, get: function () { return options_1.defaultCssExtensions; } });
+    Object.defineProperty(exports, "defaultJsExtensions", { enumerable: true, get: function () { return options_1.defaultJsExtensions; } });
+    Object.defineProperty(exports, "defaultTemplateExtensions", { enumerable: true, get: function () { return options_1.defaultTemplateExtensions; } });
+    Object.defineProperty(exports, "preprocessOptions", { enumerable: true, get: function () { return options_1.preprocessOptions; } });
 });
 //# sourceMappingURL=index.js.map

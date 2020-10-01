@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.PatternMatcher = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const path_utils_1 = require("./path-utils");
     const lookup = new WeakMap();

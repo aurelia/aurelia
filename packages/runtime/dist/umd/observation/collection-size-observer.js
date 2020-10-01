@@ -18,27 +18,31 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.CollectionSizeObserver = void 0;
     const subscriber_collection_1 = require("./subscriber-collection");
-    let CollectionSizeObserver = class CollectionSizeObserver {
-        constructor(obj) {
-            this.obj = obj;
-            this.currentValue = obj.size;
-        }
-        getValue() {
-            return this.obj.size;
-        }
-        setValue(newValue, flags) {
-            const { currentValue } = this;
-            if (newValue !== currentValue) {
-                this.currentValue = newValue;
-                this.callSubscribers(newValue, currentValue, flags | 16 /* updateTargetInstance */);
+    let CollectionSizeObserver = /** @class */ (() => {
+        let CollectionSizeObserver = class CollectionSizeObserver {
+            constructor(obj) {
+                this.obj = obj;
+                this.currentValue = obj.size;
             }
-        }
-    };
-    CollectionSizeObserver = __decorate([
-        subscriber_collection_1.subscriberCollection(),
-        __metadata("design:paramtypes", [Object])
-    ], CollectionSizeObserver);
+            getValue() {
+                return this.obj.size;
+            }
+            setValue(newValue, flags) {
+                const { currentValue } = this;
+                if (newValue !== currentValue) {
+                    this.currentValue = newValue;
+                    this.callSubscribers(newValue, currentValue, flags | 8 /* updateTargetInstance */);
+                }
+            }
+        };
+        CollectionSizeObserver = __decorate([
+            subscriber_collection_1.subscriberCollection(),
+            __metadata("design:paramtypes", [Object])
+        ], CollectionSizeObserver);
+        return CollectionSizeObserver;
+    })();
     exports.CollectionSizeObserver = CollectionSizeObserver;
 });
 //# sourceMappingURL=collection-size-observer.js.map

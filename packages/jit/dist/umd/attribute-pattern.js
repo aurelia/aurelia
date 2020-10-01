@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.AttributePattern = exports.AttributePatternResourceDefinition = exports.attributePattern = exports.IAttributePattern = exports.SyntaxInterpreter = exports.ISyntaxInterpreter = exports.SegmentTypes = exports.SymbolSegment = exports.DynamicSegment = exports.StaticSegment = exports.State = exports.Interpretation = exports.CharSpec = void 0;
     const kernel_1 = require("@aurelia/kernel");
     /** @internal */
     class CharSpec {

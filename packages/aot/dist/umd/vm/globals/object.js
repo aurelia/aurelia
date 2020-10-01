@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$ObjProto_valueOf = exports.$ObjProto_toString = exports.$ObjectPrototype_toLocaleString = exports.$ObjectPrototype_propertyIsEnumerable = exports.$ObjectPrototype_isPrototypeOf = exports.$ObjectPrototype_hasOwnProperty = exports.$ObjectPrototype = exports.$Object_values = exports.$Object_setPrototypeOf = exports.$Object_seal = exports.$Object_preventExtensions = exports.$Object_keys = exports.$Object_isSealed = exports.$Object_isFrozen = exports.$Object_isExtensible = exports.$Object_is = exports.$Object_getPrototypeOf = exports.$GetOwnPropertyKeys = exports.$Object_getOwnPropertySymbols = exports.$Object_getOwnPropertyNames = exports.$Object_getOwnPropertyDescriptors = exports.$Object_getOwnPropertyDescriptor = exports.$CreateDataPropertyOnObject = exports.$Object_fromEntries = exports.$Object_freeze = exports.$Object_entries = exports.$Object_defineProperty = exports.$ObjectDefineProperties = exports.$Object_defineProperties = exports.$Object_create = exports.$Object_assign = exports.$ObjectConstructor = void 0;
     const function_1 = require("../types/function");
     const object_1 = require("../types/object");
     const string_1 = require("../types/string");

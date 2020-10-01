@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$SetValueInBuffer = exports.$GetValueFromBuffer = exports.$IsDetachedBuffer = exports.$IntegerIndexedExoticObject = void 0;
     const object_1 = require("../types/object");
     // http://www.ecma-international.org/ecma-262/#sec-integer-indexed-exotic-objects
     class $IntegerIndexedExoticObject extends object_1.$Object {

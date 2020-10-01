@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$CatchClause = exports.$DefaultClause = exports.$CaseClause = exports.$CaseBlock = exports.$$clauseList = exports.$DebuggerStatement = exports.$TryStatement = exports.$ThrowStatement = exports.$LabeledStatement = exports.$SwitchStatement = exports.$WithStatement = exports.$ReturnStatement = exports.$BreakStatement = exports.$ContinueStatement = exports.$ForOfStatement = exports.$ForInStatement = exports.$ForStatement = exports.$WhileStatement = exports.$DoStatement = exports.$IfStatement = exports.$ExpressionStatement = exports.$EmptyStatement = exports.$Block = exports.$VariableDeclarationList = exports.$variableDeclarationList = exports.$VariableDeclaration = exports.$VariableStatement = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
     const environment_record_1 = require("../types/environment-record");

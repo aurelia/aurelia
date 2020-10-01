@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ResourceModel = exports.AttrInfo = exports.ElementInfo = exports.BindableInfo = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const binding_command_1 = require("./binding-command");

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.CustomAttribute = exports.CustomAttributeDefinition = exports.templateController = exports.customAttribute = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const definitions_1 = require("../definitions");
     const flags_1 = require("../flags");

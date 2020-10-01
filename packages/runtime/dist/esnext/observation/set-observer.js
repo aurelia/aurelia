@@ -126,55 +126,58 @@ export function disableSetObservation() {
     }
 }
 const slice = Array.prototype.slice;
-let SetObserver = class SetObserver {
-    constructor(flags, lifecycle, observedSet) {
-        if (!enableSetObservationCalled) {
-            enableSetObservationCalled = true;
-            enableSetObservation();
+let SetObserver = /** @class */ (() => {
+    let SetObserver = class SetObserver {
+        constructor(flags, lifecycle, observedSet) {
+            if (!enableSetObservationCalled) {
+                enableSetObservationCalled = true;
+                enableSetObservation();
+            }
+            this.inBatch = false;
+            this.collection = observedSet;
+            this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+            this.indexMap = createIndexMap(observedSet.size);
+            this.lifecycle = lifecycle;
+            this.lengthObserver = (void 0);
+            observerLookup.set(observedSet, this);
         }
-        this.inBatch = false;
-        this.collection = observedSet;
-        this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;
-        this.indexMap = createIndexMap(observedSet.size);
-        this.lifecycle = lifecycle;
-        this.lengthObserver = (void 0);
-        observerLookup.set(observedSet, this);
-    }
-    notify() {
-        if (this.lifecycle.batch.depth > 0) {
-            if (!this.inBatch) {
-                this.inBatch = true;
-                this.lifecycle.batch.add(this);
+        notify() {
+            if (this.lifecycle.batch.depth > 0) {
+                if (!this.inBatch) {
+                    this.inBatch = true;
+                    this.lifecycle.batch.add(this);
+                }
+            }
+            else {
+                this.flushBatch(0 /* none */);
             }
         }
-        else {
-            this.flushBatch(0 /* none */);
+        getLengthObserver() {
+            if (this.lengthObserver === void 0) {
+                this.lengthObserver = new CollectionSizeObserver(this.collection);
+            }
+            return this.lengthObserver;
         }
-    }
-    getLengthObserver() {
-        if (this.lengthObserver === void 0) {
-            this.lengthObserver = new CollectionSizeObserver(this.collection);
+        getIndexObserver(index) {
+            throw new Error('Set index observation not supported');
         }
-        return this.lengthObserver;
-    }
-    getIndexObserver(index) {
-        throw new Error('Set index observation not supported');
-    }
-    flushBatch(flags) {
-        this.inBatch = false;
-        const { indexMap, collection } = this;
-        const { size } = collection;
-        this.indexMap = createIndexMap(size);
-        this.callCollectionSubscribers(indexMap, 16 /* updateTargetInstance */ | this.persistentFlags);
-        if (this.lengthObserver !== void 0) {
-            this.lengthObserver.setValue(size, 16 /* updateTargetInstance */);
+        flushBatch(flags) {
+            this.inBatch = false;
+            const { indexMap, collection } = this;
+            const { size } = collection;
+            this.indexMap = createIndexMap(size);
+            this.callCollectionSubscribers(indexMap, 8 /* updateTargetInstance */ | this.persistentFlags);
+            if (this.lengthObserver !== void 0) {
+                this.lengthObserver.setValue(size, 8 /* updateTargetInstance */);
+            }
         }
-    }
-};
-SetObserver = __decorate([
-    collectionSubscriberCollection(),
-    __metadata("design:paramtypes", [Number, Object, Object])
-], SetObserver);
+    };
+    SetObserver = __decorate([
+        collectionSubscriberCollection(),
+        __metadata("design:paramtypes", [Number, Object, Object])
+    ], SetObserver);
+    return SetObserver;
+})();
 export { SetObserver };
 export function getSetObserver(flags, lifecycle, observedSet) {
     const observer = observerLookup.get(observedSet);

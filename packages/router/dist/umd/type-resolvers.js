@@ -9,20 +9,21 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.NavigationInstructionResolver = exports.ViewportHandleResolver = exports.ComponentAppellationResolver = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const viewport_1 = require("./viewport");
     const viewport_instruction_1 = require("./viewport-instruction");
     exports.ComponentAppellationResolver = {
-        isName: function (component) {
+        isName(component) {
             return typeof component === 'string';
         },
-        isType: function (component) {
+        isType(component) {
             return runtime_1.CustomElement.isType(component);
         },
-        isInstance: function (component) {
+        isInstance(component) {
             return !exports.ComponentAppellationResolver.isName(component) && !exports.ComponentAppellationResolver.isType(component);
         },
-        getName: function (component) {
+        getName(component) {
             if (exports.ComponentAppellationResolver.isName(component)) {
                 return component;
             }
@@ -33,7 +34,7 @@
                 return exports.ComponentAppellationResolver.getName(component.constructor);
             }
         },
-        getType: function (component) {
+        getType(component) {
             if (exports.ComponentAppellationResolver.isName(component)) {
                 return null;
             }
@@ -44,7 +45,7 @@
                 return component.constructor;
             }
         },
-        getInstance: function (component) {
+        getInstance(component) {
             if (exports.ComponentAppellationResolver.isName(component) || exports.ComponentAppellationResolver.isType(component)) {
                 return null;
             }
@@ -54,13 +55,13 @@
         },
     };
     exports.ViewportHandleResolver = {
-        isName: function (viewport) {
+        isName(viewport) {
             return typeof viewport === 'string';
         },
-        isInstance: function (viewport) {
+        isInstance(viewport) {
             return viewport instanceof viewport_1.Viewport;
         },
-        getName: function (viewport) {
+        getName(viewport) {
             if (exports.ViewportHandleResolver.isName(viewport)) {
                 return viewport;
             }
@@ -68,7 +69,7 @@
                 return viewport ? (viewport).name : null;
             }
         },
-        getInstance: function (viewport) {
+        getInstance(viewport) {
             if (exports.ViewportHandleResolver.isName(viewport)) {
                 return null;
             }
@@ -78,7 +79,7 @@
         },
     };
     exports.NavigationInstructionResolver = {
-        createViewportInstructions: function (router, navigationInstructions, options) {
+        createViewportInstructions(router, navigationInstructions, options) {
             options = options || {};
             let scope = null;
             if (options.context) {
@@ -121,7 +122,7 @@
                 scope,
             };
         },
-        toViewportInstructions: function (router, navigationInstructions) {
+        toViewportInstructions(router, navigationInstructions) {
             if (!Array.isArray(navigationInstructions)) {
                 return exports.NavigationInstructionResolver.toViewportInstructions(router, [navigationInstructions]);
             }

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.BindingMediator = exports.connectable = exports.unobserve = exports.observeProperty = exports.addObserver = void 0;
     // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
     const slice = Array.prototype.slice;
     const slotNames = [];
@@ -40,7 +41,7 @@
             }
             this[slotNames[i]] = observer;
             observer.subscribe(this);
-            observer[this.id] |= 16 /* updateTargetInstance */;
+            observer[this.id] |= 8 /* updateTargetInstance */;
             // increment the slot count.
             if (i === observerSlots) {
                 this.observerSlots = i + 1;
@@ -79,7 +80,7 @@
                 if (observer != null) {
                     this[slotName] = void 0;
                     observer.unsubscribe(this);
-                    observer[this.id] &= ~16 /* updateTargetInstance */;
+                    observer[this.id] &= ~8 /* updateTargetInstance */;
                 }
             }
         }
@@ -92,7 +93,7 @@
                     if (observer != null) {
                         this[slotName] = void 0;
                         observer.unsubscribe(this);
-                        observer[this.id] &= ~16 /* updateTargetInstance */;
+                        observer[this.id] &= ~8 /* updateTargetInstance */;
                     }
                 }
             }

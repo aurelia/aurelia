@@ -21,55 +21,68 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.With = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const dom_1 = require("../../dom");
     const lifecycle_1 = require("../../lifecycle");
     const custom_attribute_1 = require("../custom-attribute");
     const bindable_1 = require("../../templating/bindable");
     const binding_context_1 = require("../../observation/binding-context");
-    let With = class With {
-        constructor(factory, location) {
-            this.factory = factory;
-            this.location = location;
-            this.id = kernel_1.nextId('au$component');
-            this.id = kernel_1.nextId('au$component');
-            this.view = this.factory.create();
-            this.view.hold(location, 1 /* insertBefore */);
-        }
-        valueChanged(newValue, oldValue, flags) {
-            if ((this.$controller.state & 5 /* isBoundOrBinding */) > 0) {
-                this.bindChild(4096 /* fromBind */);
+    let With = /** @class */ (() => {
+        let With = class With {
+            constructor(factory, location) {
+                this.factory = factory;
+                this.location = location;
+                this.id = kernel_1.nextId('au$component');
+                this.id = kernel_1.nextId('au$component');
+                this.view = this.factory.create();
+                this.view.setLocation(location, 1 /* insertBefore */);
             }
-        }
-        beforeBind(flags) {
-            this.view.parent = this.$controller;
-            this.bindChild(flags);
-        }
-        beforeAttach(flags) {
-            this.view.attach(flags);
-        }
-        beforeDetach(flags) {
-            this.view.detach(flags);
-        }
-        beforeUnbind(flags) {
-            this.view.unbind(flags);
-            this.view.parent = void 0;
-        }
-        bindChild(flags) {
-            const scope = binding_context_1.Scope.fromParent(flags, this.$controller.scope, this.value === void 0 ? {} : this.value);
-            this.view.bind(flags, scope, this.$controller.part);
-        }
-    };
-    __decorate([
-        bindable_1.bindable,
-        __metadata("design:type", Object)
-    ], With.prototype, "value", void 0);
-    With = __decorate([
-        custom_attribute_1.templateController('with'),
-        __param(0, lifecycle_1.IViewFactory),
-        __param(1, dom_1.IRenderLocation),
-        __metadata("design:paramtypes", [Object, Object])
-    ], With);
+            valueChanged(newValue, oldValue, flags) {
+                if (this.$controller.isActive) {
+                    // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
+                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                    this.activateView(this.view, 32 /* fromBind */);
+                }
+            }
+            afterAttach(initiator, parent, flags) {
+                return this.activateView(initiator, flags);
+            }
+            afterUnbind(initiator, parent, flags) {
+                return this.view.deactivate(initiator, this.$controller, flags);
+            }
+            activateView(initiator, flags) {
+                const { $controller, value } = this;
+                const scope = binding_context_1.Scope.fromParent(flags, $controller.scope, value === void 0 ? {} : value);
+                return this.view.activate(initiator, $controller, flags, scope, $controller.part);
+            }
+            onCancel(initiator, parent, flags) {
+                var _a;
+                (_a = this.view) === null || _a === void 0 ? void 0 : _a.cancel(initiator, this.$controller, flags);
+            }
+            dispose() {
+                this.view.dispose();
+                this.view = (void 0);
+            }
+            accept(visitor) {
+                var _a;
+                if (((_a = this.view) === null || _a === void 0 ? void 0 : _a.accept(visitor)) === true) {
+                    return true;
+                }
+            }
+        };
+        __decorate([
+            bindable_1.bindable,
+            __metadata("design:type", Object)
+        ], With.prototype, "value", void 0);
+        With = __decorate([
+            custom_attribute_1.templateController('with'),
+            __param(0, lifecycle_1.IViewFactory),
+            __param(1, dom_1.IRenderLocation),
+            __metadata("design:paramtypes", [Object, Object])
+        ], With);
+        return With;
+    })();
     exports.With = With;
 });
 //# sourceMappingURL=with.js.map

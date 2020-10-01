@@ -21,194 +21,186 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Portal = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const dom_1 = require("../../dom");
-    function toTask(maybePromiseOrTask) {
-        if (maybePromiseOrTask == null) {
-            return runtime_1.LifecycleTask.done;
-        }
-        if (typeof maybePromiseOrTask.then === 'function') {
-            return new runtime_1.TerminalTask(maybePromiseOrTask);
-        }
-        return maybePromiseOrTask;
-    }
-    let Portal = class Portal {
-        constructor(factory, originalLoc, dom) {
-            this.factory = factory;
-            this.originalLoc = originalLoc;
-            this.dom = dom;
-            this.id = kernel_1.nextId('au$component');
-            this.strict = false;
-            this.task = runtime_1.LifecycleTask.done;
-            // to make the shape of this object consistent.
-            // todo: is this necessary
-            this.currentTarget = dom.createElement('div');
-            this.view = this.factory.create();
-            dom.setEffectiveParentNode(this.view.nodes, originalLoc);
-            this.view.hold(originalLoc, 1 /* insertBefore */);
-        }
-        beforeBind(flags) {
-            if (this.callbackContext == null) {
-                this.callbackContext = this.$controller.scope.bindingContext;
+    let Portal = /** @class */ (() => {
+        let Portal = class Portal {
+            constructor(factory, originalLoc, dom) {
+                this.factory = factory;
+                this.originalLoc = originalLoc;
+                this.dom = dom;
+                this.id = kernel_1.nextId('au$component');
+                this.strict = false;
+                // to make the shape of this object consistent.
+                // todo: is this necessary
+                this.currentTarget = dom.createElement('div');
+                this.view = this.factory.create();
+                dom.setEffectiveParentNode(this.view.nodes, originalLoc);
             }
-            return this.view.bind(flags, this.$controller.scope);
-        }
-        afterAttach(flags) {
-            this.targetChanged();
-        }
-        beforeDetach(flags) {
-            this.task = this.deactivate(flags);
-        }
-        beforeUnbind(flags) {
-            this.callbackContext = null;
-            return this.view.unbind(flags);
-        }
-        targetChanged() {
-            const $controller = this.$controller;
-            if (($controller.state & 4 /* isBound */) === 0) {
-                return;
+            afterAttach(initiator, parent, flags) {
+                if (this.callbackContext == null) {
+                    this.callbackContext = this.$controller.scope.bindingContext;
+                }
+                const newTarget = this.currentTarget = this.resolveTarget();
+                this.view.setLocation(newTarget, 2 /* append */);
+                return this.$activating(initiator, newTarget, flags);
             }
-            this.project($controller.flags);
-        }
-        project(flags) {
-            const oldTarget = this.currentTarget;
-            const newTarget = this.currentTarget = this.resolveTarget();
-            if (oldTarget === newTarget) {
-                return;
+            afterUnbind(initiator, parent, flags) {
+                return this.$deactivating(initiator, this.currentTarget, flags);
             }
-            this.task = this.deactivate(flags);
-            this.task = this.activate(newTarget, flags);
-        }
-        activate(target, flags) {
-            const { activating, activated, callbackContext, view } = this;
-            let task = this.task;
-            view.hold(target, 2 /* append */);
-            if ((this.$controller.state & 40 /* isAttachedOrAttaching */) === 0) {
-                return task;
+            targetChanged() {
+                const { $controller } = this;
+                if (!$controller.isActive) {
+                    return;
+                }
+                const oldTarget = this.currentTarget;
+                const newTarget = this.currentTarget = this.resolveTarget();
+                if (oldTarget === newTarget) {
+                    return;
+                }
+                this.view.setLocation(newTarget, 2 /* append */);
+                // TODO(fkleuver): fix and test possible race condition
+                const ret = kernel_1.onResolve(this.$deactivating(null, newTarget, $controller.flags), () => {
+                    return this.$activating(null, newTarget, $controller.flags);
+                });
+                if (ret instanceof Promise) {
+                    ret.catch(err => { throw err; });
+                }
             }
-            if (typeof activating === 'function') {
-                if (task.done) {
-                    task = toTask(activating.call(callbackContext, target, view));
+            $activating(initiator, target, flags) {
+                const { activating, callbackContext, view } = this;
+                view.setLocation(target, 2 /* append */);
+                return kernel_1.onResolve(activating === null || activating === void 0 ? void 0 : activating.call(callbackContext, target, view), () => {
+                    return this.activate(initiator, target, flags);
+                });
+            }
+            activate(initiator, target, flags) {
+                const { $controller, view } = this;
+                if (initiator === null) {
+                    view.nodes.appendTo(target);
                 }
                 else {
-                    task = new runtime_1.ContinuationTask(task, activating, callbackContext, target, view);
+                    // TODO(fkleuver): fix and test possible race condition
+                    return kernel_1.onResolve(view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, $controller.scope), () => {
+                        return this.$activated(target);
+                    });
                 }
+                return this.$activated(target);
             }
-            if (task.done) {
-                view.attach(flags);
+            $activated(target) {
+                const { activated, callbackContext, view } = this;
+                return activated === null || activated === void 0 ? void 0 : activated.call(callbackContext, target, view);
             }
-            else {
-                task = new runtime_1.ContinuationTask(task, view.attach, view, flags);
+            $deactivating(initiator, target, flags) {
+                const { deactivating, callbackContext, view } = this;
+                return kernel_1.onResolve(deactivating === null || deactivating === void 0 ? void 0 : deactivating.call(callbackContext, target, view), () => {
+                    return this.deactivate(initiator, target, flags);
+                });
             }
-            if (typeof activated === 'function') {
-                if (task.done) {
-                    // TODO: chain this up with RAF queue mount callback so activated is called only when
-                    // node is actually mounted (is this needed as per the spec of this resource?)
-                    task = toTask(activated.call(callbackContext, target, view));
-                }
-                else {
-                    task = new runtime_1.ContinuationTask(task, activated, callbackContext, target, view);
-                }
-            }
-            return task;
-        }
-        deactivate(flags) {
-            const { deactivating, deactivated, callbackContext, view, target: target } = this;
-            let task = this.task;
-            if (typeof deactivating === 'function') {
-                if (task.done) {
-                    task = toTask(deactivating.call(callbackContext, target, view));
+            deactivate(initiator, target, flags) {
+                const { $controller, view } = this;
+                if (initiator === null) {
+                    view.nodes.remove();
                 }
                 else {
-                    task = new runtime_1.ContinuationTask(task, deactivating, callbackContext, target, view);
+                    return kernel_1.onResolve(view.deactivate(initiator, $controller, flags), () => {
+                        return this.$deactivated(target);
+                    });
                 }
+                return this.$deactivated(target);
             }
-            if (task.done) {
-                view.detach(flags);
+            $deactivated(target) {
+                const { deactivated, callbackContext, view } = this;
+                return deactivated === null || deactivated === void 0 ? void 0 : deactivated.call(callbackContext, target, view);
             }
-            else {
-                task = new runtime_1.ContinuationTask(task, view.detach, view, flags);
-            }
-            if (typeof deactivated === 'function') {
-                if (task.done) {
-                    task = toTask(deactivated.call(callbackContext, target, view));
+            resolveTarget() {
+                const dom = this.dom;
+                // with a $ in front to make it less confusing/error prone
+                const $document = dom.document;
+                let target = this.target;
+                let context = this.renderContext;
+                if (typeof target === 'string') {
+                    let queryContext = $document;
+                    if (typeof context === 'string') {
+                        context = $document.querySelector(context);
+                    }
+                    if (dom.isNodeInstance(context)) {
+                        queryContext = context;
+                    }
+                    target = queryContext.querySelector(target);
                 }
-                else {
-                    task = new runtime_1.ContinuationTask(task, deactivated, callbackContext, target, view);
+                if (dom.isNodeInstance(target)) {
+                    return target;
                 }
-            }
-            return task;
-        }
-        resolveTarget() {
-            const dom = this.dom;
-            // with a $ in front to make it less confusing/error prone
-            const $document = dom.document;
-            let target = this.target;
-            let context = this.renderContext;
-            if (typeof target === 'string') {
-                let queryContext = $document;
-                if (typeof context === 'string') {
-                    context = $document.querySelector(context);
+                if (target == null) {
+                    if (this.strict) {
+                        throw new Error('Render target not found');
+                    }
+                    else {
+                        target = $document.body;
+                    }
                 }
-                if (dom.isNodeInstance(context)) {
-                    queryContext = context;
-                }
-                target = queryContext.querySelector(target);
-            }
-            if (dom.isNodeInstance(target)) {
                 return target;
             }
-            if (target == null) {
-                if (this.strict) {
-                    throw new Error('Render target not found');
-                }
-                else {
-                    target = $document.body;
+            onCancel(initiator, parent, flags) {
+                var _a;
+                (_a = this.view) === null || _a === void 0 ? void 0 : _a.cancel(initiator, this.$controller, flags);
+            }
+            dispose() {
+                this.view.dispose();
+                this.view = (void 0);
+                this.callbackContext = null;
+            }
+            accept(visitor) {
+                var _a;
+                if (((_a = this.view) === null || _a === void 0 ? void 0 : _a.accept(visitor)) === true) {
+                    return true;
                 }
             }
-            return target;
-        }
-    };
-    __decorate([
-        runtime_1.bindable({ primary: true }),
-        __metadata("design:type", Object)
-    ], Portal.prototype, "target", void 0);
-    __decorate([
-        runtime_1.bindable({ callback: 'targetChanged' }),
-        __metadata("design:type", Object)
-    ], Portal.prototype, "renderContext", void 0);
-    __decorate([
-        runtime_1.bindable(),
-        __metadata("design:type", Boolean)
-    ], Portal.prototype, "strict", void 0);
-    __decorate([
-        runtime_1.bindable(),
-        __metadata("design:type", Function)
-    ], Portal.prototype, "deactivating", void 0);
-    __decorate([
-        runtime_1.bindable(),
-        __metadata("design:type", Function)
-    ], Portal.prototype, "activating", void 0);
-    __decorate([
-        runtime_1.bindable(),
-        __metadata("design:type", Function)
-    ], Portal.prototype, "deactivated", void 0);
-    __decorate([
-        runtime_1.bindable(),
-        __metadata("design:type", Function)
-    ], Portal.prototype, "activated", void 0);
-    __decorate([
-        runtime_1.bindable(),
-        __metadata("design:type", Object)
-    ], Portal.prototype, "callbackContext", void 0);
-    Portal = __decorate([
-        runtime_1.templateController('portal'),
-        __param(0, runtime_1.IViewFactory),
-        __param(1, runtime_1.IRenderLocation),
-        __param(2, runtime_1.IDOM),
-        __metadata("design:paramtypes", [Object, Object, dom_1.HTMLDOM])
-    ], Portal);
+        };
+        __decorate([
+            runtime_1.bindable({ primary: true }),
+            __metadata("design:type", Object)
+        ], Portal.prototype, "target", void 0);
+        __decorate([
+            runtime_1.bindable({ callback: 'targetChanged' }),
+            __metadata("design:type", Object)
+        ], Portal.prototype, "renderContext", void 0);
+        __decorate([
+            runtime_1.bindable(),
+            __metadata("design:type", Boolean)
+        ], Portal.prototype, "strict", void 0);
+        __decorate([
+            runtime_1.bindable(),
+            __metadata("design:type", Function)
+        ], Portal.prototype, "deactivating", void 0);
+        __decorate([
+            runtime_1.bindable(),
+            __metadata("design:type", Function)
+        ], Portal.prototype, "activating", void 0);
+        __decorate([
+            runtime_1.bindable(),
+            __metadata("design:type", Function)
+        ], Portal.prototype, "deactivated", void 0);
+        __decorate([
+            runtime_1.bindable(),
+            __metadata("design:type", Function)
+        ], Portal.prototype, "activated", void 0);
+        __decorate([
+            runtime_1.bindable(),
+            __metadata("design:type", Object)
+        ], Portal.prototype, "callbackContext", void 0);
+        Portal = __decorate([
+            runtime_1.templateController('portal'),
+            __param(0, runtime_1.IViewFactory),
+            __param(1, runtime_1.IRenderLocation),
+            __param(2, runtime_1.IDOM),
+            __metadata("design:paramtypes", [Object, Object, dom_1.HTMLDOM])
+        ], Portal);
+        return Portal;
+    })();
     exports.Portal = Portal;
 });
 //# sourceMappingURL=portal.js.map

@@ -1,17 +1,17 @@
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { ISyntheticView, IViewFactory, ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
-import { ILifecycleTask } from '../../lifecycle-task';
+import { ISyntheticView, IViewFactory, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../lifecycle';
 export declare class Replaceable<T extends INode = INode> implements ICustomAttributeViewModel<T> {
     private readonly factory;
     private readonly location;
     readonly id: number;
-    readonly view: ISyntheticView<T>;
+    view: ISyntheticView<T>;
     readonly $controller: ICustomAttributeController<T, this>;
     constructor(factory: IViewFactory<T>, location: IRenderLocation<T>);
-    beforeBind(flags: LifecycleFlags): ILifecycleTask;
-    beforeAttach(flags: LifecycleFlags): void;
-    beforeDetach(flags: LifecycleFlags): void;
-    beforeUnbind(flags: LifecycleFlags): ILifecycleTask;
+    afterAttach(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void | Promise<void>;
+    afterUnbind(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void | Promise<void>;
+    onCancel(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void;
+    dispose(): void;
+    accept(visitor: ControllerVisitor<T>): void | true;
 }
 //# sourceMappingURL=replaceable.d.ts.map

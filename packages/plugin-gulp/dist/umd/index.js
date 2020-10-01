@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.plugin = void 0;
     const stream_1 = require("stream");
     const plugin_conventions_1 = require("@aurelia/plugin-conventions");
     function default_1(options = {}) {

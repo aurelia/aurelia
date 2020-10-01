@@ -1,5 +1,5 @@
 import { IContainer, IResolver, Key } from '@aurelia/kernel';
-import { Aurelia, CustomElementHost, HydrateElementInstruction, HydrateTemplateController, IBindingTargetAccessor, IBindingTargetObserver, IDOM, IDOMInitializer, IElementProjector, IInstructionRenderer, ILifecycle, INode, INodeSequence, INodeSequenceFactory, IObserverLocator, IProjectorLocator, IRenderLocation, IsBindingBehavior, ISinglePageApp, ITargetAccessorLocator, ITargetedInstruction, ITargetObserverLocator, LetElementInstruction, LifecycleFlags, TargetedInstruction, CustomElementDefinition, IScheduler, ICustomElementController } from '@aurelia/runtime';
+import { Aurelia, CustomElementHost, HydrateElementInstruction, HydrateTemplateController, IBindingTargetAccessor, IBindingTargetObserver, IDOM, IDOMInitializer, IElementProjector, IInstructionRenderer, ILifecycle, INode, INodeSequence, INodeSequenceFactory, IObserverLocator, IProjectorLocator, IRenderLocation, IsBindingBehavior, ISinglePageApp, ITargetAccessorLocator, ITargetedInstruction, ITargetObserverLocator, PartialCustomElementDefinition, LetElementInstruction, LifecycleFlags, TargetedInstruction, CustomElementDefinition, IScheduler, ICustomElementController } from '@aurelia/runtime';
 export declare class AuNode implements INode {
     readonly nodeName: string;
     readonly isWrapper: boolean;
@@ -129,179 +129,19 @@ export declare const AuDOMConfiguration: {
 };
 export declare const AuDOMTest: {
     setup(): {
-        au: Aurelia<INode>;
+        au: Aurelia;
         container: IContainer;
         lifecycle: ILifecycle;
         host: AuNode;
     };
-    createTextDefinition(expression: string, name?: string): import("@aurelia/kernel").PartialResourceDefinition<{
-        readonly cache?: number | "*" | undefined;
-        readonly template?: unknown;
-        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
-        readonly dependencies?: readonly Key[] | undefined;
-        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
-        readonly needsCompile?: boolean | undefined;
-        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
-        readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
-        readonly childrenObservers?: Record<string, import("@aurelia/runtime").PartialChildrenDefinition<INode>> | undefined;
-        readonly containerless?: boolean | undefined;
-        readonly isStrictBinding?: boolean | undefined;
-        readonly shadowOptions?: {
-            mode: "open" | "closed";
-        } | null | undefined;
-        readonly hasSlots?: boolean | undefined;
-        readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
-        readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
-        readonly scopeParts?: readonly string[] | undefined;
-        readonly enhance?: boolean | undefined;
-    }>;
-    createTemplateControllerDefinition(instruction: HydrateTemplateController, name?: string): import("@aurelia/kernel").PartialResourceDefinition<{
-        readonly cache?: number | "*" | undefined;
-        readonly template?: unknown;
-        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
-        readonly dependencies?: readonly Key[] | undefined;
-        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
-        readonly needsCompile?: boolean | undefined;
-        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
-        readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
-        readonly childrenObservers?: Record<string, import("@aurelia/runtime").PartialChildrenDefinition<INode>> | undefined;
-        readonly containerless?: boolean | undefined;
-        readonly isStrictBinding?: boolean | undefined;
-        readonly shadowOptions?: {
-            mode: "open" | "closed";
-        } | null | undefined;
-        readonly hasSlots?: boolean | undefined;
-        readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
-        readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
-        readonly scopeParts?: readonly string[] | undefined;
-        readonly enhance?: boolean | undefined;
-    }>;
-    createElementDefinition(instructions: TargetedInstruction[][], name: string): import("@aurelia/kernel").PartialResourceDefinition<{
-        readonly cache?: number | "*" | undefined;
-        readonly template?: unknown;
-        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
-        readonly dependencies?: readonly Key[] | undefined;
-        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
-        readonly needsCompile?: boolean | undefined;
-        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
-        readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
-        readonly childrenObservers?: Record<string, import("@aurelia/runtime").PartialChildrenDefinition<INode>> | undefined;
-        readonly containerless?: boolean | undefined;
-        readonly isStrictBinding?: boolean | undefined;
-        readonly shadowOptions?: {
-            mode: "open" | "closed";
-        } | null | undefined;
-        readonly hasSlots?: boolean | undefined;
-        readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
-        readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
-        readonly scopeParts?: readonly string[] | undefined;
-        readonly enhance?: boolean | undefined;
-    }>;
-    createIfInstruction(expression: string, def: import("@aurelia/kernel").PartialResourceDefinition<{
-        readonly cache?: number | "*" | undefined;
-        readonly template?: unknown;
-        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
-        readonly dependencies?: readonly Key[] | undefined;
-        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
-        readonly needsCompile?: boolean | undefined;
-        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
-        readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
-        readonly childrenObservers?: Record<string, import("@aurelia/runtime").PartialChildrenDefinition<INode>> | undefined;
-        readonly containerless?: boolean | undefined;
-        readonly isStrictBinding?: boolean | undefined;
-        readonly shadowOptions?: {
-            mode: "open" | "closed";
-        } | null | undefined;
-        readonly hasSlots?: boolean | undefined;
-        readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
-        readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
-        readonly scopeParts?: readonly string[] | undefined;
-        readonly enhance?: boolean | undefined;
-    }>): HydrateTemplateController;
-    createElseInstruction(def: import("@aurelia/kernel").PartialResourceDefinition<{
-        readonly cache?: number | "*" | undefined;
-        readonly template?: unknown;
-        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
-        readonly dependencies?: readonly Key[] | undefined;
-        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
-        readonly needsCompile?: boolean | undefined;
-        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
-        readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
-        readonly childrenObservers?: Record<string, import("@aurelia/runtime").PartialChildrenDefinition<INode>> | undefined;
-        readonly containerless?: boolean | undefined;
-        readonly isStrictBinding?: boolean | undefined;
-        readonly shadowOptions?: {
-            mode: "open" | "closed";
-        } | null | undefined;
-        readonly hasSlots?: boolean | undefined;
-        readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
-        readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
-        readonly scopeParts?: readonly string[] | undefined;
-        readonly enhance?: boolean | undefined;
-    }>): HydrateTemplateController;
-    createRepeatInstruction(expression: string, def: import("@aurelia/kernel").PartialResourceDefinition<{
-        readonly cache?: number | "*" | undefined;
-        readonly template?: unknown;
-        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
-        readonly dependencies?: readonly Key[] | undefined;
-        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
-        readonly needsCompile?: boolean | undefined;
-        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
-        readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
-        readonly childrenObservers?: Record<string, import("@aurelia/runtime").PartialChildrenDefinition<INode>> | undefined;
-        readonly containerless?: boolean | undefined;
-        readonly isStrictBinding?: boolean | undefined;
-        readonly shadowOptions?: {
-            mode: "open" | "closed";
-        } | null | undefined;
-        readonly hasSlots?: boolean | undefined;
-        readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
-        readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
-        readonly scopeParts?: readonly string[] | undefined;
-        readonly enhance?: boolean | undefined;
-    }>): HydrateTemplateController;
-    createReplaceableInstruction(def: import("@aurelia/kernel").PartialResourceDefinition<{
-        readonly cache?: number | "*" | undefined;
-        readonly template?: unknown;
-        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
-        readonly dependencies?: readonly Key[] | undefined;
-        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
-        readonly needsCompile?: boolean | undefined;
-        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
-        readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
-        readonly childrenObservers?: Record<string, import("@aurelia/runtime").PartialChildrenDefinition<INode>> | undefined;
-        readonly containerless?: boolean | undefined;
-        readonly isStrictBinding?: boolean | undefined;
-        readonly shadowOptions?: {
-            mode: "open" | "closed";
-        } | null | undefined;
-        readonly hasSlots?: boolean | undefined;
-        readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
-        readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
-        readonly scopeParts?: readonly string[] | undefined;
-        readonly enhance?: boolean | undefined;
-    }>): HydrateTemplateController;
-    createWithInstruction(expression: string, def: import("@aurelia/kernel").PartialResourceDefinition<{
-        readonly cache?: number | "*" | undefined;
-        readonly template?: unknown;
-        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
-        readonly dependencies?: readonly Key[] | undefined;
-        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
-        readonly needsCompile?: boolean | undefined;
-        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
-        readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
-        readonly childrenObservers?: Record<string, import("@aurelia/runtime").PartialChildrenDefinition<INode>> | undefined;
-        readonly containerless?: boolean | undefined;
-        readonly isStrictBinding?: boolean | undefined;
-        readonly shadowOptions?: {
-            mode: "open" | "closed";
-        } | null | undefined;
-        readonly hasSlots?: boolean | undefined;
-        readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
-        readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
-        readonly scopeParts?: readonly string[] | undefined;
-        readonly enhance?: boolean | undefined;
-    }>): HydrateTemplateController;
+    createTextDefinition(expression: string, name?: string): PartialCustomElementDefinition;
+    createTemplateControllerDefinition(instruction: HydrateTemplateController, name?: string): PartialCustomElementDefinition;
+    createElementDefinition(instructions: TargetedInstruction[][], name: string): PartialCustomElementDefinition;
+    createIfInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController;
+    createElseInstruction(def: PartialCustomElementDefinition): HydrateTemplateController;
+    createRepeatInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController;
+    createReplaceableInstruction(def: PartialCustomElementDefinition): HydrateTemplateController;
+    createWithInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController;
     createElementInstruction(name: string, bindings: [string, string][], parts?: Record<string, import("@aurelia/kernel").PartialResourceDefinition<{
         readonly cache?: number | "*" | undefined;
         readonly template?: unknown;

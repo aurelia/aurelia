@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$SemicolonClassElement = exports.$PropertyDeclaration = exports.$ClassDeclaration = exports.$ClassExpression = exports.$ExpressionWithTypeArguments = exports.$HeritageClause = exports.$expressionWithTypeArgumentsList = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
     const environment_record_1 = require("../types/environment-record");

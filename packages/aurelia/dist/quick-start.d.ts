@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { Aurelia as $Aurelia, CompositionRoot, ILifecycleTask, ISinglePageApp } from '@aurelia/runtime';
+import { Aurelia as $Aurelia, CompositionRoot, ISinglePageApp, ILifecycleTask } from '@aurelia/runtime';
 export declare class Aurelia extends $Aurelia<HTMLElement> {
     constructor(container?: IContainer);
     static start(root: CompositionRoot<HTMLElement> | undefined): ILifecycleTask;

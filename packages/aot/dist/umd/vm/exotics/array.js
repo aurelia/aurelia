@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$CreateArrayFromList = exports.$ArraySpeciesCreate = exports.$ArrayExoticObject = void 0;
     const object_1 = require("../types/object");
     const number_1 = require("../types/number");
     const property_descriptor_1 = require("../types/property-descriptor");

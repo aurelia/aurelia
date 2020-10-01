@@ -11,77 +11,81 @@ import { IServiceLocator, Reporter, } from '@aurelia/kernel';
 import { ILifecycle, } from '../lifecycle';
 import { IObserverLocator } from '../observation/observer-locator';
 import { connectable, } from './connectable';
-let LetBinding = class LetBinding {
-    constructor(sourceExpression, targetProperty, observerLocator, locator, toBindingContext = false) {
-        this.sourceExpression = sourceExpression;
-        this.targetProperty = targetProperty;
-        this.observerLocator = observerLocator;
-        this.locator = locator;
-        this.toBindingContext = toBindingContext;
-        this.interceptor = this;
-        this.$state = 0 /* none */;
-        this.$scope = void 0;
-        this.target = null;
-        connectable.assignIdTo(this);
-        this.$lifecycle = locator.get(ILifecycle);
-    }
-    handleChange(_newValue, _previousValue, flags) {
-        if (!(this.$state & 4 /* isBound */)) {
-            return;
+let LetBinding = /** @class */ (() => {
+    let LetBinding = class LetBinding {
+        constructor(sourceExpression, targetProperty, observerLocator, locator, toBindingContext = false) {
+            this.sourceExpression = sourceExpression;
+            this.targetProperty = targetProperty;
+            this.observerLocator = observerLocator;
+            this.locator = locator;
+            this.toBindingContext = toBindingContext;
+            this.interceptor = this;
+            this.isBound = false;
+            this.$scope = void 0;
+            this.target = null;
+            connectable.assignIdTo(this);
+            this.$lifecycle = locator.get(ILifecycle);
         }
-        if (flags & 16 /* updateTargetInstance */) {
-            const { target, targetProperty } = this;
-            const previousValue = target[targetProperty];
-            const newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
-            if (newValue !== previousValue) {
-                target[targetProperty] = newValue;
-            }
-            return;
-        }
-        throw Reporter.error(15, flags);
-    }
-    $bind(flags, scope, part) {
-        if (this.$state & 4 /* isBound */) {
-            if (this.$scope === scope) {
+        handleChange(_newValue, _previousValue, flags) {
+            if (!this.isBound) {
                 return;
             }
-            this.interceptor.$unbind(flags | 4096 /* fromBind */);
+            if (flags & 8 /* updateTargetInstance */) {
+                const { target, targetProperty } = this;
+                const previousValue = target[targetProperty];
+                const newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
+                if (newValue !== previousValue) {
+                    target[targetProperty] = newValue;
+                }
+                return;
+            }
+            throw Reporter.error(15, flags);
         }
-        // add isBinding flag
-        this.$state |= 1 /* isBinding */;
-        this.$scope = scope;
-        this.part = part;
-        this.target = (this.toBindingContext ? scope.bindingContext : scope.overrideContext);
-        const sourceExpression = this.sourceExpression;
-        if (sourceExpression.bind) {
-            sourceExpression.bind(flags, scope, this.interceptor);
+        $bind(flags, scope, part) {
+            if (this.isBound) {
+                if (this.$scope === scope) {
+                    return;
+                }
+                this.interceptor.$unbind(flags | 32 /* fromBind */);
+            }
+            this.$scope = scope;
+            this.part = part;
+            this.target = (this.toBindingContext ? scope.bindingContext : scope.overrideContext);
+            const sourceExpression = this.sourceExpression;
+            if (sourceExpression.bind) {
+                sourceExpression.bind(flags, scope, this.interceptor);
+            }
+            // sourceExpression might have been changed during bind
+            this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | 32 /* fromBind */, scope, this.locator, part);
+            this.sourceExpression.connect(flags, scope, this.interceptor, part);
+            // add isBound flag and remove isBinding flag
+            this.isBound = true;
         }
-        // sourceExpression might have been changed during bind
-        this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | 4096 /* fromBind */, scope, this.locator, part);
-        this.sourceExpression.connect(flags, scope, this.interceptor, part);
-        // add isBound flag and remove isBinding flag
-        this.$state |= 4 /* isBound */;
-        this.$state &= ~1 /* isBinding */;
-    }
-    $unbind(flags) {
-        if (!(this.$state & 4 /* isBound */)) {
-            return;
+        $unbind(flags) {
+            if (!this.isBound) {
+                return;
+            }
+            const sourceExpression = this.sourceExpression;
+            if (sourceExpression.unbind) {
+                sourceExpression.unbind(flags, this.$scope, this.interceptor);
+            }
+            this.$scope = void 0;
+            this.interceptor.unobserve(true);
+            // remove isBound and isUnbinding flags
+            this.isBound = false;
         }
-        // add isUnbinding flag
-        this.$state |= 2 /* isUnbinding */;
-        const sourceExpression = this.sourceExpression;
-        if (sourceExpression.unbind) {
-            sourceExpression.unbind(flags, this.$scope, this.interceptor);
+        dispose() {
+            this.interceptor = (void 0);
+            this.sourceExpression = (void 0);
+            this.locator = (void 0);
+            this.target = (void 0);
         }
-        this.$scope = void 0;
-        this.interceptor.unobserve(true);
-        // remove isBound and isUnbinding flags
-        this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
-    }
-};
-LetBinding = __decorate([
-    connectable(),
-    __metadata("design:paramtypes", [Object, String, Object, Object, Boolean])
-], LetBinding);
+    };
+    LetBinding = __decorate([
+        connectable(),
+        __metadata("design:paramtypes", [Object, String, Object, Object, Boolean])
+    ], LetBinding);
+    return LetBinding;
+})();
 export { LetBinding };
 //# sourceMappingURL=let-binding.js.map

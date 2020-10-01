@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.preprocessOptions = exports.defaultTemplateExtensions = exports.defaultJsExtensions = exports.defaultCssExtensions = void 0;
     exports.defaultCssExtensions = ['.css', '.scss', '.sass', '.less', '.styl'];
     exports.defaultJsExtensions = ['.js', '.jsx', '.ts', '.tsx', '.coffee'];
     exports.defaultTemplateExtensions = ['.html', '.md', '.pug', '.haml', '.jade', '.slim', '.slm'];

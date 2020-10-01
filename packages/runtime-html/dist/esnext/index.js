@@ -21,7 +21,7 @@ export { Compose } from './resources/custom-elements/compose';
 export { IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, DefaultComponents, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, AttributeBindingRendererRegistration, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, SetClassAttributeRendererRegistration, SetStyleAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, RuntimeHtmlConfiguration } from './configuration';
 export { createElement, RenderPlan } from './create-element';
 export { HTMLTargetedInstructionType, isHTMLTargetedInstruction } from './definitions';
-export { NodeType, HTMLDOM, DOM, FragmentNodeSequence } from './dom';
+export { NodeType, HTMLDOM, DOM, FragmentNodeSequence, IHistory, IWindow, ILocation, } from './dom';
 export { AttributeBindingInstruction, CaptureBindingInstruction, DelegateBindingInstruction, SetAttributeInstruction, SetClassAttributeInstruction, SetStyleAttributeInstruction, StylePropertyBindingInstruction, TextBindingInstruction, TriggerBindingInstruction } from './instructions';
 export { ContainerlessProjector, HostProjector, HTMLProjectorLocator, ShadowDOMProjector } from './projectors';
 export { StyleConfiguration } from './styles/style-configuration';

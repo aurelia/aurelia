@@ -15,114 +15,136 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.RefBindingCommand = exports.ClassBindingCommand = exports.StyleBindingCommand = exports.AttrBindingCommand = exports.CaptureBindingCommand = exports.DelegateBindingCommand = exports.TriggerBindingCommand = void 0;
     const jit_1 = require("@aurelia/jit");
     const runtime_1 = require("@aurelia/runtime");
     const runtime_html_1 = require("@aurelia/runtime-html");
     /**
      * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`
      */
-    let TriggerBindingCommand = class TriggerBindingCommand {
-        constructor() {
-            this.bindingType = 4182 /* TriggerCommand */;
-        }
-        compile(binding) {
-            return new runtime_html_1.TriggerBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
-        }
-    };
-    TriggerBindingCommand = __decorate([
-        jit_1.bindingCommand('trigger')
-    ], TriggerBindingCommand);
+    let TriggerBindingCommand = /** @class */ (() => {
+        let TriggerBindingCommand = class TriggerBindingCommand {
+            constructor() {
+                this.bindingType = 4182 /* TriggerCommand */;
+            }
+            compile(binding) {
+                return new runtime_html_1.TriggerBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
+            }
+        };
+        TriggerBindingCommand = __decorate([
+            jit_1.bindingCommand('trigger')
+        ], TriggerBindingCommand);
+        return TriggerBindingCommand;
+    })();
     exports.TriggerBindingCommand = TriggerBindingCommand;
     /**
      * Delegate binding command. Compile attr with binding symbol with command `delegate` to `DelegateBindingInstruction`
      */
-    let DelegateBindingCommand = class DelegateBindingCommand {
-        constructor() {
-            this.bindingType = 4184 /* DelegateCommand */;
-        }
-        compile(binding) {
-            return new runtime_html_1.DelegateBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
-        }
-    };
-    DelegateBindingCommand = __decorate([
-        jit_1.bindingCommand('delegate')
-    ], DelegateBindingCommand);
+    let DelegateBindingCommand = /** @class */ (() => {
+        let DelegateBindingCommand = class DelegateBindingCommand {
+            constructor() {
+                this.bindingType = 4184 /* DelegateCommand */;
+            }
+            compile(binding) {
+                return new runtime_html_1.DelegateBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
+            }
+        };
+        DelegateBindingCommand = __decorate([
+            jit_1.bindingCommand('delegate')
+        ], DelegateBindingCommand);
+        return DelegateBindingCommand;
+    })();
     exports.DelegateBindingCommand = DelegateBindingCommand;
     /**
      * Capture binding command. Compile attr with binding symbol with command `capture` to `CaptureBindingInstruction`
      */
-    let CaptureBindingCommand = class CaptureBindingCommand {
-        constructor() {
-            this.bindingType = 4183 /* CaptureCommand */;
-        }
-        compile(binding) {
-            return new runtime_html_1.CaptureBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
-        }
-    };
-    CaptureBindingCommand = __decorate([
-        jit_1.bindingCommand('capture')
-    ], CaptureBindingCommand);
+    let CaptureBindingCommand = /** @class */ (() => {
+        let CaptureBindingCommand = class CaptureBindingCommand {
+            constructor() {
+                this.bindingType = 4183 /* CaptureCommand */;
+            }
+            compile(binding) {
+                return new runtime_html_1.CaptureBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
+            }
+        };
+        CaptureBindingCommand = __decorate([
+            jit_1.bindingCommand('capture')
+        ], CaptureBindingCommand);
+        return CaptureBindingCommand;
+    })();
     exports.CaptureBindingCommand = CaptureBindingCommand;
     /**
      * Attr binding command. Compile attr with binding symbol with command `attr` to `AttributeBindingInstruction`
      */
-    let AttrBindingCommand = class AttrBindingCommand {
-        constructor() {
-            this.bindingType = 32 /* IsProperty */;
-        }
-        compile(binding) {
-            const target = jit_1.getTarget(binding, false);
-            return new runtime_html_1.AttributeBindingInstruction(target, binding.expression, target);
-        }
-    };
-    AttrBindingCommand = __decorate([
-        jit_1.bindingCommand('attr')
-    ], AttrBindingCommand);
+    let AttrBindingCommand = /** @class */ (() => {
+        let AttrBindingCommand = class AttrBindingCommand {
+            constructor() {
+                this.bindingType = 32 /* IsProperty */;
+            }
+            compile(binding) {
+                const target = jit_1.getTarget(binding, false);
+                return new runtime_html_1.AttributeBindingInstruction(target, binding.expression, target);
+            }
+        };
+        AttrBindingCommand = __decorate([
+            jit_1.bindingCommand('attr')
+        ], AttrBindingCommand);
+        return AttrBindingCommand;
+    })();
     exports.AttrBindingCommand = AttrBindingCommand;
     /**
      * Style binding command. Compile attr with binding symbol with command `style` to `AttributeBindingInstruction`
      */
-    let StyleBindingCommand = class StyleBindingCommand {
-        constructor() {
-            this.bindingType = 32 /* IsProperty */;
-        }
-        compile(binding) {
-            return new runtime_html_1.AttributeBindingInstruction('style', binding.expression, jit_1.getTarget(binding, false));
-        }
-    };
-    StyleBindingCommand = __decorate([
-        jit_1.bindingCommand('style')
-    ], StyleBindingCommand);
+    let StyleBindingCommand = /** @class */ (() => {
+        let StyleBindingCommand = class StyleBindingCommand {
+            constructor() {
+                this.bindingType = 32 /* IsProperty */;
+            }
+            compile(binding) {
+                return new runtime_html_1.AttributeBindingInstruction('style', binding.expression, jit_1.getTarget(binding, false));
+            }
+        };
+        StyleBindingCommand = __decorate([
+            jit_1.bindingCommand('style')
+        ], StyleBindingCommand);
+        return StyleBindingCommand;
+    })();
     exports.StyleBindingCommand = StyleBindingCommand;
     /**
      * Class binding command. Compile attr with binding symbol with command `class` to `AttributeBindingInstruction`
      */
-    let ClassBindingCommand = class ClassBindingCommand {
-        constructor() {
-            this.bindingType = 32 /* IsProperty */;
-        }
-        compile(binding) {
-            return new runtime_html_1.AttributeBindingInstruction('class', binding.expression, jit_1.getTarget(binding, false));
-        }
-    };
-    ClassBindingCommand = __decorate([
-        jit_1.bindingCommand('class')
-    ], ClassBindingCommand);
+    let ClassBindingCommand = /** @class */ (() => {
+        let ClassBindingCommand = class ClassBindingCommand {
+            constructor() {
+                this.bindingType = 32 /* IsProperty */;
+            }
+            compile(binding) {
+                return new runtime_html_1.AttributeBindingInstruction('class', binding.expression, jit_1.getTarget(binding, false));
+            }
+        };
+        ClassBindingCommand = __decorate([
+            jit_1.bindingCommand('class')
+        ], ClassBindingCommand);
+        return ClassBindingCommand;
+    })();
     exports.ClassBindingCommand = ClassBindingCommand;
     /**
-     * Binding command to refer different targets (element, custom element/attribute view models, controller) afterAttach to an element
+     * Binding command to refer different targets (element, custom element/attribute view models, controller) afterAttachChildren to an element
      */
-    let RefBindingCommand = class RefBindingCommand {
-        constructor() {
-            this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreCustomAttr */;
-        }
-        compile(binding) {
-            return new runtime_1.RefBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
-        }
-    };
-    RefBindingCommand = __decorate([
-        jit_1.bindingCommand('ref')
-    ], RefBindingCommand);
+    let RefBindingCommand = /** @class */ (() => {
+        let RefBindingCommand = class RefBindingCommand {
+            constructor() {
+                this.bindingType = 32 /* IsProperty */ | 4096 /* IgnoreCustomAttr */;
+            }
+            compile(binding) {
+                return new runtime_1.RefBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
+            }
+        };
+        RefBindingCommand = __decorate([
+            jit_1.bindingCommand('ref')
+        ], RefBindingCommand);
+        return RefBindingCommand;
+    })();
     exports.RefBindingCommand = RefBindingCommand;
 });
 //# sourceMappingURL=binding-commands.js.map

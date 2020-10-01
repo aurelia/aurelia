@@ -21,25 +21,29 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.NumberFormatValueConverter = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const i18n_1 = require("../i18n");
-    let NumberFormatValueConverter = class NumberFormatValueConverter {
-        constructor(i18n) {
-            this.i18n = i18n;
-            this.signals = ["aurelia-translation-signal" /* I18N_SIGNAL */];
-        }
-        toView(value, options, locale) {
-            if (typeof value !== 'number') {
-                return value;
+    let NumberFormatValueConverter = /** @class */ (() => {
+        let NumberFormatValueConverter = class NumberFormatValueConverter {
+            constructor(i18n) {
+                this.i18n = i18n;
+                this.signals = ["aurelia-translation-signal" /* I18N_SIGNAL */];
             }
-            return this.i18n.nf(value, options, locale);
-        }
-    };
-    NumberFormatValueConverter = __decorate([
-        runtime_1.valueConverter("nf" /* numberFormatValueConverterName */),
-        __param(0, i18n_1.I18N),
-        __metadata("design:paramtypes", [Object])
-    ], NumberFormatValueConverter);
+            toView(value, options, locale) {
+                if (typeof value !== 'number') {
+                    return value;
+                }
+                return this.i18n.nf(value, options, locale);
+            }
+        };
+        NumberFormatValueConverter = __decorate([
+            runtime_1.valueConverter("nf" /* numberFormatValueConverterName */),
+            __param(0, i18n_1.I18N),
+            __metadata("design:paramtypes", [Object])
+        ], NumberFormatValueConverter);
+        return NumberFormatValueConverter;
+    })();
     exports.NumberFormatValueConverter = NumberFormatValueConverter;
 });
 //# sourceMappingURL=number-format-value-converter.js.map

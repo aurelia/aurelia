@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Char = exports.Token = exports.Precedence = exports.Access = exports.unescapeCode = void 0;
     function unescapeCode(code) {
         switch (code) {
             case 98 /* LowerB */: return 8 /* Backspace */;

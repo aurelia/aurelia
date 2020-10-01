@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$SymbolPrototype = exports.$SymbolConstructor = void 0;
     const function_1 = require("../types/function");
     const error_1 = require("../types/error");
     const symbol_1 = require("../types/symbol");

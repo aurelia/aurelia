@@ -21,32 +21,35 @@ export class CSSModulesProcessorRegistry {
     }
     register(container) {
         const classLookup = Object.assign({}, ...this.cssModules);
-        let ClassCustomAttribute = class ClassCustomAttribute {
-            constructor(element /* TODO(fkleuver): fix this type annotation reflection issue in AOT */) {
-                this.element = element;
-            }
-            beforeBind() {
-                this.valueChanged();
-            }
-            valueChanged() {
-                if (!this.value) {
-                    this.element.className = '';
-                    return;
+        let ClassCustomAttribute = /** @class */ (() => {
+            let ClassCustomAttribute = class ClassCustomAttribute {
+                constructor(element /* TODO(fkleuver): fix this type annotation reflection issue in AOT */) {
+                    this.element = element;
                 }
-                this.element.className = getClassesToAdd(this.value)
-                    .map(x => classLookup[x] || x)
-                    .join(' ');
-            }
-        };
-        __decorate([
-            bindable,
-            __metadata("design:type", String)
-        ], ClassCustomAttribute.prototype, "value", void 0);
-        ClassCustomAttribute = __decorate([
-            customAttribute('class'),
-            __param(0, INode),
-            __metadata("design:paramtypes", [Object])
-        ], ClassCustomAttribute);
+                beforeBind() {
+                    this.valueChanged();
+                }
+                valueChanged() {
+                    if (!this.value) {
+                        this.element.className = '';
+                        return;
+                    }
+                    this.element.className = getClassesToAdd(this.value)
+                        .map(x => classLookup[x] || x)
+                        .join(' ');
+                }
+            };
+            __decorate([
+                bindable,
+                __metadata("design:type", String)
+            ], ClassCustomAttribute.prototype, "value", void 0);
+            ClassCustomAttribute = __decorate([
+                customAttribute('class'),
+                __param(0, INode),
+                __metadata("design:paramtypes", [Object])
+            ], ClassCustomAttribute);
+            return ClassCustomAttribute;
+        })();
         container.register(ClassCustomAttribute);
     }
 }

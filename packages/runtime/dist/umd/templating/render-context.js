@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ViewFactoryProvider = exports.RenderContext = exports.getRenderContext = exports.isRenderContext = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const definitions_1 = require("../definitions");
     const dom_1 = require("../dom");

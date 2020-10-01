@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$ModuleEnvRec = exports.$GlobalEnvRec = exports.$FunctionEnvRec = exports.$ObjectEnvRec = exports.$DeclarativeEnvRec = exports.$Binding = void 0;
     const operations_1 = require("../operations");
     const property_descriptor_1 = require("./property-descriptor");
     const error_1 = require("./error");

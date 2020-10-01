@@ -162,38 +162,41 @@ export class BindableDefinition {
  * It will be automatically removed by dead code elimination.
  */
 function apiTypeCheck() {
-    let Foo = 
-    // > expected error - class decorator only accepts a string
-    //@bindable({})
-    class Foo {
-    };
-    __decorate([
-        bindable,
-        bindable(),
-        bindable({})
-        // > expected error - 'property' does not exist on decorator input object
-        //@bindable({ property: 'prop' })
-        ,
-        bindable({ mode: BindingMode.twoWay }),
-        bindable({ callback: 'propChanged' }),
-        bindable({ attribute: 'prop' }),
-        bindable({ primary: true }),
-        bindable({ set: value => String(value) }),
-        bindable({ set: value => Number(value) }),
-        bindable({
-            mode: BindingMode.twoWay,
-            callback: 'propChanged',
-            attribute: 'prop',
-            primary: true,
-            set: value => String(value)
-        }),
-        __metadata("design:type", Object)
-    ], Foo.prototype, "prop", void 0);
-    Foo = __decorate([
-        bindable('prop')
+    let Foo = /** @class */ (() => {
+        let Foo = 
         // > expected error - class decorator only accepts a string
         //@bindable({})
-    ], Foo);
+        class Foo {
+        };
+        __decorate([
+            bindable,
+            bindable(),
+            bindable({})
+            // > expected error - 'property' does not exist on decorator input object
+            //@bindable({ property: 'prop' })
+            ,
+            bindable({ mode: BindingMode.twoWay }),
+            bindable({ callback: 'propChanged' }),
+            bindable({ attribute: 'prop' }),
+            bindable({ primary: true }),
+            bindable({ set: value => String(value) }),
+            bindable({ set: value => Number(value) }),
+            bindable({
+                mode: BindingMode.twoWay,
+                callback: 'propChanged',
+                attribute: 'prop',
+                primary: true,
+                set: value => String(value)
+            }),
+            __metadata("design:type", Object)
+        ], Foo.prototype, "prop", void 0);
+        Foo = __decorate([
+            bindable('prop')
+            // > expected error - class decorator only accepts a string
+            //@bindable({})
+        ], Foo);
+        return Foo;
+    })();
     Bindable.for(Foo)
         // > expected error - there is no add() function with only optional params on the fluent api
         //.add()

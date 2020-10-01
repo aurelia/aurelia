@@ -7,7 +7,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var ChildrenObserver_1;
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Protocol, Metadata, firstDefined, getPrototypeChain, Reporter } from '@aurelia/kernel';
 import { CustomElement } from '../resources/custom-element';
@@ -113,60 +112,64 @@ export class ChildrenDefinition {
     }
 }
 /** @internal */
-let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
-    constructor(controller, obj, flags, propertyKey, cbName, query = defaultChildQuery, filter = defaultChildFilter, map = defaultChildMap, options) {
-        this.controller = controller;
-        this.obj = obj;
-        this.propertyKey = propertyKey;
-        this.query = query;
-        this.filter = filter;
-        this.map = map;
-        this.options = options;
-        this.observing = false;
-        this.children = (void 0);
-        this.callback = obj[cbName];
-        this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;
-        this.createGetterSetter();
-    }
-    getValue() {
-        this.tryStartObserving();
-        return this.children;
-    }
-    setValue(newValue) { }
-    subscribe(subscriber) {
-        this.tryStartObserving();
-        this.addSubscriber(subscriber);
-    }
-    tryStartObserving() {
-        if (!this.observing) {
-            this.observing = true;
-            const projector = this.controller.projector;
-            this.children = filterChildren(projector, this.query, this.filter, this.map);
-            projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); }, this.options);
+let ChildrenObserver = /** @class */ (() => {
+    var ChildrenObserver_1;
+    let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
+        constructor(controller, obj, flags, propertyKey, cbName, query = defaultChildQuery, filter = defaultChildFilter, map = defaultChildMap, options) {
+            this.controller = controller;
+            this.obj = obj;
+            this.propertyKey = propertyKey;
+            this.query = query;
+            this.filter = filter;
+            this.map = map;
+            this.options = options;
+            this.observing = false;
+            this.children = (void 0);
+            this.callback = obj[cbName];
+            this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+            this.createGetterSetter();
         }
-    }
-    onChildrenChanged() {
-        this.children = filterChildren(this.controller.projector, this.query, this.filter, this.map);
-        if (this.callback !== void 0) {
-            this.callback.call(this.obj);
+        getValue() {
+            this.tryStartObserving();
+            return this.children;
         }
-        this.callSubscribers(this.children, undefined, this.persistentFlags | 16 /* updateTargetInstance */);
-    }
-    createGetterSetter() {
-        if (!Reflect.defineProperty(this.obj, this.propertyKey, {
-            enumerable: true,
-            configurable: true,
-            get: () => this.getValue(),
-            set: () => { return; },
-        })) {
-            Reporter.write(1, this.propertyKey, this.obj);
+        setValue(newValue) { }
+        subscribe(subscriber) {
+            this.tryStartObserving();
+            this.addSubscriber(subscriber);
         }
-    }
-};
-ChildrenObserver = ChildrenObserver_1 = __decorate([
-    subscriberCollection(),
-    __metadata("design:paramtypes", [Object, Object, Number, String, String, Object, Object, Object, Object])
-], ChildrenObserver);
+        tryStartObserving() {
+            if (!this.observing) {
+                this.observing = true;
+                const projector = this.controller.projector;
+                this.children = filterChildren(projector, this.query, this.filter, this.map);
+                projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); }, this.options);
+            }
+        }
+        onChildrenChanged() {
+            this.children = filterChildren(this.controller.projector, this.query, this.filter, this.map);
+            if (this.callback !== void 0) {
+                this.callback.call(this.obj);
+            }
+            this.callSubscribers(this.children, undefined, this.persistentFlags | 8 /* updateTargetInstance */);
+        }
+        createGetterSetter() {
+            if (!Reflect.defineProperty(this.obj, this.propertyKey, {
+                enumerable: true,
+                configurable: true,
+                get: () => this.getValue(),
+                set: () => { return; },
+            })) {
+                Reporter.write(1, this.propertyKey, this.obj);
+            }
+        }
+    };
+    ChildrenObserver = ChildrenObserver_1 = __decorate([
+        subscriberCollection(),
+        __metadata("design:paramtypes", [Object, Object, Number, String, String, Object, Object, Object, Object])
+    ], ChildrenObserver);
+    return ChildrenObserver;
+})();
 export { ChildrenObserver };
 function defaultChildQuery(projector) {
     return projector.children;
@@ -177,14 +180,16 @@ function defaultChildFilter(node, controller, viewModel) {
 function defaultChildMap(node, controller, viewModel) {
     return viewModel;
 }
+const forOpts = { optional: true };
 /** @internal */
 export function filterChildren(projector, query, filter, map) {
+    var _a;
     const nodes = query(projector);
     const children = [];
     for (let i = 0, ii = nodes.length; i < ii; ++i) {
         const node = nodes[i];
-        const controller = CustomElement.for(node);
-        const viewModel = controller ? controller.viewModel : null;
+        const controller = CustomElement.for(node, forOpts);
+        const viewModel = (_a = controller === null || controller === void 0 ? void 0 : controller.viewModel) !== null && _a !== void 0 ? _a : null;
         if (filter(node, controller, viewModel)) {
             children.push(map(node, controller, viewModel));
         }

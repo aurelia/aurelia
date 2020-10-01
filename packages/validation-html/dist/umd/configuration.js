@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ValidationHtmlConfiguration = exports.getDefaultValidationHtmlConfiguration = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const validation_1 = require("@aurelia/validation");
     const validation_container_custom_element_1 = require("./subscribers/validation-container-custom-element");

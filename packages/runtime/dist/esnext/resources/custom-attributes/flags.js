@@ -20,55 +20,70 @@ class FlagsTemplateController {
         this.flags = flags;
         this.id = nextId('au$component');
         this.view = this.factory.create();
-        this.view.hold(location, 1 /* insertBefore */);
+        this.view.setLocation(location, 1 /* insertBefore */);
     }
-    beforeBind(flags) {
-        this.view.parent = this.$controller;
-        return this.view.bind(flags | this.flags, this.$controller.scope);
+    afterAttach(initiator, parent, flags) {
+        const { $controller } = this;
+        return this.view.activate(initiator, $controller, flags | this.flags, $controller.scope, $controller.part);
     }
-    beforeAttach(flags) {
-        this.view.attach(flags);
+    afterUnbind(initiator, parent, flags) {
+        return this.view.deactivate(initiator, this.$controller, flags);
     }
-    beforeDetach(flags) {
-        this.view.detach(flags);
+    onCancel(initiator, parent, flags) {
+        var _a;
+        (_a = this.view) === null || _a === void 0 ? void 0 : _a.cancel(initiator, this.$controller, flags);
     }
-    beforeUnbind(flags) {
-        const task = this.view.unbind(flags);
-        this.view.parent = void 0;
-        return task;
+    dispose() {
+        this.view.dispose();
+        this.view = (void 0);
+    }
+    accept(visitor) {
+        var _a;
+        if (((_a = this.view) === null || _a === void 0 ? void 0 : _a.accept(visitor)) === true) {
+            return true;
+        }
     }
 }
-let InfrequentMutations = class InfrequentMutations extends FlagsTemplateController {
-    constructor(factory, location) {
-        super(factory, location, 268435456 /* noTargetObserverQueue */);
-    }
-};
-InfrequentMutations = __decorate([
-    templateController('infrequent-mutations'),
-    __param(0, IViewFactory), __param(1, IRenderLocation),
-    __metadata("design:paramtypes", [Object, Object])
-], InfrequentMutations);
+let InfrequentMutations = /** @class */ (() => {
+    let InfrequentMutations = class InfrequentMutations extends FlagsTemplateController {
+        constructor(factory, location) {
+            super(factory, location, 4096 /* noTargetObserverQueue */);
+        }
+    };
+    InfrequentMutations = __decorate([
+        templateController('infrequent-mutations'),
+        __param(0, IViewFactory), __param(1, IRenderLocation),
+        __metadata("design:paramtypes", [Object, Object])
+    ], InfrequentMutations);
+    return InfrequentMutations;
+})();
 export { InfrequentMutations };
-let FrequentMutations = class FrequentMutations extends FlagsTemplateController {
-    constructor(factory, location) {
-        super(factory, location, 536870912 /* persistentTargetObserverQueue */);
-    }
-};
-FrequentMutations = __decorate([
-    templateController('frequent-mutations'),
-    __param(0, IViewFactory), __param(1, IRenderLocation),
-    __metadata("design:paramtypes", [Object, Object])
-], FrequentMutations);
+let FrequentMutations = /** @class */ (() => {
+    let FrequentMutations = class FrequentMutations extends FlagsTemplateController {
+        constructor(factory, location) {
+            super(factory, location, 8192 /* persistentTargetObserverQueue */);
+        }
+    };
+    FrequentMutations = __decorate([
+        templateController('frequent-mutations'),
+        __param(0, IViewFactory), __param(1, IRenderLocation),
+        __metadata("design:paramtypes", [Object, Object])
+    ], FrequentMutations);
+    return FrequentMutations;
+})();
 export { FrequentMutations };
-let ObserveShallow = class ObserveShallow extends FlagsTemplateController {
-    constructor(factory, location) {
-        super(factory, location, 134217728 /* observeLeafPropertiesOnly */);
-    }
-};
-ObserveShallow = __decorate([
-    templateController('observe-shallow'),
-    __param(0, IViewFactory), __param(1, IRenderLocation),
-    __metadata("design:paramtypes", [Object, Object])
-], ObserveShallow);
+let ObserveShallow = /** @class */ (() => {
+    let ObserveShallow = class ObserveShallow extends FlagsTemplateController {
+        constructor(factory, location) {
+            super(factory, location, 2048 /* observeLeafPropertiesOnly */);
+        }
+    };
+    ObserveShallow = __decorate([
+        templateController('observe-shallow'),
+        __param(0, IViewFactory), __param(1, IRenderLocation),
+        __metadata("design:paramtypes", [Object, Object])
+    ], ObserveShallow);
+    return ObserveShallow;
+})();
 export { ObserveShallow };
 //# sourceMappingURL=flags.js.map

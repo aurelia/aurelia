@@ -18,6 +18,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.getMapObserver = exports.MapObserver = exports.disableMapObservation = exports.enableMapObservation = void 0;
     const lifecycle_1 = require("../lifecycle");
     const observation_1 = require("../observation");
     const collection_size_observer_1 = require("./collection-size-observer");
@@ -152,55 +153,58 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     }
     exports.disableMapObservation = disableMapObservation;
     const slice = Array.prototype.slice;
-    let MapObserver = class MapObserver {
-        constructor(flags, lifecycle, map) {
-            if (!enableMapObservationCalled) {
-                enableMapObservationCalled = true;
-                enableMapObservation();
+    let MapObserver = /** @class */ (() => {
+        let MapObserver = class MapObserver {
+            constructor(flags, lifecycle, map) {
+                if (!enableMapObservationCalled) {
+                    enableMapObservationCalled = true;
+                    enableMapObservation();
+                }
+                this.inBatch = false;
+                this.collection = map;
+                this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+                this.indexMap = observation_1.createIndexMap(map.size);
+                this.lifecycle = lifecycle;
+                this.lengthObserver = (void 0);
+                observerLookup.set(map, this);
             }
-            this.inBatch = false;
-            this.collection = map;
-            this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;
-            this.indexMap = observation_1.createIndexMap(map.size);
-            this.lifecycle = lifecycle;
-            this.lengthObserver = (void 0);
-            observerLookup.set(map, this);
-        }
-        notify() {
-            if (this.lifecycle.batch.depth > 0) {
-                if (!this.inBatch) {
-                    this.inBatch = true;
-                    this.lifecycle.batch.add(this);
+            notify() {
+                if (this.lifecycle.batch.depth > 0) {
+                    if (!this.inBatch) {
+                        this.inBatch = true;
+                        this.lifecycle.batch.add(this);
+                    }
+                }
+                else {
+                    this.flushBatch(0 /* none */);
                 }
             }
-            else {
-                this.flushBatch(0 /* none */);
+            getLengthObserver() {
+                if (this.lengthObserver === void 0) {
+                    this.lengthObserver = new collection_size_observer_1.CollectionSizeObserver(this.collection);
+                }
+                return this.lengthObserver;
             }
-        }
-        getLengthObserver() {
-            if (this.lengthObserver === void 0) {
-                this.lengthObserver = new collection_size_observer_1.CollectionSizeObserver(this.collection);
+            getIndexObserver(index) {
+                throw new Error('Map index observation not supported');
             }
-            return this.lengthObserver;
-        }
-        getIndexObserver(index) {
-            throw new Error('Map index observation not supported');
-        }
-        flushBatch(flags) {
-            this.inBatch = false;
-            const { indexMap, collection } = this;
-            const { size } = collection;
-            this.indexMap = observation_1.createIndexMap(size);
-            this.callCollectionSubscribers(indexMap, 16 /* updateTargetInstance */ | this.persistentFlags);
-            if (this.lengthObserver !== void 0) {
-                this.lengthObserver.setValue(size, 16 /* updateTargetInstance */);
+            flushBatch(flags) {
+                this.inBatch = false;
+                const { indexMap, collection } = this;
+                const { size } = collection;
+                this.indexMap = observation_1.createIndexMap(size);
+                this.callCollectionSubscribers(indexMap, 8 /* updateTargetInstance */ | this.persistentFlags);
+                if (this.lengthObserver !== void 0) {
+                    this.lengthObserver.setValue(size, 8 /* updateTargetInstance */);
+                }
             }
-        }
-    };
-    MapObserver = __decorate([
-        subscriber_collection_1.collectionSubscriberCollection(),
-        __metadata("design:paramtypes", [Number, Object, Object])
-    ], MapObserver);
+        };
+        MapObserver = __decorate([
+            subscriber_collection_1.collectionSubscriberCollection(),
+            __metadata("design:paramtypes", [Number, Object, Object])
+        ], MapObserver);
+        return MapObserver;
+    })();
     exports.MapObserver = MapObserver;
     function getMapObserver(flags, lifecycle, map) {
         const observer = observerLookup.get(map);

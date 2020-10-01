@@ -21,6 +21,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ShadowDOMRegistry = exports.IShadowDOMStyleFactory = exports.shadowCSS = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const shadow_dom_styles_1 = require("./shadow-dom-styles");
     const dom_1 = require("../dom");
@@ -55,34 +56,40 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     }
     exports.ShadowDOMRegistry = ShadowDOMRegistry;
-    let AdoptedStyleSheetsStylesFactory = class AdoptedStyleSheetsStylesFactory {
-        constructor(dom) {
-            this.dom = dom;
-            this.cache = new Map();
-        }
-        createStyles(localStyles, sharedStyles) {
-            return new shadow_dom_styles_1.AdoptedStyleSheetsStyles(this.dom, localStyles, this.cache, sharedStyles);
-        }
-    };
-    AdoptedStyleSheetsStylesFactory = __decorate([
-        __param(0, runtime_1.IDOM),
-        __metadata("design:paramtypes", [dom_1.HTMLDOM])
-    ], AdoptedStyleSheetsStylesFactory);
-    let StyleElementStylesFactory = class StyleElementStylesFactory {
-        constructor(dom) {
-            this.dom = dom;
-        }
-        createStyles(localStyles, sharedStyles) {
-            if (localStyles.some(x => typeof x !== 'string')) {
-                // TODO: use reporter
-                throw new Error('Shadow DOM CSS must be a string.');
+    let AdoptedStyleSheetsStylesFactory = /** @class */ (() => {
+        let AdoptedStyleSheetsStylesFactory = class AdoptedStyleSheetsStylesFactory {
+            constructor(dom) {
+                this.dom = dom;
+                this.cache = new Map();
             }
-            return new shadow_dom_styles_1.StyleElementStyles(this.dom, localStyles, sharedStyles);
-        }
-    };
-    StyleElementStylesFactory = __decorate([
-        __param(0, runtime_1.IDOM),
-        __metadata("design:paramtypes", [dom_1.HTMLDOM])
-    ], StyleElementStylesFactory);
+            createStyles(localStyles, sharedStyles) {
+                return new shadow_dom_styles_1.AdoptedStyleSheetsStyles(this.dom, localStyles, this.cache, sharedStyles);
+            }
+        };
+        AdoptedStyleSheetsStylesFactory = __decorate([
+            __param(0, runtime_1.IDOM),
+            __metadata("design:paramtypes", [dom_1.HTMLDOM])
+        ], AdoptedStyleSheetsStylesFactory);
+        return AdoptedStyleSheetsStylesFactory;
+    })();
+    let StyleElementStylesFactory = /** @class */ (() => {
+        let StyleElementStylesFactory = class StyleElementStylesFactory {
+            constructor(dom) {
+                this.dom = dom;
+            }
+            createStyles(localStyles, sharedStyles) {
+                if (localStyles.some(x => typeof x !== 'string')) {
+                    // TODO: use reporter
+                    throw new Error('Shadow DOM CSS must be a string.');
+                }
+                return new shadow_dom_styles_1.StyleElementStyles(this.dom, localStyles, sharedStyles);
+            }
+        };
+        StyleElementStylesFactory = __decorate([
+            __param(0, runtime_1.IDOM),
+            __metadata("design:paramtypes", [dom_1.HTMLDOM])
+        ], StyleElementStylesFactory);
+        return StyleElementStylesFactory;
+    })();
 });
 //# sourceMappingURL=shadow-dom-registry.js.map

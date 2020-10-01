@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.PropertyAccessor = void 0;
     class PropertyAccessor {
         constructor(obj, propertyKey) {
             this.obj = obj;

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.AuConfigurationOptions = void 0;
     /* eslint-disable prefer-template */
     const http_server_1 = require("@aurelia/http-server");
     const space = ' ';

@@ -5,17 +5,20 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 import { bindingBehavior, ValueConverterExpression } from '@aurelia/runtime';
-let TranslationBindingBehavior = class TranslationBindingBehavior {
-    bind(flags, scope, binding) {
-        const expression = binding.sourceExpression.expression;
-        if (!(expression instanceof ValueConverterExpression)) {
-            const vcExpression = new ValueConverterExpression(expression, "t" /* translationValueConverterName */, binding.sourceExpression.args);
-            binding.sourceExpression.expression = vcExpression;
+let TranslationBindingBehavior = /** @class */ (() => {
+    let TranslationBindingBehavior = class TranslationBindingBehavior {
+        bind(flags, scope, binding) {
+            const expression = binding.sourceExpression.expression;
+            if (!(expression instanceof ValueConverterExpression)) {
+                const vcExpression = new ValueConverterExpression(expression, "t" /* translationValueConverterName */, binding.sourceExpression.args);
+                binding.sourceExpression.expression = vcExpression;
+            }
         }
-    }
-};
-TranslationBindingBehavior = __decorate([
-    bindingBehavior("t" /* translationValueConverterName */)
-], TranslationBindingBehavior);
+    };
+    TranslationBindingBehavior = __decorate([
+        bindingBehavior("t" /* translationValueConverterName */)
+    ], TranslationBindingBehavior);
+    return TranslationBindingBehavior;
+})();
 export { TranslationBindingBehavior };
 //# sourceMappingURL=translation-binding-behavior.js.map

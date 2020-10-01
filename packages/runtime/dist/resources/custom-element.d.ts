@@ -26,7 +26,7 @@ export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     readonly scopeParts?: readonly string[];
     readonly enhance?: boolean;
 }>;
-export declare type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, ICustomElementViewModel & (T extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
+export declare type CustomElementType<C extends Constructable = Constructable, T extends INode = INode> = ResourceType<C, ICustomElementViewModel<T> & (C extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
 export declare type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
     /**
      * Returns the closest controller that is associated with either this node (if it is a custom element) or the first
@@ -37,15 +37,21 @@ export declare type CustomElementKind = IResourceKind<CustomElementType, CustomE
      * @param node - The node relative to which to get the closest controller.
      * @param searchParents - Also search the parent nodes (including containerless).
      * @returns The closest controller relative to the provided node.
+     * @throws - If neither the node or any of its effective parent nodes host a custom element, an error will be thrown.
      */
-    for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, searchParents: true): ICustomElementController<T, C>;
+    for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, opts: {
+        searchParents: true;
+    }): ICustomElementController<T, C>;
     /**
      * Returns the controller that is associated with this node, if it is a custom element with the provided name.
      *
      * @param node - The node to retrieve the controller for, if it is a custom element with the provided name.
      * @returns The controller associated with the provided node, if it is a custom element with the provided name, or otherwise `undefined`.
+     * @throws - If the node does not host a custom element, an error will be thrown.
      */
-    for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, name: string): ICustomElementController<T, C> | undefined;
+    for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, opts: {
+        name: string;
+    }): ICustomElementController<T, C> | undefined;
     /**
      * Returns the closest controller that is associated with either this node (if it is a custom element) or the first
      * parent node (including containerless) that is a custom element with the provided name.
@@ -53,21 +59,37 @@ export declare type CustomElementKind = IResourceKind<CustomElementType, CustomE
      * @param node - The node relative to which to get the closest controller of a custom element with the provided name.
      * @param searchParents - Also search the parent nodes (including containerless).
      * @returns The closest controller of a custom element with the provided name, relative to the provided node, if one can be found, or otherwise `undefined`.
+     * @throws - If neither the node or any of its effective parent nodes host a custom element, an error will be thrown.
      */
-    for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, name: string, searchParents: true): ICustomElementController<T, C> | undefined;
+    for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, opts: {
+        name: string;
+        searchParents: true;
+    }): ICustomElementController<T, C> | undefined;
     /**
      * Returns the controller that is associated with this node, if it is a custom element.
      *
      * @param node - The node to retrieve the controller for, if it is a custom element.
-     * @returns The controller associated with the provided node, if it is a custom element, or otherwise `undefined`.
+     * @param optional - If `true`, do not throw if the provided node is not a custom element.
+     * @returns The controller associated with the provided node, if it is a custom element
+     * @throws - If the node does not host a custom element, an error will be thrown.
      */
-    for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T): ICustomElementController<T, C> | undefined;
-    isType<T>(value: T): value is (T extends Constructable ? CustomElementType<T> : never);
-    define<T extends Constructable>(name: string, Type: T): CustomElementType<T>;
-    define<T extends Constructable>(def: PartialCustomElementDefinition, Type: T): CustomElementType<T>;
-    define<T extends Constructable = Constructable>(def: PartialCustomElementDefinition, Type?: null): CustomElementType<T>;
-    define<T extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type: T): CustomElementType<T>;
-    getDefinition<T extends Constructable>(Type: T): CustomElementDefinition<T>;
+    for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T): ICustomElementController<T, C>;
+    /**
+     * Returns the controller that is associated with this node, if it is a custom element.
+     *
+     * @param node - The node to retrieve the controller for, if it is a custom element.
+     * @param optional - If `true`, do not throw if the provided node is not a custom element.
+     * @returns The controller associated with the provided node, if it is a custom element, otherwise `null`
+     */
+    for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, opts: {
+        optional: true;
+    }): ICustomElementController<T, C> | null;
+    isType<T extends INode, C>(value: C): value is (C extends Constructable ? CustomElementType<C, T> : never);
+    define<T extends INode, C extends Constructable>(name: string, Type: C): CustomElementType<C, T>;
+    define<T extends INode, C extends Constructable>(def: PartialCustomElementDefinition, Type: C): CustomElementType<C, T>;
+    define<T extends INode, C extends Constructable>(def: PartialCustomElementDefinition, Type?: null): CustomElementType<C, T>;
+    define<T extends INode, C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type: C): CustomElementType<C, T>;
+    getDefinition<T extends INode, C extends Constructable>(Type: C): CustomElementDefinition<C, T>;
     annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void;
     getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K];
     generateName(): string;
@@ -106,8 +128,8 @@ export declare function strict(target: Constructable): void;
  * Decorator: Indicates that the custom element should be rendered with the strict binding option. undefined/null -> 0 or '' based on type
  */
 export declare function strict(): (target: Constructable) => void;
-export declare class CustomElementDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomElementViewModel, PartialCustomElementDefinition> {
-    readonly Type: CustomElementType<T>;
+export declare class CustomElementDefinition<C extends Constructable = Constructable, T extends INode = INode> implements ResourceDefinition<C, ICustomElementViewModel<T>, PartialCustomElementDefinition> {
+    readonly Type: CustomElementType<C, T>;
     readonly name: string;
     readonly aliases: string[];
     readonly key: string;
@@ -115,7 +137,7 @@ export declare class CustomElementDefinition<T extends Constructable = Construct
     readonly template: unknown;
     readonly instructions: readonly (readonly ITargetedInstruction[])[];
     readonly dependencies: readonly Key[];
-    readonly injectable: InjectableToken<T> | null;
+    readonly injectable: InjectableToken<C> | null;
     readonly needsCompile: boolean;
     readonly surrogates: readonly ITargetedInstruction[];
     readonly bindables: Record<string, BindableDefinition>;

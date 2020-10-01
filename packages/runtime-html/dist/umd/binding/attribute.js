@@ -18,6 +18,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.AttributeBinding = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const element_attribute_observer_1 = require("../observation/element-attribute-observer");
@@ -28,144 +29,149 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     /**
      * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
      */
-    let AttributeBinding = class AttributeBinding {
-        constructor(sourceExpression, target, 
-        // some attributes may have inner structure
-        // such as class -> collection of class names
-        // such as style -> collection of style rules
-        //
-        // for normal attributes, targetAttribute and targetProperty are the same and can be ignore
-        targetAttribute, targetProperty, mode, observerLocator, locator) {
-            this.sourceExpression = sourceExpression;
-            this.targetAttribute = targetAttribute;
-            this.targetProperty = targetProperty;
-            this.mode = mode;
-            this.observerLocator = observerLocator;
-            this.locator = locator;
-            this.interceptor = this;
-            this.$state = 0 /* none */;
-            this.$scope = null;
-            this.persistentFlags = 0 /* none */;
-            this.target = target;
-            runtime_1.connectable.assignIdTo(this);
-            this.$scheduler = locator.get(runtime_1.IScheduler);
-        }
-        updateTarget(value, flags) {
-            flags |= this.persistentFlags;
-            this.targetObserver.setValue(value, flags | 16 /* updateTargetInstance */);
-        }
-        updateSource(value, flags) {
-            flags |= this.persistentFlags;
-            this.sourceExpression.assign(flags | 32 /* updateSourceExpression */, this.$scope, this.locator, value);
-        }
-        handleChange(newValue, _previousValue, flags) {
-            if (!(this.$state & 4 /* isBound */)) {
-                return;
+    let AttributeBinding = /** @class */ (() => {
+        let AttributeBinding = class AttributeBinding {
+            constructor(sourceExpression, target, 
+            // some attributes may have inner structure
+            // such as class -> collection of class names
+            // such as style -> collection of style rules
+            //
+            // for normal attributes, targetAttribute and targetProperty are the same and can be ignore
+            targetAttribute, targetProperty, mode, observerLocator, locator) {
+                this.sourceExpression = sourceExpression;
+                this.targetAttribute = targetAttribute;
+                this.targetProperty = targetProperty;
+                this.mode = mode;
+                this.observerLocator = observerLocator;
+                this.locator = locator;
+                this.interceptor = this;
+                this.isBound = false;
+                this.$scope = null;
+                this.persistentFlags = 0 /* none */;
+                this.target = target;
+                runtime_1.connectable.assignIdTo(this);
+                this.$scheduler = locator.get(runtime_1.IScheduler);
             }
-            flags |= this.persistentFlags;
-            if (this.mode === runtime_1.BindingMode.fromView) {
-                flags &= ~16 /* updateTargetInstance */;
-                flags |= 32 /* updateSourceExpression */;
+            updateTarget(value, flags) {
+                flags |= this.persistentFlags;
+                this.targetObserver.setValue(value, flags | 8 /* updateTargetInstance */);
             }
-            if (flags & 16 /* updateTargetInstance */) {
-                const previousValue = this.targetObserver.getValue();
-                // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-                if (this.sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
-                    newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
-                }
-                if (newValue !== previousValue) {
-                    this.interceptor.updateTarget(newValue, flags);
-                }
-                if ((this.mode & oneTime) === 0) {
-                    this.version++;
-                    this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
-                    this.interceptor.unobserve(false);
-                }
-                return;
+            updateSource(value, flags) {
+                flags |= this.persistentFlags;
+                this.sourceExpression.assign(flags | 16 /* updateSourceExpression */, this.$scope, this.locator, value);
             }
-            if (flags & 32 /* updateSourceExpression */) {
-                if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
-                    this.interceptor.updateSource(newValue, flags);
-                }
-                return;
-            }
-            throw kernel_1.Reporter.error(15, flags);
-        }
-        $bind(flags, scope, part) {
-            if (this.$state & 4 /* isBound */) {
-                if (this.$scope === scope) {
+            handleChange(newValue, _previousValue, flags) {
+                if (!this.isBound) {
                     return;
                 }
-                this.interceptor.$unbind(flags | 4096 /* fromBind */);
-            }
-            // add isBinding flag
-            this.$state |= 1 /* isBinding */;
-            // Store flags which we can only receive during $bind and need to pass on
-            // to the AST during evaluate/connect/assign
-            this.persistentFlags = flags & 2080374799 /* persistentBindingFlags */;
-            this.$scope = scope;
-            this.part = part;
-            let sourceExpression = this.sourceExpression;
-            if (runtime_1.hasBind(sourceExpression)) {
-                sourceExpression.bind(flags, scope, this.interceptor);
-            }
-            let targetObserver = this.targetObserver;
-            if (!targetObserver) {
-                targetObserver = this.targetObserver = new element_attribute_observer_1.AttributeObserver(this.$scheduler, flags, this.observerLocator, this.target, this.targetProperty, this.targetAttribute);
-            }
-            if (targetObserver.bind) {
-                targetObserver.bind(flags);
-            }
-            // during bind, binding behavior might have changed sourceExpression
-            sourceExpression = this.sourceExpression;
-            if (this.mode & toViewOrOneTime) {
-                this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
-            }
-            if (this.mode & toView) {
-                sourceExpression.connect(flags, scope, this, part);
-            }
-            if (this.mode & fromView) {
-                targetObserver[this.id] |= 32 /* updateSourceExpression */;
-                targetObserver.subscribe(this.interceptor);
-            }
-            // add isBound flag and remove isBinding flag
-            this.$state |= 4 /* isBound */;
-            this.$state &= ~1 /* isBinding */;
-        }
-        $unbind(flags) {
-            if (!(this.$state & 4 /* isBound */)) {
-                return;
-            }
-            // add isUnbinding flag
-            this.$state |= 2 /* isUnbinding */;
-            // clear persistent flags
-            this.persistentFlags = 0 /* none */;
-            if (runtime_1.hasUnbind(this.sourceExpression)) {
-                this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
-            }
-            this.$scope = null;
-            if (this.targetObserver.unbind) {
-                this.targetObserver.unbind(flags);
-            }
-            if (this.targetObserver.unsubscribe) {
-                this.targetObserver.unsubscribe(this.interceptor);
-                this.targetObserver[this.id] &= ~32 /* updateSourceExpression */;
-            }
-            this.interceptor.unobserve(true);
-            // remove isBound and isUnbinding flags
-            this.$state &= ~(4 /* isBound */ | 2 /* isUnbinding */);
-        }
-        connect(flags) {
-            if (this.$state & 4 /* isBound */) {
                 flags |= this.persistentFlags;
-                this.sourceExpression.connect(flags | 2097152 /* mustEvaluate */, this.$scope, this.interceptor, this.part); // why do we have a connect method here in the first place? will this be called after bind?
+                if (this.mode === runtime_1.BindingMode.fromView) {
+                    flags &= ~8 /* updateTargetInstance */;
+                    flags |= 16 /* updateSourceExpression */;
+                }
+                if (flags & 8 /* updateTargetInstance */) {
+                    const previousValue = this.targetObserver.getValue();
+                    // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
+                    if (this.sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
+                        newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
+                    }
+                    if (newValue !== previousValue) {
+                        this.interceptor.updateTarget(newValue, flags);
+                    }
+                    if ((this.mode & oneTime) === 0) {
+                        this.version++;
+                        this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
+                        this.interceptor.unobserve(false);
+                    }
+                    return;
+                }
+                if (flags & 16 /* updateSourceExpression */) {
+                    if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
+                        this.interceptor.updateSource(newValue, flags);
+                    }
+                    return;
+                }
+                throw kernel_1.Reporter.error(15, flags);
             }
-        }
-    };
-    AttributeBinding = __decorate([
-        runtime_1.connectable(),
-        __metadata("design:paramtypes", [Object, Object, String, String, Number, Object, Object])
-    ], AttributeBinding);
+            $bind(flags, scope, part) {
+                if (this.isBound) {
+                    if (this.$scope === scope) {
+                        return;
+                    }
+                    this.interceptor.$unbind(flags | 32 /* fromBind */);
+                }
+                // Store flags which we can only receive during $bind and need to pass on
+                // to the AST during evaluate/connect/assign
+                this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+                this.$scope = scope;
+                this.part = part;
+                let sourceExpression = this.sourceExpression;
+                if (runtime_1.hasBind(sourceExpression)) {
+                    sourceExpression.bind(flags, scope, this.interceptor);
+                }
+                let targetObserver = this.targetObserver;
+                if (!targetObserver) {
+                    targetObserver = this.targetObserver = new element_attribute_observer_1.AttributeObserver(this.$scheduler, flags, this.observerLocator, this.target, this.targetProperty, this.targetAttribute);
+                }
+                if (targetObserver.bind) {
+                    targetObserver.bind(flags);
+                }
+                // during bind, binding behavior might have changed sourceExpression
+                sourceExpression = this.sourceExpression;
+                if (this.mode & toViewOrOneTime) {
+                    this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+                }
+                if (this.mode & toView) {
+                    sourceExpression.connect(flags, scope, this, part);
+                }
+                if (this.mode & fromView) {
+                    targetObserver[this.id] |= 16 /* updateSourceExpression */;
+                    targetObserver.subscribe(this.interceptor);
+                }
+                // add isBound flag and remove isBinding flag
+                this.isBound = true;
+            }
+            $unbind(flags) {
+                if (!this.isBound) {
+                    return;
+                }
+                // clear persistent flags
+                this.persistentFlags = 0 /* none */;
+                if (runtime_1.hasUnbind(this.sourceExpression)) {
+                    this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
+                }
+                this.$scope = null;
+                if (this.targetObserver.unbind) {
+                    this.targetObserver.unbind(flags);
+                }
+                if (this.targetObserver.unsubscribe) {
+                    this.targetObserver.unsubscribe(this.interceptor);
+                    this.targetObserver[this.id] &= ~16 /* updateSourceExpression */;
+                }
+                this.interceptor.unobserve(true);
+                // remove isBound and isUnbinding flags
+                this.isBound = false;
+            }
+            connect(flags) {
+                if (this.isBound) {
+                    flags |= this.persistentFlags;
+                    this.sourceExpression.connect(flags | 128 /* mustEvaluate */, this.$scope, this.interceptor, this.part); // why do we have a connect method here in the first place? will this be called after bind?
+                }
+            }
+            dispose() {
+                this.interceptor = (void 0);
+                this.sourceExpression = (void 0);
+                this.locator = (void 0);
+                this.targetObserver = (void 0);
+                this.target = (void 0);
+            }
+        };
+        AttributeBinding = __decorate([
+            runtime_1.connectable(),
+            __metadata("design:paramtypes", [Object, Object, String, String, Number, Object, Object])
+        ], AttributeBinding);
+        return AttributeBinding;
+    })();
     exports.AttributeBinding = AttributeBinding;
 });
 //# sourceMappingURL=attribute.js.map

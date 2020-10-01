@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.json = void 0;
     /**
      * Serialize an object to JSON. Useful for easily creating JSON fetch request bodies.
      *

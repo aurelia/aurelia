@@ -21,30 +21,34 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.DevServer = void 0;
     const http_server_1 = require("@aurelia/http-server");
     const kernel_1 = require("@aurelia/kernel");
-    let DevServer = class DevServer {
-        constructor(container) {
-            this.container = container;
-        }
-        static create(container = kernel_1.DI.createContainer()) {
-            return new DevServer(container);
-        }
-        async run(option) {
-            // wireup
-            const container = this.container.createChild();
-            container.register(http_server_1.RuntimeNodeConfiguration.create(option));
-            // TODO compile/bundle
-            // TODO inject the entry script to index.html template (from user-space)
-            // start the http/file/websocket server
-            const server = container.get(http_server_1.IHttpServer);
-            await server.start();
-        }
-    };
-    DevServer = __decorate([
-        __param(0, kernel_1.IContainer),
-        __metadata("design:paramtypes", [Object])
-    ], DevServer);
+    let DevServer = /** @class */ (() => {
+        let DevServer = class DevServer {
+            constructor(container) {
+                this.container = container;
+            }
+            static create(container = kernel_1.DI.createContainer()) {
+                return new DevServer(container);
+            }
+            async run(option) {
+                // wireup
+                const container = this.container.createChild();
+                container.register(http_server_1.RuntimeNodeConfiguration.create(option));
+                // TODO compile/bundle
+                // TODO inject the entry script to index.html template (from user-space)
+                // start the http/file/websocket server
+                const server = container.get(http_server_1.IHttpServer);
+                await server.start();
+            }
+        };
+        DevServer = __decorate([
+            __param(0, kernel_1.IContainer),
+            __metadata("design:paramtypes", [Object])
+        ], DevServer);
+        return DevServer;
+    })();
     exports.DevServer = DevServer;
 });
 //# sourceMappingURL=dev-server.js.map

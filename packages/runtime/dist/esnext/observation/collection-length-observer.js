@@ -8,25 +8,28 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { subscriberCollection } from './subscriber-collection';
-let CollectionLengthObserver = class CollectionLengthObserver {
-    constructor(obj) {
-        this.obj = obj;
-        this.currentValue = obj.length;
-    }
-    getValue() {
-        return this.obj.length;
-    }
-    setValue(newValue, flags) {
-        const { currentValue } = this;
-        if (newValue !== currentValue) {
-            this.currentValue = newValue;
-            this.callSubscribers(newValue, currentValue, flags | 16 /* updateTargetInstance */);
+let CollectionLengthObserver = /** @class */ (() => {
+    let CollectionLengthObserver = class CollectionLengthObserver {
+        constructor(obj) {
+            this.obj = obj;
+            this.currentValue = obj.length;
         }
-    }
-};
-CollectionLengthObserver = __decorate([
-    subscriberCollection(),
-    __metadata("design:paramtypes", [Array])
-], CollectionLengthObserver);
+        getValue() {
+            return this.obj.length;
+        }
+        setValue(newValue, flags) {
+            const { currentValue } = this;
+            if (newValue !== currentValue) {
+                this.currentValue = newValue;
+                this.callSubscribers(newValue, currentValue, flags | 8 /* updateTargetInstance */);
+            }
+        }
+    };
+    CollectionLengthObserver = __decorate([
+        subscriberCollection(),
+        __metadata("design:paramtypes", [Array])
+    ], CollectionLengthObserver);
+    return CollectionLengthObserver;
+})();
 export { CollectionLengthObserver };
 //# sourceMappingURL=collection-length-observer.js.map

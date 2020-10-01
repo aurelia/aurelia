@@ -1,7 +1,7 @@
-import { ILifecycleTask, IRenderLocation, IViewFactory, LifecycleFlags, ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime';
+import { IRenderLocation, IViewFactory, LifecycleFlags, ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '@aurelia/runtime';
 import { HTMLDOM } from '../../dom';
 export declare type PortalTarget<T extends ParentNode = ParentNode> = string | T | null | undefined;
-export declare type PortalLifecycleCallback<T extends ParentNode = ParentNode> = (target: PortalTarget<T>, view: ISyntheticView<T>) => void | Promise<void> | ILifecycleTask;
+export declare type PortalLifecycleCallback<T extends ParentNode = ParentNode> = (target: PortalTarget<T>, view: ISyntheticView<T>) => void | Promise<void>;
 export declare class Portal<T extends ParentNode = ParentNode> implements ICustomAttributeViewModel<T> {
     private readonly factory;
     private readonly originalLoc;
@@ -16,18 +16,21 @@ export declare class Portal<T extends ParentNode = ParentNode> implements ICusto
     deactivated?: PortalLifecycleCallback<T>;
     activated?: PortalLifecycleCallback<T>;
     callbackContext: unknown;
-    readonly view: ISyntheticView<T>;
-    private task;
+    view: ISyntheticView<T>;
     private currentTarget?;
     constructor(factory: IViewFactory<T>, originalLoc: IRenderLocation<T>, dom: HTMLDOM);
-    beforeBind(flags: LifecycleFlags): ILifecycleTask;
-    afterAttach(flags: LifecycleFlags): void;
-    beforeDetach(flags: LifecycleFlags): void;
-    beforeUnbind(flags: LifecycleFlags): ILifecycleTask;
+    afterAttach(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void | Promise<void>;
+    afterUnbind(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void | Promise<void>;
     targetChanged(): void;
-    private project;
+    private $activating;
     private activate;
+    private $activated;
+    private $deactivating;
     private deactivate;
+    private $deactivated;
     private resolveTarget;
+    onCancel(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void;
+    dispose(): void;
+    accept(visitor: ControllerVisitor<T>): void | true;
 }
 //# sourceMappingURL=portal.d.ts.map

@@ -10,26 +10,26 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var quick_start_1 = require("./quick-start");
-    exports.Aurelia = quick_start_1.Aurelia;
-    exports.default = quick_start_1.Aurelia;
+    Object.defineProperty(exports, "Aurelia", { enumerable: true, get: function () { return quick_start_1.Aurelia; } });
+    Object.defineProperty(exports, "default", { enumerable: true, get: function () { return quick_start_1.Aurelia; } });
     var debug_1 = require("@aurelia/debug");
-    exports.DebugConfiguration = debug_1.DebugConfiguration;
-    exports.TraceConfiguration = debug_1.TraceConfiguration;
+    Object.defineProperty(exports, "DebugConfiguration", { enumerable: true, get: function () { return debug_1.DebugConfiguration; } });
+    Object.defineProperty(exports, "TraceConfiguration", { enumerable: true, get: function () { return debug_1.TraceConfiguration; } });
     var fetch_client_1 = require("@aurelia/fetch-client");
     // RetryConfiguration,
     // RetryableRequest,
     // ValidInterceptorMethodName,
-    exports.json = fetch_client_1.json;
+    Object.defineProperty(exports, "json", { enumerable: true, get: function () { return fetch_client_1.json; } });
     // retryStrategy,
     // RetryInterceptor,
-    exports.HttpClientConfiguration = fetch_client_1.HttpClientConfiguration;
-    exports.HttpClient = fetch_client_1.HttpClient;
+    Object.defineProperty(exports, "HttpClientConfiguration", { enumerable: true, get: function () { return fetch_client_1.HttpClientConfiguration; } });
+    Object.defineProperty(exports, "HttpClient", { enumerable: true, get: function () { return fetch_client_1.HttpClient; } });
     var jit_1 = require("@aurelia/jit");
     // AttrSyntax,
     // IAttributeParser,
-    exports.attributePattern = jit_1.attributePattern;
+    Object.defineProperty(exports, "attributePattern", { enumerable: true, get: function () { return jit_1.attributePattern; } });
     // AttributePatternDefinition,
-    exports.IAttributePattern = jit_1.IAttributePattern;
+    Object.defineProperty(exports, "IAttributePattern", { enumerable: true, get: function () { return jit_1.IAttributePattern; } });
     // IAttributePatternHandler,
     // Interpretation,
     // ISyntaxInterpreter,
@@ -37,11 +37,11 @@
     // ColonPrefixedBindAttributePattern,
     // DotSeparatedAttributePattern,
     // RefAttributePattern,
-    exports.bindingCommand = jit_1.bindingCommand;
+    Object.defineProperty(exports, "bindingCommand", { enumerable: true, get: function () { return jit_1.bindingCommand; } });
     // BindingCommandDefinition,
     // BindingCommandKind,
     // BindingCommandType,
-    exports.getTarget = jit_1.getTarget;
+    Object.defineProperty(exports, "getTarget", { enumerable: true, get: function () { return jit_1.getTarget; } });
     // CallBindingCommand,
     // DefaultBindingCommand,
     // ForBindingCommand,
@@ -56,27 +56,27 @@
     // DefaultBindingSyntax,
     // AtPrefixedTriggerAttributePatternRegistration,
     // ColonPrefixedBindAttributePatternRegistration,
-    exports.ShortHandBindingSyntax = jit_1.ShortHandBindingSyntax;
+    Object.defineProperty(exports, "ShortHandBindingSyntax", { enumerable: true, get: function () { return jit_1.ShortHandBindingSyntax; } });
     var jit_html_browser_1 = require("@aurelia/jit-html-browser");
-    exports.JitHtmlBrowserConfiguration = jit_html_browser_1.JitHtmlBrowserConfiguration;
+    Object.defineProperty(exports, "JitHtmlBrowserConfiguration", { enumerable: true, get: function () { return jit_html_browser_1.JitHtmlBrowserConfiguration; } });
     var kernel_1 = require("@aurelia/kernel");
-    exports.all = kernel_1.all;
-    exports.DI = kernel_1.DI;
-    exports.IContainer = kernel_1.IContainer;
+    Object.defineProperty(exports, "all", { enumerable: true, get: function () { return kernel_1.all; } });
+    Object.defineProperty(exports, "DI", { enumerable: true, get: function () { return kernel_1.DI; } });
+    Object.defineProperty(exports, "IContainer", { enumerable: true, get: function () { return kernel_1.IContainer; } });
     // IDefaultableInterfaceSymbol,
     // IFactory,
-    exports.inject = kernel_1.inject;
-    exports.IServiceLocator = kernel_1.IServiceLocator;
-    exports.lazy = kernel_1.lazy;
-    exports.optional = kernel_1.optional;
+    Object.defineProperty(exports, "inject", { enumerable: true, get: function () { return kernel_1.inject; } });
+    Object.defineProperty(exports, "IServiceLocator", { enumerable: true, get: function () { return kernel_1.IServiceLocator; } });
+    Object.defineProperty(exports, "lazy", { enumerable: true, get: function () { return kernel_1.lazy; } });
+    Object.defineProperty(exports, "optional", { enumerable: true, get: function () { return kernel_1.optional; } });
     // RegisterSelf,
-    exports.Registration = kernel_1.Registration;
+    Object.defineProperty(exports, "Registration", { enumerable: true, get: function () { return kernel_1.Registration; } });
     // ResolveCallback,
-    exports.singleton = kernel_1.singleton;
-    exports.transient = kernel_1.transient;
+    Object.defineProperty(exports, "singleton", { enumerable: true, get: function () { return kernel_1.singleton; } });
+    Object.defineProperty(exports, "transient", { enumerable: true, get: function () { return kernel_1.transient; } });
     // Injectable,
     // InterfaceSymbol,
-    exports.InstanceProvider = kernel_1.InstanceProvider;
+    Object.defineProperty(exports, "InstanceProvider", { enumerable: true, get: function () { return kernel_1.InstanceProvider; } });
     // IPerformance,
     // ITimerHandler,
     // IWindowOrWorkerGlobalScope,
@@ -105,32 +105,32 @@
     // ReadonlyKeys,
     // WritableKeys,
     // metadata,
-    exports.Metadata = kernel_1.Metadata;
+    Object.defineProperty(exports, "Metadata", { enumerable: true, get: function () { return kernel_1.Metadata; } });
     // IConsoleLike,
-    exports.ColorOptions = kernel_1.ColorOptions;
+    Object.defineProperty(exports, "ColorOptions", { enumerable: true, get: function () { return kernel_1.ColorOptions; } });
     // ILogConfig,
     // ILogEvent,
     // ILogEventFactory,
     // ISink,
-    exports.ILogger = kernel_1.ILogger;
+    Object.defineProperty(exports, "ILogger", { enumerable: true, get: function () { return kernel_1.ILogger; } });
     // LogConfig,
     // DefaultLogEvent,
     // DefaultLogEventFactory,
     // DefaultLogger,
     // ConsoleSink,
-    exports.LoggerConfiguration = kernel_1.LoggerConfiguration;
+    Object.defineProperty(exports, "LoggerConfiguration", { enumerable: true, get: function () { return kernel_1.LoggerConfiguration; } });
     // relativeToFile,
     // join,
     // parseQueryString,
     // IQueryParams,
-    exports.PLATFORM = kernel_1.PLATFORM;
+    Object.defineProperty(exports, "PLATFORM", { enumerable: true, get: function () { return kernel_1.PLATFORM; } });
     // ITraceInfo,
     // ITraceWriter,
     // ILiveLoggingOptions,
-    exports.Reporter = kernel_1.Reporter;
-    exports.Tracer = kernel_1.Tracer;
-    exports.LogLevel = kernel_1.LogLevel;
-    exports.Profiler = kernel_1.Profiler;
+    Object.defineProperty(exports, "Reporter", { enumerable: true, get: function () { return kernel_1.Reporter; } });
+    Object.defineProperty(exports, "Tracer", { enumerable: true, get: function () { return kernel_1.Tracer; } });
+    Object.defineProperty(exports, "LogLevel", { enumerable: true, get: function () { return kernel_1.LogLevel; } });
+    Object.defineProperty(exports, "Profiler", { enumerable: true, get: function () { return kernel_1.Profiler; } });
     // IResourceDefinition,
     // IResourceDescriptions,
     // IResourceKind,
@@ -140,32 +140,60 @@
     // fromAnnotationOrDefinitionOrTypeOrDefault,
     // fromAnnotationOrTypeOrDefault,
     // fromDefinitionOrDefault,
-    exports.EventAggregator = kernel_1.EventAggregator;
-    exports.IEventAggregator = kernel_1.IEventAggregator;
-    exports.isArrayIndex = kernel_1.isArrayIndex;
-    exports.camelCase = kernel_1.camelCase;
-    exports.kebabCase = kernel_1.kebabCase;
-    exports.pascalCase = kernel_1.pascalCase;
-    exports.toArray = kernel_1.toArray;
+    Object.defineProperty(exports, "EventAggregator", { enumerable: true, get: function () { return kernel_1.EventAggregator; } });
+    Object.defineProperty(exports, "IEventAggregator", { enumerable: true, get: function () { return kernel_1.IEventAggregator; } });
+    Object.defineProperty(exports, "isArrayIndex", { enumerable: true, get: function () { return kernel_1.isArrayIndex; } });
+    Object.defineProperty(exports, "camelCase", { enumerable: true, get: function () { return kernel_1.camelCase; } });
+    Object.defineProperty(exports, "kebabCase", { enumerable: true, get: function () { return kernel_1.kebabCase; } });
+    Object.defineProperty(exports, "pascalCase", { enumerable: true, get: function () { return kernel_1.pascalCase; } });
+    Object.defineProperty(exports, "toArray", { enumerable: true, get: function () { return kernel_1.toArray; } });
     // nextId,
     // resetId,
     // compareNumber,
     // mergeDistinct,
     // isNumberOrBigInt,
     // isStringOrDate,
-    exports.bound = kernel_1.bound;
+    Object.defineProperty(exports, "bound", { enumerable: true, get: function () { return kernel_1.bound; } });
     var router_1 = require("@aurelia/router");
     // Nav,
-    exports.NavRoute = router_1.NavRoute;
-    exports.IRouter = router_1.IRouter;
-    exports.Router = router_1.Router;
+    Object.defineProperty(exports, "NavRoute", { enumerable: true, get: function () { return router_1.NavRoute; } });
+    // IStoredNavigatorEntry,
+    // INavigatorEntry,
+    // INavigatorOptions,
+    // INavigatorFlags,
+    // INavigatorState,
+    // INavigatorStore,
+    // INavigatorViewer,
+    // INavigatorViewerEvent,
+    // Navigator,
+    // QueueItem,
+    // IQueueOptions,
+    // Queue,
+    // RouteHandler,
+    // ConfigurableRoute,
+    // HandlerEntry,
+    // RouteGenerator,
+    // TypesRecord,
+    // RecognizeResult,
+    // RecognizeResults,
+    // CharSpec,
+    // // State as RouterState, // duplicated in @aurelia/runtime
+    // StaticSegment,
+    // DynamicSegment,
+    // StarSegment,
+    // EpsilonSegment,
+    // Segment,
+    // RouteRecognizer,
+    Object.defineProperty(exports, "RouterOptions", { enumerable: true, get: function () { return router_1.RouterOptions; } });
+    Object.defineProperty(exports, "IRouter", { enumerable: true, get: function () { return router_1.IRouter; } });
+    Object.defineProperty(exports, "Router", { enumerable: true, get: function () { return router_1.Router; } });
     // IViewportOptions,
     // Viewport,
     // ContentStatus,
     // ViewportContent,
-    exports.ViewportInstruction = router_1.ViewportInstruction;
-    exports.RouterConfiguration = router_1.RouterConfiguration;
-    exports.RouterRegistration = router_1.RouterRegistration;
+    Object.defineProperty(exports, "ViewportInstruction", { enumerable: true, get: function () { return router_1.ViewportInstruction; } });
+    Object.defineProperty(exports, "RouterConfiguration", { enumerable: true, get: function () { return router_1.RouterConfiguration; } });
+    Object.defineProperty(exports, "RouterRegistration", { enumerable: true, get: function () { return router_1.RouterRegistration; } });
     var runtime_1 = require("@aurelia/runtime");
     // CallFunctionExpression,
     // connects,
@@ -283,7 +311,7 @@
     // CollectionSizeObserver,
     // ComputedOverrides,
     // ComputedLookup,
-    exports.computed = runtime_1.computed;
+    Object.defineProperty(exports, "computed", { enumerable: true, get: function () { return runtime_1.computed; } });
     // createComputedObserver,
     // CustomSetterObserver,
     // GetterObserver,
@@ -291,7 +319,7 @@
     // DirtyCheckProperty,
     // DirtyCheckSettings,
     // IObjectObservationAdapter,
-    exports.IObserverLocator = runtime_1.IObserverLocator;
+    Object.defineProperty(exports, "IObserverLocator", { enumerable: true, get: function () { return runtime_1.IObserverLocator; } });
     // ITargetObserverLocator,
     // ITargetAccessorLocator,
     // getCollectionObserver,
@@ -301,12 +329,12 @@
     // ProxyObserver,
     // BindableObserver,
     // SetterObserver,
-    exports.ISignaler = runtime_1.ISignaler;
-    exports.subscriberCollection = runtime_1.subscriberCollection;
-    exports.collectionSubscriberCollection = runtime_1.collectionSubscriberCollection;
-    exports.proxySubscriberCollection = runtime_1.proxySubscriberCollection;
-    exports.bindingBehavior = runtime_1.bindingBehavior;
-    exports.BindingBehavior = runtime_1.BindingBehavior;
+    Object.defineProperty(exports, "ISignaler", { enumerable: true, get: function () { return runtime_1.ISignaler; } });
+    Object.defineProperty(exports, "subscriberCollection", { enumerable: true, get: function () { return runtime_1.subscriberCollection; } });
+    Object.defineProperty(exports, "collectionSubscriberCollection", { enumerable: true, get: function () { return runtime_1.collectionSubscriberCollection; } });
+    Object.defineProperty(exports, "proxySubscriberCollection", { enumerable: true, get: function () { return runtime_1.proxySubscriberCollection; } });
+    Object.defineProperty(exports, "bindingBehavior", { enumerable: true, get: function () { return runtime_1.bindingBehavior; } });
+    Object.defineProperty(exports, "BindingBehavior", { enumerable: true, get: function () { return runtime_1.BindingBehavior; } });
     // PartialBindingBehaviorDefinition,
     // BindingBehaviorKind,
     // BindingBehaviorDecorator,
@@ -321,14 +349,14 @@
     // SignalableBinding,
     // SignalBindingBehavior,
     // ThrottleBindingBehavior,
-    exports.customAttribute = runtime_1.customAttribute;
+    Object.defineProperty(exports, "customAttribute", { enumerable: true, get: function () { return runtime_1.customAttribute; } });
     // CustomAttributeDecorator,
-    exports.CustomAttribute = runtime_1.CustomAttribute;
+    Object.defineProperty(exports, "CustomAttribute", { enumerable: true, get: function () { return runtime_1.CustomAttribute; } });
     // CustomAttributeDefinition
     // CustomAttributeKind,
     // CustomAttributeType,
     // PartialCustomAttributeDefinition,
-    exports.templateController = runtime_1.templateController;
+    Object.defineProperty(exports, "templateController", { enumerable: true, get: function () { return runtime_1.templateController; } });
     // FrequentMutations,
     // InfrequentMutations,
     // ObserveShallow,
@@ -337,9 +365,9 @@
     // Repeat,
     // Replaceable,
     // With,
-    exports.containerless = runtime_1.containerless;
-    exports.customElement = runtime_1.customElement;
-    exports.CustomElement = runtime_1.CustomElement;
+    Object.defineProperty(exports, "containerless", { enumerable: true, get: function () { return runtime_1.containerless; } });
+    Object.defineProperty(exports, "customElement", { enumerable: true, get: function () { return runtime_1.customElement; } });
+    Object.defineProperty(exports, "CustomElement", { enumerable: true, get: function () { return runtime_1.CustomElement; } });
     // CustomElementDecorator,
     // CustomElementKind,
     // CustomElementType,
@@ -347,17 +375,17 @@
     // PartialCustomElementDefinition,
     // IElementProjector,
     // IProjectorLocator,
-    exports.useShadowDOM = runtime_1.useShadowDOM;
-    exports.ValueConverter = runtime_1.ValueConverter;
+    Object.defineProperty(exports, "useShadowDOM", { enumerable: true, get: function () { return runtime_1.useShadowDOM; } });
+    Object.defineProperty(exports, "ValueConverter", { enumerable: true, get: function () { return runtime_1.ValueConverter; } });
     // ValueConverterType,
-    exports.valueConverter = runtime_1.valueConverter;
+    Object.defineProperty(exports, "valueConverter", { enumerable: true, get: function () { return runtime_1.valueConverter; } });
     // ISanitizer,
     // SanitizeValueConverter,
     // ViewValueConverter,
     // Clock,
     // IClock,
     // IClockSettings,
-    exports.IScheduler = runtime_1.IScheduler;
+    Object.defineProperty(exports, "IScheduler", { enumerable: true, get: function () { return runtime_1.IScheduler; } });
     // ITask,
     // ITaskQueue,
     // QueueTaskOptions,
@@ -365,20 +393,20 @@
     // TaskAbortError,
     // TaskCallback,
     // TaskQueue,
-    exports.TaskQueuePriority = runtime_1.TaskQueuePriority;
+    Object.defineProperty(exports, "TaskQueuePriority", { enumerable: true, get: function () { return runtime_1.TaskQueuePriority; } });
     // TaskStatus,
     // QueueTaskTargetOptions,
-    exports.bindable = runtime_1.bindable;
+    Object.defineProperty(exports, "bindable", { enumerable: true, get: function () { return runtime_1.bindable; } });
     // PartialBindableDefinition,
     // BindableDefinition,
-    exports.Bindable = runtime_1.Bindable;
+    Object.defineProperty(exports, "Bindable", { enumerable: true, get: function () { return runtime_1.Bindable; } });
     // PartialChildrenDefinition,
     // ChildrenDefinition,
     // Children,
-    exports.children = runtime_1.children;
+    Object.defineProperty(exports, "children", { enumerable: true, get: function () { return runtime_1.children; } });
     // These exports are temporary until we have a proper way to unit test them
-    exports.Controller = runtime_1.Controller;
-    exports.ViewFactory = runtime_1.ViewFactory;
+    Object.defineProperty(exports, "Controller", { enumerable: true, get: function () { return runtime_1.Controller; } });
+    Object.defineProperty(exports, "ViewFactory", { enumerable: true, get: function () { return runtime_1.ViewFactory; } });
     // IViewLocator,
     // ViewLocator,
     // view,
@@ -386,7 +414,7 @@
     // Aurelia, // Replaced by quick-start wrapper
     // IDOMInitializer,
     // ISinglePageApp,
-    exports.CompositionRoot = runtime_1.CompositionRoot;
+    Object.defineProperty(exports, "CompositionRoot", { enumerable: true, get: function () { return runtime_1.CompositionRoot; } });
     // IfRegistration,
     // ElseRegistration,
     // RepeatRegistration,
@@ -436,20 +464,20 @@
     // TargetedInstruction,
     // TargetedInstructionType,
     // PartialCustomElementDefinitionParts,
-    exports.alias = runtime_1.alias;
-    exports.registerAliases = runtime_1.registerAliases;
+    Object.defineProperty(exports, "alias", { enumerable: true, get: function () { return runtime_1.alias; } });
+    Object.defineProperty(exports, "registerAliases", { enumerable: true, get: function () { return runtime_1.registerAliases; } });
     // DOM, should expose the one exported in runtime-html
-    exports.INode = runtime_1.INode;
-    exports.IRenderLocation = runtime_1.IRenderLocation;
-    exports.IDOM = runtime_1.IDOM;
+    Object.defineProperty(exports, "INode", { enumerable: true, get: function () { return runtime_1.INode; } });
+    Object.defineProperty(exports, "IRenderLocation", { enumerable: true, get: function () { return runtime_1.IRenderLocation; } });
+    Object.defineProperty(exports, "IDOM", { enumerable: true, get: function () { return runtime_1.IDOM; } });
     // NodeSequence,
     // INodeSequence,
     // INodeSequenceFactory,
-    exports.BindingMode = runtime_1.BindingMode;
-    exports.BindingStrategy = runtime_1.BindingStrategy;
+    Object.defineProperty(exports, "BindingMode", { enumerable: true, get: function () { return runtime_1.BindingMode; } });
+    Object.defineProperty(exports, "BindingStrategy", { enumerable: true, get: function () { return runtime_1.BindingStrategy; } });
     // ExpressionKind,
     // Hooks,
-    exports.LifecycleFlags = runtime_1.LifecycleFlags;
+    Object.defineProperty(exports, "LifecycleFlags", { enumerable: true, get: function () { return runtime_1.LifecycleFlags; } });
     // State,
     // CallBindingInstruction,
     // FromViewBindingInstruction,
@@ -467,25 +495,7 @@
     // TwoWayBindingInstruction,
     // ViewModelKind,
     // IBinding,
-    exports.ILifecycle = runtime_1.ILifecycle;
-    // IController,
-    // IContainer,
-    // IViewCache,
-    // IViewFactory,
-    // MountStrategy,
-    // PromiseOrTask,
-    // MaybePromiseOrTask,
-    exports.AggregateContinuationTask = runtime_1.AggregateContinuationTask;
-    exports.TerminalTask = runtime_1.TerminalTask;
-    exports.AggregateTerminalTask = runtime_1.AggregateTerminalTask;
-    exports.ContinuationTask = runtime_1.ContinuationTask;
-    exports.LifecycleTask = runtime_1.LifecycleTask;
-    exports.PromiseTask = runtime_1.PromiseTask;
-    exports.TaskSlot = runtime_1.TaskSlot;
-    exports.StartTask = runtime_1.StartTask;
-    exports.IStartTask = runtime_1.IStartTask;
-    exports.IStartTaskManager = runtime_1.IStartTaskManager;
-    exports.ProviderTask = runtime_1.ProviderTask;
+    Object.defineProperty(exports, "ILifecycle", { enumerable: true, get: function () { return runtime_1.ILifecycle; } });
     // IObservable,
     // IObservedArray,
     // IObservedMap,
@@ -512,8 +522,8 @@
     // copyIndexMap,
     // cloneIndexMap,
     // createIndexMap,
-    exports.instructionRenderer = runtime_1.instructionRenderer;
-    exports.ensureExpression = runtime_1.ensureExpression;
+    Object.defineProperty(exports, "instructionRenderer", { enumerable: true, get: function () { return runtime_1.instructionRenderer; } });
+    Object.defineProperty(exports, "ensureExpression", { enumerable: true, get: function () { return runtime_1.ensureExpression; } });
     var runtime_html_1 = require("@aurelia/runtime-html");
     // Listener,
     // AttributeBinding,
@@ -575,7 +585,7 @@
     // TextBindingRendererRegistration,
     // DefaultRenderers,
     // RuntimeHtmlConfiguration,
-    exports.createElement = runtime_html_1.createElement;
+    Object.defineProperty(exports, "createElement", { enumerable: true, get: function () { return runtime_html_1.createElement; } });
     // RenderPlan,
     // HTMLAttributeInstruction,
     // HTMLInstructionRow,
@@ -589,8 +599,8 @@
     // IStylePropertyBindingInstruction,
     // ITextBindingInstruction,
     // NodeType,
-    exports.HTMLDOM = runtime_html_1.HTMLDOM;
-    exports.DOM = runtime_html_1.DOM;
+    Object.defineProperty(exports, "HTMLDOM", { enumerable: true, get: function () { return runtime_html_1.HTMLDOM; } });
+    Object.defineProperty(exports, "DOM", { enumerable: true, get: function () { return runtime_html_1.DOM; } });
     // NodeSequenceFactory,
     // FragmentNodeSequence,
     // AttributeBindingInstruction,
@@ -606,11 +616,11 @@
     // HostProjector,
     // HTMLProjectorLocator,
     // ShadowDOMProjector,
-    exports.StyleConfiguration = runtime_html_1.StyleConfiguration;
+    Object.defineProperty(exports, "StyleConfiguration", { enumerable: true, get: function () { return runtime_html_1.StyleConfiguration; } });
     // CSSModulesProcessorRegistry,
-    exports.cssModules = runtime_html_1.cssModules;
+    Object.defineProperty(exports, "cssModules", { enumerable: true, get: function () { return runtime_html_1.cssModules; } });
     // ShadowDOMRegistry,
     // IShadowDOMStyleFactory,
-    exports.shadowCSS = runtime_html_1.shadowCSS;
+    Object.defineProperty(exports, "shadowCSS", { enumerable: true, get: function () { return runtime_html_1.shadowCSS; } });
 });
 //# sourceMappingURL=index.js.map

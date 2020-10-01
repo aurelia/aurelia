@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$StringSet = exports.$StringPrototype = exports.$StringConstructor = void 0;
     const function_1 = require("../types/function");
     const string_1 = require("../types/string");
     const string_2 = require("../exotics/string");

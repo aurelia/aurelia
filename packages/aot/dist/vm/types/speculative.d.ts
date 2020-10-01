@@ -30,7 +30,7 @@ export declare class $SpeculativeValue {
     get isSpeculative(): true;
     get hasValue(): false;
     constructor(realm: Realm, sourceNode: $$AssignmentExpressionOrHigher, antecedents: readonly $SpeculativeValue[]);
-    is(other: $AnyNonError): other is $Empty;
+    is(other: $AnyNonError | $SpeculativeValue): other is $Empty;
     ToObject(ctx: ExecutionContext): $Error;
     ToPropertyKey(ctx: ExecutionContext): $Error;
     ToLength(ctx: ExecutionContext): $Error;

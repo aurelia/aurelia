@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$URIErrorPrototype = exports.$URIErrorConstructor = exports.$TypeErrorPrototype = exports.$TypeErrorConstructor = exports.$SyntaxErrorPrototype = exports.$SyntaxErrorConstructor = exports.$ReferenceErrorPrototype = exports.$ReferenceErrorConstructor = exports.$RangeErrorPrototype = exports.$RangeErrorConstructor = exports.$EvalErrorPrototype = exports.$EvalErrorConstructor = exports.$ErrorPrototype_toString = exports.$ErrorPrototype = exports.$ErrorConstructor = void 0;
     const function_1 = require("../types/function");
     const error_1 = require("../types/error");
     const object_1 = require("../types/object");

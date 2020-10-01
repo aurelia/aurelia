@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.OverrideContext = exports.Scope = exports.BindingContext = exports.InternalObserversLookup = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const proxy_observer_1 = require("./proxy-observer");
     const setter_observer_1 = require("./setter-observer");
@@ -79,15 +80,15 @@
                 return name in overrideContext ? overrideContext : overrideContext.bindingContext;
             }
             // the name wasn't found. see if parent scope traversal is allowed and if so, try that
-            if ((flags & 67108864 /* allowParentScopeTraversal */) > 0) {
+            if ((flags & 1024 /* allowParentScopeTraversal */) > 0) {
                 let parent = scope.parentScope;
                 while (parent !== null) {
                     if (parent.scopeParts.includes(part)) {
                         const result = this.get(parent, name, ancestor, flags
                             // unset the flag; only allow one level of scope boundary traversal
-                            & ~67108864 /* allowParentScopeTraversal */
+                            & ~1024 /* allowParentScopeTraversal */
                             // tell the scope to return null if the name could not be found
-                            | 4194304 /* isTraversingParentScope */);
+                            | 256 /* isTraversingParentScope */);
                         if (result === marker) {
                             return scope.bindingContext || scope.overrideContext;
                         }
@@ -106,7 +107,7 @@
             // still nothing found. return the root binding context (or null
             // if this is a parent scope traversal, to ensure we fall back to the
             // correct level)
-            if (flags & 4194304 /* isTraversingParentScope */) {
+            if (flags & 256 /* isTraversingParentScope */) {
                 return marker;
             }
             return scope.bindingContext || scope.overrideContext;

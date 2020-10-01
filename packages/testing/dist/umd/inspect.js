@@ -11,6 +11,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.inspectValue = exports.inspect = exports.formatValue = exports.formatRaw = exports.formatProperty = exports.formatPromise = exports.formatIterator = exports.formatWeakMap = exports.formatWeakSet = exports.formatWeakCollection = exports.formatMapIterInner = exports.formatSetIterInner = exports.formatMap = exports.formatSet = exports.formatTypedArray = exports.formatArray = exports.formatArrayBuffer = exports.formatSpecialArray = exports.formatError = exports.formatPrimitive = exports.formatNumber = exports.AssertionError = exports.customInspectSymbol = void 0;
     // Original license:
     /*
      * Copyright Joyent, Inc. and other Node contributors. All rights reserved.
@@ -958,29 +959,21 @@
         'attachCustomAttribute',
         'attachSynthetic',
         'attachControllers',
-        'beforeAttach',
         'afterAttach',
-        'mount',
-        'mountCustomElement',
-        'mountCustomAttribute',
-        'mountSynthetic',
+        'afterAttachChildren',
         'detach',
         'detachCustomElement',
         'detachCustomAttribute',
         'detachSynthetic',
         'detachControllers',
         'beforeDetach',
-        'afterDetach',
-        'unmount',
-        'unmountCustomElement',
-        'unmountCustomAttribute',
-        'unmountSynthetic',
-        'release',
+        'afterDetachChildren',
+        'tryReturnToCache',
         'cache',
         'cacheCustomElement',
         'cacheCustomAttribute',
         'cacheSynthetic',
-        'caching',
+        'dispose',
         'unbind',
         'unbindCustomElement',
         'unbindCustomAttribute',
@@ -989,7 +982,7 @@
         'unbindControllers',
         'endUnbind',
         'beforeUnbind',
-        'afterUnbind',
+        'afterUnbindChildren',
     ];
     function formatProperty(ctx, value, recurseTimes, key, type) {
         switch (key) {
@@ -1014,29 +1007,21 @@
                         case 'attachCustomAttribute':
                         case 'attachSynthetic':
                         case 'attachControllers':
-                        case 'beforeAttach':
                         case 'afterAttach':
-                        case 'mount':
-                        case 'mountCustomElement':
-                        case 'mountCustomAttribute':
-                        case 'mountSynthetic':
+                        case 'afterAttachChildren':
                         case 'detach':
                         case 'detachCustomElement':
                         case 'detachCustomAttribute':
                         case 'detachSynthetic':
                         case 'detachControllers':
                         case 'beforeDetach':
-                        case 'afterDetach':
-                        case 'unmount':
-                        case 'unmountCustomElement':
-                        case 'unmountCustomAttribute':
-                        case 'unmountSynthetic':
-                        case 'release':
+                        case 'afterDetachChildren':
+                        case 'tryReturnToCache':
                         case 'cache':
                         case 'cacheCustomElement':
                         case 'cacheCustomAttribute':
                         case 'cacheSynthetic':
-                        case 'caching':
+                        case 'dispose':
                         case 'unbind':
                         case 'unbindCustomElement':
                         case 'unbindCustomAttribute':
@@ -1045,7 +1030,7 @@
                         case 'unbindControllers':
                         case 'endUnbind':
                         case 'beforeUnbind':
-                        case 'afterUnbind':
+                        case 'afterUnbindChildren':
                             value.args[0] = debug_1.stringifyLifecycleFlags(value.args[0]);
                             break;
                         case 'valueChanged':

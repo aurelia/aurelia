@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.IValidationHydrator = void 0;
     const kernel_1 = require("@aurelia/kernel");
     exports.IValidationHydrator = kernel_1.DI.createInterface('IValidationHydrator').noDefault();
 });

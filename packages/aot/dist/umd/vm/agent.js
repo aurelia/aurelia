@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ScriptEvaluationJob = exports.TopLevelModuleEvaluationJob = exports.Agent = exports.ISourceFileProvider = void 0;
     const job_1 = require("./job");
     const kernel_1 = require("@aurelia/kernel");
     const realm_1 = require("./realm");

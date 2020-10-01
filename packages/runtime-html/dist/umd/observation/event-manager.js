@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.EventManager = exports.IEventManager = exports.EventSubscriber = exports.TriggerSubscription = exports.DelegateOrCaptureSubscription = exports.ListenerTracker = exports.findOriginalEventTarget = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     // Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively

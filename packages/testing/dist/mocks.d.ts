@@ -1,5 +1,5 @@
 import { IContainer, IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { ExpressionKind, IBinding, IConnectableBinding, IndexMap, IObserverLocator, IScope, ISignaler, ISubscribable, LifecycleFlags, State } from '@aurelia/runtime';
+import { ExpressionKind, IBinding, IConnectableBinding, IndexMap, IObserverLocator, IScope, ISignaler, ISubscribable, LifecycleFlags } from '@aurelia/runtime';
 export declare class MockBinding implements IConnectableBinding {
     interceptor: this;
     id: number;
@@ -8,7 +8,7 @@ export declare class MockBinding implements IConnectableBinding {
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
     $scope?: IScope | undefined;
-    $state: State;
+    isBound: boolean;
     calls: [keyof MockBinding, ...any[]][];
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
@@ -19,6 +19,7 @@ export declare class MockBinding implements IConnectableBinding {
     $bind(flags: LifecycleFlags, scope: IScope): void;
     $unbind(flags: LifecycleFlags): void;
     trace(fnName: keyof MockBinding, ...args: any[]): void;
+    dispose(): void;
 }
 export declare class MockBindingBehavior {
     calls: [keyof MockBindingBehavior, ...any[]][];

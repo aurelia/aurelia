@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$Proxy_revocation = exports.$Proxy_revocable = exports.$ProxyConstructor = void 0;
     const function_1 = require("../types/function");
     const error_1 = require("../types/error");
     const object_1 = require("../types/object");

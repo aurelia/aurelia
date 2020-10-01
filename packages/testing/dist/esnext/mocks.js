@@ -31,6 +31,9 @@ export class MockBinding {
     trace(fnName, ...args) {
         this.calls.push([fnName, ...args]);
     }
+    dispose() {
+        this.trace('dispose');
+    }
 }
 export class MockBindingBehavior {
     constructor() {

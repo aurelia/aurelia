@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$i = exports.FunctionKind = exports.modifiersToModifierFlags = exports.Context = exports.clearBit = exports.hasAllBits = exports.hasBit = exports.$$classElement = exports.$$classElementList = exports.$heritageClauseList = exports.getReferencedBindings = exports.getExportEntriesForModule = exports.getExportedNames = exports.getImportEntriesForModule = exports.getLocalName = exports.getVarScopedDeclarations = exports.getVarDeclaredNames = exports.getLexicallyScopedDeclarations = exports.getLexicallyDeclaredNames = exports.getBoundNames = exports.getIsSimpleParameterList = exports.getHasInitializer = exports.getContainsExpression = exports.$decoratorList = exports.IsConstructor = exports.BlockDeclarationInstantiation = exports.evaluateStatementList = exports.evaluateStatement = exports.GetExpectedArgumentCount = exports.GetDirectivePrologue = exports.$$esLabelledItem = exports.$$tsStatementList = exports.$$tsStatementListItem = exports.$$esStatement = exports.$$bindingName = exports.$$propertyName = exports.$identifier = exports.$LHSExpression = exports.$unaryExpression = exports.$assignmentExpression = void 0;
     const typescript_1 = require("typescript");
     const kernel_1 = require("@aurelia/kernel");
     const function_1 = require("../types/function");

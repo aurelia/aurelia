@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$BuiltinFunction = exports.$GetPrototypeFromConstructor = exports.$OrdinaryCreateFromConstructor = exports.$Function = void 0;
     const object_1 = require("./object");
     const environment_record_1 = require("./environment-record");
     const string_1 = require("./string");

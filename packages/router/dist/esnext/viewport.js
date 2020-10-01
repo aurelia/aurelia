@@ -1,21 +1,20 @@
-import { Reporter } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime';
 import { arrayRemove } from './utils';
 import { ViewportContent } from './viewport-content';
-import { ViewportInstruction } from './viewport-instruction';
 import { Scope } from './scope';
+import { Runner } from './runner';
 export class Viewport {
-    constructor(router, name, element, container, owningScope, scope, options = {}) {
+    constructor(router, name, connectedCE, owningScope, scope, options = {}) {
         this.router = router;
         this.name = name;
-        this.element = element;
-        this.container = container;
+        this.connectedCE = connectedCE;
         this.options = options;
         this.nextContent = null;
+        this.nextContentAction = '';
         this.forceRemove = false;
         this.path = null;
         this.clear = false;
-        this.elementResolve = null;
+        this.connectionResolve = null;
         this.previousViewportState = null;
         this.cache = [];
         this.historyCache = [];
@@ -27,6 +26,10 @@ export class Viewport {
     }
     get owningScope() {
         return this.connectedScope.owningScope;
+    }
+    get connectedController() {
+        var _a, _b;
+        return (_b = (_a = this.connectedCE) === null || _a === void 0 ? void 0 : _a.$controller) !== null && _b !== void 0 ? _b : null;
     }
     get enabled() {
         return this.connectedScope.enabled;
@@ -53,25 +56,42 @@ export class Viewport {
         }
         return false;
     }
-    setNextContent(content, instruction) {
-        let viewportInstruction;
-        if (content instanceof ViewportInstruction) {
-            viewportInstruction = content;
-        }
-        else {
-            if (typeof content === 'string') {
-                viewportInstruction = this.router.instructionResolver.parseViewportInstruction(content);
-            }
-            else {
-                viewportInstruction = this.router.createViewportInstruction(content);
-            }
-        }
+    get activeContent() {
+        var _a;
+        return (_a = this.nextContent) !== null && _a !== void 0 ? _a : this.content;
+    }
+    get nextContentActivated() {
+        var _a, _b;
+        return (_b = (_a = this.nextContent) === null || _a === void 0 ? void 0 : _a.contentStates.has('activated')) !== null && _b !== void 0 ? _b : false;
+    }
+    get parentNextContentActivated() {
+        var _a, _b, _c;
+        return (_c = (_b = (_a = this.scope.parent) === null || _a === void 0 ? void 0 : _a.owner) === null || _b === void 0 ? void 0 : _b.nextContentActivated) !== null && _c !== void 0 ? _c : false;
+    }
+    get performLoad() {
+        return true;
+        // return this.nextContentAction !== 'skip' && this.connectedScope.parentNextContentAction !== 'swap';
+        // // return this.nextContentAction !== 'skip' && ((this.nextContent?.content.topInstruction ?? false) || this.clear);
+    }
+    get performSwap() {
+        return true;
+        // return this.nextContentAction !== 'skip' && this.connectedScope.parentNextContentAction !== 'swap';
+        // // return this.nextContentAction !== 'skip' && ((this.nextContent?.content.topInstruction ?? false) || this.clear);
+    }
+    toString() {
+        var _a, _b, _c, _d;
+        const contentName = (_b = (_a = this.content) === null || _a === void 0 ? void 0 : _a.content.componentName) !== null && _b !== void 0 ? _b : '';
+        const nextContentName = (_d = (_c = this.nextContent) === null || _c === void 0 ? void 0 : _c.content.componentName) !== null && _d !== void 0 ? _d : '';
+        return `v:${this.name}[${contentName}->${nextContentName}]`;
+    }
+    setNextContent(viewportInstruction, navigation) {
+        var _a;
         viewportInstruction.setViewport(this);
         this.clear = this.router.instructionResolver.isClearViewportInstruction(viewportInstruction);
         // Can have a (resolved) type or a string (to be resolved later)
-        this.nextContent = new ViewportContent(!this.clear ? viewportInstruction : void 0, instruction, this.container);
-        this.nextContent.fromHistory = this.nextContent.componentInstance && instruction.navigation
-            ? !!instruction.navigation.back || !!instruction.navigation.forward
+        this.nextContent = new ViewportContent(!this.clear ? viewportInstruction : void 0, navigation, (_a = this.connectedCE) !== null && _a !== void 0 ? _a : null);
+        this.nextContent.fromHistory = this.nextContent.componentInstance && navigation.navigation
+            ? !!navigation.navigation.back || !!navigation.navigation.forward
             : false;
         if (this.options.stateful) {
             // TODO: Add a parameter here to decide required equality
@@ -90,46 +110,67 @@ export class Viewport {
         // If we get the same _instance_, don't do anything (happens with cached and history)
         if (this.nextContent.componentInstance !== null && this.content.componentInstance === this.nextContent.componentInstance) {
             this.nextContent = null;
-            return false;
+            return this.nextContentAction = 'skip'; // false;
         }
-        // ReentryBehavior 'refresh' takes precedence
         if (!this.content.equalComponent(this.nextContent) ||
-            instruction.navigation.refresh ||
-            this.content.reentryBehavior() === "refresh" /* refresh */) {
+            this.connectedScope.parentNextContentAction === 'swap' || // Some parent has been swapped, need to be new component
+            navigation.navigation.refresh || // Navigation 'refresh' performed
+            this.content.reentryBehavior() === "refresh" /* refresh */ // ReentryBehavior 'refresh' takes precedence
+        ) {
             this.connectedScope.disableReplacedChildren();
-            return true;
+            return this.nextContentAction = 'swap'; // true;
         }
+        // Component is the same name/type
         // Explicitly don't allow navigation back to the same component again
         if (this.content.reentryBehavior() === "disallow" /* disallow */) {
             this.nextContent = null;
-            return false;
+            return this.nextContentAction = 'skip'; // false;
         }
-        // Explicitly re-enter same component again
-        if (this.content.reentryBehavior() === "enter" /* enter */) {
+        // Explicitly re-load same component again
+        if (this.content.reentryBehavior() === "load" /* load */) {
             this.content.reentry = true;
             this.nextContent.content.setComponent(this.content.componentInstance);
-            this.nextContent.contentStatus = this.content.contentStatus;
+            // this.nextContent.contentStatus = this.content.contentStatus;
+            this.nextContent.contentStates = this.content.contentStates.clone();
+            // this.nextContent.contentStates = new Map(this.content.contentStates);
             this.nextContent.reentry = this.content.reentry;
-            return true;
+            return this.nextContentAction = 'reload'; // true;
         }
         // ReentryBehavior is now 'default'
         // Requires updated parameters if viewport stateful
         if (this.options.stateful &&
             this.content.equalParameters(this.nextContent)) {
             this.nextContent = null;
-            return false;
+            return this.nextContentAction = 'skip'; // false;
         }
-        // Default is to trigger a refresh (without a check of parameters)
-        this.connectedScope.disableReplacedChildren();
-        return true;
+        if (!this.content.equalParameters(this.nextContent)) {
+            // TODO: Fix a config option for this
+            // eslint-disable-next-line no-constant-condition
+            if (false) { // Re-use component, only reload with new parameters
+                this.content.reentry = true;
+                this.nextContent.content.setComponent(this.content.componentInstance);
+                this.nextContent.contentStates = this.content.contentStates.clone();
+                this.nextContent.reentry = this.content.reentry;
+                return this.nextContentAction = 'reload';
+            }
+            else { // Perform a full swap
+                this.connectedScope.disableReplacedChildren();
+                return this.nextContentAction = 'swap';
+            }
+        }
+        // Default is to do nothing
+        return 'skip';
+        // // Default is to trigger a refresh (without a check of parameters)
+        // this.connectedScope.disableReplacedChildren();
+        // return this.nextContentAction = 'reload'; // true;
     }
-    setElement(element, container, options) {
+    setConnectedCE(connectedCE, options) {
         options = options || {};
-        if (this.element !== element) {
+        if (this.connectedCE !== connectedCE) {
             // TODO: Restore this state on navigation cancel
             this.previousViewportState = { ...this };
             this.clearState();
-            this.element = element;
+            this.connectedCE = connectedCE;
             if (options.usedBy) {
                 this.options.usedBy = options.usedBy;
             }
@@ -142,23 +183,23 @@ export class Viewport {
             if (options.noLink) {
                 this.options.noLink = options.noLink;
             }
+            if (options.noTitle) {
+                this.options.noTitle = options.noTitle;
+            }
             if (options.noHistory) {
                 this.options.noHistory = options.noHistory;
             }
             if (options.stateful) {
                 this.options.stateful = options.stateful;
             }
-            if (this.elementResolve) {
-                this.elementResolve();
+            if (this.connectionResolve) {
+                this.connectionResolve();
             }
         }
         // TODO: Might not need this? Figure it out
         // if (container) {
         //   container['viewportName'] = this.name;
         // }
-        if (this.container !== container) {
-            this.container = container;
-        }
         if (!this.content.componentInstance && (!this.nextContent || !this.nextContent.componentInstance) && this.options.default) {
             const instructions = this.router.instructionResolver.parseViewportInstructions(this.options.default);
             for (const instruction of instructions) {
@@ -167,75 +208,240 @@ export class Viewport {
                 instruction.scope = this.owningScope;
                 instruction.default = true;
             }
-            this.router.goto(instructions, { append: true }).catch(error => { throw error; });
+            this.router.load(instructions, { append: true }).catch(error => { throw error; });
         }
     }
-    async remove(element, container) {
-        if (this.element === element && this.container === container) {
-            if (this.content.componentInstance) {
-                await this.content.freeContent(this.element, (this.nextContent ? this.nextContent.instruction : null), this.historyCache, this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful); // .catch(error => { throw error; });
-            }
-            if (this.doForceRemove) {
-                await Promise.all(this.historyCache.map(content => content.freeContent(null, null, this.historyCache, false)));
-                this.historyCache = [];
-            }
-            return true;
+    remove(connectedCE) {
+        if (this.connectedCE === connectedCE) {
+            return Runner.run(() => {
+                if (this.content.componentInstance) {
+                    return this.content.freeContent(this.connectedCE, (this.nextContent ? this.nextContent.instruction : null), this.historyCache, this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful); // .catch(error => { throw error; });
+                }
+            }, () => {
+                if (this.doForceRemove) {
+                    const removes = [];
+                    for (const content of this.historyCache) {
+                        removes.push(() => content.freeContent(null, null, this.historyCache, false));
+                    }
+                    removes.push(() => { this.historyCache = []; });
+                    return Runner.run(...removes);
+                    // return Promise.all(this.historyCache.map(content => content.freeContent(
+                    //   null,
+                    //   null,
+                    //   this.historyCache,
+                    //   false,
+                    // )));
+                    // this.historyCache = [];
+                }
+                return true;
+            });
         }
         return false;
     }
-    async canLeave() {
-        const canLeaveChildren = await this.connectedScope.canLeave();
-        if (!canLeaveChildren) {
-            return false;
-        }
-        return this.content.canLeave(this.nextContent ? this.nextContent.instruction : null);
-    }
-    async canEnter() {
-        if (this.clear) {
-            return true;
-        }
-        if ((this.nextContent.content || null) === null) {
-            return false;
-        }
-        await this.waitForElement();
-        this.nextContent.createComponent(this.container, this.options.fallback);
-        await this.nextContent.loadComponent(this.container, this.element, this);
-        return this.nextContent.canEnter(this, this.content.instruction);
-    }
-    async enter() {
-        Reporter.write(10000, 'Viewport enter', this.name);
-        if (this.clear) {
-            return true;
-        }
-        if (!this.nextContent || !this.nextContent.componentInstance) {
-            return false;
-        }
-        await this.nextContent.enter(this.content.instruction);
-        // await this.nextContent.loadComponent(this.container as IContainer, this.element as Element, this);
-        this.nextContent.initializeComponent(CustomElement.for(this.element));
-        return true;
-    }
-    async loadContent() {
-        Reporter.write(10000, 'Viewport loadContent', this.name);
-        // No need to wait for next component activation
-        if (this.content.componentInstance && !this.nextContent.componentInstance) {
-            await this.content.leave(this.nextContent.instruction);
-            await this.unloadContent();
-        }
-        if (this.nextContent.componentInstance) {
-            if (this.content.componentInstance !== this.nextContent.componentInstance) {
-                this.nextContent.addComponent(this.element);
+    transition(coordinator) {
+        // console.log('Viewport transition', this.toString());
+        // let run: unknown;
+        const guarded = coordinator.checkingSyncState('guarded');
+        const performLoad = this.performLoad || !guarded;
+        const performSwap = this.performSwap || !guarded;
+        // const performSwap = this.performSwap || !this.router.isRestrictedNavigation || this.clear;
+        const guardSteps = [
+            () => performLoad ? this.canUnload() : true,
+            (canUnloadResult) => {
+                if (!canUnloadResult) {
+                    Runner.cancel(void 0);
+                    coordinator.cancel();
+                    return;
+                }
+                if (this.router.isRestrictedNavigation) {
+                    this.nextContent.createComponent(this.connectedCE, this.options.fallback);
+                }
+                coordinator.addEntityState(this, 'guardedUnload');
+            },
+            () => coordinator.syncState('guardedUnload', this),
+            () => performLoad ? this.canLoad(guarded) : true,
+            (canLoadResult) => {
+                if (typeof canLoadResult === 'boolean') {
+                    if (!canLoadResult) {
+                        Runner.cancel(void 0);
+                        coordinator.cancel();
+                        return;
+                    }
+                    coordinator.addEntityState(this, 'guardedLoad');
+                    coordinator.addEntityState(this, 'guarded');
+                }
+                else { // Denied and (probably) redirected
+                    Runner.run(() => this.router.load(canLoadResult, { append: true }), () => this.abortContentChange());
+                }
+            },
+        ];
+        const routingSteps = [
+            // () => { console.log("I'm waiting for guarded", this.toString()); },
+            () => coordinator.syncState('guarded', this),
+            // () => { console.log("I'm guarded", this.toString()); },
+            // TODO: For consistency it should probably be this option with 'routed'
+            // () => performSwap ? this.unload(coordinator.checkingSyncState('routed')) : true,
+            () => performLoad ? this.unload(true) : true,
+            () => coordinator.addEntityState(this, 'unloaded'),
+            // () => { console.log("I'm waiting for unloaded", this.toString()); },
+            () => coordinator.syncState('unloaded', this),
+            // () => { console.log("I'm done waiting for unloaded", this.toString()); },
+            () => performLoad ? this.load(coordinator.checkingSyncState('routed')) : true,
+            () => coordinator.addEntityState(this, 'loaded'),
+            () => coordinator.addEntityState(this, 'routed'),
+        ];
+        const lifecycleSteps = [
+            () => coordinator.syncState('routed', this),
+        ];
+        if (performSwap) {
+            if (this.router.options.swapStrategy.includes('parallel')) {
+                lifecycleSteps.push(() => {
+                    if (this.router.options.swapStrategy.includes('add')) {
+                        return Runner.run(this.addContent(), this.removeContent());
+                    }
+                    else {
+                        return Runner.run(this.removeContent(), this.addContent());
+                    }
+                });
             }
             else {
-                this.connectedScope.reenableReplacedChildren();
+                lifecycleSteps.push(() => performSwap ? (this.router.options.swapStrategy.includes('add') ? this.addContent() : this.removeContent()) : void 0, () => performSwap ? (this.router.options.swapStrategy.includes('add') ? this.removeContent() : this.addContent()) : void 0);
             }
-            // Only when next component activation is done
+        }
+        lifecycleSteps.push(() => coordinator.addEntityState(this, 'swapped'));
+        // const lifecycleSteps = [
+        //   () => coordinator.syncState('routed'),
+        //   // () => coordinator.addEntityState(this, 'bound'),
+        //   () => performSwap ? (this.router.options.swapStrategy.includes('add') ? this.addContent() : this.removeContent()) : true,
+        //   () => performSwap ? (this.router.options.swapStrategy.includes('add') ? this.removeContent() : this.addContent()) : true,
+        //   () => coordinator.addEntityState(this, 'swapped'),
+        // ];
+        // run =
+        Runner.run(...guardSteps, ...routingSteps, ...lifecycleSteps, () => coordinator.addEntityState(this, 'completed'));
+    }
+    canUnload() {
+        return Runner.run(() => {
+            // console.log('viewport canUnload run', this.name, 'before');
+            // eslint-disable-next-line sonarjs/prefer-immediate-return
+            const result = this.connectedScope.canUnload();
+            // console.log('viewport canUnload run', this.name, 'after');
+            return result;
+        }, (canUnloadChildren) => {
+            var _a, _b;
+            // console.log('viewport canUnload result', this.name, canUnloadChildren);
+            if (!canUnloadChildren) {
+                return false;
+            }
+            // This shouldn't happen
+            // // Don't stop it because we're not going to actually do anything
+            // if (this.content.componentInstance === this.nextContent?.componentInstance) {
+            //   return true;
+            // }
+            return this.content.canUnload((_b = (_a = this.nextContent) === null || _a === void 0 ? void 0 : _a.instruction) !== null && _b !== void 0 ? _b : null);
+        });
+    }
+    canLoad(recurse) {
+        var _a, _b;
+        // console.log(this.connectedScope.toString(), 'viewport content canLoad', this.nextContent?.content?.componentName);
+        if (this.clear) {
+            return true;
+        }
+        if (((_b = (_a = this.nextContent) === null || _a === void 0 ? void 0 : _a.content) !== null && _b !== void 0 ? _b : null) === null) {
+            return true;
+        }
+        return Runner.run(() => this.waitForConnected(), () => {
+            this.nextContent.createComponent(this.connectedCE, this.options.fallback);
+            // This shouldn't happen
+            // // Don't stop it because we're not going to actually do anything
+            // if (this.content.componentInstance === this.nextContent!.componentInstance) {
+            //   return true;
+            // }
+            return this.nextContent.canLoad(this, this.content.instruction);
+        });
+    }
+    load(recurse) {
+        var _a, _b;
+        // console.log(this.connectedScope.toString(), 'viewport content load', this.nextContent?.content?.componentName);
+        if (this.clear || ((_b = (_a = this.nextContent) === null || _a === void 0 ? void 0 : _a.componentInstance) !== null && _b !== void 0 ? _b : null) === null) {
+            return;
+        }
+        // This shouldn't happen
+        // // TODO: Verify this
+        // if (this.nextContent === this.content) {
+        //   return;
+        // }
+        return Runner.run(() => { var _a; return (_a = this.nextContent) === null || _a === void 0 ? void 0 : _a.load(this.content.instruction); });
+        // return this.nextContent?.load(this.content.instruction);
+        // await this.nextContent.activateComponent(null, this.connectedCE!.$controller as ICustomElementController<Element, ICustomElementViewModel<Element>>, LifecycleFlags.none, this.connectedCE!);
+        // return true;
+    }
+    addContent() {
+        // console.log('addContent', this.toString());
+        return Runner.run(() => this.activate(null, this.connectedController, 0 /* none */, this.parentNextContentActivated));
+    }
+    removeContent() {
+        if (this.isEmpty) {
+            return;
+        }
+        // console.log('removeContent', this.toString());
+        return Runner.run(() => this.connectedScope.removeContent(), () => this.deactivate(null, null /* TODO: verify this.connectedController */, 0 /* none */), () => this.dispose());
+    }
+    removeChildrenContent() {
+        // console.log(this.name, 'removeContent', this.content.content);
+        return Runner.run(() => !this.isEmpty ? this.connectedScope.removeContent() : void 0);
+    }
+    activate(initiator, parent, flags, fromParent) {
+        // console.log('activate' /* , { ...this } */);
+        if (this.activeContent.componentInstance !== null) {
+            this.connectedScope.reenableReplacedChildren();
+            return Runner.run(() => this.activeContent.load(this.activeContent.instruction), // Only acts if not already loaded
+            () => this.activeContent.activateComponent(initiator, parent, flags, this.connectedCE, fromParent));
+        }
+    }
+    deactivate(initiator, parent, flags) {
+        var _a;
+        if (this.content.componentInstance &&
+            !this.content.reentry &&
+            this.content.componentInstance !== ((_a = this.nextContent) === null || _a === void 0 ? void 0 : _a.componentInstance)) {
+            return Runner.run(() => { var _a; return (_a = this.content) === null || _a === void 0 ? void 0 : _a.unload(this.content.instruction); }, // Only acts if not already unloaded
+            () => { var _a; return (_a = this.content) === null || _a === void 0 ? void 0 : _a.deactivateComponent(initiator, parent, flags, this.connectedCE, this.router.statefulHistory || this.options.stateful); });
+        }
+    }
+    unload(recurse) {
+        return Runner.run(() => recurse ? this.connectedScope.unload(recurse) : true, () => {
+            // console.log(this.connectedScope.toString(), 'viewport content unload', this.content.content.componentName);
+            // This shouldn't happen
+            // // TODO: Verify this
+            // if (this.nextContent === this.content) {
+            //   return;
+            // }
+            var _a, _b;
             if (this.content.componentInstance) {
-                await this.content.leave(this.nextContent.instruction);
-                if (!this.content.reentry && this.content.componentInstance !== this.nextContent.componentInstance) {
-                    await this.unloadContent();
-                }
+                return this.content.unload((_b = (_a = this.nextContent) === null || _a === void 0 ? void 0 : _a.instruction) !== null && _b !== void 0 ? _b : null);
             }
+        });
+    }
+    dispose() {
+        var _a;
+        if (this.content.componentInstance &&
+            !this.content.reentry &&
+            this.content.componentInstance !== ((_a = this.nextContent) === null || _a === void 0 ? void 0 : _a.componentInstance)) {
+            return Runner.run(
+            // () => this.content!.unloadComponent(
+            //   this.historyCache,
+            //   this.router.statefulHistory || this.options.stateful),
+            // () => this.content!.destroyComponent(),
+            () => this.content.disposeComponent(this.connectedCE, this.historyCache, this.router.statefulHistory || this.options.stateful));
+            // await this.content!.freeContent(
+            //   this.connectedCE,
+            //   this.nextContent!.instruction,
+            //   this.historyCache,
+            //   this.router.statefulHistory || this.options.stateful);
+        }
+    }
+    finalizeContentChange() {
+        // console.log('finalizeContent', this.nextContent!.content?.componentName);
+        if (this.nextContent.componentInstance) {
             this.content = this.nextContent;
             this.content.reentry = false;
         }
@@ -243,18 +449,18 @@ export class Viewport {
             this.content = new ViewportContent(void 0, this.nextContent.instruction);
         }
         this.nextContent = null;
-        return true;
-    }
-    finalizeContentChange() {
+        this.nextContentAction = '';
         this.previousViewportState = null;
         this.connectedScope.clearReplacedChildren();
     }
-    async abortContentChange() {
+    abortContentChange() {
         this.connectedScope.reenableReplacedChildren();
-        await this.nextContent.freeContent(this.element, this.nextContent.instruction, this.historyCache, this.router.statefulHistory || this.options.stateful);
-        if (this.previousViewportState) {
-            Object.assign(this, this.previousViewportState);
-        }
+        return Runner.run(() => this.nextContent.freeContent(this.connectedCE, this.nextContent.instruction, this.historyCache, this.router.statefulHistory || this.options.stateful), () => {
+            if (this.previousViewportState) {
+                Object.assign(this, this.previousViewportState);
+            }
+            this.nextContentAction = '';
+        });
     }
     // TODO: Deal with non-string components
     wantComponent(component) {
@@ -284,75 +490,90 @@ export class Viewport {
         }
         return false;
     }
-    beforeBind(flags) {
-        if (this.content.componentInstance) {
-            this.content.initializeComponent(CustomElement.for(this.element));
-        }
-    }
-    async beforeAttach(flags) {
-        this.enabled = true;
-        if (this.content.componentInstance) {
-            // Only acts if not already entered
-            await this.content.enter(this.content.instruction);
-            this.content.addComponent(this.element);
-        }
-    }
-    async beforeDetach(flags) {
-        if (this.content.componentInstance) {
-            // Only acts if not already left
-            await this.content.leave(this.content.instruction);
-            this.content.removeComponent(this.element, this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful);
-        }
-        this.enabled = false;
-    }
-    async beforeUnbind(flags) {
-        if (this.content.componentInstance) {
-            await this.content.terminateComponent(this.doForceRemove ? false : this.router.statefulHistory || this.options.stateful);
-        }
-    }
-    async freeContent(component) {
+    freeContent(component) {
         const content = this.historyCache.find(cached => cached.componentInstance === component);
         if (content !== void 0) {
-            this.forceRemove = true;
-            await content.freeContent(null, null, this.historyCache, false);
-            this.forceRemove = false;
-            arrayRemove(this.historyCache, (cached => cached === content));
+            return Runner.run(() => {
+                this.forceRemove = true;
+                return content.freeContent(null, null, this.historyCache, false);
+            }, () => {
+                this.forceRemove = false;
+                arrayRemove(this.historyCache, (cached => cached === content));
+            });
         }
     }
     getRoutes() {
-        let componentType = this.nextContent !== null
-            && this.nextContent.content !== null
-            ? this.nextContent.content.componentType
-            : this.content.content.componentType;
-        // TODO: This is going away once Metadata is in!
-        if (componentType === null || componentType === void 0) {
-            const controller = CustomElement.for(this.element);
-            componentType = controller.context.componentType;
-        }
-        if (componentType === null || componentType === void 0) {
+        const componentType = this.getComponentType();
+        if (componentType === null) {
             return null;
         }
         const routes = componentType.routes;
         return Array.isArray(routes) ? routes : null;
     }
-    async unloadContent() {
-        this.content.removeComponent(this.element, this.router.statefulHistory || this.options.stateful);
-        await this.content.terminateComponent(this.router.statefulHistory || this.options.stateful);
-        this.content.unloadComponent(this.historyCache, this.router.statefulHistory || this.options.stateful);
-        this.content.destroyComponent();
+    getTitle(navigationInstruction) {
+        var _a, _b;
+        if (this.options.noTitle) {
+            return '';
+        }
+        const componentType = this.getComponentType();
+        if (componentType === null) {
+            return '';
+        }
+        let title = '';
+        const typeTitle = componentType.title;
+        if (typeTitle !== void 0) {
+            if (typeof typeTitle === 'string') {
+                title = typeTitle;
+            }
+            else {
+                const component = this.getComponentInstance();
+                title = typeTitle.call(component, component, navigationInstruction);
+            }
+        }
+        else if (this.router.options.title.useComponentNames) {
+            let name = (_a = this.getContentInstruction().componentName) !== null && _a !== void 0 ? _a : '';
+            const prefix = (_b = this.router.options.title.componentPrefix) !== null && _b !== void 0 ? _b : '';
+            if (name.startsWith(prefix)) {
+                name = name.slice(prefix.length);
+            }
+            name = name.replace('-', ' ');
+            title = name.slice(0, 1).toLocaleUpperCase() + name.slice(1);
+        }
+        if (this.router.options.title.transformTitle !== void 0) {
+            title = this.router.options.title.transformTitle.call(this, title, this.getContentInstruction());
+        }
+        return title;
+    }
+    getComponentType() {
+        var _a;
+        let componentType = (_a = this.getContentInstruction().componentType) !== null && _a !== void 0 ? _a : null;
+        // TODO: This is going away once Metadata is in!
+        if (componentType === null) {
+            const controller = CustomElement.for(this.connectedCE.element);
+            componentType = controller.context
+                .componentType;
+        }
+        return componentType !== null && componentType !== void 0 ? componentType : null;
+    }
+    getComponentInstance() {
+        var _a;
+        return (_a = this.getContentInstruction().componentInstance) !== null && _a !== void 0 ? _a : null;
+    }
+    getContentInstruction() {
+        var _a, _b, _c;
+        return (_c = (_b = (_a = this.nextContent) === null || _a === void 0 ? void 0 : _a.content) !== null && _b !== void 0 ? _b : this.content.content) !== null && _c !== void 0 ? _c : null;
     }
     clearState() {
         this.options = {};
         this.content = new ViewportContent();
         this.cache = [];
     }
-    async waitForElement() {
-        if (this.element) {
-            return Promise.resolve();
+    waitForConnected() {
+        if (this.connectedCE === null) {
+            return new Promise((resolve) => {
+                this.connectionResolve = resolve;
+            });
         }
-        return new Promise((resolve) => {
-            this.elementResolve = resolve;
-        });
     }
 }
 //# sourceMappingURL=viewport.js.map

@@ -4,16 +4,15 @@ export declare type MaybePromiseOrTask = void | PromiseOrTask;
 export declare const LifecycleTask: {
     done: {
         done: boolean;
-        canCancel(): boolean;
-        cancel(): void;
         wait(): Promise<unknown>;
     };
 };
 export declare const enum TaskSlot {
     beforeCreate = 0,
     beforeRender = 1,
-    beforeBind = 2,
-    beforeAttach = 3
+    beforeCompileChildren = 2,
+    beforeBind = 3,
+    afterAttach = 4
 }
 export declare const IStartTask: import("@aurelia/kernel").InterfaceSymbol<IStartTask>;
 export interface IStartTask {
@@ -24,15 +23,17 @@ export interface IStartTask {
 export interface ISlotChooser {
     beforeCreate(): IStartTask;
     beforeRender(): IStartTask;
+    beforeCompileChildren(): IStartTask;
     beforeBind(): IStartTask;
-    beforeAttach(): IStartTask;
+    afterAttach(): IStartTask;
     at(slot: TaskSlot): IStartTask;
 }
 export interface ICallbackSlotChooser<K extends Key> {
     beforeCreate(): ICallbackChooser<K>;
     beforeRender(): ICallbackChooser<K>;
+    beforeCompileChildren(): ICallbackChooser<K>;
     beforeBind(): ICallbackChooser<K>;
-    beforeAttach(): ICallbackChooser<K>;
+    afterAttach(): ICallbackChooser<K>;
     at(slot: TaskSlot): ICallbackChooser<K>;
 }
 export interface ICallbackChooser<K extends Key> {
@@ -40,42 +41,44 @@ export interface ICallbackChooser<K extends Key> {
 }
 export declare const StartTask: {
     with<K extends Key>(key: K): ICallbackSlotChooser<K>;
-    from(task: ILifecycleTask<unknown>): ISlotChooser;
+    from(task: ILifecycleTask): ISlotChooser;
     from(promise: Promise<unknown>): ISlotChooser;
     from(promiseOrTask: PromiseOrTask): ISlotChooser;
 };
 export declare const IStartTaskManager: import("@aurelia/kernel").InterfaceSymbol<IStartTaskManager>;
 export interface IStartTaskManager {
+    /**
+     * This is internal API and will be moved to an inaccessible place in the near future.
+     */
+    enqueueBeforeCompileChildren(): void;
     runBeforeCreate(container?: IContainer): ILifecycleTask;
     runBeforeRender(container?: IContainer): ILifecycleTask;
+    runBeforeCompileChildren(container?: IContainer): ILifecycleTask;
     runBeforeBind(container?: IContainer): ILifecycleTask;
-    runBeforeAttach(container?: IContainer): ILifecycleTask;
+    runAfterAttach(container?: IContainer): ILifecycleTask;
     run(slot: TaskSlot, container?: IContainer): ILifecycleTask;
 }
 export declare class StartTaskManager implements IStartTaskManager {
     private readonly locator;
+    private beforeCompileChildrenQueued;
     constructor(locator: IServiceLocator);
     static register(container: IContainer): IResolver<IStartTaskManager>;
+    enqueueBeforeCompileChildren(): void;
     runBeforeCreate(locator?: IServiceLocator): ILifecycleTask;
     runBeforeRender(locator?: IServiceLocator): ILifecycleTask;
+    runBeforeCompileChildren(locator?: IServiceLocator): ILifecycleTask;
     runBeforeBind(locator?: IServiceLocator): ILifecycleTask;
-    runBeforeAttach(locator?: IServiceLocator): ILifecycleTask;
+    runAfterAttach(locator?: IServiceLocator): ILifecycleTask;
     run(slot: TaskSlot, locator?: IServiceLocator): ILifecycleTask;
 }
 export interface ILifecycleTask<T = unknown> {
     readonly done: boolean;
-    canCancel(): boolean;
-    cancel(): void;
     wait(): Promise<T>;
 }
 export declare class PromiseTask<TArgs extends unknown[], T = void> implements ILifecycleTask {
     done: boolean;
-    private hasStarted;
-    private isCancelled;
     private readonly promise;
     constructor(promise: Promise<T>, next: ((result?: T, ...args: TArgs) => MaybePromiseOrTask) | null, context: unknown, ...args: TArgs);
-    canCancel(): boolean;
-    cancel(): void;
     wait(): Promise<unknown>;
 }
 export declare class ProviderTask implements ILifecycleTask {
@@ -85,44 +88,30 @@ export declare class ProviderTask implements ILifecycleTask {
     done: boolean;
     private promise?;
     constructor(container: IContainer, key: Key, callback: (instance: unknown) => PromiseOrTask);
-    canCancel(): boolean;
-    cancel(): void;
     wait(): Promise<unknown>;
 }
 export declare class ContinuationTask<TArgs extends unknown[]> implements ILifecycleTask {
     done: boolean;
-    private hasStarted;
-    private isCancelled;
     private readonly promise;
     constructor(antecedent: Promise<unknown> | ILifecycleTask, next: (...args: TArgs) => MaybePromiseOrTask, context: unknown, ...args: TArgs);
-    canCancel(): boolean;
-    cancel(): void;
     wait(): Promise<unknown>;
 }
 export declare class TerminalTask implements ILifecycleTask {
     done: boolean;
     private readonly promise;
     constructor(antecedent: Promise<unknown> | ILifecycleTask);
-    canCancel(): boolean;
-    cancel(): void;
     wait(): Promise<unknown>;
 }
 export declare class AggregateContinuationTask<TArgs extends unknown[]> implements ILifecycleTask {
     done: boolean;
-    private hasStarted;
-    private isCancelled;
     private readonly promise;
     constructor(antecedents: ILifecycleTask[], next: (...args: TArgs) => void | ILifecycleTask, context: unknown, ...args: TArgs);
-    canCancel(): boolean;
-    cancel(): void;
     wait(): Promise<unknown>;
 }
 export declare class AggregateTerminalTask implements ILifecycleTask {
     done: boolean;
     private readonly promise;
     constructor(antecedents: ILifecycleTask[]);
-    canCancel(): boolean;
-    cancel(): void;
     wait(): Promise<unknown>;
 }
 export declare function hasAsyncWork(value: MaybePromiseOrTask): value is PromiseOrTask;

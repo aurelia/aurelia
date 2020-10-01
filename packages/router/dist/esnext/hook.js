@@ -67,7 +67,8 @@ class Target {
     matches(viewportInstructions) {
         const instructions = viewportInstructions.slice();
         if (!instructions.length) {
-            instructions.push(new ViewportInstruction(''));
+            // instructions.push(new ViewportInstruction(''));
+            instructions.push(ViewportInstruction.create(null, ''));
         }
         for (const instruction of instructions) {
             if ((this.componentName !== null && this.componentName === instruction.componentName) ||

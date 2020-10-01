@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.$CreateDynamicFunction = exports.$FunctionPrototype_hasInstance = exports.$FunctionPrototype_toString = exports.$FunctionPrototype_call = exports.$FunctionPrototype_bind = exports.$FunctionPrototype_apply = exports.$FunctionPrototype = exports.$FunctionConstructor = void 0;
     const function_1 = require("../types/function");
     const error_1 = require("../types/error");
     const object_1 = require("../types/object");

@@ -47,6 +47,6 @@
     "@types/mocha": "^5.2.7",
     "jsdom": "^15.2.1",
     "mocha": "~6.1.4",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.3"
   }
 }

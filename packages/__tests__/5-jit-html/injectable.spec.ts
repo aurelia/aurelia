@@ -1,4 +1,3 @@
-import { RouterConfiguration } from '@aurelia/router';
 import { CustomElement, Aurelia, customElement } from '@aurelia/runtime';
 import { TestContext, assert } from '@aurelia/testing';
 
@@ -88,7 +87,7 @@ describe('CustomElement.createInjectable', function () {
     const ctx = TestContext.createHTMLTestContext();
     const host = ctx.createElement('div');
     const component = new Root();
-    const au = new Aurelia(ctx.container).register(RouterConfiguration, Parent, Child).app({ host, component });
+    const au = new Aurelia(ctx.container).register(Parent, Child).app({ host, component });
 
     await au.start().wait();
 

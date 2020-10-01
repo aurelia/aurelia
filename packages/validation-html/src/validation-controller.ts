@@ -13,7 +13,6 @@ import {
   LifecycleFlags,
   IScheduler,
   PropertyBinding,
-  State,
   ExpressionKind,
   IsBindingBehavior
 } from '@aurelia/runtime';
@@ -425,8 +424,7 @@ export class ValidationController implements IValidationController {
   }
 
   public async validateBinding(binding: BindingWithBehavior) {
-    const $state = binding.$state;
-    if (($state & State.isBound) === 0 || ($state & State.isUnbinding) !== 0) { return; }
+    if (!binding.isBound) { return; }
 
     const bindingInfo = this.bindings.get(binding);
     if (bindingInfo === void 0) { return; }

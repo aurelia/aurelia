@@ -13,6 +13,7 @@ import {
   PropertyBinding,
   IBinding,
   BindingBehaviorExpression,
+  ITask,
 } from '@aurelia/runtime';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo, ValidationResultsSubscriber, ValidationEvent } from './validation-controller';
@@ -131,6 +132,9 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   }
 
   public $unbind(flags: LifecycleFlags) {
+    this.task?.cancel();
+    this.task = null;
+
     const event = this.triggerEvent;
     if (event !== null) {
       this.target?.removeEventListener(event, this);
@@ -202,8 +206,10 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     return new ValidateArgumentsDelta(this.ensureController(controller), this.ensureTrigger(trigger), rules);
   }
 
+  private task: ITask | null = null;
   private validateBinding() {
-    this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
+    this.task?.cancel();
+    this.task = this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
       await this.controller.validateBinding(this.propertyBinding);
     });
   }

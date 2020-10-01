@@ -155,37 +155,43 @@ export class HooksDefinition {
   public static readonly none: Readonly<HooksDefinition> = new HooksDefinition({});
 
   public readonly hasCreate: boolean;
+
   public readonly hasBeforeCompile: boolean;
   public readonly hasAfterCompile: boolean;
   public readonly hasAfterCompileChildren: boolean;
 
   public readonly hasBeforeBind: boolean;
   public readonly hasAfterBind: boolean;
-
-  public readonly hasBeforeUnbind: boolean;
-  public readonly hasAfterUnbind: boolean;
-
-  public readonly hasBeforeAttach: boolean;
   public readonly hasAfterAttach: boolean;
+  public readonly hasAfterAttachChildren: boolean;
 
   public readonly hasBeforeDetach: boolean;
-  public readonly hasAfterDetach: boolean;
-  public readonly hasCaching: boolean;
+  public readonly hasBeforeUnbind: boolean;
+  public readonly hasAfterUnbind: boolean;
+  public readonly hasAfterUnbindChildren: boolean;
+
+  public readonly hasDispose: boolean;
+  public readonly hasAccept: boolean;
 
   public constructor(target: object) {
     this.hasCreate = 'create' in target;
+
     this.hasBeforeCompile = 'beforeCompile' in target;
     this.hasAfterCompile = 'afterCompile' in target;
     this.hasAfterCompileChildren = 'afterCompileChildren' in target;
+
     this.hasBeforeBind = 'beforeBind' in target;
     this.hasAfterBind = 'afterBind' in target;
+    this.hasAfterAttach = 'afterAttach' in target;
+    this.hasAfterAttachChildren = 'afterAttachChildren' in target;
+
+    this.hasBeforeDetach = 'beforeDetach' in target;
     this.hasBeforeUnbind = 'beforeUnbind' in target;
     this.hasAfterUnbind = 'afterUnbind' in target;
-    this.hasBeforeAttach = 'beforeAttach' in target;
-    this.hasAfterAttach = 'afterAttach' in target;
-    this.hasBeforeDetach = 'beforeDetach' in target;
-    this.hasAfterDetach = 'afterDetach' in target;
-    this.hasCaching = 'caching' in target;
+    this.hasAfterUnbindChildren = 'afterUnbindChildren' in target;
+
+    this.hasDispose = 'dispose' in target;
+    this.hasAccept = 'accept' in target;
   }
 }
 

@@ -17,7 +17,6 @@ import {
   IsBindingBehavior,
   IScope,
   LifecycleFlags,
-  State,
   IScheduler,
   INode,
   CustomElementDefinition,
@@ -43,7 +42,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
 
   public id!: number;
-  public $state: State = State.none;
+  public isBound: boolean = false;
   public $scheduler: IScheduler;
   public $scope: IScope = null!;
   public $hostScope: IScope | null = null;
@@ -89,7 +88,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
 
@@ -128,14 +127,12 @@ export class AttributeBinding implements IPartialConnectableBinding {
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, projection?: CustomElementDefinition): void {
-    if (this.$state & State.isBound) {
+    if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
       this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
-    // add isBinding flag
-    this.$state |= State.isBinding;
 
     // Store flags which we can only receive during $bind and need to pass on
     // to the AST during evaluate/connect/assign
@@ -179,16 +176,13 @@ export class AttributeBinding implements IPartialConnectableBinding {
     }
 
     // add isBound flag and remove isBinding flag
-    this.$state |= State.isBound;
-    this.$state &= ~State.isBinding;
+    this.isBound = true;
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
-    // add isUnbinding flag
-    this.$state |= State.isUnbinding;
 
     // clear persistent flags
     this.persistentFlags = LifecycleFlags.none;
@@ -201,20 +195,28 @@ export class AttributeBinding implements IPartialConnectableBinding {
     if ((this.targetObserver as IBindingTargetObserver).unbind) {
       (this.targetObserver as IBindingTargetObserver).unbind!(flags);
     }
-    if ((this.targetObserver as IBindingTargetObserver).unsubscribe) {
+    if ((this.targetObserver as Partial<IBindingTargetObserver>).unsubscribe) {
       (this.targetObserver as IBindingTargetObserver).unsubscribe(this.interceptor);
       (this.targetObserver as IBindingTargetObserver & { [key: string]: number })[this.id] &= ~LifecycleFlags.updateSourceExpression;
     }
     this.interceptor.unobserve(true);
 
     // remove isBound and isUnbinding flags
-    this.$state &= ~(State.isBound | State.isUnbinding);
+    this.isBound = false;
   }
 
   public connect(flags: LifecycleFlags): void {
-    if (this.$state & State.isBound) {
+    if (this.isBound) {
       flags |= this.persistentFlags;
       this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this.$hostScope, this.interceptor); // why do we have a connect method here in the first place? will this be called after bind?
     }
+  }
+
+  public dispose(): void {
+    this.interceptor = (void 0)!;
+    this.sourceExpression = (void 0)!;
+    this.locator = (void 0)!;
+    this.targetObserver = (void 0)!;
+    this.target = (void 0)!;
   }
 }

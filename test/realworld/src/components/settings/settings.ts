@@ -13,15 +13,20 @@ export class Settings {
     private readonly router: IRouter,
   ) {}
 
-  public created() { return; }
+  public create() { return; }
+  public beforeCompile() { return; }
+  public afterCompile() { return; }
+  public afterCompileChildren() { return; }
+
   public beforeBind() { return; }
   public afterBind() { return; }
-  public beforeAttach() { return; }
   public afterAttach() { return; }
+  public afterAttachChildren() { return; }
+
   public beforeDetach() { return; }
-  public afterDetach() { return; }
   public beforeUnbind() { return; }
   public afterUnbind() { return; }
+  public afterUnbindChildren() { return; }
 
   public update() {
     this.userService.update(this.sharedState.currentUser);

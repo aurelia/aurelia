@@ -5,7 +5,6 @@ import {
 import { IsBindingBehavior } from '../ast';
 import {
   LifecycleFlags,
-  State,
 } from '../flags';
 import { IBinding } from '../lifecycle';
 import {
@@ -21,7 +20,7 @@ export interface RefBinding extends IConnectableBinding {}
 export class RefBinding implements IBinding {
   public interceptor: this = this;
 
-  public $state: State = State.none;
+  public isBound: boolean = false;
   public $scope?: IScope = void 0;
   public $hostScope: IScope | null = null;
 
@@ -32,15 +31,13 @@ export class RefBinding implements IBinding {
   ) {}
 
   public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
-    if (this.$state & State.isBound) {
+    if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
 
       this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
-    // add isBinding flag
-    this.$state |= State.isBinding;
 
     this.$scope = scope;
     this.$hostScope = hostScope;
@@ -52,16 +49,13 @@ export class RefBinding implements IBinding {
     this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, hostScope, this.locator, this.target);
 
     // add isBound flag and remove isBinding flag
-    this.$state |= State.isBound;
-    this.$state &= ~State.isBinding;
+    this.isBound = true;
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
-    // add isUnbinding flag
-    this.$state |= State.isUnbinding;
 
     let sourceExpression = this.sourceExpression;
     if (sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator) === this.target) {
@@ -76,8 +70,7 @@ export class RefBinding implements IBinding {
 
     this.$scope = void 0;
 
-    // remove isBound and isUnbinding flags
-    this.$state &= ~(State.isBound | State.isUnbinding);
+    this.isBound = false;
   }
 
   public observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void {
@@ -86,5 +79,12 @@ export class RefBinding implements IBinding {
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     return;
+  }
+
+  public dispose(): void {
+    this.interceptor = (void 0)!;
+    this.sourceExpression = (void 0)!;
+    this.locator = (void 0)!;
+    this.target = (void 0)!;
   }
 }

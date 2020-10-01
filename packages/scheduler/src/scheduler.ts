@@ -113,8 +113,8 @@ export class Scheduler implements IScheduler {
   }
 
   public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskTargetOptions): Task<T> {
-    const { delay, preempt, priority, persistent, reusable } = { ...defaultQueueTaskOptions, ...opts };
-    return this.taskQueues[priority].queueTask(callback, { delay, preempt, persistent, reusable });
+    const { delay, preempt, priority, persistent, reusable, async } = { ...defaultQueueTaskOptions, ...opts };
+    return this.taskQueues[priority].queueTask(callback, { delay, preempt, persistent, reusable, async });
   }
 
   public getMicroTaskQueue(): ITaskQueue {
@@ -150,11 +150,11 @@ export class Scheduler implements IScheduler {
   }
   public async yieldAll(repeat: number = 1): Promise<void> {
     while (repeat-- > 0) {
-      await this.yieldIdleTask();
-      await this.yieldPostRenderTask();
-      await this.yieldMacroTask();
-      await this.yieldRenderTask();
       await this.yieldMicroTask();
+      await this.yieldRenderTask();
+      await this.yieldMacroTask();
+      await this.yieldPostRenderTask();
+      await this.yieldIdleTask();
     }
   }
 

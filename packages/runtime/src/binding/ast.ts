@@ -1166,10 +1166,10 @@ export class ForOfStatement implements IForOfStatement {
 
   public iterate(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
     switch (toStringTag.call(result)) {
-      case '[object Array]': return $array(flags | LifecycleFlags.isOriginalArray, result as unknown[], func);
-      case '[object Map]': return $map(flags | LifecycleFlags.isOriginalArray, result as Map<unknown, unknown>, func);
-      case '[object Set]': return $set(flags | LifecycleFlags.isOriginalArray, result as Set<unknown>, func);
-      case '[object Number]': return $number(flags | LifecycleFlags.isOriginalArray, result as number, func);
+      case '[object Array]': return $array(flags, result as unknown[], func);
+      case '[object Map]': return $map(flags, result as Map<unknown, unknown>, func);
+      case '[object Set]': return $set(flags, result as Set<unknown>, func);
+      case '[object Number]': return $number(flags, result as number, func);
       case '[object Null]': return;
       case '[object Undefined]': return;
       default: throw Reporter.error(0); // TODO: Set error code
@@ -1266,7 +1266,7 @@ function getFunction(flags: LifecycleFlags, obj: object, name: string): ((...arg
   throw Reporter.error(RuntimeError.NotAFunction, obj, name, func);
 }
 
-const proxyAndOriginalArray = LifecycleFlags.proxyStrategy | LifecycleFlags.isOriginalArray;
+const proxyAndOriginalArray = LifecycleFlags.proxyStrategy;
 
 function $array(flags: LifecycleFlags, result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
   if ((flags & proxyAndOriginalArray) === proxyAndOriginalArray) {
@@ -1297,7 +1297,7 @@ function $map(flags: LifecycleFlags, result: Map<unknown, unknown>, func: (arr: 
   for (const entry of result.entries()) {
     arr[++i] = entry;
   }
-  $array(flags & ~LifecycleFlags.isOriginalArray, arr, func);
+  $array(flags, arr, func);
 }
 
 function $set(flags: LifecycleFlags, result: Set<unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
@@ -1306,7 +1306,7 @@ function $set(flags: LifecycleFlags, result: Set<unknown>, func: (arr: Collectio
   for (const key of result.keys()) {
     arr[++i] = key;
   }
-  $array(flags & ~LifecycleFlags.isOriginalArray, arr, func);
+  $array(flags, arr, func);
 }
 
 function $number(flags: LifecycleFlags, result: number, func: (arr: Collection, index: number, item: unknown) => void): void {
@@ -1314,5 +1314,5 @@ function $number(flags: LifecycleFlags, result: number, func: (arr: Collection, 
   for (let i = 0; i < result; ++i) {
     arr[i] = i;
   }
-  $array(flags & ~LifecycleFlags.isOriginalArray, arr, func);
+  $array(flags, arr, func);
 }

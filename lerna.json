@@ -56,11 +56,13 @@
     "test/rainbow-spiral",
     "test/realworld",
     "test/sierpinski-triangle",
+    "test/router-e2e",
     "test/router-layouts",
     "test/router-modules",
     "test/router-nav",
     "test/router-scope",
     "test/router-siblings",
+    "test/router-tutorial",
     "test/router-wizard"
   ],
   "version": "0.7.0"

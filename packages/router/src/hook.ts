@@ -1,8 +1,9 @@
 import { HookFunction, HookTarget, HookIdentity, HookTypes, IHookOptions, HookResult, HookParameter, } from './hook-manager';
-import { IComponentAndOrViewportOrNothing, INavigatorInstruction, RouteableComponentType } from './interfaces';
+import { IComponentAndOrViewportOrNothing, RouteableComponentType } from './interfaces';
 import { ComponentAppellationResolver, ViewportHandleResolver } from './type-resolvers';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
+import { Navigation } from './navigation';
 
 /**
  * @internal - Shouldn't be used directly
@@ -43,7 +44,7 @@ export class Hook {
     return true;
   }
 
-  public invoke(navigationInstruction: INavigatorInstruction, arg: HookParameter): Promise<HookResult> {
+  public invoke(navigationInstruction: Navigation, arg: HookParameter): Promise<HookResult> {
     // TODO: Fix the type here
     return this.hook(arg as any, navigationInstruction);
   }
@@ -79,7 +80,8 @@ class Target {
   public matches(viewportInstructions: ViewportInstruction[]): boolean {
     const instructions = viewportInstructions.slice();
     if (!instructions.length) {
-      instructions.push(new ViewportInstruction(''));
+      // instructions.push(new ViewportInstruction(''));
+      instructions.push(ViewportInstruction.create(null, ''));
     }
     for (const instruction of instructions) {
       if ((this.componentName !== null && this.componentName === instruction.componentName) ||

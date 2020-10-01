@@ -88,14 +88,14 @@ export class PixiApp {
     }
   }
 
-  public afterDetach(): void {
+  public beforeUnbind(): void {
     if (this._app !== null) {
       this.element.removeChild(this._app.view);
       this._app.ticker.remove(this.callTick);
     }
   }
 
-  public afterUnbind(): void {
+  public afterUnbindChildren(): void {
     if (this.app !== null) {
       this.app.destroy();
     }

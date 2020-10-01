@@ -157,7 +157,7 @@ export class Blur implements ICustomAttributeViewModel<HTMLElement> {
     this.manager = BlurManager.createFor(dom, scheduler);
   }
 
-  public afterAttach(): void {
+  public afterAttachChildren(): void {
     this.manager.register(this);
   }
 

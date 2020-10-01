@@ -42,7 +42,7 @@
     "@aurelia/runtime": "0.8.0-dev.202009281652",
     "@aurelia/scheduler": "0.8.0-dev.202009281652",
     "jsdom": "^15.2.1",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.3"
   },
   "devDependencies": {
     "@types/node": "^12.12.21"

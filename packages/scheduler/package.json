@@ -38,6 +38,6 @@
     "@aurelia/metadata": "0.8.0-dev.202009281652"
   },
   "devDependencies": {
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.3"
   }
 }

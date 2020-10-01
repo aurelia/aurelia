@@ -40,7 +40,7 @@
     "@aurelia/scheduler": "0.8.0-dev.202009281652",
     "modify-code": "^1.2.0",
     "parse5": "^5.1.1",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.3"
   },
   "devDependencies": {
     "@types/node": "^12.12.21",

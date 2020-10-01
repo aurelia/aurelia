@@ -1,7 +1,7 @@
-import { IDOM, IScheduler } from '@aurelia/runtime';
-import { HTMLDOM } from '@aurelia/runtime-html';
+import { IScheduler } from '@aurelia/runtime';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, INavigatorViewerState } from './navigator';
 import { QueueTask, TaskQueue } from './task-queue';
+import { IWindow, IHistory, ILocation } from '@aurelia/runtime-html';
 
 /**
  * @internal
@@ -29,10 +29,6 @@ export interface IBrowserViewerStoreOptions extends INavigatorViewerOptions {
  * @internal - Shouldn't be used directly
  */
 export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
-  public window: Window;
-  public history: History;
-  public location: Location;
-
   public allowedExecutionCostWithinTick: number = 2; // Limit no of executed actions within the same RAF (due to browser limitation)
 
   private readonly pendingCalls: TaskQueue<IAction>;
@@ -46,33 +42,32 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
 
   public constructor(
     @IScheduler public readonly scheduler: IScheduler,
-    @IDOM dom: HTMLDOM
+    @IWindow public readonly window: IWindow,
+    @IHistory public readonly history: IHistory,
+    @ILocation public readonly location: ILocation,
   ) {
-    this.window = dom.window;
-    this.history = dom.window.history;
-    this.location = dom.window.location;
     this.pendingCalls = new TaskQueue<IAction>();
   }
 
-  public activate(options: IBrowserViewerStoreOptions): void {
+  public start(options: IBrowserViewerStoreOptions): void {
     if (this.isActive) {
-      throw new Error('Browser navigation has already been activated');
+      throw new Error('Browser navigation has already been started');
     }
     this.isActive = true;
     this.options.callback = options.callback;
     if (options.useUrlFragmentHash != void 0) {
       this.options.useUrlFragmentHash = options.useUrlFragmentHash;
     }
-    this.pendingCalls.activate({ scheduler: this.scheduler, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
-    this.window.addEventListener('popstate', this.handlePopstate as (ev: PopStateEvent) => void);
+    this.pendingCalls.start({ scheduler: this.scheduler, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
+    this.window.addEventListener('popstate', this.handlePopstate);
   }
 
-  public deactivate(): void {
+  public stop(): void {
     if (!this.isActive) {
-      throw new Error('Browser navigation has not been activated');
+      throw new Error('Browser navigation has not been started');
     }
-    this.window.removeEventListener('popstate', this.handlePopstate as (ev: PopStateEvent) => void);
-    this.pendingCalls.deactivate();
+    this.window.removeEventListener('popstate', this.handlePopstate);
+    this.pendingCalls.stop();
     this.options = { useUrlFragmentHash: true, callback: () => { return; } };
     this.isActive = false;
   }
@@ -81,7 +76,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     return this.history.length;
   }
   public get state(): Record<string, unknown> {
-    return this.history.state;
+    return this.history.state as Record<string, unknown>;
   }
 
   public get viewerState(): INavigatorViewerState {
@@ -94,7 +89,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     };
   }
 
-  public go(delta: number, suppressPopstateEvent: boolean = false): Promise<void> {
+  public async go(delta: number, suppressPopstateEvent: boolean = false): Promise<void> {
     const doneTask: QueueTask<IAction> = this.pendingCalls.createQueueTask((task: QueueTask<IAction>) => task.resolve(), 1);
 
     this.pendingCalls.enqueue([
@@ -118,9 +113,9 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     return doneTask.wait();
   }
 
-  public pushNavigatorState(state: INavigatorState): Promise<void> {
+  public async pushNavigatorState(state: INavigatorState): Promise<void> {
     const { title, path } = state.currentEntry;
-    const fragment: string = this.options.useUrlFragmentHash ? '#/' : '';
+    const fragment = this.options.useUrlFragmentHash ? '#/' : '';
 
     return this.pendingCalls.enqueue(
       (task: QueueTask<IAction>) => {
@@ -134,9 +129,9 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
       }, 1).wait();
   }
 
-  public replaceNavigatorState(state: INavigatorState): Promise<void> {
+  public async replaceNavigatorState(state: INavigatorState): Promise<void> {
     const { title, path } = state.currentEntry;
-    const fragment: string = this.options.useUrlFragmentHash ? '#/' : '';
+    const fragment = this.options.useUrlFragmentHash ? '#/' : '';
 
     return this.pendingCalls.enqueue(
       (task: QueueTask<IAction>) => {
@@ -150,7 +145,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
       }, 1).wait();
   }
 
-  public popNavigatorState(): Promise<void> {
+  public async popNavigatorState(): Promise<void> {
     const doneTask: QueueTask<IAction> = this.pendingCalls.createQueueTask((task: QueueTask<IAction>) => task.resolve(), 1);
 
     this.pendingCalls.enqueue(
@@ -164,27 +159,28 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     return doneTask.wait();
   }
 
-  public readonly handlePopstate = (event: PopStateEvent): Promise<void> => {
-    const { eventTask, suppressPopstate } = this.forwardedState;
-    this.forwardedState = { eventTask: null, suppressPopstate: false };
+  public readonly handlePopstate: (event: PopStateEvent) => Promise<void> =
+    async (event: PopStateEvent): Promise<void> => {
+      const { eventTask, suppressPopstate } = this.forwardedState;
+      this.forwardedState = { eventTask: null, suppressPopstate: false };
 
-    return this.pendingCalls.enqueue(
-      async (task: QueueTask<IAction>) => {
-        const store: BrowserViewerStore = this;
-        const ev: PopStateEvent = event;
-        const evTask: QueueTask<IAction> | null = eventTask;
-        const suppressPopstateEvent: boolean = suppressPopstate;
+      return this.pendingCalls.enqueue(
+        async (task: QueueTask<IAction>) => {
+          const store: BrowserViewerStore = this;
+          const ev: PopStateEvent = event;
+          const evTask: QueueTask<IAction> | null = eventTask;
+          const suppressPopstateEvent: boolean = suppressPopstate;
 
-        await store.popstate(ev, evTask, suppressPopstateEvent);
-        task.resolve();
-      }, 1).wait();
-  };
+          await store.popstate(ev, evTask, suppressPopstateEvent);
+          task.resolve();
+        }, 1).wait();
+    };
 
   public async popState(doneTask: QueueTask<IAction>): Promise<void> {
     await this.go(-1, true);
-    const state = this.history.state;
+    const state = this.history.state as INavigatorState;
     // TODO: Fix browser forward bug after pop on first entry
-    if (state && state.navigationEntry && !state.navigationEntry.firstEntry) {
+    if (state && state.currentEntry && !state.currentEntry.firstEntry) {
       await this.go(-1, true);
       await this.pushNavigatorState(state);
     }
@@ -201,12 +197,16 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
         ...this.viewerState,
         ...{
           event: ev,
-          state: this.history.state,
+          state: this.history.state as INavigatorState,
         },
       });
     }
     if (eventTask !== null) {
       await eventTask.execute();
     }
+  }
+
+  public setTitle(title: string): void {
+    this.window.document.title = title;
   }
 }

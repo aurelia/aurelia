@@ -77,7 +77,7 @@
     "@jest/types": "^26.0.1",
     "i18next": "^17.0.0",
     "jsdom": "^15.2.1",
-    "typescript": "^3.8.3",
+    "typescript": "^3.9.3",
     "vinyl": "^2.2.0"
   },
   "devDependencies": {
@@ -121,7 +121,5 @@
     "webpack": "^4.41.4",
     "yargs": "^15.0.2"
   },
-  "version": "0.8.0-dev.202009281652",
-  "main": "dist/umd/index.js",
-  "module": "dist/esnext/index.js"
+  "version": "0.7.0"
 }

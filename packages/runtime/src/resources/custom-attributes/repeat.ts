@@ -1,4 +1,4 @@
-import { compareNumber, nextId } from '@aurelia/kernel';
+import { compareNumber, nextId, PLATFORM } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { PropertyBinding } from '../../binding/property-binding';
 import { INode, IRenderLocation } from '../../dom';
@@ -17,9 +17,11 @@ import {
   IOverrideContext,
   IScope,
   ObservedCollection,
+  IBindingContext,
+  ObserversLookup,
 } from '../../observation';
 import { applyMutationsToIndices, synchronizeIndices } from '../../observation/array-observer';
-import { BindingContext, Scope } from '../../observation/binding-context';
+import { BindingContext, InternalObserversLookup } from '../../observation/binding-context';
 import { getCollectionObserver } from '../../observation/observer-locator';
 import { bindable } from '../../templating/bindable';
 import { templateController } from '../custom-attribute';
@@ -317,7 +319,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask;
     let view: ISyntheticView<T>;
-    let viewScope: IScope;
+    let viewScope: RepeatScope;
 
     const $controller = this.$controller;
     const lifecycle = $controller.lifecycle;
@@ -335,13 +337,13 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.forOf.iterate(flags, items, (arr, i, item) => {
       view = views[i] = factory.create(flags);
       view.parent = $controller;
-      viewScope = Scope.fromParent(
+      viewScope = RepeatScope.fromParent(
         flags,
         parentScope,
         BindingContext.create(flags, local, item),
+        i,
+        newLen
       );
-
-      setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
 
       task = view.bind(
         flags,
@@ -374,7 +376,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let tasks: ILifecycleTask[] | undefined = void 0;
     let task: ILifecycleTask;
     let view: ISyntheticView<T>;
-    let viewScope: IScope;
+    let viewScope: RepeatScope;
 
     const factory = this.factory;
     const views = this.views;
@@ -395,13 +397,14 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         view = factory.create(flags);
         // TODO: test with map/set/undefined/null, make sure we can use strong typing here as well, etc
         view.parent = $controller;
-        viewScope = Scope.fromParent(
+        viewScope = RepeatScope.fromParent(
           flags,
           parentScope,
           BindingContext.create(flags, local, normalizedItems[i]),
+          i,
+          mapLen
         );
 
-        setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, mapLen);
         // update all the rest oc
         task = view.bind(
           flags,
@@ -502,15 +505,15 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     for (; i >= 0; --i) {
       view = views[i];
       if (indexMap[i] === -2) {
-        setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
+        (view.scope as RepeatScope).update(i, newLen);
         view.hold(location, MountStrategy.insertBefore);
         view.attach(flags);
       } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
-        setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
+        (view.scope as RepeatScope).update(i, newLen);
         view.attach(flags);
       } else {
         if (oldLength !== newLen) {
-          setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
+          (view.scope as RepeatScope).update(i, newLen);
         }
         --j;
       }
@@ -600,23 +603,98 @@ export function longestIncreasingSubsequence(indexMap: IndexMap): Int32Array {
 
 interface IRepeatOverrideContext extends IOverrideContext {
   $index: number;
-  $odd: boolean;
-  $even: boolean;
-  $first: boolean;
-  $middle: boolean;
-  $last: boolean;
   $length: number; // new in v2, there are a few requests, not sure if it should stay
+  readonly $odd: boolean;
+  readonly $even: boolean;
+  readonly $first: boolean;
+  readonly $middle: boolean;
+  readonly $last: boolean;
 }
 
-function setContextualProperties(oc: IRepeatOverrideContext, index: number, length: number): void {
-  const isFirst = index === 0;
-  const isLast = index === length - 1;
-  const isEven = index % 2 === 0;
-  oc.$index = index;
-  oc.$first = isFirst;
-  oc.$last = isLast;
-  oc.$middle = !isFirst && !isLast;
-  oc.$even = isEven;
-  oc.$odd = !isEven;
-  oc.$length = length;
+class RepeatScope implements IScope {
+  public parentScope: IScope | null;
+  public scopeParts: readonly string[];
+  public bindingContext: IBindingContext;
+  public overrideContext: IRepeatOverrideContext;
+
+  private constructor(
+    parentScope: IScope | null,
+    bindingContext: IBindingContext,
+    overrideContext: IRepeatOverrideContext,
+  ) {
+    this.parentScope = parentScope;
+    this.scopeParts = PLATFORM.emptyArray;
+    this.bindingContext = bindingContext;
+    this.overrideContext = overrideContext;
+  }
+
+  public static fromParent(flags: LifecycleFlags, ps: IScope, bc: IBindingContext, idx: number = 0, len: number = 0) {
+    return new RepeatScope(ps, bc, RepeatOverrideContext.create(flags, bc, ps.overrideContext, idx, len));
+  }
+
+  public update(idx: number, len: number): void {
+    this.overrideContext.$index = idx;
+    this.overrideContext.$length = len;
+  }
+}
+
+class RepeatOverrideContext implements IRepeatOverrideContext {
+  [key: string]: unknown;
+
+  public readonly $synthetic: true;
+  public $observers?: ObserversLookup;
+  public bindingContext: IBindingContext;
+  public parentOverrideContext: IOverrideContext | null;
+  public $index: number;
+  public $length: number;
+
+  private constructor(
+    bindingContext: IBindingContext,
+    parentOverrideContext: IOverrideContext | null,
+    idx: number = 0,
+    len: number = 0,
+  ) {
+    this.$synthetic = true;
+    this.bindingContext = bindingContext;
+    this.parentOverrideContext = parentOverrideContext;
+    this.$index = idx;
+    this.$length = len;
+  }
+
+  public static create(
+    flags: LifecycleFlags,
+    bc: object,
+    poc: IOverrideContext | null,
+    idx: number = 0,
+    len: number = 0,
+  ): IRepeatOverrideContext {
+    return new RepeatOverrideContext(bc as IBindingContext, poc === void 0 ? null : poc, idx, len);
+  }
+
+  public getObservers(): ObserversLookup {
+    if (this.$observers === void 0) {
+      this.$observers = new InternalObserversLookup() as ObserversLookup;
+    }
+    return this.$observers;
+  }
+
+  public get $odd(): boolean {
+    return this.$index % 2 === 1;
+  }
+
+  public get $even(): boolean {
+    return this.$index % 2 === 0;
+  }
+
+  public get $first(): boolean {
+    return this.$index === 0;
+  }
+
+  public get $last(): boolean {
+    return this.$index === this.$length - 1;
+  }
+
+  public get $middle(): boolean {
+    return !this.$first && !this.$last;
+  }
 }

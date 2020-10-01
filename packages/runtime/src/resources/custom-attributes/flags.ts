@@ -28,7 +28,7 @@ abstract class FlagsTemplateController<T extends INode = INode> implements ICust
     flags: LifecycleFlags,
   ): void | Promise<void> {
     const { $controller } = this;
-    return this.view.activate(initiator, $controller, flags | this.flags, $controller.scope, $controller.part);
+    return this.view.activate(initiator, $controller, flags | this.flags, $controller.scope, $controller.hostScope);
   }
 
   public afterUnbind(

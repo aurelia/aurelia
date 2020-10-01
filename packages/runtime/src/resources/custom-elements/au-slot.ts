@@ -1,17 +1,19 @@
-import { DI, IContainer, Registration } from '@aurelia/kernel';
+import { DI, IContainer, Registration, Writable } from '@aurelia/kernel';
 import {
   INode,
   IRenderLocation,
 } from '../../dom';
 import { LifecycleFlags } from '../../flags';
 import {
+  ControllerVisitor,
   ICustomElementController,
   ICustomElementViewModel,
+  IHydratedController,
+  IHydratedParentController,
   ISyntheticView,
   IViewFactory,
   MountStrategy
 } from '../../lifecycle';
-import { ILifecycleTask } from '../../lifecycle-task';
 import { IScope } from '../../observation';
 import {
   customElement,
@@ -88,28 +90,52 @@ export class AuSlot<T extends INode = Node> implements ICustomElementViewModel<T
     @IRenderLocation location: IRenderLocation<T>,
   ) {
     this.view = factory.create();
-    this.view.hold(location, MountStrategy.insertBefore);
+    this.view.setLocation(location, MountStrategy.insertBefore);
     this.isProjection = factory.contentType === AuSlotContentType.Projection;
     this.outerScope = factory.projectionScope;
   }
 
-  public beforeBind(flags: LifecycleFlags): ILifecycleTask {
+  public beforeBind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
     this.hostScope = this.$controller.scope.parentScope!;
-    this.view.parent = this.$controller;
-    return this.view.bind(flags, this.outerScope ?? this.hostScope, this.hostScope);
   }
 
-  public beforeAttach(flags: LifecycleFlags): void {
-    this.view.attach(flags);
+  public afterAttach(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
+    const { $controller } = this;
+    return this.view.activate(initiator, $controller, flags, this.outerScope ?? this.hostScope!, this.hostScope);
   }
 
-  public beforeDetach(flags: LifecycleFlags): void {
-    this.view.detach(flags);
+  public afterUnbind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
+    return this.view.deactivate(initiator, this.$controller, flags);
   }
 
-  public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
-    const task = this.view.unbind(flags);
-    this.view.parent = void 0;
-    return task;
+  public onCancel(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void {
+    this.view.cancel(initiator, this.$controller, flags);
+  }
+
+  public dispose(): void {
+    this.view.dispose();
+    (this as Writable<this>).view = (void 0)!;
+  }
+
+  public accept(visitor: ControllerVisitor<T>): void | true {
+    if (this.view?.accept(visitor) === true) {
+      return true;
+    }
   }
 }

@@ -4,6 +4,7 @@
  *
  * Usage:
  *
+ * ```ts
  * const promise = Runner.run(
  *   'one',
  *   prev => `${previous}, two`,
@@ -17,7 +18,7 @@
  * if (stepsRunner?.isResolved) { // Make sure promise wasn't rejected
  *   // result === 'one, two, three'
  * }
- *
+ * ```
  */
 export class Runner {
   public value: unknown;
@@ -38,16 +39,17 @@ export class Runner {
    *
    * Steps are processed in sequence and can be either a
    *
-   * value - which is then propagated as input into the next step
-   * function - which is executed in time. The result is replacing
-   *            the step which is then reprocessed
-   * promise - which is awaited
+   * - value - which is then propagated as input into the next step
+   * - function - which is executed in time. The result is replacing the step which is then reprocessed
+   * - promise - which is awaited
    *
+   * ```ts
    * result = await Runner.run(
    *   'one',
    *   prev => `${previous}, two`,
    *   prev => createPromise(prev), // creates a promise that resolves to `${prev}, three`
    * ); // result === 'one, two, three'
+   * ```
    *
    */
   public static run<T = unknown>(...steps: unknown[]): T | Promise<T> {

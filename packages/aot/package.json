@@ -41,8 +41,8 @@
     "@aurelia/metadata": "0.7.0",
     "@aurelia/runtime": "0.7.0",
     "@aurelia/scheduler": "0.7.0",
-    "jsdom": "^15.2.1",
-    "typescript": "^3.9.3"
+    "jsdom": "^15.2.1 || ^16.0.0",
+    "typescript": "^3.9.3 || ^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^12.12.21"

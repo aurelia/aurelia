@@ -72,7 +72,7 @@ export async function createFixture<T extends Constructable>(
   container.register(LoggerConfiguration.create({ $console: console, level: LogLevel.trace }));
   container.register(...deps);
 
-  const activityTracker = container.get(IActivityTracker);
+  // const activityTracker = container.get(IActivityTracker);
   const hia = container.get(IHookInvocationAggregator);
   const router = container.get(IRouter);
   const component = container.get(Component);
@@ -98,7 +98,7 @@ export async function createFixture<T extends Constructable>(
     component,
     scheduler,
     router,
-    activityTracker,
+    // activityTracker,
     startTracing() {
       logConfig.level = LogLevel.trace;
     },

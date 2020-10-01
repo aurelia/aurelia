@@ -127,7 +127,7 @@ describe('router (smoke tests)', function () {
     class A12 {}
     const A1 = [A11, A12];
 
-    @customElement({ name: name(Root2), template: `${name(Rsoot2)}${vp(2)}` })
+    @customElement({ name: name(Root2), template: `${name(Root2)}${vp(2)}` })
     class Root2 {}
     @customElement({ name: name(A21), template: `${name(A21)}${vp(2)}` })
     class A21 {}

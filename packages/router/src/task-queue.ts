@@ -25,7 +25,7 @@ export class QueueTask<T> implements ILifecycleTask {
   public constructor(
     private readonly taskQueue: TaskQueue<T>,
     public item: IQueueableItem<T> | QueueableFunction,
-    public cost: number = 0,
+    public cost = 0,
   ) {
     this.promise = new Promise((resolve, reject) => {
       this.resolve = () => {
@@ -47,6 +47,10 @@ export class QueueTask<T> implements ILifecycleTask {
   public wait(): Promise<void> {
     return this.promise;
   }
+  public canCancel(): boolean {
+    return false;
+  }
+  public cancel(): void { return; }
 }
 
 export interface ITaskQueueOptions {
@@ -62,7 +66,7 @@ export interface ITaskQueueOptions {
  * function) or the execute method in them are run. The executed function
  * should resolve or reject the task when processing is done.
  * Enqueued items' tasks can be awaited. Enqueued items can specify an
- * (arbitrary) execution cost and the queue can be set up (activated) to
+ * (arbitrary) execution cost and the queue can be set up (started) to
  * only process a specific amount of execution cost per RAF/tick.
  *
  * @internal - Shouldn't be used directly.
@@ -86,17 +90,17 @@ export class TaskQueue<T> {
     return this.pending.length;
   }
 
-  public activate(options: ITaskQueueOptions): void {
+  public start(options: ITaskQueueOptions): void {
     if (this.isActive) {
-      throw new Error('TaskQueue has already been activated');
+      throw new Error('TaskQueue has already been started');
     }
     this.scheduler = options.scheduler;
     this.allowedExecutionCostWithinTick = options.allowedExecutionCostWithinTick;
     this.task = this.scheduler.queueRenderTask(this.dequeue, { persistent: true });
   }
-  public deactivate(): void {
+  public stop(): void {
     if (!this.isActive) {
-      throw new Error('TaskQueue has not been activated');
+      throw new Error('TaskQueue has not been started');
     }
     this.task!.cancel();
     this.task = null;
@@ -146,7 +150,7 @@ export class TaskQueue<T> {
     }
     this.processing = this.pending.shift() || null;
     if (this.processing) {
-      this.currentExecutionCostInCurrentTick += this.processing.cost || 0;
+      this.currentExecutionCostInCurrentTick += this.processing.cost ?? 0;
       if (this.callback !== void 0) {
         this.callback(this.processing);
       } else {

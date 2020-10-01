@@ -45,6 +45,8 @@ const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']
 
 export interface TranslationBinding extends IConnectableBinding {}
 
+const forOpts = { optional: true } as const;
+
 @connectable()
 export class TranslationBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
@@ -186,7 +188,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   private updateAttribute(attribute: string, value: string, flags: LifecycleFlags) {
-    const controller = CustomElement.for(this.target);
+    const controller = CustomElement.for(this.target, forOpts);
     const observer = controller && controller.viewModel
       ? this.observerLocator.getAccessor(LifecycleFlags.none, controller.viewModel, attribute)
       : this.observerLocator.getAccessor(LifecycleFlags.none, this.target, attribute);

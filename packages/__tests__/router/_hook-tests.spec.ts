@@ -491,7 +491,6 @@ describe('router hooks', function () {
                                   if ($t1[vpFirst] && ($t1[vpFirst] !== $t2[vpFirst])) { yield* prepend(phase, $t1[vpFirst], ...removeHooks); }
                                   if ($t2[vpFirst] && ($t1[vpFirst] !== $t2[vpFirst])) { yield* prepend(phase, $t2[vpFirst], ...addHooks); }
 
-
                                   if ($t2[vpSecond] && ($t1[vpSecond] !== $t2[vpSecond])) { yield `${phase}.${$t2[vpSecond]}.canLoad`; }
                                   if ($t1[vpSecond] && ($t1[vpSecond] !== $t2[vpSecond])) { yield `${phase}.${$t1[vpSecond]}.unload`; }
                                   if ($t2[vpSecond] && ($t1[vpSecond] !== $t2[vpSecond])) { yield `${phase}.${$t2[vpSecond]}.load`; }
@@ -645,7 +644,6 @@ describe('router hooks', function () {
                                   if ($t2[vpFirst] && ($t1[vpFirst] !== $t2[vpFirst])) { yield `${phase}.${$t2[vpFirst]}.load`; }
                                   if ($t2[vpSecond] && ($t1[vpSecond] !== $t2[vpSecond])) { yield `${phase}.${$t2[vpSecond]}.load`; }
 
-
                                   // // Implicit change (clear) in v0, will catch up with explicit changes
                                   // const [vpFirst, vpSecond] = !$t2.vp1 ? ['vp1', 'vp0'] : ['vp0', 'vp1'];
 
@@ -708,8 +706,6 @@ describe('router hooks', function () {
                               //     /* if ($t1[vpSecond] !== $t2[vpSecond]) { */ yield* prepend(phase, $t2[vpSecond], ...addHooks.map(hook => $t1[vpSecond] !== $t2[vpSecond] && $t2[vpSecond] ? hook : '')); //}
                               //     /* if ($t1[vpSecond] !== $t2[vpSecond]) { */ yield* prepend(phase, $t1[vpSecond], ...removeHooks.map(hook => $t1[vpSecond] !== $t2[vpSecond] && $t1[vpSecond] ? hook : '')); //}
                               // })(),
-
-
 
                               /* Original
                               yield* interleave(

@@ -274,7 +274,7 @@ export function* getParentChildHooks(deferUntil, swapStrategy, componentKind, ph
                   })(),
                 );
                 // if (from.c) { yield* prepend(phase, from.p, ...parentRemove); }
-                //x: yield `${phase}.${to.p}.afterAttachChildren`;
+                // x: yield `${phase}.${to.p}.afterAttachChildren`;
               } else {
                 yield* interleave(
                   (function* () {
@@ -282,7 +282,7 @@ export function* getParentChildHooks(deferUntil, swapStrategy, componentKind, ph
                   })(),
                   (function* () {
                     if (to.c) { yield* prepend(phase, to.c, ...childAdd); }
-                    //x: yield `${phase}.${to.p}.afterAttachChildren`;
+                    // x: yield `${phase}.${to.p}.afterAttachChildren`;
                   })(),
                 );
               }
@@ -304,7 +304,7 @@ export function* getParentChildHooks(deferUntil, swapStrategy, componentKind, ph
               if (from.p) { yield* prepend(phase, from.p, ...parentRemove); }
               yield* prepend(phase, to.p, ...parentAdd);
               if (to.c) { yield* prepend(phase, to.c, ...childAdd); }
-              //x: yield `${phase}.${to.p}.afterAttachChildren`;
+              // x: yield `${phase}.${to.p}.afterAttachChildren`;
               break;
           }
           break;
@@ -338,7 +338,7 @@ export function* getParentChildHooks(deferUntil, swapStrategy, componentKind, ph
               if (from.p) { yield* prepend(phase, from.p, ...parentRemove); }
               yield* prepend(phase, to.p, ...parentAdd);
               if (to.c) { yield* prepend(phase, to.c, ...childAdd); }
-              //x: yield `${phase}.${to.p}.afterAttachChildren`;
+              // x: yield `${phase}.${to.p}.afterAttachChildren`;
               break;
           }
           break;
@@ -372,7 +372,7 @@ export function* getParentChildHooks(deferUntil, swapStrategy, componentKind, ph
               if (from.c) { yield* prepend(phase, from.c, ...childRemove); }
               if (from.p) { yield* prepend(phase, from.p, ...parentRemove); }
               if (to.c) { yield* prepend(phase, to.c, ...childAdd); }
-              //x: yield `${phase}.${to.p}.afterAttachChildren`;
+              // x: yield `${phase}.${to.p}.afterAttachChildren`;
               break;
           }
           break;
@@ -386,7 +386,7 @@ export function* getParentChildHooks(deferUntil, swapStrategy, componentKind, ph
             case 'all-async':
               if (from.p) {
                 yield* interleave(
-                  from.c ? prepend(phase, from.c, ...childRemove) : prepend(phase, from.p, ...parentRemove), //getNothing(),
+                  from.c ? prepend(phase, from.c, ...childRemove) : prepend(phase, from.p, ...parentRemove), // getNothing(),
                   // prepend(phase, from.p, ...parentRemove),
                   prepend(phase, to.p, ...parentAdd),
                 );
@@ -543,7 +543,7 @@ export function* getParentChildHooks(deferUntil, swapStrategy, componentKind, ph
 //     break;
 // }
 
-function* getNothing() { }
+function* getNothing() { /* return nothing */ }
 
 export function assertHooks(actual: any, expected: any): void {
   try {

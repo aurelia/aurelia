@@ -74,7 +74,7 @@ describe('HookManager', function () {
     }
   }
   const $goto = async (path: string, router: IRouter, scheduler: IScheduler) => {
-    await router.goto(path);
+    await router.load(path);
     scheduler.getRenderTaskQueue().flush();
   };
 

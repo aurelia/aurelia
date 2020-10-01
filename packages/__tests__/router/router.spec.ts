@@ -194,8 +194,8 @@ describe('Router', function () {
 
     const { scheduler, host, router, tearDown } = await createFixture();
 
-    router.goto('uier@left').catch((error) => { throw error; });
-    const last = router.goto('bar@left');
+    router.load('uier@left').catch((error) => { throw error; });
+    const last = router.load('bar@left');
     // Depending on browser/node, there can be 1 or 2 in the queue here
     assert.notStrictEqual(router['navigator'].queued, 0, `router.navigator.queued`);
     await last;
@@ -243,7 +243,7 @@ describe('Router', function () {
     assert.includes(host.textContent, 'foo', `host.textContent`);
     assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);
 
-    await router.goto('bar@left', { replace: true });
+    await router.load('bar@left', { replace: true });
 
     assert.includes(host.textContent, 'bar', `host.textContent`);
     assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);
@@ -1889,7 +1889,7 @@ let quxCantUnload = 0;
 let plughReentryBehavior = 'default';
 
 const $goto = async (path: string, router: IRouter, scheduler: IScheduler) => {
-  await router.goto(path);
+  await router.load(path);
   scheduler.getRenderTaskQueue().flush();
 };
 

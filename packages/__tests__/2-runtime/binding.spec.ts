@@ -17,7 +17,6 @@ import {
   RuntimeConfiguration,
   Scope,
   SetterObserver,
-  State
 } from '@aurelia/runtime';
 import {
   createObserverLocator,
@@ -153,7 +152,6 @@ describe('PropertyBinding', function () {
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
       () => [LF.updateTargetInstance,                                `updateTarget           `],
-      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -226,7 +224,6 @@ describe('PropertyBinding', function () {
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
       () => [LF.updateTargetInstance,                                `updateTarget           `],
-      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -456,7 +453,6 @@ describe('PropertyBinding', function () {
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
       () => [LF.updateTargetInstance,                                `updateTarget           `],
-      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -869,14 +865,14 @@ describe('PropertyBinding', function () {
       const { sut } = createFixture();
       const scope: any = {};
       sut['$scope'] = scope;
-      sut.$state = State.isBound;
+      sut.isBound = true;
       sut['targetObserver'] = {} as any;
       const unobserveSpy = createSpy(sut, 'unobserve');
       const unbindSpy = dummySourceExpression.unbind = createSpy();
       (dummySourceExpression as any).$kind |= ExpressionKind.HasUnbind;
       sut.$unbind(LF.fromUnbind);
       assert.strictEqual(sut['$scope'], undefined, `sut['$scope']`);
-      assert.strictEqual(sut['$state'] & State.isBound, 0, `sut['$state'] & State.isBound`);
+      assert.strictEqual(sut.isBound, false, `sut.isBound`);
       // expect(unobserveSpy, `unobserveSpy`).to.have.been.calledWith(true);
       // expect(unbindSpy, `unbindSpy`).to.have.been.calledWith(LF.fromUnbind, scope, sut);
     });

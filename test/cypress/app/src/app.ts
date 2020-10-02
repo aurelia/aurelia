@@ -8,7 +8,7 @@ import template from './app.html';
 export class App {
   public constructor(private readonly router: Router) { }
 
-  public afterAttach() {
+  public afterAttachChildren() {
     this.router.activate();
   }
 }

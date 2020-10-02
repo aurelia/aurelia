@@ -147,7 +147,7 @@ export class SelectValueObserver implements IAccessor {
     // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
     const shouldNotify = this.synchronizeValue();
     if (shouldNotify) {
-      this.callSubscribers(this.currentValue, this.oldValue, LifecycleFlags.fromDOMEvent | LifecycleFlags.allowPublishRoundtrip);
+      this.callSubscribers(this.currentValue, this.oldValue, LifecycleFlags.none);
     }
   }
 
@@ -277,7 +277,7 @@ export class SelectValueObserver implements IAccessor {
     this.synchronizeOptions();
     const shouldNotify = this.synchronizeValue();
     if (shouldNotify) {
-      this.notify(LifecycleFlags.fromDOMEvent);
+      this.notify(LifecycleFlags.none);
     }
   }
 

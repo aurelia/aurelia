@@ -194,7 +194,7 @@
 //         txt: { property: 'txt', attribute: 'txt' }
 //       };
 //       public $children;
-//       public afterAttach() {
+//       public afterAttachChildren() {
 //         childrenCount += this.$children.length;
 //       }
 //       public $childrenChanged() {
@@ -418,7 +418,7 @@
 //   //       txt: { property: 'txt', attribute: 'txt' }
 //   //     };
 //   //     public $children;
-//   //     public afterAttach() {
+//   //     public afterAttachChildren() {
 //   //       childrenCount += this.$children.length;
 //   //     }
 //   //     public $childrenChanged() {

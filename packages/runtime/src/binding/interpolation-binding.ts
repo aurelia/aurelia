@@ -1,8 +1,6 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import {
   IScheduler,
-  ITask,
-  QueueTaskOptions,
 } from '@aurelia/scheduler';
 import {
   IExpression,
@@ -11,7 +9,6 @@ import {
 import {
   BindingMode,
   LifecycleFlags,
-  State,
 } from '../flags';
 import { IBinding } from '../lifecycle';
 import {
@@ -33,7 +30,7 @@ const { toView, oneTime } = BindingMode;
 export class MultiInterpolationBinding implements IBinding {
   public interceptor: this = this;
 
-  public $state: State = State.none;;
+  public isBound: boolean = false;
   public $scope?: IScope = void 0;
   public part?: string;
 
@@ -59,13 +56,13 @@ export class MultiInterpolationBinding implements IBinding {
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
-    if (this.$state & State.isBound) {
+    if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
       this.interceptor.$unbind(flags);
     }
-    this.$state |= State.isBound;
+    this.isBound = true;
     this.$scope = scope;
     this.part = part;
 
@@ -76,15 +73,22 @@ export class MultiInterpolationBinding implements IBinding {
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
-    this.$state &= ~State.isBound;
+    this.isBound = false;
     this.$scope = void 0;
     const parts = this.parts;
     for (let i = 0, ii = parts.length; i < ii; ++i) {
       parts[i].interceptor.$unbind(flags);
     }
+  }
+
+  public dispose(): void {
+    this.interceptor = (void 0)!;
+    this.interpolation = (void 0)!;
+    this.locator = (void 0)!;
+    this.target = (void 0)!;
   }
 }
 
@@ -97,11 +101,9 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public id!: number;
   public $scope?: IScope;
   public part?: string;
-  public $state: State = State.none;
   public $scheduler: IScheduler;
-  // public task: ITask | null = null;
-
   public targetObserver: IBindingTargetAccessor & INodeAccessor;
+  public isBound: boolean = false;
 
   private readonly dom: IDOM;
 
@@ -127,7 +129,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   }
 
   public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
 
@@ -160,14 +162,14 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
-    if (this.$state & State.isBound) {
+    if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
       this.interceptor.$unbind(flags);
     }
 
-    this.$state |= State.isBound;
+    this.isBound = true;
     this.$scope = scope;
     this.part = part;
 
@@ -194,10 +196,10 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
-    this.$state &= ~State.isBound;
+    this.isBound = false;
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {
@@ -211,5 +213,12 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
     this.$scope = void 0;
     this.interceptor.unobserve(true);
+  }
+
+  public dispose(): void {
+    this.interceptor = (void 0)!;
+    this.sourceExpression = (void 0)!;
+    this.locator = (void 0)!;
+    this.targetObserver = (void 0)!;
   }
 }

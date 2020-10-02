@@ -20,7 +20,7 @@ describe('DirtyChecker', function () {
 
     return { dirtyChecker, taskQueue };
   }
-  const expectedFlags = LifecycleFlags.fromTick;
+  const expectedFlags = LifecycleFlags.none;
 
   const specs = [
     {

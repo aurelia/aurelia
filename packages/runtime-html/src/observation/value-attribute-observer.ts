@@ -79,7 +79,7 @@ export class ValueAttributeObserver implements IAccessor {
     const currentValue = this.currentValue = this.obj[this.propertyKey];
     if (oldValue !== currentValue) {
       this.oldValue = currentValue;
-      this.callSubscribers(currentValue, oldValue, LifecycleFlags.fromDOMEvent | LifecycleFlags.allowPublishRoundtrip);
+      this.callSubscribers(currentValue, oldValue, LifecycleFlags.none);
     }
   }
 

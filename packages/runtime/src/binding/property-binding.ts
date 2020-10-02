@@ -105,51 +105,51 @@ export class PropertyBinding implements IPartialConnectableBinding {
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
         newValue = this.sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator);
-        // Alpha: during bind a simple strategy for bind is always flush immediately
-        // todo:
-        //  (1). determine whether this should be the behavior
-        //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
-        const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
-        const oldValue = targetObserver.getValue();
+      }
+      // Alpha: during bind a simple strategy for bind is always flush immediately
+      // todo:
+      //  (1). determine whether this should be the behavior
+      //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
+      const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
+      const oldValue = targetObserver.getValue();
 
-        if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-          newValue = sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator);
-        }
-
-        // todo(fred): maybe let the obsrever decides whether it updates
-        if (newValue !== oldValue) {
-          if (shouldQueueFlush) {
-            flags |= LifecycleFlags.noTargetObserverQueue;
-            this.task?.cancel();
-            targetObserver.task?.cancel();
-            targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
-              (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
-              this.task = targetObserver.task = null;
-            }, updateTaskOpts);
-          }
-
-          interceptor.updateTarget(newValue, flags);
-        }
-
-        // todo: merge this with evaluate above
-        if ((this.mode & oneTime) === 0) {
-          this.version++;
-          sourceExpression.connect(flags, $scope!, this.$hostScope, this.interceptor);
-          interceptor.unobserve(false);
-        }
-
-        return;
+      if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
+        newValue = sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator);
       }
 
-      if ((flags & LifecycleFlags.updateSourceExpression) > 0) {
-        if (newValue !== sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator)) {
-          interceptor.updateSource(newValue, flags);
+      // todo(fred): maybe let the obsrever decides whether it updates
+      if (newValue !== oldValue) {
+        if (shouldQueueFlush) {
+          flags |= LifecycleFlags.noTargetObserverQueue;
+          this.task?.cancel();
+          targetObserver.task?.cancel();
+          targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+            (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
+            this.task = targetObserver.task = null;
+          }, updateTaskOpts);
         }
-        return;
+
+        interceptor.updateTarget(newValue, flags);
       }
 
-      throw new Error('Unexpected handleChange context in PropertyBinding');
+      // todo: merge this with evaluate above
+      if ((this.mode & oneTime) === 0) {
+        this.version++;
+        sourceExpression.connect(flags, $scope!, this.$hostScope, this.interceptor);
+        interceptor.unobserve(false);
+      }
+
+      return;
     }
+
+    if ((flags & LifecycleFlags.updateSourceExpression) > 0) {
+      if (newValue !== sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator)) {
+        interceptor.updateSource(newValue, flags);
+      }
+      return;
+    }
+
+    throw new Error('Unexpected handleChange context in PropertyBinding');
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {

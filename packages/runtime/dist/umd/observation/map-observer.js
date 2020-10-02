@@ -156,6 +156,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     let MapObserver = /** @class */ (() => {
         let MapObserver = class MapObserver {
             constructor(flags, lifecycle, map) {
+                this.type = 34 /* Map */;
+                this.task = null;
                 if (!enableMapObservationCalled) {
                     enableMapObservationCalled = true;
                     enableMapObservation();
@@ -189,9 +191,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 throw new Error('Map index observation not supported');
             }
             flushBatch(flags) {
+                const indexMap = this.indexMap;
+                const size = this.collection.size;
                 this.inBatch = false;
-                const { indexMap, collection } = this;
-                const { size } = collection;
                 this.indexMap = observation_1.createIndexMap(size);
                 this.callCollectionSubscribers(indexMap, 8 /* updateTargetInstance */ | this.persistentFlags);
                 if (this.lengthObserver !== void 0) {

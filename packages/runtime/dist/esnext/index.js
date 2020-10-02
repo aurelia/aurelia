@@ -52,6 +52,6 @@ export { CallBindingInstruction, FromViewBindingInstruction, HydrateAttributeIns
 export { ViewModelKind, ILifecycle, IController, IViewFactory, MountStrategy, } from './lifecycle';
 export { getRenderContext, isRenderContext, } from './templating/render-context';
 export { AggregateContinuationTask, TerminalTask, AggregateTerminalTask, ContinuationTask, LifecycleTask, PromiseTask, TaskSlot, StartTask, IStartTask, IStartTaskManager, ProviderTask, } from './lifecycle-task';
-export { CollectionKind, DelegationStrategy, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation';
+export { AccessorType, CollectionKind, DelegationStrategy, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation';
 export { applyBindingBehavior, IInstructionRenderer, IRenderer, ITemplateCompiler, instructionRenderer, ensureExpression, } from './renderer';
 //# sourceMappingURL=index.js.map

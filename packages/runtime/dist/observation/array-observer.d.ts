@@ -1,13 +1,16 @@
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray, ICollectionIndexObserver, ISubscriber } from '../observation';
+import { CollectionKind, ICollectionObserver, IndexMap, IObservedArray, ICollectionIndexObserver, ISubscriber, AccessorType } from '../observation';
 import { CollectionLengthObserver } from './collection-length-observer';
+import { ITask } from '@aurelia/scheduler';
 export declare function enableArrayObservation(): void;
 export declare function disableArrayObservation(): void;
 export interface ArrayObserver extends ICollectionObserver<CollectionKind.array> {
 }
 export declare class ArrayObserver {
     inBatch: boolean;
+    type: AccessorType;
+    task: ITask | null;
     private readonly indexObservers;
     constructor(flags: LifecycleFlags, lifecycle: ILifecycle, array: IObservedArray);
     notify(): void;

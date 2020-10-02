@@ -1,5 +1,5 @@
 import { IIndexable } from '@aurelia/kernel';
-import { IAccessor, LifecycleFlags, IScheduler, ITask } from '@aurelia/runtime';
+import { IAccessor, LifecycleFlags, IScheduler, ITask, AccessorType } from '@aurelia/runtime';
 /**
  * Property accessor for HTML Elements.
  * Note that Aurelia works with properties, so in all case it will try to assign to property instead of attributes.
@@ -16,11 +16,11 @@ export declare class ElementPropertyAccessor implements IAccessor {
     readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
     task: ITask | null;
+    type: AccessorType;
     constructor(scheduler: IScheduler, flags: LifecycleFlags, obj: Node & IIndexable, propertyKey: string);
     getValue(): unknown;
     setValue(newValue: string | null, flags: LifecycleFlags): void;
     flushChanges(flags: LifecycleFlags): void;
     bind(flags: LifecycleFlags): void;
-    unbind(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=element-property-accessor.d.ts.map

@@ -1,4 +1,5 @@
 import { IServiceLocator } from '@aurelia/kernel';
+import { IScheduler, ITask } from '@aurelia/scheduler';
 import { IExpression, IInterpolationExpression } from '../ast';
 import { BindingMode, LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
@@ -37,6 +38,8 @@ export declare class InterpolationBinding implements IPartialConnectableBinding 
     id: number;
     $scope?: IScope;
     part?: string;
+    $scheduler: IScheduler;
+    task: ITask | null;
     isBound: boolean;
     targetObserver: IBindingTargetAccessor;
     constructor(sourceExpression: IExpression, interpolation: IInterpolationExpression, target: object, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean);

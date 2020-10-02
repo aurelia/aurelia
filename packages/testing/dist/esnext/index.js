@@ -9,6 +9,7 @@ export { inspect, } from './inspect';
 export { MockBinding, MockBindingBehavior, MockBrowserHistoryLocation, MockContext, MockPropertySubscriber, MockServiceLocator, MockSignaler, MockTracingExpression, MockValueConverter, ChangeSet, CollectionChangeSet, ProxyChangeSet, SpySubscriber, } from './mocks';
 export { writeProfilerReport, } from './profiler';
 export { SortValueConverter, JsonValueConverter, TestConfiguration, } from './resources';
+export { ensureSchedulerEmpty, } from './scheduler';
 export { 
 // verifyASTEqual,
 verifyBindingInstructionsEqual, verifyEqual, getVisibleText, targetedInstructionTypeName, } from './specialized-assertions';

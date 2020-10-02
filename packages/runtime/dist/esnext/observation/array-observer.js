@@ -397,6 +397,8 @@ export function disableArrayObservation() {
 let ArrayObserver = /** @class */ (() => {
     let ArrayObserver = class ArrayObserver {
         constructor(flags, lifecycle, array) {
+            this.type = 10 /* Array */;
+            this.task = null;
             if (!enableArrayObservationCalled) {
                 enableArrayObservationCalled = true;
                 enableArrayObservation();
@@ -431,9 +433,9 @@ let ArrayObserver = /** @class */ (() => {
             return this.getOrCreateIndexObserver(index);
         }
         flushBatch(flags) {
-            this.inBatch = false;
             const indexMap = this.indexMap;
             const length = this.collection.length;
+            this.inBatch = false;
             this.indexMap = createIndexMap(length);
             this.callCollectionSubscribers(indexMap, 8 /* updateTargetInstance */ | this.persistentFlags);
             if (this.lengthObserver !== void 0) {

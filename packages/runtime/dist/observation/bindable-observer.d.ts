@@ -1,7 +1,7 @@
 import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { IPropertyObserver, ISubscriber } from '../observation';
+import { IPropertyObserver, ISubscriber, AccessorType } from '../observation';
 import { InterceptorFunc } from '../templating/bindable';
 export interface BindableObserver extends IPropertyObserver<IIndexable, string> {
 }
@@ -15,6 +15,7 @@ export declare class BindableObserver {
     readonly persistentFlags: LifecycleFlags;
     inBatch: boolean;
     observing: boolean;
+    type: AccessorType;
     private readonly callback?;
     private readonly propertyChangedCallback?;
     private readonly hasPropertyChangedCallback;

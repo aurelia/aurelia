@@ -129,6 +129,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 this.dirtyChecker = dirtyChecker;
                 this.obj = obj;
                 this.propertyKey = propertyKey;
+                this.type = 4 /* Obj */;
             }
             isDirty() {
                 return this.oldValue !== this.obj[this.propertyKey];

@@ -8,6 +8,7 @@ export class StyleAttributeAccessor {
         this.version = 0;
         this.hasChanges = false;
         this.task = null;
+        this.type = 2 /* Node */ | 64 /* Layout */;
         this.obj = obj;
         this.persistentFlags = flags & 12295 /* targetObserverFlags */;
     }
@@ -17,14 +18,8 @@ export class StyleAttributeAccessor {
     setValue(newValue, flags) {
         this.currentValue = newValue;
         this.hasChanges = newValue !== this.oldValue;
-        if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noTargetObserverQueue */) {
+        if ((flags & 4096 /* noTargetObserverQueue */) === 0) {
             this.flushChanges(flags);
-        }
-        else if (this.persistentFlags !== 8192 /* persistentTargetObserverQueue */ && this.task === null) {
-            this.task = this.scheduler.queueRenderTask(() => {
-                this.flushChanges(flags);
-                this.task = null;
-            });
         }
     }
     getStyleTuplesFromString(currentValue) {
@@ -83,12 +78,12 @@ export class StyleAttributeAccessor {
     flushChanges(flags) {
         if (this.hasChanges) {
             this.hasChanges = false;
-            const { currentValue } = this;
-            this.oldValue = currentValue;
+            const currentValue = this.currentValue;
             const styles = this.styles;
+            const styleTuples = this.getStyleTuples(currentValue);
             let style;
             let version = this.version;
-            const styleTuples = this.getStyleTuples(currentValue);
+            this.oldValue = currentValue;
             let tuple;
             let name;
             let value;
@@ -123,19 +118,7 @@ export class StyleAttributeAccessor {
         this.obj.style.setProperty(style, value, priority);
     }
     bind(flags) {
-        if (this.persistentFlags === 8192 /* persistentTargetObserverQueue */) {
-            if (this.task !== null) {
-                this.task.cancel();
-            }
-            this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-        }
-        this.oldValue = this.currentValue = this.obj.style.cssText;
-    }
-    unbind(flags) {
-        if (this.task !== null) {
-            this.task.cancel();
-            this.task = null;
-        }
+        this.currentValue = this.oldValue = this.obj.style.cssText;
     }
 }
 //# sourceMappingURL=style-attribute-accessor.js.map

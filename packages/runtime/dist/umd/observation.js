@@ -9,7 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.isIndexMap = exports.cloneIndexMap = exports.createIndexMap = exports.copyIndexMap = exports.CollectionKind = exports.DelegationStrategy = exports.SubscriberFlags = void 0;
+    exports.isIndexMap = exports.cloneIndexMap = exports.createIndexMap = exports.copyIndexMap = exports.AccessorType = exports.CollectionKind = exports.DelegationStrategy = exports.SubscriberFlags = void 0;
     /** @internal */
     var SubscriberFlags;
     (function (SubscriberFlags) {
@@ -34,6 +34,28 @@
         CollectionKind[CollectionKind["map"] = 6] = "map";
         CollectionKind[CollectionKind["set"] = 7] = "set";
     })(CollectionKind = exports.CollectionKind || (exports.CollectionKind = {}));
+    var AccessorType;
+    (function (AccessorType) {
+        AccessorType[AccessorType["None"] = 0] = "None";
+        AccessorType[AccessorType["Observer"] = 1] = "Observer";
+        AccessorType[AccessorType["Node"] = 2] = "Node";
+        AccessorType[AccessorType["Obj"] = 4] = "Obj";
+        AccessorType[AccessorType["Array"] = 10] = "Array";
+        AccessorType[AccessorType["Set"] = 18] = "Set";
+        AccessorType[AccessorType["Map"] = 34] = "Map";
+        // misc characteristic of observer when update
+        //
+        // by default, everything is synchronous
+        // except changes that are supposed to cause reflow/heavy computation
+        // an observer can use this flag to signal binding that don't carelessly tell it to update
+        // queue it instead
+        // todo: https://gist.github.com/paulirish/5d52fb081b3570c81e3a
+        // todo: https://csstriggers.com/
+        AccessorType[AccessorType["Layout"] = 64] = "Layout";
+        // there needs to be a flag to signal that accessor real value
+        // may get out of sync with binding value
+        // so that binding can ask for a force read instead of cache read
+    })(AccessorType = exports.AccessorType || (exports.AccessorType = {}));
     function copyIndexMap(existing, deletedItems) {
         const { length } = existing;
         const arr = Array(length);

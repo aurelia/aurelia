@@ -34,6 +34,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 this.interceptor = this;
                 this.isBound = false;
                 this.$scope = void 0;
+                this.task = null;
                 this.target = null;
                 connectable_1.connectable.assignIdTo(this);
                 this.$lifecycle = locator.get(lifecycle_1.ILifecycle);
@@ -43,7 +44,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     return;
                 }
                 if (flags & 8 /* updateTargetInstance */) {
-                    const { target, targetProperty } = this;
+                    const target = this.target;
+                    const targetProperty = this.targetProperty;
                     const previousValue = target[targetProperty];
                     const newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
                     if (newValue !== previousValue) {
@@ -51,7 +53,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     }
                     return;
                 }
-                throw kernel_1.Reporter.error(15, flags);
+                throw new Error('Unexpected handleChange context in LetBinding');
             }
             $bind(flags, scope, part) {
                 if (this.isBound) {

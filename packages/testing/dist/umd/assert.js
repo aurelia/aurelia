@@ -6,7 +6,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/scheduler", "@aurelia/runtime", "./comparison", "./inspect", "./specialized-assertions", "./util", "@aurelia/runtime-html"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/scheduler", "@aurelia/runtime", "./comparison", "./inspect", "./specialized-assertions", "./util", "@aurelia/runtime-html", "./scheduler"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -41,6 +41,7 @@
     const specialized_assertions_1 = require("./specialized-assertions");
     const util_1 = require("./util");
     const runtime_html_1 = require("@aurelia/runtime-html");
+    const scheduler_2 = require("./scheduler");
     const noException = Symbol('noException');
     function innerFail(obj) {
         if (util_1.isError(obj.message)) {
@@ -706,7 +707,7 @@
             }
             return info;
         }
-        return function $isSchedulerEmpty() {
+        return function $isSchedulerEmpty(clearBeforeThrow) {
             // Please don't do this anywhere else. We need to get rid of this / improve this at some point, not make it worse.
             // Also for this to work, a HTMLTestContext needs to have been created somewhere, so we can't just call this e.g. in kernel and certain runtime tests that don't use
             // the full test context.
@@ -739,6 +740,9 @@
                 isEmpty = false;
             }
             if (!isEmpty) {
+                if (clearBeforeThrow === true) {
+                    scheduler_2.ensureSchedulerEmpty(scheduler);
+                }
                 innerFail({
                     actual: void 0,
                     expected: void 0,

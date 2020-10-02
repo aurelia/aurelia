@@ -285,6 +285,7 @@
     Object.defineProperty(exports, "IStartTaskManager", { enumerable: true, get: function () { return lifecycle_task_1.IStartTaskManager; } });
     Object.defineProperty(exports, "ProviderTask", { enumerable: true, get: function () { return lifecycle_task_1.ProviderTask; } });
     var observation_1 = require("./observation");
+    Object.defineProperty(exports, "AccessorType", { enumerable: true, get: function () { return observation_1.AccessorType; } });
     Object.defineProperty(exports, "CollectionKind", { enumerable: true, get: function () { return observation_1.CollectionKind; } });
     Object.defineProperty(exports, "DelegationStrategy", { enumerable: true, get: function () { return observation_1.DelegationStrategy; } });
     Object.defineProperty(exports, "isIndexMap", { enumerable: true, get: function () { return observation_1.isIndexMap; } });

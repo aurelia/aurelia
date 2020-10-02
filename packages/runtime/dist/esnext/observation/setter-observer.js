@@ -24,6 +24,8 @@ let SetterObserver = /** @class */ (() => {
             this.oldValue = void 0;
             this.inBatch = false;
             this.observing = false;
+            // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
+            this.type = 4 /* Obj */;
             this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
         }
         getValue() {
@@ -33,14 +35,7 @@ let SetterObserver = /** @class */ (() => {
             if (this.observing) {
                 const currentValue = this.currentValue;
                 this.currentValue = newValue;
-                if (this.lifecycle.batch.depth === 0) {
-                    this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
-                }
-                else if (!this.inBatch) {
-                    this.inBatch = true;
-                    this.oldValue = currentValue;
-                    this.lifecycle.batch.add(this);
-                }
+                this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
             }
             else {
                 // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,

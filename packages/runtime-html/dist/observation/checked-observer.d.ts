@@ -1,4 +1,4 @@
-import { CollectionKind, IAccessor, ICollectionObserver, IndexMap, ISubscriber, ISubscriberCollection, LifecycleFlags, ObserversLookup, SetterObserver, IScheduler, ITask, ILifecycle } from '@aurelia/runtime';
+import { CollectionKind, IAccessor, ICollectionObserver, IndexMap, ISubscriber, ISubscriberCollection, LifecycleFlags, ObserversLookup, SetterObserver, IScheduler, ITask, ILifecycle, AccessorType } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 import { ValueAttributeObserver } from './value-attribute-observer';
 export interface IInputElement extends HTMLInputElement {
@@ -22,6 +22,7 @@ export declare class CheckedObserver implements IAccessor {
     readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
     task: ITask | null;
+    type: AccessorType;
     collectionObserver?: ICollectionObserver<CollectionKind>;
     valueObserver?: ValueAttributeObserver | SetterObserver;
     constructor(scheduler: IScheduler, flags: LifecycleFlags, lifecycle: ILifecycle, handler: IEventSubscriber, obj: IInputElement);

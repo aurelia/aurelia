@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./assert", "./au-dom", "./data", "./each-cartesian-join", "./h", "./startup", "./html-test-context", "./inspect", "./mocks", "./profiler", "./resources", "./specialized-assertions", "./string-manipulation", "./test-builder", "./tracing", "./util"], factory);
+        define(["require", "exports", "./assert", "./au-dom", "./data", "./each-cartesian-join", "./h", "./startup", "./html-test-context", "./inspect", "./mocks", "./profiler", "./resources", "./scheduler", "./specialized-assertions", "./string-manipulation", "./test-builder", "./tracing", "./util"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -64,6 +64,8 @@
     Object.defineProperty(exports, "SortValueConverter", { enumerable: true, get: function () { return resources_1.SortValueConverter; } });
     Object.defineProperty(exports, "JsonValueConverter", { enumerable: true, get: function () { return resources_1.JsonValueConverter; } });
     Object.defineProperty(exports, "TestConfiguration", { enumerable: true, get: function () { return resources_1.TestConfiguration; } });
+    var scheduler_1 = require("./scheduler");
+    Object.defineProperty(exports, "ensureSchedulerEmpty", { enumerable: true, get: function () { return scheduler_1.ensureSchedulerEmpty; } });
     var specialized_assertions_1 = require("./specialized-assertions");
     // verifyASTEqual,
     Object.defineProperty(exports, "verifyBindingInstructionsEqual", { enumerable: true, get: function () { return specialized_assertions_1.verifyBindingInstructionsEqual; } });

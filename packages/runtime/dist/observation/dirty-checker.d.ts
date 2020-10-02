@@ -1,6 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IBindingTargetObserver, IObservable, ISubscriber } from '../observation';
+import { IBindingTargetObserver, IObservable, ISubscriber, AccessorType } from '../observation';
 export interface IDirtyChecker {
     createProperty(obj: object, propertyName: string): IBindingTargetObserver;
     addProperty(property: DirtyCheckProperty): void;
@@ -48,6 +48,7 @@ export declare class DirtyCheckProperty implements DirtyCheckProperty {
     obj: IObservable & IIndexable;
     propertyKey: string;
     oldValue: unknown;
+    type: AccessorType;
     constructor(dirtyChecker: IDirtyChecker, obj: IObservable & IIndexable, propertyKey: string);
     isDirty(): boolean;
     flush(flags: LifecycleFlags): void;

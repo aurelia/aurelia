@@ -1,5 +1,5 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { AccessorOrObserver, BindingMode, IConnectableBinding, IForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, IScheduler, INode } from '@aurelia/runtime';
+import { AccessorOrObserver, BindingMode, IConnectableBinding, IForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, IScheduler, INode, ITask } from '@aurelia/runtime';
 export interface AttributeBinding extends IConnectableBinding {
 }
 /**
@@ -18,6 +18,7 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     $scheduler: IScheduler;
     $scope: IScope;
     part?: string;
+    task: ITask | null;
     /**
      * Target key. In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
      */

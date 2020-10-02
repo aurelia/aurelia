@@ -1,4 +1,4 @@
-import { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, IScheduler, ITask } from '@aurelia/runtime';
+import { IBindingTargetObserver, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, IScheduler, ITask, AccessorType } from '@aurelia/runtime';
 export interface IHtmlElement extends HTMLElement {
     $mObserver: MutationObserver;
     $eMObservers: Set<ElementMutationSubscription>;
@@ -24,6 +24,7 @@ export declare class AttributeObserver implements AttributeObserver, ElementMuta
     readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
     task: ITask | null;
+    type: AccessorType;
     constructor(scheduler: IScheduler, flags: LifecycleFlags, observerLocator: IObserverLocator, obj: IHtmlElement, propertyKey: string, targetAttribute: string);
     getValue(): unknown;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
@@ -31,7 +32,5 @@ export declare class AttributeObserver implements AttributeObserver, ElementMuta
     handleMutation(mutationRecords: MutationRecord[]): void;
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;
-    bind(flags: LifecycleFlags): void;
-    unbind(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=element-attribute-observer.d.ts.map

@@ -12,6 +12,8 @@ let CollectionSizeObserver = /** @class */ (() => {
     let CollectionSizeObserver = class CollectionSizeObserver {
         constructor(obj) {
             this.obj = obj;
+            this.type = 4 /* Obj */;
+            this.task = null;
             this.currentValue = obj.size;
         }
         getValue() {

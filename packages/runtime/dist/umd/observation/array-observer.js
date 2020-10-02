@@ -411,6 +411,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     let ArrayObserver = /** @class */ (() => {
         let ArrayObserver = class ArrayObserver {
             constructor(flags, lifecycle, array) {
+                this.type = 10 /* Array */;
+                this.task = null;
                 if (!enableArrayObservationCalled) {
                     enableArrayObservationCalled = true;
                     enableArrayObservation();
@@ -445,9 +447,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 return this.getOrCreateIndexObserver(index);
             }
             flushBatch(flags) {
-                this.inBatch = false;
                 const indexMap = this.indexMap;
                 const length = this.collection.length;
+                this.inBatch = false;
                 this.indexMap = observation_1.createIndexMap(length);
                 this.callCollectionSubscribers(indexMap, 8 /* updateTargetInstance */ | this.persistentFlags);
                 if (this.lengthObserver !== void 0) {

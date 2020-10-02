@@ -22,6 +22,8 @@ export declare class PropertyBinding implements IPartialConnectableBinding {
     part?: string;
     targetObserver?: AccessorOrObserver;
     persistentFlags: LifecycleFlags;
+    private task;
+    private readonly $scheduler;
     constructor(sourceExpression: IsBindingBehavior | IForOfStatement, target: object, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;

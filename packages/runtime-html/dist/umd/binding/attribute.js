@@ -26,6 +26,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     const { oneTime, toView, fromView } = runtime_1.BindingMode;
     // pre-combining flags for bitwise checks is a minor perf tweak
     const toViewOrOneTime = toView | oneTime;
+    const taskOptions = {
+        reusable: false,
+        preempt: true,
+    };
     /**
      * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
      */
@@ -47,6 +51,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 this.interceptor = this;
                 this.isBound = false;
                 this.$scope = null;
+                this.task = null;
                 this.persistentFlags = 0 /* none */;
                 this.target = target;
                 runtime_1.connectable.assignIdTo(this);
@@ -61,37 +66,58 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 this.sourceExpression.assign(flags | 16 /* updateSourceExpression */, this.$scope, this.locator, value);
             }
             handleChange(newValue, _previousValue, flags) {
+                var _a, _b;
                 if (!this.isBound) {
                     return;
                 }
                 flags |= this.persistentFlags;
-                if (this.mode === runtime_1.BindingMode.fromView) {
+                const mode = this.mode;
+                const interceptor = this.interceptor;
+                const sourceExpression = this.sourceExpression;
+                const $scope = this.$scope;
+                const locator = this.locator;
+                if (mode === runtime_1.BindingMode.fromView) {
                     flags &= ~8 /* updateTargetInstance */;
                     flags |= 16 /* updateSourceExpression */;
                 }
                 if (flags & 8 /* updateTargetInstance */) {
-                    const previousValue = this.targetObserver.getValue();
-                    // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-                    if (this.sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
-                        newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
+                    const targetObserver = this.targetObserver;
+                    // Alpha: during bind a simple strategy for bind is always flush immediately
+                    // todo:
+                    //  (1). determine whether this should be the behavior
+                    //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
+                    const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
+                    const oldValue = targetObserver.getValue();
+                    if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
+                        newValue = sourceExpression.evaluate(flags, $scope, locator, this.part);
                     }
-                    if (newValue !== previousValue) {
-                        this.interceptor.updateTarget(newValue, flags);
+                    if (newValue !== oldValue) {
+                        if (shouldQueueFlush) {
+                            flags |= 4096 /* noTargetObserverQueue */;
+                            (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
+                            (_b = targetObserver.task) === null || _b === void 0 ? void 0 : _b.cancel();
+                            targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+                                var _a, _b;
+                                (_b = (_a = targetObserver).flushChanges) === null || _b === void 0 ? void 0 : _b.call(_a, flags);
+                                this.task = targetObserver.task = null;
+                            }, taskOptions);
+                        }
+                        interceptor.updateTarget(newValue, flags);
                     }
-                    if ((this.mode & oneTime) === 0) {
+                    if ((mode & oneTime) === 0) {
                         this.version++;
-                        this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
-                        this.interceptor.unobserve(false);
+                        sourceExpression.connect(flags, $scope, interceptor, this.part);
+                        interceptor.unobserve(false);
                     }
                     return;
                 }
                 if (flags & 16 /* updateSourceExpression */) {
-                    if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
-                        this.interceptor.updateSource(newValue, flags);
+                    if (newValue !== this.sourceExpression.evaluate(flags, $scope, locator, this.part)) {
+                        interceptor.updateSource(newValue, flags);
                     }
                     return;
                 }
-                throw kernel_1.Reporter.error(15, flags);
+                throw new Error('Unexpected handleChange context in AttributeBinding');
             }
             $bind(flags, scope, part) {
                 if (this.isBound) {
@@ -118,15 +144,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 }
                 // during bind, binding behavior might have changed sourceExpression
                 sourceExpression = this.sourceExpression;
-                if (this.mode & toViewOrOneTime) {
-                    this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+                const $mode = this.mode;
+                const interceptor = this.interceptor;
+                if ($mode & toViewOrOneTime) {
+                    interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
                 }
-                if (this.mode & toView) {
-                    sourceExpression.connect(flags, scope, this, part);
+                if ($mode & toView) {
+                    sourceExpression.connect(flags, scope, interceptor, part);
                 }
-                if (this.mode & fromView) {
+                if ($mode & fromView) {
                     targetObserver[this.id] |= 16 /* updateSourceExpression */;
-                    targetObserver.subscribe(this.interceptor);
+                    targetObserver.subscribe(interceptor);
                 }
                 // add isBound flag and remove isBinding flag
                 this.isBound = true;
@@ -141,12 +169,21 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
                 }
                 this.$scope = null;
-                if (this.targetObserver.unbind) {
-                    this.targetObserver.unbind(flags);
+                const targetObserver = this.targetObserver;
+                const task = this.task;
+                if (targetObserver.unbind) {
+                    targetObserver.unbind(flags);
                 }
-                if (this.targetObserver.unsubscribe) {
-                    this.targetObserver.unsubscribe(this.interceptor);
-                    this.targetObserver[this.id] &= ~16 /* updateSourceExpression */;
+                if (targetObserver.unsubscribe) {
+                    targetObserver.unsubscribe(this.interceptor);
+                    targetObserver[this.id] &= ~16 /* updateSourceExpression */;
+                }
+                if (task != null) {
+                    task.cancel();
+                    if (task === targetObserver.task) {
+                        targetObserver.task = null;
+                    }
+                    this.task = null;
                 }
                 this.interceptor.unobserve(true);
                 // remove isBound and isUnbinding flags

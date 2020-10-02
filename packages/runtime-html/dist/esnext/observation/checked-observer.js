@@ -23,24 +23,23 @@ let CheckedObserver = /** @class */ (() => {
             this.oldValue = void 0;
             this.hasChanges = false;
             this.task = null;
+            // ObserverType.Layout is not always true, it depends on the property
+            // but for simplicity, always treat as such
+            this.type = 2 /* Node */ | 1 /* Observer */ | 64 /* Layout */;
             this.collectionObserver = void 0;
             this.valueObserver = void 0;
             this.persistentFlags = flags & 12295 /* targetObserverFlags */;
         }
         getValue() {
+            // is it safe to assume the observer has the latest value?
+            // todo: ability to turn on/off cache based on type
             return this.currentValue;
         }
         setValue(newValue, flags) {
             this.currentValue = newValue;
             this.hasChanges = newValue !== this.oldValue;
-            if ((flags & 32 /* fromBind */) === 32 /* fromBind */ || this.persistentFlags === 4096 /* noTargetObserverQueue */) {
+            if ((flags & 4096 /* noTargetObserverQueue */) === 0) {
                 this.flushChanges(flags);
-            }
-            else if (this.persistentFlags !== 8192 /* persistentTargetObserverQueue */ && this.task === null) {
-                this.task = this.scheduler.queueRenderTask(() => {
-                    this.flushChanges(flags);
-                    this.task = null;
-                });
             }
         }
         flushChanges(flags) {
@@ -74,33 +73,34 @@ let CheckedObserver = /** @class */ (() => {
             }
         }
         handleCollectionChange(indexMap, flags) {
-            const { currentValue, oldValue } = this;
-            if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noTargetObserverQueue */) {
-                this.oldValue = currentValue;
-                this.synchronizeElement();
-            }
-            else {
-                this.hasChanges = true;
-            }
-            if (this.persistentFlags !== 8192 /* persistentTargetObserverQueue */ && this.task === null) {
-                this.task = this.scheduler.queueRenderTask(() => {
-                    this.flushChanges(flags);
-                    this.task = null;
-                });
-            }
+            const currentValue = this.currentValue;
+            const oldValue = this.oldValue;
+            this.oldValue = currentValue;
+            this.synchronizeElement();
+            // if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+            // } else {
+            //   this.hasChanges = true;
+            // }
+            // if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
+            //   this.task = this.scheduler.queueRenderTask(() => {
+            //     this.flushChanges(flags);
+            //     this.task = null;
+            //   });
+            // }
             this.callSubscribers(currentValue, oldValue, flags);
         }
         handleChange(newValue, previousValue, flags) {
-            if ((flags & 32 /* fromBind */) > 0 || this.persistentFlags === 4096 /* noTargetObserverQueue */) {
-                this.synchronizeElement();
-            }
-            else {
-                this.hasChanges = true;
-            }
-            if (this.persistentFlags !== 8192 /* persistentTargetObserverQueue */ && this.task === null) {
-                this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags));
-            }
+            // if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+            //   this.synchronizeElement();
+            // } else {
+            //   this.hasChanges = true;
+            // }
+            // if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
+            //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags));
+            // }
+            this.synchronizeElement();
             this.callSubscribers(newValue, previousValue, flags);
+            this.flushChanges(flags);
         }
         synchronizeElement() {
             const currentValue = this.currentValue;
@@ -252,12 +252,6 @@ let CheckedObserver = /** @class */ (() => {
             this.callSubscribers(this.currentValue, this.oldValue, 0 /* none */);
         }
         bind(flags) {
-            if (this.persistentFlags === 8192 /* persistentTargetObserverQueue */) {
-                if (this.task !== null) {
-                    this.task.cancel();
-                }
-                this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-            }
             this.currentValue = this.obj.checked;
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -268,10 +262,6 @@ let CheckedObserver = /** @class */ (() => {
             }
             if (this.valueObserver !== void 0) {
                 this.valueObserver.unsubscribe(this);
-            }
-            if (this.task !== null) {
-                this.task.cancel();
-                this.task = null;
             }
         }
         subscribe(subscriber) {

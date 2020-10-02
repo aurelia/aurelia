@@ -22,6 +22,7 @@ let BindableObserver = /** @class */ (() => {
             this.currentValue = void 0;
             this.oldValue = void 0;
             this.inBatch = false;
+            this.type = 4 /* Obj */;
             let isProxy = false;
             if (ProxyObserver.isProxy(obj)) {
                 isProxy = true;

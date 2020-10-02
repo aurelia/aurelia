@@ -1,6 +1,7 @@
 import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from './flags';
 import { ILifecycle } from './lifecycle';
+import { ITask } from '@aurelia/scheduler';
 export declare enum DelegationStrategy {
     none = 0,
     capturing = 1,
@@ -59,6 +60,7 @@ export interface ICollectionSubscriberCollection extends ICollectionSubscribable
  * Describes a complete property observer with an accessor, change tracking fields, normal and batched subscribers
  */
 export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj> extends IAccessor<TObj[TProp]>, IPropertyChangeTracker<TObj, TProp>, ISubscriberCollection, IBatchable {
+    type: AccessorType;
     inBatch: boolean;
     observing: boolean;
     persistentFlags: LifecycleFlags;
@@ -110,12 +112,27 @@ export interface IProxyObserver<TObj extends {} = {}> extends IProxySubscriberCo
 export declare type IProxy<TObj extends {} = {}> = TObj & {
     $raw: TObj;
 };
+export declare const enum AccessorType {
+    None = 0,
+    Observer = 1,
+    Node = 2,
+    Obj = 4,
+    Array = 10,
+    Set = 18,
+    Map = 34,
+    Layout = 64
+}
 /**
  * Basic interface to normalize getting/setting a value of any property on any object
  */
 export interface IAccessor<TValue = unknown> {
+    task: ITask | null;
+    type: AccessorType;
     getValue(): TValue;
     setValue(newValue: TValue, flags: LifecycleFlags): void;
+}
+export interface INodeAccessor<TValue = unknown> extends IAccessor<TValue> {
+    flushChanges(flags: LifecycleFlags): void;
 }
 /**
  * Describes a target observer for to-view bindings (in other words, an observer without the observation).
@@ -173,6 +190,7 @@ export interface ICollectionChangeTracker<T extends Collection> {
  * An observer that tracks collection mutations and notifies subscribers (either directly or in batches)
  */
 export interface ICollectionObserver<T extends CollectionKind> extends ICollectionChangeTracker<CollectionKindToType<T>>, ICollectionSubscriberCollection, IBatchable {
+    type: AccessorType;
     inBatch: boolean;
     lifecycle: ILifecycle;
     persistentFlags: LifecycleFlags;

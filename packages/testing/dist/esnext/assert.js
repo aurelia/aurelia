@@ -29,6 +29,7 @@ import { AssertionError, inspect, } from './inspect';
 import { getVisibleText } from './specialized-assertions';
 import { isError, isFunction, isNullOrUndefined, isObject, isPrimitive, isRegExp, isString, isUndefined, Object_freeze, Object_is, Object_keys, } from './util';
 import { DOM } from '@aurelia/runtime-html';
+import { ensureSchedulerEmpty } from './scheduler';
 const noException = Symbol('noException');
 function innerFail(obj) {
     if (isError(obj.message)) {
@@ -663,7 +664,7 @@ const isSchedulerEmpty = (function () {
         }
         return info;
     }
-    return function $isSchedulerEmpty() {
+    return function $isSchedulerEmpty(clearBeforeThrow) {
         // Please don't do this anywhere else. We need to get rid of this / improve this at some point, not make it worse.
         // Also for this to work, a HTMLTestContext needs to have been created somewhere, so we can't just call this e.g. in kernel and certain runtime tests that don't use
         // the full test context.
@@ -696,6 +697,9 @@ const isSchedulerEmpty = (function () {
             isEmpty = false;
         }
         if (!isEmpty) {
+            if (clearBeforeThrow === true) {
+                ensureSchedulerEmpty(scheduler);
+            }
             innerFail({
                 actual: void 0,
                 expected: void 0,

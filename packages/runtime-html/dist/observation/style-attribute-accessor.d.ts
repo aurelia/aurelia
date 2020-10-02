@@ -1,4 +1,4 @@
-import { IAccessor, LifecycleFlags, IScheduler, ITask, INode } from '@aurelia/runtime';
+import { IAccessor, LifecycleFlags, IScheduler, ITask, INode, AccessorType } from '@aurelia/runtime';
 export declare class StyleAttributeAccessor implements IAccessor {
     readonly scheduler: IScheduler;
     readonly obj: HTMLElement;
@@ -9,6 +9,7 @@ export declare class StyleAttributeAccessor implements IAccessor {
     version: number;
     hasChanges: boolean;
     task: ITask | null;
+    type: AccessorType;
     constructor(scheduler: IScheduler, flags: LifecycleFlags, obj: INode);
     getValue(): string;
     setValue(newValue: unknown, flags: LifecycleFlags): void;
@@ -19,6 +20,5 @@ export declare class StyleAttributeAccessor implements IAccessor {
     flushChanges(flags: LifecycleFlags): void;
     setProperty(style: string, value: string): void;
     bind(flags: LifecycleFlags): void;
-    unbind(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=style-attribute-accessor.d.ts.map

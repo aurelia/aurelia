@@ -1,4 +1,5 @@
 import { IIndexable, IServiceLocator } from '@aurelia/kernel';
+import { ITask } from '@aurelia/scheduler';
 import { IExpression } from '../ast';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
@@ -19,6 +20,7 @@ export declare class LetBinding implements IPartialConnectableBinding {
     $lifecycle: ILifecycle;
     $scope?: IScope;
     part?: string;
+    task: ITask | null;
     target: (IObservable & IIndexable) | null;
     constructor(sourceExpression: IExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toBindingContext?: boolean);
     handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;

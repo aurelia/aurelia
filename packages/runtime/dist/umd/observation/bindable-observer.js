@@ -34,6 +34,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 this.currentValue = void 0;
                 this.oldValue = void 0;
                 this.inBatch = false;
+                this.type = 4 /* Obj */;
                 let isProxy = false;
                 if (proxy_observer_1.ProxyObserver.isProxy(obj)) {
                     isProxy = true;

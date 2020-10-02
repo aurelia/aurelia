@@ -1,5 +1,5 @@
 import { IIndexable } from '@aurelia/kernel';
-import { IAccessor, ISubscriber, ISubscriberCollection, LifecycleFlags, IScheduler, ITask } from '@aurelia/runtime';
+import { IAccessor, ISubscriber, ISubscriberCollection, LifecycleFlags, IScheduler, ITask, AccessorType } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 export interface ValueAttributeObserver extends ISubscriberCollection {
 }
@@ -16,6 +16,7 @@ export declare class ValueAttributeObserver implements IAccessor {
     readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
     task: ITask | null;
+    type: AccessorType;
     constructor(scheduler: IScheduler, flags: LifecycleFlags, handler: IEventSubscriber, obj: Node & IIndexable, propertyKey: string);
     getValue(): unknown;
     setValue(newValue: string | null, flags: LifecycleFlags): void;
@@ -23,7 +24,5 @@ export declare class ValueAttributeObserver implements IAccessor {
     handleEvent(): void;
     subscribe(subscriber: ISubscriber): void;
     unsubscribe(subscriber: ISubscriber): void;
-    bind(flags: LifecycleFlags): void;
-    unbind(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=value-attribute-observer.d.ts.map

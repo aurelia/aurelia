@@ -12,13 +12,15 @@ let CollectionLengthObserver = /** @class */ (() => {
     let CollectionLengthObserver = class CollectionLengthObserver {
         constructor(obj) {
             this.obj = obj;
+            this.type = 10 /* Array */;
+            this.task = null;
             this.currentValue = obj.length;
         }
         getValue() {
             return this.obj.length;
         }
         setValue(newValue, flags) {
-            const { currentValue } = this;
+            const currentValue = this.currentValue;
             if (newValue !== currentValue) {
                 this.currentValue = newValue;
                 this.callSubscribers(newValue, currentValue, flags | 8 /* updateTargetInstance */);

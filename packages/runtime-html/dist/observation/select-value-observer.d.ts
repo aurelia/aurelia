@@ -1,4 +1,4 @@
-import { CollectionKind, IAccessor, ICollectionObserver, IDOM, IndexMap, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, IScheduler, ITask } from '@aurelia/runtime';
+import { CollectionKind, IAccessor, ICollectionObserver, IDOM, IndexMap, IObserverLocator, ISubscriber, ISubscriberCollection, LifecycleFlags, IScheduler, ITask, AccessorType } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 declare function defaultMatcher(a: unknown, b: unknown): boolean;
 export interface ISelectElement extends HTMLSelectElement {
@@ -21,6 +21,7 @@ export declare class SelectValueObserver implements IAccessor {
     readonly persistentFlags: LifecycleFlags;
     hasChanges: boolean;
     task: ITask | null;
+    type: AccessorType;
     arrayObserver?: ICollectionObserver<CollectionKind.array>;
     nodeObserver?: MutationObserver;
     constructor(scheduler: IScheduler, flags: LifecycleFlags, observerLocator: IObserverLocator, dom: IDOM, handler: IEventSubscriber, obj: ISelectElement);

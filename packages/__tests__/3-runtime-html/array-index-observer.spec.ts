@@ -4,7 +4,7 @@ import { LifecycleFlags, ArrayIndexObserver, ISubscriber } from '@aurelia/runtim
 
 describe('3-runtime-html/array-index-observer.spec.ts', function () {
   it('observer array index correctly', function () {
-    const { observerLocator } = createFixture();
+    const { observerLocator, tearDown } = createFixture();
     const arr = [1, 2, 3];
     const indexZeroObserver = observerLocator.getObserver(LifecycleFlags.none, arr, '0') as ArrayIndexObserver;
 
@@ -25,6 +25,10 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
     indexZeroObserver.setValue(0, LifecycleFlags.none);
     assert.strictEqual(callcount, 2);
     assert.strictEqual(arr[0], 0);
+
+    indexZeroObserver.unsubscribe(indexZeroSubscriber);
+
+    tearDown();
   });
 
   function createFixture() {
@@ -34,8 +38,12 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
     ctx.doc.body.appendChild(el);
 
     const sut = ctx.observerLocator.getObserver(LifecycleFlags.none, el, 'value') as ValueAttributeObserver;
-    ctx.observerLocator.getObserver(LifecycleFlags.none, el, 'value');
+    const observer = ctx.observerLocator.getObserver(LifecycleFlags.none, el, 'value');
 
-    return { ctx, container, lifecycle, observerLocator, el, sut, scheduler };
+    const tearDown = () => {
+      el.remove();
+    };
+
+    return { ctx, container, lifecycle, observerLocator, el, sut, scheduler, tearDown };
   }
 });

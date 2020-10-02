@@ -3,14 +3,18 @@ import {
   BindingStrategy,
   CustomElement,
   IScheduler,
-  LifecycleFlags
 } from '@aurelia/runtime';
-import { eachCartesianJoin, TestContext, TestConfiguration, trimFull, assert } from '@aurelia/testing';
+import {
+  eachCartesianJoin,
+  TestContext,
+  TestConfiguration,
+  trimFull,
+  assert,
+} from '@aurelia/testing';
 
 const spec = 'repeater-if-else';
 
 describe(spec, function () {
-
   type Comp = { items: any[]; display: boolean };
   interface Spec {
     t: string;
@@ -584,7 +588,7 @@ describe(spec, function () {
 
         execute(component as any, ctx.scheduler, host, count, ifText, elseText);
 
-        au.stop();
+        await au.stop().wait();
         assert.strictEqual(trimFull(host.textContent), '', `trimFull(host.textContent) === ''`);
       });
     });

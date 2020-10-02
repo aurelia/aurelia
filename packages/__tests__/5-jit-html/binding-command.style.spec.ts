@@ -19,7 +19,6 @@ function getNormalizedStyle(el: HTMLElement, ruleName: string): string {
 
 // TemplateCompiler - Binding Commands integration
 describe('template-compiler.binding-commands.style', function () {
-
   /** [ruleName, ruleValue, defaultValue, isInvalid, valueOnInvalid] */
   const rulesTests: [string, string, string, boolean?, string?][] = [
     ['background', 'red', ''],
@@ -248,6 +247,7 @@ describe('template-compiler.binding-commands.style', function () {
           const em = ctx.container.get(IEventManager);
           em.dispose();
           tearDown();
+          await au.stop().wait();
         }
       });
     }

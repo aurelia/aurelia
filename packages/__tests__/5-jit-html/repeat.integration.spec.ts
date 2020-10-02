@@ -9,7 +9,7 @@ describe("generated.template-compiler.repeat", function () {
     const host = ctx.createElement("div");
     return { au, host };
   }
-  it("10 _", function () {
+  it("10 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -22,12 +22,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '10');
     component.items.sort();
     assert.strictEqual(host.textContent, '01');
+    await au.stop().wait();
   });
-  it("01 _", function () {
+  it("01 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -40,13 +41,14 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '01');
     component.items.sort();
     assert.strictEqual(host.textContent, '01');
+    await au.stop().wait();
   });
 
-  it("012 _", function () {
+  it("012 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -59,12 +61,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '012');
     component.items.sort();
     assert.strictEqual(host.textContent, '012');
+    await au.stop().wait();
   });
-  it("021 _", function () {
+  it("021 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -77,12 +80,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '021');
     component.items.sort();
     assert.strictEqual(host.textContent, '012');
+    await au.stop().wait();
   });
-  it("102 _", function () {
+  it("102 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -95,12 +99,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '102');
     component.items.sort();
     assert.strictEqual(host.textContent, '012');
+    await au.stop().wait();
   });
-  it("120 _", function () {
+  it("120 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -113,12 +118,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '120');
     component.items.sort();
     assert.strictEqual(host.textContent, '012');
+    await au.stop().wait();
   });
-  it("201 _", function () {
+  it("201 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -131,12 +137,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '201');
     component.items.sort();
     assert.strictEqual(host.textContent, '012');
+    await au.stop().wait();
   });
-  it("210 _", function () {
+  it("210 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -149,13 +156,14 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '210');
     component.items.sort();
     assert.strictEqual(host.textContent, '012');
+    await au.stop().wait();
   });
 
-  it("0123 _", function () {
+  it("0123 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -168,12 +176,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '0123');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("0132 _", function () {
+  it("0132 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -186,12 +195,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '0132');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("0213 _", function () {
+  it("0213 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -204,12 +214,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '0213');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("0231 _", function () {
+  it("0231 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -222,12 +233,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '0231');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("0312 _", function () {
+  it("0312 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -240,12 +252,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '0312');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("0321 _", function () {
+  it("0321 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -258,12 +271,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '0321');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("1023 _", function () {
+  it("1023 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -276,12 +290,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '1023');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("1032 _", function () {
+  it("1032 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -294,12 +309,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '1032');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("1203 _", function () {
+  it("1203 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -312,12 +328,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '1203');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("1230 _", function () {
+  it("1230 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -330,12 +347,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '1230');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("1302 _", function () {
+  it("1302 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -348,12 +366,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '1302');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("1320 _", function () {
+  it("1320 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -366,12 +385,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '1320');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("2013 _", function () {
+  it("2013 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -384,12 +404,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '2013');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("2031 _", function () {
+  it("2031 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -402,12 +423,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '2031');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("2103 _", function () {
+  it("2103 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -420,12 +442,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '2103');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("2130 _", function () {
+  it("2130 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -438,12 +461,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '2130');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("2301 _", function () {
+  it("2301 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -456,12 +480,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '2301');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("2310 _", function () {
+  it("2310 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -474,12 +499,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '2310');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("3012 _", function () {
+  it("3012 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -492,12 +518,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '3012');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("3021 _", function () {
+  it("3021 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -510,12 +537,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '3021');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("3102 _", function () {
+  it("3102 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -528,12 +556,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '3102');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("3120 _", function () {
+  it("3120 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -546,12 +575,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '3120');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("3201 _", function () {
+  it("3201 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -564,12 +594,13 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '3201');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
-  it("3210 _", function () {
+  it("3210 _", async function () {
     const { au, host } = createFixture();
     const App = CustomElement.define(
       {
@@ -582,9 +613,10 @@ describe("generated.template-compiler.repeat", function () {
     );
     const component = new App();
     au.app({ host, component });
-    au.start();
+    await au.start().wait();
     assert.strictEqual(host.textContent, '3210');
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
+    await au.stop().wait();
   });
 });

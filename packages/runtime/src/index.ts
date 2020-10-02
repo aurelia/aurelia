@@ -479,10 +479,12 @@ export {
 } from './lifecycle-task';
 export {
   AccessorOrObserver,
+  AccessorType,
   Collection,
   CollectionKind,
   DelegationStrategy,
   IAccessor,
+  INodeAccessor,
   IBindingContext,
   IBindingTargetAccessor,
   IBindingTargetObserver,

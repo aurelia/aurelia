@@ -1,6 +1,6 @@
 import { DI, IIndexable, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IBindingTargetObserver, IObservable, ISubscriber } from '../observation';
+import { IBindingTargetObserver, IObservable, ISubscriber, AccessorType } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { IScheduler, ITask } from '@aurelia/scheduler';
 
@@ -115,6 +115,7 @@ export interface DirtyCheckProperty extends IBindingTargetObserver { }
 @subscriberCollection()
 export class DirtyCheckProperty implements DirtyCheckProperty {
   public oldValue: unknown;
+  public type: AccessorType = AccessorType.Obj;
 
   public constructor(
     private readonly dirtyChecker: IDirtyChecker,

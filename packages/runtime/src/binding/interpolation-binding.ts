@@ -139,16 +139,9 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
-    const shouldConnect = (this.mode & oneTime) > 0;
     const oldValue = targetObserver.getValue();
     const interceptor = this.interceptor;
-    if (shouldConnect) {
-      this.version++;
-    }
-    const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.part, shouldConnect ? interceptor : void 0);
-    if (shouldConnect) {
-      this.unobserve(false);
-    }
+    const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.part);
 
     // todo(fred): maybe let the observer decides whether it updates
     if (newValue !== oldValue) {
@@ -158,6 +151,12 @@ export class InterpolationBinding implements IPartialConnectableBinding {
       }
 
       interceptor.updateTarget(newValue, flags);
+    }
+
+    if ((this.mode & oneTime) === 0) {
+      this.version++;
+      this.sourceExpression.connect(flags, this.$scope!, interceptor, this.part);
+      interceptor.unobserve(false);
     }
   }
 

@@ -84,7 +84,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const targetObserver = this.targetObserver!;
     const interceptor = this.interceptor;
     const sourceExpression = this.sourceExpression;
-    const $scope = this.$scope;
+    const $scope = this.$scope!;
     const locator = this.locator;
 
     if ((flags & LifecycleFlags.updateTargetInstance) > 0) {
@@ -96,14 +96,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       const oldValue = targetObserver.getValue();
 
       if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        const shouldConnect = (this.mode & oneTime) > 0;
-        if (shouldConnect) {
-          this.version++;
-        }
-        newValue = sourceExpression.evaluate(flags, $scope!, locator, this.part, shouldConnect ? interceptor : void 0);
-        if (shouldConnect) {
-          interceptor.unobserve(false);
-        }
+        newValue = sourceExpression.evaluate(flags, $scope, locator, this.part);
       }
 
       // todo(fred): maybe let the obsrever decides whether it updates
@@ -114,6 +107,12 @@ export class PropertyBinding implements IPartialConnectableBinding {
         }
 
         interceptor.updateTarget(newValue, flags);
+      }
+
+      if ((this.mode & oneTime) === 0) {
+        this.version++;
+        sourceExpression.connect(flags, $scope, interceptor, this.part);
+        interceptor.unobserve(false);
       }
 
       return;

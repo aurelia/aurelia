@@ -44,6 +44,6 @@
   "devDependencies": {
     "@types/node": "^12.12.21",
     "@types/vinyl": "^2.0.4",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.3"
   }
 }

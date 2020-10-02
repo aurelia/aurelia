@@ -64,10 +64,6 @@
 //       const flags = undefined;
 //       return [`undefined`, flags];
 //     },
-//     () => {
-//       const flags = LifecycleFlags.fromFlush;
-//       return [`fromFlush`, flags];
-//     }
 //   ];
 
 //   const addSignalVariations: (($1: $1, $2: $2, $3: $3) => [string, (sut: ISignaler) => void])[] = [

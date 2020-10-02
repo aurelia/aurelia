@@ -14,7 +14,6 @@ import {
   BindingMode,
   ExpressionKind,
   LifecycleFlags,
-  State,
 } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
@@ -53,7 +52,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
 
   public id!: number;
-  public $state: State = State.none;
+  public isBound: boolean = false;
   public $lifecycle: ILifecycle;
   public $scope?: IScope = void 0;
   public part?: string;
@@ -89,7 +88,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
-    if ((this.$state & State.isBound) === 0) {
+    if (!this.isBound) {
       return;
     }
 
@@ -149,14 +148,12 @@ export class PropertyBinding implements IPartialConnectableBinding {
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
-    if (this.$state & State.isBound) {
+    if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
       this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
-    // add isBinding flag
-    this.$state |= State.isBinding;
     // Force property binding to always be strict
     flags |= LifecycleFlags.isStrictBindingStrategy;
 
@@ -209,16 +206,13 @@ export class PropertyBinding implements IPartialConnectableBinding {
     }
 
     // add isBound flag and remove isBinding flag
-    this.$state |= State.isBound;
-    this.$state &= ~State.isBinding;
+    this.isBound = true;
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
-    // add isUnbinding flag
-    this.$state |= State.isUnbinding;
 
     // clear persistent flags
     this.persistentFlags = LifecycleFlags.none;
@@ -248,7 +242,14 @@ export class PropertyBinding implements IPartialConnectableBinding {
     }
     this.interceptor.unobserve(true);
 
-    // remove isBound and isUnbinding flags
-    this.$state &= ~(State.isBound | State.isUnbinding);
+    this.isBound = false;
+  }
+
+  public dispose(): void {
+    this.interceptor = (void 0)!;
+    this.sourceExpression = (void 0)!;
+    this.locator = (void 0)!;
+    this.targetObserver = (void 0)!;
+    this.target = (void 0)!;
   }
 }

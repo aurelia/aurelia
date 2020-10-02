@@ -291,7 +291,7 @@ export class CheckedObserver implements IAccessor {
       return;
     }
     this.currentValue = currentValue;
-    this.callSubscribers(this.currentValue, this.oldValue, LifecycleFlags.fromDOMEvent | LifecycleFlags.allowPublishRoundtrip);
+    this.callSubscribers(this.currentValue, this.oldValue, LifecycleFlags.none);
   }
 
   public bind(flags: LifecycleFlags): void {

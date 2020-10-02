@@ -101,7 +101,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const locator = this.locator;
 
     if ((flags & LifecycleFlags.updateTargetInstance) > 0) {
-      const previousValue = this.targetObserver!.getValue();
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
         newValue = this.sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator);

@@ -19,9 +19,7 @@ import {
   LifecycleFlags,
   IScheduler,
   INode,
-  ITask,
   AccessorType,
-  QueueTaskOptions,
   IDOM,
 } from '@aurelia/runtime';
 import {
@@ -121,14 +119,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       const oldValue = targetObserver.getValue();
 
       if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        const shouldConnect = (mode & oneTime) > 0;
-        if (shouldConnect) {
-          this.version++;
-        }
-        newValue = sourceExpression.evaluate(flags, $scope, locator, this.part, shouldConnect ? interceptor : void 0);
-        if (shouldConnect) {
-          interceptor.unobserve(false);
-        }
+        newValue = sourceExpression.evaluate(flags, $scope, locator, this.part);
       }
 
       if (newValue !== oldValue) {
@@ -138,6 +129,12 @@ export class AttributeBinding implements IPartialConnectableBinding {
         }
 
         interceptor.updateTarget(newValue, flags);
+      }
+
+      if ((mode & oneTime) === 0) {
+        this.version++;
+        sourceExpression.connect(flags, $scope, interceptor, this.part);
+        interceptor.unobserve(false);
       }
 
       return;

@@ -82,7 +82,7 @@ export {
 } from './resources/custom-attributes/portal';
 
 export {
-  Subject,
+  Component,
   Compose
 } from './resources/custom-elements/compose';
 

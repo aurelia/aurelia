@@ -88,39 +88,39 @@ describe(spec, function () {
   const templateSpecs: TemplateSpec[] = [
     {
       t: '1',
-      template: `<template><au-compose subject.bind="sub"></au-compose></template>`
+      template: `<template><au-compose component.bind="sub"></au-compose></template>`
     },
     {
       t: '2',
-      template: `<template><template as-element="au-compose" subject.bind="sub"></template></template>`
+      template: `<template><template as-element="au-compose" component.bind="sub"></template></template>`
     },
     {
       t: '13',
-      template: `<template><au-compose repeat.for="i of 1" subject.bind="sub"></au-compose></template>`
+      template: `<template><au-compose repeat.for="i of 1" component.bind="sub"></au-compose></template>`
     },
     {
       t: '4',
-      template: `<template><au-compose if.bind="true" subject.bind="sub"></au-compose></template>`
+      template: `<template><au-compose if.bind="true" component.bind="sub"></au-compose></template>`
     },
     {
       t: '5',
-      template: `<template><div if.bind="false"></div><au-compose else subject.bind="sub"></au-compose></template>`
+      template: `<template><div if.bind="false"></div><au-compose else component.bind="sub"></au-compose></template>`
     },
     {
       t: '16',
-      template: `<template><au-compose if.bind="true" repeat.for="i of 1" subject.bind="sub"></au-compose></template>`
+      template: `<template><au-compose if.bind="true" repeat.for="i of 1" component.bind="sub"></au-compose></template>`
     },
     {
       t: '17',
-      template: `<template><au-compose if.bind="true" repeat.for="i of 1" subject.bind="sub"></au-compose></template>`
+      template: `<template><au-compose if.bind="true" repeat.for="i of 1" component.bind="sub"></au-compose></template>`
     },
     {
       t: '18',
-      template: `<template><au-compose subject.bind="sub" if.bind="true" repeat.for="i of 1"></au-compose></template>`
+      template: `<template><au-compose component.bind="sub" if.bind="true" repeat.for="i of 1"></au-compose></template>`
     },
     {
       t: '19',
-      template: `<template><au-compose if.bind="true" subject.bind="sub" repeat.for="i of 1"></au-compose></template>`
+      template: `<template><au-compose if.bind="true" component.bind="sub" repeat.for="i of 1"></au-compose></template>`
     },
   ];
 
@@ -130,15 +130,15 @@ describe(spec, function () {
 
     it(`verify au-compose behavior - subjectSpec ${subjectSpec.t}, templateSpec ${templateSpec.t}`, async function () {
       const ctx = createFixture();
-      const subject = createSubject(ctx);
+      const component = createSubject(ctx);
       const { au, host } = ctx;
 
       class App { public sub: any = null; }
       CustomElement.define({ name: 'app', template }, App);
-      const component = new App();
-      component.sub = subject;
-      const task = au.app({ host, component }).start();
-      if (subject instanceof Promise) {
+      const root = new App();
+      root.sub = component;
+      const task = au.app({ host, component: root }).start();
+      if (component instanceof Promise) {
         assert.strictEqual(trimFull(host.textContent), '', `host.textContent #1`);
         await task.wait();
         assert.strictEqual(trimFull(host.textContent), expectedText, `host.textContent #2`);
@@ -158,7 +158,7 @@ describe(spec, function () {
         public message = 'Hello world!';
       }
 
-      @customElement({ name: 'app', template: '<au-compose subject.bind="model | view"></au-compose>' })
+      @customElement({ name: 'app', template: '<au-compose component.bind="model | view"></au-compose>' })
       class App {
         public model = new MyModel();
       }

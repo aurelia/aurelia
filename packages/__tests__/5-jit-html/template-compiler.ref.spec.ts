@@ -13,11 +13,10 @@ import {
 import {
   assert,
   HTMLTestContext,
-  TestContext
+  TestContext,
 } from '@aurelia/testing';
 
 describe('templating-compiler.ref.spec.ts', function () {
-
   interface IRefIntegrationTestCase {
     title: string;
     template: string | HTMLElement;
@@ -501,12 +500,8 @@ describe('templating-compiler.ref.spec.ts', function () {
         await au.stop().wait();
         await assertFnAfterDestroy(ctx, host, component);
       } finally {
-        if (host) {
-          host.remove();
-        }
-        if (body) {
-          body.focus();
-        }
+        host?.remove();
+        body?.focus();
       }
     });
   }

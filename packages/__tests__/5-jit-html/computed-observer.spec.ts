@@ -22,7 +22,6 @@ import {
 } from '@aurelia/testing';
 
 describe('simple Computed Observer test case', function () {
-
   interface IComputedObserverTestCase<T extends IApp = IApp> {
     title: string;
     template: string;
@@ -400,8 +399,6 @@ describe('simple Computed Observer test case', function () {
         // test cases could be sharing the same context document
         // so wait a bit before running the next test
         await tearDown();
-
-        assert.isSchedulerEmpty();
       });
     }
   );

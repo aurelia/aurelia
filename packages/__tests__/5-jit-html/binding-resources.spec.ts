@@ -225,7 +225,6 @@ describe('binding-resources', function () {
         host.remove();
 
         await au.stop().wait();
-        assert.isSchedulerEmpty();
       });
     }
   });

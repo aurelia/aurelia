@@ -8,6 +8,7 @@ import {
   subscriberCollection,
   IScheduler,
   ITask,
+  AccessorType,
 } from '@aurelia/runtime';
 
 export interface IHtmlElement extends HTMLElement {
@@ -38,6 +39,9 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
 
   public hasChanges: boolean = false;
   public task: ITask | null = null;
+  // layout is not certain, depends on the attribute being flushed to owner element
+  // but for simple start, always treat as such
+  public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
   public constructor(
     public readonly scheduler: IScheduler,
@@ -51,26 +55,23 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   }
 
   public getValue(): unknown {
+    // is it safe to assume the observer has the latest value?
+    // todo: ability to turn on/off cache based on type
     return this.currentValue;
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+    if ((flags & LifecycleFlags.noTargetObserverQueue) === 0) {
       this.flushChanges(flags);
-    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
-        this.flushChanges(flags);
-        this.task = null;
-      });
     }
   }
 
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const { currentValue } = this;
+      const currentValue = this.currentValue;
       this.oldValue = currentValue;
       switch (this.targetAttribute) {
         case 'class': {
@@ -149,22 +150,6 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
     this.removeSubscriber(subscriber);
     if (!this.hasSubscribers()) {
       stopObservation(this.obj, this);
-    }
-  }
-
-  public bind(flags: LifecycleFlags): void {
-    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      if (this.task !== null) {
-        this.task.cancel();
-      }
-      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-    }
-  }
-
-  public unbind(flags: LifecycleFlags): void {
-    if (this.task !== null) {
-      this.task.cancel();
-      this.task = null;
     }
   }
 }

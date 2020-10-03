@@ -196,7 +196,7 @@ export const DI = {
             return target;
         };
         Interface.$isInterface = true;
-        Interface.friendlyName = friendlyName == null ? 'Interface' : friendlyName;
+        Interface.friendlyName = friendlyName == null ? '(anonymous)' : friendlyName;
         Interface.noDefault = function () {
             return Interface;
         };
@@ -208,6 +208,9 @@ export const DI = {
                 return configure(new ResolverBuilder(container, key !== null && key !== void 0 ? key : Interface));
             };
             return Interface;
+        };
+        Interface.toString = function toString() {
+            return `InterfaceSymbol<${Interface.friendlyName}>`;
         };
         return Interface;
     },

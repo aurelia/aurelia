@@ -4,22 +4,23 @@ import { BindingCommandInstance } from './binding-command';
 import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';
 
 export const enum SymbolFlags {
-  type                 = 0b000000_111111111,
-  isTemplateController = 0b000000_000000001,
-  isReplacePart        = 0b000000_000000010,
-  isCustomAttribute    = 0b000000_000000100,
-  isPlainAttribute     = 0b000000_000001000,
-  isCustomElement      = 0b000000_000010000,
-  isLetElement         = 0b000000_000100000,
-  isPlainElement       = 0b000000_001000000,
-  isText               = 0b000000_010000000,
-  isBinding            = 0b000000_100000000,
-  hasMarker            = 0b000001_000000000,
-  hasTemplate          = 0b000010_000000000,
-  hasAttributes        = 0b000100_000000000,
-  hasBindings          = 0b001000_000000000,
-  hasChildNodes        = 0b010000_000000000,
-  hasParts             = 0b100000_000000000,
+  type                 = 0b000000_1111111111,
+  isTemplateController = 0b000000_0000000001,
+  isProjection         = 0b000000_0000000010,
+  isCustomAttribute    = 0b000000_0000000100,
+  isPlainAttribute     = 0b000000_0000001000,
+  isCustomElement      = 0b000000_0000010000,
+  isLetElement         = 0b000000_0000100000,
+  isPlainElement       = 0b000000_0001000000,
+  isText               = 0b000000_0010000000,
+  isBinding            = 0b000000_0100000000,
+  isAuSlot             = 0b000000_1000000000,
+  hasMarker            = 0b000001_0000000000,
+  hasTemplate          = 0b000010_0000000000,
+  hasAttributes        = 0b000100_0000000000,
+  hasBindings          = 0b001000_0000000000,
+  hasChildNodes        = 0b010000_0000000000,
+  hasProjections       = 0b100000_0000000000,
 }
 
 function createMarker<N extends INode = INode>(dom: IDOM): N {
@@ -34,7 +35,6 @@ export type AnySymbol<TText extends INode = INode, TElement extends INode = INod
   LetElementSymbol<TElement, TMarker> |
   PlainAttributeSymbol |
   PlainElementSymbol<TText, TElement, TMarker> |
-  ReplacePartSymbol<TText, TElement, TMarker> |
   TemplateControllerSymbol<TText, TElement, TMarker> |
   TextSymbol<TText, TMarker>
 );
@@ -60,7 +60,6 @@ export type NodeSymbol<TText extends INode = INode, TElement extends INode = INo
   CustomElementSymbol<TText, TElement, TMarker> |
   LetElementSymbol<TElement, TMarker> |
   PlainElementSymbol<TText, TElement, TMarker> |
-  ReplacePartSymbol<TText, TElement, TMarker> |
   TemplateControllerSymbol<TText, TElement, TMarker> |
   TextSymbol<TText, TMarker>
 );
@@ -77,7 +76,6 @@ export type ElementSymbol<TText extends INode = INode, TElement extends INode = 
 );
 
 export type SymbolWithTemplate<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> = (
-  ReplacePartSymbol<TText, TElement, TMarker> |
   TemplateControllerSymbol<TText, TElement, TMarker>
 );
 
@@ -93,7 +91,6 @@ export type SymbolWithMarker<TText extends INode = INode, TElement extends INode
  */
 export class TemplateControllerSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> {
   public flags: SymbolFlags = SymbolFlags.isTemplateController | SymbolFlags.hasMarker;
-  public partName: string | null;
   public physicalNode: TElement | null = null;
   public template: ParentNodeSymbol<TText, TElement, TMarker> | null = null;
   public templateController: TemplateControllerSymbol<TText, TElement, TMarker> | null = null;
@@ -108,41 +105,22 @@ export class TemplateControllerSymbol<TText extends INode = INode, TElement exte
     return this._bindings;
   }
 
-  private _parts: ReplacePartSymbol<TText, TElement, TMarker>[] | null = null;
-  public get parts(): ReplacePartSymbol<TText, TElement, TMarker>[] {
-    if (this._parts === null) {
-      this._parts = [];
-      this.flags |= SymbolFlags.hasParts;
-    }
-    return this._parts;
-  }
-
   public constructor(
     dom: IDOM,
     public syntax: AttrSyntax,
     public info: AttrInfo,
-    partName: string | null,
     public res: string = info.name,
   ) {
-    this.partName = info.name === 'replaceable' ? partName : null;
     this.marker = createMarker(dom);
   }
 }
 
-/**
- * Wrapper for an element (with all of its attributes, regardless of the order in which they are declared)
- * that has a replace attribute on it.
- *
- * This element will be lifted from the DOM just like a template controller.
- */
-export class ReplacePartSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> {
-  public flags: SymbolFlags = SymbolFlags.isReplacePart;
+export class ProjectionSymbol<TText extends INode = INode, TElement extends INode = INode, TMarker extends INode = INode> {
+  public flags: SymbolFlags = SymbolFlags.isProjection;
 
   public constructor(
     public name: string,
-    public physicalNode: TElement | null = null,
-    public parent: ParentNodeSymbol<TText, TElement, TMarker> | null = null,
-    public template: ParentNodeSymbol<TText, TElement, TMarker> | null = null,
+    public template: ParentNodeSymbol<TText, TElement, TMarker> | null,
   ) {}
 }
 
@@ -213,6 +191,7 @@ export class CustomElementSymbol<TText extends INode = INode, TElement extends I
   public templateController: TemplateControllerSymbol<TText, TElement, TMarker> | null = null;
   public isContainerless: boolean;
   public marker: TMarker;
+  public slotName: string | undefined;
 
   private _customAttributes: CustomAttributeSymbol[] | null = null;
   public get customAttributes(): CustomAttributeSymbol[] {
@@ -250,13 +229,13 @@ export class CustomElementSymbol<TText extends INode = INode, TElement extends I
     return this._childNodes;
   }
 
-  private _parts: ReplacePartSymbol<TText, TElement, TMarker>[] | null = null;
-  public get parts(): ReplacePartSymbol<TText, TElement, TMarker>[] {
-    if (this._parts === null) {
-      this._parts = [];
-      this.flags |= SymbolFlags.hasParts;
+  private _projections: ProjectionSymbol<TText, TElement, TMarker>[] | null = null;
+  public get projections(): ProjectionSymbol<TText, TElement, TMarker>[] {
+    if (this._projections === null) {
+      this._projections = [];
+      this.flags |= SymbolFlags.hasProjections;
     }
-    return this._parts;
+    return this._projections;
   }
 
   public constructor(

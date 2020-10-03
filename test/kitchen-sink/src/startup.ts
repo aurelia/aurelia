@@ -8,7 +8,6 @@ import {
   IfRegistration,
   ElseRegistration,
   RepeatRegistration,
-  ReplaceableRegistration,
   OneTimeBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
   CustomElementRendererRegistration,
@@ -22,7 +21,6 @@ import {
 import {
   IProjectorLocatorRegistration,
   ITargetAccessorLocatorRegistration,
-  ITemplateFactoryRegistration,
   ComposeRegistration,
   ListenerBindingRendererRegistration,
   SetAttributeRendererRegistration,
@@ -82,7 +80,6 @@ const container = DI.createContainer().register(
   IfRegistration,
   ElseRegistration,
   RepeatRegistration,
-  ReplaceableRegistration,
 
   OneTimeBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
@@ -99,7 +96,6 @@ const container = DI.createContainer().register(
   IProjectorLocatorRegistration,
   ITargetObserverLocatorRegistration,
   ITargetAccessorLocatorRegistration,
-  ITemplateFactoryRegistration,
 
   // runtime-html resources
   ComposeRegistration,

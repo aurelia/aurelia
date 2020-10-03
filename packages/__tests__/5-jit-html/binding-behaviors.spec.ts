@@ -26,10 +26,10 @@ describe('binding-behaviors', function () {
     @bindingBehavior({ name: 'woot1', aliases: ['woot13'] })
     @alias(...['woot11', 'woot12'])
     class WootBehavior implements BindingBehaviorInstance {
-      public bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding, func: (param: string) => void): void {
+      public bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: PropertyBinding, func: (param: string) => void): void {
         func(binding.target[binding.targetProperty]);
       }
-      public unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, func: () => void): void {
+      public unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IBinding, func: () => void): void {
         return;
       }
     }
@@ -37,10 +37,10 @@ describe('binding-behaviors', function () {
     @bindingBehavior({ name: 'woot2', aliases: ['woot23'] })
     @alias('woot21', 'woot22')
     class WootBehavior2 implements BindingBehaviorInstance {
-      public bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding, func: (param: string) => void, func2: (param: string) => void): void {
+      public bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: PropertyBinding, func: (param: string) => void, func2: (param: string) => void): void {
         func2(binding.target[binding.targetProperty]);
       }
-      public unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding): void {
+      public unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IBinding): void {
         return;
       }
     }

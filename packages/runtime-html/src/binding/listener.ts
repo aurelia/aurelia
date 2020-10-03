@@ -21,7 +21,7 @@ export class Listener implements IBinding {
 
   public isBound: boolean = false;
   public $scope!: IScope;
-  public part?: string;
+  public $hostScope: IScope | null = null;
 
   private handler!: IDisposable;
 
@@ -40,7 +40,7 @@ export class Listener implements IBinding {
     const overrideContext = this.$scope.overrideContext;
     overrideContext.$event = event;
 
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.locator, this.part);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.$hostScope, this.locator);
 
     Reflect.deleteProperty(overrideContext, '$event');
 
@@ -55,7 +55,7 @@ export class Listener implements IBinding {
     this.interceptor.callSource(event);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -65,11 +65,11 @@ export class Listener implements IBinding {
     }
 
     this.$scope = scope;
-    this.part = part;
+    this.$hostScope = hostScope;
 
     const sourceExpression = this.sourceExpression;
     if (hasBind(sourceExpression)) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+      sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
     this.handler = this.eventManager.addEventListener(
@@ -91,7 +91,7 @@ export class Listener implements IBinding {
 
     const sourceExpression = this.sourceExpression;
     if (hasUnbind(sourceExpression)) {
-      sourceExpression.unbind(flags, this.$scope, this.interceptor);
+      sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
     }
 
     this.$scope = null!;

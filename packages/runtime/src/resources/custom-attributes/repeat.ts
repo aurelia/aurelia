@@ -64,7 +64,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       }
     }
 
-    this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null) as string;
+    this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, null) as string;
   }
 
   public afterAttach(
@@ -198,7 +198,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
     const { $controller, factory, local, location, items } = this;
     const parentScope = $controller.scope;
-    const part = $controller.part;
+    const hostScope = $controller.hostScope;
     const newLen = this.forOf.count(flags, items);
     const views = this.views = Array(newLen);
 
@@ -210,7 +210,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
       setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
 
-      ret = view.activate(initiator ?? view, $controller, flags, viewScope, part);
+      ret = view.activate(initiator ?? view, $controller, flags, viewScope, hostScope);
       if (ret instanceof Promise) {
         (promises ?? (promises = [])).push(ret);
       }
@@ -311,7 +311,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     }
 
     const parentScope = $controller.scope;
-    const part = $controller.part;
+    const hostScope = $controller.hostScope;
     const newLen = indexMap.length;
     synchronizeIndices(views, indexMap);
 
@@ -334,7 +334,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
         setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
         view.setLocation(location, MountStrategy.insertBefore);
 
-        ret = view.activate(view, $controller, flags, viewScope, part);
+        ret = view.activate(view, $controller, flags, viewScope, hostScope);
         if (ret instanceof Promise) {
           (promises ?? (promises = [])).push(ret);
         }

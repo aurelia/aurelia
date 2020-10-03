@@ -97,6 +97,7 @@ export class BindingInfo {
   /**
    * @param {Element} target - The HTMLElement associated with the binding.
    * @param {IScope} scope - The binding scope.
+   * @param {IScope | null} [hostScope] - The host scope.
    * @param {PropertyRule[]} [rules] - Rules bound to the binding behavior.
    * @param {(PropertyInfo | undefined)} [propertyInfo=void 0] - Information describing the associated property for the binding.
    * @memberof BindingInfo
@@ -104,6 +105,7 @@ export class BindingInfo {
   public constructor(
     public target: Element,
     public scope: IScope,
+    public hostScope: IScope | null,
     public rules?: PropertyRule[],
     public propertyInfo: PropertyInfo | undefined = void 0,
   ) { }
@@ -123,6 +125,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
   }
 
   const scope = info.scope;
+  const hostScope = info.hostScope;
   let expression = binding.sourceExpression.expression as IsBindingBehavior;
   const locator = binding.locator;
   let toCachePropertyName = true;
@@ -142,7 +145,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
         if (toCachePropertyName) {
           toCachePropertyName = keyExpr.$kind === ExpressionKind.PrimitiveLiteral;
         }
-        memberName = `[${(keyExpr.evaluate(flags, scope, locator) as any).toString()}]`;
+        memberName = `[${(keyExpr.evaluate(flags, scope, hostScope, locator) as any).toString()}]`;
         break;
       }
       default:
@@ -158,9 +161,9 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
   let object: any;
   if (propertyName.length === 0) {
     propertyName = expression.name;
-    object = scope.bindingContext;
+    object = expression.accessHostScope ? hostScope?.bindingContext : scope.bindingContext;
   } else {
-    object = expression.evaluate(flags, scope, locator);
+    object = expression.evaluate(flags, scope, hostScope, locator);
   }
   if (object === null || object === void 0) {
     return (void 0);

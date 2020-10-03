@@ -91,7 +91,6 @@ export {
   ParentNodeSymbol,
   PlainAttributeSymbol,
   PlainElementSymbol,
-  ReplacePartSymbol,
   ResourceAttributeSymbol,
   SymbolFlags,
   SymbolWithBindings,
@@ -99,4 +98,5 @@ export {
   SymbolWithTemplate,
   TemplateControllerSymbol,
   TextSymbol,
+  ProjectionSymbol,
 } from './semantic-model';

@@ -422,6 +422,19 @@ describe('au-slot', function () {
         ],
         { 'my-element': `024024`, },
       );
+
+      yield new TestData(
+        'projection works for au-slot[repeat] with another repeat',
+        `<my-element><div au-slot="bar">First</div></my-element>
+         <my-element><div au-slot="bar">Second</div></my-element>`,
+        [
+          createMyElement(`<let items.bind="[1,2]"></let>S<div repeat.for="item of items">\${item}<au-slot name="bar"></au-slot></div>E`),
+        ],
+        {
+          'my-element': `S<div>1<div>First</div></div><div>2<div>First</div></div>E`,
+          'my-element+my-element': `S<div>1<div>Second</div></div><div>2<div>Second</div></div>E`,
+        },
+      );
     }
     // #endregion
 

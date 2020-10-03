@@ -4,7 +4,7 @@ import { Aurelia, CustomElement, ICustomElementViewModel, IScheduler } from '@au
 import { assert, HTMLTestContext, TestContext, eachCartesianJoin } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
 
-describe('enhance', function () {
+describe('2-runtime/enhance.spec.ts', function () {
   interface TestSetupContext {
     getComponent: () => Constructable | ICustomElementViewModel<any>;
     template: string;
@@ -133,10 +133,10 @@ describe('enhance', function () {
       au[initialMethod]({ host, component });
       await au.start().wait();
 
+      const scheduler = container.get(IScheduler);
       assert.html.textContent('div', message, 'div', host);
 
       host.querySelector('button').click();
-      const scheduler = container.get(IScheduler);
       scheduler.getPostRenderTaskQueue().flush();
 
       assert.html.textContent('div:nth-of-type(2)', message, 'div:nth-of-type(2)', host);
@@ -233,8 +233,8 @@ describe('enhance', function () {
       afterCompileChildren() { this.eventLog.push('afterCompileChildren'); },
       beforeBind() { this.eventLog.push('beforeBind'); },
       afterBind() { this.eventLog.push('afterBind'); },
-      beforeAttach() { this.eventLog.push('beforeAttach'); },
       afterAttach() { this.eventLog.push('afterAttach'); },
+      afterAttachChildren() { this.eventLog.push('afterAttachChildren'); },
     };
     const container = ctx.container;
     const au = new Aurelia(container);
@@ -251,8 +251,8 @@ describe('enhance', function () {
       'afterCompileChildren',
       'beforeBind',
       'afterBind',
-      'beforeAttach',
       'afterAttach',
+      'afterAttachChildren',
     ]);
   });
 
@@ -270,18 +270,18 @@ describe('enhance', function () {
 
     // round #1
     await au.start().wait();
-    assert.html.textContent('span', 'Bar', 'span.text', host);
+    assert.html.textContent('span', 'Bar', 'span.text - 1', host);
     await au.stop().wait();
 
     // round #2
     await au.start().wait();
-    assert.html.textContent('span', 'Bar', 'span.text', host);
+    assert.html.textContent('span', 'Bar', 'span.text - 2', host);
     await au.stop().wait();
 
     // round #3
     component.foo = 'Fiz';
     await au.start().wait();
-    assert.html.textContent('span', 'Fiz', 'span.text', host);
+    assert.html.textContent('span', 'Fiz', 'span.text - 3', host);
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
   });

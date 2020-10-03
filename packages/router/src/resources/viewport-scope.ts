@@ -7,28 +7,26 @@ import {
   ICompiledCustomElementController,
   ICustomElementViewModel,
   ICustomElementController,
-  CustomElementDefinition,
-  IDryCustomElementController,
-  PartialCustomElementDefinition,
   IController,
   IHydratedController,
-  ITargetedInstruction,
-  IHydrateElementInstruction,
-  IProjectionProvider,
+  ISyntheticView,
+  isCustomElementController,
+  isCustomElementViewModel,
 } from '@aurelia/runtime';
-import { IRouter } from '../router';
-import { IViewportScopeOptions, ViewportScope } from '../viewport-scope';
 import { IContainer, Writable } from '@aurelia/kernel';
+import { IRouter } from '../router';
+import { ViewportScope, IViewportScopeOptions } from '../viewport-scope';
+import { IRoutingController, ViewportCustomElement } from './viewport';
 
 export const ParentViewportScope = CustomElement.createInjectable();
 
 @customElement({
   name: 'au-viewport-scope',
   template: '<template></template>',
-  containerless: true,
+  containerless: false,
   injectable: ParentViewportScope
 })
-export class ViewportScopeCustomElement implements ICustomElementViewModel<Element> {
+export class ViewportScopeCustomElement implements ICustomElementViewModel<Node> {
   @bindable public name: string = 'default';
   @bindable public catches: string = '';
   @bindable public collection: boolean = false;
@@ -37,53 +35,77 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
 
   public readonly $controller!: ICustomElementController<Element, this>;
 
-  private readonly element: Element;
+  public controller!: IRoutingController;
+  public readonly element: Element;
 
   private isBound: boolean = false;
-  private readonly definition: CustomElementDefinition;
 
   public constructor(
     @IRouter private readonly router: IRouter,
     @INode element: INode,
-    @IContainer private container: IContainer,
+    @IContainer public container: IContainer,
     @ParentViewportScope private readonly parent: ViewportScopeCustomElement,
     @IController private readonly parentController: IHydratedController,
-    @ITargetedInstruction instruction: IHydrateElementInstruction,
-    @IProjectionProvider projectionProvider: IProjectionProvider,
   ) {
-    this.element = element as HTMLElement;
-
-    // TODO(fkleuver): describe this somewhere in the docs instead
-    // Under the condition that there is no `replace` attribute on this custom element's declaration,
-    // and this custom element is containerless, its content will be placed in a projection named 'default'
-    // See packages/jit-html/src/template-binder.ts (`projection = 'default'`) for the logic that governs this.
-
-    // We could tidy this up into a formal api in the future. For now, there are two ways to do this:
-    // 1. inject the `@ITargetedInstruction` (IHydrateElementInstruction) and grab .projections['default'] from there, manually creating a view factory from that, etc.
-    // 2. what we're doing right here: grab the 'default' projection from the create hook and return it as the definition, telling the render context to use that projection to compile this element instead
-    // This effectively causes this element to render its declared content as if it was its own template.
-
-    // We do need to set `containerless` to true on the projection definition so that the correct projector is used since projections default to non-containerless.
-    // Otherwise, the controller will try to do `appendChild` on a comment node when it has to do `insertBefore`.
-
-    // Also, in this particular scenario (specific to viewport-scope) we need to clone the projection so as to prevent the resulting compiled definition
-    // from ever being cached. That's the only reason why we're spreading the projection into a new object for `getOrCreate`. If we didn't clone the object, this specific element wouldn't work correctly.
-    this.definition = projectionProvider.getProjectionFor(instruction)?.projections['default']!;
+    this.element = element as Element;
   }
 
-  public create(
-    _controller: IDryCustomElementController<Element, this>,
-    _parentContainer: IContainer,
-    _definition: CustomElementDefinition,
-  ): PartialCustomElementDefinition {
-    return CustomElementDefinition.getOrCreate({ ...this.definition, containerless: true });
-  }
+  // Maybe this really should be here. Check with Fred
+  // public create(
+  //   controller: IDryCustomElementController<Element, this>,
+  //   parentContainer: IContainer,
+  //   definition: CustomElementDefinition,
+  //   parts: PartialCustomElementDefinitionParts | undefined,
+  // ): PartialCustomElementDefinition {
+  //   // TODO(fkleuver): describe this somewhere in the docs instead
+  //   // Under the condition that there is no `replace` attribute on this custom element's declaration,
+  //   // and this custom element is containerless, its content will be placed in a part named 'default'
+  //   // See packages/jit-html/src/template-binder.ts line 411 (`replace = 'default';`) for the logic that governs this.
+
+  //   // We could tidy this up into a formal api in the future. For now, there are two ways to do this:
+  //   // 1. inject the `@ITargetedInstruction` (IHydrateElementInstruction) and grab .parts['default'] from there, manually creating a view factory from that, etc.
+  //   // 2. what we're doing right here: grab the 'default' part from the create hook and return it as the definition, telling the render context to use that part to compile this element instead
+  //   // This effectively causes this element to render its declared content as if it was its own template.
+
+  //   // We do need to set `containerless` to true on the part definition so that the correct projector is used since parts default to non-containerless.
+  //   // Otherwise, the controller will try to do `appendChild` on a comment node when it has to do `insertBefore`.
+
+  //   // Also, in this particular scenario (specific to viewport-scope) we need to clone the part so as to prevent the resulting compiled definition
+  //   // from ever being cached. That's the only reason why we're spreading the part into a new object for `getOrCreate`. If we didn't clone the object, this specific element wouldn't work correctly.
+
+  //   const part = parts!['default'];
+  //   return CustomElementDefinition.getOrCreate({ ...part, containerless: true });
+  // }
 
   public afterCompile(controller: ICompiledCustomElementController) {
-    this.container = controller.context.get(IContainer);
+    this.controller = controller as IRoutingController;
+    // Don't update the container here (probably because it wants to be a part of the structure)
+    // this.container = controller.context.get(IContainer);
+
     // console.log('ViewportScope creating', this.getAttribute('name', this.name), this.container, this.parent, controller, this);
     // this.connect();
   }
+  public afterBind(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): void {
+    this.isBound = true;
+
+    (this.$controller as Writable<ICustomElementController>).scope = this.parentController.scope!;
+
+    this.connect();
+    if (this.viewportScope !== null) {
+      this.viewportScope.beforeBind();
+    }
+  }
+  public beforeUnbind(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): void | Promise<void> {
+    if (this.viewportScope !== null) {
+      this.viewportScope.beforeUnbind();
+    }
+    return Promise.resolve();
+  }
+  public afterUnbind(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): void | Promise<void> {
+    this.disconnect();
+    return Promise.resolve();
+  }
+
   public afterUnbound(): void {
     this.isBound = false;
   }
@@ -92,7 +114,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
     if (this.router.rootScope === null) {
       return;
     }
-    const name: string = this.getAttribute('name', this.name) as string;
+    const name = this.getAttribute('name', this.name) as string;
     const options: IViewportScopeOptions = {};
     let value: string | boolean | undefined = this.getAttribute('catches', this.catches);
     if (value !== void 0) {
@@ -106,31 +128,14 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
     // TODO: Needs to be bound? How to solve?
     options.source = this.source || null;
 
-    this.viewportScope = this.router.connectViewportScope(this.viewportScope, name, this.container, this.element, options);
+    this.controller.routingContainer = this.container;
+    this.viewportScope = this.router.connectViewportScope(this.viewportScope, this, name, options);
   }
   public disconnect(): void {
     if (this.viewportScope) {
-      this.router.disconnectViewportScope(this.viewportScope, this.container);
+      this.router.disconnectViewportScope(this.viewportScope, this);
     }
     this.viewportScope = null;
-  }
-
-  public beforeBind(flags: LifecycleFlags): void {
-    this.isBound = true;
-
-    (this.$controller as Writable<ICustomElementController>).scope = this.parentController.scope!;
-
-    this.connect();
-    if (this.viewportScope !== null) {
-      this.viewportScope.beforeBind();
-    }
-  }
-  public async beforeUnbind(flags: LifecycleFlags): Promise<void> {
-    if (this.viewportScope !== null) {
-      this.viewportScope.beforeUnbind();
-    }
-    this.disconnect();
-    return Promise.resolve();
   }
 
   private getAttribute(key: string, value: string | boolean, checkExists: boolean = false): string | boolean | undefined {
@@ -150,5 +155,24 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Eleme
       }
     }
     return void 0;
+  }
+
+  private isCustomElementController(value: unknown): boolean {
+    return isCustomElementController(value);
+  }
+  private isCustomElementViewModel(value: unknown): boolean {
+    return isCustomElementViewModel(value);
+  }
+
+  private getClosestCustomElement() {
+    let parent: any = this.controller.parent;
+    let customElement = null;
+    while (parent !== null && customElement === null) {
+      if (parent.viewModel instanceof ViewportCustomElement || parent.viewModel instanceof ViewportScopeCustomElement) {
+        customElement = parent.viewModel;
+      }
+      parent = parent.parent;
+    }
+    return customElement;
   }
 }

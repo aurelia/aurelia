@@ -56,6 +56,7 @@ import {
   Object_keys,
 } from './util';
 import { DOM } from '@aurelia/runtime-html';
+import { ensureSchedulerEmpty } from './scheduler';
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-explicit-any */
 
@@ -796,7 +797,8 @@ const isSchedulerEmpty = (function () {
     const persistent = task.persistent;
     const status = task._status;
 
-    return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}`;
+    return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}\n`
+      + `    task callback="${task.callback?.toString()}"`;
   }
 
   function toArray(task: any) {
@@ -828,7 +830,7 @@ const isSchedulerEmpty = (function () {
     return info;
   }
 
-  return function $isSchedulerEmpty() {
+  return function $isSchedulerEmpty(clearBeforeThrow?: any) {
     // Please don't do this anywhere else. We need to get rid of this / improve this at some point, not make it worse.
     // Also for this to work, a HTMLTestContext needs to have been created somewhere, so we can't just call this e.g. in kernel and certain runtime tests that don't use
     // the full test context.
@@ -864,6 +866,9 @@ const isSchedulerEmpty = (function () {
     }
 
     if (!isEmpty) {
+      if (clearBeforeThrow === true) {
+        ensureSchedulerEmpty(scheduler);
+      }
       innerFail({
         actual: void 0,
         expected: void 0,

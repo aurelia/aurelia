@@ -1,9 +1,13 @@
 import { CustomElementType } from '@aurelia/runtime';
-import { ComponentAppellation, INavigatorInstruction, IRoute, RouteableComponentType } from './interfaces';
+import { ComponentAppellation, IRoute, RouteableComponentType, NavigationInstruction } from './interfaces';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
-import { IScopeOwner, IScopeOwnerOptions, Scope } from './scope';
+import { IScopeOwner, IScopeOwnerOptions, NextContentAction, Scope } from './scope';
 import { arrayRemove } from './utils';
+import { Navigation } from './navigation';
+import { IConnectedCustomElement } from './resources/viewport';
+import { NavigationCoordinator } from './navigation-coordinator';
+import { Runner } from './runner';
 
 export interface IViewportScopeOptions extends IScopeOwnerOptions {
   catches?: string | string[];
@@ -29,7 +33,7 @@ export class ViewportScope implements IScopeOwner {
   public constructor(
     public name: string,
     public readonly router: IRouter,
-    public element: Element | null,
+    public connectedCE: IConnectedCustomElement | null,
     owningScope: Scope | null,
     scope: boolean,
     public rootComponentType: CustomElementType | null = null, // temporary. Metadata will probably eliminate it
@@ -45,7 +49,7 @@ export class ViewportScope implements IScopeOwner {
   }
 
   public get scope(): Scope {
-    return this.connectedScope.scope!;
+    return this.connectedScope.scope;
   }
   public get owningScope(): Scope {
     return this.connectedScope.owningScope!;
@@ -101,17 +105,25 @@ export class ViewportScope implements IScopeOwner {
     }
   }
 
-  public setNextContent(content: ComponentAppellation | ViewportInstruction, instruction: INavigatorInstruction): boolean {
-    let viewportInstruction: ViewportInstruction;
-    if (content instanceof ViewportInstruction) {
-      viewportInstruction = content;
-    } else {
-      if (typeof content === 'string') {
-        viewportInstruction = this.router.instructionResolver.parseViewportInstruction(content);
-      } else {
-        viewportInstruction = this.router.createViewportInstruction(content);
-      }
-    }
+  public get nextContentActivated(): boolean {
+    return this.scope.parent?.owner?.nextContentActivated ?? false;
+  }
+
+  public get parentNextContentActivated(): boolean {
+    return this.scope.parent?.owner?.nextContentActivated ?? false;
+  }
+
+  public get nextContentAction(): NextContentAction {
+    return '';
+  }
+
+  public toString(): string {
+    const contentName = this.content?.componentName ?? '';
+    const nextContentName = this.nextContent?.componentName ?? '';
+    return `vs:${this.name}[${contentName}->${nextContentName}]`;
+  }
+
+  public setNextContent(viewportInstruction: ViewportInstruction, navigation: Navigation): NextContentAction {
     viewportInstruction.viewportScope = this;
 
     this.remove = this.router.instructionResolver.isClearViewportInstruction(viewportInstruction)
@@ -129,26 +141,48 @@ export class ViewportScope implements IScopeOwner {
 
     this.nextContent = viewportInstruction;
 
+    return 'swap';
+  }
+
+  public transition(coordinator: NavigationCoordinator): void {
+    // console.log('ViewportScope swap'/*, this, coordinator*/);
+
+    Runner.run(
+      () => coordinator.addEntityState(this, 'guardedUnload'),
+      () => coordinator.addEntityState(this, 'guardedLoad'),
+      () => coordinator.addEntityState(this, 'guarded'),
+      () => coordinator.addEntityState(this, 'loaded'),
+      () => coordinator.addEntityState(this, 'unloaded'),
+      () => coordinator.addEntityState(this, 'routed'),
+      () => coordinator.addEntityState(this, 'swapped'),
+      () => {
+        this.content = !this.remove ? this.nextContent : null;
+        this.nextContent = null;
+        coordinator.addEntityState(this, 'completed');
+      }
+    );
+  }
+
+  public canUnload(): boolean | Promise<boolean> {
+    return true;
+  }
+  public canLoad(): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
     return true;
   }
 
-  public canLeave(): Promise<boolean> {
-    return Promise.resolve(true);
+  public unload(): void | Promise<void> {
+    return;
   }
-  public canEnter(): Promise<boolean | ViewportInstruction[]> {
-    return Promise.resolve(true);
-  }
-
-  public enter(): Promise<boolean> {
-    return Promise.resolve(true);
+  public load(): void | Promise<void> {
+    return;
   }
 
-  public loadContent(): Promise<boolean> {
-    this.content = !this.remove ? this.nextContent : null;
-    this.nextContent = null;
+  // public loadContent(): Promise<boolean> {
+  //   this.content = !this.remove ? this.nextContent : null;
+  //   this.nextContent = null;
 
-    return Promise.resolve(true);
-  }
+  //   return Promise.resolve(true);
+  // }
 
   public finalizeContentChange(): void {
     // console.log('ViewportScope finalizing', this.content);
@@ -159,7 +193,7 @@ export class ViewportScope implements IScopeOwner {
   public abortContentChange(): Promise<void> {
     this.nextContent = null;
     if (this.add) {
-      const index: number = this.source!.indexOf(this.sourceItem);
+      const index = this.source!.indexOf(this.sourceItem);
       this.source!.splice(index, 1);
       this.sourceItem = null;
     }
@@ -206,7 +240,7 @@ export class ViewportScope implements IScopeOwner {
     if (this.source === null) {
       return null;
     }
-    const siblings: ViewportScope[] = this.siblings;
+    const siblings = this.siblings;
     for (const item of this.source) {
       if (siblings.every(sibling => sibling.sourceItem !== item)) {
         return item;

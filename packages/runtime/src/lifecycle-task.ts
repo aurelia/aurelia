@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/promise-function-async */
 import {
   DI,
   IContainer,
@@ -14,17 +15,16 @@ export type MaybePromiseOrTask = void | PromiseOrTask;
 export const LifecycleTask = {
   done: {
     done: true,
-    canCancel(): boolean { return false; },
-    cancel(): void { return; },
     wait(): Promise<unknown> { return Promise.resolve(); }
   }
 };
 
 export const enum TaskSlot {
-  beforeCreate = 0,
-  beforeRender = 1,
-  beforeBind   = 2,
-  beforeAttach = 3,
+  beforeCreate          = 0,
+  beforeRender          = 1,
+  beforeCompileChildren = 2,
+  beforeBind            = 3,
+  afterAttach           = 4,
 }
 
 export const IStartTask = DI.createInterface<IStartTask>('IStartTask').noDefault();
@@ -38,16 +38,18 @@ export interface IStartTask {
 export interface ISlotChooser {
   beforeCreate(): IStartTask;
   beforeRender(): IStartTask;
+  beforeCompileChildren(): IStartTask;
   beforeBind(): IStartTask;
-  beforeAttach(): IStartTask;
+  afterAttach(): IStartTask;
   at(slot: TaskSlot): IStartTask;
 }
 
 export interface ICallbackSlotChooser<K extends Key> {
   beforeCreate(): ICallbackChooser<K>;
   beforeRender(): ICallbackChooser<K>;
+  beforeCompileChildren(): ICallbackChooser<K>;
   beforeBind(): ICallbackChooser<K>;
-  beforeAttach(): ICallbackChooser<K>;
+  afterAttach(): ICallbackChooser<K>;
   at(slot: TaskSlot): ICallbackChooser<K>;
 }
 
@@ -60,7 +62,6 @@ const enum TaskType {
   from,
 }
 
-// eslint-disable-next-line @typescript-eslint/class-name-casing
 export const StartTask = class $StartTask implements IStartTask {
   public get slot(): TaskSlot {
     if (this._slot === void 0) {
@@ -133,12 +134,16 @@ export const StartTask = class $StartTask implements IStartTask {
     return this.at(TaskSlot.beforeRender);
   }
 
+  public beforeCompileChildren(): $StartTask {
+    return this.at(TaskSlot.beforeCompileChildren);
+  }
+
   public beforeBind(): $StartTask {
     return this.at(TaskSlot.beforeBind);
   }
 
-  public beforeAttach(): $StartTask {
-    return this.at(TaskSlot.beforeAttach);
+  public afterAttach(): $StartTask {
+    return this.at(TaskSlot.afterAttach);
   }
 
   public at(slot: TaskSlot): $StartTask {
@@ -178,20 +183,34 @@ export const StartTask = class $StartTask implements IStartTask {
 export const IStartTaskManager = DI.createInterface<IStartTaskManager>('IStartTaskManager').noDefault();
 
 export interface IStartTaskManager {
+  /**
+   * This is internal API and will be moved to an inaccessible place in the near future.
+   */
+  enqueueBeforeCompileChildren(): void;
   runBeforeCreate(container?: IContainer): ILifecycleTask;
   runBeforeRender(container?: IContainer): ILifecycleTask;
+  runBeforeCompileChildren(container?: IContainer): ILifecycleTask;
   runBeforeBind(container?: IContainer): ILifecycleTask;
-  runBeforeAttach(container?: IContainer): ILifecycleTask;
+  runAfterAttach(container?: IContainer): ILifecycleTask;
   run(slot: TaskSlot, container?: IContainer): ILifecycleTask;
 }
 
 export class StartTaskManager implements IStartTaskManager {
+  private beforeCompileChildrenQueued: boolean = false;
+
   public constructor(
     @IServiceLocator private readonly locator: IServiceLocator,
   ) {}
 
   public static register(container: IContainer): IResolver<IStartTaskManager> {
     return Registration.singleton(IStartTaskManager, this).register(container);
+  }
+
+  public enqueueBeforeCompileChildren(): void {
+    if (this.beforeCompileChildrenQueued) {
+      throw new Error(`BeforeCompileChildren already queued`);
+    }
+    this.beforeCompileChildrenQueued = true;
   }
 
   public runBeforeCreate(locator: IServiceLocator = this.locator): ILifecycleTask {
@@ -202,12 +221,20 @@ export class StartTaskManager implements IStartTaskManager {
     return this.run(TaskSlot.beforeRender, locator);
   }
 
+  public runBeforeCompileChildren(locator: IServiceLocator = this.locator): ILifecycleTask {
+    if (this.beforeCompileChildrenQueued) {
+      this.beforeCompileChildrenQueued = false;
+      return this.run(TaskSlot.beforeCompileChildren, locator);
+    }
+    return LifecycleTask.done;
+  }
+
   public runBeforeBind(locator: IServiceLocator = this.locator): ILifecycleTask {
     return this.run(TaskSlot.beforeBind, locator);
   }
 
-  public runBeforeAttach(locator: IServiceLocator = this.locator): ILifecycleTask {
-    return this.run(TaskSlot.beforeAttach, locator);
+  public runAfterAttach(locator: IServiceLocator = this.locator): ILifecycleTask {
+    return this.run(TaskSlot.afterAttach, locator);
   }
 
   public run(slot: TaskSlot, locator: IServiceLocator = this.locator): ILifecycleTask {
@@ -226,16 +253,12 @@ export class StartTaskManager implements IStartTaskManager {
 
 export interface ILifecycleTask<T = unknown> {
   readonly done: boolean;
-  canCancel(): boolean;
-  cancel(): void;
   wait(): Promise<T>;
 }
 
 export class PromiseTask<TArgs extends unknown[], T = void> implements ILifecycleTask {
   public done: boolean = false;
 
-  private hasStarted: boolean = false;
-  private isCancelled: boolean = false;
   private readonly promise: Promise<unknown>;
 
   public constructor(
@@ -245,10 +268,6 @@ export class PromiseTask<TArgs extends unknown[], T = void> implements ILifecycl
     ...args: TArgs
   ) {
     this.promise = promise.then(value => {
-      if (this.isCancelled === true) {
-        return;
-      }
-      this.hasStarted = true;
       if (next !== null) {
         const nextResult = (next as (this: (result?: T, ...args: TArgs) => MaybePromiseOrTask, value: T, ...args: TArgs[]) => MaybePromiseOrTask).call(context as (result?: T, ...args: TArgs) => MaybePromiseOrTask, value, ...args as TArgs[]);
         if (nextResult === void 0) {
@@ -263,16 +282,6 @@ export class PromiseTask<TArgs extends unknown[], T = void> implements ILifecycl
         }
       }
     });
-  }
-
-  public canCancel(): boolean {
-    return !this.hasStarted;
-  }
-
-  public cancel(): void {
-    if (this.canCancel()) {
-      this.isCancelled = true;
-    }
   }
 
   public wait(): Promise<unknown> {
@@ -290,14 +299,6 @@ export class ProviderTask implements ILifecycleTask {
     private key: Key,
     private callback: (instance: unknown) => PromiseOrTask,
   ) {}
-
-  public canCancel(): boolean {
-    return false;
-  }
-
-  public cancel(): void {
-    return;
-  }
 
   public wait(): Promise<unknown> {
     if (this.promise === void 0) {
@@ -324,8 +325,6 @@ export class ProviderTask implements ILifecycleTask {
 export class ContinuationTask<TArgs extends unknown[]> implements ILifecycleTask {
   public done: boolean = false;
 
-  private hasStarted: boolean = false;
-  private isCancelled: boolean = false;
   private readonly promise: Promise<unknown>;
 
   public constructor(
@@ -339,10 +338,6 @@ export class ContinuationTask<TArgs extends unknown[]> implements ILifecycleTask
       : (antecedent as ILifecycleTask).wait();
 
     this.promise = promise.then(() => {
-      if (this.isCancelled === true) {
-        return;
-      }
-      this.hasStarted = true;
       const nextResult = next.call(context, ...args);
       if (nextResult === void 0) {
         this.done = true;
@@ -355,16 +350,6 @@ export class ContinuationTask<TArgs extends unknown[]> implements ILifecycleTask
         });
       }
     });
-  }
-
-  public canCancel(): boolean {
-    return !this.hasStarted;
-  }
-
-  public cancel(): void {
-    if (this.canCancel()) {
-      this.isCancelled = true;
-    }
   }
 
   public wait(): Promise<unknown> {
@@ -389,14 +374,6 @@ export class TerminalTask implements ILifecycleTask {
     }).catch(e => { throw e; });
   }
 
-  public canCancel(): boolean {
-    return false;
-  }
-
-  public cancel(): void {
-    return;
-  }
-
   public wait(): Promise<unknown> {
     return this.promise;
   }
@@ -405,8 +382,6 @@ export class TerminalTask implements ILifecycleTask {
 export class AggregateContinuationTask<TArgs extends unknown[]> implements ILifecycleTask {
   public done: boolean = false;
 
-  private hasStarted: boolean = false;
-  private isCancelled: boolean = false;
   private readonly promise: Promise<unknown>;
 
   public constructor(
@@ -416,10 +391,6 @@ export class AggregateContinuationTask<TArgs extends unknown[]> implements ILife
     ...args: TArgs
   ) {
     this.promise = Promise.all(antecedents.map(t => t.wait())).then(() => {
-      if (this.isCancelled === true) {
-        return;
-      }
-      this.hasStarted = true;
       const nextResult = next.call(context, ...args) as undefined | ILifecycleTask;
       if (nextResult === void 0) {
         this.done = true;
@@ -429,16 +400,6 @@ export class AggregateContinuationTask<TArgs extends unknown[]> implements ILife
         });
       }
     });
-  }
-
-  public canCancel(): boolean {
-    return !this.hasStarted;
-  }
-
-  public cancel(): void {
-    if (this.canCancel()) {
-      this.isCancelled = true;
-    }
   }
 
   public wait(): Promise<unknown> {
@@ -457,14 +418,6 @@ export class AggregateTerminalTask implements ILifecycleTask {
     this.promise = Promise.all(antecedents.map(t => t.wait())).then(() => {
       this.done = true;
     });
-  }
-
-  public canCancel(): boolean {
-    return false;
-  }
-
-  public cancel(): void {
-    return;
   }
 
   public wait(): Promise<unknown> {

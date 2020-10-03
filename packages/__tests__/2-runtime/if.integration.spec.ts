@@ -24,25 +24,13 @@ import {
 import { Writable } from '@aurelia/kernel';
 
 describe(`If/Else`, function () {
-  function runBindLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags, scope: IScope): void {
-    lifecycle.afterBind.begin();
-    sut.$controller.bind(flags, scope);
-    lifecycle.afterBind.end(flags);
+  function runActivateLifecycle(sut: If<AuNode>, flags: LifecycleFlags, scope: IScope): void {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    sut.$controller.activate(sut.$controller, null, flags, scope);
   }
-  function runUnbindLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags): void {
-    lifecycle.afterUnbind.begin();
-    sut.$controller.unbind(flags);
-    lifecycle.afterUnbind.end(flags);
-  }
-  function runAttachLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags): void {
-    lifecycle.afterAttach.begin();
-    sut.$controller.attach(flags);
-    lifecycle.afterAttach.end(flags);
-  }
-  function runDetachLifecycle(lifecycle: ILifecycle, sut: If<AuNode>, flags: LifecycleFlags): void {
-    lifecycle.afterDetach.begin();
-    sut.$controller.detach(flags);
-    lifecycle.afterDetach.end(flags);
+  function runDeactivateLifecycle(sut: If<AuNode>, flags: LifecycleFlags): void {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    sut.$controller.deactivate(sut.$controller, null, flags);
   }
 
   interface Spec {
@@ -52,12 +40,8 @@ describe(`If/Else`, function () {
     strategy: BindingStrategy;
   }
   interface DuplicateOperationSpec extends Spec {
-    bindTwice: boolean;
-    newScopeForDuplicateBind: boolean;
-    newValueForDuplicateBind: boolean;
-    attachTwice: boolean;
-    detachTwice: boolean;
-    unbindTwice: boolean;
+    activateTwice: boolean;
+    deactivateTwice: boolean;
   }
   interface BindSpec extends Spec {
     ifPropName: string;
@@ -73,15 +57,11 @@ describe(`If/Else`, function () {
     newValue2: any;
   }
   interface FlagsSpec extends Spec {
-    bindFlags1: LifecycleFlags;
-    attachFlags1: LifecycleFlags;
-    detachFlags1: LifecycleFlags;
-    unbindFlags1: LifecycleFlags;
+    activateFlags1: LifecycleFlags;
+    deactivateFlags1: LifecycleFlags;
 
-    bindFlags2: LifecycleFlags;
-    attachFlags2: LifecycleFlags;
-    detachFlags2: LifecycleFlags;
-    unbindFlags2: LifecycleFlags;
+    activateFlags2: LifecycleFlags;
+    deactivateFlags2: LifecycleFlags;
   }
 
   const strategySpecs: StrategySpec[] = [
@@ -90,13 +70,10 @@ describe(`If/Else`, function () {
   ];
 
   const duplicateOperationSpecs: DuplicateOperationSpec[] = [
-    { t: '1', bindTwice: false, newScopeForDuplicateBind: false, newValueForDuplicateBind: false, attachTwice: false, detachTwice: false, unbindTwice: false },
-    { t: '2', bindTwice: true,  newScopeForDuplicateBind: false, newValueForDuplicateBind: false, attachTwice: true,  detachTwice: true,  unbindTwice: true  },
-    { t: '3', bindTwice: true,  newScopeForDuplicateBind: true,  newValueForDuplicateBind: true,  attachTwice: true,  detachTwice: true,  unbindTwice: true  },
-    { t: '4', bindTwice: true,  newScopeForDuplicateBind: false, newValueForDuplicateBind: true,  attachTwice: true,  detachTwice: true,  unbindTwice: true  },
-    { t: '5', bindTwice: true,  newScopeForDuplicateBind: false, newValueForDuplicateBind: false, attachTwice: false, detachTwice: false, unbindTwice: false },
-    { t: '6', bindTwice: true,  newScopeForDuplicateBind: true,  newValueForDuplicateBind: true,  attachTwice: false, detachTwice: false, unbindTwice: false },
-    { t: '7', bindTwice: true,  newScopeForDuplicateBind: false, newValueForDuplicateBind: true,  attachTwice: false, detachTwice: false, unbindTwice: false }
+    { t: '1', activateTwice: false, deactivateTwice: false },
+    { t: '2', activateTwice: true,  deactivateTwice: false },
+    { t: '3', activateTwice: true,  deactivateTwice: true  },
+    { t: '4', activateTwice: false, deactivateTwice: true  },
   ];
 
   const bindSpecs: BindSpec[] = [
@@ -107,21 +84,8 @@ describe(`If/Else`, function () {
   ];
 
   const none = LifecycleFlags.none;
-  const fromFlush = LifecycleFlags.fromFlush;
-  const start = LifecycleFlags.fromStartTask;
-  const stop = LifecycleFlags.fromStopTask;
   const bind = LifecycleFlags.fromBind;
-  const attach = LifecycleFlags.fromAttach;
-  const detach = LifecycleFlags.fromDetach;
   const unbind = LifecycleFlags.fromUnbind;
-  const flushBind = fromFlush | bind;
-  const flushAttach = fromFlush | attach;
-  const flushDetach = fromFlush | detach;
-  const flushUnbind = fromFlush | unbind;
-  const startBind = start | bind;
-  const startAttach = start | attach;
-  const stopDetach = stop | detach;
-  const stopUnbind = stop | unbind;
 
   const mutationSpecs: MutationSpec[] = [
     { t: '01', newValue1: false, newValue2: false, },
@@ -131,11 +95,8 @@ describe(`If/Else`, function () {
   ];
 
   const flagsSpecs: FlagsSpec[] = [
-    { t: '1', bindFlags1: none,       attachFlags1: none,        detachFlags1: none,        unbindFlags1: none,        bindFlags2: none,       attachFlags2: none,        detachFlags2: none,        unbindFlags2: none        },
-    { t: '2', bindFlags1: bind,       attachFlags1: attach,      detachFlags1: detach,      unbindFlags1: unbind,      bindFlags2: bind,       attachFlags2: attach,      detachFlags2: detach,      unbindFlags2: unbind      },
-    { t: '3', bindFlags1: flushBind,  attachFlags1: flushAttach, detachFlags1: flushDetach, unbindFlags1: flushUnbind, bindFlags2: flushBind,  attachFlags2: flushAttach, detachFlags2: flushDetach, unbindFlags2: flushUnbind },
-    { t: '4', bindFlags1: start,      attachFlags1: start,       detachFlags1: stop,        unbindFlags1: stop,        bindFlags2: start,      attachFlags2: start,       detachFlags2: stop,        unbindFlags2: stop        },
-    { t: '5', bindFlags1: startBind,  attachFlags1: startAttach, detachFlags1: stopDetach,  unbindFlags1: stopUnbind,  bindFlags2: startBind,  attachFlags2: startAttach, detachFlags2: stopDetach,  unbindFlags2: stopUnbind  }
+    { t: '1', activateFlags1: none,            deactivateFlags1: none,              activateFlags2: none,            deactivateFlags2: none,              },
+    { t: '2', activateFlags1: bind,            deactivateFlags1: unbind,            activateFlags2: bind,            deactivateFlags2: unbind,            },
   ];
 
   eachCartesianJoin(
@@ -143,10 +104,10 @@ describe(`If/Else`, function () {
     (strategySpec, duplicateOperationSpec, bindSpec, mutationSpec, flagsSpec) => {
       it(`verify if/else behavior - strategySpec ${strategySpec.t}, duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}, mutationSpec ${mutationSpec.t}, flagsSpec ${flagsSpec.t}, `, function () {
         const { strategy } = strategySpec;
-        const { bindTwice, attachTwice, detachTwice, unbindTwice, newScopeForDuplicateBind, newValueForDuplicateBind } = duplicateOperationSpec;
+        const { activateTwice, deactivateTwice } = duplicateOperationSpec;
         const { ifPropName, elsePropName, ifText, elseText, value1, value2 } = bindSpec;
         const { newValue1, newValue2 } = mutationSpec;
-        const { bindFlags1, attachFlags1, detachFlags1, unbindFlags1, bindFlags2, attachFlags2, detachFlags2, unbindFlags2 } = flagsSpec;
+        const { activateFlags1, deactivateFlags1, activateFlags2, deactivateFlags2 } = flagsSpec;
 
         // common stuff
         const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
@@ -199,29 +160,14 @@ describe(`If/Else`, function () {
         elseSut.link(sut);
         (sut as Writable<If>).$controller = Controller.forCustomAttribute(sut, lifecycle, (void 0)!);
 
-        let firstBindFinalNodesText: string;
-        let secondBindFinalNodesText: string;
-        let firstAttachInitialHostText: string;
-        let secondAttachInitialHostText: string;
-
         const firstBindInitialNodesText: string = value1 ? ifText : elseText;
-        if (bindTwice) {
-          firstAttachInitialHostText = newValueForDuplicateBind ? ifText : elseText;
-          firstBindFinalNodesText = newValueForDuplicateBind ? ifText : elseText;
-        } else {
-          firstBindFinalNodesText = firstBindInitialNodesText;
-          firstAttachInitialHostText = value1 ? ifText : elseText;
-        }
+        const firstBindFinalNodesText = firstBindInitialNodesText;
+        const firstAttachInitialHostText = value1 ? ifText : elseText;
         const firstAttachFinalHostText: string = newValue1 ? ifText : elseText;
 
         const secondBindInitialNodesText: string = value2 ? ifText : elseText;
-        if (bindTwice) {
-          secondAttachInitialHostText = newValueForDuplicateBind ? ifText : elseText;
-          secondBindFinalNodesText = newValueForDuplicateBind ? ifText : elseText;
-        } else {
-          secondBindFinalNodesText = secondBindInitialNodesText;
-          secondAttachInitialHostText = value2 ? ifText : elseText;
-        }
+        const secondBindFinalNodesText = secondBindInitialNodesText;
+        const secondAttachInitialHostText = value2 ? ifText : elseText;
         const secondAttachFinalHostText: string = newValue2 ? ifText : elseText;
 
         // -- Round 1 --
@@ -230,93 +176,60 @@ describe(`If/Else`, function () {
           [ifPropName]: ifText,
           [elsePropName]: elseText
         });
-        let scope = Scope.create(baseFlags, ctx);
+        const scope = Scope.create(baseFlags, ctx);
 
         sut.value = value1;
 
-        runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
+        runActivateLifecycle(sut, baseFlags | activateFlags1, scope);
 
         assert.strictEqual(sut.view.nodes.firstChild['textContent'], firstBindInitialNodesText, '$nodes.textContent #1');
 
-        // after binding the nodes should be present and already updated with the correct values
-        if (bindTwice) {
-          if (newScopeForDuplicateBind) {
-            scope = Scope.create(baseFlags, ctx);
-          }
-          sut.value = newValueForDuplicateBind;
-
-          runBindLifecycle(lifecycle, sut, baseFlags | bindFlags1, scope);
+        if (activateTwice) {
+          runActivateLifecycle(sut, baseFlags | activateFlags1, scope);
         }
+
         assert.strictEqual(sut.view.nodes.firstChild['textContent'], firstBindFinalNodesText, '$nodes.textContent #2');
 
-        runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
-
         assert.strictEqual(host.textContent, firstAttachInitialHostText, 'host.textContent #1');
-        if (attachTwice) {
-          runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags1);
-
-          assert.strictEqual(host.textContent, firstAttachInitialHostText, 'host.textContent #2');
-        }
 
         sut.value = newValue1;
 
         assert.strictEqual(host.textContent, firstAttachFinalHostText, 'host.textContent #2');
 
-        runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
-        if (detachTwice) {
-          runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags1);
+        runDeactivateLifecycle(sut, baseFlags | deactivateFlags1);
+        if (deactivateTwice) {
+          runDeactivateLifecycle(sut, baseFlags | deactivateFlags1);
         }
-        // host should be empty but nodes below should still be intact and up-to-date
 
         assert.strictEqual(host.textContent, '', 'host.textContent #3');
 
-        runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
-        if (unbindTwice) {
-          runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags1);
-        }
         // unbind should not affect existing values but stops them from updating afterwards
 
         // -- Round 2 --
 
         sut.value = value2;
 
-        runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
+        runActivateLifecycle(sut, baseFlags | activateFlags2, scope);
 
         assert.strictEqual(sut.view.nodes.firstChild['textContent'], secondBindInitialNodesText, '$nodes.textContent #3');
-        if (bindTwice) {
-          if (newScopeForDuplicateBind) {
-            scope = Scope.create(baseFlags, ctx);
-          }
-          sut.value = newValueForDuplicateBind;
-          runBindLifecycle(lifecycle, sut, baseFlags | bindFlags2, scope);
+        if (activateTwice) {
+          runActivateLifecycle(sut, baseFlags | activateFlags2, scope);
         }
 
         assert.strictEqual(sut.view.nodes.firstChild['textContent'], secondBindFinalNodesText, '$nodes.textContent #4');
 
-        runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
-
         assert.strictEqual(host.textContent, secondAttachInitialHostText, 'host.textContent #4');
-        if (attachTwice) {
-          runAttachLifecycle(lifecycle, sut, baseFlags | attachFlags2);
-
-          assert.strictEqual(host.textContent, secondAttachInitialHostText, 'host.textContent #5');
-        }
 
         sut.value = newValue2;
 
         assert.strictEqual(host.textContent, secondAttachFinalHostText, 'host.textContent #5');
 
-        runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
-        if (detachTwice) {
-          runDetachLifecycle(lifecycle, sut, baseFlags | detachFlags2);
+        runDeactivateLifecycle(sut, baseFlags | deactivateFlags2);
+        if (deactivateTwice) {
+          runDeactivateLifecycle(sut, baseFlags | deactivateFlags2);
         }
 
         assert.strictEqual(host.textContent, '', 'host.textContent #6');
-
-        runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);
-        if (unbindTwice) {
-          runUnbindLifecycle(lifecycle, sut, baseFlags | unbindFlags2);
-        }
       });
     });
 });

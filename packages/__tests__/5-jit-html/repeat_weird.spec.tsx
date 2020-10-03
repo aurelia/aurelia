@@ -6,7 +6,6 @@ import { TestContext, hJsx, assert } from '@aurelia/testing';
 //      if template string can be used to achieve the same effect, it could be converted back
 
 describe('[repeat] -- funny cases', function () {
-
   const testCases: [string, HTMLElement, HTMLElement, ITestItem[], string, ICustomAssertion?][] = [
     [
       [
@@ -87,13 +86,13 @@ describe('[repeat] -- funny cases', function () {
       const component = new App();
 
       au.app({ host, component });
-      au.start();
+      await au.start().wait();
 
       assert.strictEqual(host.textContent, expectedTextContent, `host.textContent`);
       if (customAssertion) {
-        await customAssertion(host, component, component.$controller.controllers[0] as any as IFoo);
+        await customAssertion(host, component, component.$controller.children[0] as any as IFoo);
       }
-      tearDown(au);
+      await tearDown(au);
     });
   }
 
@@ -118,8 +117,8 @@ describe('[repeat] -- funny cases', function () {
     name: string;
   }
 
-  function tearDown(au: Aurelia) {
-    au.stop();
+  async function tearDown(au: Aurelia) {
+    await au.stop().wait();
     (au.root.host as Element).remove();
   }
 

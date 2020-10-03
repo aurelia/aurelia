@@ -268,7 +268,6 @@ export {
   // fromDefinitionOrDefault,
 
   EventAggregator,
-  EventAggregatorCallback,
   IEventAggregator,
 
   isArrayIndex,
@@ -353,7 +352,8 @@ export {
   // Segment,
   // RouteRecognizer,
 
-  IRouterOptions,
+  RouterOptions,
+  IRouterActivateOptions,
   IRouter,
   Router,
 
@@ -747,21 +747,6 @@ export {
   // IViewCache,
   // IViewFactory,
   // MountStrategy,
-
-  // PromiseOrTask,
-  // MaybePromiseOrTask,
-  AggregateContinuationTask,
-  TerminalTask,
-  AggregateTerminalTask,
-  ContinuationTask,
-  ILifecycleTask,
-  LifecycleTask,
-  PromiseTask,
-  TaskSlot,
-  StartTask,
-  IStartTask,
-  IStartTaskManager,
-  ProviderTask,
 
   // AccessorOrObserver,
   // Collection,

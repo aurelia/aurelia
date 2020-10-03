@@ -301,7 +301,7 @@ export const DI = {
       return target;
     };
     Interface.$isInterface = true;
-    Interface.friendlyName = friendlyName == null ? 'Interface' : friendlyName;
+    Interface.friendlyName = friendlyName == null ? '(anonymous)' : friendlyName;
 
     Interface.noDefault = function (): InterfaceSymbol<K> {
       return Interface;
@@ -317,6 +317,10 @@ export const DI = {
       };
 
       return Interface;
+    };
+
+    Interface.toString = function toString(): string {
+      return `InterfaceSymbol<${Interface.friendlyName}>`;
     };
 
     return Interface;

@@ -1,6 +1,8 @@
 import {
   HTMLTestContext,
   TestContext,
+  assert,
+  ensureSchedulerEmpty,
 } from '@aurelia/testing';
 import {
   JitHtmlBrowserConfiguration
@@ -34,7 +36,19 @@ function createBrowserTestContext(): HTMLTestContext {
 function initializeBrowserTestContext(): void {
   TestContext.createHTMLTestContext = createBrowserTestContext;
   // Just trigger the HTMLDOM to be resolved once so it sets the DOM globals
-  TestContext.createHTMLTestContext().dom.createElement('div');
+  const ctx = TestContext.createHTMLTestContext();
+  ctx.dom.createElement('div');
+  ctx.scheduler.getIdleTaskQueue();
+
+  // eslint-disable-next-line
+  afterEach(function() {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
 }
 
 initializeBrowserTestContext();

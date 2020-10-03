@@ -53,5 +53,7 @@ describe('styles', function () {
     const withoutStylesDiv = withoutStylesRoot.getElementById('target');
 
     assert.equal(true, withoutStylesDiv.classList.contains('test'));
+
+    await au.stop().wait();
   });
 });

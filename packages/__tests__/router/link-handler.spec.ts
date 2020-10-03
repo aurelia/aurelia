@@ -42,12 +42,12 @@ describe('LinkHandler', function () {
     assert.notStrictEqual(sut, null, `sut`);
   });
 
-  it('can be activated', function () {
+  it('can be started', function () {
     const { sut, ctx } = createFixture();
 
     const addEventListener = createSpy(ctx.doc, 'addEventListener');
 
-    sut.activate({ callback: info => console.log('can be activated', info) });
+    sut.start({ callback: info => console.log('can be started', info) });
 
     assert.strictEqual(sut['isActive'], true, `linkHandler.isActive`);
 
@@ -61,27 +61,27 @@ describe('LinkHandler', function () {
 
     addEventListener.restore();
 
-    sut.deactivate();
+    sut.stop();
   });
 
-  it('can be deactivated', function () {
+  it('can be stopped', function () {
     const { sut } = createFixture();
 
-    sut.activate({ callback: info => console.log('can be deactivated', info) });
+    sut.start({ callback: info => console.log('can be stopped', info) });
 
     assert.strictEqual(sut['isActive'], true, `linkHandler.isActive`);
 
-    sut.deactivate();
+    sut.stop();
 
     assert.strictEqual(sut['isActive'], false, `linkHandler.isActive`);
   });
 
-  it('throws when activated while active', function () {
+  it('throws when started while started', function () {
     const { sut, ctx } = createFixture();
 
     const addEventListener = createSpy(ctx.doc, 'addEventListener');
 
-    sut.activate({ callback: info => console.log('throws when activated while active', info) });
+    sut.start({ callback: info => console.log('throws when started while started', info) });
 
     assert.strictEqual(sut['isActive'], true, `linkHandler.isActive`);
 
@@ -95,27 +95,27 @@ describe('LinkHandler', function () {
 
     let err;
     try {
-      sut.activate({ callback: info => console.log('throws when activated AGAIN while active', info) });
+      sut.start({ callback: info => console.log('throws when started AGAIN while started', info) });
     } catch (e) {
       err = e;
     }
-    assert.includes(err.message, 'Link handler has already been activated', `err.message`);
+    assert.includes(err.message, 'Link handler has already been started', `err.message`);
 
     addEventListener.restore();
 
-    sut.deactivate();
+    sut.stop();
   });
 
-  it('throws when deactivated while not active', function () {
+  it('throws when stopped while not active', function () {
     const { sut } = createFixture();
 
     let err;
     try {
-      sut.deactivate();
+      sut.stop();
     } catch (e) {
       err = e;
     }
-    assert.includes(err.message, 'Link handler has not been activated', `err.message`);
+    assert.includes(err.message, 'Link handler has not been started', `err.message`);
   });
 
   if (PLATFORM.isBrowserLike) {
@@ -156,7 +156,7 @@ describe('LinkHandler', function () {
         const prevent = (ev => ev.preventDefault());
         doc.addEventListener('click', prevent, true);
 
-        sut.activate({
+        sut.start({
           callback: (clickInfo) => info = clickInfo,
           useHref: test.useHref
         });
@@ -165,7 +165,7 @@ describe('LinkHandler', function () {
         assert.strictEqual(info.shouldHandleEvent, test.result !== null, `LinkHandler.AnchorEventInfo.shouldHandleEvent`);
         assert.strictEqual(info.instruction, test.result, `LinkHandler.AnchorEventInfo.instruction`);
 
-        sut.deactivate();
+        sut.stop();
         doc.removeEventListener('click', prevent, true);
         (sut as Writable<typeof sut>)['handler'] = origHandler;
 

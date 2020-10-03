@@ -1,7 +1,4 @@
 import { HookManager } from './hook-manager';
-export {
-  BrowserNavigator,
-} from './browser-navigator';
 
 export {
   ILinkHandlerOptions,
@@ -15,7 +12,7 @@ export {
 } from './instruction-resolver';
 
 export {
-  INavigatorInstruction,
+  // Navigation,
   IRouteableComponent,
   RouteableComponentType,
   IViewportInstruction,
@@ -45,16 +42,28 @@ export {
 } from './nav-route';
 
 export {
+  Navigation,
+} from './navigation';
+
+export {
+  NavigationState,
+} from './navigation-coordinator';
+
+export {
   IStoredNavigatorEntry,
   INavigatorEntry,
   INavigatorOptions,
-  INavigatorFlags,
+  INavigationFlags,
   INavigatorState,
   INavigatorStore,
   INavigatorViewer,
   INavigatorViewerEvent,
   Navigator,
 } from './navigator';
+
+export {
+  Runner,
+} from './runner';
 
 export {
   QueueItem,
@@ -71,10 +80,18 @@ export {
 } from './route-recognizer';
 
 export {
-  IRouterOptions,
+  // IRouterActivateOptions,
+  // IRouterOptions,
+  // IRouterTitle,
   IRouter,
   Router,
 } from './router';
+
+export {
+  IRouterActivateOptions,
+  IRouterTitle,
+  RouterOptions,
+} from './router-options';
 
 export {
   IViewportOptions,
@@ -87,6 +104,7 @@ export {
 } from './viewport-content';
 
 export {
+  Params,
   ViewportInstruction,
 } from './viewport-instruction';
 
@@ -101,6 +119,8 @@ export {
   NavCustomElementRegistration,
   GotoCustomAttribute,
   GotoCustomAttributeRegistration,
+  LoadCustomAttribute,
+  LoadCustomAttributeRegistration,
   HrefCustomAttribute,
   HrefCustomAttributeRegistration,
 } from './configuration';

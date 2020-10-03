@@ -439,9 +439,8 @@ export class AccessScopeExpression implements IAccessScopeExpression {
   ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): IBindingContext | IBinding | IOverrideContext {
-    const name = this.name;
-    const obj = BindingContext.get(scope, name, this.ancestor, flags, part) as IBindingContext;
-    const evaluatedValue = obj[name] as ReturnType<AccessScopeExpression['evaluate']>;
+    const obj = BindingContext.get(scope, this.name, this.ancestor, flags, part) as IBindingContext;
+    const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (flags & LifecycleFlags.isStrictBindingStrategy) {
       return evaluatedValue;
     }
@@ -483,9 +482,9 @@ export class AccessMemberExpression implements IAccessMemberExpression {
     const instance = this.object.evaluate(flags, scope, locator, part) as IIndexable;
     const name = this.name;
     if (flags & LifecycleFlags.isStrictBindingStrategy) {
-      return instance;
+      return instance == null ? instance : instance[name];
     }
-    return instance == null ? '' : instance[name];
+    return instance ? instance[name] : '';
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, part?: string): unknown {

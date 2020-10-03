@@ -17,7 +17,7 @@ describe('SelfBindingBehavior', function () {
     binding = new PropertyBinding(undefined, undefined, undefined, undefined, undefined, container as any);
     originalCallSource = binding['callSource'] = function () { return; };
     binding['targetEvent'] = 'foo';
-    sut.bind(undefined, undefined, binding as any);
+    sut.bind(undefined, undefined, null, binding as any);
   });
 
   // TODO: test properly (different binding types)
@@ -28,7 +28,7 @@ describe('SelfBindingBehavior', function () {
   });
 
   it('unbind() should revert the original behavior', function () {
-    sut.unbind(undefined, undefined, binding as any);
+    sut.unbind(undefined, undefined, null, binding as any);
     assert.strictEqual(binding['selfEventCallSource'], null, `binding['selfEventCallSource']`);
     assert.strictEqual(binding['callSource'] === originalCallSource, true, `binding['callSource'] === originalCallSource`);
   });

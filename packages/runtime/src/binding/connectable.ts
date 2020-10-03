@@ -13,6 +13,7 @@ import {
   IScope
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
+import { CustomElementDefinition } from '../resources/custom-element';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
 
@@ -160,7 +161,7 @@ export class BindingMediator<K extends string> implements IConnectableBinding {
   ) {
     connectable.assignIdTo(this);
   }
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, projection?: CustomElementDefinition): void {
     throw new Error('Method not implemented.');
   }
   public $unbind(flags: LifecycleFlags): void {

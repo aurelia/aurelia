@@ -29,7 +29,7 @@ import {
   ValidationHtmlConfiguration,
   ValidationTrigger,
 } from '@aurelia/validation-html';
-import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../util';
+import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter, $TestSetupContext } from '../util';
 import { Organization, Person } from '../validation/_test-resources';
 
 describe('validate-binding-behavior', function () {
@@ -243,14 +243,14 @@ describe('validate-binding-behavior', function () {
   }
   @bindingBehavior('vanilla')
   class VanillaBindingBehavior implements BindingBehaviorInstance {
-    public bind(_flags: LifecycleFlags, _scope: IScope, _binding: IBinding): void {
+    public bind(_flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, _binding: IBinding): void {
       return;
     }
-    public unbind(_flags: LifecycleFlags, _scope: IScope, _binding: IBinding): void {
+    public unbind(_flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, _binding: IBinding): void {
       return;
     }
   }
-  @customElement({ name: 'editor', template: `<div replaceable="content"></div><div>static content</div>` })
+  @customElement({ name: 'editor', template: `<au-slot name="content"></au-slot><div>static content</div>` })
   class Editor {
     public readonly person = new Person(void 0, void 0);
     public constructor(@IValidationRules validationRules: IValidationRules) {
@@ -261,7 +261,18 @@ describe('validate-binding-behavior', function () {
         .withMessage('Not foo');
     }
   }
-  interface TestSetupContext {
+  @customElement({ name: 'editor1', template: `<au-slot name="content"><input id="target" value.bind="person.name & validate"></au-slot>` })
+  class Editor1 {
+    public readonly person = new Person(void 0, void 0);
+    public constructor(@IValidationRules validationRules: IValidationRules) {
+      validationRules
+        .on(this.person)
+        .ensure('name')
+        .satisfies((name) => name === 'foo')
+        .withMessage('Not foo');
+    }
+  }
+  interface TestSetupContext extends $TestSetupContext {
     template: string;
     customDefaultTrigger?: ValidationTrigger;
     observeCollection?: boolean;
@@ -291,6 +302,7 @@ describe('validate-binding-behavior', function () {
         InterceptorBindingBehavior,
         VanillaBindingBehavior,
         Editor,
+        Editor1,
         Registration.instance(IObserveCollection, observeCollection),
       )
       .app({
@@ -509,7 +521,7 @@ describe('validate-binding-behavior', function () {
       target.value = Math.random().toString();
       await assertEventHandler(target, 'change', 0, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
     },
-    { template: `<input id="target" type="text" value.two-way="person.name & validate:trigger">` }
+    { template: `<input id="target" type="text" value.two-way="person.name & validate:trigger">`, timeout: 10000 }
   );
   // #endregion
 
@@ -1245,29 +1257,8 @@ describe('validate-binding-behavior', function () {
   );
   // #endregion
 
-  // #region replaceable
-  $it('works with replaceable - replaced part',
-    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
-      const controller = app.controller;
-
-      const target: HTMLInputElement = host.querySelector('editor #target');
-      assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
-
-      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
-      await controller.validate();
-      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), ['Not foo']);
-
-      target.value = 'foo';
-      await assertEventHandler(target, 'change', 0, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
-      await assertEventHandler(target, 'focusout', 1, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
-      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
-    },
-    {
-      template: `<editor><input id="target" value.two-way="person.name & validate" replace="content"><editor>`
-    }
-  );
-
-  $it('works with replaceable - non-replaced part',
+  // #region au-slot
+  $it('works with au-slot - projected part w/o $host',
     async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
       const controller = app.controller;
 
@@ -1284,7 +1275,68 @@ describe('validate-binding-behavior', function () {
       assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
     },
     {
-      template: `<editor><input id="target" value.two-way="person.name & validate"><editor>`
+      template: `<editor><input au-slot="content" id="target" value.two-way="person.name & validate"></editor>`
+    }
+  );
+  $it('works with au-slot - projected part with $host',
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
+      const controller = app.controller;
+
+      const target: HTMLInputElement = host.querySelector('editor #target');
+      assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
+
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+      await controller.validate();
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), ['Not foo']);
+
+      target.value = 'foo';
+      await assertEventHandler(target, 'change', 0, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+    },
+    {
+      template: `<editor><input au-slot="content" id="target" value.two-way="$host.person.name & validate"></editor>`
+    }
+  );
+  $it('works with au-slot - non-projected part',
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
+      const controller = app.controller;
+
+      const target: HTMLInputElement = host.querySelector('editor1 #target');
+      assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
+
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+      await controller.validate();
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), ['Not foo']);
+
+      target.value = 'foo';
+      await assertEventHandler(target, 'change', 0, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+    },
+    {
+      template: `<editor1></editor1>`
+    }
+  );
+
+  $it('works with au-slot - mis-projected part',
+    async function ({ app, host, scheduler, ctx }: TestExecutionContext<App>) {
+      const controller = app.controller;
+
+      const target: HTMLInputElement = host.querySelector('editor #target');
+      assertControllerBinding(controller, 'person.name', target, app.controllerRegisterBindingSpy);
+
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+      await controller.validate();
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), ['Name is required.']);
+
+      target.value = 'foo';
+      await assertEventHandler(target, 'change', 0, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
+      assert.deepStrictEqual(controller.results.filter((r) => !r.valid).map((r) => r.toString()), []);
+    },
+    {
+      template: `<editor><input id="target" value.two-way="person.name & validate"></editor>`
     }
   );
   // #endregion

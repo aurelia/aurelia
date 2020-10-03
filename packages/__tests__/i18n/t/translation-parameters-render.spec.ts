@@ -81,7 +81,6 @@ describe('TranslationParametersBindingRenderer', function () {
       controller,
       DOM.createElement('span'),
       callBindingInstruction,
-      void 0,
     );
 
     assert.instanceOf(controller.bindings[0], TranslationBinding);
@@ -103,7 +102,6 @@ describe('TranslationParametersBindingRenderer', function () {
       renderable,
       targetElement,
       callBindingInstruction,
-      void 0,
     );
 
     assert.equal(binding.parametersExpr, paramExpr);

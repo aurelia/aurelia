@@ -53,8 +53,9 @@ export class FileServer implements IRequestHandler {
     if (!(request instanceof IncomingMessage && response instanceof ServerResponse)) { return; }
     const parsedUrl = url.parse(request.url!);
     let parsedPath = parsedUrl.path!;
-    if (parsedPath.endsWith('/')) {
-      parsedPath = `${parsedPath}index.html`;
+    // When we support SSR combined with server-side routing, we might want to change this.
+    if (!parsedPath.includes('.')) {
+      parsedPath = '/index.html';
     }
     const path = join(this.root, parsedPath);
 
@@ -138,8 +139,9 @@ export class Http2FileServer implements IHttp2FileServer {
     if (!(request instanceof Http2ServerRequest && response instanceof Http2ServerResponse)) { return; }
     const parsedUrl = url.parse(request.url!);
     let parsedPath = parsedUrl.path!;
-    if (parsedPath.endsWith('/')) {
-      parsedPath = `${parsedPath}index.html`;
+    // When we support SSR combined with server-side routing, we might want to change this.
+    if (!parsedPath.includes('.')) {
+      parsedPath = '/index.html';
     }
     const path = join(this.root, parsedPath);
 

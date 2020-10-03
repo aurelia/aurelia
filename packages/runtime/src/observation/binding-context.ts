@@ -21,7 +21,11 @@ const enum RuntimeError {
 const marker = Object.freeze({});
 
 /** @internal */
-export class InternalObserversLookup {
+export class InternalObserversLookup implements ObserversLookup {
+  [x: string]: PropertyObserver;
+  [y: number]: PropertyObserver;
+
+  // @ts-expect-error
   public getOrCreate(
     this: { [key: string]: PropertyObserver },
     lifecycle: ILifecycle,
@@ -30,7 +34,7 @@ export class InternalObserversLookup {
     key: string,
   ): PropertyObserver {
     if (this[key] === void 0) {
-      this[key] = new SetterObserver(lifecycle, flags, obj, key);
+      this[key] = new SetterObserver(flags, obj, key);
     }
     return this[key];
   }

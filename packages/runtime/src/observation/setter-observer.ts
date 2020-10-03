@@ -22,7 +22,6 @@ export class SetterObserver {
   public type: AccessorType = AccessorType.Obj;
 
   public constructor(
-    public readonly lifecycle: ILifecycle,
     flags: LifecycleFlags,
     public readonly obj: IIndexable,
     public readonly propertyKey: string,
@@ -60,6 +59,14 @@ export class SetterObserver {
 
   public subscribe(subscriber: ISubscriber): void {
     if (this.observing === false) {
+      this.start();
+    }
+
+    this.addSubscriber(subscriber);
+  }
+
+  public start(): this {
+    if (this.observing === false) {
       this.observing = true;
       this.currentValue = this.obj[this.propertyKey];
       if (
@@ -81,7 +88,20 @@ export class SetterObserver {
         Reporter.write(1, this.propertyKey, this.obj);
       }
     }
+    return this;
+  }
 
-    this.addSubscriber(subscriber);
+  public stop(): this {
+    if (this.observing) {
+      Reflect.defineProperty(this.obj, this.propertyKey, {
+        enumerable: true,
+        configurable: true,
+        writable: true,
+        value: this.currentValue,
+      });
+      this.observing = false;
+      // todo(bigopon/fred): add .removeAllSubscribers()
+    }
+    return this;
   }
 }

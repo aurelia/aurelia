@@ -160,6 +160,9 @@ export {
   DirtyCheckSettings
 } from './observation/dirty-checker';
 export {
+  observable,
+} from './observation/observable';
+export {
   IObjectObservationAdapter,
   IObserverLocator,
   ITargetObserverLocator,

@@ -20,12 +20,11 @@ const enum RuntimeError {
 
 const marker = Object.freeze({});
 
+export interface InternalObserversLookup extends IIndexable<ObserversLookup, PropertyObserver> {}
 /** @internal */
-export class InternalObserversLookup implements ObserversLookup {
-  [x: string]: PropertyObserver;
-  [y: number]: PropertyObserver;
+export class InternalObserversLookup {
 
-  // @ts-expect-error
+  // @ts-ignore
   public getOrCreate(
     this: { [key: string]: PropertyObserver },
     lifecycle: ILifecycle,

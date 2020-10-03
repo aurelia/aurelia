@@ -3,6 +3,7 @@ import {
   eachCartesianJoin,
   eachCartesianJoinFactory,
   createScopeForTest,
+  AuDOM,
   MockTracingExpression,
   MockBindingBehavior,
   MockServiceLocator,
@@ -2029,7 +2030,8 @@ describe('BindingBehaviorExpression', function () {
       const mock = new MockBindingBehavior();
       const locator = new MockServiceLocator(new Map<any, any>([['au:resource:binding-behavior:mock', mock]]));
       const observerLocator = createObserverLocator();
-      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
+      const dom = new AuDOM();
+      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator, dom);
 
       const scope = Scope.create(LF.none, { foo: value }, null);
       return [`foo&mock`, scope, sut, mock, locator, binding, value, []];
@@ -2046,7 +2048,8 @@ describe('BindingBehaviorExpression', function () {
       const mock = new MockBindingBehavior();
       const locator = new MockServiceLocator(new Map<any, any>([['au:resource:binding-behavior:mock', mock]]));
       const observerLocator = createObserverLocator();
-      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
+      const dom = new AuDOM();
+      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator, dom);
 
       const scope = Scope.create(LF.none, { foo: value, a: arg1 }, null);
       return [`foo&mock:a`, scope, sut, mock, locator, binding, value, [arg1]];
@@ -2069,7 +2072,8 @@ describe('BindingBehaviorExpression', function () {
       const mock = new MockBindingBehavior();
       const locator = new MockServiceLocator(new Map<any, any>([['au:resource:binding-behavior:mock', mock]]));
       const observerLocator = createObserverLocator();
-      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
+      const dom = new AuDOM();
+      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator, dom);
 
       const scope = Scope.create(LF.none, { foo: value, a: arg1, b: arg2, c: arg3 }, null);
       return [`foo&mock:a:b:c`, scope, sut, mock, locator, binding, value, [arg1, arg2, arg3]];
@@ -2265,7 +2269,7 @@ describe('BindingBehaviorExpression', function () {
 
 describe('ValueConverterExpression', function () {
   type $1 = [/* title */string, /* flags */LF];
-  type $2 = [/* title */string, /* signals */string[], /* signaler */MockSignaler];
+  type $2 = [/* title */string, /* signals */string[], /* signaler */MockSignaler, /* IDOM */AuDOM];
   type $3 = [/* title */string, /* scope */IScope, /* sut */ValueConverterExpression, /* mock */MockValueConverter, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[], /* methods */string[]];
 
   const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LF],
@@ -2276,15 +2280,15 @@ describe('ValueConverterExpression', function () {
 
   const kindVariations: (($1: $1) => $2)[] = // [/*title*/string, /*signals*/string[], /*signaler*/ISignaler],
   [
-    () => [`undefined    `, undefined      , new MockSignaler()],
-    () => [`[]           `, []             , new MockSignaler()],
-    () => [`['a']        `, ['a']          , new MockSignaler()],
-    () => [`['a','b','c']`, ['a', 'b', 'c'], new MockSignaler()]
+    () => [`undefined    `, undefined      , new MockSignaler(), new AuDOM()],
+    () => [`[]           `, []             , new MockSignaler(), new AuDOM()],
+    () => [`['a']        `, ['a']          , new MockSignaler(), new AuDOM()],
+    () => [`['a','b','c']`, ['a', 'b', 'c'], new MockSignaler(), new AuDOM()]
   ];
 
   const inputVariations: (($1: $1, $2: $2) => $3)[] = [
     // test without arguments, no toView, no fromView
-    (_$1, [_t2, signals, signaler]) => {
+    (_$1, [_t2, signals, signaler, auDom]) => {
       const value = {};
       const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
       const args = [];
@@ -2295,13 +2299,13 @@ describe('ValueConverterExpression', function () {
       mock['signals'] = signals;
       const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
-      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
+      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator, auDom);
 
       const scope = Scope.create(LF.none, { foo: value }, null);
       return [`foo|mock`, scope, sut, mock, locator, binding, value, [], methods];
     },
     // test without arguments, no fromView
-    (_$1, [_t2, signals, signaler]) => {
+    (_$1, [_t2, signals, signaler, auDom]) => {
       const value = {};
       const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
       const args = [];
@@ -2312,13 +2316,13 @@ describe('ValueConverterExpression', function () {
       mock['signals'] = signals;
       const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
-      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
+      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator, auDom);
 
       const scope = Scope.create(LF.none, { foo: value }, null);
       return [`foo|mock`, scope, sut, mock, locator, binding, value, [], methods];
     },
     // test without arguments, no toView
-    (_$1, [_t2, signals, signaler]) => {
+    (_$1, [_t2, signals, signaler, auDom]) => {
       const value = {};
       const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
       const args = [];
@@ -2329,13 +2333,13 @@ describe('ValueConverterExpression', function () {
       mock['signals'] = signals;
       const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
-      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
+      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator, auDom);
 
       const scope = Scope.create(LF.none, { foo: value }, null);
       return [`foo|mock`, scope, sut, mock, locator, binding, value, [], methods];
     },
     // test without arguments
-    (_$1, [_t2, signals, signaler]) => {
+    (_$1, [_t2, signals, signaler, auDom]) => {
       const value = {};
       const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
       const args = [];
@@ -2346,13 +2350,13 @@ describe('ValueConverterExpression', function () {
       mock['signals'] = signals;
       const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
-      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
+      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator, auDom);
 
       const scope = Scope.create(LF.none, { foo: value }, null);
       return [`foo|mock`, scope, sut, mock, locator, binding, value, [], methods];
     },
     // test with 1 argument
-    (_$1, [_t2, signals, signaler]) => {
+    (_$1, [_t2, signals, signaler, auDom]) => {
       const value = {};
       const arg1 = {};
       const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0));
@@ -2364,13 +2368,13 @@ describe('ValueConverterExpression', function () {
       mock['signals'] = signals;
       const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
-      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
+      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator, auDom);
 
       const scope = Scope.create(LF.none, { foo: value, a: arg1 }, null);
       return [`foo|mock:a`, scope, sut, mock, locator, binding, value, [arg1], methods];
     },
     // test with 3 arguments
-    (_$1, [_t2, signals, signaler]) => {
+    (_$1, [_t2, signals, signaler, auDom]) => {
       const value = {};
       const arg1 = {};
       const arg2 = {};
@@ -2388,7 +2392,7 @@ describe('ValueConverterExpression', function () {
       mock['signals'] = signals;
       const locator = new MockServiceLocator(new Map<any, any>([['au:resource:value-converter:mock', mock], [ISignaler, signaler]]));
       const observerLocator = createObserverLocator();
-      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
+      const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator, auDom);
 
       const scope = Scope.create(LF.none, { foo: value, a: arg1, b: arg2, c: arg3 }, null);
       return [`foo|mock:a:b:c`, scope, sut, mock, locator, binding, value, [arg1, arg2, arg3], methods];

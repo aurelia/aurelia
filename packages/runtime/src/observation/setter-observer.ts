@@ -1,6 +1,5 @@
 import { IIndexable, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { ILifecycle } from '../lifecycle';
 import { IPropertyObserver, ISubscriber, AccessorType } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 

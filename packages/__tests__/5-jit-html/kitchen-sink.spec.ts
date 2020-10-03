@@ -8,7 +8,8 @@ import {
   CustomElement,
   IExpressionParser,
   ISignaler,
-  LifecycleFlags } from '@aurelia/runtime';
+  LifecycleFlags
+} from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
 const spec = 'kitchen-sink';
@@ -63,7 +64,7 @@ describe(spec, function () {
 
     assert.strictEqual(host.textContent, '012', `host.textContent`);
 
-    signaler.dispatchSignal('updateItem', LifecycleFlags.fromFlush);
+    signaler.dispatchSignal('updateItem', LifecycleFlags.none);
 
     assert.strictEqual(host.textContent, '212', `host.textContent`);
 
@@ -75,7 +76,7 @@ describe(spec, function () {
     const App = CustomElement.define({
       name: 'app',
       template: `<template><div repeat.for="i of 3">\${items[i] & signal:'updateItem' & oneTime}</div></template>`
-    },                                       class {
+    }, class {
       public items = items;
     });
 
@@ -99,7 +100,7 @@ describe(spec, function () {
 
     assert.strictEqual(host.textContent, '012', `host.textContent`);
 
-    signaler.dispatchSignal('updateItem', LifecycleFlags.fromFlush);
+    signaler.dispatchSignal('updateItem', LifecycleFlags.none);
 
     assert.strictEqual(host.textContent, '212', `host.textContent`);
 
@@ -155,7 +156,6 @@ describe('xml node compiler tests', function () {
 });
 
 describe('dependency injection', function () {
-
   it.skip('register local dependencies ', function () {
     const Foo = CustomElement.define(
       {

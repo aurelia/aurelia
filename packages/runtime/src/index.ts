@@ -316,6 +316,8 @@ export {
 // These exports are temporary until we have a proper way to unit test them
 export {
   Controller,
+  isCustomElementController,
+  isCustomElementViewModel,
 } from './templating/controller';
 export {
   ViewFactory,
@@ -404,7 +406,6 @@ export {
   BindingStrategy,
   ExpressionKind,
   LifecycleFlags,
-  State
 } from './flags';
 export {
   CallBindingInstruction,
@@ -424,6 +425,7 @@ export {
 } from './instructions';
 export {
   ViewModelKind,
+  ControllerVisitor,
   IBinding,
   ILifecycle,
   IViewModel,
@@ -435,7 +437,7 @@ export {
   ICustomAttributeController,
   IHydratedController,
   IHydratedComponentController,
-  IHydratedRenderableController,
+  IHydratedParentController,
   ICompiledCustomElementController,
   ICustomElementController,
   IViewCache,
@@ -472,10 +474,12 @@ export {
 } from './lifecycle-task';
 export {
   AccessorOrObserver,
+  AccessorType,
   Collection,
   CollectionKind,
   DelegationStrategy,
   IAccessor,
+  INodeAccessor,
   IBindingContext,
   IBindingTargetAccessor,
   IBindingTargetObserver,

@@ -1,7 +1,7 @@
 import { IIndexable, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { IPropertyObserver, ISubscriber } from '../observation';
+import { IPropertyObserver, ISubscriber, AccessorType } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 
 export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
@@ -18,6 +18,8 @@ export class SetterObserver {
   public readonly persistentFlags: LifecycleFlags;
   public inBatch: boolean = false;
   public observing: boolean = false;
+  // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
+  public type: AccessorType = AccessorType.Obj;
 
   public constructor(
     public readonly lifecycle: ILifecycle,
@@ -36,13 +38,7 @@ export class SetterObserver {
     if (this.observing) {
       const currentValue = this.currentValue;
       this.currentValue = newValue;
-      if (this.lifecycle.batch.depth === 0) {
-        this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
-      } else if (!this.inBatch) {
-        this.inBatch = true;
-        this.oldValue = currentValue;
-        this.lifecycle.batch.add(this);
-      }
+      this.callSubscribers(newValue, currentValue, this.persistentFlags | flags);
     } else {
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
       // so calling obj[propertyKey] will actually return this.currentValue.

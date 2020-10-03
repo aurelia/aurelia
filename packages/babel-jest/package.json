@@ -45,6 +45,6 @@
     "@jest/transform": "^26.3.0",
     "@jest/types": "^26.3.0",
     "@types/node": "^12.12.21",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.3"
   }
 }

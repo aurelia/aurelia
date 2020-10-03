@@ -2,8 +2,11 @@
 /* eslint-disable eqeqeq */
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { assert, createFixture } from '@aurelia/testing';
-import { LifecycleFlags, CustomElement } from '@aurelia/runtime';
+import {
+  assert,
+  createFixture,
+} from '@aurelia/testing';
+import { CustomElement } from '@aurelia/runtime';
 type CaseType = {
   expected: number | string; expectedStrictMode?: number | string; expectedValueAfterChange?: number | string; changeFnc?: (val) => any; app: any; interpolation: string; it: string;
 };

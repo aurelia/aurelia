@@ -63,27 +63,27 @@ describe('BrowserNavigator', function () {
     tearDown();
   });
 
-  it('can be activated', function () {
+  it('can be started', function () {
     const { sut, tearDown, callback } = createFixture();
 
-    sut.activate({ callback });
+    sut.start({ callback });
 
     assert.strictEqual(sut['isActive'], true, `sut.isActive`);
     // assert.strictEqual(addEventListener.calls.length, 1, `addEventListener.calls.length`);
 
-    sut.deactivate();
+    sut.stop();
 
     tearDown();
   });
 
-  it('can be deactivated', function () {
+  it('can be stopped', function () {
     const { sut, tearDown, callback } = createFixture();
 
-    sut.activate({ callback });
+    sut.start({ callback });
     assert.strictEqual(sut['isActive'], true, `sut.isActive`);
     // assert.strictEqual(addEventListener.calls.length, 1, `addEventListener.calls.length`);
 
-    sut.deactivate();
+    sut.stop();
 
     assert.strictEqual(sut['isActive'], false, `sut.isActive`);
     // assert.strictEqual(removeEventListener.calls.length, 1, `removeEventListener.calls.length`);
@@ -91,21 +91,21 @@ describe('BrowserNavigator', function () {
     tearDown();
   });
 
-  it('throws when activated while active', function () {
+  it('throws when started while started', function () {
     const { sut, tearDown, callback } = createFixture();
 
-    sut.activate({ callback });
+    sut.start({ callback });
     assert.strictEqual(sut['isActive'], true, `sut.isActive`);
 
     let err;
     try {
-      sut.activate({ callback });
+      sut.start({ callback });
     } catch (e) {
       err = e;
     }
-    assert.strictEqual(err.message, 'Browser navigation has already been activated', `err.message`);
+    assert.strictEqual(err.message, 'Browser navigation has already been started', `err.message`);
 
-    sut.deactivate();
+    sut.stop();
 
     tearDown();
   });
@@ -114,7 +114,7 @@ describe('BrowserNavigator', function () {
     const { sut, tearDown, callback } = createFixture();
 
     let counter = 0;
-    sut.activate({
+    sut.start({
       callback:
         // Called once for each url/location change (no longer in as part of activation)
         function () {
@@ -132,7 +132,7 @@ describe('BrowserNavigator', function () {
 
     assert.strictEqual(counter, 0, `counter`); // Not the above 'go' (and no longer initial)
 
-    sut.deactivate();
+    sut.stop();
 
     tearDown();
   });
@@ -140,7 +140,7 @@ describe('BrowserNavigator', function () {
   it('queues consecutive calls', async function () {
     const { sut, tearDown, callback } = createFixture();
 
-    sut.activate({ callback });
+    sut.start({ callback });
     await wait();
 
     const length: number = sut['pendingCalls'].length;
@@ -153,7 +153,7 @@ describe('BrowserNavigator', function () {
     assert.strictEqual(sut['pendingCalls'].length, length + noOfItems - processedItems, `sut.pendingCalls.length`);
     await wait();
 
-    sut.deactivate();
+    sut.stop();
 
     tearDown();
   });
@@ -162,7 +162,7 @@ describe('BrowserNavigator', function () {
     const { sut, tearDown, callback } = createFixture();
 
     let counter = 0;
-    sut.activate({
+    sut.start({
       callback:
         // Called once for each url/location change (no longer in as part of activation)
         function () {
@@ -180,7 +180,7 @@ describe('BrowserNavigator', function () {
 
     assert.strictEqual(counter, 1, `counter`);
 
-    sut.deactivate();
+    sut.stop();
 
     tearDown();
   });
@@ -189,7 +189,7 @@ describe('BrowserNavigator', function () {
     const { sut, tearDown, callback } = createFixture();
 
     let instruction;
-    sut.activate({
+    sut.start({
       callback:
         function (state) {
           instruction = state;
@@ -208,7 +208,7 @@ describe('BrowserNavigator', function () {
     assert.strictEqual(instruction.path, '/', `instruction.path`);
     assert.strictEqual(instruction.hash, '#/one', `instruction.hash`);
 
-    sut.deactivate();
+    sut.stop();
 
     tearDown();
   });
@@ -217,7 +217,7 @@ describe('BrowserNavigator', function () {
     const { sut, tearDown, callback } = createFixture();
 
     let instruction;
-    sut.activate({
+    sut.start({
       callback:
         function (state) {
           instruction = state;
@@ -237,7 +237,7 @@ describe('BrowserNavigator', function () {
     assert.strictEqual(instruction.path, '/one', `instruction.path`);
     assert.strictEqual(instruction.hash, '', `instruction.hash`);
 
-    sut.deactivate();
+    sut.stop();
 
     tearDown();
   });

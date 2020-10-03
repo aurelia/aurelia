@@ -65,7 +65,7 @@ Tracer.enableLiveLogging({
   rendering: false,
   lifecycle: true,
   binding: true,
-  beforeAttach: true,
+  attaching: true,
   mounting: true,
   observation: true
 });

@@ -1,12 +1,13 @@
 import {
   IIndexable,
   IServiceLocator,
-  Reporter,
 } from '@aurelia/kernel';
+import {
+  ITask,
+} from '@aurelia/scheduler';
 import { IExpression } from '../ast';
 import {
   LifecycleFlags,
-  State,
 } from '../flags';
 import {
   ILifecycle,
@@ -29,10 +30,11 @@ export class LetBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
 
   public id!: number;
-  public $state: State = State.none;
+  public isBound: boolean = false;
   public $lifecycle: ILifecycle;
   public $scope?: IScope = void 0;
   public part?: string;
+  public task: ITask | null = null;
 
   public target: (IObservable & IIndexable) | null = null;
 
@@ -48,12 +50,13 @@ export class LetBinding implements IPartialConnectableBinding {
   }
 
   public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
 
     if (flags & LifecycleFlags.updateTargetInstance) {
-      const { target, targetProperty } = this as {target: IIndexable; targetProperty: string};
+      const target = this.target as IIndexable;
+      const targetProperty = this.targetProperty as string;
       const previousValue: unknown = target[targetProperty];
       const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part);
       if (newValue !== previousValue) {
@@ -62,18 +65,16 @@ export class LetBinding implements IPartialConnectableBinding {
       return;
     }
 
-    throw Reporter.error(15, flags);
+    throw new Error('Unexpected handleChange context in LetBinding');
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
-    if (this.$state & State.isBound) {
+    if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
       this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
-    // add isBinding flag
-    this.$state |= State.isBinding;
 
     this.$scope = scope;
     this.part = part;
@@ -88,16 +89,13 @@ export class LetBinding implements IPartialConnectableBinding {
     this.sourceExpression.connect(flags, scope, this.interceptor, part);
 
     // add isBound flag and remove isBinding flag
-    this.$state |= State.isBound;
-    this.$state &= ~State.isBinding;
+    this.isBound = true;
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
-    // add isUnbinding flag
-    this.$state |= State.isUnbinding;
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {
@@ -107,6 +105,13 @@ export class LetBinding implements IPartialConnectableBinding {
     this.interceptor.unobserve(true);
 
     // remove isBound and isUnbinding flags
-    this.$state &= ~(State.isBound | State.isUnbinding);
+    this.isBound = false;
+  }
+
+  public dispose(): void {
+    this.interceptor = (void 0)!;
+    this.sourceExpression = (void 0)!;
+    this.locator = (void 0)!;
+    this.target = (void 0)!;
   }
 }

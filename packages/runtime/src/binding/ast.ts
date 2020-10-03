@@ -53,7 +53,6 @@ import {
   IVisitor,
   Observes,
   UnaryOperator,
-  IConnectable,
 } from '../ast';
 import {
   ExpressionKind,

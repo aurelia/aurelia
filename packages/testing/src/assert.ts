@@ -777,7 +777,8 @@ const isSchedulerEmpty = (function () {
     const persistent = task.persistent;
     const status = task._status;
 
-    return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}`;
+    return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}\n`
+      + `    task callback="${task.callback?.toString()}"`;
   }
 
   function toArray(task: any) {

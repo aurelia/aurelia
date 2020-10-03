@@ -223,7 +223,9 @@ export class BindingBehaviorExpression implements IBindingBehaviorExpression {
   public unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding & { [key: string]: BindingBehaviorInstance | undefined }): void {
     const behaviorKey = this.behaviorKey;
     if (binding[behaviorKey] !== void 0) {
-      binding[behaviorKey]!.unbind(flags, scope, hostScope, binding);
+      if (typeof binding[behaviorKey]!.unbind === 'function') {
+        binding[behaviorKey]!.unbind(flags, scope, hostScope, binding);
+      }
       binding[behaviorKey] = void 0;
     }
     if (hasUnbind(this.expression)) {

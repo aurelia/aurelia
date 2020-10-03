@@ -84,7 +84,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     const { pathname, search, hash } = this.location;
     return {
       path: pathname,
-      query: search,
+      query: search.slice(1),
       hash,
       instruction: this.options.useUrlFragmentHash ? hash.slice(1) : pathname,
     };

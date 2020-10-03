@@ -1,5 +1,5 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
-import { IExpressionParser, RuntimeConfiguration } from '@aurelia/runtime';
+import { RuntimeConfiguration } from '@aurelia/runtime';
 import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
@@ -15,24 +15,6 @@ import {
   ToViewBindingCommand,
   TwoWayBindingCommand
 } from './binding-commands';
-import { parseExpression } from './expression-parser';
-
-export const IExpressionParserRegistration: IRegistry = {
-  register(container: IContainer): void {
-    container.registerTransformer(IExpressionParser, parser => {
-      Reflect.set(parser, 'parseCore', parseExpression);
-      return parser;
-    });
-  }
-};
-
-/**
- * Default runtime/environment-agnostic implementations for the following interfaces:
- * - `IExpressionParser`
- */
-export const DefaultComponents = [
-  IExpressionParserRegistration
-];
 
 export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern as unknown as IRegistry;
 export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern as unknown as IRegistry;
@@ -98,7 +80,6 @@ export const JitConfiguration = {
     return RuntimeConfiguration
       .register(container)
       .register(
-        ...DefaultComponents,
         ...DefaultBindingSyntax,
         ...DefaultBindingLanguage
       );

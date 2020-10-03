@@ -26,15 +26,13 @@ import {
   UnaryExpression,
   ValueConverterExpression,
   IsLeftHandSide,
-  IsAssign
-} from '@aurelia/runtime';
-import {
+  IsAssign,
   Access,
   Precedence,
   parseExpression,
   parse,
-  ParserState
-} from '@aurelia/jit';
+  ParserState,
+} from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 import {
   latin1IdentifierPartChars,

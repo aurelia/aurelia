@@ -1,7 +1,6 @@
 import {
   DefaultBindingLanguage as JitDefaultBindingLanguage,
   DefaultBindingSyntax as JitDefaultBindingSyntax,
-  DefaultComponents as JitDefaultComponents
 } from '@aurelia/jit';
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
@@ -72,7 +71,6 @@ export const JitHtmlConfiguration = {
     return RuntimeHtmlConfiguration
       .register(container)
       .register(
-        ...JitDefaultComponents,
         ...JitDefaultBindingSyntax,
         ...JitDefaultBindingLanguage,
         ...DefaultComponents,

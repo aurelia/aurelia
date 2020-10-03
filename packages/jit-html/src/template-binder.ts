@@ -8,7 +8,6 @@ import {
   BindingCommandInstance,
   ResourceModel,
   SymbolFlags,
-  Char,
 } from '@aurelia/jit';
 import {
   camelCase,
@@ -18,7 +17,8 @@ import {
   BindingMode,
   BindingType,
   IDOM,
-  IExpressionParser
+  IExpressionParser,
+  Char,
 } from '@aurelia/runtime';
 import {
   NodeType,

@@ -1,7 +1,6 @@
 import {
   DefaultBindingLanguage as JitDefaultBindingLanguage,
   DefaultBindingSyntax as JitDefaultBindingSyntax,
-  DefaultComponents as JitDefaultComponents
 } from '@aurelia/jit';
 import {
   DefaultBindingLanguage as JitHtmlDefaultBindingLanguage,
@@ -31,7 +30,6 @@ export const JitHtmlBrowserConfiguration = {
       .register(
         ...JitDefaultBindingLanguage,
         ...JitDefaultBindingSyntax,
-        ...JitDefaultComponents,
         ...JitHtmlDefaultBindingLanguage,
         ...JitHtmlDefaultComponents
       );

@@ -37,7 +37,9 @@ import { ViewValueConverter } from './resources/value-converters/view';
 import { ViewLocator } from './templating/view';
 import { Now } from '@aurelia/scheduler';
 import { AuSlot, ProjectionProvider } from './resources/custom-elements/au-slot';
+import { ExpressionParser } from './binding/expression-parser';
 
+export const IExpressionParserRegistration = ExpressionParser as IRegistry;
 export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;
 export const IRendererRegistration = Renderer as IRegistry;
@@ -46,6 +48,7 @@ export const IViewLocatorRegistration = ViewLocator as IRegistry;
 
 /**
  * Default implementations for the following interfaces:
+ * - `IExpressionParserRegistration`
  * - `IObserverLocator`
  * - `ILifecycle`
  * - `IRenderer`
@@ -55,6 +58,7 @@ export const IViewLocatorRegistration = ViewLocator as IRegistry;
  * - `ISchedulerRegistration`
  */
 export const DefaultComponents = [
+  IExpressionParserRegistration,
   IObserverLocatorRegistration,
   ILifecycleRegistration,
   IRendererRegistration,

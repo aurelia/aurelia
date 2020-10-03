@@ -37,10 +37,6 @@ export {
   TwoWayBindingCommand
 } from './binding-commands';
 export {
-  IExpressionParserRegistration,
-
-  DefaultComponents,
-
   RefAttributePatternRegistration,
   DotSeparatedAttributePatternRegistration,
 
@@ -63,17 +59,6 @@ export {
 
   JitConfiguration
 } from './configuration';
-export {
-  Access,
-  Precedence,
-  Char,
-  // These exports are temporary until we have a proper way to unit test them
-} from './common';
-export {
-  parseExpression,
-  parse,
-  ParserState,
-} from './expression-parser';
 export {
   ResourceModel,
   BindableInfo,

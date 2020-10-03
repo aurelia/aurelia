@@ -104,7 +104,13 @@ export {
 } from './binding/connectable';
 export {
   IExpressionParser,
-  BindingType
+  BindingType,
+  parseExpression,
+  Char,
+  Access,
+  Precedence,
+  parse,
+  ParserState,
 } from './binding/expression-parser';
 export {
   MultiInterpolationBinding,

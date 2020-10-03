@@ -44,7 +44,8 @@ export class PropertyBinding implements IPartialConnectableBinding {
   public id!: number;
   public isBound: boolean = false;
   public $scope?: IScope = void 0;
-  public part?: string;
+  public $hostScope: IScope | null = null;
+
   public targetObserver?: AccessorOrObserver = void 0;;
 
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
@@ -71,7 +72,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.sourceExpression.assign!(flags, this.$scope!, this.locator, value, this.part);
+    this.sourceExpression.assign!(flags, this.$scope!, this.$hostScope, this.locator, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -88,6 +89,10 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const locator = this.locator;
 
     if ((flags & LifecycleFlags.updateTargetInstance) > 0) {
+      // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
+      if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
+        newValue = this.sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator);
+      }
       // Alpha: during bind a simple strategy for bind is always flush immediately
       // todo:
       //  (1). determine whether this should be the behavior
@@ -96,7 +101,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       const oldValue = targetObserver.getValue();
 
       if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        newValue = sourceExpression.evaluate(flags, $scope, locator, this.part);
+        newValue = sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator);
       }
 
       // todo(fred): maybe let the obsrever decides whether it updates
@@ -111,7 +116,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
       if ((this.mode & oneTime) === 0) {
         this.version++;
-        sourceExpression.connect(flags, $scope, interceptor, this.part);
+        sourceExpression.connect(flags, $scope!, this.$hostScope, interceptor);
         interceptor.unobserve(false);
       }
 
@@ -119,7 +124,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     }
 
     if ((flags & LifecycleFlags.updateSourceExpression) > 0) {
-      if (newValue !== sourceExpression.evaluate(flags, $scope!, locator, this.part)) {
+      if (newValue !== sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator)) {
         interceptor.updateSource(newValue, flags);
       }
       return;
@@ -128,7 +133,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     throw new Error('Unexpected handleChange context in PropertyBinding');
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -143,11 +148,11 @@ export class PropertyBinding implements IPartialConnectableBinding {
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
 
     this.$scope = scope;
-    this.part = part;
+    this.$hostScope = hostScope;
 
     let sourceExpression = this.sourceExpression;
     if (hasBind(sourceExpression)) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+      sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
     let $mode = this.mode;
@@ -173,10 +178,10 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const interceptor = this.interceptor;
 
     if ($mode & toViewOrOneTime) {
-      interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+      interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator), flags);
     }
     if ($mode & toView) {
-      sourceExpression.connect(flags, scope, interceptor, part);
+      sourceExpression.connect(flags, scope, this.$hostScope, interceptor);
     }
     if ($mode & fromView) {
       targetObserver.subscribe(interceptor);
@@ -199,7 +204,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     this.persistentFlags = LifecycleFlags.none;
 
     if (hasUnbind(this.sourceExpression)) {
-      this.sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+      this.sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
 
     this.$scope = void 0;

@@ -2,7 +2,6 @@
 import {
   IContainer,
   IIndexable,
-  mergeDistinct,
   nextId,
   Writable,
   Constructable,
@@ -17,7 +16,6 @@ import {
 } from '../binding/property-binding';
 import {
   HooksDefinition,
-  PartialCustomElementDefinitionParts,
 } from '../definitions';
 import {
   INode,
@@ -82,9 +80,8 @@ import {
   getRenderContext,
   RenderContext,
 } from './render-context';
-import {
-  ChildrenObserver,
-} from './children';
+import { ChildrenObserver } from './children';
+import { RegisteredProjections } from '../resources/custom-elements/au-slot';
 import { IStartTaskManager } from '../lifecycle-task';
 
 function callDispose(disposable: IDisposable): void {
@@ -114,11 +111,10 @@ export class Controller<
 
   public hasLockedScope: boolean = false;
 
-  public scopeParts: string[] | undefined = void 0;
   public isStrictBinding: boolean = false;
 
-  public scope: Writable<IScope> | undefined = void 0;
-  public part: string | undefined = void 0;
+  public scope: IScope | undefined = void 0;
+  public hostScope: IScope | null = null;
   public projector: IElementProjector | undefined = void 0;
 
   public nodes: INodeSequence<T> | undefined = void 0;
@@ -201,7 +197,8 @@ export class Controller<
     lifecycle: ILifecycle,
     host: T,
     parentContainer: IContainer,
-    parts: PartialCustomElementDefinitionParts | undefined,
+    // projections *targeted* for this custom element. these are not the projections *provided* by this custom element.
+    targetedProjections: RegisteredProjections | null,
     flags: LifecycleFlags = LifecycleFlags.none,
     hydrate: boolean = true,
     // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
@@ -229,7 +226,7 @@ export class Controller<
     controllerLookup.set(viewModel, controller as Controller);
 
     if (hydrate) {
-      controller.hydrateCustomElement(parentContainer, parts);
+      controller.hydrateCustomElement(parentContainer, targetedProjections);
     }
 
     return controller as unknown as ICustomElementController<T, C>;
@@ -290,14 +287,14 @@ export class Controller<
       /* host           */void 0,
     );
 
-    controller.hydrateSynthetic(context, viewFactory.parts);
+    controller.hydrateSynthetic(context);
 
     return controller as unknown as ISyntheticView<T>;
   }
 
   private hydrateCustomElement(
     parentContainer: IContainer,
-    parts: PartialCustomElementDefinitionParts | undefined,
+    targetedProjections: RegisteredProjections | null,
   ): void {
     this.logger = parentContainer.get(ILogger).root;
     this.debug = this.logger.config.level <= LogLevel.debug;
@@ -311,7 +308,7 @@ export class Controller<
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this as Controller, definition, flags, instance);
 
-    this.scope = Scope.create(flags, this.bindingContext!, null);
+    const scope = this.scope = Scope.create(flags, this.bindingContext!, null);
 
     const hooks = this.hooks;
     if (hooks.hasCreate) {
@@ -322,14 +319,13 @@ export class Controller<
         /* controller      */this as unknown as IDryCustomElementController<T, typeof instance>,
         /* parentContainer */parentContainer,
         /* definition      */definition,
-        /* parts           */parts,
       );
       if (result !== void 0 && result !== definition) {
         definition = CustomElementDefinition.getOrCreate(result);
       }
     }
 
-    const context = this.context = getRenderContext<T>(definition, parentContainer, parts) as RenderContext<T>;
+    const context = this.context = getRenderContext<T>(definition, parentContainer, targetedProjections?.projections) as RenderContext<T>;
     // Support Recursive Components by adding self to own context
     definition.register(context);
     if (definition.injectable !== null) {
@@ -344,10 +340,12 @@ export class Controller<
       instance.beforeCompile(this as unknown as IContextualCustomElementController<T, typeof instance>);
     }
 
-    const compiledContext = context.compile();
+    const compiledContext = context.compile(targetedProjections);
     const compiledDefinition = compiledContext.compiledDefinition;
 
-    this.scopeParts = compiledDefinition.scopeParts;
+    compiledContext.registerProjections(compiledDefinition.projectionsMap, scope);
+    // once the projections are registered, we can cleanup the projection map to prevent memory leaks.
+    compiledDefinition.projectionsMap.clear();
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
     const projectorLocator = parentContainer.get(IProjectorLocator);
@@ -379,7 +377,6 @@ export class Controller<
       /* targets    */targets,
       /* definition */compiledDefinition,
       /* host       */this.host,
-      /* parts      */parts,
     );
 
     if (hooks.hasAfterCompileChildren) {
@@ -401,13 +398,11 @@ export class Controller<
 
   private hydrateSynthetic(
     context: IRenderContext<T>,
-    parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
     this.context = context as RenderContext<T>;
-    const compiledContext = context.compile();
+    const compiledContext = context.compile(null);
     const compiledDefinition = compiledContext.compiledDefinition;
 
-    this.scopeParts = compiledDefinition.scopeParts;
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
     const nodes = this.nodes = compiledContext.createNodes();
@@ -418,7 +413,6 @@ export class Controller<
       /* targets    */targets,
       /* definition */compiledDefinition,
       /* host       */void 0,
-      /* parts      */parts,
     );
   }
 
@@ -461,8 +455,8 @@ export class Controller<
     initiator: Controller<T>,
     parent: Controller<T> | null,
     flags: LifecycleFlags,
-    scope?: Writable<IScope>,
-    part?: string,
+    scope?: IScope,
+    hostScope?: IScope | null,
   ): void | Promise<void> {
     this.canceling = false;
     switch (this.state) {
@@ -514,14 +508,13 @@ export class Controller<
       this.logger = this.context!.get(ILogger).root.scopeTo(this.name);
       this.logger!.trace(`activate()`);
     }
-    this.part = part;
+    this.hostScope = hostScope ?? null;
     flags |= LifecycleFlags.fromBind;
 
     switch (this.vmKind) {
       case ViewModelKind.customElement:
         // Custom element scope is created and assigned during hydration
-        this.scope!.parentScope = scope === void 0 ? null : scope;
-        this.scope!.scopeParts = this.scopeParts!;
+        (this.scope as Writable<IScope>).parentScope = scope === void 0 ? null : scope;
         break;
       case ViewModelKind.customAttribute:
         this.scope = scope;
@@ -530,8 +523,6 @@ export class Controller<
         if (scope === void 0 || scope === null) {
           throw new Error(`Scope is null or undefined`);
         }
-
-        scope.scopeParts = mergeDistinct(scope.scopeParts, this.scopeParts, false);
 
         if (!this.hasLockedScope) {
           this.scope = scope;
@@ -578,9 +569,9 @@ export class Controller<
     }
 
     if (this.bindings !== void 0) {
-      const { scope, part, bindings } = this;
+      const { scope, hostScope, bindings } = this;
       for (let i = 0, ii = bindings.length; i < ii; ++i) {
-        bindings[i].$bind(flags, scope!, part);
+        bindings[i].$bind(flags, scope!, hostScope);
       }
     }
 
@@ -678,10 +669,10 @@ export class Controller<
     flags: LifecycleFlags,
   ): void | Promise<void> {
     if (this.children !== void 0) {
-      const { children, scope, part } = this;
+      const { children, scope, hostScope } = this;
       return resolveAll(
         ...children.map(child => {
-          return child.activate(initiator, this as Controller<T>, flags, scope, part);
+          return child.activate(initiator, this as Controller<T>, flags, scope, hostScope);
         }),
       );
     }
@@ -1048,7 +1039,7 @@ export class Controller<
             }
             break;
           case ViewModelKind.customElement:
-            this.scope!.parentScope = null;
+            (this.scope as Writable<IScope>).parentScope = null;
             break;
         }
 

@@ -19,6 +19,8 @@ import {
   LifecycleFlags,
   IScheduler,
   INode,
+  CustomElementDefinition,
+  ITask,
   AccessorType,
   IDOM,
 } from '@aurelia/runtime';
@@ -46,7 +48,8 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public isBound: boolean = false;
   public $scheduler: IScheduler;
   public $scope: IScope = null!;
-  public part?: string;
+  public $hostScope: IScope | null = null;
+  public projection?: CustomElementDefinition;
 
   /**
    * Target key. In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
@@ -88,7 +91,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
+    this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.$hostScope, this.locator, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -119,7 +122,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       const oldValue = targetObserver.getValue();
 
       if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        newValue = sourceExpression.evaluate(flags, $scope, locator, this.part);
+        newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator);
       }
 
       if (newValue !== oldValue) {
@@ -133,7 +136,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
       if ((mode & oneTime) === 0) {
         this.version++;
-        sourceExpression.connect(flags, $scope, interceptor, this.part);
+        sourceExpression.connect(flags, $scope, this.$hostScope, interceptor);
         interceptor.unobserve(false);
       }
 
@@ -141,7 +144,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     }
 
     if (flags & LifecycleFlags.updateSourceExpression) {
-      if (newValue !== this.sourceExpression.evaluate(flags, $scope, locator, this.part)) {
+      if (newValue !== this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator)) {
         interceptor.updateSource(newValue, flags);
       }
       return;
@@ -150,7 +153,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     throw new Error('Unexpected handleChange context in AttributeBinding');
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, projection?: CustomElementDefinition): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -163,11 +166,12 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
 
     this.$scope = scope;
-    this.part = part;
+    this.$hostScope = hostScope;
+    this.projection = projection;
 
     let sourceExpression = this.sourceExpression;
     if (hasBind(sourceExpression)) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+      sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
     let targetObserver = this.targetObserver as IBindingTargetObserver;
@@ -191,10 +195,10 @@ export class AttributeBinding implements IPartialConnectableBinding {
     const interceptor = this.interceptor;
 
     if ($mode & toViewOrOneTime) {
-      interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+      interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator), flags);
     }
     if ($mode & toView) {
-      sourceExpression.connect(flags, scope, interceptor, part);
+      sourceExpression.connect(flags, scope, this.$hostScope, this);
     }
     if ($mode & fromView) {
       targetObserver[this.id] |= LifecycleFlags.updateSourceExpression;
@@ -214,7 +218,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.persistentFlags = LifecycleFlags.none;
 
     if (hasUnbind(this.sourceExpression)) {
-      this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
+      this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
     }
     this.$scope = null!;
 
@@ -235,7 +239,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public connect(flags: LifecycleFlags): void {
     if (this.isBound) {
       flags |= this.persistentFlags;
-      this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this.interceptor, this.part); // why do we have a connect method here in the first place? will this be called after bind?
+      this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this.$hostScope, this.interceptor); // why do we have a connect method here in the first place? will this be called after bind?
     }
   }
 

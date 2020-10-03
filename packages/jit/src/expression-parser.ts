@@ -50,6 +50,7 @@ const $true = PrimitiveLiteralExpression.$true;
 const $null = PrimitiveLiteralExpression.$null;
 const $undefined = PrimitiveLiteralExpression.$undefined;
 const $this = AccessThisExpression.$this;
+const $host = AccessThisExpression.$host;
 const $parent = AccessThisExpression.$parent;
 
 /** @internal */
@@ -241,6 +242,12 @@ TPrec extends Precedence.Unary ? IsUnary :
         result = $this;
         access = Access.This;
         break;
+      case Token.HostScope: // $host
+        state.assignable = false;
+        nextToken(state);
+        result = $host;
+        access = Access.This;
+        break;
       case Token.OpenParen: // parenthesized expression
         nextToken(state);
         result = parse(state, Access.Reset, Precedence.Assign, bindingType);
@@ -344,7 +351,7 @@ TPrec extends Precedence.Unary ? IsUnary :
             continue;
           }
           if (access & Access.Scope) {
-            result = new AccessScopeExpression(name, (result as AccessScopeExpression | AccessThisExpression).ancestor);
+            result = new AccessScopeExpression(name, (result as AccessScopeExpression | AccessThisExpression).ancestor, result === $host);
           } else { // if it's not $Scope, it's $Member
             result = new AccessMemberExpression(result as IsLeftHandSide, name);
           }
@@ -367,7 +374,7 @@ TPrec extends Precedence.Unary ? IsUnary :
           }
           consume(state, Token.CloseParen);
           if (access & Access.Scope) {
-            result = new CallScopeExpression(name, args, (result as AccessScopeExpression | AccessThisExpression).ancestor);
+            result = new CallScopeExpression(name, args, (result as AccessScopeExpression | AccessThisExpression).ancestor, result === $host);
           } else if (access & Access.Member) {
             result = new CallMemberExpression(result as IsLeftHandSide, name, args);
           } else {
@@ -885,7 +892,7 @@ function consume(state: ParserState, token: Token): void {
  * Usage: TokenValues[token & Token.Type]
  */
 const TokenValues = [
-  $false, $true, $null, $undefined, '$this', '$parent',
+  $false, $true, $null, $undefined, '$this', '$host', '$parent',
 
   '(', '{', '.', '}', ')', ',', '[', ']', ':', '?', '\'', '"',
 
@@ -903,6 +910,7 @@ KeywordLookup.null = Token.NullKeyword;
 KeywordLookup.false = Token.FalseKeyword;
 KeywordLookup.undefined = Token.UndefinedKeyword;
 KeywordLookup.$this = Token.ThisScope;
+KeywordLookup.$host = Token.HostScope;
 KeywordLookup.$parent = Token.ParentScope;
 KeywordLookup.in = Token.InKeyword;
 KeywordLookup.instanceof = Token.InstanceOfKeyword;

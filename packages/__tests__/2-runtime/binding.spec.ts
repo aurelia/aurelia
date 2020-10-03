@@ -112,7 +112,7 @@ describe('PropertyBinding', function () {
     const sut = new PropertyBinding(expr as any, target, 'val', BindingMode.toView, observerLocator, container, dom);
     const scope = Scope.create(LF.none, ctx, null);
 
-    sut.$bind(LF.fromBind, scope);
+    sut.$bind(LF.fromBind, scope, null);
 
     assert.strictEqual(target.val, count, `target.val`);
 
@@ -128,7 +128,7 @@ describe('PropertyBinding', function () {
     }
     const scope2 = Scope.create(LF.none, ctx2, null);
 
-    sut.$bind(LF.fromBind, scope2);
+    sut.$bind(LF.fromBind, scope2, null);
 
     assert.strictEqual(target.val, count * 3, `target.val`);
   }).timeout(20000);
@@ -172,7 +172,7 @@ describe('PropertyBinding', function () {
       it(`$bind() [one-time]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
         // - Arrange -
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.oneTime);
-        const srcVal = expr.evaluate(LF.none, scope, container);
+        const srcVal = expr.evaluate(LF.none, scope, null, container);
         const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
         // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
         // $stub.withArgs(LF.none, target, prop);
@@ -184,7 +184,7 @@ describe('PropertyBinding', function () {
         // ensureNotCalled(expr, 'assign', 'connect');
 
         // - Act -
-        sut.$bind(flags, scope);
+        sut.$bind(flags, scope, null);
 
         // - Assert -
         // double check we have the correct target observer
@@ -244,7 +244,7 @@ describe('PropertyBinding', function () {
       it(`$bind() [to-view]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
         // - Arrange - Part 1
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.toView);
-        const srcVal = expr.evaluate(LF.none, scope, container);
+        const srcVal = expr.evaluate(LF.none, scope, null, container);
         const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
 
         // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
@@ -257,7 +257,7 @@ describe('PropertyBinding', function () {
         // ensureNotCalled(sut, 'handleChange');
 
         // - Act - Part 1
-        sut.$bind(flags, scope);
+        sut.$bind(flags, scope, null);
 
         // - Assert - Part 1
         // verify the behavior inside $bind
@@ -334,7 +334,7 @@ describe('PropertyBinding', function () {
         const newValue = {};
 
         // - Act - Part 2
-        expr.assign(flags, scope, container, newValue);
+        expr.assign(flags, scope, null, container, newValue);
 
         // - Assert - Part 2
         // verify that no observers were added/removed/changed (redundant)
@@ -479,7 +479,7 @@ describe('PropertyBinding', function () {
         const initialVal = target[prop];
 
         // - Act - Part 1
-        sut.$bind(flags, scope);
+        sut.$bind(flags, scope, null);
 
         // - Assert - Part 1
         // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
@@ -591,7 +591,7 @@ describe('PropertyBinding', function () {
         const originalScope = JSON.parse(JSON.stringify(scope));
         // - Arrange - Part 1
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.twoWay);
-        const srcVal = expr.evaluate(LF.none, scope, container);
+        const srcVal = expr.evaluate(LF.none, scope, null, container);
         const targetObserver = observerLocator.getObserver(LF.none, target, prop) as IBindingTargetObserver;
 
         // massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers', 'subscribe');
@@ -599,7 +599,7 @@ describe('PropertyBinding', function () {
         // massSpy(sut, 'addObserver', 'observeProperty', 'handleChange', 'unobserve');
 
         // - Act - Part 1
-        sut.$bind(flags, scope);
+        sut.$bind(flags, scope, null);
 
         // - Assert - Part 1
         // verify the behavior inside $bind
@@ -696,7 +696,7 @@ describe('PropertyBinding', function () {
         }
 
         // - Act - Part 2
-        expr.assign(flags, scope, container, newValue1);
+        expr.assign(flags, scope, null, container, newValue1);
 
         // - Assert - Part 2
         // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #37`);
@@ -846,7 +846,7 @@ describe('PropertyBinding', function () {
         // massRestore(targetObserver);
         // massRestore(sut, 'unobserve');
         // massRestore(expr);
-        sut.$bind(flags, originalScope);
+        sut.$bind(flags, originalScope, null);
 
         verifyEqual(target[prop], srcVal);
         verifyEqual(targetObserver.currentValue, srcVal);

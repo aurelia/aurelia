@@ -40,7 +40,8 @@ describe('template-compiler.convention.spec.ts \n\thtml convention', function ()
       const template = `<${el} ${bindingAttr}.bind="value" ${elAttrsStr}></${el}>`;
       const { instructions: rootInstructions } = compiler.compile(
         { name: '', template, surrogates: [], instructions: [] },
-        ctx.container
+        ctx.container,
+        null,
       );
 
       const expectedElInstructions: IExpectedInstruction[] = [
@@ -87,7 +88,8 @@ describe('template-compiler.convention.spec.ts \n\thtml convention', function ()
       const template = `<${el} ${bindingAttr}.bind="value" ${elAttrsStr}></${el}>`;
       const { instructions: rootInstructions } = compiler.compile(
         { name: '', template, surrogates: [], instructions: [] },
-        ctx.container
+        ctx.container,
+        null,
       );
 
       const expectedElInstructions: IExpectedInstruction[] = [

@@ -37,6 +37,7 @@ import {
 import { BindingStrategy } from '../flags';
 import { Bindable, PartialBindableDefinition, BindableDefinition } from '../templating/bindable';
 import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children';
+import { IProjections } from './custom-elements/au-slot';
 import { Controller } from '../templating/controller';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
@@ -55,8 +56,8 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly hasSlots?: boolean;
   readonly strategy?: BindingStrategy;
   readonly hooks?: Readonly<HooksDefinition>;
-  readonly scopeParts?: readonly string[];
   readonly enhance?: boolean;
+  readonly projectionsMap?: Map<ITargetedInstruction, IProjections>;
 }>;
 
 export type CustomElementType<
@@ -229,8 +230,8 @@ export class CustomElementDefinition<
     public readonly hasSlots: boolean,
     public readonly strategy: BindingStrategy,
     public readonly hooks: Readonly<HooksDefinition>,
-    public readonly scopeParts: string[],
     public readonly enhance: boolean,
+    public readonly projectionsMap: Map<ITargetedInstruction, IProjections>,
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -287,8 +288,8 @@ export class CustomElementDefinition<
         fromDefinitionOrDefault('hasSlots', def, () => false),
         fromDefinitionOrDefault('strategy', def, () => BindingStrategy.getterSetter),
         fromDefinitionOrDefault('hooks', def, () => HooksDefinition.none),
-        mergeArrays(def.scopeParts),
         fromDefinitionOrDefault('enhance', def, () => false),
+        fromDefinitionOrDefault('projectionsMap', def as CustomElementDefinition, () => new Map<ITargetedInstruction, IProjections>()),
       );
     }
 
@@ -325,8 +326,8 @@ export class CustomElementDefinition<
         fromAnnotationOrTypeOrDefault('strategy', Type, () => BindingStrategy.getterSetter),
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
-        mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), Type.scopeParts),
         fromAnnotationOrTypeOrDefault('enhance', Type, () => false),
+        fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => new Map<ITargetedInstruction, IProjections>()),
       );
     }
 
@@ -368,8 +369,8 @@ export class CustomElementDefinition<
       fromAnnotationOrDefinitionOrTypeOrDefault('strategy', nameOrDef, Type, () => BindingStrategy.getterSetter),
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
-      mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), nameOrDef.scopeParts, Type.scopeParts),
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false),
+      fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => new Map<ITargetedInstruction, IProjections>()),
     );
   }
 

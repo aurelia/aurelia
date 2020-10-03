@@ -25,7 +25,7 @@ export class UpdateTriggerBindingBehavior {
     @IObserverLocator private readonly observerLocator: IObserverLocator
   ) {}
 
-  public bind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding, ...events: string[]): void {
+  public bind(flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, binding: UpdateTriggerableBinding, ...events: string[]): void {
     if (events.length === 0) {
       throw Reporter.error(9);
     }
@@ -51,7 +51,7 @@ export class UpdateTriggerBindingBehavior {
     (targetObserver as Writable<typeof targetObserver>).handler = new EventSubscriber(binding.locator.get(IDOM), events);
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding): void {
+  public unbind(flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, binding: UpdateTriggerableBinding): void {
     // restore the state of the binding.
     binding.targetObserver.handler.dispose();
     (binding.targetObserver as Writable<typeof binding.targetObserver>).handler = binding.targetObserver.originalHandler!;

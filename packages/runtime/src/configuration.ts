@@ -31,12 +31,12 @@ import { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle'
 import { FrequentMutations, InfrequentMutations, ObserveShallow } from './resources/custom-attributes/flags';
 import { Else, If } from './resources/custom-attributes/if';
 import { Repeat } from './resources/custom-attributes/repeat';
-import { Replaceable } from './resources/custom-attributes/replaceable';
 import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
 import { ViewLocator } from './templating/view';
 import { Now } from '@aurelia/scheduler';
+import { AuSlot, ProjectionProvider } from './resources/custom-elements/au-slot';
 
 export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;
@@ -61,6 +61,7 @@ export const DefaultComponents = [
   IStartTaskManagerRegistration,
   IViewLocatorRegistration,
   Now,
+  ProjectionProvider,
 ];
 
 export const FrequentMutationsRegistration = FrequentMutations as unknown as IRegistry;
@@ -69,7 +70,6 @@ export const ObserveShallowRegistration = ObserveShallow as unknown as IRegistry
 export const IfRegistration = If as unknown as IRegistry;
 export const ElseRegistration = Else as unknown as IRegistry;
 export const RepeatRegistration = Repeat as unknown as IRegistry;
-export const ReplaceableRegistration = Replaceable as unknown as IRegistry;
 export const WithRegistration = With as unknown as IRegistry;
 export const SanitizeValueConverterRegistration = SanitizeValueConverter as unknown as IRegistry;
 export const ViewValueConverterRegistration = ViewValueConverter as unknown as IRegistry;
@@ -83,9 +83,10 @@ export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as unknow
 
 /**
  * Default resources:
- * - Template controllers (`if`/`else`, `repeat`, `replaceable`, `with`)
+ * - Template controllers (`if`/`else`, `repeat`, `with`)
  * - Value Converters (`sanitize`)
  * - Binding Behaviors (`oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`)
+ * - Custom element: au-slot
  */
 export const DefaultResources = [
   FrequentMutationsRegistration,
@@ -94,7 +95,6 @@ export const DefaultResources = [
   IfRegistration,
   ElseRegistration,
   RepeatRegistration,
-  ReplaceableRegistration,
   WithRegistration,
   SanitizeValueConverterRegistration,
   ViewValueConverterRegistration,
@@ -104,7 +104,8 @@ export const DefaultResources = [
   FromViewBindingBehaviorRegistration,
   SignalBindingBehaviorRegistration,
   ThrottleBindingBehaviorRegistration,
-  TwoWayBindingBehaviorRegistration
+  TwoWayBindingBehaviorRegistration,
+  AuSlot,
 ];
 
 export const CallBindingRendererRegistration = CallBindingRenderer as unknown as IRegistry;

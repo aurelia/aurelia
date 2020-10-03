@@ -32,7 +32,6 @@ export class MultiInterpolationBinding implements IBinding {
 
   public isBound: boolean = false;
   public $scope?: IScope = void 0;
-  public part?: string;
 
   public parts: InterpolationBinding[];
 
@@ -55,7 +54,7 @@ export class MultiInterpolationBinding implements IBinding {
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -64,11 +63,10 @@ export class MultiInterpolationBinding implements IBinding {
     }
     this.isBound = true;
     this.$scope = scope;
-    this.part = part;
 
     const parts = this.parts;
     for (let i = 0, ii = parts.length; i < ii; ++i) {
-      parts[i].interceptor.$bind(flags, scope, part);
+      parts[i].interceptor.$bind(flags, scope, hostScope);
     }
   }
 
@@ -100,7 +98,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
   public id!: number;
   public $scope?: IScope;
-  public part?: string;
+  public $hostScope: IScope | null = null;
   public $scheduler: IScheduler;
   public targetObserver: IBindingTargetAccessor & INodeAccessor;
   public isBound: boolean = false;
@@ -141,7 +139,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
     const oldValue = targetObserver.getValue();
     const interceptor = this.interceptor;
-    const newValue = this.interpolation.evaluate(flags, this.$scope!, this.locator, this.part);
+    const newValue = this.interpolation.evaluate(flags, this.$scope!, this.$hostScope, this.locator);
 
     // todo(fred): maybe let the observer decides whether it updates
     if (newValue !== oldValue) {
@@ -155,12 +153,12 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
     if ((this.mode & oneTime) === 0) {
       this.version++;
-      this.sourceExpression.connect(flags, this.$scope!, interceptor, this.part);
+      this.sourceExpression.connect(flags, this.$scope!, this.$hostScope, interceptor);
       interceptor.unobserve(false);
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -170,11 +168,11 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
     this.isBound = true;
     this.$scope = scope;
-    this.part = part;
+    this.$hostScope = hostScope;
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.bind) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+      sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
     const targetObserver = this.targetObserver;
@@ -187,10 +185,10 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     // since the interpolation already gets the whole value, we only need to let the first
     // text binding do the update if there are multiple
     if (this.isFirst) {
-      this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
+      this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, hostScope, this.locator), flags);
     }
     if ((mode & toView) > 0) {
-      sourceExpression.connect(flags, scope, this.interceptor, part);
+      sourceExpression.connect(flags, scope, hostScope, this.interceptor);
     }
   }
 
@@ -202,7 +200,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
     const sourceExpression = this.sourceExpression;
     if (sourceExpression.unbind) {
-      sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+      sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
 
     const targetObserver = this.targetObserver;

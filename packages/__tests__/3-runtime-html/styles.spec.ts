@@ -205,6 +205,7 @@ describe('Styles', function () {
         host,
         ctx.container,
         void 0,
+        null,
       );
 
       const seq = NodeSequence.empty;

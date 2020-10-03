@@ -4,7 +4,6 @@ import {
   Constructable,
   IContainer,
   kebabCase,
-  PLATFORM,
   ISink,
   ILogEvent,
   LoggerConfiguration,
@@ -37,6 +36,15 @@ import {
   CustomElementDefinition,
   HydrateElementInstruction,
   Aurelia,
+  IProjections,
+  ITargetedInstruction,
+  CustomElementType,
+  AuSlot,
+  RegisteredProjections,
+  TargetedInstructionType,
+  AuSlotContentType,
+  IScope,
+  Scope,
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
 import {
@@ -46,7 +54,9 @@ import {
   TestContext,
   verifyBindingInstructionsEqual,
   generateCartesianProduct,
+  createScopeForTest,
 } from '@aurelia/testing';
+import { ITemplateElementFactory } from '@aurelia/jit-html';
 
 export function createAttribute(name: string, value: string): Attr {
   const attr = document.createAttribute(name);
@@ -119,7 +129,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         });
 
         it('throws on attributes that require to be unique', function () {
-          const attrs = ['id', 'replace'];
+          const attrs = ['id'];
           attrs.forEach(attr => {
             assert.throws(
               () => compileWith(`<template ${attr}="${attr}"></template>`, []),
@@ -398,7 +408,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
     function compileWith(markup: string | Element, extraResources: any[] = []) {
       extraResources.forEach(e => container.register(e));
       const templateDefinition: PartialCustomElementDefinition = { template: markup, instructions: [], surrogates: [] } as unknown as PartialCustomElementDefinition;
-      return sut.compile(templateDefinition, container);
+      return sut.compile(templateDefinition, container, null);
     }
 
     function verifyInstructions(actual: readonly any[], expectation: IExpectedInstruction[], type?: string) {
@@ -505,8 +515,8 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         template: ctx.createElementFromMarkup(`<template><au-m class="au"></au-m></template>`),
         instructions: [[childInstr]],
         needsCompile: false,
-        scopeParts: [],
         enhance: false,
+        projectionsMap: new Map<ITargetedInstruction, IProjections>(),
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -520,8 +530,8 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       template: ctx.createElementFromMarkup(`<template><div><au-m class="au"></au-m></div></template>`),
       instructions: [[instruction]],
       needsCompile: false,
-      scopeParts: [],
       enhance: false,
+      projectionsMap: new Map<ITargetedInstruction, IProjections>(),
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   } else {
@@ -544,8 +554,8 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         template: ctx.createElementFromMarkup(tagName === 'template' ? compiledMarkup : `<template>${compiledMarkup}</template>`),
         instructions,
         needsCompile: false,
-        scopeParts: [],
         enhance: false,
+        projectionsMap: new Map<ITargetedInstruction, IProjections>(),
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -560,8 +570,8 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       template: ctx.createElementFromMarkup(finalize ? `<template><div><au-m class="au"></au-m></div></template>` : `<au-m class="au"></au-m>`),
       instructions: [[instruction]],
       needsCompile: false,
-      scopeParts: [],
       enhance: false,
+      projectionsMap: new Map<ITargetedInstruction, IProjections>(),
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   }
@@ -582,7 +592,7 @@ function createCustomElement(
     type: TT.hydrateElement,
     res: tagName,
     instructions: childInstructions,
-    parts: PLATFORM.emptyObject
+    slotInfo: null,
   };
   const attributeMarkup = attributes.map(a => `${a[0]}="${a[1]}"`).join(' ');
   const rawMarkup = `<${tagName} ${attributeMarkup}>${(childInput && childInput.template) || ''}</${tagName}>`;
@@ -600,8 +610,8 @@ function createCustomElement(
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
-    scopeParts: [],
     enhance: false,
+    projectionsMap: new Map<ITargetedInstruction, IProjections>(),
   };
   return [input, output];
 }
@@ -638,8 +648,8 @@ function createCustomAttribute(
     template: finalize ? ctx.createElementFromMarkup(`<template><div>${outputMarkup.outerHTML}</div></template>`) : outputMarkup,
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
-    scopeParts: [],
     enhance: false,
+    projectionsMap: new Map<ITargetedInstruction, IProjections>(),
   };
   return [input, output];
 }
@@ -756,13 +766,13 @@ describe(`TemplateCompiler - combinations`, function () {
           instructions: [[i1]],
           surrogates: [],
           needsCompile: false,
-          scopeParts: [],
           enhance: false,
+          projectionsMap: new Map<ITargetedInstruction, IProjections>(),
         };
 
         const { sut, container } = createFixture(ctx);
 
-        const actual = sut.compile(input, container);
+        const actual = sut.compile(input, container, null);
 
         verifyBindingInstructionsEqual(actual, expected);
       });
@@ -829,14 +839,14 @@ describe(`TemplateCompiler - combinations`, function () {
           instructions: [[instruction]],
           surrogates: [],
           needsCompile: false,
-          scopeParts: [],
           enhance: false,
+          projectionsMap: new Map<ITargetedInstruction, IProjections>(),
         };
 
         const $def = CustomAttribute.define(def, ctor);
         const { sut, container } = createFixture(ctx, $def);
 
-        const actual = sut.compile(input, container);
+        const actual = sut.compile(input, container, null);
 
         verifyBindingInstructionsEqual(actual, expected);
       });
@@ -894,7 +904,7 @@ describe(`TemplateCompiler - combinations`, function () {
         if (attrName.endsWith('.qux')) {
           let e;
           try {
-            sut.compile(input, container);
+            sut.compile(input, container, null);
           } catch (err) {
             // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
             // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
@@ -904,7 +914,7 @@ describe(`TemplateCompiler - combinations`, function () {
         } else {
           // enableTracing();
           // Tracer.enableLiveLogging(SymbolTraceWriter);
-          const actual = sut.compile(input, container);
+          const actual = sut.compile(input, container, null);
           // console.log('\n'+stringifyTemplateDefinition(actual, 0));
           // disableTracing();
           try {
@@ -969,7 +979,7 @@ describe(`TemplateCompiler - combinations`, function () {
           CustomAttribute.define({ name: 'qux', isTemplateController: true }, class Qux {})
         );
 
-        const actual = sut.compile(input, container);
+        const actual = sut.compile(input, container, null);
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch (err) {
@@ -1031,7 +1041,7 @@ describe(`TemplateCompiler - combinations`, function () {
           CustomAttribute.define({ name: 'quux', isTemplateController: true }, class Quux {})
         );
 
-        const actual = sut.compile(input, container);
+        const actual = sut.compile(input, container, null);
         try {
           verifyBindingInstructionsEqual(actual, output);
         } catch (err) {
@@ -1095,12 +1105,12 @@ describe(`TemplateCompiler - combinations`, function () {
           template: ctx.createElementFromMarkup(`<template><div>${output1.template['outerHTML']}${output2.template['outerHTML']}${output3.template['outerHTML']}</div></template>`),
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
           needsCompile: false,
-          scopeParts: [],
           enhance: false,
+          projectionsMap: new Map<ITargetedInstruction, IProjections>(),
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);
-        const actual = sut.compile(input, container);
+        const actual = sut.compile(input, container, null);
         // console.log('\n'+stringifyTemplateDefinition(actual, 0));
         // disableTracing();
         try {
@@ -1173,7 +1183,7 @@ describe(`TemplateCompiler - combinations`, function () {
         if (attrName.endsWith('.qux')) {
           let e;
           try {
-            sut.compile(input, container);
+            sut.compile(input, container, null);
           } catch (err) {
             // console.log('EXPECTED: ', JSON.stringify(output.instructions[0][0], null, 2));
             // console.log('ACTUAL: ', JSON.stringify(actual.instructions[0][0], null, 2));
@@ -1183,7 +1193,7 @@ describe(`TemplateCompiler - combinations`, function () {
         } else {
           // enableTracing();
           // Tracer.enableLiveLogging(SymbolTraceWriter);
-          const actual = sut.compile(input, container);
+          const actual = sut.compile(input, container, null);
           // console.log('\n'+stringifyTemplateDefinition(actual, 0));
           // disableTracing();
           try {
@@ -1231,7 +1241,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);
-        const actual = sut.compile(input, container);
+        const actual = sut.compile(input, container, null);
         // console.log('\n'+stringifyTemplateDefinition(actual, 0));
         // disableTracing();
         try {
@@ -1363,7 +1373,7 @@ describe('TemplateCompiler - local templates', function () {
   for (const { template, verifyDefinition, expectedContent } of getLocalTemplateTestData()) {
     it(template, function () {
       const { container, sut } = createFixture();
-      const definition = sut.compile({ name: 'lorem-ipsum', template }, container);
+      const definition = sut.compile({ name: 'lorem-ipsum', template }, container, null);
       verifyDefinition(definition, ResourceModel.getOrCreate(container));
     });
     if (template.includes(`mode="fromView"`)) { continue; }
@@ -1502,7 +1512,7 @@ describe('TemplateCompiler - local templates', function () {
   it('throws error if a root template is a local template', function () {
     const template = `<template as-custom-element="foo-bar">I have local root!</template>`;
     const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'The root cannot be a local template itself.');
+    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The root cannot be a local template itself.');
   });
 
   it('throws error if the custom element has only local templates', function () {
@@ -1511,25 +1521,25 @@ describe('TemplateCompiler - local templates', function () {
     <template as-custom-element="fiz-baz">Of course not!</template>
     `;
     const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'The custom element does not have any content other than local template(s).');
+    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The custom element does not have any content other than local template(s).');
   });
 
   it('throws error if a local template is not under root', function () {
     const template = `<div><template as-custom-element="foo-bar">Can I hide here?</template></div>`;
     const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'Local templates needs to be defined directly under root.');
+    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'Local templates needs to be defined directly under root.');
   });
 
   it('throws error if a local template does not have name', function () {
     const template = `<template as-custom-element="">foo-bar</template><div></div>`;
     const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'The value of "as-custom-element" attribute cannot be empty for local template');
+    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The value of "as-custom-element" attribute cannot be empty for local template');
   });
 
   it('throws error if a duplicate local templates are found', function () {
     const template = `<template as-custom-element="foo-bar">foo-bar1</template><template as-custom-element="foo-bar">foo-bar2</template><div></div>`;
     const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'Duplicate definition of the local template named foo-bar');
+    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'Duplicate definition of the local template named foo-bar');
   });
 
   it('throws error if bindable is not under root', function () {
@@ -1540,7 +1550,7 @@ describe('TemplateCompiler - local templates', function () {
     </template>
     <div></div>`;
     const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'Bindable properties of local templates needs to be defined directly under root.');
+    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'Bindable properties of local templates needs to be defined directly under root.');
   });
 
   it('throws error if bindable property is missing', function () {
@@ -1549,7 +1559,7 @@ describe('TemplateCompiler - local templates', function () {
     </template>
     <div></div>`;
     const { container, sut } = createFixture();
-    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'The attribute \'property\' is missing in <bindable attribute="prop"></bindable>');
+    assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The attribute \'property\' is missing in <bindable attribute="prop"></bindable>');
   });
 
   it('throws error if duplicate bindable properties are found', function () {
@@ -1560,7 +1570,7 @@ describe('TemplateCompiler - local templates', function () {
     <div></div>`;
     const { container, sut } = createFixture();
     assert.throws(
-      () => sut.compile({ name: 'lorem-ipsum', template }, container),
+      () => sut.compile({ name: 'lorem-ipsum', template }, container, null),
       'Bindable property and attribute needs to be unique; found property: prop, attribute: '
     );
   });
@@ -1573,7 +1583,7 @@ describe('TemplateCompiler - local templates', function () {
     <div></div>`;
     const { container, sut } = createFixture();
     assert.throws(
-      () => sut.compile({ name: 'lorem-ipsum', template }, container),
+      () => sut.compile({ name: 'lorem-ipsum', template }, container, null),
       'Bindable property and attribute needs to be unique; found property: prop2, attribute: bar'
     );
   });
@@ -1585,7 +1595,7 @@ describe('TemplateCompiler - local templates', function () {
     <div></div>`;
     const { container, sut } = createFixture();
 
-    sut.compile({ name: 'lorem-ipsum', template }, container);
+    sut.compile({ name: 'lorem-ipsum', template }, container, null);
     const sinks = container.get(DefaultLogger)['warnSinks'] as ISink[];
     const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
     assert.strictEqual(eventLog.log.length, 1, `eventLog.log.length`);
@@ -1597,4 +1607,148 @@ describe('TemplateCompiler - local templates', function () {
     );
   });
 
+});
+
+describe('TemplateCompiler - au-slot', function () {
+  function createFixture() {
+    const ctx = TestContext.createHTMLTestContext();
+    const container = ctx.container;
+    const sut = ctx.templateCompiler;
+    return { ctx, container, sut };
+  }
+  function $createCustomElement(template: string, name: string = 'my-element') {
+    return CustomElement.define({ name, isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, }, class MyElement { });
+  }
+  type ProjectionMap = Map<ITargetedInstruction, Record<string, CustomElementDefinition>>;
+
+  class ExpectedSlotInfo {
+    public constructor(
+      public readonly slotName: string,
+      public readonly contentType: AuSlotContentType,
+      public readonly content: string,
+      public readonly scope: IScope | null = null,
+    ) { }
+  }
+  class TestData {
+    public constructor(
+      public readonly template: string,
+      public readonly customElements: CustomElementType[],
+      public readonly partialTargetedProjections: [Scope, Record<string, string>] | null,
+      public readonly expectedProjections: [string, Record<string, string>][],
+      public readonly expectedSlotInfos: ExpectedSlotInfo[],
+    ) {
+      this.getTargetedProjections = this.getTargetedProjections.bind(this);
+    }
+
+    public getTargetedProjections(factory: ITemplateElementFactory) {
+      if (this.partialTargetedProjections === null) { return null; }
+      const [scope, projections] = this.partialTargetedProjections;
+      return new RegisteredProjections(
+        scope,
+        Object.entries(projections)
+          .reduce((acc: Record<string, CustomElementDefinition>, [key, template]) => {
+            acc[key] = CustomElementDefinition.create({ name: CustomElement.generateName(), template: factory.createTemplate(template), needsCompile: false });
+            return acc;
+          }, Object.create(null))
+      );
+    }
+  }
+  function* getTestData() {
+    yield new TestData(
+      `<my-element><div au-slot></div></my-element>`,
+      [$createCustomElement('')],
+      null,
+      [['my-element', { 'default': '<div></div>' }]],
+      [],
+    );
+    yield new TestData(
+      `<my-element><div au-slot="s1">p1</div><div au-slot="s2">p2</div></my-element>`,
+      [$createCustomElement('')],
+      null,
+      [['my-element', { 's1': '<div>p1</div>', 's2': '<div>p2</div>' }]],
+      [],
+    );
+    yield new TestData(
+      `<au-slot name="s1">s1fb</au-slot><au-slot name="s2"><div>s2fb</div></au-slot>`,
+      [],
+      null,
+      [],
+      [
+        new ExpectedSlotInfo('s1', AuSlotContentType.Fallback, 's1fb'),
+        new ExpectedSlotInfo('s2', AuSlotContentType.Fallback, '<div>s2fb</div>'),
+      ],
+    );
+    const scope1 = createScopeForTest();
+    yield new TestData(
+      `<au-slot name="s1">s1fb</au-slot><au-slot name="s2"><div>s2fb</div></au-slot>`,
+      [],
+      [scope1, { s1: '<span>s1p</span>' }],
+      [],
+      [
+        new ExpectedSlotInfo('s1', AuSlotContentType.Projection, '<span>s1p</span>', scope1),
+        new ExpectedSlotInfo('s2', AuSlotContentType.Fallback, '<div>s2fb</div>'),
+      ],
+    );
+    yield new TestData(
+      `<au-slot name="s1">s1fb</au-slot><au-slot name="s2"><div>s2fb</div></au-slot>`,
+      [],
+      [scope1, { s1: '<span>s1p</span>', s2: '<div><span>s2p</span></div>' }],
+      [],
+      [
+        new ExpectedSlotInfo('s1', AuSlotContentType.Projection, '<span>s1p</span>', scope1),
+        new ExpectedSlotInfo('s2', AuSlotContentType.Projection, '<div><span>s2p</span></div>', scope1),
+      ],
+    );
+    yield new TestData(
+      `<au-slot name="s1">s1fb</au-slot><my-element><div au-slot>p</div></my-element>`,
+      [$createCustomElement('')],
+      [scope1, { s1: '<span>s1p</span>' }],
+      [['my-element', { 'default': '<div>p</div>' }]],
+      [
+        new ExpectedSlotInfo('s1', AuSlotContentType.Projection, '<span>s1p</span>', scope1),
+      ],
+    );
+  }
+  for (const { customElements, template, getTargetedProjections, expectedProjections, expectedSlotInfos } of getTestData()) {
+    it(`compiles - ${template}`, function () {
+      const { sut, container } = createFixture();
+      container.register(AuSlot, ...customElements);
+      const factory = container.get(ITemplateElementFactory);
+
+      const compiledDefinition = sut.compile(
+        CustomElementDefinition.create({ name: 'my-ce', template }, class MyCe { }),
+        container,
+        getTargetedProjections(factory)
+      );
+
+      const actual = Array.from(compiledDefinition.projectionsMap);
+      const ii = actual.length;
+      assert.strictEqual(ii, expectedProjections.length, 'actual.size');
+      for (let i = 0; i < ii; i++) {
+        const [ceName, ep] = expectedProjections[i];
+        const [instruction, ap] = actual[i];
+        assert.includes((instruction as HydrateElementInstruction).res, ceName);
+        assert.deepStrictEqual(Object.keys(ap), Object.keys(ep));
+        for (const [key, { template: actualTemplate }] of Object.entries(ap)) {
+          assert.deepStrictEqual((actualTemplate as HTMLTemplateElement).outerHTML, `<template>${ep[key]}</template>`, 'projections');
+        }
+      }
+
+      const allInstructions = compiledDefinition.instructions.flat();
+      for (const expectedSlotInfo of expectedSlotInfos) {
+        const actualInstruction = allInstructions.find((i) =>
+          i.type === TargetedInstructionType.hydrateElement
+          && (i as HydrateElementInstruction).res.includes('au-slot')
+          && (i as HydrateElementInstruction).slotInfo.name === expectedSlotInfo.slotName
+        ) as HydrateElementInstruction;
+        assert.notEqual(actualInstruction, void 0, 'instruction');
+        const actualSlotInfo = actualInstruction.slotInfo;
+        assert.strictEqual(actualSlotInfo.type, expectedSlotInfo.contentType, 'content type');
+        const pCtx = actualSlotInfo.projectionContext;
+        assert.deepStrictEqual(pCtx.scope, expectedSlotInfo.scope, 'scope');
+        assert.deepStrictEqual((pCtx.content.template as HTMLElement).outerHTML, `<template>${expectedSlotInfo.content}</template>`, 'content');
+        assert.deepStrictEqual(pCtx.content.needsCompile, false, 'needsCompile');
+      }
+    });
+  }
 });

@@ -150,7 +150,6 @@ describe('TranslationBindingRenderer', function () {
       controller,
       DOM.createElement('span'),
       callBindingInstruction,
-      void 0,
     );
 
     assert.instanceOf(controller.bindings[0], TranslationBinding);
@@ -172,7 +171,6 @@ describe('TranslationBindingRenderer', function () {
       controller,
       targetElement,
       callBindingInstruction,
-      void 0,
     );
 
     assert.equal(binding.expr, from);
@@ -297,7 +295,6 @@ describe('TranslationBindBindingRenderer', function () {
       controller,
       DOM.createElement('span'),
       callBindingInstruction,
-      void 0,
     );
 
     assert.instanceOf(controller.bindings[0], TranslationBinding);
@@ -317,7 +314,6 @@ describe('TranslationBindBindingRenderer', function () {
       controller,
       DOM.createElement('span'),
       callBindingInstruction,
-      void 0,
     );
 
     assert.instanceOf(controller.bindings[0], TranslationBinding);
@@ -339,7 +335,6 @@ describe('TranslationBindBindingRenderer', function () {
       controller,
       targetElement,
       callBindingInstruction,
-      void 0,
     );
 
     assert.equal(binding.expr, from);

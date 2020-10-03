@@ -65,7 +65,7 @@ export class RenderPlan<T extends INode = Node> {
   }
 
   public getContext(parentContainer: IContainer): IRenderContext<T> {
-    return getRenderContext(this.definition, parentContainer, void 0);
+    return getRenderContext(this.definition, parentContainer);
   }
 
   public createView(parentContainer: IContainer): ISyntheticView<T> {
@@ -138,7 +138,7 @@ function createElementForType<T extends INode>(
     dependencies.push(Type);
   }
 
-  instructions.push(new HydrateElementInstruction(tagName, childInstructions));
+  instructions.push(new HydrateElementInstruction(tagName, childInstructions, null));
 
   if (props) {
     Object.keys(props)

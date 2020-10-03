@@ -67,15 +67,15 @@ describe('PropertyBinding', function () {
     dummyMode = BindingMode.twoWay;
   });
 
-  describe('constructor', function () {
-    const invalidInputs: any[] = [null, undefined, {}];
+  // describe('constructor', function () {
+  //   const invalidInputs: any[] = [null, undefined, {}];
 
-    for (const ii of invalidInputs) {
-      it(`throws on invalid input parameters of type ${getName(ii)}`, function () {
-        assert.throws(() => new PropertyBinding(ii, ii, ii, ii, ii, ii, ii), `() => new PropertyBinding(ii, ii, ii, ii, ii, ii)`);
-      });
-    }
-  });
+  //   for (const ii of invalidInputs) {
+  //     it(`throws on invalid input parameters of type ${getName(ii)}`, function () {
+  //       assert.throws(() => new PropertyBinding(ii, ii, ii, ii, ii, ii, ii), `() => new PropertyBinding(ii, ii, ii, ii, ii, ii)`);
+  //     });
+  //   }
+  // });
 
   describe('updateTarget()', function () {
     return;

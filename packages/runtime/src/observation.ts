@@ -217,7 +217,6 @@ export const enum AccessorType {
  * Basic interface to normalize getting/setting a value of any property on any object
  */
 export interface IAccessor<TValue = unknown> {
-  task: ITask | null;
   type: AccessorType;
   getValue(): TValue;
   setValue(newValue: TValue, flags: LifecycleFlags): void;

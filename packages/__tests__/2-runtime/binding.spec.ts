@@ -25,6 +25,7 @@ import {
   verifyEqual,
   assert,
   createSpy,
+  AuDOM,
 } from '@aurelia/testing';
 
 /**
@@ -52,9 +53,10 @@ describe('PropertyBinding', function () {
     const container = RuntimeConfiguration.createContainer();
     const observerLocator = createObserverLocator(container);
     const lifecycle = container.get(ILifecycle);
-    const sut = new PropertyBinding(sourceExpression, target, targetProperty, mode, observerLocator, container);
+    const dom = new AuDOM();
+    const sut = new PropertyBinding(sourceExpression, target, targetProperty, mode, observerLocator, container, dom);
 
-    return { sut, lifecycle, container, observerLocator };
+    return { sut, lifecycle, dom, container, observerLocator };
   }
 
   // eslint-disable-next-line mocha/no-hooks
@@ -70,7 +72,7 @@ describe('PropertyBinding', function () {
 
     for (const ii of invalidInputs) {
       it(`throws on invalid input parameters of type ${getName(ii)}`, function () {
-        assert.throws(() => new PropertyBinding(ii, ii, ii, ii, ii, ii), `() => new PropertyBinding(ii, ii, ii, ii, ii, ii)`);
+        assert.throws(() => new PropertyBinding(ii, ii, ii, ii, ii, ii, ii), `() => new PropertyBinding(ii, ii, ii, ii, ii, ii)`);
       });
     }
   });
@@ -106,7 +108,8 @@ describe('PropertyBinding', function () {
     const container = RuntimeConfiguration.createContainer();
     const observerLocator = createObserverLocator(container);
     const target = {val: 0};
-    const sut = new PropertyBinding(expr as any, target, 'val', BindingMode.toView, observerLocator, container);
+    const dom = new AuDOM();
+    const sut = new PropertyBinding(expr as any, target, 'val', BindingMode.toView, observerLocator, container, dom);
     const scope = Scope.create(LF.none, ctx, null);
 
     sut.$bind(LF.fromBind, scope);

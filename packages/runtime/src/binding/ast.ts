@@ -480,11 +480,10 @@ export class AccessMemberExpression implements IAccessMemberExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, part?: string): unknown {
     const instance = this.object.evaluate(flags, scope, locator, part) as IIndexable;
-    const name = this.name;
     if (flags & LifecycleFlags.isStrictBindingStrategy) {
-      return instance == null ? instance : instance[name];
+      return instance == null ? instance : instance[this.name];
     }
-    return instance ? instance[name] : '';
+    return instance ? instance[this.name] : '';
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, value: unknown, part?: string): unknown {

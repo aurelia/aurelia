@@ -12,7 +12,7 @@ type $Getter = PropertyDescriptor['get'] & {
 
 export interface IObservableDecoratorDefinition {
   name?: PropertyKey;
-  changeHandler?: string;
+  changeHandler?: PropertyKey;
 }
 
 /**
@@ -41,7 +41,7 @@ type SetterObserverOwningObject = IIndexable<IBindingContext, PropertyObserver>;
 //    class {
 //      @observable prop
 //    }
-export function observable(target: Object, key: PropertyKey, descriptor?: PropertyDescriptor): void;
+export function observable(target: Constructable['prototype'], key: PropertyKey, descriptor?: PropertyDescriptor): void;
 // for
 //    @observable({...})
 //    class {}
@@ -49,7 +49,7 @@ export function observable(target: Object, key: PropertyKey, descriptor?: Proper
 //    class {
 //      @observable({...}) prop
 //    }
-export function observable(config: IObservableDecoratorDefinition): (target: Function | Object, ...args: unknown[]) => void;
+export function observable(config: IObservableDecoratorDefinition): (target: Constructable | Constructable['prototype'], ...args: unknown[]) => void;
 // for
 //    @observable('') class {}
 //    @observable(5) class {}
@@ -62,7 +62,7 @@ export function observable(key: PropertyKey): ClassDecorator;
 export function observable(): PropertyDecorator;
 // impl, wont be seen
 export function observable(
-  targetOrConfig?: Function | PropertyKey | IObservableDecoratorDefinition,
+  targetOrConfig?: Constructable | Constructable['prototype'] | PropertyKey | IObservableDecoratorDefinition,
   key?: PropertyKey,
   descriptor?: PropertyDescriptor
 ): ClassDecorator | PropertyDecorator {
@@ -80,16 +80,16 @@ export function observable(
     //      @observable() prop
     //      @observable({ changeHandler: ... }) prop2
     //    }
-    return ((t: Function, k: PropertyKey, d: PropertyDescriptor) => deco(t, k, d, targetOrConfig)) as ClassDecorator;
+    return ((t: Constructable, k: PropertyKey, d: PropertyDescriptor) => deco(t, k, d, targetOrConfig)) as ClassDecorator;
   }
   // for:
   //    class {
   //      @observable prop
   //    }
-  return deco(targetOrConfig as Function, key, descriptor) as PropertyDecorator;
+  return deco(targetOrConfig as Constructable, key, descriptor) as PropertyDecorator;
 
   function deco(
-    target: Function,
+    target: Constructable | Constructable['prototype'],
     key?: PropertyKey,
     descriptor?: PropertyDescriptor & { initializer?: CallableFunction },
     config?: PropertyKey | IObservableDecoratorDefinition,
@@ -151,11 +151,14 @@ export function observable(
   }
 }
 
-class CallbackSubscriber implements ISubscriber {
+type ChangeHandlerCallback =
+  (this: SetterObserverOwningObject, value: unknown, oldValue: unknown, key: PropertyKey) => void;
+
+  class CallbackSubscriber implements ISubscriber {
   public constructor(
     private readonly obj: SetterObserverOwningObject,
     private readonly key: PropertyKey,
-    private readonly cb: Function,
+    private readonly cb: ChangeHandlerCallback,
   ) {}
 
   public handleChange(value: unknown, oldValue: unknown): void {

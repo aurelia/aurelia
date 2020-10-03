@@ -14,7 +14,7 @@ describe('SelfBindingBehavior', function () {
     container = DI.createContainer();
     Registration.instance(IScheduler, { }).register(container);
     sut = new SelfBindingBehavior();
-    binding = new PropertyBinding(undefined, undefined, undefined, undefined, undefined, container as any);
+    binding = new PropertyBinding(undefined, undefined, undefined, undefined, undefined, container as any, {} as any);
     originalCallSource = binding['callSource'] = function () { return; };
     binding['targetEvent'] = 'foo';
     sut.bind(undefined, undefined, binding as any);

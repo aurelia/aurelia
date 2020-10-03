@@ -77,10 +77,9 @@ class Foo {}
 describe('SetterObserver', function () {
   function createFixture(flags: LF, obj: IIndexable, key: string) {
     const ctx = TestContext.createHTMLTestContext();
-    const lifecycle = ctx.lifecycle;
-    const sut = new SetterObserver(lifecycle, flags, obj, key);
+    const sut = new SetterObserver(flags, obj, key);
 
-    return { sut };
+    return { ctx, sut };
   }
 
   describe('getValue()', function () {

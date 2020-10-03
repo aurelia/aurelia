@@ -20,7 +20,6 @@ import {
   IScheduler,
   INode,
   CustomElementDefinition,
-  ITask,
   AccessorType,
   IDOM,
 } from '@aurelia/runtime';

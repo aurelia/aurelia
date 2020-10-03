@@ -1,8 +1,5 @@
 import { PLATFORM, Primitive } from '@aurelia/kernel';
 import { IAccessor, ISubscribable, AccessorType } from '../observation';
-import { ITask } from '@aurelia/scheduler';
-
-const slice = Array.prototype.slice;
 
 const noop = PLATFORM.noop;
 

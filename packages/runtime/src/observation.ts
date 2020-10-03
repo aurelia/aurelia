@@ -1,7 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from './flags';
 import { ILifecycle } from './lifecycle';
-import { ITask } from '@aurelia/scheduler';
 
 /** @internal */
 export const enum SubscriberFlags {

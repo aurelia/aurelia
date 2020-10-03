@@ -40,8 +40,8 @@ export function padRight(input: unknown, len: number): string {
   return str + new Array(len - strLen + 1).join(' ');
 }
 
-const $nil: any = undefined;
-const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
+// const $nil: any = undefined;
+// const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
 describe('PropertyBinding', function () {
   let dummySourceExpression: IExpression;

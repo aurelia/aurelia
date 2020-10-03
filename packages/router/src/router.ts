@@ -862,7 +862,7 @@ export class Router implements IRouter {
     let scope: Scope | null = null;
     ({ instructions, scope } = NavigationInstructionResolver.createViewportInstructions(this, instructions, toOptions));
 
-    if (options.append && this.processingNavigation) {
+    if (options.append && (!this.loadedFirst || this.processingNavigation !== null)) {
       instructions = NavigationInstructionResolver.toViewportInstructions(this, instructions);
       this.appendInstructions(instructions as ViewportInstruction[], scope);
       // Can't return current navigation promise since it can lead to deadlock in load

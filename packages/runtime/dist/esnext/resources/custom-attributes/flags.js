@@ -24,7 +24,7 @@ class FlagsTemplateController {
     }
     afterAttach(initiator, parent, flags) {
         const { $controller } = this;
-        return this.view.activate(initiator, $controller, flags | this.flags, $controller.scope, $controller.part);
+        return this.view.activate(initiator, $controller, flags | this.flags, $controller.scope, $controller.hostScope);
     }
     afterUnbind(initiator, parent, flags) {
         return this.view.deactivate(initiator, this.$controller, flags);

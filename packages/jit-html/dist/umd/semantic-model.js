@@ -9,7 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.PlainAttributeSymbol = exports.CustomAttributeSymbol = exports.BindingSymbol = exports.TextSymbol = exports.TemplateControllerSymbol = exports.ReplacePartSymbol = exports.PlainElementSymbol = exports.LetElementSymbol = exports.CustomElementSymbol = void 0;
+    exports.PlainAttributeSymbol = exports.CustomAttributeSymbol = exports.BindingSymbol = exports.TextSymbol = exports.TemplateControllerSymbol = exports.ProjectionSymbol = exports.PlainElementSymbol = exports.LetElementSymbol = exports.CustomElementSymbol = void 0;
     const jit_1 = require("@aurelia/jit");
     Object.defineProperty(exports, "BindingSymbol", { enumerable: true, get: function () { return jit_1.BindingSymbol; } });
     Object.defineProperty(exports, "CustomAttributeSymbol", { enumerable: true, get: function () { return jit_1.CustomAttributeSymbol; } });
@@ -17,7 +17,7 @@
     exports.CustomElementSymbol = jit_1.CustomElementSymbol;
     exports.LetElementSymbol = jit_1.LetElementSymbol;
     exports.PlainElementSymbol = jit_1.PlainElementSymbol;
-    exports.ReplacePartSymbol = jit_1.ReplacePartSymbol;
+    exports.ProjectionSymbol = jit_1.ProjectionSymbol;
     exports.TemplateControllerSymbol = jit_1.TemplateControllerSymbol;
     exports.TextSymbol = jit_1.TextSymbol;
 });

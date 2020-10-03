@@ -2,6 +2,7 @@ import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './
 import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, ILetBindingInstruction, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, ITargetedInstruction, TargetedInstructionType } from './definitions';
 import { BindingMode } from './flags';
 import { PartialCustomElementDefinition } from './resources/custom-element';
+import { SlotInfo } from './resources/custom-elements/au-slot';
 export declare class InterpolationInstruction implements IInterpolationInstruction {
     from: string | IInterpolationExpression;
     to: string;
@@ -67,49 +68,9 @@ export declare class SetPropertyInstruction implements ISetPropertyInstruction {
 export declare class HydrateElementInstruction implements IHydrateElementInstruction {
     res: string;
     instructions: ITargetedInstruction[];
-    parts?: Record<string, import("@aurelia/kernel").PartialResourceDefinition<{
-        readonly cache?: number | "*" | undefined;
-        readonly template?: unknown;
-        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
-        readonly dependencies?: readonly import("@aurelia/kernel").Key[] | undefined;
-        readonly injectable?: import("./resources/custom-element").InjectableToken<any> | null | undefined;
-        readonly needsCompile?: boolean | undefined;
-        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
-        readonly bindables?: readonly string[] | Record<string, import(".").PartialBindableDefinition> | undefined;
-        readonly childrenObservers?: Record<string, import(".").PartialChildrenDefinition<import("./dom").INode>> | undefined;
-        readonly containerless?: boolean | undefined;
-        readonly isStrictBinding?: boolean | undefined;
-        readonly shadowOptions?: {
-            mode: "open" | "closed";
-        } | null | undefined;
-        readonly hasSlots?: boolean | undefined;
-        readonly strategy?: import("./flags").BindingStrategy | undefined;
-        readonly hooks?: Readonly<import("./definitions").HooksDefinition> | undefined;
-        readonly scopeParts?: readonly string[] | undefined;
-        readonly enhance?: boolean | undefined;
-    }>> | undefined;
+    slotInfo: SlotInfo | null;
     type: TargetedInstructionType.hydrateElement;
-    constructor(res: string, instructions: ITargetedInstruction[], parts?: Record<string, import("@aurelia/kernel").PartialResourceDefinition<{
-        readonly cache?: number | "*" | undefined;
-        readonly template?: unknown;
-        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
-        readonly dependencies?: readonly import("@aurelia/kernel").Key[] | undefined;
-        readonly injectable?: import("./resources/custom-element").InjectableToken<any> | null | undefined;
-        readonly needsCompile?: boolean | undefined;
-        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
-        readonly bindables?: readonly string[] | Record<string, import(".").PartialBindableDefinition> | undefined;
-        readonly childrenObservers?: Record<string, import(".").PartialChildrenDefinition<import("./dom").INode>> | undefined;
-        readonly containerless?: boolean | undefined;
-        readonly isStrictBinding?: boolean | undefined;
-        readonly shadowOptions?: {
-            mode: "open" | "closed";
-        } | null | undefined;
-        readonly hasSlots?: boolean | undefined;
-        readonly strategy?: import("./flags").BindingStrategy | undefined;
-        readonly hooks?: Readonly<import("./definitions").HooksDefinition> | undefined;
-        readonly scopeParts?: readonly string[] | undefined;
-        readonly enhance?: boolean | undefined;
-    }>> | undefined);
+    constructor(res: string, instructions: ITargetedInstruction[], slotInfo: SlotInfo | null);
 }
 export declare class HydrateAttributeInstruction implements IHydrateAttributeInstruction {
     res: string;
@@ -122,49 +83,8 @@ export declare class HydrateTemplateController implements IHydrateTemplateContro
     res: string;
     instructions: ITargetedInstruction[];
     link?: boolean | undefined;
-    parts?: Record<string, import("@aurelia/kernel").PartialResourceDefinition<{
-        readonly cache?: number | "*" | undefined;
-        readonly template?: unknown;
-        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
-        readonly dependencies?: readonly import("@aurelia/kernel").Key[] | undefined;
-        readonly injectable?: import("./resources/custom-element").InjectableToken<any> | null | undefined;
-        readonly needsCompile?: boolean | undefined;
-        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
-        readonly bindables?: readonly string[] | Record<string, import(".").PartialBindableDefinition> | undefined;
-        readonly childrenObservers?: Record<string, import(".").PartialChildrenDefinition<import("./dom").INode>> | undefined;
-        readonly containerless?: boolean | undefined;
-        readonly isStrictBinding?: boolean | undefined;
-        readonly shadowOptions?: {
-            mode: "open" | "closed";
-        } | null | undefined;
-        readonly hasSlots?: boolean | undefined;
-        readonly strategy?: import("./flags").BindingStrategy | undefined;
-        readonly hooks?: Readonly<import("./definitions").HooksDefinition> | undefined;
-        readonly scopeParts?: readonly string[] | undefined;
-        readonly enhance?: boolean | undefined;
-    }>> | undefined;
     type: TargetedInstructionType.hydrateTemplateController;
-    constructor(def: PartialCustomElementDefinition, res: string, instructions: ITargetedInstruction[], link?: boolean | undefined, parts?: Record<string, import("@aurelia/kernel").PartialResourceDefinition<{
-        readonly cache?: number | "*" | undefined;
-        readonly template?: unknown;
-        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
-        readonly dependencies?: readonly import("@aurelia/kernel").Key[] | undefined;
-        readonly injectable?: import("./resources/custom-element").InjectableToken<any> | null | undefined;
-        readonly needsCompile?: boolean | undefined;
-        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
-        readonly bindables?: readonly string[] | Record<string, import(".").PartialBindableDefinition> | undefined;
-        readonly childrenObservers?: Record<string, import(".").PartialChildrenDefinition<import("./dom").INode>> | undefined;
-        readonly containerless?: boolean | undefined;
-        readonly isStrictBinding?: boolean | undefined;
-        readonly shadowOptions?: {
-            mode: "open" | "closed";
-        } | null | undefined;
-        readonly hasSlots?: boolean | undefined;
-        readonly strategy?: import("./flags").BindingStrategy | undefined;
-        readonly hooks?: Readonly<import("./definitions").HooksDefinition> | undefined;
-        readonly scopeParts?: readonly string[] | undefined;
-        readonly enhance?: boolean | undefined;
-    }>> | undefined);
+    constructor(def: PartialCustomElementDefinition, res: string, instructions: ITargetedInstruction[], link?: boolean | undefined);
 }
 export declare class LetElementInstruction implements IHydrateLetElementInstruction {
     instructions: ILetBindingInstruction[];

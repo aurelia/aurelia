@@ -17,7 +17,6 @@ import { InterpolationBinding, MultiInterpolationBinding } from './binding/inter
 import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
-import { mergeParts } from './definitions';
 import { BindingMode } from './flags';
 import { ILifecycle, } from './lifecycle';
 import { IObserverLocator } from './observation/observer-locator';
@@ -71,7 +70,7 @@ let Renderer = /** @class */ (() => {
         static register(container) {
             return Registration.singleton(IRenderer, this).register(container);
         }
-        render(flags, context, controller, targets, definition, host, parts) {
+        render(flags, context, controller, targets, definition, host) {
             const targetInstructions = definition.instructions;
             if (targets.length !== targetInstructions.length) {
                 throw new Error(`The compiled template is not aligned with the render instructions. There are ${targets.length} targets and ${targetInstructions.length} instructions.`);
@@ -82,8 +81,7 @@ let Renderer = /** @class */ (() => {
                 /* context      */ context, 
                 /* instructions */ targetInstructions[i], 
                 /* controller   */ controller, 
-                /* target       */ targets[i], 
-                /* parts        */ parts);
+                /* target       */ targets[i]);
             }
             if (host !== void 0 && host !== null) {
                 this.renderInstructions(
@@ -91,16 +89,15 @@ let Renderer = /** @class */ (() => {
                 /* context      */ context, 
                 /* instructions */ definition.surrogates, 
                 /* controller   */ controller, 
-                /* target       */ host, 
-                /* parts        */ parts);
+                /* target       */ host);
             }
         }
-        renderInstructions(flags, context, instructions, controller, target, parts) {
+        renderInstructions(flags, context, instructions, controller, target) {
             const instructionRenderers = this.instructionRenderers;
             let current;
             for (let i = 0, ii = instructions.length; i < ii; ++i) {
                 current = instructions[i];
-                instructionRenderers[current.type](flags, context, controller, target, current, parts);
+                instructionRenderers[current.type](flags, context, controller, target, current);
             }
         }
     };
@@ -175,32 +172,36 @@ let CustomElementRenderer = /** @class */ (() => {
     let CustomElementRenderer = 
     /** @internal */
     class CustomElementRenderer {
-        render(flags, context, controller, target, instruction, parts) {
-            parts = mergeParts(parts, instruction.parts);
+        render(flags, context, controller, target, instruction) {
+            let viewFactory;
+            const slotInfo = instruction.slotInfo;
+            if (slotInfo !== null) {
+                const projectionCtx = slotInfo.projectionContext;
+                viewFactory = getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
+            }
             const factory = context.getComponentFactory(
             /* parentController */ controller, 
             /* host             */ target, 
             /* instruction      */ instruction, 
-            /* viewFactory      */ void 0, 
+            /* viewFactory      */ viewFactory, 
             /* location         */ target);
             const key = CustomElement.keyFrom(instruction.res);
             const component = factory.createComponent(key);
             const lifecycle = context.get(ILifecycle);
             const childController = Controller.forCustomElement(
-            /* viewModel       */ component, 
-            /* lifecycle       */ lifecycle, 
-            /* host            */ target, 
-            /* parentContainer */ context, 
-            /* parts           */ parts, 
-            /* flags           */ flags);
+            /* viewModel           */ component, 
+            /* lifecycle           */ lifecycle, 
+            /* host                */ target, 
+            /* parentContainer     */ context, 
+            /* targetedProjections */ context.getProjectionFor(instruction), 
+            /* flags               */ flags);
             flags = childController.flags;
             Metadata.define(key, childController, target);
             context.renderInstructions(
             /* flags        */ flags, 
             /* instructions */ instruction.instructions, 
             /* controller   */ controller, 
-            /* target       */ childController, 
-            /* parts        */ parts);
+            /* target       */ childController);
             controller.addController(childController);
             factory.dispose();
         }
@@ -216,7 +217,7 @@ let CustomAttributeRenderer = /** @class */ (() => {
     let CustomAttributeRenderer = 
     /** @internal */
     class CustomAttributeRenderer {
-        render(flags, context, controller, target, instruction, parts) {
+        render(flags, context, controller, target, instruction) {
             const factory = context.getComponentFactory(
             /* parentController */ controller, 
             /* host             */ target, 
@@ -236,8 +237,7 @@ let CustomAttributeRenderer = /** @class */ (() => {
             /* flags        */ flags, 
             /* instructions */ instruction.instructions, 
             /* controller   */ controller, 
-            /* target       */ childController, 
-            /* parts        */ parts);
+            /* target       */ childController);
             controller.addController(childController);
             factory.dispose();
         }
@@ -253,9 +253,8 @@ let TemplateControllerRenderer = /** @class */ (() => {
     let TemplateControllerRenderer = 
     /** @internal */
     class TemplateControllerRenderer {
-        render(flags, parentContext, controller, target, instruction, parts) {
-            parts = mergeParts(parts, instruction.parts);
-            const viewFactory = getRenderContext(instruction.def, parentContext, parts).getViewFactory();
+        render(flags, parentContext, controller, target, instruction) {
+            const viewFactory = getRenderContext(instruction.def, parentContext).getViewFactory();
             const renderLocation = parentContext.dom.convertToRenderLocation(target);
             const componentFactory = parentContext.getComponentFactory(
             /* parentController */ controller, 
@@ -280,8 +279,7 @@ let TemplateControllerRenderer = /** @class */ (() => {
             /* flags        */ flags, 
             /* instructions */ instruction.instructions, 
             /* controller   */ controller, 
-            /* target       */ childController, 
-            /* parts        */ parts);
+            /* target       */ childController);
             controller.addController(childController);
             componentFactory.dispose();
         }

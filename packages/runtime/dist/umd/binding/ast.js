@@ -88,6 +88,15 @@
         return false;
     }
     exports.isPureLiteral = isPureLiteral;
+    function chooseScope(accessHostScope, scope, hostScope) {
+        if (accessHostScope) {
+            if (hostScope === null || hostScope === void 0) {
+                throw new Error('Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?');
+            }
+            return hostScope;
+        }
+        return scope;
+    }
     var RuntimeError;
     (function (RuntimeError) {
         RuntimeError[RuntimeError["NoLocator"] = 202] = "NoLocator";
@@ -103,7 +112,7 @@
         constructor(value) {
             this.value = value;
         }
-        evaluate(flags, scope, locator, part) {
+        evaluate(flags, scope, hostScope, locator) {
             return this.value;
         }
     }
@@ -116,16 +125,16 @@
             this.$kind = 38962 /* BindingBehavior */;
             this.behaviorKey = binding_behavior_1.BindingBehavior.keyFrom(name);
         }
-        evaluate(flags, scope, locator, part) {
-            return this.expression.evaluate(flags, scope, locator, part);
+        evaluate(flags, scope, hostScope, locator) {
+            return this.expression.evaluate(flags, scope, hostScope, locator);
         }
-        assign(flags, scope, locator, value, part) {
-            return this.expression.assign(flags, scope, locator, value, part);
+        assign(flags, scope, hostScope, locator, value) {
+            return this.expression.assign(flags, scope, hostScope, locator, value);
         }
-        connect(flags, scope, binding, part) {
-            this.expression.connect(flags, scope, binding, part);
+        connect(flags, scope, hostScope, binding) {
+            this.expression.connect(flags, scope, hostScope, binding);
         }
-        bind(flags, scope, binding) {
+        bind(flags, scope, hostScope, binding) {
             if (scope == null) {
                 throw kernel_1.Reporter.error(250 /* NilScope */, this);
             }
@@ -137,7 +146,7 @@
                 throw kernel_1.Reporter.error(202 /* NoLocator */, this);
             }
             if (hasBind(this.expression)) {
-                this.expression.bind(flags, scope, binding);
+                this.expression.bind(flags, scope, hostScope, binding);
             }
             const behaviorKey = this.behaviorKey;
             const behavior = locator.get(behaviorKey);
@@ -147,21 +156,23 @@
             if (!(behavior instanceof binding_behavior_1.BindingBehaviorFactory)) {
                 if (binding[behaviorKey] === void 0) {
                     binding[behaviorKey] = behavior;
-                    behavior.bind.call(behavior, flags, scope, binding, ...evalList(flags, scope, locator, this.args));
+                    behavior.bind.call(behavior, flags, scope, hostScope, binding, ...evalList(flags, scope, locator, this.args, hostScope));
                 }
                 else {
                     kernel_1.Reporter.write(204 /* BehaviorAlreadyApplied */, this);
                 }
             }
         }
-        unbind(flags, scope, binding) {
+        unbind(flags, scope, hostScope, binding) {
             const behaviorKey = this.behaviorKey;
             if (binding[behaviorKey] !== void 0) {
-                binding[behaviorKey].unbind(flags, scope, binding);
+                if (typeof binding[behaviorKey].unbind === 'function') {
+                    binding[behaviorKey].unbind(flags, scope, hostScope, binding);
+                }
                 binding[behaviorKey] = void 0;
             }
             if (hasUnbind(this.expression)) {
-                this.expression.unbind(flags, scope, binding);
+                this.expression.unbind(flags, scope, hostScope, binding);
             }
         }
         accept(visitor) {
@@ -177,7 +188,7 @@
             this.$kind = 36913 /* ValueConverter */;
             this.converterKey = value_converter_1.ValueConverter.keyFrom(name);
         }
-        evaluate(flags, scope, locator, part) {
+        evaluate(flags, scope, hostScope, locator) {
             if (!locator) {
                 throw kernel_1.Reporter.error(202 /* NoLocator */, this);
             }
@@ -189,15 +200,15 @@
                 const args = this.args;
                 const len = args.length;
                 const result = Array(len + 1);
-                result[0] = this.expression.evaluate(flags, scope, locator, part);
+                result[0] = this.expression.evaluate(flags, scope, hostScope, locator);
                 for (let i = 0; i < len; ++i) {
-                    result[i + 1] = args[i].evaluate(flags, scope, locator, part);
+                    result[i + 1] = args[i].evaluate(flags, scope, hostScope, locator);
                 }
                 return converter.toView.call(converter, ...result);
             }
-            return this.expression.evaluate(flags, scope, locator, part);
+            return this.expression.evaluate(flags, scope, hostScope, locator);
         }
-        assign(flags, scope, locator, value, part) {
+        assign(flags, scope, hostScope, locator, value) {
             if (!locator) {
                 throw kernel_1.Reporter.error(202 /* NoLocator */, this);
             }
@@ -206,11 +217,11 @@
                 throw kernel_1.Reporter.error(205 /* NoConverterFound */, this);
             }
             if ('fromView' in converter) {
-                value = converter.fromView.call(converter, value, ...(evalList(flags, scope, locator, this.args)));
+                value = converter.fromView.call(converter, value, ...(evalList(flags, scope, locator, this.args, hostScope)));
             }
-            return this.expression.assign(flags, scope, locator, value, part);
+            return this.expression.assign(flags, scope, hostScope, locator, value);
         }
-        connect(flags, scope, binding, part) {
+        connect(flags, scope, hostScope, binding) {
             if (scope == null) {
                 throw kernel_1.Reporter.error(250 /* NilScope */, this);
             }
@@ -221,10 +232,10 @@
             if (!locator) {
                 throw kernel_1.Reporter.error(202 /* NoLocator */, this);
             }
-            this.expression.connect(flags, scope, binding, part);
+            this.expression.connect(flags, scope, hostScope, binding);
             const args = this.args;
             for (let i = 0, ii = args.length; i < ii; ++i) {
-                args[i].connect(flags, scope, binding, part);
+                args[i].connect(flags, scope, hostScope, binding);
             }
             const converter = locator.get(this.converterKey);
             if (!converter) {
@@ -239,7 +250,7 @@
                 signaler.addSignalListener(signals[i], binding);
             }
         }
-        unbind(flags, scope, binding) {
+        unbind(flags, scope, hostScope, binding) {
             const locator = binding.locator;
             const converter = locator.get(this.converterKey);
             const signals = converter.signals;
@@ -262,15 +273,15 @@
             this.value = value;
             this.$kind = 8208 /* Assign */;
         }
-        evaluate(flags, scope, locator, part) {
-            return this.target.assign(flags, scope, locator, this.value.evaluate(flags, scope, locator), part);
+        evaluate(flags, scope, hostScope, locator) {
+            return this.target.assign(flags, scope, hostScope, locator, this.value.evaluate(flags, scope, hostScope, locator));
         }
-        connect(flags, scope, binding, part) {
+        connect(flags, scope, hostScope, binding) {
             return;
         }
-        assign(flags, scope, locator, value, part) {
-            this.value.assign(flags, scope, locator, value, part);
-            return this.target.assign(flags, scope, locator, value, part);
+        assign(flags, scope, hostScope, locator, value) {
+            this.value.assign(flags, scope, hostScope, locator, value);
+            return this.target.assign(flags, scope, hostScope, locator, value);
         }
         accept(visitor) {
             return visitor.visitAssign(this);
@@ -284,23 +295,23 @@
             this.no = no;
             this.$kind = 63 /* Conditional */;
         }
-        evaluate(flags, scope, locator, part) {
-            return (!!this.condition.evaluate(flags, scope, locator, part))
-                ? this.yes.evaluate(flags, scope, locator, part)
-                : this.no.evaluate(flags, scope, locator, part);
+        evaluate(flags, scope, hostScope, locator) {
+            return (!!this.condition.evaluate(flags, scope, hostScope, locator))
+                ? this.yes.evaluate(flags, scope, hostScope, locator)
+                : this.no.evaluate(flags, scope, hostScope, locator);
         }
-        assign(flags, scope, locator, obj, part) {
+        assign(flags, scope, hostScope, locator, obj) {
             return void 0;
         }
-        connect(flags, scope, binding, part) {
+        connect(flags, scope, hostScope, binding) {
             const condition = this.condition;
-            if (condition.evaluate(flags, scope, null, part)) {
-                this.condition.connect(flags, scope, binding, part);
-                this.yes.connect(flags, scope, binding, part);
+            if (condition.evaluate(flags, scope, hostScope, null)) {
+                this.condition.connect(flags, scope, hostScope, binding);
+                this.yes.connect(flags, scope, hostScope, binding);
             }
             else {
-                this.condition.connect(flags, scope, binding, part);
-                this.no.connect(flags, scope, binding, part);
+                this.condition.connect(flags, scope, hostScope, binding);
+                this.no.connect(flags, scope, hostScope, binding);
             }
         }
         accept(visitor) {
@@ -314,32 +325,27 @@
                 this.ancestor = ancestor;
                 this.$kind = 1793 /* AccessThis */;
             }
-            evaluate(flags, scope, locator, part) {
+            evaluate(flags, scope, hostScope, locator) {
+                var _a;
                 if (scope == null) {
                     throw kernel_1.Reporter.error(250 /* NilScope */, this);
                 }
-                if ((flags & 1024 /* allowParentScopeTraversal */) > 0) {
-                    let parent = scope.parentScope;
-                    while (parent !== null) {
-                        if (!parent.scopeParts.includes(part)) {
-                            parent = parent.parentScope;
-                        }
-                    }
-                    if (parent === null) {
-                        throw new Error(`No target scope cold be found for part "${part}"`);
-                    }
+                if (this === AccessThisExpression.$host) {
+                    scope = chooseScope(true, scope, hostScope);
                 }
                 let oc = scope.overrideContext;
+                let currentScope = scope;
                 let i = this.ancestor;
                 while (i-- && oc) {
-                    oc = oc.parentOverrideContext;
+                    currentScope = currentScope.parentScope;
+                    oc = (_a = currentScope === null || currentScope === void 0 ? void 0 : currentScope.overrideContext) !== null && _a !== void 0 ? _a : null;
                 }
                 return i < 1 && oc ? oc.bindingContext : void 0;
             }
-            assign(flags, scope, locator, obj, part) {
+            assign(flags, scope, hostScope, locator, obj) {
                 return void 0;
             }
-            connect(flags, scope, binding, part) {
+            connect(flags, scope, hostScope, binding) {
                 return;
             }
             accept(visitor) {
@@ -347,26 +353,29 @@
             }
         }
         AccessThisExpression.$this = new AccessThisExpression(0);
+        // $host and $this are loosely the same thing. $host is used in the context of `au-slot` with the primary objective of determining the scope.
+        AccessThisExpression.$host = new AccessThisExpression(0);
         AccessThisExpression.$parent = new AccessThisExpression(1);
         return AccessThisExpression;
     })();
     exports.AccessThisExpression = AccessThisExpression;
     class AccessScopeExpression {
-        constructor(name, ancestor = 0) {
+        constructor(name, ancestor = 0, accessHostScope = false) {
             this.name = name;
             this.ancestor = ancestor;
+            this.accessHostScope = accessHostScope;
             this.$kind = 10082 /* AccessScope */;
         }
-        evaluate(flags, scope, locator, part) {
-            const obj = binding_context_1.BindingContext.get(scope, this.name, this.ancestor, flags, part);
+        evaluate(flags, scope, hostScope, locator) {
+            const obj = binding_context_1.BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope);
             const evaluatedValue = obj[this.name];
             if (flags & 4 /* isStrictBindingStrategy */) {
                 return evaluatedValue;
             }
             return evaluatedValue == null ? '' : evaluatedValue;
         }
-        assign(flags, scope, locator, value, part) {
-            const obj = binding_context_1.BindingContext.get(scope, this.name, this.ancestor, flags, part);
+        assign(flags, scope, hostScope, locator, value) {
+            const obj = binding_context_1.BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope);
             if (obj instanceof Object) {
                 if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
                     obj.$observers[this.name].setValue(value, flags);
@@ -378,8 +387,8 @@
             }
             return void 0;
         }
-        connect(flags, scope, binding, part) {
-            const context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor, flags, part);
+        connect(flags, scope, hostScope, binding) {
+            const context = binding_context_1.BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope);
             binding.observeProperty(flags, context, this.name);
         }
         accept(visitor) {
@@ -393,15 +402,15 @@
             this.name = name;
             this.$kind = 9323 /* AccessMember */;
         }
-        evaluate(flags, scope, locator, part) {
-            const instance = this.object.evaluate(flags, scope, locator, part);
+        evaluate(flags, scope, hostScope, locator) {
+            const instance = this.object.evaluate(flags, scope, hostScope, locator);
             if (flags & 4 /* isStrictBindingStrategy */) {
                 return instance == null ? instance : instance[this.name];
             }
             return instance ? instance[this.name] : '';
         }
-        assign(flags, scope, locator, value, part) {
-            const obj = this.object.evaluate(flags, scope, locator, part);
+        assign(flags, scope, hostScope, locator, value) {
+            const obj = this.object.evaluate(flags, scope, hostScope, locator);
             if (obj instanceof Object) {
                 if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
                     obj.$observers[this.name].setValue(value, flags);
@@ -411,14 +420,14 @@
                 }
             }
             else {
-                this.object.assign(flags, scope, locator, { [this.name]: value });
+                this.object.assign(flags, scope, hostScope, locator, { [this.name]: value });
             }
             return value;
         }
-        connect(flags, scope, binding, part) {
-            const obj = this.object.evaluate(flags, scope, null, part);
+        connect(flags, scope, hostScope, binding) {
+            const obj = this.object.evaluate(flags, scope, hostScope, null);
             if ((flags & 2048 /* observeLeafPropertiesOnly */) === 0) {
-                this.object.connect(flags, scope, binding, part);
+                this.object.connect(flags, scope, hostScope, binding);
             }
             if (obj instanceof Object) {
                 binding.observeProperty(flags, obj, this.name);
@@ -435,27 +444,27 @@
             this.key = key;
             this.$kind = 9324 /* AccessKeyed */;
         }
-        evaluate(flags, scope, locator, part) {
-            const instance = this.object.evaluate(flags, scope, locator, part);
+        evaluate(flags, scope, hostScope, locator) {
+            const instance = this.object.evaluate(flags, scope, hostScope, locator);
             if (instance instanceof Object) {
-                const key = this.key.evaluate(flags, scope, locator, part);
+                const key = this.key.evaluate(flags, scope, hostScope, locator);
                 return instance[key];
             }
             return void 0;
         }
-        assign(flags, scope, locator, value, part) {
-            const instance = this.object.evaluate(flags, scope, locator, part);
-            const key = this.key.evaluate(flags, scope, locator, part);
+        assign(flags, scope, hostScope, locator, value) {
+            const instance = this.object.evaluate(flags, scope, hostScope, locator);
+            const key = this.key.evaluate(flags, scope, hostScope, locator);
             return instance[key] = value;
         }
-        connect(flags, scope, binding, part) {
-            const obj = this.object.evaluate(flags, scope, null, part);
+        connect(flags, scope, hostScope, binding) {
+            const obj = this.object.evaluate(flags, scope, hostScope, null);
             if ((flags & 2048 /* observeLeafPropertiesOnly */) === 0) {
-                this.object.connect(flags, scope, binding, part);
+                this.object.connect(flags, scope, hostScope, binding);
             }
             if (obj instanceof Object) {
-                this.key.connect(flags, scope, binding, part);
-                const key = this.key.evaluate(flags, scope, null, part);
+                this.key.connect(flags, scope, hostScope, binding);
+                const key = this.key.evaluate(flags, scope, hostScope, null);
                 // (note: string indexers behave the same way as numeric indexers as long as they represent numbers)
                 binding.observeProperty(flags, obj, key);
             }
@@ -466,28 +475,30 @@
     }
     exports.AccessKeyedExpression = AccessKeyedExpression;
     class CallScopeExpression {
-        constructor(name, args, ancestor = 0) {
+        constructor(name, args, ancestor = 0, accessHostScope = false) {
             this.name = name;
             this.args = args;
             this.ancestor = ancestor;
+            this.accessHostScope = accessHostScope;
             this.$kind = 1448 /* CallScope */;
         }
-        evaluate(flags, scope, locator, part) {
-            const args = evalList(flags, scope, locator, this.args, part);
-            const context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor, flags, part);
+        evaluate(flags, scope, hostScope, locator) {
+            scope = chooseScope(this.accessHostScope, scope, hostScope);
+            const args = evalList(flags, scope, locator, this.args, hostScope);
+            const context = binding_context_1.BindingContext.get(scope, this.name, this.ancestor, flags, hostScope);
             const func = getFunction(flags, context, this.name);
             if (func) {
                 return func.apply(context, args);
             }
             return void 0;
         }
-        assign(flags, scope, locator, obj, part) {
+        assign(flags, scope, hostScope, locator, obj) {
             return void 0;
         }
-        connect(flags, scope, binding, part) {
+        connect(flags, scope, hostScope, binding) {
             const args = this.args;
             for (let i = 0, ii = args.length; i < ii; ++i) {
-                args[i].connect(flags, scope, binding, part);
+                args[i].connect(flags, scope, hostScope, binding);
             }
         }
         accept(visitor) {
@@ -502,27 +513,27 @@
             this.args = args;
             this.$kind = 1161 /* CallMember */;
         }
-        evaluate(flags, scope, locator, part) {
-            const instance = this.object.evaluate(flags, scope, locator, part);
-            const args = evalList(flags, scope, locator, this.args, part);
+        evaluate(flags, scope, hostScope, locator) {
+            const instance = this.object.evaluate(flags, scope, hostScope, locator);
+            const args = evalList(flags, scope, locator, this.args, hostScope);
             const func = getFunction(flags, instance, this.name);
             if (func) {
                 return func.apply(instance, args);
             }
             return void 0;
         }
-        assign(flags, scope, locator, obj, part) {
+        assign(flags, scope, hostScope, locator, obj) {
             return void 0;
         }
-        connect(flags, scope, binding, part) {
-            const obj = this.object.evaluate(flags, scope, null, part);
+        connect(flags, scope, hostScope, binding) {
+            const obj = this.object.evaluate(flags, scope, hostScope, null);
             if ((flags & 2048 /* observeLeafPropertiesOnly */) === 0) {
-                this.object.connect(flags, scope, binding, part);
+                this.object.connect(flags, scope, hostScope, binding);
             }
             if (getFunction(flags & ~128 /* mustEvaluate */, obj, this.name)) {
                 const args = this.args;
                 for (let i = 0, ii = args.length; i < ii; ++i) {
-                    args[i].connect(flags, scope, binding, part);
+                    args[i].connect(flags, scope, hostScope, binding);
                 }
             }
         }
@@ -537,26 +548,26 @@
             this.args = args;
             this.$kind = 1162 /* CallFunction */;
         }
-        evaluate(flags, scope, locator, part) {
-            const func = this.func.evaluate(flags, scope, locator, part);
+        evaluate(flags, scope, hostScope, locator) {
+            const func = this.func.evaluate(flags, scope, hostScope, locator);
             if (typeof func === 'function') {
-                return func(...evalList(flags, scope, locator, this.args, part));
+                return func(...evalList(flags, scope, locator, this.args, hostScope));
             }
             if (!(flags & 128 /* mustEvaluate */) && (func == null)) {
                 return void 0;
             }
             throw kernel_1.Reporter.error(207 /* NotAFunction */, this);
         }
-        assign(flags, scope, locator, obj, part) {
+        assign(flags, scope, hostScope, locator, obj) {
             return void 0;
         }
-        connect(flags, scope, binding, part) {
-            const func = this.func.evaluate(flags, scope, null, part);
-            this.func.connect(flags, scope, binding, part);
+        connect(flags, scope, hostScope, binding) {
+            const func = this.func.evaluate(flags, scope, hostScope, null);
+            this.func.connect(flags, scope, hostScope, binding);
             if (typeof func === 'function') {
                 const args = this.args;
                 for (let i = 0, ii = args.length; i < ii; ++i) {
-                    args[i].connect(flags, scope, binding, part);
+                    args[i].connect(flags, scope, hostScope, binding);
                 }
             }
         }
@@ -576,47 +587,48 @@
             // work to do; we can do this because the operation can't change after it's parsed
             this.evaluate = this[operation];
         }
-        evaluate(flags, scope, locator, part) {
+        evaluate(flags, scope, hostScope, locator) {
             throw kernel_1.Reporter.error(208 /* UnknownOperator */, this);
         }
-        assign(flags, scope, locator, obj, part) {
+        assign(flags, scope, hostScope, locator, obj) {
             return void 0;
         }
-        connect(flags, scope, binding, part) {
-            this.left.connect(flags, scope, binding, part);
-            this.right.connect(flags, scope, binding, part);
+        connect(flags, scope, hostScope, binding) {
+            this.left.connect(flags, scope, hostScope, binding);
+            this.right.connect(flags, scope, hostScope, binding);
         }
-        ['&&'](f, s, l, p) {
-            return this.left.evaluate(f, s, l, p) && this.right.evaluate(f, s, l, p);
+        /* eslint-disable no-useless-computed-key */
+        ['&&'](f, s, hs, l) {
+            return this.left.evaluate(f, s, hs, l) && this.right.evaluate(f, s, hs, l);
         }
-        ['||'](f, s, l, p) {
-            return this.left.evaluate(f, s, l, p) || this.right.evaluate(f, s, l, p);
+        ['||'](f, s, hs, l) {
+            return this.left.evaluate(f, s, hs, l) || this.right.evaluate(f, s, hs, l);
         }
-        ['=='](f, s, l, p) {
+        ['=='](f, s, hs, l) {
             // eslint-disable-next-line eqeqeq
-            return this.left.evaluate(f, s, l, p) == this.right.evaluate(f, s, l, p);
+            return this.left.evaluate(f, s, hs, l) == this.right.evaluate(f, s, hs, l);
         }
-        ['==='](f, s, l, p) {
-            return this.left.evaluate(f, s, l, p) === this.right.evaluate(f, s, l, p);
+        ['==='](f, s, hs, l) {
+            return this.left.evaluate(f, s, hs, l) === this.right.evaluate(f, s, hs, l);
         }
-        ['!='](f, s, l, p) {
+        ['!='](f, s, hs, l) {
             // eslint-disable-next-line eqeqeq
-            return this.left.evaluate(f, s, l, p) != this.right.evaluate(f, s, l, p);
+            return this.left.evaluate(f, s, hs, l) != this.right.evaluate(f, s, hs, l);
         }
-        ['!=='](f, s, l, p) {
-            return this.left.evaluate(f, s, l, p) !== this.right.evaluate(f, s, l, p);
+        ['!=='](f, s, hs, l) {
+            return this.left.evaluate(f, s, hs, l) !== this.right.evaluate(f, s, hs, l);
         }
-        ['instanceof'](f, s, l, p) {
-            const right = this.right.evaluate(f, s, l, p);
+        ['instanceof'](f, s, hs, l) {
+            const right = this.right.evaluate(f, s, hs, l);
             if (typeof right === 'function') {
-                return this.left.evaluate(f, s, l, p) instanceof right;
+                return this.left.evaluate(f, s, hs, l) instanceof right;
             }
             return false;
         }
-        ['in'](f, s, l, p) {
-            const right = this.right.evaluate(f, s, l, p);
+        ['in'](f, s, hs, l) {
+            const right = this.right.evaluate(f, s, hs, l);
             if (right instanceof Object) {
-                return this.left.evaluate(f, s, l, p) in right;
+                return this.left.evaluate(f, s, hs, l) in right;
             }
             return false;
         }
@@ -624,9 +636,9 @@
         // and where it isn't, you kind of want it to behave like the spec anyway (e.g. return NaN when adding a number to undefined)
         // this makes bugs in user code easier to track down for end users
         // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
-        ['+'](f, s, l, p) {
-            const left = this.left.evaluate(f, s, l, p);
-            const right = this.right.evaluate(f, s, l, p);
+        ['+'](f, s, hs, l) {
+            const left = this.left.evaluate(f, s, hs, l);
+            const right = this.right.evaluate(f, s, hs, l);
             if ((f & 4 /* isStrictBindingStrategy */) > 0) {
                 return left + right;
             }
@@ -643,30 +655,31 @@
             }
             return left + right;
         }
-        ['-'](f, s, l, p) {
-            return this.left.evaluate(f, s, l, p) - this.right.evaluate(f, s, l, p);
+        ['-'](f, s, hs, l) {
+            return this.left.evaluate(f, s, hs, l) - this.right.evaluate(f, s, hs, l);
         }
-        ['*'](f, s, l, p) {
-            return this.left.evaluate(f, s, l, p) * this.right.evaluate(f, s, l, p);
+        ['*'](f, s, hs, l) {
+            return this.left.evaluate(f, s, hs, l) * this.right.evaluate(f, s, hs, l);
         }
-        ['/'](f, s, l, p) {
-            return this.left.evaluate(f, s, l, p) / this.right.evaluate(f, s, l, p);
+        ['/'](f, s, hs, l) {
+            return this.left.evaluate(f, s, hs, l) / this.right.evaluate(f, s, hs, l);
         }
-        ['%'](f, s, l, p) {
-            return this.left.evaluate(f, s, l, p) % this.right.evaluate(f, s, l, p);
+        ['%'](f, s, hs, l) {
+            return this.left.evaluate(f, s, hs, l) % this.right.evaluate(f, s, hs, l);
         }
-        ['<'](f, s, l, p) {
-            return this.left.evaluate(f, s, l, p) < this.right.evaluate(f, s, l, p);
+        ['<'](f, s, hs, l) {
+            return this.left.evaluate(f, s, hs, l) < this.right.evaluate(f, s, hs, l);
         }
-        ['>'](f, s, l, p) {
-            return this.left.evaluate(f, s, l, p) > this.right.evaluate(f, s, l, p);
+        ['>'](f, s, hs, l) {
+            return this.left.evaluate(f, s, hs, l) > this.right.evaluate(f, s, hs, l);
         }
-        ['<='](f, s, l, p) {
-            return this.left.evaluate(f, s, l, p) <= this.right.evaluate(f, s, l, p);
+        ['<='](f, s, hs, l) {
+            return this.left.evaluate(f, s, hs, l) <= this.right.evaluate(f, s, hs, l);
         }
-        ['>='](f, s, l, p) {
-            return this.left.evaluate(f, s, l, p) >= this.right.evaluate(f, s, l, p);
+        ['>='](f, s, hs, l) {
+            return this.left.evaluate(f, s, hs, l) >= this.right.evaluate(f, s, hs, l);
         }
+        /* eslint-enable no-useless-computed-key */
         accept(visitor) {
             return visitor.visitBinary(this);
         }
@@ -680,30 +693,32 @@
             // see Binary (we're doing the same thing here)
             this.evaluate = this[operation];
         }
-        evaluate(flags, scope, locator, part) {
+        evaluate(flags, scope, hostScope, locator) {
             throw kernel_1.Reporter.error(208 /* UnknownOperator */, this);
         }
-        assign(flags, scope, locator, obj, part) {
+        assign(flags, scope, hostScope, locator, obj) {
             return void 0;
         }
-        connect(flags, scope, binding, part) {
-            this.expression.connect(flags, scope, binding, part);
+        connect(flags, scope, hostScope, binding) {
+            this.expression.connect(flags, scope, hostScope, binding);
         }
-        ['void'](f, s, l, p) {
-            return void this.expression.evaluate(f, s, l, p);
+        /* eslint-disable no-useless-computed-key */
+        ['void'](f, s, hs, l) {
+            return void this.expression.evaluate(f, s, hs, l);
         }
-        ['typeof'](f, s, l, p) {
-            return typeof this.expression.evaluate(f | 4 /* isStrictBindingStrategy */, s, l, p);
+        ['typeof'](f, s, hs, l) {
+            return typeof this.expression.evaluate(f | 4 /* isStrictBindingStrategy */, s, hs, l);
         }
-        ['!'](f, s, l, p) {
-            return !this.expression.evaluate(f, s, l, p);
+        ['!'](f, s, hs, l) {
+            return !this.expression.evaluate(f, s, hs, l);
         }
-        ['-'](f, s, l, p) {
-            return -this.expression.evaluate(f, s, l, p);
+        ['-'](f, s, hs, l) {
+            return -this.expression.evaluate(f, s, hs, l);
         }
-        ['+'](f, s, l, p) {
-            return +this.expression.evaluate(f, s, l, p);
+        ['+'](f, s, hs, l) {
+            return +this.expression.evaluate(f, s, hs, l);
         }
+        /* eslint-enable no-useless-computed-key */
         accept(visitor) {
             return visitor.visitUnary(this);
         }
@@ -715,13 +730,13 @@
                 this.value = value;
                 this.$kind = 17925 /* PrimitiveLiteral */;
             }
-            evaluate(flags, scope, locator, part) {
+            evaluate(flags, scope, hostScope, locator) {
                 return this.value;
             }
-            assign(flags, scope, locator, obj, part) {
+            assign(flags, scope, hostScope, locator, obj) {
                 return void 0;
             }
-            connect(flags, scope, binding, part) {
+            connect(flags, scope, hostScope, binding) {
                 return;
             }
             accept(visitor) {
@@ -741,12 +756,12 @@
             this.parts = parts;
             this.$kind = 51 /* HtmlLiteral */;
         }
-        evaluate(flags, scope, locator, part) {
+        evaluate(flags, scope, hostScope, locator) {
             const elements = this.parts;
             let result = '';
             let value;
             for (let i = 0, ii = elements.length; i < ii; ++i) {
-                value = elements[i].evaluate(flags, scope, locator, part);
+                value = elements[i].evaluate(flags, scope, hostScope, locator);
                 if (value == null) {
                     continue;
                 }
@@ -754,12 +769,12 @@
             }
             return result;
         }
-        assign(flags, scope, locator, obj, part) {
+        assign(flags, scope, hostScope, locator, obj, rojection) {
             return void 0;
         }
-        connect(flags, scope, binding, part) {
+        connect(flags, scope, hostScope, binding) {
             for (let i = 0, ii = this.parts.length; i < ii; ++i) {
-                this.parts[i].connect(flags, scope, binding, part);
+                this.parts[i].connect(flags, scope, hostScope, binding);
             }
         }
         accept(visitor) {
@@ -773,22 +788,22 @@
                 this.elements = elements;
                 this.$kind = 17955 /* ArrayLiteral */;
             }
-            evaluate(flags, scope, locator, part) {
+            evaluate(flags, scope, hostScope, locator) {
                 const elements = this.elements;
                 const length = elements.length;
                 const result = Array(length);
                 for (let i = 0; i < length; ++i) {
-                    result[i] = elements[i].evaluate(flags, scope, locator, part);
+                    result[i] = elements[i].evaluate(flags, scope, hostScope, locator);
                 }
                 return result;
             }
-            assign(flags, scope, locator, obj, part) {
+            assign(flags, scope, hostScope, locator, obj) {
                 return void 0;
             }
-            connect(flags, scope, binding, part) {
+            connect(flags, scope, hostScope, binding) {
                 const elements = this.elements;
                 for (let i = 0, ii = elements.length; i < ii; ++i) {
-                    elements[i].connect(flags, scope, binding, part);
+                    elements[i].connect(flags, scope, hostScope, binding);
                 }
             }
             accept(visitor) {
@@ -806,23 +821,23 @@
                 this.values = values;
                 this.$kind = 17956 /* ObjectLiteral */;
             }
-            evaluate(flags, scope, locator, part) {
+            evaluate(flags, scope, hostScope, locator) {
                 const instance = {};
                 const keys = this.keys;
                 const values = this.values;
                 for (let i = 0, ii = keys.length; i < ii; ++i) {
-                    instance[keys[i]] = values[i].evaluate(flags, scope, locator, part);
+                    instance[keys[i]] = values[i].evaluate(flags, scope, hostScope, locator);
                 }
                 return instance;
             }
-            assign(flags, scope, locator, obj, part) {
+            assign(flags, scope, hostScope, locator, obj) {
                 return void 0;
             }
-            connect(flags, scope, binding, part) {
+            connect(flags, scope, hostScope, binding) {
                 const keys = this.keys;
                 const values = this.values;
                 for (let i = 0, ii = keys.length; i < ii; ++i) {
-                    values[i].connect(flags, scope, binding, part);
+                    values[i].connect(flags, scope, hostScope, binding);
                 }
             }
             accept(visitor) {
@@ -840,23 +855,23 @@
                 this.expressions = expressions;
                 this.$kind = 17958 /* Template */;
             }
-            evaluate(flags, scope, locator, part) {
+            evaluate(flags, scope, hostScope, locator) {
                 const expressions = this.expressions;
                 const cooked = this.cooked;
                 let result = cooked[0];
                 for (let i = 0, ii = expressions.length; i < ii; ++i) {
-                    result += expressions[i].evaluate(flags, scope, locator, part);
+                    result += expressions[i].evaluate(flags, scope, hostScope, locator);
                     result += cooked[i + 1];
                 }
                 return result;
             }
-            assign(flags, scope, locator, obj, part) {
+            assign(flags, scope, hostScope, locator, obj) {
                 return void 0;
             }
-            connect(flags, scope, binding, part) {
+            connect(flags, scope, hostScope, binding) {
                 const expressions = this.expressions;
                 for (let i = 0, ii = expressions.length; i < ii; ++i) {
-                    expressions[i].connect(flags, scope, binding, part);
+                    expressions[i].connect(flags, scope, hostScope, binding);
                     i++;
                 }
             }
@@ -876,28 +891,28 @@
             this.$kind = 1197 /* TaggedTemplate */;
             cooked.raw = raw;
         }
-        evaluate(flags, scope, locator, part) {
+        evaluate(flags, scope, hostScope, locator) {
             const expressions = this.expressions;
             const len = expressions.length;
             const results = Array(len);
             for (let i = 0, ii = len; i < ii; ++i) {
-                results[i] = expressions[i].evaluate(flags, scope, locator, part);
+                results[i] = expressions[i].evaluate(flags, scope, hostScope, locator);
             }
-            const func = this.func.evaluate(flags, scope, locator, part);
+            const func = this.func.evaluate(flags, scope, hostScope, locator);
             if (typeof func !== 'function') {
                 throw kernel_1.Reporter.error(207 /* NotAFunction */, this);
             }
             return func(this.cooked, ...results);
         }
-        assign(flags, scope, locator, obj, part) {
+        assign(flags, scope, hostScope, locator, obj) {
             return void 0;
         }
-        connect(flags, scope, binding, part) {
+        connect(flags, scope, hostScope, binding) {
             const expressions = this.expressions;
             for (let i = 0, ii = expressions.length; i < ii; ++i) {
-                expressions[i].connect(flags, scope, binding);
+                expressions[i].connect(flags, scope, hostScope, binding);
             }
-            this.func.connect(flags, scope, binding);
+            this.func.connect(flags, scope, hostScope, binding);
         }
         accept(visitor) {
             return visitor.visitTaggedTemplate(this);
@@ -910,15 +925,15 @@
             this.elements = elements;
             this.$kind = 65556 /* ArrayBindingPattern */;
         }
-        evaluate(flags, scope, locator, part) {
+        evaluate(flags, scope, hostScope, locator) {
             // TODO
             return void 0;
         }
-        assign(flags, scope, locator, obj, part) {
+        assign(flags, scope, hostScope, locator, obj) {
             // TODO
             return void 0;
         }
-        connect(flags, scope, binding, part) {
+        connect(flags, scope, hostScope, binding) {
             return;
         }
         accept(visitor) {
@@ -933,15 +948,15 @@
             this.values = values;
             this.$kind = 65557 /* ObjectBindingPattern */;
         }
-        evaluate(flags, scope, locator, part) {
+        evaluate(flags, scope, hostScope, locator) {
             // TODO
             return void 0;
         }
-        assign(flags, scope, locator, obj, part) {
+        assign(flags, scope, hostScope, locator, obj) {
             // TODO
             return void 0;
         }
-        connect(flags, scope, binding, part) {
+        connect(flags, scope, hostScope, binding) {
             return;
         }
         accept(visitor) {
@@ -954,10 +969,10 @@
             this.name = name;
             this.$kind = 65558 /* BindingIdentifier */;
         }
-        evaluate(flags, scope, locator, part) {
+        evaluate(flags, scope, hostScope, locator) {
             return this.name;
         }
-        connect(flags, scope, binding, part) {
+        connect(flags, scope, hostScope, binding) {
             return;
         }
         accept(visitor) {
@@ -974,10 +989,10 @@
             this.iterable = iterable;
             this.$kind = 6199 /* ForOfStatement */;
         }
-        evaluate(flags, scope, locator, part) {
-            return this.iterable.evaluate(flags, scope, locator, part);
+        evaluate(flags, scope, hostScope, locator) {
+            return this.iterable.evaluate(flags, scope, hostScope, locator);
         }
-        assign(flags, scope, locator, obj, part) {
+        assign(flags, scope, hostScope, locator, obj) {
             return void 0;
         }
         count(flags, result) {
@@ -1002,18 +1017,18 @@
                 default: throw kernel_1.Reporter.error(0); // TODO: Set error code
             }
         }
-        connect(flags, scope, binding, part) {
-            this.declaration.connect(flags, scope, binding, part);
-            this.iterable.connect(flags, scope, binding, part);
+        connect(flags, scope, hostScope, binding) {
+            this.declaration.connect(flags, scope, hostScope, binding);
+            this.iterable.connect(flags, scope, hostScope, binding);
         }
-        bind(flags, scope, binding) {
+        bind(flags, scope, hostScope, binding) {
             if (hasBind(this.iterable)) {
-                this.iterable.bind(flags, scope, binding);
+                this.iterable.bind(flags, scope, hostScope, binding);
             }
         }
-        unbind(flags, scope, binding) {
+        unbind(flags, scope, hostScope, binding) {
             if (hasUnbind(this.iterable)) {
-                this.iterable.unbind(flags, scope, binding);
+                this.iterable.unbind(flags, scope, hostScope, binding);
             }
         }
         accept(visitor) {
@@ -1034,26 +1049,26 @@
             this.isMulti = expressions.length > 1;
             this.firstExpression = expressions[0];
         }
-        evaluate(flags, scope, locator, part) {
+        evaluate(flags, scope, hostScope, locator) {
             if (this.isMulti) {
                 const expressions = this.expressions;
                 const parts = this.parts;
                 let result = parts[0];
                 for (let i = 0, ii = expressions.length; i < ii; ++i) {
-                    result += expressions[i].evaluate(flags, scope, locator, part);
+                    result += expressions[i].evaluate(flags, scope, hostScope, locator);
                     result += parts[i + 1];
                 }
                 return result;
             }
             else {
                 const parts = this.parts;
-                return `${parts[0]}${this.firstExpression.evaluate(flags, scope, locator, part)}${parts[1]}`;
+                return `${parts[0]}${this.firstExpression.evaluate(flags, scope, hostScope, locator)}${parts[1]}`;
             }
         }
-        assign(flags, scope, locator, obj, part) {
+        assign(flags, scope, hostScope, locator, obj) {
             return void 0;
         }
-        connect(flags, scope, binding, part) {
+        connect(flags, scope, hostScope, binding) {
             return;
         }
         accept(visitor) {
@@ -1062,11 +1077,11 @@
     }
     exports.Interpolation = Interpolation;
     /// Evaluate the [list] in context of the [scope].
-    function evalList(flags, scope, locator, list, part) {
+    function evalList(flags, scope, locator, list, hostScope) {
         const len = list.length;
         const result = Array(len);
         for (let i = 0; i < len; ++i) {
-            result[i] = list[i].evaluate(flags, scope, locator, part);
+            result[i] = list[i].evaluate(flags, scope, hostScope, locator);
         }
         return result;
     }

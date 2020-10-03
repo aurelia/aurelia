@@ -11,6 +11,6 @@ export declare class DebounceBindingBehavior extends BindingInterceptor {
     callSource(args: object): unknown;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
     private queueTask;
-    $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void;
+    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
 }
 //# sourceMappingURL=debounce.d.ts.map

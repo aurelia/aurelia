@@ -45,7 +45,7 @@ let Repeat = /** @class */ (() => {
                     break;
                 }
             }
-            this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null);
+            this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, null);
         }
         afterAttach(initiator, parent, flags) {
             this.normalizeToArray(flags);
@@ -153,7 +153,7 @@ let Repeat = /** @class */ (() => {
             let viewScope;
             const { $controller, factory, local, location, items } = this;
             const parentScope = $controller.scope;
-            const part = $controller.part;
+            const hostScope = $controller.hostScope;
             const newLen = this.forOf.count(flags, items);
             const views = this.views = Array(newLen);
             this.forOf.iterate(flags, items, (arr, i, item) => {
@@ -162,7 +162,7 @@ let Repeat = /** @class */ (() => {
                 view.nodes.unlink();
                 viewScope = Scope.fromParent(flags, parentScope, BindingContext.create(flags, local, item));
                 setContextualProperties(viewScope.overrideContext, i, newLen);
-                ret = view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, viewScope, part);
+                ret = view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, viewScope, hostScope);
                 if (ret instanceof Promise) {
                     (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
                 }
@@ -239,7 +239,7 @@ let Repeat = /** @class */ (() => {
                 throw new Error(`viewsLen=${views.length}, mapLen=${mapLen}`);
             }
             const parentScope = $controller.scope;
-            const part = $controller.part;
+            const hostScope = $controller.hostScope;
             const newLen = indexMap.length;
             synchronizeIndices(views, indexMap);
             // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
@@ -257,7 +257,7 @@ let Repeat = /** @class */ (() => {
                     viewScope = Scope.fromParent(flags, parentScope, BindingContext.create(flags, local, normalizedItems[i]));
                     setContextualProperties(viewScope.overrideContext, i, newLen);
                     view.setLocation(location, 1 /* insertBefore */);
-                    ret = view.activate(view, $controller, flags, viewScope, part);
+                    ret = view.activate(view, $controller, flags, viewScope, hostScope);
                     if (ret instanceof Promise) {
                         (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
                     }

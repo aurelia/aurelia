@@ -105,9 +105,6 @@ let BindingInterceptor = /** @class */ (() => {
         get $scope() {
             return this.binding.$scope;
         }
-        get part() {
-            return this.binding.part;
-        }
         get isBound() {
             return this.binding.isBound;
         }
@@ -123,8 +120,8 @@ let BindingInterceptor = /** @class */ (() => {
         handleChange(newValue, previousValue, flags) {
             this.binding.handleChange(newValue, previousValue, flags);
         }
-        $bind(flags, scope, part) {
-            this.binding.$bind(flags, scope, part);
+        $bind(flags, scope, hostScope) {
+            this.binding.$bind(flags, scope, hostScope);
         }
         $unbind(flags) {
             this.binding.$unbind(flags);

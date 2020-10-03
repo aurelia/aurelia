@@ -18,7 +18,7 @@ let UpdateTriggerBindingBehavior = /** @class */ (() => {
         constructor(observerLocator) {
             this.observerLocator = observerLocator;
         }
-        bind(flags, scope, binding, ...events) {
+        bind(flags, _scope, _hostScope, binding, ...events) {
             if (events.length === 0) {
                 throw Reporter.error(9);
             }
@@ -37,7 +37,7 @@ let UpdateTriggerBindingBehavior = /** @class */ (() => {
             // replace the element subscribe function with one that uses the correct events.
             targetObserver.handler = new EventSubscriber(binding.locator.get(IDOM), events);
         }
-        unbind(flags, scope, binding) {
+        unbind(flags, _scope, _hostScope, binding) {
             // restore the state of the binding.
             binding.targetObserver.handler.dispose();
             binding.targetObserver.handler = binding.targetObserver.originalHandler;

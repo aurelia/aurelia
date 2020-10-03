@@ -2,15 +2,14 @@ import { DI, Registration, Metadata, Protocol } from '@aurelia/kernel';
 import { Scope } from '../observation/binding-context';
 import { CustomElement, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
-import { mergeParts } from '../definitions';
-import { getRenderContext } from './render-context';
 let ViewFactory = /** @class */ (() => {
     class ViewFactory {
-        constructor(name, context, lifecycle, parts) {
+        constructor(name, context, lifecycle, contentType, projectionScope = null) {
             this.name = name;
             this.context = context;
             this.lifecycle = lifecycle;
-            this.parts = parts;
+            this.contentType = contentType;
+            this.projectionScope = projectionScope;
             this.isCaching = false;
             this.cache = null;
             this.cacheSize = -1;
@@ -54,17 +53,6 @@ let ViewFactory = /** @class */ (() => {
             }
             controller = Controller.forSyntheticView(this, this.lifecycle, this.context, flags);
             return controller;
-        }
-        resolve(requestor, parts) {
-            parts = mergeParts(this.parts, parts);
-            if (parts === void 0) {
-                return this;
-            }
-            const part = parts[this.name];
-            if (part === void 0) {
-                return this;
-            }
-            return getRenderContext(part, requestor, parts).getViewFactory(this.name);
         }
     }
     ViewFactory.maxCacheSize = 0xFFFF;
@@ -172,11 +160,11 @@ export class ViewLocator {
                 constructor(viewModel) {
                     this.viewModel = viewModel;
                 }
-                create(controller, parentContainer, definition, parts) {
+                create(controller, parentContainer, definition) {
                     const vm = this.viewModel;
                     controller.scope = Scope.fromParent(controller.flags, controller.scope, vm);
                     if (vm.create !== void 0) {
-                        return vm.create(controller, parentContainer, definition, parts);
+                        return vm.create(controller, parentContainer, definition);
                     }
                 }
             });

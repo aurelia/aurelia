@@ -88,7 +88,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             }
             activate(view, initiator, flags) {
                 const { $controller } = this;
-                return kernel_1.onResolve(view === null || view === void 0 ? void 0 : view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, $controller.scope, $controller.part), () => {
+                return kernel_1.onResolve(view === null || view === void 0 ? void 0 : view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, $controller.scope, $controller.hostScope), () => {
                     this.composing = false;
                 });
             }
@@ -116,7 +116,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 }
                 if ('template' in subject) { // Raw Template Definition
                     const definition = runtime_1.CustomElementDefinition.getOrCreate(subject);
-                    return runtime_1.getRenderContext(definition, this.$controller.context, void 0).getViewFactory().create(flags);
+                    return runtime_1.getRenderContext(definition, this.$controller.context).getViewFactory().create(flags);
                 }
                 // Constructable (Custom Element Constructor)
                 return create_element_1.createElement(this.dom, subject, this.properties, this.$controller.projector === void 0

@@ -4,12 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./lifecycle", "./lifecycle-task", "./observation/observer-locator", "./renderer", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/value-converters/sanitize", "./resources/value-converters/view", "./templating/view", "@aurelia/scheduler"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./lifecycle", "./lifecycle-task", "./observation/observer-locator", "./renderer", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/with", "./resources/value-converters/sanitize", "./resources/value-converters/view", "./templating/view", "@aurelia/scheduler", "./resources/custom-elements/au-slot"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.RuntimeConfiguration = exports.DefaultRenderers = exports.TemplateControllerRendererRegistration = exports.SetPropertyRendererRegistration = exports.RefBindingRendererRegistration = exports.PropertyBindingRendererRegistration = exports.LetElementRendererRegistration = exports.IteratorBindingRendererRegistration = exports.InterpolationBindingRendererRegistration = exports.CustomElementRendererRegistration = exports.CustomAttributeRendererRegistration = exports.CallBindingRendererRegistration = exports.DefaultResources = exports.TwoWayBindingBehaviorRegistration = exports.ThrottleBindingBehaviorRegistration = exports.SignalBindingBehaviorRegistration = exports.FromViewBindingBehaviorRegistration = exports.ToViewBindingBehaviorRegistration = exports.OneTimeBindingBehaviorRegistration = exports.DebounceBindingBehaviorRegistration = exports.ViewValueConverterRegistration = exports.SanitizeValueConverterRegistration = exports.WithRegistration = exports.ReplaceableRegistration = exports.RepeatRegistration = exports.ElseRegistration = exports.IfRegistration = exports.ObserveShallowRegistration = exports.InfrequentMutationsRegistration = exports.FrequentMutationsRegistration = exports.DefaultComponents = exports.IViewLocatorRegistration = exports.IStartTaskManagerRegistration = exports.IRendererRegistration = exports.ILifecycleRegistration = exports.IObserverLocatorRegistration = void 0;
+    exports.RuntimeConfiguration = exports.DefaultRenderers = exports.TemplateControllerRendererRegistration = exports.SetPropertyRendererRegistration = exports.RefBindingRendererRegistration = exports.PropertyBindingRendererRegistration = exports.LetElementRendererRegistration = exports.IteratorBindingRendererRegistration = exports.InterpolationBindingRendererRegistration = exports.CustomElementRendererRegistration = exports.CustomAttributeRendererRegistration = exports.CallBindingRendererRegistration = exports.DefaultResources = exports.TwoWayBindingBehaviorRegistration = exports.ThrottleBindingBehaviorRegistration = exports.SignalBindingBehaviorRegistration = exports.FromViewBindingBehaviorRegistration = exports.ToViewBindingBehaviorRegistration = exports.OneTimeBindingBehaviorRegistration = exports.DebounceBindingBehaviorRegistration = exports.ViewValueConverterRegistration = exports.SanitizeValueConverterRegistration = exports.WithRegistration = exports.RepeatRegistration = exports.ElseRegistration = exports.IfRegistration = exports.ObserveShallowRegistration = exports.InfrequentMutationsRegistration = exports.FrequentMutationsRegistration = exports.DefaultComponents = exports.IViewLocatorRegistration = exports.IStartTaskManagerRegistration = exports.IRendererRegistration = exports.ILifecycleRegistration = exports.IObserverLocatorRegistration = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const lifecycle_1 = require("./lifecycle");
     const lifecycle_task_1 = require("./lifecycle-task");
@@ -22,12 +22,12 @@
     const flags_1 = require("./resources/custom-attributes/flags");
     const if_1 = require("./resources/custom-attributes/if");
     const repeat_1 = require("./resources/custom-attributes/repeat");
-    const replaceable_1 = require("./resources/custom-attributes/replaceable");
     const with_1 = require("./resources/custom-attributes/with");
     const sanitize_1 = require("./resources/value-converters/sanitize");
     const view_1 = require("./resources/value-converters/view");
     const view_2 = require("./templating/view");
     const scheduler_1 = require("@aurelia/scheduler");
+    const au_slot_1 = require("./resources/custom-elements/au-slot");
     exports.IObserverLocatorRegistration = observer_locator_1.ObserverLocator;
     exports.ILifecycleRegistration = lifecycle_1.Lifecycle;
     exports.IRendererRegistration = renderer_1.Renderer;
@@ -50,6 +50,7 @@
         exports.IStartTaskManagerRegistration,
         exports.IViewLocatorRegistration,
         scheduler_1.Now,
+        au_slot_1.ProjectionProvider,
     ];
     exports.FrequentMutationsRegistration = flags_1.FrequentMutations;
     exports.InfrequentMutationsRegistration = flags_1.InfrequentMutations;
@@ -57,7 +58,6 @@
     exports.IfRegistration = if_1.If;
     exports.ElseRegistration = if_1.Else;
     exports.RepeatRegistration = repeat_1.Repeat;
-    exports.ReplaceableRegistration = replaceable_1.Replaceable;
     exports.WithRegistration = with_1.With;
     exports.SanitizeValueConverterRegistration = sanitize_1.SanitizeValueConverter;
     exports.ViewValueConverterRegistration = view_1.ViewValueConverter;
@@ -70,9 +70,10 @@
     exports.TwoWayBindingBehaviorRegistration = binding_mode_1.TwoWayBindingBehavior;
     /**
      * Default resources:
-     * - Template controllers (`if`/`else`, `repeat`, `replaceable`, `with`)
+     * - Template controllers (`if`/`else`, `repeat`, `with`)
      * - Value Converters (`sanitize`)
      * - Binding Behaviors (`oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`)
+     * - Custom element: au-slot
      */
     exports.DefaultResources = [
         exports.FrequentMutationsRegistration,
@@ -81,7 +82,6 @@
         exports.IfRegistration,
         exports.ElseRegistration,
         exports.RepeatRegistration,
-        exports.ReplaceableRegistration,
         exports.WithRegistration,
         exports.SanitizeValueConverterRegistration,
         exports.ViewValueConverterRegistration,
@@ -91,7 +91,8 @@
         exports.FromViewBindingBehaviorRegistration,
         exports.SignalBindingBehaviorRegistration,
         exports.ThrottleBindingBehaviorRegistration,
-        exports.TwoWayBindingBehaviorRegistration
+        exports.TwoWayBindingBehaviorRegistration,
+        au_slot_1.AuSlot,
     ];
     exports.CallBindingRendererRegistration = renderer_1.CallBindingRenderer;
     exports.CustomAttributeRendererRegistration = renderer_1.CustomAttributeRenderer;

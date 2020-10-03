@@ -72,10 +72,10 @@ export class SetPropertyInstruction {
     }
 }
 export class HydrateElementInstruction {
-    constructor(res, instructions, parts) {
+    constructor(res, instructions, slotInfo) {
         this.res = res;
         this.instructions = instructions;
-        this.parts = parts;
+        this.slotInfo = slotInfo;
         this.type = "ra" /* hydrateElement */;
     }
 }
@@ -87,12 +87,11 @@ export class HydrateAttributeInstruction {
     }
 }
 export class HydrateTemplateController {
-    constructor(def, res, instructions, link, parts) {
+    constructor(def, res, instructions, link) {
         this.def = def;
         this.res = res;
         this.instructions = instructions;
         this.link = link;
-        this.parts = parts;
         this.type = "rc" /* hydrateTemplateController */;
     }
 }

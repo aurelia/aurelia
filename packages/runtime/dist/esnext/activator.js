@@ -52,7 +52,7 @@ let Activator = /** @class */ (() => {
         }
         render(host, component, container, flags) {
             const lifecycle = container.get(ILifecycle);
-            Controller.forCustomElement(component, lifecycle, host, container, void 0, flags);
+            Controller.forCustomElement(component, lifecycle, host, container, null, flags);
         }
         activateController(component, flags, parentScope) {
             const controller = Controller.getCachedOrThrow(component);

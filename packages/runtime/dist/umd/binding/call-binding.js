@@ -17,18 +17,19 @@
             this.locator = locator;
             this.interceptor = this;
             this.isBound = false;
+            this.$hostScope = null;
             this.targetObserver = observerLocator.getObserver(0 /* none */, target, targetProperty);
         }
         callSource(args) {
             const overrideContext = this.$scope.overrideContext;
             Object.assign(overrideContext, args);
-            const result = this.sourceExpression.evaluate(128 /* mustEvaluate */, this.$scope, this.locator, this.part);
+            const result = this.sourceExpression.evaluate(128 /* mustEvaluate */, this.$scope, this.$hostScope, this.locator);
             for (const prop in args) {
                 Reflect.deleteProperty(overrideContext, prop);
             }
             return result;
         }
-        $bind(flags, scope, part) {
+        $bind(flags, scope, hostScope) {
             if (this.isBound) {
                 if (this.$scope === scope) {
                     return;
@@ -36,9 +37,9 @@
                 this.interceptor.$unbind(flags | 32 /* fromBind */);
             }
             this.$scope = scope;
-            this.part = part;
+            this.$hostScope = hostScope;
             if (ast_1.hasBind(this.sourceExpression)) {
-                this.sourceExpression.bind(flags, scope, this.interceptor);
+                this.sourceExpression.bind(flags, scope, hostScope, this.interceptor);
             }
             this.targetObserver.setValue(($args) => this.interceptor.callSource($args), flags);
             // add isBound flag and remove isBinding flag
@@ -49,7 +50,7 @@
                 return;
             }
             if (ast_1.hasUnbind(this.sourceExpression)) {
-                this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
+                this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
             }
             this.$scope = void 0;
             this.targetObserver.setValue(null, flags);

@@ -57,7 +57,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                         break;
                     }
                 }
-                this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null);
+                this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, null);
             }
             afterAttach(initiator, parent, flags) {
                 this.normalizeToArray(flags);
@@ -165,7 +165,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 let viewScope;
                 const { $controller, factory, local, location, items } = this;
                 const parentScope = $controller.scope;
-                const part = $controller.part;
+                const hostScope = $controller.hostScope;
                 const newLen = this.forOf.count(flags, items);
                 const views = this.views = Array(newLen);
                 this.forOf.iterate(flags, items, (arr, i, item) => {
@@ -174,7 +174,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     view.nodes.unlink();
                     viewScope = binding_context_1.Scope.fromParent(flags, parentScope, binding_context_1.BindingContext.create(flags, local, item));
                     setContextualProperties(viewScope.overrideContext, i, newLen);
-                    ret = view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, viewScope, part);
+                    ret = view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, viewScope, hostScope);
                     if (ret instanceof Promise) {
                         (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
                     }
@@ -251,7 +251,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     throw new Error(`viewsLen=${views.length}, mapLen=${mapLen}`);
                 }
                 const parentScope = $controller.scope;
-                const part = $controller.part;
+                const hostScope = $controller.hostScope;
                 const newLen = indexMap.length;
                 array_observer_1.synchronizeIndices(views, indexMap);
                 // this algorithm retrieves the indices of the longest increasing subsequence of items in the repeater
@@ -269,7 +269,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                         viewScope = binding_context_1.Scope.fromParent(flags, parentScope, binding_context_1.BindingContext.create(flags, local, normalizedItems[i]));
                         setContextualProperties(viewScope.overrideContext, i, newLen);
                         view.setLocation(location, 1 /* insertBefore */);
-                        ret = view.activate(view, $controller, flags, viewScope, part);
+                        ret = view.activate(view, $controller, flags, viewScope, hostScope);
                         if (ret instanceof Promise) {
                             (promises !== null && promises !== void 0 ? promises : (promises = [])).push(ret);
                         }

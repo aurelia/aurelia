@@ -36,7 +36,7 @@ export class RenderPlan {
         return this.lazyDefinition;
     }
     getContext(parentContainer) {
-        return getRenderContext(this.definition, parentContainer, void 0);
+        return getRenderContext(this.definition, parentContainer);
     }
     createView(parentContainer) {
         return this.getViewFactory(parentContainer).create();
@@ -92,7 +92,7 @@ function createElementForType(dom, Type, props, children) {
     if (!dependencies.includes(Type)) {
         dependencies.push(Type);
     }
-    instructions.push(new HydrateElementInstruction(tagName, childInstructions));
+    instructions.push(new HydrateElementInstruction(tagName, childInstructions, null));
     if (props) {
         Object.keys(props)
             .forEach(to => {

@@ -34,6 +34,7 @@ let PropertyBinding = /** @class */ (() => {
             this.interceptor = this;
             this.isBound = false;
             this.$scope = void 0;
+            this.$hostScope = null;
             this.targetObserver = void 0;
             this.persistentFlags = 0 /* none */;
             this.task = null;
@@ -48,7 +49,7 @@ let PropertyBinding = /** @class */ (() => {
         }
         updateSource(value, flags) {
             flags |= this.persistentFlags;
-            this.sourceExpression.assign(flags, this.$scope, this.locator, value, this.part);
+            this.sourceExpression.assign(flags, this.$scope, this.$hostScope, this.locator, value);
         }
         handleChange(newValue, _previousValue, flags) {
             var _a, _b;
@@ -62,6 +63,10 @@ let PropertyBinding = /** @class */ (() => {
             const $scope = this.$scope;
             const locator = this.locator;
             if ((flags & 8 /* updateTargetInstance */) > 0) {
+                // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
+                if (this.sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
+                    newValue = this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator);
+                }
                 // Alpha: during bind a simple strategy for bind is always flush immediately
                 // todo:
                 //  (1). determine whether this should be the behavior
@@ -69,7 +74,7 @@ let PropertyBinding = /** @class */ (() => {
                 const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
                 const oldValue = targetObserver.getValue();
                 if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
-                    newValue = sourceExpression.evaluate(flags, $scope, locator, this.part);
+                    newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator);
                 }
                 // todo(fred): maybe let the obsrever decides whether it updates
                 if (newValue !== oldValue) {
@@ -88,20 +93,20 @@ let PropertyBinding = /** @class */ (() => {
                 // todo: merge this with evaluate above
                 if ((this.mode & oneTime) === 0) {
                     this.version++;
-                    sourceExpression.connect(flags, $scope, interceptor, this.part);
+                    sourceExpression.connect(flags, $scope, this.$hostScope, this.interceptor);
                     interceptor.unobserve(false);
                 }
                 return;
             }
             if ((flags & 16 /* updateSourceExpression */) > 0) {
-                if (newValue !== sourceExpression.evaluate(flags, $scope, locator, this.part)) {
+                if (newValue !== sourceExpression.evaluate(flags, $scope, this.$hostScope, locator)) {
                     interceptor.updateSource(newValue, flags);
                 }
                 return;
             }
             throw new Error('Unexpected handleChange context in PropertyBinding');
         }
-        $bind(flags, scope, part) {
+        $bind(flags, scope, hostScope) {
             if (this.isBound) {
                 if (this.$scope === scope) {
                     return;
@@ -114,10 +119,10 @@ let PropertyBinding = /** @class */ (() => {
             // to the AST during evaluate/connect/assign
             this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
             this.$scope = scope;
-            this.part = part;
+            this.$hostScope = hostScope;
             let sourceExpression = this.sourceExpression;
             if (hasBind(sourceExpression)) {
-                sourceExpression.bind(flags, scope, this.interceptor);
+                sourceExpression.bind(flags, scope, hostScope, this.interceptor);
             }
             let $mode = this.mode;
             let targetObserver = this.targetObserver;
@@ -140,10 +145,10 @@ let PropertyBinding = /** @class */ (() => {
             sourceExpression = this.sourceExpression;
             const interceptor = this.interceptor;
             if ($mode & toViewOrOneTime) {
-                interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+                interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator), flags);
             }
             if ($mode & toView) {
-                sourceExpression.connect(flags, scope, interceptor, part);
+                sourceExpression.connect(flags, scope, this.$hostScope, interceptor);
             }
             if ($mode & fromView) {
                 targetObserver.subscribe(interceptor);
@@ -162,7 +167,7 @@ let PropertyBinding = /** @class */ (() => {
             // clear persistent flags
             this.persistentFlags = 0 /* none */;
             if (hasUnbind(this.sourceExpression)) {
-                this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
+                this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
             }
             this.$scope = void 0;
             const targetObserver = this.targetObserver;

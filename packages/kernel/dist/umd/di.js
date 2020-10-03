@@ -767,6 +767,34 @@
             }
             return resolver;
         }
+        // public deregisterResolverFor<K extends Key, T = K>(key: K): void {
+        //   // const console =  (globalThis as any).console;
+        //   // console.group("deregisterResolverFor");
+        //   validateKey(key);
+        //   let current: Container = this;
+        //   let resolver: IResolver | undefined;
+        //   while (current != null) {
+        //     resolver = current.resolvers.get(key);
+        //     if (resolver != null) { break; }
+        //     if (current.parent == null) { return; }
+        //     current = current.parent;
+        //   }
+        //   if (resolver === void 0) { return; }
+        //   if (resolver instanceof Resolver && resolver.strategy === ResolverStrategy.array) {
+        //     throw new Error('Cannot deregister a resolver with array strategy');
+        //   }
+        //   if (this.disposableResolvers.has(resolver as IDisposableResolver<T>)) {
+        //     (resolver as IDisposableResolver<T>).dispose();
+        //   }
+        //   if (isResourceKey(key)) {
+        //     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        //     delete this.resourceResolvers[key];
+        //   }
+        //   // console.log(`BEFORE delete ${Array.from(current.resolvers.keys()).map((k) => k.toString())}`);
+        //   current.resolvers.delete(key);
+        //   // console.log(`AFTER delete ${Array.from(current.resolvers.keys()).map((k) => k.toString())}`);
+        //   // console.groupEnd();
+        // }
         registerTransformer(key, transformer) {
             const resolver = this.getResolver(key);
             if (resolver == null) {

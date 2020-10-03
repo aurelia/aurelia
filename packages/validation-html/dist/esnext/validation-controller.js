@@ -68,13 +68,15 @@ export class BindingInfo {
     /**
      * @param {Element} target - The HTMLElement associated with the binding.
      * @param {IScope} scope - The binding scope.
+     * @param {IScope | null} [hostScope] - The host scope.
      * @param {PropertyRule[]} [rules] - Rules bound to the binding behavior.
      * @param {(PropertyInfo | undefined)} [propertyInfo=void 0] - Information describing the associated property for the binding.
      * @memberof BindingInfo
      */
-    constructor(target, scope, rules, propertyInfo = void 0) {
+    constructor(target, scope, hostScope, rules, propertyInfo = void 0) {
         this.target = target;
         this.scope = scope;
+        this.hostScope = hostScope;
         this.rules = rules;
         this.propertyInfo = propertyInfo;
     }
@@ -91,6 +93,7 @@ export function getPropertyInfo(binding, info, flags = 0 /* none */) {
         return propertyInfo;
     }
     const scope = info.scope;
+    const hostScope = info.hostScope;
     let expression = binding.sourceExpression.expression;
     const locator = binding.locator;
     let toCachePropertyName = true;
@@ -110,7 +113,7 @@ export function getPropertyInfo(binding, info, flags = 0 /* none */) {
                 if (toCachePropertyName) {
                     toCachePropertyName = keyExpr.$kind === 17925 /* PrimitiveLiteral */;
                 }
-                memberName = `[${keyExpr.evaluate(flags, scope, locator).toString()}]`;
+                memberName = `[${keyExpr.evaluate(flags, scope, hostScope, locator).toString()}]`;
                 break;
             }
             default:
@@ -126,10 +129,10 @@ export function getPropertyInfo(binding, info, flags = 0 /* none */) {
     let object;
     if (propertyName.length === 0) {
         propertyName = expression.name;
-        object = scope.bindingContext;
+        object = expression.accessHostScope ? hostScope === null || hostScope === void 0 ? void 0 : hostScope.bindingContext : scope.bindingContext;
     }
     else {
-        object = expression.evaluate(flags, scope, locator);
+        object = expression.evaluate(flags, scope, hostScope, locator);
     }
     if (object === null || object === void 0) {
         return (void 0);

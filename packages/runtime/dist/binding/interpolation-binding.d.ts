@@ -16,10 +16,9 @@ export declare class MultiInterpolationBinding implements IBinding {
     interceptor: this;
     isBound: boolean;
     $scope?: IScope;
-    part?: string;
     parts: InterpolationBinding[];
     constructor(observerLocator: IObserverLocator, interpolation: IInterpolationExpression, target: object, targetProperty: string, mode: BindingMode, locator: IServiceLocator);
-    $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
+    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
     $unbind(flags: LifecycleFlags): void;
     dispose(): void;
 }
@@ -37,7 +36,7 @@ export declare class InterpolationBinding implements IPartialConnectableBinding 
     interceptor: this;
     id: number;
     $scope?: IScope;
-    part?: string;
+    $hostScope: IScope | null;
     $scheduler: IScheduler;
     task: ITask | null;
     isBound: boolean;
@@ -45,7 +44,7 @@ export declare class InterpolationBinding implements IPartialConnectableBinding 
     constructor(sourceExpression: IExpression, interpolation: IInterpolationExpression, target: object, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
-    $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
+    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
     $unbind(flags: LifecycleFlags): void;
     dispose(): void;
 }

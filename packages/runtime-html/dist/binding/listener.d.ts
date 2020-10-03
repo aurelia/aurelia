@@ -18,12 +18,12 @@ export declare class Listener implements IBinding {
     interceptor: this;
     isBound: boolean;
     $scope: IScope;
-    part?: string;
+    $hostScope: IScope | null;
     private handler;
     constructor(dom: IDOM, targetEvent: string, delegationStrategy: DelegationStrategy, sourceExpression: IsBindingBehavior, target: Node, preventDefault: boolean, eventManager: IEventManager, locator: IServiceLocator);
     callSource(event: Event): ReturnType<IsBindingBehavior['evaluate']>;
     handleEvent(event: Event): void;
-    $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
+    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
     $unbind(flags: LifecycleFlags): void;
     observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;

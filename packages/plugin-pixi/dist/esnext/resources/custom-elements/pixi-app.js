@@ -145,7 +145,7 @@ let PixiApp = /** @class */ (() => {
         __metadata("design:type", Function)
     ], PixiApp.prototype, "tick", void 0);
     PixiApp = __decorate([
-        customElement({ name: 'pixi-app', template: '<template><div replaceable="children"></div></template>' }),
+        customElement({ name: 'pixi-app', template: '<template><au-slot name="children"></au-slot></template>' }),
         __metadata("design:paramtypes", [Object])
     ], PixiApp);
     return PixiApp;

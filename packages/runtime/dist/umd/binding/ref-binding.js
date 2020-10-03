@@ -19,8 +19,9 @@
             this.interceptor = this;
             this.isBound = false;
             this.$scope = void 0;
+            this.$hostScope = null;
         }
-        $bind(flags, scope, part) {
+        $bind(flags, scope, hostScope) {
             if (this.isBound) {
                 if (this.$scope === scope) {
                     return;
@@ -28,11 +29,11 @@
                 this.interceptor.$unbind(flags | 32 /* fromBind */);
             }
             this.$scope = scope;
-            this.part = part;
+            this.$hostScope = hostScope;
             if (ast_1.hasBind(this.sourceExpression)) {
-                this.sourceExpression.bind(flags, scope, this);
+                this.sourceExpression.bind(flags, scope, hostScope, this);
             }
-            this.sourceExpression.assign(flags | 16 /* updateSourceExpression */, this.$scope, this.locator, this.target, part);
+            this.sourceExpression.assign(flags | 16 /* updateSourceExpression */, this.$scope, hostScope, this.locator, this.target);
             // add isBound flag and remove isBinding flag
             this.isBound = true;
         }
@@ -41,13 +42,13 @@
                 return;
             }
             let sourceExpression = this.sourceExpression;
-            if (sourceExpression.evaluate(flags, this.$scope, this.locator, this.part) === this.target) {
-                sourceExpression.assign(flags, this.$scope, this.locator, null, this.part);
+            if (sourceExpression.evaluate(flags, this.$scope, this.$hostScope, this.locator) === this.target) {
+                sourceExpression.assign(flags, this.$scope, this.$hostScope, this.locator, null);
             }
             // source expression might have been modified durring assign, via a BB
             sourceExpression = this.sourceExpression;
             if (ast_1.hasUnbind(sourceExpression)) {
-                sourceExpression.unbind(flags, this.$scope, this.interceptor);
+                sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
             }
             this.$scope = void 0;
             this.isBound = false;

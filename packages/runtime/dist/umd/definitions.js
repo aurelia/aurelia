@@ -9,7 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.registerAliases = exports.alias = exports.HooksDefinition = exports.isTargetedInstruction = exports.ITargetedInstruction = exports.mergeParts = exports.TargetedInstructionType = void 0;
+    exports.registerAliases = exports.alias = exports.HooksDefinition = exports.isTargetedInstruction = exports.ITargetedInstruction = exports.TargetedInstructionType = void 0;
     const kernel_1 = require("@aurelia/kernel");
     /**
      * TargetedInstructionType enum values become the property names for the associated renderers when they are injected
@@ -34,42 +34,6 @@
         TargetedInstructionType["refBinding"] = "rj";
         TargetedInstructionType["iteratorBinding"] = "rk";
     })(TargetedInstructionType = exports.TargetedInstructionType || (exports.TargetedInstructionType = {}));
-    const parentPartsOwnPartsLookup = new WeakMap();
-    /**
-     * Efficiently merge parts, performing the minimal amount of work / using the minimal amount of memory.
-     *
-     * If either of the two part records is undefined, the other will simply be returned.
-     *
-     * If both are undefined, undefined will be returned.
-     *
-     * If neither are undefined, a new object will be returned where parts of the second value will be written last (and thus may overwrite duplicate named parts).
-     *
-     * This function is idempotent via a WeakMap cache: results are cached and if the same two variables are provided again, the same object will be returned.
-     */
-    function mergeParts(parentParts, ownParts) {
-        if (parentParts === ownParts) {
-            return parentParts;
-        }
-        if (parentParts === void 0) {
-            return ownParts;
-        }
-        if (ownParts === void 0) {
-            return parentParts;
-        }
-        let ownPartsLookup = parentPartsOwnPartsLookup.get(parentParts);
-        if (ownPartsLookup === void 0) {
-            parentPartsOwnPartsLookup.set(parentParts, ownPartsLookup = new WeakMap());
-        }
-        let mergedParts = ownPartsLookup.get(ownParts);
-        if (mergedParts === void 0) {
-            ownPartsLookup.set(ownParts, mergedParts = {
-                ...parentParts,
-                ...ownParts,
-            });
-        }
-        return mergedParts;
-    }
-    exports.mergeParts = mergeParts;
     exports.ITargetedInstruction = kernel_1.DI.createInterface('ITargetedInstruction').noDefault();
     function isTargetedInstruction(value) {
         const type = value.type;

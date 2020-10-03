@@ -20,7 +20,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     const utils_1 = require("../utils");
     let RelativeTimeBindingBehavior = /** @class */ (() => {
         let RelativeTimeBindingBehavior = class RelativeTimeBindingBehavior {
-            bind(flags, scope, binding) {
+            bind(flags, _scope, _hostScope, binding) {
                 utils_1.createIntlFormatValueConverterExpression("rt" /* relativeTimeValueConverterName */, binding);
             }
         };

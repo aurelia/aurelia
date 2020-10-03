@@ -51,6 +51,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 this.interceptor = this;
                 this.isBound = false;
                 this.$scope = null;
+                this.$hostScope = null;
                 this.task = null;
                 this.persistentFlags = 0 /* none */;
                 this.target = target;
@@ -63,7 +64,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             }
             updateSource(value, flags) {
                 flags |= this.persistentFlags;
-                this.sourceExpression.assign(flags | 16 /* updateSourceExpression */, this.$scope, this.locator, value);
+                this.sourceExpression.assign(flags | 16 /* updateSourceExpression */, this.$scope, this.$hostScope, this.locator, value);
             }
             handleChange(newValue, _previousValue, flags) {
                 var _a, _b;
@@ -89,7 +90,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
                     const oldValue = targetObserver.getValue();
                     if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
-                        newValue = sourceExpression.evaluate(flags, $scope, locator, this.part);
+                        newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator);
                     }
                     if (newValue !== oldValue) {
                         if (shouldQueueFlush) {
@@ -106,20 +107,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     }
                     if ((mode & oneTime) === 0) {
                         this.version++;
-                        sourceExpression.connect(flags, $scope, interceptor, this.part);
+                        sourceExpression.connect(flags, $scope, this.$hostScope, interceptor);
                         interceptor.unobserve(false);
                     }
                     return;
                 }
                 if (flags & 16 /* updateSourceExpression */) {
-                    if (newValue !== this.sourceExpression.evaluate(flags, $scope, locator, this.part)) {
+                    if (newValue !== this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator)) {
                         interceptor.updateSource(newValue, flags);
                     }
                     return;
                 }
                 throw new Error('Unexpected handleChange context in AttributeBinding');
             }
-            $bind(flags, scope, part) {
+            $bind(flags, scope, hostScope, projection) {
                 if (this.isBound) {
                     if (this.$scope === scope) {
                         return;
@@ -130,10 +131,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 // to the AST during evaluate/connect/assign
                 this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
                 this.$scope = scope;
-                this.part = part;
+                this.$hostScope = hostScope;
+                this.projection = projection;
                 let sourceExpression = this.sourceExpression;
                 if (runtime_1.hasBind(sourceExpression)) {
-                    sourceExpression.bind(flags, scope, this.interceptor);
+                    sourceExpression.bind(flags, scope, hostScope, this.interceptor);
                 }
                 let targetObserver = this.targetObserver;
                 if (!targetObserver) {
@@ -147,10 +149,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 const $mode = this.mode;
                 const interceptor = this.interceptor;
                 if ($mode & toViewOrOneTime) {
-                    interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+                    interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator), flags);
                 }
                 if ($mode & toView) {
-                    sourceExpression.connect(flags, scope, interceptor, part);
+                    sourceExpression.connect(flags, scope, this.$hostScope, this);
                 }
                 if ($mode & fromView) {
                     targetObserver[this.id] |= 16 /* updateSourceExpression */;
@@ -166,7 +168,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 // clear persistent flags
                 this.persistentFlags = 0 /* none */;
                 if (runtime_1.hasUnbind(this.sourceExpression)) {
-                    this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
+                    this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
                 }
                 this.$scope = null;
                 const targetObserver = this.targetObserver;
@@ -192,7 +194,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             connect(flags) {
                 if (this.isBound) {
                     flags |= this.persistentFlags;
-                    this.sourceExpression.connect(flags | 128 /* mustEvaluate */, this.$scope, this.interceptor, this.part); // why do we have a connect method here in the first place? will this be called after bind?
+                    this.sourceExpression.connect(flags | 128 /* mustEvaluate */, this.$scope, this.$hostScope, this.interceptor); // why do we have a connect method here in the first place? will this be called after bind?
                 }
             }
             dispose() {

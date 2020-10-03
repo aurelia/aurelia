@@ -30,7 +30,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             constructor(observerLocator) {
                 this.observerLocator = observerLocator;
             }
-            bind(flags, scope, binding, ...events) {
+            bind(flags, _scope, _hostScope, binding, ...events) {
                 if (events.length === 0) {
                     throw kernel_1.Reporter.error(9);
                 }
@@ -49,7 +49,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 // replace the element subscribe function with one that uses the correct events.
                 targetObserver.handler = new event_manager_1.EventSubscriber(binding.locator.get(runtime_1.IDOM), events);
             }
-            unbind(flags, scope, binding) {
+            unbind(flags, _scope, _hostScope, binding) {
                 // restore the state of the binding.
                 binding.targetObserver.handler.dispose();
                 binding.targetObserver.handler = binding.targetObserver.originalHandler;

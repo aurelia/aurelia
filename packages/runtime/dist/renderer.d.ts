@@ -1,7 +1,7 @@
 import { Class, IContainer, IRegistry, IServiceLocator } from '@aurelia/kernel';
 import { IsBindingBehavior } from './ast';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
-import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, InstructionTypeName, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, ITargetedInstruction, PartialCustomElementDefinitionParts } from './definitions';
+import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, InstructionTypeName, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, ITargetedInstruction } from './definitions';
 import { INode } from './dom';
 import { LifecycleFlags } from './flags';
 import { IController, IRenderableController } from './lifecycle';
@@ -9,20 +9,21 @@ import { IObserverLocator } from './observation/observer-locator';
 import { CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
 import { ICompiledRenderContext } from './templating/render-context';
 import { IInterceptableBinding } from './resources/binding-behavior';
+import { RegisteredProjections } from './resources/custom-elements/au-slot';
 export interface ITemplateCompiler {
-    compile(partialDefinition: PartialCustomElementDefinition, context: IContainer): CustomElementDefinition;
+    compile(partialDefinition: PartialCustomElementDefinition, context: IContainer, targetedProjections: RegisteredProjections | null): CustomElementDefinition;
 }
 export declare const ITemplateCompiler: import("@aurelia/kernel").InterfaceSymbol<ITemplateCompiler>;
 export interface IInstructionTypeClassifier<TType extends string = string> {
     instructionType: TType;
 }
 export interface IInstructionRenderer<TType extends InstructionTypeName = InstructionTypeName> extends Partial<IInstructionTypeClassifier<TType>> {
-    render(flags: LifecycleFlags, context: ICompiledRenderContext, controller: IRenderableController, target: unknown, instruction: ITargetedInstruction, parts: PartialCustomElementDefinitionParts | undefined): void;
+    render(flags: LifecycleFlags, context: ICompiledRenderContext, controller: IRenderableController, target: unknown, instruction: ITargetedInstruction): void;
 }
 export declare const IInstructionRenderer: import("@aurelia/kernel").InterfaceSymbol<IInstructionRenderer<string>>;
 export interface IRenderer {
-    render(flags: LifecycleFlags, context: ICompiledRenderContext, controller: IRenderableController, targets: ArrayLike<INode>, templateDefinition: CustomElementDefinition, host: INode | null | undefined, parts: PartialCustomElementDefinitionParts | undefined): void;
-    renderInstructions(flags: LifecycleFlags, context: ICompiledRenderContext, instructions: readonly ITargetedInstruction[], controller: IRenderableController, target: unknown, parts: PartialCustomElementDefinitionParts | undefined): void;
+    render(flags: LifecycleFlags, context: ICompiledRenderContext, controller: IRenderableController, targets: ArrayLike<INode>, templateDefinition: CustomElementDefinition, host: INode | null | undefined): void;
+    renderInstructions(flags: LifecycleFlags, context: ICompiledRenderContext, instructions: readonly ITargetedInstruction[], controller: IRenderableController, target: unknown): void;
 }
 export declare const IRenderer: import("@aurelia/kernel").InterfaceSymbol<IRenderer>;
 declare type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
@@ -36,13 +37,13 @@ export declare class SetPropertyRenderer implements IInstructionRenderer {
     render(flags: LifecycleFlags, context: ICompiledRenderContext, controller: IRenderableController, target: IController, instruction: ISetPropertyInstruction): void;
 }
 export declare class CustomElementRenderer implements IInstructionRenderer {
-    render(flags: LifecycleFlags, context: ICompiledRenderContext, controller: IRenderableController, target: INode, instruction: IHydrateElementInstruction, parts: PartialCustomElementDefinitionParts | undefined): void;
+    render(flags: LifecycleFlags, context: ICompiledRenderContext, controller: IRenderableController, target: INode, instruction: IHydrateElementInstruction): void;
 }
 export declare class CustomAttributeRenderer implements IInstructionRenderer {
-    render(flags: LifecycleFlags, context: ICompiledRenderContext, controller: IRenderableController, target: INode, instruction: IHydrateAttributeInstruction, parts: PartialCustomElementDefinitionParts | undefined): void;
+    render(flags: LifecycleFlags, context: ICompiledRenderContext, controller: IRenderableController, target: INode, instruction: IHydrateAttributeInstruction): void;
 }
 export declare class TemplateControllerRenderer implements IInstructionRenderer {
-    render(flags: LifecycleFlags, parentContext: ICompiledRenderContext, controller: IRenderableController, target: INode, instruction: IHydrateTemplateController, parts: PartialCustomElementDefinitionParts | undefined): void;
+    render(flags: LifecycleFlags, parentContext: ICompiledRenderContext, controller: IRenderableController, target: INode, instruction: IHydrateTemplateController): void;
 }
 export declare class LetElementRenderer implements IInstructionRenderer {
     private readonly parser;

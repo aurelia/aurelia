@@ -25,13 +25,14 @@ export declare class TranslationBinding implements IPartialConnectableBinding {
     private keyExpression;
     private translationParameters;
     private scope;
+    private hostScope;
     private isInterpolatedSourceExpr;
     private readonly targetObservers;
     target: HTMLElement;
     constructor(target: INode, observerLocator: IObserverLocator, locator: IServiceLocator);
     static create({ parser, observerLocator, context, controller, target, instruction, isParameterContext, }: TranslationBindingCreationContext): void;
     private static getBinding;
-    $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void;
+    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
     $unbind(flags: LifecycleFlags): void;
     handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void;
     private handleLocaleChange;

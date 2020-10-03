@@ -12,11 +12,11 @@ export declare class CallBinding {
     interceptor: this;
     isBound: boolean;
     $scope?: IScope;
-    part?: string;
+    $hostScope: IScope | null;
     targetObserver: IAccessor;
     constructor(sourceExpression: IsBindingBehavior, target: object, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator);
     callSource(args: object): unknown;
-    $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
+    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
     $unbind(flags: LifecycleFlags): void;
     observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;

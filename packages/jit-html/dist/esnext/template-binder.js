@@ -2,14 +2,13 @@
 import { BindableInfo, } from '@aurelia/jit';
 import { camelCase, } from '@aurelia/kernel';
 import { BindingMode } from '@aurelia/runtime';
-import { BindingSymbol, CustomAttributeSymbol, CustomElementSymbol, LetElementSymbol, PlainAttributeSymbol, PlainElementSymbol, ReplacePartSymbol, TemplateControllerSymbol, TextSymbol, } from './semantic-model';
+import { BindingSymbol, CustomAttributeSymbol, CustomElementSymbol, LetElementSymbol, PlainAttributeSymbol, PlainElementSymbol, TemplateControllerSymbol, TextSymbol, ProjectionSymbol, } from './semantic-model';
 const invalidSurrogateAttribute = Object.assign(Object.create(null), {
     'id': true,
-    'replace': true
+    'au-slot': true,
 });
 const attributesToIgnore = Object.assign(Object.create(null), {
     'as-element': true,
-    'replace': true
 });
 function hasInlineBindings(rawValue) {
     const len = rawValue.length;
@@ -72,25 +71,6 @@ function processTemplateControllers(dom, manifestProxy, manifest) {
         }
         manifestNode.removeAttribute(current.syntax.rawName);
         current = current.template;
-    }
-}
-function processReplacePart(dom, replacePart, manifestProxy) {
-    let proxyNode;
-    let currentTemplate;
-    if ((manifestProxy.flags & 512 /* hasMarker */) > 0) {
-        proxyNode = manifestProxy.marker;
-    }
-    else {
-        proxyNode = manifestProxy.physicalNode;
-    }
-    if (proxyNode.nodeName === 'TEMPLATE') {
-        // if it's a template element, no need to do anything special, just assign it to the replacePart
-        replacePart.physicalNode = proxyNode;
-    }
-    else {
-        // otherwise wrap the replace in a template
-        currentTemplate = replacePart.physicalNode = dom.createTemplate();
-        currentTemplate.content.appendChild(proxyNode);
     }
 }
 /**
@@ -159,11 +139,12 @@ export class TemplateBinder {
         /* surrogate          */ surrogate, 
         /* manifest           */ surrogate, 
         /* manifestRoot       */ null, 
-        /* parentManifestRoot */ null, 
-        /* partName           */ null);
+        /* parentManifestRoot */ null);
         return surrogate;
     }
-    bindManifest(parentManifest, node, surrogate, manifest, manifestRoot, parentManifestRoot, partName) {
+    bindManifest(parentManifest, node, surrogate, manifest, manifestRoot, parentManifestRoot) {
+        var _a;
+        let isAuSlot = false;
         switch (node.nodeName) {
             case 'LET':
                 // let cannot have children and has some different processing rules, so return early
@@ -173,11 +154,10 @@ export class TemplateBinder {
                 return;
             case 'SLOT':
                 surrogate.hasSlots = true;
-        }
-        // get the part name to override the name of the compiled definition
-        partName = node.getAttribute('replaceable');
-        if (partName === '') {
-            partName = 'default';
+                break;
+            case 'AU-SLOT':
+                isAuSlot = true;
+                break;
         }
         let name = node.getAttribute('as-element');
         if (name === null) {
@@ -191,7 +171,12 @@ export class TemplateBinder {
         else {
             // it's a custom element so we set the manifestRoot as well (for storing replaces)
             parentManifestRoot = manifestRoot;
-            manifestRoot = manifest = new CustomElementSymbol(this.dom, node, elementInfo);
+            const ceSymbol = new CustomElementSymbol(this.dom, node, elementInfo);
+            if (isAuSlot) {
+                ceSymbol.flags = 512 /* isAuSlot */;
+                ceSymbol.slotName = (_a = node.getAttribute("name")) !== null && _a !== void 0 ? _a : "default";
+            }
+            manifestRoot = manifest = ceSymbol;
         }
         // lifting operations done by template controllers and replaces effectively unlink the nodes, so start at the bottom
         this.bindChildNodes(
@@ -199,8 +184,7 @@ export class TemplateBinder {
         /* surrogate          */ surrogate, 
         /* manifest           */ manifest, 
         /* manifestRoot       */ manifestRoot, 
-        /* parentManifestRoot */ parentManifestRoot, 
-        /* partName           */ partName);
+        /* parentManifestRoot */ parentManifestRoot);
         // the parentManifest will receive either the direct child nodes, or the template controllers / replaces
         // wrapping them
         this.bindAttributes(
@@ -209,8 +193,7 @@ export class TemplateBinder {
         /* surrogate          */ surrogate, 
         /* manifest           */ manifest, 
         /* manifestRoot       */ manifestRoot, 
-        /* parentManifestRoot */ parentManifestRoot, 
-        /* partName           */ partName);
+        /* parentManifestRoot */ parentManifestRoot);
         if (manifestRoot === manifest && manifest.isContainerless) {
             node.parentNode.replaceChild(manifest.marker, node);
         }
@@ -241,7 +224,8 @@ export class TemplateBinder {
         }
         node.parentNode.replaceChild(symbol.marker, node);
     }
-    bindAttributes(node, parentManifest, surrogate, manifest, manifestRoot, parentManifestRoot, partName) {
+    bindAttributes(node, parentManifest, surrogate, manifest, manifestRoot, parentManifestRoot) {
+        var _a;
         // This is the top-level symbol for the current depth.
         // If there are no template controllers or replaces, it is always the manifest itself.
         // If there are template controllers, then this will be the outer-most TemplateControllerSymbol.
@@ -275,8 +259,7 @@ export class TemplateBinder {
                     // so keep setting manifest.templateController to the latest template controller we find
                     currentController = manifest.templateController = this.declareTemplateController(
                     /* attrSyntax */ attrSyntax, 
-                    /* attrInfo   */ attrInfo, 
-                    /* partName   */ partName);
+                    /* attrInfo   */ attrInfo);
                     // the proxy and the manifest are only identical when we're at the first template controller (since the controller
                     // is assigned to the proxy), so this evaluates to true at most once per node
                     if (manifestProxy === manifest) {
@@ -316,27 +299,43 @@ export class TemplateBinder {
                 this.ensureAttributeOrder(manifest);
             }
         }
-        processTemplateControllers(this.dom, manifestProxy, manifest);
-        let replace = node.getAttribute('replace');
-        if (replace === '' || (replace === null && manifestRoot !== null && manifestRoot.isContainerless && ((parentManifest.flags & 16 /* isCustomElement */) > 0))) {
-            replace = 'default';
+        let projection = node.getAttribute('au-slot');
+        if (projection === '') {
+            projection = 'default';
         }
-        const partOwner = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
-        if (replace === null || partOwner === null) {
+        const hasProjection = projection !== null;
+        if (hasProjection && isTemplateControllerOf(manifestProxy, manifest)) {
+            // prevents <some-el au-slot TEMPLATE.CONTROLLER></some-el>.
+            throw new Error(`Unsupported usage of [au-slot="${projection}"] along with a template controller (if, else, repeat.for etc.) found (example: <some-el au-slot if.bind="true"></some-el>).`);
+            /**
+             * TODO: prevent <template TEMPLATE.CONTROLLER><some-el au-slot></some-el></template>.
+             * But there is not easy way for now, as the attribute binding is done after binding the child nodes.
+             * This means by the time the template controller in the ancestor is processed, the projection is already registered.
+             */
+        }
+        const parentName = (_a = node.parentNode) === null || _a === void 0 ? void 0 : _a.nodeName.toLowerCase();
+        if (hasProjection
+            && (manifestRoot === null
+                || parentName === void 0
+                || this.resources.getElementInfo(parentName) === null)) {
+            /**
+             * Prevents the following cases:
+             * - <template><div au-slot></div></template>
+             * - <my-ce><div><div au-slot></div></div></my-ce>
+             * - <my-ce><div au-slot="s1"><div au-slot="s2"></div></div></my-ce>
+             */
+            throw new Error(`Unsupported usage of [au-slot="${projection}"]. It seems that projection is attempted, but not for a custom element.`);
+        }
+        processTemplateControllers(this.dom, manifestProxy, manifest);
+        const projectionOwner = manifest === manifestRoot ? parentManifestRoot : manifestRoot;
+        if (!hasProjection || projectionOwner === null) {
             // the proxy is either the manifest itself or the outer-most controller; add it directly to the parent
             parentManifest.childNodes.push(manifestProxy);
         }
-        else {
-            // there is a replace attribute on this node, so add it to the parts collection of the manifestRoot
-            // instead of to the childNodes
-            const replacePart = new ReplacePartSymbol(replace);
-            replacePart.parent = parentManifest;
-            replacePart.template = manifestProxy;
-            partOwner.parts.push(replacePart);
-            if (parentManifest.templateController != null) {
-                parentManifest.templateController.parts.push(replacePart);
-            }
-            processReplacePart(this.dom, replacePart, manifestProxy);
+        else if (hasProjection) {
+            projectionOwner.projections.push(new ProjectionSymbol(projection, manifestProxy));
+            node.removeAttribute('au-slot');
+            node.remove();
         }
     }
     // TODO: refactor to use render priority slots (this logic shouldn't be in the template binder)
@@ -364,7 +363,7 @@ export class TemplateBinder {
             [attributes[modelOrValueIndex], attributes[checkedIndex]] = [attributes[checkedIndex], attributes[modelOrValueIndex]];
         }
     }
-    bindChildNodes(node, surrogate, manifest, manifestRoot, parentManifestRoot, partName) {
+    bindChildNodes(node, surrogate, manifest, manifestRoot, parentManifestRoot) {
         let childNode;
         if (node.nodeName === 'TEMPLATE') {
             childNode = node.content.firstChild;
@@ -383,8 +382,7 @@ export class TemplateBinder {
                     /* surrogate          */ surrogate, 
                     /* manifest           */ manifest, 
                     /* manifestRoot       */ manifestRoot, 
-                    /* parentManifestRoot */ parentManifestRoot, 
-                    /* partName           */ partName);
+                    /* parentManifestRoot */ parentManifestRoot);
                     childNode = nextChild;
                     break;
                 case 3 /* Text */:
@@ -417,18 +415,18 @@ export class TemplateBinder {
         }
         return next;
     }
-    declareTemplateController(attrSyntax, attrInfo, partName) {
+    declareTemplateController(attrSyntax, attrInfo) {
         let symbol;
         const attrRawValue = attrSyntax.rawValue;
         const command = this.resources.getBindingCommand(attrSyntax, false);
         // multi-bindings logic here is similar to (and explained in) bindCustomAttribute
         const isMultiBindings = attrInfo.noMultiBindings === false && command === null && hasInlineBindings(attrRawValue);
         if (isMultiBindings) {
-            symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, partName);
+            symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo);
             this.bindMultiAttribute(symbol, attrInfo, attrRawValue);
         }
         else {
-            symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo, partName);
+            symbol = new TemplateControllerSymbol(this.dom, attrSyntax, attrInfo);
             const bindingType = command === null ? 2048 /* Interpolation */ : command.bindingType;
             const expr = this.exprParser.parse(attrRawValue, bindingType);
             symbol.bindings.push(new BindingSymbol(command, attrInfo.bindable, expr, attrRawValue, attrSyntax.target));

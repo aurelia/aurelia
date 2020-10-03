@@ -46,6 +46,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 this.interceptor = this;
                 this.isBound = false;
                 this.$scope = void 0;
+                this.$hostScope = null;
                 this.targetObserver = void 0;
                 this.persistentFlags = 0 /* none */;
                 this.task = null;
@@ -60,7 +61,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             }
             updateSource(value, flags) {
                 flags |= this.persistentFlags;
-                this.sourceExpression.assign(flags, this.$scope, this.locator, value, this.part);
+                this.sourceExpression.assign(flags, this.$scope, this.$hostScope, this.locator, value);
             }
             handleChange(newValue, _previousValue, flags) {
                 var _a, _b;
@@ -74,6 +75,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 const $scope = this.$scope;
                 const locator = this.locator;
                 if ((flags & 8 /* updateTargetInstance */) > 0) {
+                    // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
+                    if (this.sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
+                        newValue = this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator);
+                    }
                     // Alpha: during bind a simple strategy for bind is always flush immediately
                     // todo:
                     //  (1). determine whether this should be the behavior
@@ -81,7 +86,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
                     const oldValue = targetObserver.getValue();
                     if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
-                        newValue = sourceExpression.evaluate(flags, $scope, locator, this.part);
+                        newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator);
                     }
                     // todo(fred): maybe let the obsrever decides whether it updates
                     if (newValue !== oldValue) {
@@ -100,20 +105,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     // todo: merge this with evaluate above
                     if ((this.mode & oneTime) === 0) {
                         this.version++;
-                        sourceExpression.connect(flags, $scope, interceptor, this.part);
+                        sourceExpression.connect(flags, $scope, this.$hostScope, this.interceptor);
                         interceptor.unobserve(false);
                     }
                     return;
                 }
                 if ((flags & 16 /* updateSourceExpression */) > 0) {
-                    if (newValue !== sourceExpression.evaluate(flags, $scope, locator, this.part)) {
+                    if (newValue !== sourceExpression.evaluate(flags, $scope, this.$hostScope, locator)) {
                         interceptor.updateSource(newValue, flags);
                     }
                     return;
                 }
                 throw new Error('Unexpected handleChange context in PropertyBinding');
             }
-            $bind(flags, scope, part) {
+            $bind(flags, scope, hostScope) {
                 if (this.isBound) {
                     if (this.$scope === scope) {
                         return;
@@ -126,10 +131,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 // to the AST during evaluate/connect/assign
                 this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
                 this.$scope = scope;
-                this.part = part;
+                this.$hostScope = hostScope;
                 let sourceExpression = this.sourceExpression;
                 if (ast_1.hasBind(sourceExpression)) {
-                    sourceExpression.bind(flags, scope, this.interceptor);
+                    sourceExpression.bind(flags, scope, hostScope, this.interceptor);
                 }
                 let $mode = this.mode;
                 let targetObserver = this.targetObserver;
@@ -152,10 +157,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 sourceExpression = this.sourceExpression;
                 const interceptor = this.interceptor;
                 if ($mode & toViewOrOneTime) {
-                    interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+                    interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator), flags);
                 }
                 if ($mode & toView) {
-                    sourceExpression.connect(flags, scope, interceptor, part);
+                    sourceExpression.connect(flags, scope, this.$hostScope, interceptor);
                 }
                 if ($mode & fromView) {
                     targetObserver.subscribe(interceptor);
@@ -174,7 +179,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 // clear persistent flags
                 this.persistentFlags = 0 /* none */;
                 if (ast_1.hasUnbind(this.sourceExpression)) {
-                    this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
+                    this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
                 }
                 this.$scope = void 0;
                 const targetObserver = this.targetObserver;

@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./binding/ast", "./binding/property-binding", "./binding/call-binding", "./binding/connectable", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/ref-binding", "./observation/array-observer", "./observation/map-observer", "./observation/set-observer", "./observation/binding-context", "./observation/collection-length-observer", "./observation/collection-size-observer", "./observation/computed-observer", "./observation/dirty-checker", "./observation/observer-locator", "./observation/primitive-observer", "./observation/property-accessor", "./observation/proxy-observer", "./observation/bindable-observer", "./observation/setter-observer", "./observation/signaler", "./observation/subscriber-collection", "./resources/binding-behavior", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attribute", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/replaceable", "./resources/custom-attributes/with", "./resources/custom-element", "./resources/value-converter", "./resources/value-converters/sanitize", "./resources/value-converters/view", "@aurelia/scheduler", "./templating/bindable", "./templating/children", "./templating/controller", "./templating/view", "./aurelia", "./configuration", "./definitions", "./dom", "./flags", "./instructions", "./lifecycle", "./templating/render-context", "./lifecycle-task", "./observation", "./renderer"], factory);
+        define(["require", "exports", "./binding/ast", "./binding/property-binding", "./binding/call-binding", "./binding/connectable", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/ref-binding", "./observation/array-observer", "./observation/map-observer", "./observation/set-observer", "./observation/binding-context", "./observation/collection-length-observer", "./observation/collection-size-observer", "./observation/computed-observer", "./observation/dirty-checker", "./observation/observer-locator", "./observation/primitive-observer", "./observation/property-accessor", "./observation/proxy-observer", "./observation/bindable-observer", "./observation/setter-observer", "./observation/signaler", "./observation/subscriber-collection", "./resources/binding-behavior", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attribute", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/with", "./resources/custom-elements/au-slot", "./resources/custom-element", "./resources/value-converter", "./resources/value-converters/sanitize", "./resources/value-converters/view", "@aurelia/scheduler", "./templating/bindable", "./templating/children", "./templating/controller", "./templating/view", "./aurelia", "./configuration", "./definitions", "./dom", "./flags", "./instructions", "./lifecycle", "./templating/render-context", "./lifecycle-task", "./observation", "./renderer"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -150,10 +150,16 @@
     Object.defineProperty(exports, "Else", { enumerable: true, get: function () { return if_1.Else; } });
     var repeat_1 = require("./resources/custom-attributes/repeat");
     Object.defineProperty(exports, "Repeat", { enumerable: true, get: function () { return repeat_1.Repeat; } });
-    var replaceable_1 = require("./resources/custom-attributes/replaceable");
-    Object.defineProperty(exports, "Replaceable", { enumerable: true, get: function () { return replaceable_1.Replaceable; } });
     var with_1 = require("./resources/custom-attributes/with");
     Object.defineProperty(exports, "With", { enumerable: true, get: function () { return with_1.With; } });
+    var au_slot_1 = require("./resources/custom-elements/au-slot");
+    Object.defineProperty(exports, "AuSlot", { enumerable: true, get: function () { return au_slot_1.AuSlot; } });
+    Object.defineProperty(exports, "IProjections", { enumerable: true, get: function () { return au_slot_1.IProjections; } });
+    Object.defineProperty(exports, "SlotInfo", { enumerable: true, get: function () { return au_slot_1.SlotInfo; } });
+    Object.defineProperty(exports, "AuSlotContentType", { enumerable: true, get: function () { return au_slot_1.AuSlotContentType; } });
+    Object.defineProperty(exports, "RegisteredProjections", { enumerable: true, get: function () { return au_slot_1.RegisteredProjections; } });
+    Object.defineProperty(exports, "IProjectionProvider", { enumerable: true, get: function () { return au_slot_1.IProjectionProvider; } });
+    Object.defineProperty(exports, "ProjectionContext", { enumerable: true, get: function () { return au_slot_1.ProjectionContext; } });
     var custom_element_1 = require("./resources/custom-element");
     Object.defineProperty(exports, "containerless", { enumerable: true, get: function () { return custom_element_1.containerless; } });
     Object.defineProperty(exports, "customElement", { enumerable: true, get: function () { return custom_element_1.customElement; } });
@@ -205,7 +211,6 @@
     Object.defineProperty(exports, "IfRegistration", { enumerable: true, get: function () { return configuration_1.IfRegistration; } });
     Object.defineProperty(exports, "ElseRegistration", { enumerable: true, get: function () { return configuration_1.ElseRegistration; } });
     Object.defineProperty(exports, "RepeatRegistration", { enumerable: true, get: function () { return configuration_1.RepeatRegistration; } });
-    Object.defineProperty(exports, "ReplaceableRegistration", { enumerable: true, get: function () { return configuration_1.ReplaceableRegistration; } });
     Object.defineProperty(exports, "WithRegistration", { enumerable: true, get: function () { return configuration_1.WithRegistration; } });
     Object.defineProperty(exports, "SanitizeValueConverterRegistration", { enumerable: true, get: function () { return configuration_1.SanitizeValueConverterRegistration; } });
     Object.defineProperty(exports, "DebounceBindingBehaviorRegistration", { enumerable: true, get: function () { return configuration_1.DebounceBindingBehaviorRegistration; } });

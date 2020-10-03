@@ -38,7 +38,7 @@ export class MultiInterpolationBinding {
             parts[i] = new InterpolationBinding(expressions[i], interpolation, target, targetProperty, mode, observerLocator, locator, i === 0);
         }
     }
-    $bind(flags, scope, part) {
+    $bind(flags, scope, hostScope) {
         if (this.isBound) {
             if (this.$scope === scope) {
                 return;
@@ -47,10 +47,9 @@ export class MultiInterpolationBinding {
         }
         this.isBound = true;
         this.$scope = scope;
-        this.part = part;
         const parts = this.parts;
         for (let i = 0, ii = parts.length; i < ii; ++i) {
-            parts[i].interceptor.$bind(flags, scope, part);
+            parts[i].interceptor.$bind(flags, scope, hostScope);
         }
     }
     $unbind(flags) {
@@ -83,6 +82,7 @@ let InterpolationBinding = /** @class */ (() => {
             this.locator = locator;
             this.isFirst = isFirst;
             this.interceptor = this;
+            this.$hostScope = null;
             this.task = null;
             this.isBound = false;
             connectable.assignIdTo(this);
@@ -103,7 +103,7 @@ let InterpolationBinding = /** @class */ (() => {
             //  (1). determine whether this should be the behavior
             //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
             const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
-            const newValue = this.interpolation.evaluate(flags, this.$scope, this.locator, this.part);
+            const newValue = this.interpolation.evaluate(flags, this.$scope, this.$hostScope, this.locator);
             const oldValue = targetObserver.getValue();
             const interceptor = this.interceptor;
             // todo(fred): maybe let the observer decides whether it updates
@@ -123,11 +123,11 @@ let InterpolationBinding = /** @class */ (() => {
             // todo: merge this with evaluate above
             if ((this.mode & oneTime) === 0) {
                 this.version++;
-                this.sourceExpression.connect(flags, this.$scope, interceptor, this.part);
+                this.sourceExpression.connect(flags, this.$scope, this.$hostScope, interceptor);
                 interceptor.unobserve(false);
             }
         }
-        $bind(flags, scope, part) {
+        $bind(flags, scope, hostScope) {
             if (this.isBound) {
                 if (this.$scope === scope) {
                     return;
@@ -136,10 +136,10 @@ let InterpolationBinding = /** @class */ (() => {
             }
             this.isBound = true;
             this.$scope = scope;
-            this.part = part;
+            this.$hostScope = hostScope;
             const sourceExpression = this.sourceExpression;
             if (sourceExpression.bind) {
-                sourceExpression.bind(flags, scope, this.interceptor);
+                sourceExpression.bind(flags, scope, hostScope, this.interceptor);
             }
             const targetObserver = this.targetObserver;
             const mode = this.mode;
@@ -149,10 +149,10 @@ let InterpolationBinding = /** @class */ (() => {
             // since the interpolation already gets the whole value, we only need to let the first
             // text binding do the update if there are multiple
             if (this.isFirst) {
-                this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, this.locator, part), flags);
+                this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, hostScope, this.locator), flags);
             }
             if ((mode & toView) > 0) {
-                sourceExpression.connect(flags, scope, this.interceptor, part);
+                sourceExpression.connect(flags, scope, hostScope, this.interceptor);
             }
         }
         $unbind(flags) {
@@ -162,7 +162,7 @@ let InterpolationBinding = /** @class */ (() => {
             this.isBound = false;
             const sourceExpression = this.sourceExpression;
             if (sourceExpression.unbind) {
-                sourceExpression.unbind(flags, this.$scope, this.interceptor);
+                sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
             }
             const targetObserver = this.targetObserver;
             const task = this.task;

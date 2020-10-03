@@ -26,11 +26,12 @@
             this.locator = locator;
             this.interceptor = this;
             this.isBound = false;
+            this.$hostScope = null;
         }
         callSource(event) {
             const overrideContext = this.$scope.overrideContext;
             overrideContext.$event = event;
-            const result = this.sourceExpression.evaluate(128 /* mustEvaluate */, this.$scope, this.locator, this.part);
+            const result = this.sourceExpression.evaluate(128 /* mustEvaluate */, this.$scope, this.$hostScope, this.locator);
             Reflect.deleteProperty(overrideContext, '$event');
             if (result !== true && this.preventDefault) {
                 event.preventDefault();
@@ -40,7 +41,7 @@
         handleEvent(event) {
             this.interceptor.callSource(event);
         }
-        $bind(flags, scope, part) {
+        $bind(flags, scope, hostScope) {
             if (this.isBound) {
                 if (this.$scope === scope) {
                     return;
@@ -48,10 +49,10 @@
                 this.interceptor.$unbind(flags | 32 /* fromBind */);
             }
             this.$scope = scope;
-            this.part = part;
+            this.$hostScope = hostScope;
             const sourceExpression = this.sourceExpression;
             if (runtime_1.hasBind(sourceExpression)) {
-                sourceExpression.bind(flags, scope, this.interceptor);
+                sourceExpression.bind(flags, scope, hostScope, this.interceptor);
             }
             this.handler = this.eventManager.addEventListener(this.dom, this.target, this.targetEvent, this, this.delegationStrategy);
             // add isBound flag and remove isBinding flag
@@ -63,7 +64,7 @@
             }
             const sourceExpression = this.sourceExpression;
             if (runtime_1.hasUnbind(sourceExpression)) {
-                sourceExpression.unbind(flags, this.$scope, this.interceptor);
+                sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
             }
             this.$scope = null;
             this.handler.dispose();

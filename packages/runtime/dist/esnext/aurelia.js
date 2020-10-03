@@ -114,8 +114,8 @@ export class CompositionRoot {
         const taskManager = container.get(IStartTaskManager);
         taskManager.enqueueBeforeCompileChildren();
         // This hack with delayed hydration is to make the controller instance accessible to the `beforeCompileChildren` hook via the composition root.
-        this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy, false, this.enhanceDefinition);
-        this.controller['hydrateCustomElement'](container, void 0);
+        this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, null, this.strategy, false, this.enhanceDefinition);
+        this.controller['hydrateCustomElement'](container, null);
     }
 }
 export class Aurelia {

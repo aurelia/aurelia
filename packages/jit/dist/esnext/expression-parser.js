@@ -6,6 +6,7 @@ const $true = PrimitiveLiteralExpression.$true;
 const $null = PrimitiveLiteralExpression.$null;
 const $undefined = PrimitiveLiteralExpression.$undefined;
 const $this = AccessThisExpression.$this;
+const $host = AccessThisExpression.$host;
 const $parent = AccessThisExpression.$parent;
 /** @internal */
 export class ParserState {
@@ -129,13 +130,13 @@ export function parse(state, access, minPrecedence, bindingType) {
          * 2 = true
          */
         primary: switch (state.currentToken) {
-            case 3077 /* ParentScope */: // $parent
+            case 3078 /* ParentScope */: // $parent
                 state.assignable = false;
                 do {
                     nextToken(state);
                     access++; // ancestor
-                    if (consumeOpt(state, 16392 /* Dot */)) {
-                        if (state.currentToken === 16392 /* Dot */) {
+                    if (consumeOpt(state, 16393 /* Dot */)) {
+                        if (state.currentToken === 16393 /* Dot */) {
                             throw Reporter.error(102 /* DoubleDot */, { state });
                         }
                         else if (state.currentToken === 1572864 /* EOF */) {
@@ -151,7 +152,7 @@ export function parse(state, access, minPrecedence, bindingType) {
                     else {
                         throw Reporter.error(103 /* InvalidMemberExpression */, { state });
                     }
-                } while (state.currentToken === 3077 /* ParentScope */);
+                } while (state.currentToken === 3078 /* ParentScope */);
             // falls through
             case 1024 /* Identifier */: // identifier
                 if (bindingType & 512 /* IsIterator */) {
@@ -170,27 +171,33 @@ export function parse(state, access, minPrecedence, bindingType) {
                 result = $this;
                 access = 512 /* This */;
                 break;
-            case 671750 /* OpenParen */: // parenthesized expression
+            case 3077 /* HostScope */: // $host
+                state.assignable = false;
+                nextToken(state);
+                result = $host;
+                access = 512 /* This */;
+                break;
+            case 671751 /* OpenParen */: // parenthesized expression
                 nextToken(state);
                 result = parse(state, 0 /* Reset */, 62 /* Assign */, bindingType);
-                consume(state, 1835018 /* CloseParen */);
+                consume(state, 1835019 /* CloseParen */);
                 access = 0 /* Reset */;
                 break;
-            case 671756 /* OpenBracket */:
+            case 671757 /* OpenBracket */:
                 result = parseArrayLiteralExpression(state, access, bindingType);
                 access = 0 /* Reset */;
                 break;
-            case 131079 /* OpenBrace */:
+            case 131080 /* OpenBrace */:
                 result = parseObjectLiteralExpression(state, bindingType);
                 access = 0 /* Reset */;
                 break;
-            case 540713 /* TemplateTail */:
+            case 540714 /* TemplateTail */:
                 result = new TemplateExpression([state.tokenValue]);
                 state.assignable = false;
                 nextToken(state);
                 access = 0 /* Reset */;
                 break;
-            case 540714 /* TemplateContinuation */:
+            case 540715 /* TemplateContinuation */:
                 result = parseTemplate(state, access, bindingType, result, false);
                 access = 0 /* Reset */;
                 break;
@@ -255,7 +262,7 @@ export function parse(state, access, minPrecedence, bindingType) {
             const args = [];
             let strings;
             switch (state.currentToken) {
-                case 16392 /* Dot */:
+                case 16393 /* Dot */:
                     state.assignable = true;
                     nextToken(state);
                     if ((state.currentToken & 3072 /* IdentifierName */) === 0) {
@@ -265,38 +272,38 @@ export function parse(state, access, minPrecedence, bindingType) {
                     nextToken(state);
                     // Change $This to $Scope, change $Scope to $Member, keep $Member as-is, change $Keyed to $Member, disregard other flags
                     access = ((access & (512 /* This */ | 1024 /* Scope */)) << 1) | (access & 2048 /* Member */) | ((access & 4096 /* Keyed */) >> 1);
-                    if (state.currentToken === 671750 /* OpenParen */) {
+                    if (state.currentToken === 671751 /* OpenParen */) {
                         if (access === 0 /* Reset */) { // if the left hand side is a literal, make sure we parse a CallMemberExpression
                             access = 2048 /* Member */;
                         }
                         continue;
                     }
                     if (access & 1024 /* Scope */) {
-                        result = new AccessScopeExpression(name, result.ancestor);
+                        result = new AccessScopeExpression(name, result.ancestor, result === $host);
                     }
                     else { // if it's not $Scope, it's $Member
                         result = new AccessMemberExpression(result, name);
                     }
                     continue;
-                case 671756 /* OpenBracket */:
+                case 671757 /* OpenBracket */:
                     state.assignable = true;
                     nextToken(state);
                     access = 4096 /* Keyed */;
                     result = new AccessKeyedExpression(result, parse(state, 0 /* Reset */, 62 /* Assign */, bindingType));
-                    consume(state, 1835021 /* CloseBracket */);
+                    consume(state, 1835022 /* CloseBracket */);
                     break;
-                case 671750 /* OpenParen */:
+                case 671751 /* OpenParen */:
                     state.assignable = false;
                     nextToken(state);
-                    while (state.currentToken !== 1835018 /* CloseParen */) {
+                    while (state.currentToken !== 1835019 /* CloseParen */) {
                         args.push(parse(state, 0 /* Reset */, 62 /* Assign */, bindingType));
-                        if (!consumeOpt(state, 1572875 /* Comma */)) {
+                        if (!consumeOpt(state, 1572876 /* Comma */)) {
                             break;
                         }
                     }
-                    consume(state, 1835018 /* CloseParen */);
+                    consume(state, 1835019 /* CloseParen */);
                     if (access & 1024 /* Scope */) {
-                        result = new CallScopeExpression(name, args, result.ancestor);
+                        result = new CallScopeExpression(name, args, result.ancestor, result === $host);
                     }
                     else if (access & 2048 /* Member */) {
                         result = new CallMemberExpression(result, name, args);
@@ -306,13 +313,13 @@ export function parse(state, access, minPrecedence, bindingType) {
                     }
                     access = 0;
                     break;
-                case 540713 /* TemplateTail */:
+                case 540714 /* TemplateTail */:
                     state.assignable = false;
                     strings = [state.tokenValue];
                     result = new TaggedTemplateExpression(strings, strings, result);
                     nextToken(state);
                     break;
-                case 540714 /* TemplateContinuation */:
+                case 540715 /* TemplateContinuation */:
                     result = parseTemplate(state, access, bindingType, result, true);
                 default:
             }
@@ -373,9 +380,9 @@ export function parse(state, access, minPrecedence, bindingType) {
      * IsValidAssignmentTarget
      * 1,2 = false
      */
-    if (consumeOpt(state, 1572879 /* Question */)) {
+    if (consumeOpt(state, 1572880 /* Question */)) {
         const yes = parse(state, access, 62 /* Assign */, bindingType);
-        consume(state, 1572878 /* Colon */);
+        consume(state, 1572879 /* Colon */);
         result = new ConditionalExpression(result, yes, parse(state, access, 62 /* Assign */, bindingType));
         state.assignable = false;
     }
@@ -394,7 +401,7 @@ export function parse(state, access, minPrecedence, bindingType) {
      * IsValidAssignmentTarget
      * 1,2 = false
      */
-    if (consumeOpt(state, 1048615 /* Equals */)) {
+    if (consumeOpt(state, 1048616 /* Equals */)) {
         if (!state.assignable) {
             throw Reporter.error(150 /* NotAssignable */, { state });
         }
@@ -406,28 +413,28 @@ export function parse(state, access, minPrecedence, bindingType) {
     }
     /** parseValueConverter
      */
-    while (consumeOpt(state, 1572883 /* Bar */)) {
+    while (consumeOpt(state, 1572884 /* Bar */)) {
         if (state.currentToken === 1572864 /* EOF */) {
             throw Reporter.error(112);
         }
         const name = state.tokenValue;
         nextToken(state);
         const args = new Array();
-        while (consumeOpt(state, 1572878 /* Colon */)) {
+        while (consumeOpt(state, 1572879 /* Colon */)) {
             args.push(parse(state, access, 62 /* Assign */, bindingType));
         }
         result = new ValueConverterExpression(result, name, args);
     }
     /** parseBindingBehavior
      */
-    while (consumeOpt(state, 1572880 /* Ampersand */)) {
+    while (consumeOpt(state, 1572883 /* Ampersand */)) {
         if (state.currentToken === 1572864 /* EOF */) {
             throw Reporter.error(113);
         }
         const name = state.tokenValue;
         nextToken(state);
         const args = new Array();
-        while (consumeOpt(state, 1572878 /* Colon */)) {
+        while (consumeOpt(state, 1572879 /* Colon */)) {
             args.push(parse(state, access, 62 /* Assign */, bindingType));
         }
         result = new BindingBehaviorExpression(result, name, args);
@@ -465,17 +472,17 @@ export function parse(state, access, minPrecedence, bindingType) {
 function parseArrayLiteralExpression(state, access, bindingType) {
     nextToken(state);
     const elements = new Array();
-    while (state.currentToken !== 1835021 /* CloseBracket */) {
-        if (consumeOpt(state, 1572875 /* Comma */)) {
+    while (state.currentToken !== 1835022 /* CloseBracket */) {
+        if (consumeOpt(state, 1572876 /* Comma */)) {
             elements.push($undefined);
-            if (state.currentToken === 1835021 /* CloseBracket */) {
+            if (state.currentToken === 1835022 /* CloseBracket */) {
                 break;
             }
         }
         else {
             elements.push(parse(state, access, 62 /* Assign */, bindingType & ~512 /* IsIterator */));
-            if (consumeOpt(state, 1572875 /* Comma */)) {
-                if (state.currentToken === 1835021 /* CloseBracket */) {
+            if (consumeOpt(state, 1572876 /* Comma */)) {
+                if (state.currentToken === 1835022 /* CloseBracket */) {
                     break;
                 }
             }
@@ -484,7 +491,7 @@ function parseArrayLiteralExpression(state, access, bindingType) {
             }
         }
     }
-    consume(state, 1835021 /* CloseBracket */);
+    consume(state, 1835022 /* CloseBracket */);
     if (bindingType & 512 /* IsIterator */) {
         return new ArrayBindingPattern(elements);
     }
@@ -497,7 +504,7 @@ function parseForOfStatement(state, result) {
     if ((result.$kind & 65536 /* IsForDeclaration */) === 0) {
         throw Reporter.error(106 /* InvalidForDeclaration */, { state });
     }
-    if (state.currentToken !== 1051179 /* OfKeyword */) {
+    if (state.currentToken !== 1051180 /* OfKeyword */) {
         throw Reporter.error(106 /* InvalidForDeclaration */, { state });
     }
     nextToken(state);
@@ -530,19 +537,19 @@ function parseObjectLiteralExpression(state, bindingType) {
     const keys = new Array();
     const values = new Array();
     nextToken(state);
-    while (state.currentToken !== 1835017 /* CloseBrace */) {
+    while (state.currentToken !== 1835018 /* CloseBrace */) {
         keys.push(state.tokenValue);
         // Literal = mandatory colon
         if (state.currentToken & 12288 /* StringOrNumericLiteral */) {
             nextToken(state);
-            consume(state, 1572878 /* Colon */);
+            consume(state, 1572879 /* Colon */);
             values.push(parse(state, 0 /* Reset */, 62 /* Assign */, bindingType & ~512 /* IsIterator */));
         }
         else if (state.currentToken & 3072 /* IdentifierName */) {
             // IdentifierName = optional colon
             const { currentChar, currentToken, index } = state;
             nextToken(state);
-            if (consumeOpt(state, 1572878 /* Colon */)) {
+            if (consumeOpt(state, 1572879 /* Colon */)) {
                 values.push(parse(state, 0 /* Reset */, 62 /* Assign */, bindingType & ~512 /* IsIterator */));
             }
             else {
@@ -556,11 +563,11 @@ function parseObjectLiteralExpression(state, bindingType) {
         else {
             throw Reporter.error(107 /* InvalidObjectLiteralPropertyDefinition */, { state });
         }
-        if (state.currentToken !== 1835017 /* CloseBrace */) {
-            consume(state, 1572875 /* Comma */);
+        if (state.currentToken !== 1835018 /* CloseBrace */) {
+            consume(state, 1572876 /* Comma */);
         }
     }
-    consume(state, 1835017 /* CloseBrace */);
+    consume(state, 1835018 /* CloseBrace */);
     if (bindingType & 512 /* IsIterator */) {
         return new ObjectBindingPattern(keys, values);
     }
@@ -640,11 +647,11 @@ function parseInterpolation(state) {
 function parseTemplate(state, access, bindingType, result, tagged) {
     const cooked = [state.tokenValue];
     // TODO: properly implement raw parts / decide whether we want this
-    consume(state, 540714 /* TemplateContinuation */);
+    consume(state, 540715 /* TemplateContinuation */);
     const expressions = [parse(state, access, 62 /* Assign */, bindingType)];
-    while ((state.currentToken = scanTemplateTail(state)) !== 540713 /* TemplateTail */) {
+    while ((state.currentToken = scanTemplateTail(state)) !== 540714 /* TemplateTail */) {
         cooked.push(state.tokenValue);
-        consume(state, 540714 /* TemplateContinuation */);
+        consume(state, 540715 /* TemplateContinuation */);
         expressions.push(parse(state, access, 62 /* Assign */, bindingType));
     }
     cooked.push(state.tokenValue);
@@ -764,9 +771,9 @@ function scanTemplate(state) {
     nextChar(state);
     state.tokenValue = result;
     if (tail) {
-        return 540713 /* TemplateTail */;
+        return 540714 /* TemplateTail */;
     }
-    return 540714 /* TemplateContinuation */;
+    return 540715 /* TemplateContinuation */;
 }
 function scanTemplateTail(state) {
     if (state.index >= state.length) {
@@ -798,11 +805,11 @@ function consume(state, token) {
  * Usage: TokenValues[token & Token.Type]
  */
 const TokenValues = [
-    $false, $true, $null, $undefined, '$this', '$parent',
+    $false, $true, $null, $undefined, '$this', '$host', '$parent',
     '(', '{', '.', '}', ')', ',', '[', ']', ':', '?', '\'', '"',
     '&', '|', '||', '&&', '==', '!=', '===', '!==', '<', '>',
     '<=', '>=', 'in', 'instanceof', '+', '-', 'typeof', 'void', '*', '%', '/', '=', '!',
-    540713 /* TemplateTail */, 540714 /* TemplateContinuation */,
+    540714 /* TemplateTail */, 540715 /* TemplateContinuation */,
     'of'
 ];
 const KeywordLookup = Object.create(null);
@@ -811,12 +818,13 @@ KeywordLookup.null = 2050 /* NullKeyword */;
 KeywordLookup.false = 2048 /* FalseKeyword */;
 KeywordLookup.undefined = 2051 /* UndefinedKeyword */;
 KeywordLookup.$this = 3076 /* ThisScope */;
-KeywordLookup.$parent = 3077 /* ParentScope */;
-KeywordLookup.in = 1640798 /* InKeyword */;
-KeywordLookup.instanceof = 1640799 /* InstanceOfKeyword */;
-KeywordLookup.typeof = 34850 /* TypeofKeyword */;
-KeywordLookup.void = 34851 /* VoidKeyword */;
-KeywordLookup.of = 1051179 /* OfKeyword */;
+KeywordLookup.$host = 3077 /* HostScope */;
+KeywordLookup.$parent = 3078 /* ParentScope */;
+KeywordLookup.in = 1640799 /* InKeyword */;
+KeywordLookup.instanceof = 1640800 /* InstanceOfKeyword */;
+KeywordLookup.typeof = 34851 /* TypeofKeyword */;
+KeywordLookup.void = 34852 /* VoidKeyword */;
+KeywordLookup.of = 1051180 /* OfKeyword */;
 /**
  * Ranges of code points in pairs of 2 (eg 0x41-0x5B, 0x61-0x7B, ...) where the second value is not inclusive (5-7 means 5 and 6)
  * Single values are denoted by the second value being a 0
@@ -891,76 +899,76 @@ CharScanners[96 /* Backtick */] = s => {
 // !, !=, !==
 CharScanners[33 /* Exclamation */] = s => {
     if (nextChar(s) !== 61 /* Equals */) {
-        return 32808 /* Exclamation */;
+        return 32809 /* Exclamation */;
     }
     if (nextChar(s) !== 61 /* Equals */) {
-        return 1638679 /* ExclamationEquals */;
+        return 1638680 /* ExclamationEquals */;
     }
     nextChar(s);
-    return 1638681 /* ExclamationEqualsEquals */;
+    return 1638682 /* ExclamationEqualsEquals */;
 };
 // =, ==, ===
 CharScanners[61 /* Equals */] = s => {
     if (nextChar(s) !== 61 /* Equals */) {
-        return 1048615 /* Equals */;
+        return 1048616 /* Equals */;
     }
     if (nextChar(s) !== 61 /* Equals */) {
-        return 1638678 /* EqualsEquals */;
+        return 1638679 /* EqualsEquals */;
     }
     nextChar(s);
-    return 1638680 /* EqualsEqualsEquals */;
+    return 1638681 /* EqualsEqualsEquals */;
 };
 // &, &&
 CharScanners[38 /* Ampersand */] = s => {
     if (nextChar(s) !== 38 /* Ampersand */) {
-        return 1572880 /* Ampersand */;
+        return 1572883 /* Ampersand */;
     }
     nextChar(s);
-    return 1638613 /* AmpersandAmpersand */;
+    return 1638614 /* AmpersandAmpersand */;
 };
 // |, ||
 CharScanners[124 /* Bar */] = s => {
     if (nextChar(s) !== 124 /* Bar */) {
-        return 1572883 /* Bar */;
+        return 1572884 /* Bar */;
     }
     nextChar(s);
-    return 1638548 /* BarBar */;
+    return 1638549 /* BarBar */;
 };
 // .
 CharScanners[46 /* Dot */] = s => {
     if (nextChar(s) <= 57 /* Nine */ && s.currentChar >= 48 /* Zero */) {
         return scanNumber(s, true);
     }
-    return 16392 /* Dot */;
+    return 16393 /* Dot */;
 };
 // <, <=
 CharScanners[60 /* LessThan */] = s => {
     if (nextChar(s) !== 61 /* Equals */) {
-        return 1638746 /* LessThan */;
+        return 1638747 /* LessThan */;
     }
     nextChar(s);
-    return 1638748 /* LessThanEquals */;
+    return 1638749 /* LessThanEquals */;
 };
 // >, >=
 CharScanners[62 /* GreaterThan */] = s => {
     if (nextChar(s) !== 61 /* Equals */) {
-        return 1638747 /* GreaterThan */;
+        return 1638748 /* GreaterThan */;
     }
     nextChar(s);
-    return 1638749 /* GreaterThanEquals */;
+    return 1638750 /* GreaterThanEquals */;
 };
-CharScanners[37 /* Percent */] = returnToken(1638885 /* Percent */);
-CharScanners[40 /* OpenParen */] = returnToken(671750 /* OpenParen */);
-CharScanners[41 /* CloseParen */] = returnToken(1835018 /* CloseParen */);
-CharScanners[42 /* Asterisk */] = returnToken(1638884 /* Asterisk */);
-CharScanners[43 /* Plus */] = returnToken(623008 /* Plus */);
-CharScanners[44 /* Comma */] = returnToken(1572875 /* Comma */);
-CharScanners[45 /* Minus */] = returnToken(623009 /* Minus */);
-CharScanners[47 /* Slash */] = returnToken(1638886 /* Slash */);
-CharScanners[58 /* Colon */] = returnToken(1572878 /* Colon */);
-CharScanners[63 /* Question */] = returnToken(1572879 /* Question */);
-CharScanners[91 /* OpenBracket */] = returnToken(671756 /* OpenBracket */);
-CharScanners[93 /* CloseBracket */] = returnToken(1835021 /* CloseBracket */);
-CharScanners[123 /* OpenBrace */] = returnToken(131079 /* OpenBrace */);
-CharScanners[125 /* CloseBrace */] = returnToken(1835017 /* CloseBrace */);
+CharScanners[37 /* Percent */] = returnToken(1638886 /* Percent */);
+CharScanners[40 /* OpenParen */] = returnToken(671751 /* OpenParen */);
+CharScanners[41 /* CloseParen */] = returnToken(1835019 /* CloseParen */);
+CharScanners[42 /* Asterisk */] = returnToken(1638885 /* Asterisk */);
+CharScanners[43 /* Plus */] = returnToken(623009 /* Plus */);
+CharScanners[44 /* Comma */] = returnToken(1572876 /* Comma */);
+CharScanners[45 /* Minus */] = returnToken(623010 /* Minus */);
+CharScanners[47 /* Slash */] = returnToken(1638887 /* Slash */);
+CharScanners[58 /* Colon */] = returnToken(1572879 /* Colon */);
+CharScanners[63 /* Question */] = returnToken(1572880 /* Question */);
+CharScanners[91 /* OpenBracket */] = returnToken(671757 /* OpenBracket */);
+CharScanners[93 /* CloseBracket */] = returnToken(1835022 /* CloseBracket */);
+CharScanners[123 /* OpenBrace */] = returnToken(131080 /* OpenBrace */);
+CharScanners[125 /* CloseBrace */] = returnToken(1835018 /* CloseBrace */);
 //# sourceMappingURL=expression-parser.js.map

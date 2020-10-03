@@ -1,7 +1,8 @@
 import { Constructable, ResourceDefinition, IContainer, IResourceKind } from '@aurelia/kernel';
 import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
 import { BindingMode } from './flags';
-import { PartialCustomElementDefinition, CustomElementDefinition } from './resources/custom-element';
+import { PartialCustomElementDefinition } from './resources/custom-element';
+import { SlotInfo } from './resources/custom-elements/au-slot';
 /**
  * TargetedInstructionType enum values become the property names for the associated renderers when they are injected
  * into the `Renderer`.
@@ -24,20 +25,6 @@ export declare const enum TargetedInstructionType {
     refBinding = "rj",
     iteratorBinding = "rk"
 }
-export declare type PartialCustomElementDefinitionParts = Record<string, PartialCustomElementDefinition>;
-export declare type CustomElementDefinitionParts = Record<string, CustomElementDefinition>;
-/**
- * Efficiently merge parts, performing the minimal amount of work / using the minimal amount of memory.
- *
- * If either of the two part records is undefined, the other will simply be returned.
- *
- * If both are undefined, undefined will be returned.
- *
- * If neither are undefined, a new object will be returned where parts of the second value will be written last (and thus may overwrite duplicate named parts).
- *
- * This function is idempotent via a WeakMap cache: results are cached and if the same two variables are provided again, the same object will be returned.
- */
-export declare function mergeParts(parentParts: PartialCustomElementDefinitionParts | undefined, ownParts: PartialCustomElementDefinitionParts | undefined): PartialCustomElementDefinitionParts | undefined;
 export declare type InstructionTypeName = string;
 export declare const ITargetedInstruction: import("@aurelia/kernel").InterfaceSymbol<ITargetedInstruction>;
 export interface ITargetedInstruction {
@@ -87,7 +74,7 @@ export interface IHydrateElementInstruction extends IHydrateInstruction {
     type: TargetedInstructionType.hydrateElement;
     res: string;
     instructions: ITargetedInstruction[];
-    parts?: Record<string, PartialCustomElementDefinition>;
+    slotInfo: SlotInfo | null;
 }
 export interface IHydrateAttributeInstruction extends IHydrateInstruction {
     type: TargetedInstructionType.hydrateAttribute;
@@ -100,7 +87,6 @@ export interface IHydrateTemplateController extends IHydrateInstruction {
     instructions: ITargetedInstruction[];
     def: PartialCustomElementDefinition;
     link?: boolean;
-    parts?: Record<string, PartialCustomElementDefinition>;
 }
 export interface IHydrateLetElementInstruction extends IHydrateInstruction {
     type: TargetedInstructionType.hydrateLetElement;

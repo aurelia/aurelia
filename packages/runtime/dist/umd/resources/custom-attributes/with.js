@@ -54,7 +54,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             activateView(initiator, flags) {
                 const { $controller, value } = this;
                 const scope = binding_context_1.Scope.fromParent(flags, $controller.scope, value === void 0 ? {} : value);
-                return this.view.activate(initiator, $controller, flags, scope, $controller.part);
+                return this.view.activate(initiator, $controller, flags, scope, $controller.hostScope);
             }
             onCancel(initiator, parent, flags) {
                 var _a;

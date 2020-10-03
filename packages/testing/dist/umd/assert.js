@@ -616,6 +616,26 @@
             });
         }
     }
+    function isInnerHtmlEqual(elementOrSelector, expected, message, root, compact = true) {
+        const node = getNode(elementOrSelector, root);
+        let actual = node.innerHTML;
+        if (compact) {
+            actual = actual
+                .replace(/<!--au-start-->/g, '')
+                .replace(/<!--au-end-->/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+        if (actual !== expected) {
+            innerFail({
+                actual,
+                expected: expected,
+                message,
+                operator: '==',
+                stackStartFn: isInnerHtmlEqual
+            });
+        }
+    }
     function matchStyle(element, expectedStyles) {
         const styles = runtime_html_1.DOM.window.getComputedStyle(element);
         for (const [property, expected] of Object.entries(expectedStyles)) {
@@ -673,6 +693,7 @@
             return ((num * 10 + .5) | 0) / 10;
         }
         function reportTask(task) {
+            var _a;
             const id = task.id;
             const created = round(task.createdTime);
             const queue = round(task.queueTime);
@@ -680,7 +701,8 @@
             const reusable = task.reusable;
             const persistent = task.persistent;
             const status = task._status;
-            return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}`;
+            return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}\n`
+                + `    task callback="${(_a = task.callback) === null || _a === void 0 ? void 0 : _a.toString()}"`;
         }
         function toArray(task) {
             const arr = [task];
@@ -793,6 +815,7 @@
         },
         html: {
             textContent: isTextContentEqual,
+            innerEqual: isInnerHtmlEqual,
             value: isValueEqual,
             computedStyle: computedStyle,
             notComputedStyle: notComputedStyle

@@ -3,23 +3,24 @@ import { INode } from '../dom';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle, IViewFactory, ICustomElementViewModel, ISyntheticView } from '../lifecycle';
 import { PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
-import { PartialCustomElementDefinitionParts } from '../definitions';
 import { IRenderContext } from './render-context';
+import { AuSlotContentType } from '../resources/custom-elements/au-slot';
+import { IScope } from '../observation';
 export declare class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     name: string;
-    private readonly context;
+    readonly context: IRenderContext<T>;
     private readonly lifecycle;
-    readonly parts: PartialCustomElementDefinitionParts | undefined;
+    readonly contentType: AuSlotContentType | undefined;
+    readonly projectionScope: IScope | null;
     static maxCacheSize: number;
     isCaching: boolean;
     private cache;
     private cacheSize;
-    constructor(name: string, context: IRenderContext<T>, lifecycle: ILifecycle, parts: PartialCustomElementDefinitionParts | undefined);
+    constructor(name: string, context: IRenderContext<T>, lifecycle: ILifecycle, contentType: AuSlotContentType | undefined, projectionScope?: IScope | null);
     setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void;
     canReturnToCache(controller: ISyntheticView<T>): boolean;
     tryReturnToCache(controller: ISyntheticView<T>): boolean;
     create(flags?: LifecycleFlags): ISyntheticView<T>;
-    resolve(requestor: IContainer, parts?: PartialCustomElementDefinitionParts): IViewFactory<T>;
 }
 export declare const Views: {
     name: string;

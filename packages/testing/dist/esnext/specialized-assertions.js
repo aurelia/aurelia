@@ -2,7 +2,7 @@
 //   Serializer,
 //   Unparser,
 // } from '@aurelia/debug';
-import { If, Repeat, Replaceable, With } from '@aurelia/runtime';
+import { If, Repeat, With } from '@aurelia/runtime';
 import { Compose } from '@aurelia/runtime-html';
 import { assert } from './assert';
 // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
@@ -92,10 +92,7 @@ function $getVisibleText(root, context) {
                 }
                 break;
             case 1 /* customAttribute */:
-                if (controller.viewModel instanceof Replaceable) {
-                    $getVisibleText(controller.viewModel.view, context);
-                }
-                else if (controller.viewModel instanceof With) {
+                if (controller.viewModel instanceof With) {
                     $getVisibleText(controller.viewModel.view, context);
                 }
                 else if (controller.viewModel instanceof If) {

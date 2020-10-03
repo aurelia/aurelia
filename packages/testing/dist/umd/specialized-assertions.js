@@ -106,10 +106,7 @@
                     }
                     break;
                 case 1 /* customAttribute */:
-                    if (controller.viewModel instanceof runtime_1.Replaceable) {
-                        $getVisibleText(controller.viewModel.view, context);
-                    }
-                    else if (controller.viewModel instanceof runtime_1.With) {
+                    if (controller.viewModel instanceof runtime_1.With) {
                         $getVisibleText(controller.viewModel.view, context);
                     }
                     else if (controller.viewModel instanceof runtime_1.If) {

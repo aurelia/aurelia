@@ -1,27 +1,19 @@
 import { IContainer, IIndexable, IResolver, IServiceLocator, IDisposable } from '@aurelia/kernel';
-import { HooksDefinition, PartialCustomElementDefinitionParts } from './definitions';
+import { HooksDefinition } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
 import { LifecycleFlags } from './flags';
 import { IBatchable, IBindingTargetAccessor, IScope } from './observation';
 import { IElementProjector, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
 import { IRenderContext, ICompiledRenderContext } from './templating/render-context';
 import { Scope } from './observation/binding-context';
+import { AuSlotContentType } from './resources/custom-elements/au-slot';
 import { CustomAttributeDefinition } from './resources/custom-attribute';
 export interface IBinding extends IDisposable {
     interceptor: this;
     readonly locator: IServiceLocator;
     readonly $scope?: IScope;
-    /**
-     * The name of the `replace-part` template that this binding was declared inside of (if any, otherwise this property is `undefined`).
-     *
-     * This property is passed through the AST during evaluation, which allows the scope traversal to go up to the scope of the `replace-part` if a property does not exist inside the `replaceable`.
-     */
-    readonly part?: string;
     readonly isBound: boolean;
-    /**
-     * {@type IBinding}
-     */
-    $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
+    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
     $unbind(flags: LifecycleFlags): void;
 }
 export declare const enum ViewModelKind {
@@ -71,7 +63,6 @@ export interface IController<T extends INode = INode, C extends IViewModel<T> = 
     readonly hooks: HooksDefinition;
     readonly vmKind: ViewModelKind;
     readonly definition: CustomElementDefinition | CustomAttributeDefinition | undefined;
-    part: string | undefined;
 }
 /**
  * The base type for `ICustomAttributeController` and `ICustomElementController`.
@@ -151,16 +142,11 @@ export interface ISyntheticView<T extends INode = INode> extends IRenderableCont
      * The `scope` may be set during `activate()` and unset during `deactivate()`, or it may be statically set during rendering with `lockScope()`.
      */
     readonly scope: Scope;
+    hostScope: IScope | null;
     /**
      * The compiled render context used for rendering this view. Compilation was done by the `IViewFactory` prior to creating this view.
      */
     readonly context: ICompiledRenderContext<T>;
-    /**
-     * The names of the `replace` parts that were declared in the same scope as this view's template.
-     *
-     * The `replaceable` template children with those names will use this view's scope as the outer scope for properties that don't exist on the inner scope.
-     */
-    readonly scopeParts: readonly string[];
     readonly isStrictBinding: boolean;
     /**
      * The physical DOM nodes that will be appended during the `mount()` operation.
@@ -170,7 +156,7 @@ export interface ISyntheticView<T extends INode = INode> extends IRenderableCont
      * The DOM node that this view will be mounted to.
      */
     readonly location: IRenderLocation<T> | undefined;
-    activate(initiator: IHydratedController<T>, parent: IHydratedComponentController<T>, flags: LifecycleFlags, scope: IScope, part?: string): void | Promise<void>;
+    activate(initiator: IHydratedController<T>, parent: IHydratedComponentController<T>, flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null): void | Promise<void>;
     deactivate(initiator: IHydratedController<T>, parent: IHydratedComponentController<T>, flags: LifecycleFlags): void | Promise<void>;
     cancel(initiator: IHydratedController<T>, parent: IHydratedComponentController<T>, flags: LifecycleFlags): void;
     /**
@@ -217,9 +203,10 @@ export interface ICustomAttributeController<T extends INode = INode, C extends I
      * The scope's `bindingContext` will be the same instance as this controller's `bindingContext` property.
      */
     readonly scope: Scope;
+    hostScope: IScope | null;
     readonly children: undefined;
     readonly bindings: undefined;
-    activate(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags, scope: IScope, part?: string): void | Promise<void>;
+    activate(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null): void | Promise<void>;
     deactivate(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void | Promise<void>;
     cancel(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void;
 }
@@ -239,6 +226,7 @@ export interface IDryCustomElementController<T extends INode = INode, C extends 
      * By default, the scope's `bindingContext` will be the same instance as this controller's `bindingContext` property.
      */
     scope: Scope;
+    hostScope: IScope | null;
     /**
      * The physical DOM node that this controller's `nodes` will be mounted to.
      */
@@ -265,12 +253,6 @@ export interface ICompiledCustomElementController<T extends INode = INode, C ext
      * The compiled render context used for hydrating this controller.
      */
     readonly context: ICompiledRenderContext<T>;
-    /**
-     * The names of the `replace` parts that were declared in the same scope as this component's template.
-     *
-     * The `replaceable` template children with those names will use this components's scope as the outer scope for properties that don't exist on the inner scope.
-     */
-    readonly scopeParts: readonly string[];
     readonly isStrictBinding: boolean;
     /**
      * The projector used for mounting the `nodes` of this controller. Typically this will be one of:
@@ -297,7 +279,7 @@ export interface ICustomElementController<T extends INode = INode, C extends ICu
      * @inheritdoc
      */
     readonly bindingContext: C & IIndexable;
-    activate(initiator: IHydratedController<T>, parent: IHydratedParentController<T> | null, flags: LifecycleFlags, scope?: IScope, part?: string): void | Promise<void>;
+    activate(initiator: IHydratedController<T>, parent: IHydratedParentController<T> | null, flags: LifecycleFlags, scope?: IScope, hostScope?: IScope | null): void | Promise<void>;
     deactivate(initiator: IHydratedController<T>, parent: IHydratedParentController<T> | null, flags: LifecycleFlags): void | Promise<void>;
     cancel(initiator: IHydratedController<T>, parent: IHydratedParentController<T> | null, flags: LifecycleFlags): void;
 }
@@ -317,9 +299,10 @@ export interface IViewCache<T extends INode = INode> {
 }
 export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
     readonly name: string;
-    readonly parts: PartialCustomElementDefinitionParts | undefined;
+    readonly context: IRenderContext<T>;
+    readonly contentType: AuSlotContentType | undefined;
+    readonly projectionScope: IScope | null;
     create(flags?: LifecycleFlags): ISyntheticView<T>;
-    resolve(requestor: IContainer, parts?: PartialCustomElementDefinitionParts): IViewFactory<T>;
 }
 export declare const IViewFactory: import("@aurelia/kernel").InterfaceSymbol<IViewFactory<INode>>;
 export interface IActivationHooks<TParent, T extends INode = INode> {
@@ -342,7 +325,7 @@ export interface IActivationHooks<TParent, T extends INode = INode> {
     accept?(visitor: ControllerVisitor<T>): void | true;
 }
 export interface ICompileHooks<T extends INode = INode> {
-    create?(controller: IDryCustomElementController<T, this>, parentContainer: IContainer, definition: CustomElementDefinition, parts: PartialCustomElementDefinitionParts | undefined): PartialCustomElementDefinition | void;
+    create?(controller: IDryCustomElementController<T, this>, parentContainer: IContainer, definition: CustomElementDefinition): PartialCustomElementDefinition | void;
     beforeCompile?(controller: IContextualCustomElementController<T, this>): void;
     afterCompile?(controller: ICompiledCustomElementController<T, this>): void;
     afterCompileChildren?(controller: ICustomElementController<T, this>): void;

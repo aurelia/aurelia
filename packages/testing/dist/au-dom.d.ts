@@ -140,29 +140,8 @@ export declare const AuDOMTest: {
     createIfInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController;
     createElseInstruction(def: PartialCustomElementDefinition): HydrateTemplateController;
     createRepeatInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController;
-    createReplaceableInstruction(def: PartialCustomElementDefinition): HydrateTemplateController;
     createWithInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController;
-    createElementInstruction(name: string, bindings: [string, string][], parts?: Record<string, import("@aurelia/kernel").PartialResourceDefinition<{
-        readonly cache?: number | "*" | undefined;
-        readonly template?: unknown;
-        readonly instructions?: readonly (readonly ITargetedInstruction[])[] | undefined;
-        readonly dependencies?: readonly Key[] | undefined;
-        readonly injectable?: import("@aurelia/runtime/dist/resources/custom-element").InjectableToken<any> | null | undefined;
-        readonly needsCompile?: boolean | undefined;
-        readonly surrogates?: readonly ITargetedInstruction[] | undefined;
-        readonly bindables?: readonly string[] | Record<string, import("@aurelia/runtime").PartialBindableDefinition> | undefined;
-        readonly childrenObservers?: Record<string, import("@aurelia/runtime").PartialChildrenDefinition<INode>> | undefined;
-        readonly containerless?: boolean | undefined;
-        readonly isStrictBinding?: boolean | undefined;
-        readonly shadowOptions?: {
-            mode: "open" | "closed";
-        } | null | undefined;
-        readonly hasSlots?: boolean | undefined;
-        readonly strategy?: import("@aurelia/runtime").BindingStrategy | undefined;
-        readonly hooks?: Readonly<import("@aurelia/runtime").HooksDefinition> | undefined;
-        readonly scopeParts?: readonly string[] | undefined;
-        readonly enhance?: boolean | undefined;
-    }>> | undefined): HydrateElementInstruction;
+    createElementInstruction(name: string, bindings: [string, string][]): HydrateElementInstruction;
     createLetInstruction(bindings: [string, string][], toBindingContext?: boolean): LetElementInstruction;
 };
 //# sourceMappingURL=au-dom.d.ts.map

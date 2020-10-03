@@ -8,7 +8,7 @@ import { bindingBehavior } from '@aurelia/runtime';
 import { createIntlFormatValueConverterExpression } from '../utils';
 let RelativeTimeBindingBehavior = /** @class */ (() => {
     let RelativeTimeBindingBehavior = class RelativeTimeBindingBehavior {
-        bind(flags, scope, binding) {
+        bind(flags, _scope, _hostScope, binding) {
             createIntlFormatValueConverterExpression("rt" /* relativeTimeValueConverterName */, binding);
         }
     };

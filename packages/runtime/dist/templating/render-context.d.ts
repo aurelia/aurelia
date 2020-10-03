@@ -1,17 +1,18 @@
 import { Constructable, IContainer, IDisposable, IFactory, IResolver, Key, Resolved, Transformer } from '@aurelia/kernel';
-import { IHydrateInstruction, ITargetedInstruction, PartialCustomElementDefinitionParts } from '../definitions';
+import { IHydrateInstruction, ITargetedInstruction, IHydrateElementInstruction } from '../definitions';
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { LifecycleFlags } from '../flags';
 import { IController, ICustomAttributeViewModel, ICustomElementViewModel, IRenderableController, IViewFactory } from '../lifecycle';
 import { IRenderer } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
+import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot';
+import { IScope } from '../observation';
 export declare function isRenderContext<T extends INode = INode>(value: unknown): value is IRenderContext<T>;
 /**
  * A render context that wraps an `IContainer` and must be compiled before it can be used for rendering.
  */
 export interface IRenderContext<T extends INode = INode> extends IContainer {
     readonly dom: IDOM<T>;
-    readonly parts: PartialCustomElementDefinitionParts | undefined;
     /**
      * The `CustomElementDefinition` that this `IRenderContext` was created with.
      *
@@ -35,21 +36,19 @@ export interface IRenderContext<T extends INode = INode> extends IContainer {
      *
      * @returns The compiled `IRenderContext`.
      */
-    compile(): ICompiledRenderContext<T>;
+    compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext<T>;
     /**
      * Creates an (or returns the cached) `IViewFactory` that can be used to create synthetic view controllers.
      *
-     * @param name - Optional. The `name` that will be used by `replaceable` part lookups or the `| view` value converter. Defaults to the `name` property of the passed-in `CustomElementDefinition`.
-     *
      * @returns Either a new `IViewFactory` (if this is the first call), or a cached one.
      */
-    getViewFactory(name?: string): IViewFactory<T>;
+    getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: IScope | null): IViewFactory<T>;
 }
 /**
  * A compiled `IRenderContext` that can create instances of `INodeSequence` (based on the template of the compiled definition)
  * and begin a component operation to create new component instances.
  */
-export interface ICompiledRenderContext<T extends INode = INode> extends IRenderContext<T> {
+export interface ICompiledRenderContext<T extends INode = INode> extends IRenderContext<T>, IProjectionProvider {
     /**
      * The compiled `CustomElementDefinition`.
      *
@@ -78,8 +77,8 @@ export interface ICompiledRenderContext<T extends INode = INode> extends IRender
      * @param location - The DOM node that the nodes created by the `IViewFactory` should be mounted to. Only applicable for template controllers. Used by all built-in template controllers.
      */
     getComponentFactory(parentController?: IController, host?: INode, instruction?: IHydrateInstruction, viewFactory?: IViewFactory, location?: IRenderLocation): IComponentFactory<T>;
-    render(flags: LifecycleFlags, controller: IController, targets: ArrayLike<INode>, templateDefinition: CustomElementDefinition, host: INode | null | undefined, parts: PartialCustomElementDefinitionParts | undefined): void;
-    renderInstructions(flags: LifecycleFlags, instructions: readonly ITargetedInstruction[], controller: IController, target: unknown, parts: PartialCustomElementDefinitionParts | undefined): void;
+    render(flags: LifecycleFlags, controller: IController, targets: ArrayLike<INode>, templateDefinition: CustomElementDefinition, host: INode | null | undefined): void;
+    renderInstructions(flags: LifecycleFlags, instructions: readonly ITargetedInstruction[], controller: IController, target: unknown): void;
 }
 /**
  * A compiled `IRenderContext` that is ready to be used for creating component instances, and rendering them.
@@ -113,11 +112,10 @@ export interface IComponentFactory<T extends INode = INode> extends ICompiledRen
      */
     dispose(): void;
 }
-export declare function getRenderContext<T extends INode = INode>(partialDefinition: PartialCustomElementDefinition, parentContainer: IContainer, parts: PartialCustomElementDefinitionParts | undefined): IRenderContext<T>;
+export declare function getRenderContext<T extends INode = INode>(partialDefinition: PartialCustomElementDefinition, parentContainer: IContainer, projections?: Record<string, CustomElementDefinition> | null): IRenderContext<T>;
 export declare class RenderContext<T extends INode = INode> implements IComponentFactory<T> {
     readonly definition: CustomElementDefinition;
     readonly parentContainer: IContainer;
-    readonly parts: PartialCustomElementDefinitionParts | undefined;
     private readonly container;
     private readonly parentControllerProvider;
     private readonly elementProvider;
@@ -128,10 +126,11 @@ export declare class RenderContext<T extends INode = INode> implements IComponen
     private fragment;
     private factory;
     private isCompiled;
+    private readonly projectionProvider;
     readonly renderer: IRenderer;
     readonly dom: IDOM<T>;
     compiledDefinition: CustomElementDefinition;
-    constructor(definition: CustomElementDefinition, parentContainer: IContainer, parts: PartialCustomElementDefinitionParts | undefined);
+    constructor(definition: CustomElementDefinition, parentContainer: IContainer);
     has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean;
     get<K extends Key>(key: K | Key): Resolved<K>;
     getAll<K extends Key>(key: K | Key): readonly Resolved<K>[];
@@ -143,14 +142,16 @@ export declare class RenderContext<T extends INode = INode> implements IComponen
     registerFactory<K extends Constructable>(key: K, factory: IFactory<K>): void;
     createChild(): IContainer;
     disposeResolvers(): void;
-    compile(): ICompiledRenderContext<T>;
-    getViewFactory(name?: string): IViewFactory<T>;
+    compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext<T>;
+    getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: IScope | null): IViewFactory<T>;
     beginChildComponentOperation(instance: ICustomElementViewModel): IRenderContext<T>;
     createNodes(): INodeSequence<T>;
     getComponentFactory(parentController?: IController, host?: INode, instruction?: IHydrateInstruction, viewFactory?: IViewFactory, location?: IRenderLocation): IComponentFactory<T>;
     createComponent<TViewModel = ICustomElementViewModel<T>>(resourceKey: string): TViewModel;
-    render(flags: LifecycleFlags, controller: IRenderableController, targets: ArrayLike<INode>, templateDefinition: CustomElementDefinition, host: INode | null | undefined, parts: PartialCustomElementDefinitionParts | undefined): void;
-    renderInstructions(flags: LifecycleFlags, instructions: readonly ITargetedInstruction[], controller: IRenderableController, target: unknown, parts: PartialCustomElementDefinitionParts | undefined): void;
+    render(flags: LifecycleFlags, controller: IRenderableController, targets: ArrayLike<INode>, templateDefinition: CustomElementDefinition, host: INode | null | undefined): void;
+    renderInstructions(flags: LifecycleFlags, instructions: readonly ITargetedInstruction[], controller: IRenderableController, target: unknown): void;
     dispose(): void;
+    registerProjections(projections: Map<ITargetedInstruction, Record<string, CustomElementDefinition>>, scope: IScope): void;
+    getProjectionFor(instruction: IHydrateElementInstruction): RegisteredProjections | null;
 }
 //# sourceMappingURL=render-context.d.ts.map

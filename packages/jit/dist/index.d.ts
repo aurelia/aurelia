@@ -8,5 +8,5 @@ export { IExpressionParserRegistration, DefaultComponents, RefAttributePatternRe
 export { Access, Precedence, Char, } from './common';
 export { parseExpression, parse, ParserState, } from './expression-parser';
 export { ResourceModel, BindableInfo, ElementInfo, AttrInfo } from './resource-model';
-export { AnySymbol, BindingSymbol, CustomAttributeSymbol, CustomElementSymbol, ElementSymbol, LetElementSymbol, NodeSymbol, ParentNodeSymbol, PlainAttributeSymbol, PlainElementSymbol, ReplacePartSymbol, ResourceAttributeSymbol, SymbolFlags, SymbolWithBindings, SymbolWithMarker, SymbolWithTemplate, TemplateControllerSymbol, TextSymbol, } from './semantic-model';
+export { AnySymbol, BindingSymbol, CustomAttributeSymbol, CustomElementSymbol, ElementSymbol, LetElementSymbol, NodeSymbol, ParentNodeSymbol, PlainAttributeSymbol, PlainElementSymbol, ResourceAttributeSymbol, SymbolFlags, SymbolWithBindings, SymbolWithMarker, SymbolWithTemplate, TemplateControllerSymbol, TextSymbol, ProjectionSymbol, } from './semantic-model';
 //# sourceMappingURL=index.d.ts.map

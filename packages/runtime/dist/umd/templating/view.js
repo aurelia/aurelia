@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../observation/binding-context", "../resources/custom-element", "./controller", "../definitions", "./render-context"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../observation/binding-context", "../resources/custom-element", "./controller"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -14,15 +14,14 @@
     const binding_context_1 = require("../observation/binding-context");
     const custom_element_1 = require("../resources/custom-element");
     const controller_1 = require("./controller");
-    const definitions_1 = require("../definitions");
-    const render_context_1 = require("./render-context");
     let ViewFactory = /** @class */ (() => {
         class ViewFactory {
-            constructor(name, context, lifecycle, parts) {
+            constructor(name, context, lifecycle, contentType, projectionScope = null) {
                 this.name = name;
                 this.context = context;
                 this.lifecycle = lifecycle;
-                this.parts = parts;
+                this.contentType = contentType;
+                this.projectionScope = projectionScope;
                 this.isCaching = false;
                 this.cache = null;
                 this.cacheSize = -1;
@@ -66,17 +65,6 @@
                 }
                 controller = controller_1.Controller.forSyntheticView(this, this.lifecycle, this.context, flags);
                 return controller;
-            }
-            resolve(requestor, parts) {
-                parts = definitions_1.mergeParts(this.parts, parts);
-                if (parts === void 0) {
-                    return this;
-                }
-                const part = parts[this.name];
-                if (part === void 0) {
-                    return this;
-                }
-                return render_context_1.getRenderContext(part, requestor, parts).getViewFactory(this.name);
             }
         }
         ViewFactory.maxCacheSize = 0xFFFF;
@@ -185,11 +173,11 @@
                     constructor(viewModel) {
                         this.viewModel = viewModel;
                     }
-                    create(controller, parentContainer, definition, parts) {
+                    create(controller, parentContainer, definition) {
                         const vm = this.viewModel;
                         controller.scope = binding_context_1.Scope.fromParent(controller.flags, controller.scope, vm);
                         if (vm.create !== void 0) {
-                            return vm.create(controller, parentContainer, definition, parts);
+                            return vm.create(controller, parentContainer, definition);
                         }
                     }
                 });

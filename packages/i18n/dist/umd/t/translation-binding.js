@@ -34,6 +34,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 this.interceptor = this;
                 this.isBound = false;
                 this.contentAttributes = contentAttributes;
+                this.hostScope = null;
                 this.target = target;
                 this.i18n = this.locator.get(i18n_1.I18N);
                 const ea = this.locator.get(kernel_1.IEventAggregator);
@@ -59,22 +60,23 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 }
                 return binding;
             }
-            $bind(flags, scope, part) {
+            $bind(flags, scope, hostScope) {
                 if (!this.expr) {
                     throw new Error('key expression is missing');
                 } // TODO replace with error code
                 this.scope = scope;
+                this.hostScope = hostScope;
                 this.isInterpolatedSourceExpr = this.expr instanceof runtime_1.Interpolation;
-                this.keyExpression = this.expr.evaluate(flags, scope, this.locator, part);
+                this.keyExpression = this.expr.evaluate(flags, scope, hostScope, this.locator);
                 this.ensureKeyExpression();
                 if (this.parametersExpr) {
                     const parametersFlags = flags | 16384 /* secondaryExpression */;
-                    this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, this.locator, part);
-                    this.parametersExpr.connect(parametersFlags, scope, this, part);
+                    this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, hostScope, this.locator);
+                    this.parametersExpr.connect(parametersFlags, scope, hostScope, this);
                 }
                 const expressions = !(this.expr instanceof runtime_1.CustomExpression) ? this.isInterpolatedSourceExpr ? this.expr.expressions : [this.expr] : [];
                 for (const expr of expressions) {
-                    expr.connect(flags, scope, this, part);
+                    expr.connect(flags, scope, hostScope, this);
                 }
                 this.updateTranslations(flags);
                 this.isBound = true;
@@ -84,10 +86,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     return;
                 }
                 if (this.expr.unbind) {
-                    this.expr.unbind(flags, this.scope, this);
+                    this.expr.unbind(flags, this.scope, this.hostScope, this);
                 }
                 if (this.parametersExpr && this.parametersExpr.unbind) {
-                    this.parametersExpr.unbind(flags | 16384 /* secondaryExpression */, this.scope, this);
+                    this.parametersExpr.unbind(flags | 16384 /* secondaryExpression */, this.scope, this.hostScope, this);
                 }
                 this.unobserveTargets(flags);
                 this.scope = (void 0);
@@ -95,12 +97,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             }
             handleChange(newValue, _previousValue, flags) {
                 if (flags & 16384 /* secondaryExpression */) {
-                    // @ToDo, @Fixme: where do we get "part" from (last argument for evaluate)?
-                    this.translationParameters = this.parametersExpr.evaluate(flags, this.scope, this.locator);
+                    this.translationParameters = this.parametersExpr.evaluate(flags, this.scope, this.hostScope, this.locator);
                 }
                 else {
                     this.keyExpression = this.isInterpolatedSourceExpr
-                        ? this.expr.evaluate(flags, this.scope, this.locator, '')
+                        ? this.expr.evaluate(flags, this.scope, this.hostScope, this.locator)
                         : newValue;
                     this.ensureKeyExpression();
                 }

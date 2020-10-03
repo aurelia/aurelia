@@ -7,7 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 import { bindingBehavior, ValueConverterExpression } from '@aurelia/runtime';
 let TranslationBindingBehavior = /** @class */ (() => {
     let TranslationBindingBehavior = class TranslationBindingBehavior {
-        bind(flags, scope, binding) {
+        bind(flags, _scope, _hostScope, binding) {
             const expression = binding.sourceExpression.expression;
             if (!(expression instanceof ValueConverterExpression)) {
                 const vcExpression = new ValueConverterExpression(expression, "t" /* translationValueConverterName */, binding.sourceExpression.args);

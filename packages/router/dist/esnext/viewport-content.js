@@ -64,7 +64,7 @@ export class ViewportContent {
         return this.content.sameComponent(other.content, true);
     }
     contentController(connectedCE) {
-        return Controller.forCustomElement(this.content.componentInstance, connectedCE.container.get(ILifecycle), connectedCE.element, connectedCE.container, void 0, void 0);
+        return Controller.forCustomElement(this.content.componentInstance, connectedCE.container.get(ILifecycle), connectedCE.element, connectedCE.container, null, void 0);
     }
     createComponent(connectedCE, fallback) {
         // if (this.contentStatus !== ContentStatus.none) {

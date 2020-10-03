@@ -28,12 +28,11 @@ export declare class BindingContext implements IBindingContext {
      * to keep strong typing in situations where the arguments are dynamic.
      */
     static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: unknown): BindingContext;
-    static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, part?: string): IBindingContext | IOverrideContext | IBinding | undefined | null;
+    static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: IScope | null): IBindingContext | IOverrideContext | IBinding | undefined | null;
     getObservers(flags: LifecycleFlags): ObserversLookup;
 }
 export declare class Scope implements IScope {
     parentScope: IScope | null;
-    scopeParts: readonly string[];
     bindingContext: IBindingContext;
     overrideContext: IOverrideContext;
     private constructor();
@@ -52,7 +51,7 @@ export declare class Scope implements IScope {
      * @param bc - The `BindingContext` to back the `Scope` with.
      * @param oc - The `OverrideContext` to back the `Scope` with.
      * If a binding expression attempts to access a property that does not exist on the `BindingContext`
-     * during binding, it will traverse up via the `parentOverrideContext` of the `OverrideContext` until
+     * during binding, it will traverse up via the `parentScope` of the scope until
      * it finds the property.
      */
     static create(flags: LifecycleFlags, bc: object, oc: IOverrideContext): Scope;
@@ -74,9 +73,8 @@ export declare class OverrideContext implements IOverrideContext {
     readonly $synthetic: true;
     $observers?: ObserversLookup;
     bindingContext: IBindingContext;
-    parentOverrideContext: IOverrideContext | null;
     private constructor();
-    static create(flags: LifecycleFlags, bc: object, poc: IOverrideContext | null): OverrideContext;
+    static create(flags: LifecycleFlags, bc: object): OverrideContext;
     getObservers(): ObserversLookup;
 }
 //# sourceMappingURL=binding-context.d.ts.map

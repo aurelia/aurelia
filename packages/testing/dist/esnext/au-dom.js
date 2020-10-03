@@ -587,14 +587,11 @@ export const AuDOMTest = {
     createRepeatInstruction(expression, def) {
         return new HydrateTemplateController(def, 'repeat', [new IteratorBindingInstruction(parseExpression(expression, 539 /* ForCommand */), 'items')]);
     },
-    createReplaceableInstruction(def) {
-        return new HydrateTemplateController(def, 'replaceable', []);
-    },
     createWithInstruction(expression, def) {
         return new HydrateTemplateController(def, 'with', [new ToViewBindingInstruction(parseExpression(expression), 'value')]);
     },
-    createElementInstruction(name, bindings, parts) {
-        return new HydrateElementInstruction(name, bindings.map(([from, to]) => new ToViewBindingInstruction(parseExpression(from), to)), parts);
+    createElementInstruction(name, bindings) {
+        return new HydrateElementInstruction(name, bindings.map(([from, to]) => new ToViewBindingInstruction(parseExpression(from), to)), null);
     },
     createLetInstruction(bindings, toBindingContext = false) {
         return new LetElementInstruction(bindings.map(([from, to]) => new LetBindingInstruction(parseExpression(from), to)), toBindingContext);

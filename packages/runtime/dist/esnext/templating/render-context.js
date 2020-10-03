@@ -1,55 +1,52 @@
 import { InstanceProvider, Reporter, } from '@aurelia/kernel';
-import { ITargetedInstruction, mergeParts, } from '../definitions';
+import { ITargetedInstruction, } from '../definitions';
 import { IDOM, IRenderLocation } from '../dom';
 import { IController, ILifecycle, IViewFactory, } from '../lifecycle';
 import { IRenderer, ITemplateCompiler } from '../renderer';
 import { CustomElementDefinition } from '../resources/custom-element';
 import { ViewFactory } from './view';
+import { IProjectionProvider } from '../resources/custom-elements/au-slot';
 const definitionContainerLookup = new WeakMap();
-const definitionContainerPartsLookup = new WeakMap();
+const definitionContainerProjectionsLookup = new WeakMap();
 const fragmentCache = new WeakMap();
 export function isRenderContext(value) {
     return value instanceof RenderContext;
 }
-export function getRenderContext(partialDefinition, parentContainer, parts) {
+export function getRenderContext(partialDefinition, parentContainer, projections) {
     const definition = CustomElementDefinition.getOrCreate(partialDefinition);
-    if (isRenderContext(parentContainer)) {
-        parts = mergeParts(parentContainer.parts, parts);
-    }
     // injectable completely prevents caching, ensuring that each instance gets a new render context
     if (definition.injectable !== null) {
-        return new RenderContext(definition, parentContainer, parts);
+        return new RenderContext(definition, parentContainer);
     }
-    if (parts === void 0) {
+    if (projections == null) {
         let containerLookup = definitionContainerLookup.get(definition);
         if (containerLookup === void 0) {
             definitionContainerLookup.set(definition, containerLookup = new WeakMap());
         }
         let context = containerLookup.get(parentContainer);
         if (context === void 0) {
-            containerLookup.set(parentContainer, context = new RenderContext(definition, parentContainer, parts));
+            containerLookup.set(parentContainer, context = new RenderContext(definition, parentContainer));
         }
         return context;
     }
-    let containerPartsLookup = definitionContainerPartsLookup.get(definition);
-    if (containerPartsLookup === void 0) {
-        definitionContainerPartsLookup.set(definition, containerPartsLookup = new WeakMap());
+    let containerProjectionsLookup = definitionContainerProjectionsLookup.get(definition);
+    if (containerProjectionsLookup === void 0) {
+        definitionContainerProjectionsLookup.set(definition, containerProjectionsLookup = new WeakMap());
     }
-    let partsLookup = containerPartsLookup.get(parentContainer);
-    if (partsLookup === void 0) {
-        containerPartsLookup.set(parentContainer, partsLookup = new WeakMap());
+    let projectionsLookup = containerProjectionsLookup.get(parentContainer);
+    if (projectionsLookup === void 0) {
+        containerProjectionsLookup.set(parentContainer, projectionsLookup = new WeakMap());
     }
-    let context = partsLookup.get(parts);
+    let context = projectionsLookup.get(projections);
     if (context === void 0) {
-        partsLookup.set(parts, context = new RenderContext(definition, parentContainer, parts));
+        projectionsLookup.set(projections, context = new RenderContext(definition, parentContainer));
     }
     return context;
 }
 export class RenderContext {
-    constructor(definition, parentContainer, parts) {
+    constructor(definition, parentContainer) {
         this.definition = definition;
         this.parentContainer = parentContainer;
-        this.parts = parts;
         this.viewModelProvider = void 0;
         this.fragment = null;
         this.factory = void 0;
@@ -57,6 +54,7 @@ export class RenderContext {
         this.compiledDefinition = (void 0);
         const container = this.container = parentContainer.createChild();
         this.renderer = container.get(IRenderer);
+        this.projectionProvider = container.get(IProjectionProvider);
         container.registerResolver(IViewFactory, this.factoryProvider = new ViewFactoryProvider(), true);
         container.registerResolver(IController, this.parentControllerProvider = new InstanceProvider(), true);
         container.registerResolver(ITargetedInstruction, this.instructionProvider = new InstanceProvider(), true);
@@ -82,6 +80,9 @@ export class RenderContext {
     registerResolver(key, resolver) {
         return this.container.registerResolver(key, resolver);
     }
+    // public deregisterResolverFor<K extends Key, T = K>(key: K): void {
+    //   this.container.deregisterResolverFor(key);
+    // }
     registerTransformer(key, transformer) {
         return this.container.registerTransformer(key, transformer);
     }
@@ -102,7 +103,7 @@ export class RenderContext {
     }
     // #endregion
     // #region IRenderContext api
-    compile() {
+    compile(targetedProjections) {
         let compiledDefinition;
         if (this.isCompiled) {
             return this;
@@ -112,7 +113,7 @@ export class RenderContext {
         if (definition.needsCompile) {
             const container = this.container;
             const compiler = container.get(ITemplateCompiler);
-            compiledDefinition = this.compiledDefinition = compiler.compile(definition, container);
+            compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, targetedProjections);
         }
         else {
             compiledDefinition = this.compiledDefinition = definition;
@@ -133,14 +134,14 @@ export class RenderContext {
         }
         return this;
     }
-    getViewFactory(name) {
+    getViewFactory(name, contentType, projectionScope) {
         let factory = this.factory;
         if (factory === void 0) {
             if (name === void 0) {
                 name = this.definition.name;
             }
             const lifecycle = this.parentContainer.get(ILifecycle);
-            factory = this.factory = new ViewFactory(name, this, lifecycle, this.parts);
+            factory = this.factory = new ViewFactory(name, this, lifecycle, contentType, projectionScope);
         }
         return factory;
     }
@@ -184,15 +185,23 @@ export class RenderContext {
     createComponent(resourceKey) {
         return this.container.get(resourceKey);
     }
-    render(flags, controller, targets, templateDefinition, host, parts) {
-        this.renderer.render(flags, this, controller, targets, templateDefinition, host, parts);
+    render(flags, controller, targets, templateDefinition, host) {
+        this.renderer.render(flags, this, controller, targets, templateDefinition, host);
     }
-    renderInstructions(flags, instructions, controller, target, parts) {
-        this.renderer.renderInstructions(flags, this, instructions, controller, target, parts);
+    renderInstructions(flags, instructions, controller, target) {
+        this.renderer.renderInstructions(flags, this, instructions, controller, target);
     }
     dispose() {
         this.elementProvider.dispose();
         this.container.disposeResolvers();
+    }
+    // #endregion
+    // #region IProjectionProvider api
+    registerProjections(projections, scope) {
+        this.projectionProvider.registerProjections(projections, scope);
+    }
+    getProjectionFor(instruction) {
+        return this.projectionProvider.getProjectionFor(instruction);
     }
 }
 /** @internal */
@@ -204,7 +213,7 @@ export class ViewFactoryProvider {
         this.factory = factory;
     }
     get $isResolver() { return true; }
-    resolve(handler, requestor) {
+    resolve(_handler, _requestor) {
         const factory = this.factory;
         if (factory === null) { // unmet precondition: call prepare
             throw Reporter.error(50); // TODO: organize error codes
@@ -212,7 +221,7 @@ export class ViewFactoryProvider {
         if (typeof factory.name !== 'string' || factory.name.length === 0) { // unmet invariant: factory must have a name
             throw Reporter.error(51); // TODO: organize error codes
         }
-        return factory.resolve(requestor);
+        return factory;
     }
     dispose() {
         this.factory = null;

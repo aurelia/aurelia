@@ -5,6 +5,7 @@ import { ICustomElementViewModel, ICustomElementController } from '../lifecycle'
 import { BindingStrategy } from '../flags';
 import { PartialBindableDefinition, BindableDefinition } from '../templating/bindable';
 import { PartialChildrenDefinition, ChildrenDefinition } from '../templating/children';
+import { IProjections } from './custom-elements/au-slot';
 export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     readonly cache?: '*' | number;
     readonly template?: unknown;
@@ -23,8 +24,8 @@ export declare type PartialCustomElementDefinition = PartialResourceDefinition<{
     readonly hasSlots?: boolean;
     readonly strategy?: BindingStrategy;
     readonly hooks?: Readonly<HooksDefinition>;
-    readonly scopeParts?: readonly string[];
     readonly enhance?: boolean;
+    readonly projectionsMap?: Map<ITargetedInstruction, IProjections>;
 }>;
 export declare type CustomElementType<C extends Constructable = Constructable, T extends INode = INode> = ResourceType<C, ICustomElementViewModel<T> & (C extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
 export declare type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
@@ -150,8 +151,8 @@ export declare class CustomElementDefinition<C extends Constructable = Construct
     readonly hasSlots: boolean;
     readonly strategy: BindingStrategy;
     readonly hooks: Readonly<HooksDefinition>;
-    readonly scopeParts: string[];
     readonly enhance: boolean;
+    readonly projectionsMap: Map<ITargetedInstruction, IProjections>;
     private constructor();
     static create<T extends Constructable = Constructable>(def: PartialCustomElementDefinition, Type?: null): CustomElementDefinition<T>;
     static create<T extends Constructable = Constructable>(name: string, Type: CustomElementType<T>): CustomElementDefinition<T>;

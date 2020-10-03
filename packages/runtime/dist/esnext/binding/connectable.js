@@ -114,7 +114,7 @@ export class BindingMediator {
         this.addObserver = addObserver;
         connectable.assignIdTo(this);
     }
-    $bind(flags, scope, part) {
+    $bind(flags, scope, hostScope, projection) {
         throw new Error('Method not implemented.');
     }
     $unbind(flags) {

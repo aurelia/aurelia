@@ -49,7 +49,7 @@
             return this.lazyDefinition;
         }
         getContext(parentContainer) {
-            return runtime_1.getRenderContext(this.definition, parentContainer, void 0);
+            return runtime_1.getRenderContext(this.definition, parentContainer);
         }
         createView(parentContainer) {
             return this.getViewFactory(parentContainer).create();
@@ -106,7 +106,7 @@
         if (!dependencies.includes(Type)) {
             dependencies.push(Type);
         }
-        instructions.push(new runtime_1.HydrateElementInstruction(tagName, childInstructions));
+        instructions.push(new runtime_1.HydrateElementInstruction(tagName, childInstructions, null));
         if (props) {
             Object.keys(props)
                 .forEach(to => {

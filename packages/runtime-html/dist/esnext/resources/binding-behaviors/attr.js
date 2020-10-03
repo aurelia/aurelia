@@ -8,10 +8,10 @@ import { bindingBehavior, IScheduler } from '@aurelia/runtime';
 import { DataAttributeAccessor } from '../../observation/data-attribute-accessor';
 let AttrBindingBehavior = /** @class */ (() => {
     let AttrBindingBehavior = class AttrBindingBehavior {
-        bind(flags, scope, binding) {
+        bind(flags, _scope, _hostScope, binding) {
             binding.targetObserver = new DataAttributeAccessor(binding.locator.get(IScheduler), flags, binding.target, binding.targetProperty);
         }
-        unbind(flags, scope, binding) {
+        unbind(flags, _scope, _hostScope, binding) {
             return;
         }
     };

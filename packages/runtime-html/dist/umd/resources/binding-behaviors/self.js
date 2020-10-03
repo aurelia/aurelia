@@ -30,14 +30,14 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     exports.handleSelfEvent = handleSelfEvent;
     let SelfBindingBehavior = /** @class */ (() => {
         let SelfBindingBehavior = class SelfBindingBehavior {
-            bind(flags, scope, binding) {
+            bind(flags, _scope, _hostScope, binding) {
                 if (!binding.callSource || !binding.targetEvent) {
                     throw kernel_1.Reporter.error(8);
                 }
                 binding.selfEventCallSource = binding.callSource;
                 binding.callSource = handleSelfEvent;
             }
-            unbind(flags, scope, binding) {
+            unbind(flags, _scope, _hostScope, binding) {
                 binding.callSource = binding.selfEventCallSource;
                 binding.selfEventCallSource = null;
             }

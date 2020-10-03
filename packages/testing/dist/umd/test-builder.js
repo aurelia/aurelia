@@ -427,10 +427,9 @@
     }
     exports.createObserverLocator = createObserverLocator;
     function createScopeForTest(bindingContext = {}, parentBindingContext) {
-        if (parentBindingContext) {
-            return runtime_1.Scope.create(0 /* none */, bindingContext, runtime_1.OverrideContext.create(0 /* none */, bindingContext, runtime_1.OverrideContext.create(0 /* none */, parentBindingContext, null)));
-        }
-        return runtime_1.Scope.create(0 /* none */, bindingContext, runtime_1.OverrideContext.create(0 /* none */, bindingContext, null));
+        return parentBindingContext
+            ? runtime_1.Scope.fromParent(0 /* none */, runtime_1.Scope.create(0 /* none */, parentBindingContext), bindingContext)
+            : runtime_1.Scope.create(0 /* none */, bindingContext, runtime_1.OverrideContext.create(0 /* none */, bindingContext));
     }
     exports.createScopeForTest = createScopeForTest;
 });

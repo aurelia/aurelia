@@ -76,7 +76,7 @@ let Compose = /** @class */ (() => {
         }
         activate(view, initiator, flags) {
             const { $controller } = this;
-            return onResolve(view === null || view === void 0 ? void 0 : view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, $controller.scope, $controller.part), () => {
+            return onResolve(view === null || view === void 0 ? void 0 : view.activate(initiator !== null && initiator !== void 0 ? initiator : view, $controller, flags, $controller.scope, $controller.hostScope), () => {
                 this.composing = false;
             });
         }
@@ -104,7 +104,7 @@ let Compose = /** @class */ (() => {
             }
             if ('template' in subject) { // Raw Template Definition
                 const definition = CustomElementDefinition.getOrCreate(subject);
-                return getRenderContext(definition, this.$controller.context, void 0).getViewFactory().create(flags);
+                return getRenderContext(definition, this.$controller.context).getViewFactory().create(flags);
             }
             // Constructable (Custom Element Constructor)
             return createElement(this.dom, subject, this.properties, this.$controller.projector === void 0

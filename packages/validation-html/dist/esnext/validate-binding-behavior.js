@@ -55,6 +55,7 @@ let ValidateBindingBehavior = /** @class */ (() => {
             this.target = (void 0);
             this.isChangeTrigger = false;
             this.connectedExpressions = [];
+            this.hostScope = null;
             this.triggerMediator = new BindingMediator('handleTriggerChange', this, this.observerLocator, this.locator);
             this.controllerMediator = new BindingMediator('handleControllerChange', this, this.observerLocator, this.locator);
             this.rulesMediator = new BindingMediator('handleRulesChange', this, this.observerLocator, this.locator);
@@ -95,9 +96,10 @@ let ValidateBindingBehavior = /** @class */ (() => {
                 this.validateBinding();
             }
         }
-        $bind(flags, scope, part) {
+        $bind(flags, scope, hostScope) {
             this.scope = scope;
-            this.binding.$bind(flags, scope, part);
+            this.hostScope = hostScope;
+            this.binding.$bind(flags, scope, hostScope);
             this.setTarget();
             const delta = this.processBindingExpressionArgs(flags);
             this.processDelta(delta);
@@ -114,7 +116,7 @@ let ValidateBindingBehavior = /** @class */ (() => {
             (_d = this.controller) === null || _d === void 0 ? void 0 : _d.unregisterBinding(this.propertyBinding);
             this.binding.$unbind(flags);
             for (const expr of this.connectedExpressions) {
-                (_e = expr.unbind) === null || _e === void 0 ? void 0 : _e.call(expr, flags, this.scope, this);
+                (_e = expr.unbind) === null || _e === void 0 ? void 0 : _e.call(expr, flags, this.scope, this.hostScope, this);
             }
         }
         handleTriggerChange(newValue, _previousValue, _flags) {
@@ -136,6 +138,7 @@ let ValidateBindingBehavior = /** @class */ (() => {
         }
         processBindingExpressionArgs(flags) {
             const scope = this.scope;
+            const hostScope = this.hostScope;
             const locator = this.locator;
             let rules;
             let trigger;
@@ -148,19 +151,19 @@ let ValidateBindingBehavior = /** @class */ (() => {
             const args = expression.args;
             for (let i = 0, ii = args.length; i < ii; i++) {
                 const arg = args[i];
-                const temp = arg.evaluate(evaluationFlags, scope, locator);
+                const temp = arg.evaluate(evaluationFlags, scope, hostScope, locator);
                 switch (i) {
                     case 0:
                         trigger = this.ensureTrigger(temp);
-                        arg.connect(flags, scope, this.triggerMediator);
+                        arg.connect(flags, scope, hostScope, this.triggerMediator);
                         break;
                     case 1:
                         controller = this.ensureController(temp);
-                        arg.connect(flags, scope, this.controllerMediator);
+                        arg.connect(flags, scope, hostScope, this.controllerMediator);
                         break;
                     case 2:
                         rules = this.ensureRules(temp);
-                        arg.connect(flags, scope, this.rulesMediator);
+                        arg.connect(flags, scope, hostScope, this.rulesMediator);
                         break;
                     default:
                         throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${temp}`); // TODO: use reporter
@@ -267,7 +270,7 @@ let ValidateBindingBehavior = /** @class */ (() => {
             return this.triggerEvent = triggerEvent;
         }
         setBindingInfo(rules) {
-            return this.bindingInfo = new BindingInfo(this.target, this.scope, rules);
+            return this.bindingInfo = new BindingInfo(this.target, this.scope, this.hostScope, rules);
         }
     };
     ValidateBindingBehavior = __decorate([

@@ -8,7 +8,7 @@ import { bindingBehavior } from '@aurelia/runtime';
 import { createIntlFormatValueConverterExpression } from '../utils';
 let NumberFormatBindingBehavior = /** @class */ (() => {
     let NumberFormatBindingBehavior = class NumberFormatBindingBehavior {
-        bind(flags, scope, binding) {
+        bind(flags, _scope, _hostScope, binding) {
             createIntlFormatValueConverterExpression("nf" /* numberFormatValueConverterName */, binding);
         }
     };

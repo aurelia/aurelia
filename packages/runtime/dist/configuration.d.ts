@@ -1,5 +1,6 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
 import { Now } from '@aurelia/scheduler';
+import { AuSlot } from './resources/custom-elements/au-slot';
 export declare const IObserverLocatorRegistration: IRegistry;
 export declare const ILifecycleRegistration: IRegistry;
 export declare const IRendererRegistration: IRegistry;
@@ -22,7 +23,6 @@ export declare const ObserveShallowRegistration: IRegistry;
 export declare const IfRegistration: IRegistry;
 export declare const ElseRegistration: IRegistry;
 export declare const RepeatRegistration: IRegistry;
-export declare const ReplaceableRegistration: IRegistry;
 export declare const WithRegistration: IRegistry;
 export declare const SanitizeValueConverterRegistration: IRegistry;
 export declare const ViewValueConverterRegistration: IRegistry;
@@ -35,11 +35,12 @@ export declare const ThrottleBindingBehaviorRegistration: IRegistry;
 export declare const TwoWayBindingBehaviorRegistration: IRegistry;
 /**
  * Default resources:
- * - Template controllers (`if`/`else`, `repeat`, `replaceable`, `with`)
+ * - Template controllers (`if`/`else`, `repeat`, `with`)
  * - Value Converters (`sanitize`)
  * - Binding Behaviors (`oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`)
+ * - Custom element: au-slot
  */
-export declare const DefaultResources: IRegistry[];
+export declare const DefaultResources: (typeof AuSlot | IRegistry)[];
 export declare const CallBindingRendererRegistration: IRegistry;
 export declare const CustomAttributeRendererRegistration: IRegistry;
 export declare const CustomElementRendererRegistration: IRegistry;

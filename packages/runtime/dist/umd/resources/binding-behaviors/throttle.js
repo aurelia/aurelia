@@ -62,14 +62,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     callback();
                 }
             }
-            $bind(flags, scope, part) {
+            $bind(flags, scope, hostScope) {
                 if (this.firstArg !== null) {
-                    const delay = Number(this.firstArg.evaluate(flags, scope, this.locator, part));
+                    const delay = Number(this.firstArg.evaluate(flags, scope, hostScope, this.locator));
                     if (!isNaN(delay)) {
                         this.opts.delay = delay;
                     }
                 }
-                this.binding.$bind(flags, scope, part);
+                this.binding.$bind(flags, scope, hostScope);
             }
         };
         ThrottleBindingBehavior = __decorate([

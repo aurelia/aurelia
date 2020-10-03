@@ -34,6 +34,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 this.interceptor = this;
                 this.isBound = false;
                 this.$scope = void 0;
+                this.$hostScope = null;
                 this.task = null;
                 this.target = null;
                 connectable_1.connectable.assignIdTo(this);
@@ -47,7 +48,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     const target = this.target;
                     const targetProperty = this.targetProperty;
                     const previousValue = target[targetProperty];
-                    const newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
+                    const newValue = this.sourceExpression.evaluate(flags, this.$scope, this.$hostScope, this.locator);
                     if (newValue !== previousValue) {
                         target[targetProperty] = newValue;
                     }
@@ -55,7 +56,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 }
                 throw new Error('Unexpected handleChange context in LetBinding');
             }
-            $bind(flags, scope, part) {
+            $bind(flags, scope, hostScope) {
                 if (this.isBound) {
                     if (this.$scope === scope) {
                         return;
@@ -63,15 +64,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     this.interceptor.$unbind(flags | 32 /* fromBind */);
                 }
                 this.$scope = scope;
-                this.part = part;
-                this.target = (this.toBindingContext ? scope.bindingContext : scope.overrideContext);
+                this.$hostScope = hostScope;
+                this.target = (this.toBindingContext ? (hostScope !== null && hostScope !== void 0 ? hostScope : scope).bindingContext : (hostScope !== null && hostScope !== void 0 ? hostScope : scope).overrideContext);
                 const sourceExpression = this.sourceExpression;
                 if (sourceExpression.bind) {
-                    sourceExpression.bind(flags, scope, this.interceptor);
+                    sourceExpression.bind(flags, scope, hostScope, this.interceptor);
                 }
                 // sourceExpression might have been changed during bind
-                this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | 32 /* fromBind */, scope, this.locator, part);
-                this.sourceExpression.connect(flags, scope, this.interceptor, part);
+                this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | 32 /* fromBind */, scope, hostScope, this.locator);
+                this.sourceExpression.connect(flags, scope, hostScope, this.interceptor);
                 // add isBound flag and remove isBinding flag
                 this.isBound = true;
             }
@@ -81,7 +82,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 }
                 const sourceExpression = this.sourceExpression;
                 if (sourceExpression.unbind) {
-                    sourceExpression.unbind(flags, this.$scope, this.interceptor);
+                    sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
                 }
                 this.$scope = void 0;
                 this.interceptor.unobserve(true);

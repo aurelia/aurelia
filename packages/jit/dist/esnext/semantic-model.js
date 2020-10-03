@@ -1,8 +1,8 @@
 export var SymbolFlags;
 (function (SymbolFlags) {
-    SymbolFlags[SymbolFlags["type"] = 511] = "type";
+    SymbolFlags[SymbolFlags["type"] = 1023] = "type";
     SymbolFlags[SymbolFlags["isTemplateController"] = 1] = "isTemplateController";
-    SymbolFlags[SymbolFlags["isReplacePart"] = 2] = "isReplacePart";
+    SymbolFlags[SymbolFlags["isProjection"] = 2] = "isProjection";
     SymbolFlags[SymbolFlags["isCustomAttribute"] = 4] = "isCustomAttribute";
     SymbolFlags[SymbolFlags["isPlainAttribute"] = 8] = "isPlainAttribute";
     SymbolFlags[SymbolFlags["isCustomElement"] = 16] = "isCustomElement";
@@ -10,12 +10,13 @@ export var SymbolFlags;
     SymbolFlags[SymbolFlags["isPlainElement"] = 64] = "isPlainElement";
     SymbolFlags[SymbolFlags["isText"] = 128] = "isText";
     SymbolFlags[SymbolFlags["isBinding"] = 256] = "isBinding";
-    SymbolFlags[SymbolFlags["hasMarker"] = 512] = "hasMarker";
-    SymbolFlags[SymbolFlags["hasTemplate"] = 1024] = "hasTemplate";
-    SymbolFlags[SymbolFlags["hasAttributes"] = 2048] = "hasAttributes";
-    SymbolFlags[SymbolFlags["hasBindings"] = 4096] = "hasBindings";
-    SymbolFlags[SymbolFlags["hasChildNodes"] = 8192] = "hasChildNodes";
-    SymbolFlags[SymbolFlags["hasParts"] = 16384] = "hasParts";
+    SymbolFlags[SymbolFlags["isAuSlot"] = 512] = "isAuSlot";
+    SymbolFlags[SymbolFlags["hasMarker"] = 1024] = "hasMarker";
+    SymbolFlags[SymbolFlags["hasTemplate"] = 2048] = "hasTemplate";
+    SymbolFlags[SymbolFlags["hasAttributes"] = 4096] = "hasAttributes";
+    SymbolFlags[SymbolFlags["hasBindings"] = 8192] = "hasBindings";
+    SymbolFlags[SymbolFlags["hasChildNodes"] = 16384] = "hasChildNodes";
+    SymbolFlags[SymbolFlags["hasProjections"] = 32768] = "hasProjections";
 })(SymbolFlags || (SymbolFlags = {}));
 function createMarker(dom) {
     const marker = dom.createElement('au-m');
@@ -26,47 +27,30 @@ function createMarker(dom) {
  * A html attribute that is associated with a registered resource, specifically a template controller.
  */
 export class TemplateControllerSymbol {
-    constructor(dom, syntax, info, partName, res = info.name) {
+    constructor(dom, syntax, info, res = info.name) {
         this.syntax = syntax;
         this.info = info;
         this.res = res;
-        this.flags = 1 /* isTemplateController */ | 512 /* hasMarker */;
+        this.flags = 1 /* isTemplateController */ | 1024 /* hasMarker */;
         this.physicalNode = null;
         this.template = null;
         this.templateController = null;
         this._bindings = null;
-        this._parts = null;
-        this.partName = info.name === 'replaceable' ? partName : null;
         this.marker = createMarker(dom);
     }
     get bindings() {
         if (this._bindings === null) {
             this._bindings = [];
-            this.flags |= 4096 /* hasBindings */;
+            this.flags |= 8192 /* hasBindings */;
         }
         return this._bindings;
     }
-    get parts() {
-        if (this._parts === null) {
-            this._parts = [];
-            this.flags |= 16384 /* hasParts */;
-        }
-        return this._parts;
-    }
 }
-/**
- * Wrapper for an element (with all of its attributes, regardless of the order in which they are declared)
- * that has a replace attribute on it.
- *
- * This element will be lifted from the DOM just like a template controller.
- */
-export class ReplacePartSymbol {
-    constructor(name, physicalNode = null, parent = null, template = null) {
+export class ProjectionSymbol {
+    constructor(name, template) {
         this.name = name;
-        this.physicalNode = physicalNode;
-        this.parent = parent;
         this.template = template;
-        this.flags = 2 /* isReplacePart */;
+        this.flags = 2 /* isProjection */;
     }
 }
 /**
@@ -83,7 +67,7 @@ export class CustomAttributeSymbol {
     get bindings() {
         if (this._bindings === null) {
             this._bindings = [];
-            this.flags |= 4096 /* hasBindings */;
+            this.flags |= 8192 /* hasBindings */;
         }
         return this._bindings;
     }
@@ -136,11 +120,11 @@ export class CustomElementSymbol {
         this._plainAttributes = null;
         this._bindings = null;
         this._childNodes = null;
-        this._parts = null;
+        this._projections = null;
         if (info.containerless) {
             this.isContainerless = true;
             this.marker = createMarker(dom);
-            this.flags |= 512 /* hasMarker */;
+            this.flags |= 1024 /* hasMarker */;
         }
         else {
             this.isContainerless = false;
@@ -150,51 +134,51 @@ export class CustomElementSymbol {
     get customAttributes() {
         if (this._customAttributes === null) {
             this._customAttributes = [];
-            this.flags |= 2048 /* hasAttributes */;
+            this.flags |= 4096 /* hasAttributes */;
         }
         return this._customAttributes;
     }
     get plainAttributes() {
         if (this._plainAttributes === null) {
             this._plainAttributes = [];
-            this.flags |= 2048 /* hasAttributes */;
+            this.flags |= 4096 /* hasAttributes */;
         }
         return this._plainAttributes;
     }
     get bindings() {
         if (this._bindings === null) {
             this._bindings = [];
-            this.flags |= 4096 /* hasBindings */;
+            this.flags |= 8192 /* hasBindings */;
         }
         return this._bindings;
     }
     get childNodes() {
         if (this._childNodes === null) {
             this._childNodes = [];
-            this.flags |= 8192 /* hasChildNodes */;
+            this.flags |= 16384 /* hasChildNodes */;
         }
         return this._childNodes;
     }
-    get parts() {
-        if (this._parts === null) {
-            this._parts = [];
-            this.flags |= 16384 /* hasParts */;
+    get projections() {
+        if (this._projections === null) {
+            this._projections = [];
+            this.flags |= 32768 /* hasProjections */;
         }
-        return this._parts;
+        return this._projections;
     }
 }
 export class LetElementSymbol {
     constructor(dom, physicalNode, marker = createMarker(dom)) {
         this.physicalNode = physicalNode;
         this.marker = marker;
-        this.flags = 32 /* isLetElement */ | 512 /* hasMarker */;
+        this.flags = 32 /* isLetElement */ | 1024 /* hasMarker */;
         this.toBindingContext = false;
         this._bindings = null;
     }
     get bindings() {
         if (this._bindings === null) {
             this._bindings = [];
-            this.flags |= 4096 /* hasBindings */;
+            this.flags |= 8192 /* hasBindings */;
         }
         return this._bindings;
     }
@@ -218,21 +202,21 @@ export class PlainElementSymbol {
     get customAttributes() {
         if (this._customAttributes === null) {
             this._customAttributes = [];
-            this.flags |= 2048 /* hasAttributes */;
+            this.flags |= 4096 /* hasAttributes */;
         }
         return this._customAttributes;
     }
     get plainAttributes() {
         if (this._plainAttributes === null) {
             this._plainAttributes = [];
-            this.flags |= 2048 /* hasAttributes */;
+            this.flags |= 4096 /* hasAttributes */;
         }
         return this._plainAttributes;
     }
     get childNodes() {
         if (this._childNodes === null) {
             this._childNodes = [];
-            this.flags |= 8192 /* hasChildNodes */;
+            this.flags |= 16384 /* hasChildNodes */;
         }
         return this._childNodes;
     }
@@ -245,7 +229,7 @@ export class TextSymbol {
         this.physicalNode = physicalNode;
         this.interpolation = interpolation;
         this.marker = marker;
-        this.flags = 128 /* isText */ | 512 /* hasMarker */;
+        this.flags = 128 /* isText */ | 1024 /* hasMarker */;
     }
 }
 //# sourceMappingURL=semantic-model.js.map

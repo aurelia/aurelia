@@ -414,10 +414,9 @@ export function createObserverLocator(containerOrLifecycle) {
     return container.get(IObserverLocator);
 }
 export function createScopeForTest(bindingContext = {}, parentBindingContext) {
-    if (parentBindingContext) {
-        return Scope.create(0 /* none */, bindingContext, OverrideContext.create(0 /* none */, bindingContext, OverrideContext.create(0 /* none */, parentBindingContext, null)));
-    }
-    return Scope.create(0 /* none */, bindingContext, OverrideContext.create(0 /* none */, bindingContext, null));
+    return parentBindingContext
+        ? Scope.fromParent(0 /* none */, Scope.create(0 /* none */, parentBindingContext), bindingContext)
+        : Scope.create(0 /* none */, bindingContext, OverrideContext.create(0 /* none */, bindingContext));
 }
 // export type CustomAttribute = Writable<IViewModel> & IComponentLifecycleMock;
 // export function createCustomAttribute(nameOrDef: string | PartialCustomAttributeDefinition = 'foo') {

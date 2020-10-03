@@ -20,7 +20,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     const utils_1 = require("../utils");
     let DateFormatBindingBehavior = /** @class */ (() => {
         let DateFormatBindingBehavior = class DateFormatBindingBehavior {
-            bind(flags, scope, binding) {
+            bind(flags, _scope, _hostScope, binding) {
                 utils_1.createIntlFormatValueConverterExpression("df" /* dateFormatValueConverterName */, binding);
             }
         };

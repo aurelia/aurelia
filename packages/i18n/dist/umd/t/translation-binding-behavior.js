@@ -19,7 +19,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     const runtime_1 = require("@aurelia/runtime");
     let TranslationBindingBehavior = /** @class */ (() => {
         let TranslationBindingBehavior = class TranslationBindingBehavior {
-            bind(flags, scope, binding) {
+            bind(flags, _scope, _hostScope, binding) {
                 const expression = binding.sourceExpression.expression;
                 if (!(expression instanceof runtime_1.ValueConverterExpression)) {
                     const vcExpression = new runtime_1.ValueConverterExpression(expression, "t" /* translationValueConverterName */, binding.sourceExpression.args);

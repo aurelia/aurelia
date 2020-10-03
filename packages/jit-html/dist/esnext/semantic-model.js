@@ -1,8 +1,8 @@
-import { BindingSymbol, CustomAttributeSymbol, CustomElementSymbol as $CustomElementSymbol, LetElementSymbol as $LetElementSymbol, PlainAttributeSymbol, PlainElementSymbol as $PlainElementSymbol, ReplacePartSymbol as $ReplacePartSymbol, TemplateControllerSymbol as $TemplateControllerSymbol, TextSymbol as $TextSymbol, } from '@aurelia/jit';
+import { BindingSymbol, CustomAttributeSymbol, CustomElementSymbol as $CustomElementSymbol, LetElementSymbol as $LetElementSymbol, PlainAttributeSymbol, PlainElementSymbol as $PlainElementSymbol, TemplateControllerSymbol as $TemplateControllerSymbol, TextSymbol as $TextSymbol, ProjectionSymbol as $ProjectionSymbol } from '@aurelia/jit';
 export const CustomElementSymbol = $CustomElementSymbol;
 export const LetElementSymbol = $LetElementSymbol;
 export const PlainElementSymbol = $PlainElementSymbol;
-export const ReplacePartSymbol = $ReplacePartSymbol;
+export const ProjectionSymbol = $ProjectionSymbol;
 export const TemplateControllerSymbol = $TemplateControllerSymbol;
 export const TextSymbol = $TextSymbol;
 export { BindingSymbol, CustomAttributeSymbol, PlainAttributeSymbol, };

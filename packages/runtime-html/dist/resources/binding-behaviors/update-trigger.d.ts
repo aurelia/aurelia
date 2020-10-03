@@ -13,7 +13,7 @@ export declare class UpdateTriggerBindingBehavior {
     private readonly observerLocator;
     persistentFlags: LifecycleFlags;
     constructor(observerLocator: IObserverLocator);
-    bind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding, ...events: string[]): void;
-    unbind(flags: LifecycleFlags, scope: IScope, binding: UpdateTriggerableBinding): void;
+    bind(flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, binding: UpdateTriggerableBinding, ...events: string[]): void;
+    unbind(flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, binding: UpdateTriggerableBinding): void;
 }
 //# sourceMappingURL=update-trigger.d.ts.map

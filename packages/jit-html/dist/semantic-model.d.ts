@@ -1,4 +1,4 @@
-import { AnySymbol as $AnySymbol, BindingSymbol, CustomAttributeSymbol, CustomElementSymbol as $CustomElementSymbol, ElementSymbol as $ElementSymbol, LetElementSymbol as $LetElementSymbol, NodeSymbol as $NodeSymbol, ParentNodeSymbol as $ParentNodeSymbol, PlainAttributeSymbol, PlainElementSymbol as $PlainElementSymbol, ReplacePartSymbol as $ReplacePartSymbol, ResourceAttributeSymbol as $ResourceAttributeSymbol, SymbolWithBindings as $SymbolWithBindings, SymbolWithMarker as $SymbolWithMarker, SymbolWithTemplate as $SymbolWithTemplate, TemplateControllerSymbol as $TemplateControllerSymbol, TextSymbol as $TextSymbol } from '@aurelia/jit';
+import { AnySymbol as $AnySymbol, BindingSymbol, CustomAttributeSymbol, CustomElementSymbol as $CustomElementSymbol, ElementSymbol as $ElementSymbol, LetElementSymbol as $LetElementSymbol, NodeSymbol as $NodeSymbol, ParentNodeSymbol as $ParentNodeSymbol, PlainAttributeSymbol, PlainElementSymbol as $PlainElementSymbol, ResourceAttributeSymbol as $ResourceAttributeSymbol, SymbolWithBindings as $SymbolWithBindings, SymbolWithMarker as $SymbolWithMarker, SymbolWithTemplate as $SymbolWithTemplate, TemplateControllerSymbol as $TemplateControllerSymbol, TextSymbol as $TextSymbol, ProjectionSymbol as $ProjectionSymbol } from '@aurelia/jit';
 export declare type AnySymbol = $AnySymbol<Text, HTMLTemplateElement | HTMLElement, Comment>;
 export declare type ElementSymbol = $ElementSymbol<Text, HTMLTemplateElement | HTMLElement, Comment>;
 export declare type NodeSymbol = $NodeSymbol<Text, HTMLTemplateElement | HTMLElement, Comment>;
@@ -13,7 +13,7 @@ declare class $$LetElementSymbol extends $LetElementSymbol<HTMLTemplateElement |
 }
 declare class $$PlainElementSymbol extends $PlainElementSymbol<Text, HTMLTemplateElement | HTMLElement, Comment> {
 }
-declare class $$ReplacePartSymbol extends $ReplacePartSymbol<Text, HTMLTemplateElement | HTMLElement, Comment> {
+declare class $$ProjectionSymbol extends $ProjectionSymbol<Text, HTMLTemplateElement | HTMLElement, Comment> {
 }
 declare class $$TemplateControllerSymbol extends $TemplateControllerSymbol<Text, HTMLTemplateElement | HTMLElement, Comment> {
 }
@@ -22,7 +22,7 @@ declare class $$TextSymbol extends $TextSymbol<Text, Comment> {
 export declare const CustomElementSymbol: typeof $$CustomElementSymbol;
 export declare const LetElementSymbol: typeof $$LetElementSymbol;
 export declare const PlainElementSymbol: typeof $$PlainElementSymbol;
-export declare const ReplacePartSymbol: typeof $$ReplacePartSymbol;
+export declare const ProjectionSymbol: typeof $$ProjectionSymbol;
 export declare const TemplateControllerSymbol: typeof $$TemplateControllerSymbol;
 export declare const TextSymbol: typeof $$TextSymbol;
 export interface CustomElementSymbol extends $$CustomElementSymbol {
@@ -31,7 +31,7 @@ export interface LetElementSymbol extends $$LetElementSymbol {
 }
 export interface PlainElementSymbol extends $$PlainElementSymbol {
 }
-export interface ReplacePartSymbol extends $$ReplacePartSymbol {
+export interface ProjectionSymbol extends $$ProjectionSymbol {
 }
 export interface TemplateControllerSymbol extends $$TemplateControllerSymbol {
 }

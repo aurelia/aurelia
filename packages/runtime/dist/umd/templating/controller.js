@@ -61,10 +61,9 @@
             this.bindings = void 0;
             this.children = void 0;
             this.hasLockedScope = false;
-            this.scopeParts = void 0;
             this.isStrictBinding = false;
             this.scope = void 0;
-            this.part = void 0;
+            this.hostScope = null;
             this.projector = void 0;
             this.nodes = void 0;
             this.context = void 0;
@@ -105,7 +104,9 @@
             }
             return controller;
         }
-        static forCustomElement(viewModel, lifecycle, host, parentContainer, parts, flags = 0 /* none */, hydrate = true, 
+        static forCustomElement(viewModel, lifecycle, host, parentContainer, 
+        // projections *targeted* for this custom element. these are not the projections *provided* by this custom element.
+        targetedProjections, flags = 0 /* none */, hydrate = true, 
         // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
         definition = void 0) {
             if (controllerLookup.has(viewModel)) {
@@ -124,7 +125,7 @@
             /* host           */ host);
             controllerLookup.set(viewModel, controller);
             if (hydrate) {
-                controller.hydrateCustomElement(parentContainer, parts);
+                controller.hydrateCustomElement(parentContainer, targetedProjections);
             }
             return controller;
         }
@@ -157,10 +158,10 @@
             /* viewModel      */ void 0, 
             /* bindingContext */ void 0, 
             /* host           */ void 0);
-            controller.hydrateSynthetic(context, viewFactory.parts);
+            controller.hydrateSynthetic(context);
             return controller;
         }
-        hydrateCustomElement(parentContainer, parts) {
+        hydrateCustomElement(parentContainer, targetedProjections) {
             this.logger = parentContainer.get(kernel_1.ILogger).root;
             this.debug = this.logger.config.level <= 1 /* debug */;
             if (this.debug) {
@@ -171,7 +172,7 @@
             const instance = this.viewModel;
             createObservers(this.lifecycle, definition, flags, instance);
             createChildrenObservers(this, definition, flags, instance);
-            this.scope = binding_context_1.Scope.create(flags, this.bindingContext, null);
+            const scope = this.scope = binding_context_1.Scope.create(flags, this.bindingContext, null);
             const hooks = this.hooks;
             if (hooks.hasCreate) {
                 if (this.debug) {
@@ -180,13 +181,12 @@
                 const result = instance.create(
                 /* controller      */ this, 
                 /* parentContainer */ parentContainer, 
-                /* definition      */ definition, 
-                /* parts           */ parts);
+                /* definition      */ definition);
                 if (result !== void 0 && result !== definition) {
                     definition = custom_element_1.CustomElementDefinition.getOrCreate(result);
                 }
             }
-            const context = this.context = render_context_1.getRenderContext(definition, parentContainer, parts);
+            const context = this.context = render_context_1.getRenderContext(definition, parentContainer, targetedProjections === null || targetedProjections === void 0 ? void 0 : targetedProjections.projections);
             // Support Recursive Components by adding self to own context
             definition.register(context);
             if (definition.injectable !== null) {
@@ -199,9 +199,11 @@
                 }
                 instance.beforeCompile(this);
             }
-            const compiledContext = context.compile();
+            const compiledContext = context.compile(targetedProjections);
             const compiledDefinition = compiledContext.compiledDefinition;
-            this.scopeParts = compiledDefinition.scopeParts;
+            compiledContext.registerProjections(compiledDefinition.projectionsMap, scope);
+            // once the projections are registered, we can cleanup the projection map to prevent memory leaks.
+            compiledDefinition.projectionsMap.clear();
             this.isStrictBinding = compiledDefinition.isStrictBinding;
             const projectorLocator = parentContainer.get(custom_element_1.IProjectorLocator);
             this.projector = projectorLocator.getElementProjector(context.dom, this, this.host, compiledDefinition);
@@ -221,8 +223,7 @@
             /* controller */ this, 
             /* targets    */ targets, 
             /* definition */ compiledDefinition, 
-            /* host       */ this.host, 
-            /* parts      */ parts);
+            /* host       */ this.host);
             if (hooks.hasAfterCompileChildren) {
                 if (this.debug) {
                     this.logger.trace(`invoking afterCompileChildren() hook`);
@@ -237,11 +238,10 @@
             createObservers(this.lifecycle, definition, flags, instance);
             instance.$controller = this;
         }
-        hydrateSynthetic(context, parts) {
+        hydrateSynthetic(context) {
             this.context = context;
-            const compiledContext = context.compile();
+            const compiledContext = context.compile(null);
             const compiledDefinition = compiledContext.compiledDefinition;
-            this.scopeParts = compiledDefinition.scopeParts;
             this.isStrictBinding = compiledDefinition.isStrictBinding;
             const nodes = this.nodes = compiledContext.createNodes();
             const targets = nodes.findTargets();
@@ -250,8 +250,7 @@
             /* controller */ this, 
             /* targets    */ targets, 
             /* definition */ compiledDefinition, 
-            /* host       */ void 0, 
-            /* parts      */ parts);
+            /* host       */ void 0);
         }
         cancel(initiator, parent, flags) {
             var _a, _b, _c, _d;
@@ -280,7 +279,7 @@
                 }
             }
         }
-        activate(initiator, parent, flags, scope, part) {
+        activate(initiator, parent, flags, scope, hostScope) {
             this.canceling = false;
             switch (this.state) {
                 case 0 /* none */:
@@ -326,13 +325,12 @@
                 this.logger = this.context.get(kernel_1.ILogger).root.scopeTo(this.name);
                 this.logger.trace(`activate()`);
             }
-            this.part = part;
+            this.hostScope = hostScope !== null && hostScope !== void 0 ? hostScope : null;
             flags |= 32 /* fromBind */;
             switch (this.vmKind) {
                 case 0 /* customElement */:
                     // Custom element scope is created and assigned during hydration
                     this.scope.parentScope = scope === void 0 ? null : scope;
-                    this.scope.scopeParts = this.scopeParts;
                     break;
                 case 1 /* customAttribute */:
                     this.scope = scope;
@@ -341,7 +339,6 @@
                     if (scope === void 0 || scope === null) {
                         throw new Error(`Scope is null or undefined`);
                     }
-                    scope.scopeParts = kernel_1.mergeDistinct(scope.scopeParts, this.scopeParts, false);
                     if (!this.hasLockedScope) {
                         this.scope = scope;
                     }
@@ -370,9 +367,9 @@
                 return this.afterUnbind(initiator, parent, flags);
             }
             if (this.bindings !== void 0) {
-                const { scope, part, bindings } = this;
+                const { scope, hostScope, bindings } = this;
                 for (let i = 0, ii = bindings.length; i < ii; ++i) {
-                    bindings[i].$bind(flags, scope, part);
+                    bindings[i].$bind(flags, scope, hostScope);
                 }
             }
             return this.afterBind(initiator, parent, flags);
@@ -430,9 +427,9 @@
         }
         $activateChildren(initiator, parent, flags) {
             if (this.children !== void 0) {
-                const { children, scope, part } = this;
+                const { children, scope, hostScope } = this;
                 return kernel_1.resolveAll(...children.map(child => {
-                    return child.activate(initiator, this, flags, scope, part);
+                    return child.activate(initiator, this, flags, scope, hostScope);
                 }));
             }
         }

@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./binding/call-binding", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/property-binding", "./binding/ref-binding", "./definitions", "./flags", "./lifecycle", "./observation/observer-locator", "./resources/custom-attribute", "./resources/custom-element", "./templating/controller", "./templating/render-context", "./binding/ast", "./resources/binding-behavior"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./binding/call-binding", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/property-binding", "./binding/ref-binding", "./flags", "./lifecycle", "./observation/observer-locator", "./resources/custom-attribute", "./resources/custom-element", "./templating/controller", "./templating/render-context", "./binding/ast", "./resources/binding-behavior"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -29,7 +29,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const let_binding_1 = require("./binding/let-binding");
     const property_binding_1 = require("./binding/property-binding");
     const ref_binding_1 = require("./binding/ref-binding");
-    const definitions_1 = require("./definitions");
     const flags_1 = require("./flags");
     const lifecycle_1 = require("./lifecycle");
     const observer_locator_1 = require("./observation/observer-locator");
@@ -84,7 +83,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             static register(container) {
                 return kernel_1.Registration.singleton(exports.IRenderer, this).register(container);
             }
-            render(flags, context, controller, targets, definition, host, parts) {
+            render(flags, context, controller, targets, definition, host) {
                 const targetInstructions = definition.instructions;
                 if (targets.length !== targetInstructions.length) {
                     throw new Error(`The compiled template is not aligned with the render instructions. There are ${targets.length} targets and ${targetInstructions.length} instructions.`);
@@ -95,8 +94,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     /* context      */ context, 
                     /* instructions */ targetInstructions[i], 
                     /* controller   */ controller, 
-                    /* target       */ targets[i], 
-                    /* parts        */ parts);
+                    /* target       */ targets[i]);
                 }
                 if (host !== void 0 && host !== null) {
                     this.renderInstructions(
@@ -104,16 +102,15 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     /* context      */ context, 
                     /* instructions */ definition.surrogates, 
                     /* controller   */ controller, 
-                    /* target       */ host, 
-                    /* parts        */ parts);
+                    /* target       */ host);
                 }
             }
-            renderInstructions(flags, context, instructions, controller, target, parts) {
+            renderInstructions(flags, context, instructions, controller, target) {
                 const instructionRenderers = this.instructionRenderers;
                 let current;
                 for (let i = 0, ii = instructions.length; i < ii; ++i) {
                     current = instructions[i];
-                    instructionRenderers[current.type](flags, context, controller, target, current, parts);
+                    instructionRenderers[current.type](flags, context, controller, target, current);
                 }
             }
         };
@@ -191,32 +188,36 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         let CustomElementRenderer = 
         /** @internal */
         class CustomElementRenderer {
-            render(flags, context, controller, target, instruction, parts) {
-                parts = definitions_1.mergeParts(parts, instruction.parts);
+            render(flags, context, controller, target, instruction) {
+                let viewFactory;
+                const slotInfo = instruction.slotInfo;
+                if (slotInfo !== null) {
+                    const projectionCtx = slotInfo.projectionContext;
+                    viewFactory = render_context_1.getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
+                }
                 const factory = context.getComponentFactory(
                 /* parentController */ controller, 
                 /* host             */ target, 
                 /* instruction      */ instruction, 
-                /* viewFactory      */ void 0, 
+                /* viewFactory      */ viewFactory, 
                 /* location         */ target);
                 const key = custom_element_1.CustomElement.keyFrom(instruction.res);
                 const component = factory.createComponent(key);
                 const lifecycle = context.get(lifecycle_1.ILifecycle);
                 const childController = controller_1.Controller.forCustomElement(
-                /* viewModel       */ component, 
-                /* lifecycle       */ lifecycle, 
-                /* host            */ target, 
-                /* parentContainer */ context, 
-                /* parts           */ parts, 
-                /* flags           */ flags);
+                /* viewModel           */ component, 
+                /* lifecycle           */ lifecycle, 
+                /* host                */ target, 
+                /* parentContainer     */ context, 
+                /* targetedProjections */ context.getProjectionFor(instruction), 
+                /* flags               */ flags);
                 flags = childController.flags;
                 kernel_1.Metadata.define(key, childController, target);
                 context.renderInstructions(
                 /* flags        */ flags, 
                 /* instructions */ instruction.instructions, 
                 /* controller   */ controller, 
-                /* target       */ childController, 
-                /* parts        */ parts);
+                /* target       */ childController);
                 controller.addController(childController);
                 factory.dispose();
             }
@@ -232,7 +233,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         let CustomAttributeRenderer = 
         /** @internal */
         class CustomAttributeRenderer {
-            render(flags, context, controller, target, instruction, parts) {
+            render(flags, context, controller, target, instruction) {
                 const factory = context.getComponentFactory(
                 /* parentController */ controller, 
                 /* host             */ target, 
@@ -252,8 +253,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 /* flags        */ flags, 
                 /* instructions */ instruction.instructions, 
                 /* controller   */ controller, 
-                /* target       */ childController, 
-                /* parts        */ parts);
+                /* target       */ childController);
                 controller.addController(childController);
                 factory.dispose();
             }
@@ -269,9 +269,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         let TemplateControllerRenderer = 
         /** @internal */
         class TemplateControllerRenderer {
-            render(flags, parentContext, controller, target, instruction, parts) {
-                parts = definitions_1.mergeParts(parts, instruction.parts);
-                const viewFactory = render_context_1.getRenderContext(instruction.def, parentContext, parts).getViewFactory();
+            render(flags, parentContext, controller, target, instruction) {
+                const viewFactory = render_context_1.getRenderContext(instruction.def, parentContext).getViewFactory();
                 const renderLocation = parentContext.dom.convertToRenderLocation(target);
                 const componentFactory = parentContext.getComponentFactory(
                 /* parentController */ controller, 
@@ -296,8 +295,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 /* flags        */ flags, 
                 /* instructions */ instruction.instructions, 
                 /* controller   */ controller, 
-                /* target       */ childController, 
-                /* parts        */ parts);
+                /* target       */ childController);
                 controller.addController(childController);
                 componentFactory.dispose();
             }

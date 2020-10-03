@@ -19,7 +19,7 @@ export declare class PropertyBinding implements IPartialConnectableBinding {
     isBound: boolean;
     $lifecycle: ILifecycle;
     $scope?: IScope;
-    part?: string;
+    $hostScope: IScope | null;
     targetObserver?: AccessorOrObserver;
     persistentFlags: LifecycleFlags;
     private task;
@@ -28,7 +28,7 @@ export declare class PropertyBinding implements IPartialConnectableBinding {
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
-    $bind(flags: LifecycleFlags, scope: IScope, part?: string): void;
+    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
     $unbind(flags: LifecycleFlags): void;
     dispose(): void;
 }

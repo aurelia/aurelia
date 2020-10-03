@@ -212,12 +212,10 @@ export interface IOverrideContext {
     readonly $synthetic?: true;
     readonly $observers?: ObserversLookup;
     readonly bindingContext: IBindingContext;
-    readonly parentOverrideContext: IOverrideContext | null;
     getObservers(flags: LifecycleFlags): ObserversLookup;
 }
 export interface IScope {
     readonly parentScope: IScope | null;
-    readonly scopeParts: readonly string[];
     readonly bindingContext: IBindingContext;
     readonly overrideContext: IOverrideContext;
 }

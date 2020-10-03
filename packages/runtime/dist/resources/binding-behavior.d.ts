@@ -9,8 +9,8 @@ export declare type PartialBindingBehaviorDefinition = PartialResourceDefinition
     strategy?: BindingBehaviorStrategy;
 }>;
 export declare type BindingBehaviorInstance<T extends {} = {}> = {
-    bind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
-    unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...args: T[]): void;
+    bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IBinding, ...args: T[]): void;
+    unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IBinding, ...args: T[]): void;
 } & T;
 export declare const enum BindingBehaviorStrategy {
     singleton = 1,
@@ -68,14 +68,13 @@ export declare class BindingInterceptor implements IInterceptableBinding {
     get observerLocator(): IObserverLocator;
     get locator(): IServiceLocator;
     get $scope(): IScope | undefined;
-    get part(): string | undefined;
     get isBound(): boolean;
     constructor(binding: IInterceptableBinding, expr: IBindingBehaviorExpression);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
     callSource(args: object): unknown;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
-    $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void;
+    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
     $unbind(flags: LifecycleFlags): void;
 }
 export declare const BindingBehavior: BindingBehaviorKind;

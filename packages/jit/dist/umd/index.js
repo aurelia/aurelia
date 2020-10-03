@@ -75,9 +75,9 @@
     Object.defineProperty(exports, "LetElementSymbol", { enumerable: true, get: function () { return semantic_model_1.LetElementSymbol; } });
     Object.defineProperty(exports, "PlainAttributeSymbol", { enumerable: true, get: function () { return semantic_model_1.PlainAttributeSymbol; } });
     Object.defineProperty(exports, "PlainElementSymbol", { enumerable: true, get: function () { return semantic_model_1.PlainElementSymbol; } });
-    Object.defineProperty(exports, "ReplacePartSymbol", { enumerable: true, get: function () { return semantic_model_1.ReplacePartSymbol; } });
     Object.defineProperty(exports, "SymbolFlags", { enumerable: true, get: function () { return semantic_model_1.SymbolFlags; } });
     Object.defineProperty(exports, "TemplateControllerSymbol", { enumerable: true, get: function () { return semantic_model_1.TemplateControllerSymbol; } });
     Object.defineProperty(exports, "TextSymbol", { enumerable: true, get: function () { return semantic_model_1.TextSymbol; } });
+    Object.defineProperty(exports, "ProjectionSymbol", { enumerable: true, get: function () { return semantic_model_1.ProjectionSymbol; } });
 });
 //# sourceMappingURL=index.js.map

@@ -157,7 +157,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             __metadata("design:type", Function)
         ], PixiApp.prototype, "tick", void 0);
         PixiApp = __decorate([
-            runtime_1.customElement({ name: 'pixi-app', template: '<template><div replaceable="children"></div></template>' }),
+            runtime_1.customElement({ name: 'pixi-app', template: '<template><au-slot name="children"></au-slot></template>' }),
             __metadata("design:paramtypes", [Object])
         ], PixiApp);
         return PixiApp;

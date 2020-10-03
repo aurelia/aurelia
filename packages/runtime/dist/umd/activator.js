@@ -64,7 +64,7 @@
             }
             render(host, component, container, flags) {
                 const lifecycle = container.get(lifecycle_1.ILifecycle);
-                controller_1.Controller.forCustomElement(component, lifecycle, host, container, void 0, flags);
+                controller_1.Controller.forCustomElement(component, lifecycle, host, container, null, flags);
             }
             activateController(component, flags, parentScope) {
                 const controller = controller_1.Controller.getCachedOrThrow(component);

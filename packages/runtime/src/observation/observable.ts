@@ -1,5 +1,5 @@
 import { Constructable, IIndexable } from '@aurelia/kernel';
-import { IObservable, IBindingContext, IBindingTargetObserver, ObserversLookup, PropertyObserver, ISubscriber } from '../observation';
+import { IBindingContext, IBindingTargetObserver, ObserversLookup, PropertyObserver, ISubscriber } from '../observation';
 import { SetterObserver } from './setter-observer';
 import { LifecycleFlags } from '../flags';
 import { InternalObserversLookup } from './binding-context';
@@ -101,17 +101,15 @@ export function observable(
       : (config || {});
 
     if (isClassDecorator) {
-      target = target.prototype;
-      key = config ? config.name : '';
+      key = config.name;
     }
 
     if (key == null || key === '') {
       throw new Error('Invalid usage, cannot determine property name for @observable');
     }
-    const $key = key as PropertyKey;
 
     // determine callback name based on config or convention.
-    const changeHandler = (config && config.changeHandler) || `${String($key)}Changed`;
+    const changeHandler = config.changeHandler || `${String(key)}Changed`;
     let initialValue = noValue;
     if (descriptor) {
       // we're adding a getter and setter which means the property descriptor
@@ -134,17 +132,17 @@ export function observable(
     // after the first interaction (get/set/get observer), the getter/setter here will be disposed
 
     descriptor.get = function g(this: SetterObserverOwningObject) {
-      return startObserver(this, $key, changeHandler, initialValue).getValue();
+      return startObserver(this, key!, changeHandler, initialValue).getValue();
     };
     descriptor.set = function s(this: SetterObserverOwningObject, newValue: unknown) {
-      startObserver(this, $key, changeHandler, initialValue).setValue(newValue, LifecycleFlags.none);
+      startObserver(this, key!, changeHandler, initialValue).setValue(newValue, LifecycleFlags.none);
     };
     (descriptor.get as $Getter).getObserver = function gO(obj: SetterObserverOwningObject) {
-      return startObserver(obj, $key, changeHandler, initialValue);
+      return startObserver(obj, key!, changeHandler, initialValue);
     };
 
     if (isClassDecorator) {
-      Reflect.defineProperty(target, key!, descriptor);
+      Reflect.defineProperty((target as Constructable).prototype, key, descriptor);
     } else {
       return descriptor;
     }

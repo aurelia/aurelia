@@ -4,5 +4,5 @@
 --reporter spec
 --recursive
 --watch-extensions js
---timeout 5000
+--timeout 2000
 

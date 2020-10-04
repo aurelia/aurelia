@@ -41,6 +41,9 @@ const taskOptions: QueueTaskOptions = {
   reusable: false,
 };
 const flushNodeAccessor = (accessor: INodeAccessor) => {
+  if (flushQueueCallCount >= 4000) {
+    console.log((accessor as any).obj?.constructor.name, Object.getOwnPropertyNames(accessor));
+  }
   accessor.flushChanges();
 };
 
@@ -104,8 +107,12 @@ export class HTMLDOM implements IDOM {
         console.log('>Flush done!', { flushQueueCallCount, size: queue.size });
         this.task = null;
       }, taskOptions);
-      if (flushQueueCallCount >= 1000) {
-        console.log(accessor.constructor.name, (queuer as object)?.constructor?.name);
+      if (flushQueueCallCount >= 4000) {
+        console.log(
+          accessor.constructor.name,
+          (queuer as object)?.constructor?.name,
+          Object.getOwnPropertyNames(queuer),
+        );
       }
     }
 

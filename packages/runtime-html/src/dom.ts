@@ -105,6 +105,14 @@ export class HTMLDOM implements IDOM {
     queue.add(accessor);
   }
 
+  public dequeueFlushChanges(accessor: INodeAccessor): void {
+    this.flushQueue.delete(accessor);
+    if (this.flushQueue.size === 0) {
+      this.task?.cancel();
+      this.task = null;
+    }
+  }
+
   public addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void {
     (publisher || this.document).addEventListener(eventName, subscriber, options);
   }

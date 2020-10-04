@@ -1,5 +1,5 @@
 import { DI, IContainer, IRegistry, IResolver, Registration } from '@aurelia/kernel';
-import { IDOM, IDOMInitializer, ISinglePageApp, IScheduler, AureliaEvents, Aurelia, INode } from '@aurelia/runtime';
+import { IDOM, IDOMInitializer, ISinglePageApp, IScheduler, AureliaEvents, INode } from '@aurelia/runtime';
 import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 import { createDOMScheduler } from '@aurelia/scheduler-dom';
 import { JSDOM } from 'jsdom';

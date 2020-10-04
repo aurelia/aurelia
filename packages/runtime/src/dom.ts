@@ -71,6 +71,7 @@ export interface IDOM<T extends INode = INode> extends IDisposable {
    * Ideally all DOM updates should go through a central flush
    */
   queueFlushChanges(accessor: INodeAccessor): void;
+  dequeueFlushChanges(accessor: INodeAccessor): void;
   addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
   appendChild(parent: T, child: T): void;
   cloneNode<TClone extends T>(node: TClone, deep?: boolean): TClone;
@@ -134,6 +135,7 @@ const ni = function (...args: unknown[]): unknown {
 
 const niDOM: IDOM = {
   queueFlushChanges: ni,
+  dequeueFlushChanges: ni,
   addEventListener: ni,
   appendChild: ni,
   cloneNode: ni,

@@ -292,6 +292,9 @@ export class AuDOM implements IDOM<AuNode> {
   public queueFlushChanges(accessor: INodeAccessor): void {
     accessor.flushChanges();
   }
+  public dequeueFlushChanges(accessor: INodeAccessor): void {
+    return;
+  }
   public createNodeSequence(fragment: AuNode): AuNodeSequence {
     return new AuNodeSequence(this, fragment.cloneNode(true));
   }

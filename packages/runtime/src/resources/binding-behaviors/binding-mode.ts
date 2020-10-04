@@ -1,23 +1,23 @@
 import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode, LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
-import { bindingBehavior } from '../binding-behavior';
+import { bindingBehavior, BindingBehaviorInstance } from '../binding-behavior';
 
 export type WithMode = { mode: BindingMode };
 
-export abstract class BindingModeBehavior {
+export abstract class BindingModeBehavior implements BindingBehaviorInstance {
   private readonly originalModes: WeakMap<PropertyBinding, BindingMode> = new WeakMap();
 
   public constructor(
     private readonly mode: BindingMode,
   ) {}
 
-  public bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding & WithMode): void {
+  public bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: PropertyBinding & WithMode): void {
     this.originalModes.set(binding, binding.mode);
     binding.mode = this.mode;
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding & WithMode): void {
+  public unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: PropertyBinding & WithMode): void {
     binding.mode = this.originalModes.get(binding) as BindingMode;
   }
 }

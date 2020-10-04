@@ -64,8 +64,9 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
     this.binding.$bind(flags, scope, hostScope);
   }
 
-  public $unbind(): void {
+  public $unbind(flags: LifecycleFlags): void {
     this.task?.cancel();
     this.task = null;
+    super.$unbind(flags);
   }
 }

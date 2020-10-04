@@ -46,7 +46,6 @@
   },
   "scripts": {
     "lint:html": "htmlhint -c .htmlhintrc src",
-    "lint": "npm run lint:js && npm run lint:html",
     "start": "webpack-dev-server",
     "build": "rimraf dist && webpack",
     "lint:js": "tslint --project tsconfig.json"

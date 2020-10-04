@@ -124,7 +124,8 @@ export class AttributeBinding implements IPartialConnectableBinding {
       if (newValue !== oldValue) {
         if (shouldQueueFlush) {
           flags |= LifecycleFlags.noTargetObserverQueue;
-          this.dom.queueFlushChanges(targetObserver as unknown as INodeAccessor);
+          // this.dom.queueFlushChanges(targetObserver as unknown as INodeAccessor);
+          (this.dom as any).queueFlushChanges(targetObserver, this);
         }
 
         interceptor.updateTarget(newValue, flags);

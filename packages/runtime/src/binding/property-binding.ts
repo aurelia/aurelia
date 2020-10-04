@@ -106,7 +106,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
         if (shouldQueueFlush) {
           flags |= LifecycleFlags.noTargetObserverQueue;
           // this.dom.queueFlushChanges(targetObserver as unknown as INodeAccessor);
-          (this.dom as any).dequeueFlushChanges(targetObserver, this);
+          (this.dom as any).queueFlushChanges(targetObserver, this);
         }
 
         interceptor.updateTarget(newValue, flags);

@@ -140,7 +140,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
       if (shouldQueueFlush) {
         flags |= LifecycleFlags.noTargetObserverQueue;
         // this.dom.queueFlushChanges(targetObserver);
-        (this.dom as any).dequeueFlushChanges(targetObserver, this);
+        (this.dom as any).queueFlushChanges(targetObserver, this);
       }
 
       interceptor.updateTarget(newValue, flags);

@@ -923,7 +923,7 @@ describe('au-slot', function () {
       </my-element>`,
       [CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot></au-slot>` }, class MyElement { public foo: string = "foo"; })],
       { 'my-element': '<input type="text" value.two-way="$host.foo" class="au">' },
-      async function ({ host, scheduler }) {
+      function ({ host, scheduler }) {
         const el = host.querySelector('my-element');
         const vm = CustomElement.for(el).viewModel as any;
         const input = el.querySelector('input');
@@ -942,7 +942,7 @@ describe('au-slot', function () {
       </my-element>`,
       [createMyElement(`<au-slot></au-slot>`)],
       { 'my-element': '<input type="text" value.two-way="people[0].firstName" class="au">' },
-      async function ({ app, host, scheduler }) {
+      function ({ app, host, scheduler }) {
         const el = host.querySelector('my-element');
         const input = el.querySelector('input');
         assert.strictEqual(input.value, app.people[0].firstName);

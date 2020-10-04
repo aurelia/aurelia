@@ -1,8 +1,6 @@
 import { IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
 import {
   DelegationStrategy,
-  hasBind,
-  hasUnbind,
   IBinding,
   IConnectableBinding,
   IDOM,
@@ -68,7 +66,7 @@ export class Listener implements IBinding {
     this.$hostScope = hostScope;
 
     const sourceExpression = this.sourceExpression;
-    if (hasBind(sourceExpression)) {
+    if (sourceExpression.hasBind) {
       sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
@@ -90,7 +88,7 @@ export class Listener implements IBinding {
     }
 
     const sourceExpression = this.sourceExpression;
-    if (hasUnbind(sourceExpression)) {
+    if (sourceExpression.hasUnbind) {
       sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
     }
 

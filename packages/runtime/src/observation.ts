@@ -1,7 +1,12 @@
-import { IIndexable } from '@aurelia/kernel';
+import { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { LifecycleFlags } from './flags';
 import { ILifecycle } from './lifecycle';
 import { ITask } from '@aurelia/scheduler';
+
+export interface IConnectable {
+  readonly locator: IServiceLocator;
+  observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void;
+}
 
 /** @internal */
 export const enum SubscriberFlags {

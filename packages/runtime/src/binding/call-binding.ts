@@ -1,7 +1,6 @@
 import {
   IServiceLocator,
 } from '@aurelia/kernel';
-import { IsBindingBehavior } from '../ast';
 import {
   LifecycleFlags,
 } from '../flags';
@@ -11,7 +10,7 @@ import {
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import {
-  hasBind,
+  IsBindingBehavior,
   hasUnbind,
 } from './ast';
 import { IConnectableBinding } from './connectable';
@@ -60,7 +59,7 @@ export class CallBinding {
     this.$scope = scope;
     this.$hostScope = hostScope;
 
-    if (hasBind(this.sourceExpression)) {
+    if (this.sourceExpression.hasBind) {
       this.sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 

@@ -1,13 +1,9 @@
-import { IServiceLocator } from '@aurelia/kernel';
+import { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import {
   IScheduler,
   ITask,
   QueueTaskOptions,
 } from '@aurelia/scheduler';
-import {
-  IExpression,
-  IInterpolationExpression,
-} from '../ast';
 import {
   BindingMode,
   LifecycleFlags,
@@ -20,6 +16,7 @@ import {
   INodeAccessor,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
+import { Interpolation, IsExpression } from './ast';
 import {
   connectable,
   IConnectableBinding,
@@ -43,7 +40,7 @@ export class MultiInterpolationBinding implements IBinding {
 
   public constructor(
     public observerLocator: IObserverLocator,
-    public interpolation: IInterpolationExpression,
+    public interpolation: Interpolation,
     public target: object,
     public targetProperty: string,
     public mode: BindingMode,
@@ -112,8 +109,8 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public targetObserver: IBindingTargetAccessor;
 
   public constructor(
-    public sourceExpression: IExpression,
-    public interpolation: IInterpolationExpression,
+    public sourceExpression: IsExpression,
+    public interpolation: Interpolation,
     public target: object,
     public targetProperty: string,
     public mode: BindingMode,
@@ -183,8 +180,8 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     this.$hostScope = hostScope;
 
     const sourceExpression = this.sourceExpression;
-    if (sourceExpression.bind) {
-      sourceExpression.bind(flags, scope, hostScope, this.interceptor);
+    if (sourceExpression.hasBind) {
+      sourceExpression.bind(flags, scope, hostScope, this.interceptor as IIndexable & this);
     }
 
     const targetObserver = this.targetObserver;
@@ -211,7 +208,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     this.isBound = false;
 
     const sourceExpression = this.sourceExpression;
-    if (sourceExpression.unbind) {
+    if (sourceExpression.hasUnbind) {
       sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
 

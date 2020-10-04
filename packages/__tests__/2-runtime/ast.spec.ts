@@ -62,8 +62,6 @@ import {
   TemplateExpression,
   UnaryExpression,
   ValueConverterExpression,
-  IAccessScopeExpression,
-  ICallScopeExpression,
 } from '@aurelia/runtime';
 import { Unparser } from '@aurelia/debug';
 
@@ -78,6 +76,7 @@ const $tpl = TemplateExpression.$empty;
 const $this = AccessThisExpression.$this;
 const $host = AccessThisExpression.$host;
 const $parent = AccessThisExpression.$parent;
+const dummyBinding = { locator: null } as unknown as IConnectableBinding;
 
 function throwsOn<TExpr extends IsBindingBehavior>(expr: TExpr, method: keyof TExpr, msg: string, ...args: any[]): void {
   let err = null;
@@ -98,13 +97,13 @@ function makeHostScoped(
 ) {
   switch(expression.$kind){
     case ExpressionKind.AccessScope:
-      (expression as Writable<IAccessScopeExpression>).accessHostScope = isHostScoped;
+      (expression as Writable<AccessScopeExpression>).accessHostScope = isHostScoped;
       break;
     case ExpressionKind.CallScope:
-      (expression as Writable<ICallScopeExpression>).accessHostScope = isHostScoped;
+      (expression as Writable<CallScopeExpression>).accessHostScope = isHostScoped;
       break;
     default:
-      (expression.object as Writable<IAccessScopeExpression>).accessHostScope = isHostScoped;
+      (expression.object as Writable<AccessScopeExpression>).accessHostScope = isHostScoped;
       break;
   }
 }
@@ -355,10 +354,10 @@ describe('AST', function () {
         ...ObjectLiteralList
       ]) {
         it(`${text}, undefined`, function () {
-          assert.strictEqual(expr.connect(null, undefined, null, null), undefined, `expr.connect(null, undefined, null)`);
+          assert.strictEqual(expr.connect(null, undefined, null, dummyBinding), undefined, `expr.connect(null, undefined, dummyBinding)`);
         });
         it(`${text}, null`, function () {
-          assert.strictEqual(expr.connect(null, null, null, null), undefined, `expr.connect(null, null, null)`);
+          assert.strictEqual(expr.connect(null, null, null, dummyBinding), undefined, `expr.connect(null, null, dummyBinding)`);
         });
       }
     });
@@ -408,10 +407,10 @@ describe('AST', function () {
     describe('connect() does not throw / is a no-op', function () {
       for (const [text, expr] of AccessThisList) {
         it(`${text}, undefined`, function () {
-          assert.strictEqual(expr.connect(null, undefined, null, null), undefined, `expr.connect(null, undefined, null)`);
+          assert.strictEqual(expr.connect(null, undefined, null, dummyBinding), undefined, `expr.connect(null, undefined, dummyBinding)`);
         });
         it(`${text}, null`, function () {
-          assert.strictEqual(expr.connect(null, null, null, null), undefined, `expr.connect(null, null, null)`);
+          assert.strictEqual(expr.connect(null, null, null, dummyBinding), undefined, `expr.connect(null, null, dummyBinding)`);
         });
       }
     });
@@ -497,16 +496,16 @@ describe('AST', function () {
         if (!text.startsWith('$host')) {
           describe('when scope is nil', function () {
             it(`${text}, undefined`, function () {
-              throwsOn(expr, 'connect', 'Code 250', null, undefined);
+              throwsOn(expr, 'connect', 'Code 250', null, undefined, undefined, dummyBinding);
             });
             it(`${text}, null`, function () {
-              throwsOn(expr, 'connect', 'Code 250', null, null);
+              throwsOn(expr, 'connect', 'Code 250', null, null, undefined, dummyBinding);
             });
           });
         } else {
           describe('when hostScope is null for a hostScoped-expression', function () {
             it(`${text}, null`, function () {
-              throwsOn(expr, 'connect', 'Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?', null, Scope.create(LF.none, {}), null, { observeProperty: PLATFORM.noop });
+              throwsOn(expr, 'connect', 'Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?', null, Scope.create(LF.none, {}), null, { observeProperty: PLATFORM.noop, locator: null });
             });
           });
         }
@@ -565,16 +564,16 @@ describe('AST', function () {
         if (!text.startsWith('$host')) {
           describe('when scope is nil', function () {
             it(`${text}, undefined`, function () {
-              throwsOn(expr, 'connect', 'Code 250', null, undefined);
+              throwsOn(expr, 'connect', 'Code 250', null, undefined, undefined, dummyBinding);
             });
             it(`${text}, null`, function () {
-              throwsOn(expr, 'connect', 'Code 250', null, null);
+              throwsOn(expr, 'connect', 'Code 250', null, null, undefined, dummyBinding);
             });
           });
         } else {
           describe('when hostScope is null for a hostScoped-expression', function () {
             it(`${text}, null`, function () {
-              throwsOn(expr, 'connect', 'Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?', null, Scope.create(LF.none, {}), null, null);
+              throwsOn(expr, 'connect', 'Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?', null, Scope.create(LF.none, {}), null, dummyBinding);
             });
           });
         }
@@ -586,10 +585,10 @@ describe('AST', function () {
         ...SimpleCallScopeList
       ]) {
         it(`${text}, undefined`, function () {
-          assert.strictEqual(expr.connect(null, undefined, null, null), undefined, `expr.connect(null, undefined, null)`);
+          assert.strictEqual(expr.connect(null, undefined, null, dummyBinding), undefined, `expr.connect(null, undefined, dummyBinding)`);
         });
         it(`${text}, null`, function () {
-          assert.strictEqual(expr.connect(null, null, null, null), undefined, `expr.connect(null, null, null)`);
+          assert.strictEqual(expr.connect(null, null, null, dummyBinding), undefined, `expr.connect(null, null, dummyBinding)`);
         });
       }
     });
@@ -621,10 +620,10 @@ describe('AST', function () {
     describe('connect() throws when scope is nil', function () {
       for (const [text, expr] of SimpleUnaryList) {
         it(`${text}, undefined`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, undefined);
+          throwsOn(expr, 'connect', 'Code 250', null, undefined, undefined, dummyBinding);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, null);
+          throwsOn(expr, 'connect', 'Code 250', null, null, undefined, dummyBinding);
         });
       }
     });
@@ -677,10 +676,10 @@ describe('AST', function () {
         ...SimpleLogicalORList
       ]) {
         it(`${text}, undefined`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, undefined);
+          throwsOn(expr, 'connect', 'Code 250', null, undefined, undefined, dummyBinding);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, null);
+          throwsOn(expr, 'connect', 'Code 250', null, null, undefined, dummyBinding);
         });
       }
     });
@@ -712,10 +711,10 @@ describe('AST', function () {
     describe('connect() throws when scope is nil', function () {
       for (const [text, expr] of SimpleConditionalList) {
         it(`${text}, undefined`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, undefined);
+          throwsOn(expr, 'connect', 'Code 250', null, undefined, undefined, dummyBinding);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, null);
+          throwsOn(expr, 'connect', 'Code 250', null, null, undefined, dummyBinding);
         });
       }
     });
@@ -747,10 +746,10 @@ describe('AST', function () {
     describe('connect() does not throw / is a no-op', function () {
       for (const [text, expr] of SimpleAssignList) {
         it(`${text}, undefined`, function () {
-          assert.strictEqual(expr.connect(null, undefined, null, null), undefined, `expr.connect(null, undefined, null)`);
+          assert.strictEqual(expr.connect(null, undefined, null, dummyBinding), undefined, `expr.connect(null, undefined, dummyBinding)`);
         });
         it(`${text}, null`, function () {
-          assert.strictEqual(expr.connect(null, null, null, null), undefined, `expr.connect(null, null, null)`);
+          assert.strictEqual(expr.connect(null, null, null, dummyBinding), undefined, `expr.connect(null, null, dummyBinding)`);
         });
       }
     });
@@ -802,10 +801,10 @@ describe('AST', function () {
     describe('connect() throws when scope is nil', function () {
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, undefined`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, undefined);
+          throwsOn(expr, 'connect', 'Code 250', null, undefined, undefined, dummyBinding);
         });
         it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, null);
+          throwsOn(expr, 'connect', 'Code 250', null, null, undefined, dummyBinding);
         });
       }
     });
@@ -813,7 +812,7 @@ describe('AST', function () {
     describe('connect() throws when binding is null', function () {
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, undefined`, function () {
-          throwsOn(expr, 'connect', 'Code 206', null, {}, null);
+          throwsOn(expr, 'connect', 'Code 206', null, {}, null, null);
         });
       }
     });
@@ -821,7 +820,7 @@ describe('AST', function () {
     describe('connect() throws when locator is null', function () {
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, undefined`, function () {
-          throwsOn(expr, 'connect', 'Code 202', null, {}, null, {});
+          throwsOn(expr, 'connect', 'Code 202', null, {}, null, dummyBinding);
         });
       }
     });
@@ -1762,7 +1761,7 @@ describe('ConditionalExpression', function () {
     const no = new MockTracingExpression($obj);
     const sut = new ConditionalExpression(condition, yes as any, no as any);
 
-    sut.connect(null, null, null, null);
+    sut.connect(null, null, null, dummyBinding);
     assert.strictEqual(yes.calls.length, 1, `yes.calls.length`);
     assert.strictEqual(no.calls.length, 0, `no.calls.length`);
   });
@@ -1773,7 +1772,7 @@ describe('ConditionalExpression', function () {
     const no = new MockTracingExpression($obj);
     const sut = new ConditionalExpression(condition, yes as any, no as any);
 
-    sut.connect(null, null, null, null);
+    sut.connect(null, null, null, dummyBinding);
     assert.strictEqual(yes.calls.length, 0, `yes.calls.length`);
     assert.strictEqual(no.calls.length, 1, `no.calls.length`);
   });

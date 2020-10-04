@@ -72,9 +72,7 @@ export {
   ObjectBindingPattern,
   BindingIdentifier,
   ForOfStatement,
-  Interpolation
-} from './binding/ast';
-export {
+  Interpolation,
   AnyBindingExpression,
   IsPrimary,
   IsLiteral,
@@ -96,35 +94,11 @@ export {
   HasUnbind,
   HasAncestor,
   IVisitor,
-  IExpression,
-  IAccessKeyedExpression,
-  IAccessMemberExpression,
-  IAccessScopeExpression,
-  IAccessThisExpression,
-  IArrayBindingPattern,
-  IArrayLiteralExpression,
-  IAssignExpression,
-  IBinaryExpression,
-  IBindingBehaviorExpression,
-  IBindingIdentifier,
-  ICallFunctionExpression,
-  ICallMemberExpression,
-  ICallScopeExpression,
-  IConditionalExpression,
-  IForOfStatement,
-  IHtmlLiteralExpression,
-  IInterpolationExpression,
-  IObjectBindingPattern,
-  IObjectLiteralExpression,
-  IPrimitiveLiteralExpression,
-  ITaggedTemplateExpression,
-  ITemplateExpression,
-  IUnaryExpression,
-  IValueConverterExpression,
   BinaryOperator,
   BindingIdentifierOrPattern,
-  UnaryOperator
-} from './ast';
+  UnaryOperator,
+  IHydrator,
+} from './binding/ast';
 export {
   PropertyBinding
 } from './binding/property-binding';

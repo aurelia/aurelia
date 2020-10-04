@@ -45,8 +45,6 @@ const flushNodeAccessor = (accessor: INodeAccessor) => {
   accessor.flushChanges();
 };
 
-let flushCallCount = 0;
-
 /**
  * IDOM implementation for Html.
  */
@@ -98,10 +96,6 @@ export class HTMLDOM implements IDOM {
     const queue = this.flushQueue;
     if (this.task == null) {
       this.task = this.scheduler.queueRenderTask(() => {
-        flushCallCount++;
-        if (flushCallCount >= 6500) {
-          console.log(new Error().stack);
-        }
         queue.forEach(flushNodeAccessor);
         queue.clear();
         this.task = null;

@@ -43,6 +43,8 @@ function initializeJSDOMTestContext(): void {
   TestContext.createHTMLTestContext().dom.createElement('div');
 }
 
+initializeJSDOMTestContext();
+
 let testCount = 0;
 /**@type {[string, number][]} */
 let longestTests = [];
@@ -60,14 +62,17 @@ beforeEach(function () {
 // eslint-disable-next-line
 afterEach(function () {
   const timeTakenForTest = Date.now() - testStartTime;
-  if (timeTakenForTest > longestTestTime) {
+  if (timeTakenForTest === longestTestTime || longestTestTime === 0) {
+    if (this.test != null) {
+      if (longestTests.length > 40000) {
+        longestTests.shift();
+      }
+      longestTests.push([this.test.fullTitle(), timeTakenForTest]);
+    }
+  } else if (timeTakenForTest > longestTestTime && !is_10_pct_diff(longestTests, timeTakenForTest)) {
     if (this.test != null) {
       longestTestTime = timeTakenForTest;
       longestTests = [[this.test.fullTitle(), timeTakenForTest]];
-    }
-  } else if (timeTakenForTest === longestTestTime) {
-    if (this.test != null) {
-      longestTests.push([this.test.fullTitle(), timeTakenForTest]);
     }
   }
   try {
@@ -79,7 +84,17 @@ afterEach(function () {
 });
 
 after(function() {
-  console.log(`Longest tests are: ${JSON.stringify(longestTests)}`);
+  if (longestTests.length > 40000) {
+    console.log(`A lot of similarly long running tests: ${longestTests[0][1]}ms`);
+  } else {
+    console.log(`Longest tests are: ${JSON.stringify(longestTests, void 0, 2)}`);
+  }
 });
 
-initializeJSDOMTestContext();
+/**
+ * @param {number} base
+ * @param {number} num
+ */
+function is_10_pct_diff(base, num) {
+  return base * 0.9 < num && base * 1.1 > num;
+}

@@ -42,6 +42,7 @@ export class MultiInterpolationBinding implements IBinding {
     public targetProperty: string,
     public mode: BindingMode,
     public locator: IServiceLocator,
+    dom: IDOM,
   ) {
     // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
     // value converters and binding behaviors.
@@ -50,7 +51,7 @@ export class MultiInterpolationBinding implements IBinding {
     const expressions = interpolation.expressions;
     const parts = this.parts = Array(expressions.length);
     for (let i = 0, ii = expressions.length; i < ii; ++i) {
-      parts[i] = new InterpolationBinding(expressions[i], interpolation, target, targetProperty, mode, observerLocator, locator, i === 0);
+      parts[i] = new InterpolationBinding(expressions[i], interpolation, target, targetProperty, mode, observerLocator, locator, i === 0, dom);
     }
   }
 
@@ -99,7 +100,6 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public id!: number;
   public $scope?: IScope;
   public $hostScope: IScope | null = null;
-  public $scheduler: IScheduler;
   public targetObserver: IBindingTargetAccessor & INodeAccessor;
   public isBound: boolean = false;
 
@@ -114,12 +114,12 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator,
     public isFirst: boolean,
+    dom: IDOM,
   ) {
     connectable.assignIdTo(this);
 
-    this.$scheduler = locator.get(IScheduler);
     this.targetObserver = observerLocator.getAccessor(LifecycleFlags.none, target, targetProperty) as IBindingTargetAccessor & INodeAccessor;
-    this.dom = locator.get(IDOM);
+    this.dom = dom;
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {

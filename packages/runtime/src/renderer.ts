@@ -507,6 +507,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IDOM private readonly dom: IDOM,
   ) {}
 
   public render(
@@ -520,13 +521,13 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
     if (expr.isMulti) {
       binding = applyBindingBehavior(
-        new MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context),
+        new MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context, this.dom),
         expr as unknown as IsBindingBehavior,
         context,
       ) as MultiInterpolationBinding;
     } else {
       binding = applyBindingBehavior(
-        new InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, true),
+        new InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, true, this.dom),
         expr as unknown as IsBindingBehavior,
         context,
       ) as InterpolationBinding;

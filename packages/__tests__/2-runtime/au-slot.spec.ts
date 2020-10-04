@@ -930,7 +930,7 @@ describe('au-slot', function () {
         assert.strictEqual(input.value, "foo");
 
         vm.foo = "bar";
-        await scheduler.yieldAll(10);
+        scheduler.getRenderTaskQueue().flush();
         assert.strictEqual(input.value, "bar");
       }
     );
@@ -948,7 +948,8 @@ describe('au-slot', function () {
         assert.strictEqual(input.value, app.people[0].firstName);
 
         app.people[0].firstName = "Jane";
-        await scheduler.yieldAll(10);
+        scheduler.getRenderTaskQueue().flush();
+        // await scheduler.yieldAll(10);
         assert.strictEqual(input.value, "Jane");
       }
     );

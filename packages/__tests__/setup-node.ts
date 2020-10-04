@@ -61,16 +61,14 @@ beforeEach(function () {
 
 // eslint-disable-next-line
 afterEach(function () {
-  const timeTakenForTest = Date.now() - testStartTime;
-  if (timeTakenForTest === longestTestTime || longestTestTime === 0) {
-    if (this.test != null) {
+  if (this.test != null) {
+    const timeTakenForTest = Date.now() - testStartTime;
+    if (timeTakenForTest === longestTestTime || longestTestTime === 0) {
       if (longestTests.length > 40000) {
         longestTests.shift();
       }
       longestTests.push([this.test.fullTitle(), timeTakenForTest]);
-    }
-  } else if (timeTakenForTest > longestTestTime && !is_10_pct_diff(longestTests, timeTakenForTest)) {
-    if (this.test != null) {
+    } else if (timeTakenForTest > longestTestTime && !is10PctDiff(longestTests, timeTakenForTest)) {
       longestTestTime = timeTakenForTest;
       longestTests = [[this.test.fullTitle(), timeTakenForTest]];
     }
@@ -83,6 +81,7 @@ afterEach(function () {
   }
 });
 
+// eslint-disable-next-line mocha/no-hooks mocha/no-top-level-hooks
 after(function() {
   if (longestTests.length > 40000) {
     console.log(`A lot of similarly long running tests: ${longestTests[0][1]}ms`);
@@ -95,6 +94,6 @@ after(function() {
  * @param {number} base
  * @param {number} num
  */
-function is_10_pct_diff(base, num) {
+function is10PctDiff(base, num) {
   return base * 0.9 < num && base * 1.1 > num;
 }

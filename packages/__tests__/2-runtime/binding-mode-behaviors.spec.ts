@@ -41,7 +41,7 @@ describe('2-runtime/binding-mode-behavior.spec.ts', function () {
         });
 
         it(`bind()   should apply  bindingMode ${mode}`, function () {
-          assert.strictEqual(binding.mode, null, `binding.mode`);
+          assert.strictEqual(binding.mode, mode, `binding.mode`);
         });
 
         it(`unbind() should revert bindingMode ${initMode}`, function () {

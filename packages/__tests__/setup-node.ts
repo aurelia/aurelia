@@ -1,9 +1,11 @@
 import {
   HTMLTestContext,
   TestContext,
+  assert,
+  ensureSchedulerEmpty,
 } from '@aurelia/testing';
 import {
-  JitHtmlJsdomConfiguration
+  JitHtmlJsdomConfiguration,
 } from '@aurelia/jit-html-jsdom';
 import {
   Reporter,
@@ -39,5 +41,15 @@ function initializeJSDOMTestContext(): void {
   // Just trigger the HTMLDOM to be resolved once so it sets the DOM globals
   TestContext.createHTMLTestContext().dom.createElement('div');
 }
+
+// eslint-disable-next-line
+afterEach(function() {
+  try {
+    assert.isSchedulerEmpty();
+  } catch (ex) {
+    ensureSchedulerEmpty();
+    throw ex;
+  }
+});
 
 initializeJSDOMTestContext();

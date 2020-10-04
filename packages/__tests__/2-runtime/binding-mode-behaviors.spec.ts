@@ -41,11 +41,11 @@ describe('2-runtime/binding-mode-behavior.spec.ts', function () {
         });
 
         it(`bind()   should apply  bindingMode ${mode}`, function () {
-          assert.strictEqual(binding.mode, mode, `binding.mode`);
+          assert.strictEqual(binding.mode, mode, null, `binding.mode`);
         });
 
         it(`unbind() should revert bindingMode ${initMode}`, function () {
-          sut.unbind(undefined, undefined, binding);
+          sut.unbind(undefined, undefined, null, binding);
           assert.strictEqual(binding.mode, initMode, `binding.mode`);
         });
       });

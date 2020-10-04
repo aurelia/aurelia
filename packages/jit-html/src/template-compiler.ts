@@ -1,9 +1,4 @@
 import {
-  IAttributeParser,
-  ResourceModel,
-  SymbolFlags,
-} from '@aurelia/jit';
-import {
   IContainer,
   IResolver,
   PLATFORM,
@@ -38,6 +33,9 @@ import {
   AuSlotContentType,
   RegisteredProjections,
   ProjectionContext,
+  IAttributeParser,
+  ResourceModel,
+  SymbolFlags,
 } from '@aurelia/runtime';
 import {
   HTMLAttributeInstruction,

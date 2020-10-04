@@ -1,5 +1,4 @@
 import { Aurelia, CustomElement, CustomAttribute, ValueConverter, BindingBehavior, CustomElementType, customElement, customAttribute, alias, CustomAttributeDefinition, BindingMode } from "@aurelia/runtime";
-import { BindingCommand } from "@aurelia/jit";
 import { TestContext, assert } from "@aurelia/testing";
 import { Metadata } from '@aurelia/kernel';
 

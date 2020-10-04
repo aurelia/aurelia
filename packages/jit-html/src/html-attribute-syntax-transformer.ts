@@ -1,4 +1,4 @@
-import { AttrSyntax } from '@aurelia/jit';
+import { AttrSyntax } from '@aurelia/runtime';
 import { IContainer, IResolver, Registration } from '@aurelia/kernel';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 

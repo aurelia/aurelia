@@ -55,7 +55,7 @@ import {
 } from './ast';
 
 export interface IExpressionParser extends ExpressionParser {}
-export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpressionParser').noDefault();
+export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpressionParser').withDefault(x => x.singleton(ExpressionParser));
 
 export class ExpressionParser {
   private readonly expressionLookup: Record<string, IsBindingBehavior> = Object.create(null);

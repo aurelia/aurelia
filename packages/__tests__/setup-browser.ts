@@ -61,7 +61,6 @@ function importAll(r) {
 importAll(require.context('./1-kernel/', true, /\.spec\.js$/));
 importAll(require.context('./2-runtime/', true, /\.spec\.js$/));
 importAll(require.context('./3-runtime-html/', true, /\.spec\.js$/));
-importAll(require.context('./4-jit/', true, /\.spec\.js$/));
 importAll(require.context('./5-jit-html/', true, /\.spec\.js$/));
 
 importAll(require.context('./web-components/', true, /\.spec\.js$/));

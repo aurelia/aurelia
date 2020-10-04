@@ -9,7 +9,6 @@
     { "path": "dialog" },
     { "path": "debug" },
     { "path": "fetch-client" },
-    { "path": "jit" },
     { "path": "jit-html" },
     { "path": "jit-html-browser" },
     { "path": "jit-html-jsdom" },

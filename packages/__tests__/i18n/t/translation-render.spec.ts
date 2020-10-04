@@ -12,14 +12,6 @@ import {
   TranslationBindInstructionType,
   TranslationInstructionType,
 } from '@aurelia/i18n';
-import {
-  AttributePattern,
-  AttributePatternDefinition,
-  AttrSyntax,
-  BindingCommand,
-  IAttributePattern,
-  PlainAttributeSymbol,
-} from '@aurelia/jit';
 import { AttrBindingCommand } from '@aurelia/jit-html';
 import { Constructable, DI } from '@aurelia/kernel';
 import {
@@ -34,6 +26,12 @@ import {
   IRenderableController,
   LifecycleFlags,
   RuntimeConfiguration,
+  AttributePattern,
+  AttributePatternDefinition,
+  AttrSyntax,
+  BindingCommand,
+  IAttributePattern,
+  PlainAttributeSymbol,
 } from '@aurelia/runtime';
 import { DOM } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';

@@ -1,4 +1,3 @@
-import { IAttributeParser, ResourceModel } from '@aurelia/jit';
 import {
   IAttrSyntaxTransformer,
   TemplateBinder
@@ -8,7 +7,9 @@ import {
   CustomElement,
   IExpressionParser,
   ISignaler,
-  LifecycleFlags
+  LifecycleFlags,
+  IAttributeParser,
+  ResourceModel,
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 

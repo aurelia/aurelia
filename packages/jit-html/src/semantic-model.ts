@@ -16,7 +16,7 @@ import {
   TemplateControllerSymbol as $TemplateControllerSymbol,
   TextSymbol as $TextSymbol,
   ProjectionSymbol as $ProjectionSymbol
-} from '@aurelia/jit';
+} from '@aurelia/runtime';
 
 export type AnySymbol = $AnySymbol<Text, HTMLTemplateElement | HTMLElement, Comment>;
 export type ElementSymbol = $ElementSymbol<Text, HTMLTemplateElement | HTMLElement, Comment>;

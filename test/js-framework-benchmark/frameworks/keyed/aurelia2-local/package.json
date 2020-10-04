@@ -13,7 +13,6 @@
   "dependencies": {
     "@aurelia/jit-html-browser": "0.7.0",
     "@aurelia/jit-html": "0.7.0",
-    "@aurelia/jit": "0.7.0",
     "@aurelia/kernel": "0.7.0",
     "@aurelia/metadata": "0.7.0",
     "@aurelia/runtime-html-browser": "0.7.0",

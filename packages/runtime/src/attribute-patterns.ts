@@ -1,4 +1,4 @@
-import { AttrSyntax } from './ast';
+import { AttrSyntax } from './attribute-parser';
 import { attributePattern } from './attribute-pattern';
 
 @attributePattern(

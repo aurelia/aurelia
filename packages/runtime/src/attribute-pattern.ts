@@ -1,5 +1,5 @@
 import { Class, Constructable, DI, IContainer, Metadata, PLATFORM, Protocol, Registration, Reporter, ResourceDefinition, ResourceType } from '@aurelia/kernel';
-import { AttrSyntax } from './ast';
+import { AttrSyntax } from './attribute-parser';
 
 export interface AttributePatternDefinition {
   pattern: string;

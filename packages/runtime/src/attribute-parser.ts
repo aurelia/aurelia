@@ -1,6 +1,14 @@
 import { all, Constructable, DI } from '@aurelia/kernel';
-import { AttrSyntax } from './ast';
 import { AttributePattern, IAttributePattern, Interpretation, ISyntaxInterpreter } from './attribute-pattern';
+
+export class AttrSyntax {
+  public constructor(
+    public rawName: string,
+    public rawValue: string,
+    public target: string,
+    public command: string | null,
+  ) {}
+}
 
 export interface IAttributeParser {
   parse(name: string, value: string): AttrSyntax;

@@ -1,8 +1,4 @@
 import {
-  DefaultBindingLanguage as JitDefaultBindingLanguage,
-  DefaultBindingSyntax as JitDefaultBindingSyntax,
-} from '@aurelia/jit';
-import {
   DefaultBindingLanguage as JitHtmlDefaultBindingLanguage,
   DefaultComponents as JitHtmlDefaultComponents
 } from '@aurelia/jit-html';
@@ -14,9 +10,6 @@ const { enter, leave } = Profiler.createTimer('JitHtmlBrowserConfiguration');
 /**
  * A DI configuration object containing html-specific, browser-specific registrations:
  * - `RuntimeHtmlBrowserConfiguration` from `@aurelia/runtime-html-browser`
- * - `DefaultComponents` from `@aurelia/jit`
- * - `DefaultBindingSyntax` from `@aurelia/jit`
- * - `DefaultBindingLanguage` from `@aurelia/jit`
  * - `DefaultComponents` from `@aurelia/jit-html`
  * - `DefaultBindingLanguage` from `@aurelia/jit-html`
  */
@@ -28,8 +21,6 @@ export const JitHtmlBrowserConfiguration = {
     RuntimeHtmlBrowserConfiguration
       .register(container)
       .register(
-        ...JitDefaultBindingLanguage,
-        ...JitDefaultBindingSyntax,
         ...JitHtmlDefaultBindingLanguage,
         ...JitHtmlDefaultComponents
       );

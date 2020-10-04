@@ -1,4 +1,40 @@
 export {
+  AttrSyntax,
+  IAttributeParser,
+} from './attribute-parser';
+export {
+  attributePattern,
+  AttributePatternDefinition,
+  IAttributePattern,
+  AttributePattern,
+  Interpretation,
+  ISyntaxInterpreter,
+} from './attribute-pattern';
+export {
+  AtPrefixedTriggerAttributePattern,
+  ColonPrefixedBindAttributePattern,
+  DotSeparatedAttributePattern,
+  RefAttributePattern,
+} from './attribute-patterns';
+export {
+  bindingCommand,
+  BindingCommand ,
+  BindingCommandInstance,
+  BindingCommandDefinition,
+  BindingCommandKind,
+  BindingCommandType,
+  getTarget,
+} from './binding-command';
+export {
+  CallBindingCommand,
+  DefaultBindingCommand,
+  ForBindingCommand,
+  FromViewBindingCommand,
+  OneTimeBindingCommand,
+  ToViewBindingCommand,
+  TwoWayBindingCommand
+} from './binding-commands';
+export {
   CallFunctionExpression,
   connects,
   observes,
@@ -347,6 +383,26 @@ export {
   CompositionRoot,
 } from './aurelia';
 export {
+  RefAttributePatternRegistration,
+  DotSeparatedAttributePatternRegistration,
+
+  DefaultBindingSyntax,
+
+  AtPrefixedTriggerAttributePatternRegistration,
+  ColonPrefixedBindAttributePatternRegistration,
+
+  ShortHandBindingSyntax,
+
+  CallBindingCommandRegistration,
+  DefaultBindingCommandRegistration,
+  ForBindingCommandRegistration,
+  FromViewBindingCommandRegistration,
+  OneTimeBindingCommandRegistration,
+  ToViewBindingCommandRegistration,
+  TwoWayBindingCommandRegistration,
+
+  DefaultBindingLanguage,
+
   IfRegistration,
   ElseRegistration,
   RepeatRegistration,
@@ -535,3 +591,29 @@ export {
   instructionRenderer,
   ensureExpression,
 } from './renderer';
+export {
+  ResourceModel,
+  BindableInfo,
+  ElementInfo,
+  AttrInfo
+} from './resource-model';
+export {
+  AnySymbol,
+  BindingSymbol,
+  CustomAttributeSymbol,
+  CustomElementSymbol,
+  ElementSymbol,
+  LetElementSymbol,
+  NodeSymbol,
+  ParentNodeSymbol,
+  PlainAttributeSymbol,
+  PlainElementSymbol,
+  ResourceAttributeSymbol,
+  SymbolFlags,
+  SymbolWithBindings,
+  SymbolWithMarker,
+  SymbolWithTemplate,
+  TemplateControllerSymbol,
+  TextSymbol,
+  ProjectionSymbol,
+} from './semantic-model';

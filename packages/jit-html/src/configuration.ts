@@ -1,7 +1,3 @@
-import {
-  DefaultBindingLanguage as JitDefaultBindingLanguage,
-  DefaultBindingSyntax as JitDefaultBindingSyntax,
-} from '@aurelia/jit';
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import {
@@ -56,10 +52,7 @@ export const DefaultBindingLanguage = [
 
 /**
  * A DI configuration object containing html-specific (but environment-agnostic) registrations:
- * - `RuntimeHtmlConfiguration` from `@aurelia/runtime-html`
- * - `DefaultComponents` from `@aurelia/jit`
- * - `DefaultBindingSyntax` from `@aurelia/jit`
- * - `DefaultBindingLanguage` from `@aurelia/jit`
+ * - `RuntimeHtmlConfiguration` from `@aurelia/runtime-html``
  * - `DefaultComponents`
  * - `DefaultBindingLanguage`
  */
@@ -71,8 +64,6 @@ export const JitHtmlConfiguration = {
     return RuntimeHtmlConfiguration
       .register(container)
       .register(
-        ...JitDefaultBindingSyntax,
-        ...JitDefaultBindingLanguage,
         ...DefaultComponents,
         ...DefaultBindingLanguage
       );

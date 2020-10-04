@@ -12,11 +12,8 @@ import {
   firstDefined,
   Metadata
 } from '@aurelia/kernel';
-import {
-  BindingType,
-  ITargetedInstruction,
-  registerAliases
-} from '@aurelia/runtime';
+import { BindingType } from './binding/expression-parser';
+import { ITargetedInstruction, registerAliases } from './definitions';
 import {
   BindingSymbol,
   PlainAttributeSymbol,

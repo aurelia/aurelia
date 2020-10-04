@@ -7,16 +7,12 @@ import {
   ResourceDefinition,
   IResourceKind,
 } from '@aurelia/kernel';
-import {
-  CustomAttributeDefinition,
-  BindingMode,
-  CustomAttribute,
-  CustomElement,
-  BindableDefinition,
-  CustomElementDefinition,
-} from '@aurelia/runtime';
-import { AttrSyntax } from './ast';
+import { AttrSyntax } from './attribute-parser';
 import { BindingCommand, BindingCommandInstance } from './binding-command';
+import { BindingMode } from './flags';
+import { CustomAttribute, CustomAttributeDefinition } from './resources/custom-attribute';
+import { CustomElement, CustomElementDefinition } from './resources/custom-element';
+import { BindableDefinition } from './templating/bindable';
 
 /**
  * A pre-processed piece of information about a defined bindable property on a custom

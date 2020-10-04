@@ -1,5 +1,3 @@
-
-import { ResourceModel, ElementInfo, BindableInfo } from '@aurelia/jit';
 import {
   Constructable,
   IContainer,
@@ -46,6 +44,9 @@ import {
   IScope,
   Scope,
   parseExpression,
+  ResourceModel,
+  ElementInfo,
+  BindableInfo,
 } from '@aurelia/runtime';
 import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
 import {

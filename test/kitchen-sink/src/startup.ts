@@ -17,6 +17,14 @@ import {
   SetPropertyRendererRegistration,
   TemplateControllerRendererRegistration,
   ValueConverter,
+  AtPrefixedTriggerAttributePatternRegistration,
+  ColonPrefixedBindAttributePatternRegistration,
+  DotSeparatedAttributePatternRegistration,
+  DefaultBindingCommandRegistration,
+  ForBindingCommandRegistration,
+  IExpressionParserRegistration,
+  OneTimeBindingCommandRegistration,
+  TwoWayBindingCommandRegistration,
 } from '@aurelia/runtime';
 import {
   IProjectorLocatorRegistration,
@@ -30,16 +38,6 @@ import {
 import {
   IDOMInitializerRegistration
 } from '@aurelia/runtime-html-browser';
-import {
-  AtPrefixedTriggerAttributePatternRegistration,
-  ColonPrefixedBindAttributePatternRegistration,
-  DotSeparatedAttributePatternRegistration,
-  DefaultBindingCommandRegistration,
-  ForBindingCommandRegistration,
-  IExpressionParserRegistration,
-  OneTimeBindingCommandRegistration,
-  TwoWayBindingCommandRegistration
-} from '@aurelia/jit';
 import {
   ITemplateCompilerRegistration,
   ITemplateElementFactoryRegistration,

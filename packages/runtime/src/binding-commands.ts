@@ -1,21 +1,21 @@
-import {
-  AttributeInstruction,
-  BindingMode,
-  BindingType,
-  CallBindingInstruction,
-  ForOfStatement,
-  FromViewBindingInstruction,
-  IsBindingBehavior,
-  IteratorBindingInstruction,
-  OneTimeBindingInstruction,
-  ToViewBindingInstruction,
-  TwoWayBindingInstruction,
-} from '@aurelia/runtime';
+import { IsBindingBehavior } from './ast';
 import {
   bindingCommand,
   getTarget,
   BindingCommandInstance,
 } from './binding-command';
+import { ForOfStatement } from './binding/ast';
+import { BindingType } from './binding/expression-parser';
+import { AttributeInstruction } from './definitions';
+import { BindingMode } from './flags';
+import {
+  CallBindingInstruction,
+  FromViewBindingInstruction,
+  IteratorBindingInstruction,
+  OneTimeBindingInstruction,
+  ToViewBindingInstruction,
+  TwoWayBindingInstruction,
+} from './instructions';
 import {
   BindingSymbol,
   PlainAttributeSymbol,

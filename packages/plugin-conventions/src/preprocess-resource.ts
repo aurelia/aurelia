@@ -33,7 +33,6 @@ interface IFoundDecorator {
 interface IModifyResourceOptions {
   expectedResourceName: string;
   runtimeImport: ICapturedImport;
-  jitImport: ICapturedImport;
   implicitElement?: IPos;
   localDeps: string[];
   conventionalDecorators: [number, string][];
@@ -47,7 +46,6 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
 
   let auImport: ICapturedImport = { names: [], start: 0, end: 0 };
   let runtimeImport: ICapturedImport = { names: [], start: 0, end: 0 };
-  let jitImport: ICapturedImport = { names: [], start: 0, end: 0 };
 
   let implicitElement: IPos | undefined;
   let customElementName: IPos | undefined; // for @customName('custom-name')
@@ -74,14 +72,6 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
       return;
     }
 
-    // Find existing import {bindingCommand} from '@aurelia/jit';
-    const jit = captureImport(s, '@aurelia/jit', unit.contents);
-    if (jit) {
-      // Assumes only one import statement for @aurelia/jit
-      jitImport = jit;
-      return;
-    }
-
     // Only care about export class Foo {...}.
     // Note this convention simply doesn't work for
     //   class Foo {}
@@ -93,7 +83,6 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
       needDecorator,
       implicitStatement,
       runtimeImportName,
-      jitImportName,
       customName
     } = resource;
 
@@ -103,16 +92,12 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     if (runtimeImportName && !auImport.names.includes(runtimeImportName)) {
       ensureTypeIsExported(runtimeImport.names, runtimeImportName);
     }
-    if (jitImportName && !auImport.names.includes(jitImportName)) {
-      ensureTypeIsExported(jitImport.names, jitImportName);
-    }
     if (customName) customElementName = customName;
   });
 
   return modifyResource(unit, {
     expectedResourceName,
     runtimeImport,
-    jitImport,
     implicitElement,
     localDeps,
     conventionalDecorators,
@@ -124,7 +109,6 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
   const {
     expectedResourceName,
     runtimeImport,
-    jitImport,
     implicitElement,
     localDeps,
     conventionalDecorators,
@@ -169,12 +153,6 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
       let runtimeImportStatement = `import { ${runtimeImport.names.join(', ')} } from '@aurelia/runtime';`;
       if (runtimeImport.end === runtimeImport.start) runtimeImportStatement += '\n';
       m.replace(runtimeImport.start, runtimeImport.end, runtimeImportStatement);
-    }
-
-    if (jitImport.names.length) {
-      let jitImportStatement = `import { ${jitImport.names.join(', ')} } from '@aurelia/jit';`;
-      if (jitImport.end === jitImport.start) jitImportStatement += '\n';
-      m.replace(jitImport.start, jitImport.end, jitImportStatement);
     }
 
     conventionalDecorators.forEach(([pos, str]) => m.insert(pos, str));

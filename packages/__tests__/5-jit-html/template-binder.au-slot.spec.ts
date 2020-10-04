@@ -1,7 +1,20 @@
 /* eslint-disable mocha/no-hooks, mocha/no-sibling-hooks */
-import { CustomElementSymbol, IAttributeParser, PlainElementSymbol, ProjectionSymbol, ResourceModel, SymbolFlags, TemplateControllerSymbol } from '@aurelia/jit';
 import { IAttrSyntaxTransformer, ITemplateElementFactory, TemplateBinder } from '@aurelia/jit-html';
-import { AuSlot, CustomElement, CustomElementType, IDOM, IExpressionParser, INode } from '@aurelia/runtime';
+import {
+  AuSlot,
+  CustomElement,
+  CustomElementType,
+  IDOM,
+  IExpressionParser,
+  INode,
+  CustomElementSymbol,
+  IAttributeParser,
+  PlainElementSymbol,
+  ProjectionSymbol,
+  ResourceModel,
+  SymbolFlags,
+  TemplateControllerSymbol,
+} from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('template-binder.au-slot', function () {

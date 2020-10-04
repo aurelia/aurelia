@@ -1,8 +1,4 @@
 import {
-  DefaultBindingLanguage as JitDefaultBindingLanguage,
-  DefaultBindingSyntax as JitDefaultBindingSyntax,
-} from '@aurelia/jit';
-import {
   DefaultBindingLanguage as JitHtmlDefaultBindingLanguage,
   DefaultComponents as JitHtmlDefaultComponents
 } from '@aurelia/jit-html';
@@ -14,9 +10,6 @@ const { enter, leave } = Profiler.createTimer('JitHtmlJsdomConfiguration');
 /**
  * A DI configuration object containing html-specific, jsdom-specific registrations:
  * - `RuntimeHtmlJsdomConfiguration` from `@aurelia/runtime-html-jsdom`
- * - `DefaultComponents` from `@aurelia/jit`
- * - `DefaultBindingSyntax` from `@aurelia/jit`
- * - `DefaultBindingLanguage` from `@aurelia/jit`
  * - `DefaultComponents` from `@aurelia/jit-html`
  * - `DefaultBindingLanguage` from `@aurelia/jit-html`
  */
@@ -28,8 +21,6 @@ export const JitHtmlJsdomConfiguration = {
     RuntimeHtmlJsdomConfiguration
       .register(container)
       .register(
-        ...JitDefaultBindingLanguage,
-        ...JitDefaultBindingSyntax,
         ...JitHtmlDefaultBindingLanguage,
         ...JitHtmlDefaultComponents
       );

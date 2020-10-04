@@ -1,4 +1,4 @@
-import { AttrSyntax } from '@aurelia/jit';
+import { AttrSyntax } from '@aurelia/runtime';
 import { DI } from '@aurelia/kernel';
 
 export interface IAttrSyntaxTransformer {

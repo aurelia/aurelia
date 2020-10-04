@@ -1,15 +1,6 @@
 /* eslint-disable compat/compat */
 
 import {
-  AttrInfo,
-  AttrSyntax,
-  BindableInfo,
-  IAttributeParser,
-  BindingCommandInstance,
-  ResourceModel,
-  SymbolFlags,
-} from '@aurelia/jit';
-import {
   camelCase,
 } from '@aurelia/kernel';
 import {
@@ -19,6 +10,13 @@ import {
   IDOM,
   IExpressionParser,
   Char,
+  AttrInfo,
+  AttrSyntax,
+  BindableInfo,
+  IAttributeParser,
+  BindingCommandInstance,
+  ResourceModel,
+  SymbolFlags,
 } from '@aurelia/runtime';
 import {
   NodeType,

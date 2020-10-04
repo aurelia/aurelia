@@ -1,11 +1,13 @@
 import {
+  BindingType,
+  IsBindingBehavior,
+  RefBindingInstruction,
   bindingCommand,
   BindingSymbol,
   getTarget,
   BindingCommandInstance,
   PlainAttributeSymbol,
-} from '@aurelia/jit';
-import { BindingType, IsBindingBehavior, RefBindingInstruction } from '@aurelia/runtime';
+} from '@aurelia/runtime';
 import {
   AttributeBindingInstruction,
   CaptureBindingInstruction,

@@ -1,10 +1,14 @@
 import {
   alias,
   BindingType,
-  AttributeInstruction
+  AttributeInstruction,
+  BindingCommandInstance,
+  PlainAttributeSymbol,
+  BindingSymbol,
+  bindingCommand,
+  OneTimeBindingCommand,
 } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
-import { BindingCommandInstance, PlainAttributeSymbol, BindingSymbol, bindingCommand, OneTimeBindingCommand } from '@aurelia/jit';
 
 describe('binding-commands', function () {
 

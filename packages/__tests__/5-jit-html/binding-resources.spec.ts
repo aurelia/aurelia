@@ -112,7 +112,6 @@ describe('binding-resources', function () {
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
 
       await au.stop().wait();
-      assert.isSchedulerEmpty();
     });
 
     it('works with twoWay bindings to other components', async function () {

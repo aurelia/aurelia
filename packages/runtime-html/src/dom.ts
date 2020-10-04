@@ -39,7 +39,6 @@ export const enum NodeType {
 const effectiveParentNodeOverrides = new WeakMap<Node, Node>();
 const taskOptions: QueueTaskOptions = {
   reusable: false,
-  preempt: true,
 };
 const flushNodeAccessor = (accessor: INodeAccessor) => {
   accessor.flushChanges();
@@ -99,10 +98,10 @@ export class HTMLDOM implements IDOM {
     if (this.task == null) {
       this.task = this.scheduler.queueRenderTask(() => {
         flushQueueCallCount++;
-        console.log('Flushing the node accessor queue', flushQueueCallCount);
+        console.log('>Flush', { flushQueueCallCount, size: queue.size });
         queue.forEach(flushNodeAccessor);
-        console.log('Complete flushing the node accessor queue', flushQueueCallCount);
         queue.clear();
+        console.log('>Flush done!', { flushQueueCallCount, size: queue.size });
         this.task = null;
       }, taskOptions);
     }

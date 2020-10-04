@@ -34,7 +34,10 @@ export class DebounceBindingBehavior extends BindingInterceptor {
 
   private queueTask(callback: () => void): void {
     this.task?.cancel();
-    this.task = this.taskQueue.queueTask(callback, this.opts);
+    this.task = this.taskQueue.queueTask(() => {
+      this.task = null;
+      return callback();
+    }, this.opts);
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {

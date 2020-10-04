@@ -45,6 +45,7 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
 
       opts.delay = nextDelay;
       this.task = this.taskQueue.queueTask(() => {
+        this.task = null;
         this.lastCall = now();
         callback();
       }, opts);

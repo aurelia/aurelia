@@ -14,9 +14,6 @@
   },
   "dependencies": {
     "@aurelia/debug": "0.7.0",
-    "@aurelia/jit-html-browser": "0.7.0",
-    "@aurelia/jit-html": "0.7.0",
-    "@aurelia/jit": "0.7.0",
     "@aurelia/kernel": "0.7.0",
     "@aurelia/metadata": "0.7.0",
     "@aurelia/route-recognizer": "0.7.0",

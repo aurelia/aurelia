@@ -150,8 +150,7 @@ export class FooBar {}
 
   it('injects various decorators when there is implicit custom element', function () {
     const js = `import {Foo} from './foo';
-import { valueConverter } from '@aurelia/runtime';
-import { other } from '@aurelia/jit';
+import { valueConverter, other } from '@aurelia/runtime';
 
 export class LeaveMeAlone {}
 
@@ -184,8 +183,7 @@ export class AbcBindingCommand {
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
 import {Foo} from './foo';
-import { valueConverter, customElement, customAttribute, bindingBehavior } from '@aurelia/runtime';
-import { other, bindingCommand } from '@aurelia/jit';
+import { valueConverter, other, customElement, customAttribute, bindingBehavior, bindingCommand } from '@aurelia/runtime';
 
 export class LeaveMeAlone {}
 
@@ -237,8 +235,7 @@ export class FooBar {}
 
   it('injects various decorators when there is implicit custom element, for alternative template', function () {
     const js = `import {Foo} from './foo';
-import { valueConverter } from '@aurelia/runtime';
-import { other } from '@aurelia/jit';
+import { valueConverter, other } from '@aurelia/runtime';
 
 export class LeaveMeAlone {}
 
@@ -271,8 +268,7 @@ export class AbcBindingCommand {
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.haml';
 import {Foo} from './foo';
-import { valueConverter, customElement, customAttribute, bindingBehavior } from '@aurelia/runtime';
-import { other, bindingCommand } from '@aurelia/jit';
+import { valueConverter, other, customElement, customAttribute, bindingBehavior, bindingCommand } from '@aurelia/runtime';
 
 export class LeaveMeAlone {}
 

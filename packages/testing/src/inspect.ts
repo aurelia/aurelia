@@ -28,7 +28,7 @@ import {
 } from '@aurelia/debug';
 import {
   Char,
-} from '@aurelia/jit';
+} from '@aurelia/runtime';
 import {
   Constructable,
   isArrayIndex,

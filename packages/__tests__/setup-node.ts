@@ -12,6 +12,7 @@ import {
   LogLevel,
 } from '@aurelia/kernel';
 import { JSDOM } from 'jsdom';
+import { after } from 'mocha';
 
 Reporter.level = LogLevel.error;
 
@@ -43,22 +44,42 @@ function initializeJSDOMTestContext(): void {
 }
 
 let testCount = 0;
+/**@type {[string, number][]} */
+let longestTests = [];
+let longestTestTime = 0;
+let testStartTime = 0;
 // eslint-disable-next-line
 beforeEach(function () {
+  testStartTime = Date.now();
   testCount++;
-  if (testCount > 2000 && testCount % 10 === 9) {
+  if (testCount > 2000 && testCount % 100 === 99) {
     console.log(`>>> Running test number ${testCount}, be patient with mocha + node + esm...`);
   }
 });
 
 // eslint-disable-next-line
 afterEach(function () {
+  const timeTakenForTest = Date.now() - testStartTime;
+  if (timeTakenForTest > longestTestTime) {
+    if (this.test != null) {
+      longestTestTime = timeTakenForTest;
+      longestTests = [[this.test.fullTitle(), timeTakenForTest]];
+    }
+  } else if (timeTakenForTest === longestTestTime) {
+    if (this.test != null) {
+      longestTests.push([this.test.fullTitle(), timeTakenForTest]);
+    }
+  }
   try {
     assert.isSchedulerEmpty();
   } catch (ex) {
     ensureSchedulerEmpty();
     throw ex;
   }
+});
+
+after(function() {
+  console.log(`Longest tests are: ${JSON.stringify(longestTests)}`);
 });
 
 initializeJSDOMTestContext();

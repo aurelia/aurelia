@@ -42,18 +42,17 @@ function initializeJSDOMTestContext(): void {
   TestContext.createHTMLTestContext().dom.createElement('div');
 }
 
+let testCount = 0;
 // eslint-disable-next-line
-beforeEach(function() {
-  try {
-    assert.isSchedulerEmpty();
-  } catch (ex) {
-    ensureSchedulerEmpty();
-    throw ex;
+beforeEach(function () {
+  testCount++;
+  if (testCount > 2000 && testCount % 10 === 9) {
+    console.log(`>>> Running test number ${testCount}, be patient with mocha + node + esm...`);
   }
 });
 
 // eslint-disable-next-line
-afterEach(function() {
+afterEach(function () {
   try {
     assert.isSchedulerEmpty();
   } catch (ex) {

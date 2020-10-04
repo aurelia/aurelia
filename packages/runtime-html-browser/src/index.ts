@@ -1,5 +1,5 @@
 import { DI, IContainer, IRegistry, IResolver, Registration } from '@aurelia/kernel';
-import { IDOM, IDOMInitializer, ISinglePageApp, IScheduler  } from '@aurelia/runtime';
+import { AureliaEvents, IDOM, IDOMInitializer, ISinglePageApp, IScheduler, INode, Aurelia  } from '@aurelia/runtime';
 import { RuntimeHtmlConfiguration, HTMLDOM } from '@aurelia/runtime-html';
 import { createDOMScheduler } from '@aurelia/scheduler-dom';
 
@@ -17,6 +17,13 @@ class BrowserDOMInitializer implements IDOMInitializer {
     if (container.has(IDOM, false)) {
       return container.get(IDOM);
     }
+    const host = container.get(INode) as HTMLElement;
+    host.addEventListener(AureliaEvents.Stopped, function diposeDom(e: Event) {
+      if (e.target === host) {
+        host.removeEventListener(AureliaEvents.Stopped, diposeDom);
+        dom.dispose();
+      }
+    });
     const scheduler = createDOMScheduler(container, window);
     const $win = window;
     const $doc = document;

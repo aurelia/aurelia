@@ -394,6 +394,9 @@ export class AuDOM implements IDOM<AuNode> {
   public createNodeObserver?(node: AuNode, cb: (...args: unknown[]) => void, init: unknown): unknown {
     throw new Error('Method not implemented.');
   }
+  public dispose(): void {
+    throw new Error('Method not implemented');
+  }
 }
 
 export class AuProjectorLocator implements IProjectorLocator {

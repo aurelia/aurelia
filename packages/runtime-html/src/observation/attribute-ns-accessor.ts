@@ -52,8 +52,7 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const currentValue = this.currentValue;
-      this.oldValue = currentValue;
+      const currentValue = this.oldValue = this.currentValue;
       if (currentValue == void 0) {
         this.obj.removeAttributeNS(this.namespace, this.propertyKey);
       } else {

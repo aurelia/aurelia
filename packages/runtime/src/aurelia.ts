@@ -179,6 +179,12 @@ export class CompositionRoot<T extends INode = INode> {
   }
 }
 
+export const enum AureliaEvents {
+  Started   = 'au-started',
+  Composed  = 'au-composed',
+  Stopped   = 'au-stopped',
+}
+
 export class Aurelia<TNode extends INode = INode> {
   public readonly container: IContainer;
   public get isRunning(): boolean {
@@ -308,8 +314,8 @@ export class Aurelia<TNode extends INode = INode> {
   private onAfterStart(root: CompositionRoot): ILifecycleTask {
     this._isRunning = true;
     this._isStarting = false;
-    this.dispatchEvent(root, 'aurelia-composed', root.dom);
-    this.dispatchEvent(root, 'au-started', root.host as Publisher);
+    this.dispatchEvent(root, AureliaEvents.Composed, root.dom);
+    this.dispatchEvent(root, AureliaEvents.Started, root.host as Publisher);
     return LifecycleTask.done;
   }
 
@@ -323,7 +329,7 @@ export class Aurelia<TNode extends INode = INode> {
     this._root = void 0;
     this.rootProvider.dispose();
     this._isStopping = false;
-    this.dispatchEvent(root, 'au-stopped', root.host as Publisher);
+    this.dispatchEvent(root, AureliaEvents.Stopped, root.host as Publisher);
     return LifecycleTask.done;
   }
 

@@ -336,6 +336,7 @@ export {
 
 export {
   Aurelia,
+  AureliaEvents,
   IDOMInitializer,
   ISinglePageApp,
   CompositionRoot,

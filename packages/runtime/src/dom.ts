@@ -4,6 +4,7 @@ import {
   IResolver,
   PLATFORM,
   Reporter,
+  IDisposable,
 } from '@aurelia/kernel';
 import { IScheduler } from '@aurelia/scheduler';
 import { INodeAccessor } from './observation';
@@ -65,7 +66,7 @@ export interface INodeSequence<T extends INode = INode> extends INode {
 
 export const IDOM = DI.createInterface<IDOM>('IDOM').noDefault();
 
-export interface IDOM<T extends INode = INode> {
+export interface IDOM<T extends INode = INode> extends IDisposable {
   /**
    * Ideally all DOM updates should go through a central flush
    */
@@ -123,6 +124,7 @@ export interface IDOM<T extends INode = INode> {
   remove(node: T): void;
   removeEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
   setAttribute(node: T, name: string, value: unknown): void;
+  dispose(): void;
 }
 
 const ni = function (...args: unknown[]): unknown {
@@ -154,7 +156,8 @@ const niDOM: IDOM = {
   registerElementResolver: ni,
   remove: ni,
   removeEventListener: ni,
-  setAttribute: ni
+  setAttribute: ni,
+  dispose: ni,
 };
 
 export const DOM: IDOM & {

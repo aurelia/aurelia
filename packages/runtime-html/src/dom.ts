@@ -341,6 +341,11 @@ export class HTMLDOM implements IDOM {
   public setAttribute(node: Element, name: string, value: unknown): void {
     node.setAttribute(name, value as string);
   }
+
+  public dispose(): void {
+    this.task?.cancel();
+    this.task = null;
+  }
 }
 
 const $DOM = DOM as unknown as HTMLDOM;

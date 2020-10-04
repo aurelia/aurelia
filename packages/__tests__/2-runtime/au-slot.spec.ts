@@ -202,12 +202,12 @@ describe('au-slot', function () {
           MyElement,
         ],
         { 'my-element': `static default <div>p20</div><div>p21</div>` },
-        async function ({ host, scheduler }) {
+        function ({ host, scheduler }) {
           const el = host.querySelector('my-element');
           const vm: MyElement = CustomElement.for<Element, MyElement>(el).viewModel;
 
           vm.showS1 = true;
-          await scheduler.yieldAll(10);
+          scheduler.getRenderTaskQueue().flush();
 
           assert.html.innerEqual(el, `static default <div>p11</div><div>p12</div> <div>p20</div><div>p21</div>`, 'my-element.innerHTML');
         },
@@ -229,7 +229,7 @@ describe('au-slot', function () {
           MyElement,
         ],
         { 'my-element': `static default <div>p21</div>`, 'my-element+my-element': `static default <div>p12</div>` },
-        async function ({ host, scheduler }) {
+        function ({ host, scheduler }) {
           const el1 = host.querySelector('my-element');
           const el2 = host.querySelector('my-element+my-element');
           const vm1: MyElement = CustomElement.for<Element, MyElement>(el1).viewModel;
@@ -237,7 +237,7 @@ describe('au-slot', function () {
 
           vm1.showS1 = !vm1.showS1;
           vm2.showS1 = !vm2.showS1;
-          await scheduler.yieldAll(10);
+          scheduler.getRenderTaskQueue().flush();
 
           assert.html.innerEqual(el1, `static default <div>p11</div>`, 'my-element.innerHTML');
           assert.html.innerEqual(el2, `static default <div>p22</div>`, 'my-element+my-element.innerHTML');
@@ -292,7 +292,7 @@ describe('au-slot', function () {
         { 'my-element': `<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div>` },
         async function ({ app, host, scheduler }) {
           app.people.push(new Person('Jane', 'Doe', []));
-          await scheduler.yieldAll(10);
+          scheduler.getRenderTaskQueue().flush();
           assert.html.innerEqual(
             'my-element',
             `<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div> <div>Jane</div> <div>Doe</div>`,
@@ -923,14 +923,14 @@ describe('au-slot', function () {
       </my-element>`,
       [CustomElement.define({ name: 'my-element', isStrictBinding: true, template: `<au-slot></au-slot>` }, class MyElement { public foo: string = "foo"; })],
       { 'my-element': '<input type="text" value.two-way="$host.foo" class="au">' },
-      async function ({ host, scheduler }) {
+      function ({ host, scheduler }) {
         const el = host.querySelector('my-element');
         const vm = CustomElement.for(el).viewModel as any;
         const input = el.querySelector('input');
         assert.strictEqual(input.value, "foo");
 
         vm.foo = "bar";
-        await scheduler.yieldAll(10);
+        scheduler.getRenderTaskQueue().flush();
         assert.strictEqual(input.value, "bar");
       }
     );
@@ -948,7 +948,7 @@ describe('au-slot', function () {
         assert.strictEqual(input.value, app.people[0].firstName);
 
         app.people[0].firstName = "Jane";
-        await scheduler.yieldAll(10);
+        scheduler.getRenderTaskQueue().flush();
         assert.strictEqual(input.value, "Jane");
       }
     );
@@ -999,7 +999,7 @@ describe('au-slot', function () {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          await scheduler.yieldAll(10);
+          scheduler.getRenderTaskQueue().flush();
           assert.equal(CustomElement.for<Element, MyElement>(ce).viewModel.callCount, 1);
           assert.equal(app.callCount, 0);
         },
@@ -1010,7 +1010,7 @@ describe('au-slot', function () {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          await scheduler.yieldAll(10);
+          scheduler.getRenderTaskQueue().flush();
           assert.equal(CustomElement.for<Element, MyElement>(ce).viewModel.callCount, 1);
           assert.equal(app.callCount, 0);
         },
@@ -1021,7 +1021,7 @@ describe('au-slot', function () {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          await scheduler.yieldAll(10);
+          scheduler.getRenderTaskQueue().flush();
           assert.equal(CustomElement.for<Element, MyElement>(ce).viewModel.callCount, 0);
           assert.equal(app.callCount, 1);
         },

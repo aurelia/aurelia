@@ -21,7 +21,6 @@ interface IFoundResource {
   needDecorator?: [number, string];
   implicitStatement?: IPos;
   runtimeImportName?: string;
-  jitImportName?: string;
   customName?: IPos;
 }
 
@@ -270,11 +269,7 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
         localDep: className,
       };
 
-      if (type === 'bindingCommand') {
-        result.jitImportName = type;
-      } else {
-        result.runtimeImportName = type;
-      }
+      result.runtimeImportName = type;
 
       return result;
     }

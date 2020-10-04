@@ -56,7 +56,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
    * This is kept around here so that changes can be awaited from the tests.
    * This needs to be removed after the scheduler is ready to handle/queue the floating promises.
    */
-  public readonly promise: Promise<void> = (void 0)!;
+  public readonly promise: Promise<void> = (void 0)!; // TODO: create a `queue` method, that specifically handles assignment of promise.
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,

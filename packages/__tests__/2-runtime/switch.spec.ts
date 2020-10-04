@@ -47,17 +47,6 @@ describe('switch', function () {
 
   @templateController('switch')
   class SwitchTestDouble extends Switch {
-    private _promise: Promise<void>;
-    private isPromiseChanged: boolean = false;
-
-    public get promise() {
-      return this._promise;
-    }
-    public set promise(value: Promise<void>) {
-      this._promise = value;
-      this.isPromiseChanged = true;
-    }
-
     public clearCalls() {
       for (const $case of this['cases']) {
         $case.clearCalls();
@@ -65,13 +54,9 @@ describe('switch', function () {
       this['defaultCase']?.clearCalls();
     }
     public async wait(): Promise<void> {
-      this.isPromiseChanged = false;
-      await resolveAll(
-        ...this['cases'].map((c: Case) => c.promise),
-        this['defaultCase']?.promise,
-        this.promise,
-      );
-      if (this.isPromiseChanged) {
+      const promise = this.promise;
+      await promise;
+      if (this.promise !== promise) {
         await this.wait();
       }
     }

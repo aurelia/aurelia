@@ -93,16 +93,17 @@ export class HTMLDOM implements IDOM {
   }
 
   public queueFlushChanges(accessor: INodeAccessor): void {
-    const queue = this.flushQueue;
-    if (this.task == null) {
-      this.task = this.scheduler.queueRenderTask(() => {
-        queue.forEach(flushNodeAccessor);
-        queue.clear();
-        this.task = null;
-      }, taskOptions);
-    }
+    accessor.flushChanges();
+    // const queue = this.flushQueue;
+    // if (this.task == null) {
+    //   this.task = this.scheduler.queueRenderTask(() => {
+    //     queue.forEach(flushNodeAccessor);
+    //     queue.clear();
+    //     this.task = null;
+    //   }, taskOptions);
+    // }
 
-    queue.add(accessor);
+    // queue.add(accessor);
   }
 
   public dequeueFlushChanges(accessor: INodeAccessor): void {

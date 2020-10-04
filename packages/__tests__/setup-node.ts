@@ -43,6 +43,16 @@ function initializeJSDOMTestContext(): void {
 }
 
 // eslint-disable-next-line
+beforeEach(function() {
+  try {
+    assert.isSchedulerEmpty();
+  } catch (ex) {
+    ensureSchedulerEmpty();
+    throw ex;
+  }
+});
+
+// eslint-disable-next-line
 afterEach(function() {
   try {
     assert.isSchedulerEmpty();

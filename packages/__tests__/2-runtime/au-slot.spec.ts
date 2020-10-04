@@ -290,7 +290,7 @@ describe('au-slot', function () {
           MyElement,
         ],
         { 'my-element': `<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div>` },
-        async function ({ app, host, scheduler }) {
+        function ({ app, host, scheduler }) {
           app.people.push(new Person('Jane', 'Doe', []));
           scheduler.getRenderTaskQueue().flush();
           assert.html.innerEqual(
@@ -942,7 +942,7 @@ describe('au-slot', function () {
       </my-element>`,
       [createMyElement(`<au-slot></au-slot>`)],
       { 'my-element': '<input type="text" value.two-way="people[0].firstName" class="au">' },
-      async function ({ app, host, scheduler }) {
+      function ({ app, host, scheduler }) {
         const el = host.querySelector('my-element');
         const input = el.querySelector('input');
         assert.strictEqual(input.value, app.people[0].firstName);
@@ -995,7 +995,7 @@ describe('au-slot', function () {
       }
 
       $it('w/o projection',
-        async function ({ host, scheduler, app }) {
+        function ({ host, scheduler, app }) {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
@@ -1006,7 +1006,7 @@ describe('au-slot', function () {
         { template: `<my-element></my-element>`, registrations: [MyElement] });
 
       $it('with projection - with $host',
-        async function ({ host, scheduler, app }) {
+        function ({ host, scheduler, app }) {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
@@ -1017,7 +1017,7 @@ describe('au-slot', function () {
         { template: `<my-element><button au-slot="default" click.${listener}="$host.fn()">Click</button></my-element>`, registrations: [MyElement] });
 
       $it('with projection - w/o $host',
-        async function ({ host, scheduler, app }) {
+        function ({ host, scheduler, app }) {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();

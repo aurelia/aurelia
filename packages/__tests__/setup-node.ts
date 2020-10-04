@@ -12,7 +12,6 @@ import {
   LogLevel,
 } from '@aurelia/kernel';
 import { JSDOM } from 'jsdom';
-import { after } from 'mocha';
 
 Reporter.level = LogLevel.error;
 
@@ -46,7 +45,6 @@ function initializeJSDOMTestContext(): void {
 initializeJSDOMTestContext();
 
 let testCount = 0;
-/**@type {[string, number][]} */
 let longestTests = [];
 let longestTestTime = 0;
 let testStartTime = 0;
@@ -81,8 +79,8 @@ afterEach(function () {
   }
 });
 
-// eslint-disable-next-line mocha/no-hooks mocha/no-top-level-hooks
-after(function() {
+// eslint-disable-next-line
+after(function () {
   if (longestTests.length > 40000) {
     console.log(`A lot of similarly long running tests: ${longestTests[0][1]}ms`);
   } else {

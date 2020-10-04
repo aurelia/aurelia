@@ -1,4 +1,15 @@
 export {
+  IAttrSyntaxTransformer
+} from './attribute-syntax-transformer';
+export {
+  TriggerBindingCommand,
+  DelegateBindingCommand,
+  CaptureBindingCommand,
+  AttrBindingCommand,
+  ClassBindingCommand,
+  StyleBindingCommand
+} from './binding-commands';
+export {
   Listener
 } from './binding/listener';
 export {
@@ -87,11 +98,23 @@ export {
 } from './resources/custom-elements/compose';
 
 export {
+  ITemplateCompilerRegistration,
+  ITemplateElementFactoryRegistration,
+  IAttrSyntaxTransformerRegistation,
   IProjectorLocatorRegistration,
   ITargetAccessorLocatorRegistration,
   ITargetObserverLocatorRegistration,
 
   DefaultComponents,
+
+  TriggerBindingCommandRegistration,
+  DelegateBindingCommandRegistration,
+  CaptureBindingCommandRegistration,
+  AttrBindingCommandRegistration,
+  ClassBindingCommandRegistration,
+  StyleBindingCommandRegistration,
+
+  DefaultBindingLanguage,
 
   AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
@@ -112,6 +135,17 @@ export {
 
   RuntimeHtmlConfiguration
 } from './configuration';
+export {
+  stringifyDOM,
+  stringifyInstructions,
+  stringifyTemplateDefinition
+} from './debugging';
+export {
+  TemplateBinder,
+} from './template-binder';
+export {
+  ITemplateElementFactory
+} from './template-element-factory';
 export {
   createElement,
   RenderPlan

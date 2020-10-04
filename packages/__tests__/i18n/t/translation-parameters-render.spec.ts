@@ -1,5 +1,4 @@
 import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingInstruction, TranslationParametersBindingRenderer, TranslationParametersInstructionType } from '@aurelia/i18n';
-import { AttrBindingCommand } from '@aurelia/jit-html';
 import { DI } from '@aurelia/kernel';
 import {
   AnyBindingExpression,
@@ -19,7 +18,7 @@ import {
   IAttributePattern,
   PlainAttributeSymbol,
 } from '@aurelia/runtime';
-import { DOM } from '@aurelia/runtime-html';
+import { AttrBindingCommand, DOM } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('TranslationParametersAttributePattern', function () {

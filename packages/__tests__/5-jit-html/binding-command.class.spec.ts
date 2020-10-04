@@ -1,7 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
 import { Aurelia, BindingMode, CustomElement, IScheduler } from '@aurelia/runtime';
-import { IEventManager } from '@aurelia/runtime-html';
-import { JitHtmlConfiguration } from '@aurelia/jit-html';
+import { IEventManager, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert } from '@aurelia/testing';
 import { ClassAttributePattern } from './attribute-pattern';
 
@@ -136,7 +135,7 @@ describe('template-compiler.binding-commands.class', function () {
             public value: unknown = true;
           },
           ClassAttributePattern,
-          JitHtmlConfiguration,
+          RuntimeHtmlConfiguration,
           CustomElement.define(
             {
               name: 'child',

@@ -48,7 +48,10 @@ import {
   ElementInfo,
   BindableInfo,
 } from '@aurelia/runtime';
-import { HTMLTargetedInstructionType as HTT } from '@aurelia/runtime-html';
+import {
+  HTMLTargetedInstructionType as HTT,
+  ITemplateElementFactory,
+} from '@aurelia/runtime-html';
 import {
   assert,
   eachCartesianJoinFactory,
@@ -58,7 +61,6 @@ import {
   generateCartesianProduct,
   createScopeForTest,
 } from '@aurelia/testing';
-import { ITemplateElementFactory } from '@aurelia/jit-html';
 
 export function createAttribute(name: string, value: string): Attr {
   const attr = document.createAttribute(name);

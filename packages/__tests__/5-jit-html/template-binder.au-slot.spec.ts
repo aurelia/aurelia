@@ -1,5 +1,5 @@
 /* eslint-disable mocha/no-hooks, mocha/no-sibling-hooks */
-import { IAttrSyntaxTransformer, ITemplateElementFactory, TemplateBinder } from '@aurelia/jit-html';
+import { IAttrSyntaxTransformer, ITemplateElementFactory, TemplateBinder } from '@aurelia/runtime-html';
 import {
   AuSlot,
   CustomElement,

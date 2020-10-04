@@ -1,6 +1,6 @@
 import { Tracer } from '@aurelia/kernel';
 import { Aurelia, CustomElement } from '@aurelia/runtime';
-import { stringifyTemplateDefinition } from '@aurelia/jit-html';
+import { stringifyTemplateDefinition } from '@aurelia/runtime-html';
 import { disableTracing, enableTracing, getVisibleText, TestContext, assert } from '@aurelia/testing';
 
 describe.skip('tracing', function () {

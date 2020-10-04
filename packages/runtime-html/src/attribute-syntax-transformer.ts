@@ -6,7 +6,4 @@ export interface IAttrSyntaxTransformer {
   map(tagName: string, attr: string): string;
 }
 
-export const IAttrSyntaxTransformer =
-  DI
-    .createInterface<IAttrSyntaxTransformer>('IAttrSyntaxTransformer')
-    .noDefault();
+export const IAttrSyntaxTransformer = DI.createInterface<IAttrSyntaxTransformer>('IAttrSyntaxTransformer').noDefault();

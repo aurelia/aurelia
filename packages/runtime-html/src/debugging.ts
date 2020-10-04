@@ -1,5 +1,6 @@
 import { PartialCustomElementDefinition, TargetedInstructionType } from '@aurelia/runtime';
-import { HTMLTargetedInstruction, HTMLTargetedInstructionType, NodeType } from '@aurelia/runtime-html';
+import { HTMLTargetedInstruction, HTMLTargetedInstructionType } from './definitions';
+import { NodeType } from './dom';
 
 export function stringifyDOM(node: Node, depth: number): string {
   const indent = ' '.repeat(depth);

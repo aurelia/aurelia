@@ -31,44 +31,8 @@ export {
 } from '@aurelia/fetch-client';
 
 export {
-  // IAttrSyntaxTransformer,
-
-  // TriggerBindingCommand,
-  // DelegateBindingCommand,
-  // CaptureBindingCommand,
-  // AttrBindingCommand,
-  // ClassBindingCommand,
-  // StyleBindingCommand,
-
-  // ITemplateCompilerRegistration,
-  // ITemplateElementFactoryRegistration,
-  // IAttrSyntaxTransformerRegistation,
-
-  // DefaultComponents as JitHtmlDefaultComponents,
-
-  // TriggerBindingCommandRegistration,
-  // DelegateBindingCommandRegistration,
-  // CaptureBindingCommandRegistration,
-  // AttrBindingCommandRegistration,
-  // ClassBindingCommandRegistration,
-  // StyleBindingCommandRegistration,
-
-  // DefaultBindingLanguage as JitHtmlDefaultBindingLanguage,
-
-  // JitHtmlConfiguration,
-
-  // stringifyDOM,
-  // stringifyInstructions,
-  // stringifyTemplateDefinition,
-
-  // TemplateBinder,
-
-  // ITemplateElementFactory
-} from '@aurelia/jit-html';
-
-export {
-  JitHtmlBrowserConfiguration
-} from '@aurelia/jit-html-browser';
+  RuntimeHtmlBrowserConfiguration
+} from '@aurelia/runtime-html-browser';
 
 export {
   all,
@@ -940,6 +904,41 @@ export {
   // StyleElementStyles,
   // IShadowDOMStyles,
   // IShadowDOMGlobalStyles
+
+
+  // IAttrSyntaxTransformer,
+
+  // TriggerBindingCommand,
+  // DelegateBindingCommand,
+  // CaptureBindingCommand,
+  // AttrBindingCommand,
+  // ClassBindingCommand,
+  // StyleBindingCommand,
+
+  // ITemplateCompilerRegistration,
+  // ITemplateElementFactoryRegistration,
+  // IAttrSyntaxTransformerRegistation,
+
+  // DefaultComponents as JitHtmlDefaultComponents,
+
+  // TriggerBindingCommandRegistration,
+  // DelegateBindingCommandRegistration,
+  // CaptureBindingCommandRegistration,
+  // AttrBindingCommandRegistration,
+  // ClassBindingCommandRegistration,
+  // StyleBindingCommandRegistration,
+
+  // DefaultBindingLanguage as JitHtmlDefaultBindingLanguage,
+
+  // RuntimeHtmlConfiguration,
+
+  // stringifyDOM,
+  // stringifyInstructions,
+  // stringifyTemplateDefinition,
+
+  // TemplateBinder,
+
+  // ITemplateElementFactory
 } from '@aurelia/runtime-html';
 
 export {

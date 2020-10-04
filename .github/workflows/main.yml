@@ -21,7 +21,6 @@ jobs:
           "aot",
           "babel-jest",
           "i18n",
-          "jit-html",
           "kernel",
           "plugin-conventions",
           "plugin-gulp",

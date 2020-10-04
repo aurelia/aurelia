@@ -1,7 +1,6 @@
-import { JitHtmlConfiguration } from '@aurelia/jit-html';
 import { Constructable, PLATFORM } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IScheduler } from '@aurelia/runtime';
-import { IEventManager } from '@aurelia/runtime-html';
+import { IEventManager, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, TestContext } from '@aurelia/testing';
 import { StyleAttributePattern } from './attribute-pattern';
 
@@ -148,7 +147,7 @@ describe('template-compiler.binding-commands.style', function () {
             public value: string = ruleValue;
           },
           StyleAttributePattern,
-          JitHtmlConfiguration,
+          RuntimeHtmlConfiguration,
           CustomElement.define(
             {
               name: 'child',

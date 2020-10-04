@@ -8,13 +8,13 @@ import {
   BindingCommandInstance,
   PlainAttributeSymbol,
 } from '@aurelia/runtime';
+import { HTMLAttributeInstruction } from './definitions';
 import {
   AttributeBindingInstruction,
   CaptureBindingInstruction,
   DelegateBindingInstruction,
-  HTMLAttributeInstruction,
-  TriggerBindingInstruction
-} from '@aurelia/runtime-html';
+  TriggerBindingInstruction,
+} from './instructions';
 
 /**
  * Trigger binding command. Compile attr with binding symbol with command `trigger` to `TriggerBindingInstruction`

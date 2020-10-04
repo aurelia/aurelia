@@ -1,7 +1,7 @@
 import {
   IAttrSyntaxTransformer,
   TemplateBinder
-} from '@aurelia/jit-html';
+} from '@aurelia/runtime-html';
 import {
   Aurelia,
   CustomElement,
@@ -195,7 +195,7 @@ describe('dependency injection', function () {
 //   it.skip('$1', function () {
 //     enableTracing();
 //     Tracer.enableLiveLogging(SymbolTraceWriter);
-//     const container = JitHtmlBrowserConfiguration.createContainer();
+//     const container = RuntimeHtmlBrowserConfiguration.createContainer();
 //     const dom = new HTMLDOM(document);
 //     Registration.instance(IDOM, dom).register(container, IDOM);
 //     const host = document.createElement('div');

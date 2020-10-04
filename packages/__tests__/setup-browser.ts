@@ -5,8 +5,8 @@ import {
   ensureSchedulerEmpty,
 } from '@aurelia/testing';
 import {
-  JitHtmlBrowserConfiguration
-} from '@aurelia/jit-html-browser';
+  RuntimeHtmlBrowserConfiguration
+} from '@aurelia/runtime-html-browser';
 import {
   Reporter,
   LogLevel,
@@ -16,7 +16,7 @@ Reporter.level = LogLevel.error;
 
 function createBrowserTestContext(): HTMLTestContext {
   return HTMLTestContext.create(
-    JitHtmlBrowserConfiguration,
+    RuntimeHtmlBrowserConfiguration,
     window,
     UIEvent,
     Event,

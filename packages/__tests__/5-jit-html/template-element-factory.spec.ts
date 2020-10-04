@@ -1,5 +1,5 @@
 
-import { ITemplateElementFactory, ITemplateElementFactoryRegistration } from '@aurelia/jit-html';
+import { ITemplateElementFactory, ITemplateElementFactoryRegistration } from '@aurelia/runtime-html';
 import { HTMLTestContext, TestContext, assert } from '@aurelia/testing';
 
 describe('HTMLTemplateElementFactory', function () {

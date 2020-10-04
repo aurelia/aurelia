@@ -12,7 +12,6 @@ import {
   TranslationBindInstructionType,
   TranslationInstructionType,
 } from '@aurelia/i18n';
-import { AttrBindingCommand } from '@aurelia/jit-html';
 import { Constructable, DI } from '@aurelia/kernel';
 import {
   AnyBindingExpression,
@@ -33,7 +32,7 @@ import {
   IAttributePattern,
   PlainAttributeSymbol,
 } from '@aurelia/runtime';
-import { DOM } from '@aurelia/runtime-html';
+import { AttrBindingCommand, DOM } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
 describe('TranslationAttributePattern', function () {

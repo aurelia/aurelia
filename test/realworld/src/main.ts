@@ -1,6 +1,6 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { HttpClient } from '@aurelia/fetch-client';
-import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
+import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
 import { RouterConfiguration } from '@aurelia/router';
 import { Aurelia } from '@aurelia/runtime';
 
@@ -28,7 +28,7 @@ const globalResources = [
 
 new Aurelia()
   .register(
-    JitHtmlBrowserConfiguration,
+    RuntimeHtmlBrowserConfiguration,
     DebugConfiguration,
     RouterConfiguration.customize({ useUrlFragmentHash: false, statefulHistoryLength: 3 }),
     ...globalResources,

@@ -37,14 +37,6 @@ import {
   ResourceModel,
   SymbolFlags,
 } from '@aurelia/runtime';
-import {
-  HTMLAttributeInstruction,
-  HTMLInstructionRow,
-  SetAttributeInstruction,
-  TextBindingInstruction,
-  SetClassAttributeInstruction,
-  SetStyleAttributeInstruction,
-} from '@aurelia/runtime-html';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 import { TemplateBinder } from './template-binder';
 import { ITemplateElementFactory } from './template-element-factory';
@@ -62,6 +54,8 @@ import {
   TemplateControllerSymbol,
   TextSymbol
 } from './semantic-model';
+import { SetAttributeInstruction, SetClassAttributeInstruction, SetStyleAttributeInstruction, TextBindingInstruction } from './instructions';
+import { HTMLAttributeInstruction, HTMLInstructionRow } from './definitions';
 
 class CustomElementCompilationUnit {
   public readonly instructions: ITargetedInstruction[][] = [];

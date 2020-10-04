@@ -33,16 +33,14 @@ import {
   ListenerBindingRendererRegistration,
   SetAttributeRendererRegistration,
   TextBindingRendererRegistration,
-  ITargetObserverLocatorRegistration
+  ITargetObserverLocatorRegistration,
+  ITemplateCompilerRegistration,
+  ITemplateElementFactoryRegistration,
+  TriggerBindingCommandRegistration,
 } from '@aurelia/runtime-html';
 import {
   IDOMInitializerRegistration
 } from '@aurelia/runtime-html-browser';
-import {
-  ITemplateCompilerRegistration,
-  ITemplateElementFactoryRegistration,
-  TriggerBindingCommandRegistration
-} from '@aurelia/jit-html';
 import {
   ViewportCustomElement,
   Router

@@ -18,10 +18,8 @@ import {
   ResourceModel,
   SymbolFlags,
 } from '@aurelia/runtime';
-import {
-  NodeType,
-} from '@aurelia/runtime-html';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
+import { NodeType } from './dom';
 import {
   BindingSymbol,
   CustomAttributeSymbol,

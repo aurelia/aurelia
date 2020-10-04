@@ -1,4 +1,4 @@
-import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
+import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
 import { Aurelia, CustomElementResource, ValueConverterResource, ILifecycle, Priority } from '@aurelia/runtime';
 import { register } from '@aurelia/plugin-svg';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
@@ -14,7 +14,7 @@ export const clock = {
   },
 };
 
-new Aurelia().register(JitHtmlBrowserConfiguration, { register }).app(
+new Aurelia().register(RuntimeHtmlBrowserConfiguration, { register }).app(
   {
     host: document.getElementById('app'),
     component: CustomElementResource.define(

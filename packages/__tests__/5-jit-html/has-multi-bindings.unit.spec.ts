@@ -1,4 +1,4 @@
-import { TemplateBinder, IAttrSyntaxTransformer, ITemplateElementFactory } from '@aurelia/jit-html';
+import { TemplateBinder, IAttrSyntaxTransformer, ITemplateElementFactory } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { IExpressionParser, CustomAttribute, ResourceModel, IAttributeParser, PlainElementSymbol } from '@aurelia/runtime';
 

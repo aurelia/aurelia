@@ -1,40 +1,42 @@
 import {
-  nextId
+  nextId,
+  onResolve,
+  resolveAll,
+  Writable
 } from '@aurelia/kernel';
-import { TemplateControllerLinkType } from '../../definitions';
+import {
+  TemplateControllerLinkType
+} from '../../definitions';
 import {
   INode,
-  IRenderLocation,
+  IRenderLocation
 } from '../../dom';
 import {
   BindingMode,
-  LifecycleFlags,
-  State
+  LifecycleFlags
 } from '../../flags';
 import {
   ICustomAttributeController,
   ICustomAttributeViewModel,
+  IHydratedController,
+  IHydratedParentController,
   ISyntheticView,
   IViewFactory,
-  MountStrategy
+  MountStrategy,
+  State
 } from '../../lifecycle';
 import {
-  ContinuationTask,
-  ILifecycleTask,
-  LifecycleTask,
-} from '../../lifecycle-task';
-import {
   IndexMap,
-  IScope,
+  IScope
 } from '../../observation';
 import {
-  IObserverLocator,
+  IObserverLocator
 } from '../../observation/observer-locator';
 import {
-  bindable,
+  bindable
 } from '../../templating/bindable';
 import {
-  templateController,
+  templateController
 } from '../custom-attribute';
 
 @templateController('switch')
@@ -50,107 +52,98 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
   /** @internal */
   public defaultCase?: Case<T>;
   private activeCases: Case<T>[] = [];
-
-  private task: ILifecycleTask = LifecycleTask.done;
+  /**
+   * This is kept around here so that changes can be awaited from the tests.
+   * This needs to be removed after the scheduler is ready to handle/queue the floating promises.
+   */
+  public readonly promise: Promise<void> = (void 0)!;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,
     @IRenderLocation private readonly location: IRenderLocation<T>,
   ) { }
 
-  public beforeBind(flags: LifecycleFlags): ILifecycleTask {
+  public beforeBind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
     const view = this.view = this.factory.create(flags, this.$controller);
-    view.hold(this.location, MountStrategy.insertBefore);
+    view.setLocation(this.location, MountStrategy.insertBefore);
 
     const $controller = this.$controller;
 
-    let task = this.task.done
-      ? view.bind(flags, $controller.scope, $controller.hostScope)
-      : new ContinuationTask(this.task, view.bind, view, flags, $controller.scope, $controller.hostScope);
-    task = task.done
-      ? this.swap(flags, this.value)
-      : new ContinuationTask(task, this.swap, this, flags, this.value);
-    return this.task = task;
+    return (this as Writable<Switch<T>>).promise = onResolve(
+      this.promise,
+      () => onResolve(
+        view.activate(view, $controller, flags, $controller.scope, $controller.hostScope),
+        () => this.swap(flags, this.value)
+      )
+    ) as Promise<void>;
   }
 
-  public beforeAttach(flags: LifecycleFlags): void {
-    if (this.task.done) {
-      this.attachView(flags);
+  public afterBind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
+    return (this as Writable<Switch<T>>).promise = onResolve(
+      this.promise,
+      () => this.activateCases(flags)
+    ) as Promise<void>;
+  }
+
+  public beforeDetach(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
+    const cases = this.activeCases;
+
+    const length = cases.length;
+    if (length === 0) { return this.promise; }
+
+    let promise = this.promise;
+    if (length === 1) {
+      promise = onResolve(
+        promise,
+        () => cases[0].deactivate(flags)
+      ) as Promise<void>;
     } else {
-      this.task = new ContinuationTask(this.task, this.attachView, this, flags);
+      promise = onResolve(
+        promise,
+        () => resolveAll(...cases.map(($case) => $case.deactivate(flags)))
+      ) as Promise<void>;
     }
-  }
-
-  public beforeDetach(flags: LifecycleFlags): ILifecycleTask {
-    const cases = this.activeCases;
-
-    const length = cases.length;
-    if (length === 0) { return this.task; }
-
-    if (length === 1) {
-      const $case = cases[0];
-      if (this.task.done) {
-        $case.detachView(flags);
-      } else {
-        this.task = new ContinuationTask(this.task, $case.detachView, $case, flags);
+    return (this as Writable<Switch<T>>).promise = onResolve(
+      promise,
+      () => {
+        const view = this.view;
+        return view.deactivate(view, this.$controller, flags);
       }
-      return this.task;
-    }
-
-    let task = this.task;
-    for (const $case of cases) {
-      if (task.done) {
-        $case.detachView(flags);
-      } else {
-        task = new ContinuationTask(task, $case.detachView, $case, flags);
-      }
-    }
-
-    return this.task = task;
-  }
-
-  public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
-    const cases = this.activeCases;
-
-    const length = cases.length;
-    if (length === 0) { return this.task; }
-
-    if (length === 1) {
-      const view = cases[0].view;
-      if (this.task.done) {
-        this.task = view.unbind(flags);
-      } else {
-        this.task = new ContinuationTask(this.task, view.unbind, view, flags);
-      }
-
-      return this.task;
-    }
-
-    let task = this.task;
-    for (const $case of cases) {
-      const view = $case.view;
-      if (task.done) {
-        task = view.unbind(flags);
-      } else {
-        task = new ContinuationTask(task, view.unbind, view, flags);
-      }
-    }
-
-    return this.task = task;
+    ) as Promise<void>;
   }
 
   public valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags): void {
-    if ((this.$controller.state & State.isBound) === 0) {
+    if ((this.$controller.state & State.activated) === 0) {
       return;
     }
-    if (this.task.done) {
-      this.task = this.swap(flags, this.value);
-    } else {
-      this.task = new ContinuationTask(this.task, this.swap, this, flags, this.value);
-    }
+    (this as Writable<Switch<T>>).promise = onResolve(
+      this.promise,
+      () => this.swap(flags, this.value)
+    ) as Promise<void>;
   }
 
-  public caseChanged($case: Case<T>, flags: LifecycleFlags): void {
+  // eslint-disable-next-line @typescript-eslint/promise-function-async
+  public caseChanged($case: Case<T>, flags: LifecycleFlags): Promise<void> {
+    return (this as Writable<Switch<T>>).promise = onResolve(
+      this.promise,
+      async () => this.handleCaseChange($case, flags)
+    ) as Promise<void>;
+  }
+
+  private async handleCaseChange($case: Case<T>, flags: LifecycleFlags): Promise<void> {
+    // console.log(`caseChanged`, $case.value);
     const isMatch = $case.isMatch(this.value, flags);
     const activeCases = this.activeCases;
     const numActiveCases = activeCases.length;
@@ -159,7 +152,10 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     if (!isMatch) {
       /** The previous match started with this; thus clear. */
       if (numActiveCases > 0 && activeCases[0].id === $case.id) {
-        this.clearActiveCases(flags);
+        (this as Writable<Switch<T>>).promise = onResolve(
+          this.promise,
+          () => this.clearActiveCases(flags)
+        ) as Promise<void>;
       }
       /**
        * There are 2 different scenarios here:
@@ -176,7 +172,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     }
 
     // compute the new active cases
-    const newActiveCases = [];
+    const newActiveCases: Case<T>[] = [];
     let fallThrough = $case.fallThrough;
     if (!fallThrough) {
       newActiveCases.push($case);
@@ -189,25 +185,17 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
         fallThrough = c.fallThrough;
       }
     }
+    // console.log(`It's a match! #newActiveCases: ${newActiveCases.length}`);
 
-    // optimize the common case
-    this.clearActiveCases(flags, newActiveCases);
+    await this.clearActiveCases(flags, newActiveCases);
+    // console.log(`cleared old active cases`);
     this.activeCases = newActiveCases;
 
-    if (this.task.done) {
-      this.task = this.bindView(flags);
-    } else {
-      this.task = new ContinuationTask(this.task, this.bindView, this, flags);
-    }
-
-    if (this.task.done) {
-      this.attachView(flags);
-    } else {
-      this.task = new ContinuationTask(this.task, this.attachView, this, flags);
-    }
+    await this.activateCases(flags);
+    // console.log(`activated new active cases`);
   }
 
-  private swap(flags: LifecycleFlags, value: any): ILifecycleTask {
+  private swap(flags: LifecycleFlags, value: any): void | Promise<void> {
     const newActiveCases: Case<T>[] = [];
 
     let fallThrough: boolean = false;
@@ -223,73 +211,38 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
       newActiveCases.push(defaultCase);
     }
 
-    if (this.activeCases.length > 0) {
-      this.clearActiveCases(flags, newActiveCases);
-    }
-    this.activeCases = newActiveCases;
-
-    if (newActiveCases.length === 0) {
-      return LifecycleTask.done;
-    }
-
-    let task = this.bindView(flags);
-    if ((this.$controller.state & State.isAttached) === 0) {
-      return task;
-    }
-
-    if (task.done) {
-      this.attachView(flags);
-    } else {
-      task = new ContinuationTask(task, this.attachView, this, flags);
-    }
-    return task;
+    return onResolve(
+      this.activeCases.length > 0
+        ? this.clearActiveCases(flags, newActiveCases)
+        : void 0!,
+      () => {
+        this.activeCases = newActiveCases;
+        if (newActiveCases.length === 0) { return; }
+        return this.activateCases(flags);
+      }
+    );
   }
 
-  private bindView(flags: LifecycleFlags): ILifecycleTask {
+  private activateCases(flags: LifecycleFlags): void | Promise<void> {
     const controller = this.$controller;
-    if ((controller.state & State.isBoundOrBinding) === 0) { return LifecycleTask.done; }
-
-    const scope = controller.scope;
-    const hostScope = controller.hostScope;
-
-    const cases = this.activeCases;
-    const length = cases.length;
-    if (length === 0) { return LifecycleTask.done; }
-
-    // most common case
-    if (length === 1) {
-      return cases[0].bindView(flags, scope, hostScope);
-    }
-
-    let task = LifecycleTask.done;
-    for (const $case of cases) {
-      task = task.done
-        ? $case.bindView(flags, scope, hostScope)
-        : new ContinuationTask(task, $case.bindView, $case, flags, scope, hostScope);
-    }
-    return task;
-  }
-
-  private attachView(flags: LifecycleFlags): void {
-    if ((this.$controller.state & State.isAttachedOrAttaching) === 0) { return; }
-    if ((this.$controller.state & State.isAttached) === 0) {
-      this.view.attach(flags);
-    }
+    if ((controller.state & State.activated) === 0) { return; }
 
     const cases = this.activeCases;
     const length = cases.length;
     if (length === 0) { return; }
 
+    const scope = controller.scope;
+    const hostScope = controller.hostScope;
+
+    // most common case
     if (length === 1) {
-      cases[0].attachView(flags);
+      return cases[0].activate(flags, scope, hostScope);
     }
 
-    for (const $case of cases) {
-      $case.attachView(flags);
-    }
+    return resolveAll(...cases.map(($case) => $case.activate(flags, scope, hostScope)));
   }
 
-  private clearActiveCases(flags: LifecycleFlags, newActiveCases: Case<T>[] = []): void {
+  private clearActiveCases(flags: LifecycleFlags, newActiveCases: Case<T>[] = []): void | Promise<void> {
     const cases = this.activeCases;
     const numCases = cases.length;
 
@@ -298,18 +251,18 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     if (numCases === 1) {
       const firstCase = cases[0];
       if (!newActiveCases.includes(firstCase)) {
-        firstCase.detachView(flags);
         cases.splice(0);
+        return firstCase.deactivate(flags);
       }
       return;
     }
 
-    for (const $case of cases) {
-      if (!newActiveCases.includes($case)) {
-        $case.detachView(flags);
+    return onResolve(
+      resolveAll(...cases.map(($case) => $case.deactivate(flags))),
+      () => {
+        cases.splice(0);
       }
-    }
-    cases.splice(0);
+    );
   }
 }
 
@@ -324,6 +277,11 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   public view: ISyntheticView<T>;
   private $switch!: Switch<T>;
   private isObserving: boolean = false;
+  /**
+   * This is kept around here so that changes can be awaited from the tests.
+   * This needs to be removed after the scheduler is ready to handle/queue the floating promises.
+   */
+  public readonly promise: Promise<void> | undefined;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,
@@ -331,10 +289,10 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
     @IRenderLocation location: IRenderLocation<T>,
   ) {
     const view = this.view = this.factory.create();
-    view.hold(location, MountStrategy.insertBefore);
+    view.setLocation(location, MountStrategy.insertBefore);
   }
 
-  public link(controller: ICustomAttributeController<T>) {
+  public link(controller: IHydratedParentController<T>,) {
     const $switch = controller?.viewModel;
     if ($switch instanceof Switch) {
       this.$switch = $switch;
@@ -359,31 +317,23 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   }
 
   public valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags) {
-    this.$switch.caseChanged(this, flags);
+    (this as Writable<Case<T>>).promise = this.$switch.caseChanged(this, flags);
   }
 
   public handleCollectionChange(_indexMap: IndexMap, flags: LifecycleFlags) {
-    this.$switch.caseChanged(this, flags);
+    (this as Writable<Case<T>>).promise = this.$switch.caseChanged(this, flags);
   }
 
-  public bindView(flags: LifecycleFlags, scope: IScope | undefined, hostScope: IScope | null): ILifecycleTask {
+  public activate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void | Promise<void> {
     const view = this.view;
-    return (view.state & State.isBound) === 0
-      ? view.bind(flags, scope, hostScope)
-      : LifecycleTask.done;
+    if (view.isActive) { return; }
+    return view.activate(view, this.$controller, flags, scope, hostScope);
   }
 
-  public attachView(flags: LifecycleFlags): void {
+  public deactivate(flags: LifecycleFlags): void | Promise<void> {
     const view = this.view;
-    if ((view.state & State.isAttached) === 0) {
-      view.attach(flags);
-    }
-  }
-
-  public detachView(flags: LifecycleFlags): void {
-    const view = this.view;
-    view.detach(flags);
-    view.release(flags);
+    if (!view.isActive) { return; }
+    return view.deactivate(view, this.$controller, flags);
   }
 
   protected linkToSwitch(auSwitch: Switch<T>) {

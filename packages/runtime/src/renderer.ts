@@ -407,7 +407,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
         break;
       }
       case TemplateControllerLinkType.parent: {
-        const switchController = controller.parent!;
+        const switchController = (controller as Controller).parent!;
         (component as { link(controller: IController): void }).link(switchController);
         break;
       }

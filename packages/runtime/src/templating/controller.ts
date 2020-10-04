@@ -287,7 +287,7 @@ export class Controller<
       /* bindingContext */void 0,
       /* host           */void 0,
     );
-    controller.parent = parentController;
+    controller.parent = parentController as Controller<T> ?? null;
 
     controller.hydrateSynthetic(context);
 

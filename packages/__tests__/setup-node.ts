@@ -16,7 +16,7 @@ import { JSDOM } from 'jsdom';
 Reporter.level = LogLevel.error;
 
 function createJSDOMTestContext(): HTMLTestContext {
-  const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, { pretendToBeVisual: true });
+  const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`);
 
   return HTMLTestContext.create(
     JitHtmlJsdomConfiguration,

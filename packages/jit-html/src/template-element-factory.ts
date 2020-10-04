@@ -35,8 +35,6 @@ export interface ITemplateElementFactory<TNode extends INode = INode> {
 // So.. investigate why that happens (or rather, why it *only* happens here and not for the other 50)
 export const ITemplateElementFactory: InterfaceSymbol<ITemplateElementFactory> = DI.createInterface<ITemplateElementFactory>('ITemplateElementFactory').noDefault();
 
-const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
-
 /**
  * Default implementation for `ITemplateFactory` for use in an HTML based runtime.
  *
@@ -44,6 +42,7 @@ const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
  */
 export class HTMLTemplateElementFactory implements ITemplateElementFactory {
   private template: HTMLTemplateElement;
+  private readonly markupCache: Map<string, HTMLTemplateElement | undefined> = new Map();
 
   public constructor(
     @IDOM private readonly dom: IDOM,
@@ -60,7 +59,7 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
   public createTemplate(input: unknown): HTMLTemplateElement;
   public createTemplate(input: string | Node): HTMLTemplateElement {
     if (typeof input === 'string') {
-      let result = markupCache[input];
+      let result = this.markupCache.get(input);
       if (result === void 0) {
         const template = this.template;
         template.innerHTML = input;
@@ -77,7 +76,7 @@ export class HTMLTemplateElementFactory implements ITemplateElementFactory {
           result = node as HTMLTemplateElement;
         }
 
-        markupCache[input] = result;
+        this.markupCache.set(input, result);
       }
 
       return result.cloneNode(true) as HTMLTemplateElement;

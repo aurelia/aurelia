@@ -268,7 +268,7 @@ export class AbcBindingCommand {
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.haml';
 import {Foo} from './foo';
-import { valueConverter, other, customElement, customAttribute, bindingBehavior } from '@aurelia/runtime';
+import { valueConverter, other, customElement, customAttribute, bindingBehavior, bindingCommand } from '@aurelia/runtime';
 
 export class LeaveMeAlone {}
 

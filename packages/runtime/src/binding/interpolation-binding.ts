@@ -1,8 +1,5 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import {
-  IScheduler,
-} from '@aurelia/scheduler';
-import {
   IExpression,
   IInterpolationExpression,
 } from '../ast';
@@ -103,8 +100,6 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public targetObserver: IBindingTargetAccessor & INodeAccessor;
   public isBound: boolean = false;
 
-  private readonly dom: IDOM;
-
   public constructor(
     public sourceExpression: IExpression,
     public interpolation: IInterpolationExpression,
@@ -114,12 +109,11 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator,
     public isFirst: boolean,
-    dom: IDOM,
+    private dom: IDOM,
   ) {
     connectable.assignIdTo(this);
 
     this.targetObserver = observerLocator.getAccessor(LifecycleFlags.none, target, targetProperty) as IBindingTargetAccessor & INodeAccessor;
-    this.dom = dom;
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -208,14 +202,17 @@ export class InterpolationBinding implements IPartialConnectableBinding {
       targetObserver.unbind(flags);
     }
 
+    this.dom.dequeueFlushChanges(targetObserver);
     this.$scope = void 0;
     this.interceptor.unobserve(true);
   }
 
   public dispose(): void {
-    this.interceptor = (void 0)!;
-    this.sourceExpression = (void 0)!;
-    this.locator = (void 0)!;
-    this.targetObserver = (void 0)!;
+    this.interceptor
+      = this.sourceExpression
+      = this.locator
+      = this.targetObserver
+      = this.dom
+      = (void 0)!;
   }
 }

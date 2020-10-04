@@ -60,8 +60,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
   public target: Element;
 
-  private readonly dom: IDOM;
-
   public constructor(
     public sourceExpression: IsBindingBehavior | IForOfStatement,
     target: INode,
@@ -75,12 +73,11 @@ export class AttributeBinding implements IPartialConnectableBinding {
     public mode: BindingMode,
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator,
-    dom: IDOM,
+    private dom: IDOM,
   ) {
     this.target = target as Element;
     connectable.assignIdTo(this);
     this.$scheduler = locator.get(IScheduler);
-    this.dom = dom;
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -221,7 +218,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     }
     this.$scope = null!;
 
-    const targetObserver = this.targetObserver as IBindingTargetObserver;
+    const targetObserver = this.targetObserver as IBindingTargetObserver & INodeAccessor;
     if (targetObserver.unbind) {
       targetObserver.unbind!(flags);
     }
@@ -229,6 +226,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       targetObserver.unsubscribe(this.interceptor);
       targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
     }
+    this.dom.dequeueFlushChanges(targetObserver);
     this.interceptor.unobserve(true);
 
     // remove isBound and isUnbinding flags
@@ -243,10 +241,12 @@ export class AttributeBinding implements IPartialConnectableBinding {
   }
 
   public dispose(): void {
-    this.interceptor = (void 0)!;
-    this.sourceExpression = (void 0)!;
-    this.locator = (void 0)!;
-    this.targetObserver = (void 0)!;
-    this.target = (void 0)!;
+    this.interceptor
+      = this.sourceExpression
+      = this.locator
+      = this.targetObserver
+      = this.target
+      = this.dom
+      = (void 0)!;
   }
 }

@@ -50,8 +50,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 
-  private readonly dom: IDOM;
-
   public constructor(
     public sourceExpression: IsBindingBehavior | IForOfStatement,
     public target: object,
@@ -59,10 +57,9 @@ export class PropertyBinding implements IPartialConnectableBinding {
     public mode: BindingMode,
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator,
-    dom: IDOM,
+    private dom: IDOM,
   ) {
     connectable.assignIdTo(this);
-    this.dom = dom;
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
@@ -218,16 +215,21 @@ export class PropertyBinding implements IPartialConnectableBinding {
       targetObserver.unsubscribe(this.interceptor);
       targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
     }
+    if ((targetObserver.type & AccessorType.Layout) > 0) {
+      this.dom.dequeueFlushChanges(targetObserver as unknown as INodeAccessor);
+    }
     this.interceptor.unobserve(true);
 
     this.isBound = false;
   }
 
   public dispose(): void {
-    this.interceptor = (void 0)!;
-    this.sourceExpression = (void 0)!;
-    this.locator = (void 0)!;
-    this.targetObserver = (void 0)!;
-    this.target = (void 0)!;
+    this.interceptor
+      = this.sourceExpression
+      = this.locator
+      = this.targetObserver
+      = this.target
+      = this.dom
+      = (void 0)!;
   }
 }

@@ -226,7 +226,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       targetObserver.unsubscribe(this.interceptor);
       targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
     }
-    this.dom.dequeueFlushChanges(targetObserver);
+    (this.dom as any).dequeueFlushChanges(targetObserver, this);
     this.interceptor.unobserve(true);
 
     // remove isBound and isUnbinding flags

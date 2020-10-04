@@ -93,7 +93,7 @@ export class HTMLDOM implements IDOM {
     return Registration.aliasTo(IDOM, this).register(container);
   }
 
-  public queueFlushChanges(accessor: INodeAccessor): void {
+  public queueFlushChanges(accessor: INodeAccessor, queuer?: unknown): void {
     const queue = this.flushQueue;
     if (this.task == null) {
       this.task = this.scheduler.queueRenderTask(() => {
@@ -104,6 +104,9 @@ export class HTMLDOM implements IDOM {
         console.log('>Flush done!', { flushQueueCallCount, size: queue.size });
         this.task = null;
       }, taskOptions);
+      if (flushQueueCallCount >= 1000) {
+        console.log(accessor.constructor.name, (queuer as object)?.constructor?.name);
+      }
     }
 
     queue.add(accessor);

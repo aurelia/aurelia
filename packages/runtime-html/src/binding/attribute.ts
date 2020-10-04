@@ -124,8 +124,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       if (newValue !== oldValue) {
         if (shouldQueueFlush) {
           flags |= LifecycleFlags.noTargetObserverQueue;
-          // this.dom.queueFlushChanges(targetObserver as unknown as INodeAccessor);
-          (this.dom as any).queueFlushChanges(targetObserver, this);
+          this.dom.queueFlushChanges(targetObserver as unknown as INodeAccessor);
         }
 
         interceptor.updateTarget(newValue, flags);
@@ -220,6 +219,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.$scope = null!;
 
     const targetObserver = this.targetObserver as IBindingTargetObserver & INodeAccessor;
+    this.dom.dequeueFlushChanges(targetObserver);
     if (targetObserver.unbind) {
       targetObserver.unbind!(flags);
     }
@@ -227,7 +227,6 @@ export class AttributeBinding implements IPartialConnectableBinding {
       targetObserver.unsubscribe(this.interceptor);
       targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
     }
-    (this.dom as any).dequeueFlushChanges(targetObserver, this);
     this.interceptor.unobserve(true);
 
     // remove isBound and isUnbinding flags

@@ -139,8 +139,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     if (newValue !== oldValue) {
       if (shouldQueueFlush) {
         flags |= LifecycleFlags.noTargetObserverQueue;
-        // this.dom.queueFlushChanges(targetObserver);
-        (this.dom as any).queueFlushChanges(targetObserver, this);
+        this.dom.queueFlushChanges(targetObserver);
       }
 
       interceptor.updateTarget(newValue, flags);
@@ -199,11 +198,11 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     }
 
     const targetObserver = this.targetObserver;
+    this.dom.dequeueFlushChanges(targetObserver);
     if (targetObserver.unbind) {
       targetObserver.unbind(flags);
     }
 
-    this.dom.dequeueFlushChanges(targetObserver);
     this.$scope = void 0;
     this.interceptor.unobserve(true);
   }

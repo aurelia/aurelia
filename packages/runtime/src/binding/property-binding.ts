@@ -105,8 +105,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       if (newValue !== oldValue) {
         if (shouldQueueFlush) {
           flags |= LifecycleFlags.noTargetObserverQueue;
-          // this.dom.queueFlushChanges(targetObserver as unknown as INodeAccessor);
-          (this.dom as any).queueFlushChanges(targetObserver, this);
+          this.dom.queueFlushChanges(targetObserver as unknown as INodeAccessor);
         }
 
         interceptor.updateTarget(newValue, flags);
@@ -208,16 +207,15 @@ export class PropertyBinding implements IPartialConnectableBinding {
     this.$scope = void 0;
 
     const targetObserver = this.targetObserver as IBindingTargetObserver;
-
+    if ((targetObserver.type & AccessorType.Layout) > 0) {
+      this.dom.dequeueFlushChanges(targetObserver as unknown as INodeAccessor);
+    }
     if (targetObserver.unbind) {
-      targetObserver.unbind!(flags);
+      targetObserver.unbind(flags);
     }
     if (targetObserver.unsubscribe) {
       targetObserver.unsubscribe(this.interceptor);
       targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
-    }
-    if ((targetObserver.type & AccessorType.Layout) > 0) {
-      this.dom.dequeueFlushChanges(targetObserver as unknown as INodeAccessor);
     }
     this.interceptor.unobserve(true);
 

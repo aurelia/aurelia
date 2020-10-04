@@ -39,15 +39,13 @@ export const enum NodeType {
 const effectiveParentNodeOverrides = new WeakMap<Node, Node>();
 const taskOptions: QueueTaskOptions = {
   reusable: false,
+  preempt: true,
 };
 const flushNodeAccessor = (accessor: INodeAccessor) => {
-  if (flushQueueCallCount >= 4000) {
-    console.log((accessor as any).obj?.constructor.name, Object.getOwnPropertyNames(accessor));
-  }
   accessor.flushChanges();
 };
 
-let flushQueueCallCount = 0;
+let flushCallCount = 0;
 
 /**
  * IDOM implementation for Html.
@@ -96,24 +94,18 @@ export class HTMLDOM implements IDOM {
     return Registration.aliasTo(IDOM, this).register(container);
   }
 
-  public queueFlushChanges(accessor: INodeAccessor, queuer?: unknown): void {
+  public queueFlushChanges(accessor: INodeAccessor): void {
     const queue = this.flushQueue;
     if (this.task == null) {
       this.task = this.scheduler.queueRenderTask(() => {
-        flushQueueCallCount++;
-        console.log('>Flush', { flushQueueCallCount, size: queue.size });
+        flushCallCount++;
+        if (flushCallCount >= 6500) {
+          console.log(new Error().stack);
+        }
         queue.forEach(flushNodeAccessor);
         queue.clear();
-        console.log('>Flush done!', { flushQueueCallCount, size: queue.size });
         this.task = null;
       }, taskOptions);
-      if (flushQueueCallCount >= 4000) {
-        console.log(
-          accessor.constructor.name,
-          (queuer as object)?.constructor?.name,
-          Object.getOwnPropertyNames(queuer),
-        );
-      }
     }
 
     queue.add(accessor);

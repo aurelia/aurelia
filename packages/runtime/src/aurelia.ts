@@ -13,7 +13,6 @@ import {
 } from './dom';
 import {
   BindingStrategy,
-  LifecycleFlags
 } from './flags';
 import {
   ICustomElementViewModel,

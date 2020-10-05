@@ -35,7 +35,9 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
   it('should not call valueChanged when property is assigned the same value', function () {
     let callCount = 0;
     class Test {
-      @observable value = oldValue;
+      @observable
+      public value = oldValue;
+
       public valueChanged() {
         callCount++;
       }
@@ -83,7 +85,8 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       public customHandler() {
         callCount++;
       }
-    };
+    }
+
     const instance = new Test();
     assert.strictEqual(callCount, 1);
 
@@ -98,7 +101,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
 
   describe('with normal app', function () {
     it('works in basic scenario', async function () {
-      let noValue = {};
+      const noValue = {};
       let $div = noValue;
       class App {
         @observable
@@ -107,7 +110,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
           $div = div;
         }
       }
-      const { component, scheduler, testHost, tearDown, startPromise } = createFixture('<div ref="div"></div>${div.tagName}', App);
+      const { component, scheduler, testHost, tearDown, startPromise } = createFixture(`<div ref="div"></div>\${div.tagName}`, App);
       await startPromise;
 
       assert.strictEqual(testHost.textContent, 'DIV');
@@ -233,7 +236,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
           public fromView(v: any) {
             // converting back and forth with number
             // so prefixing with '0' to avoid infinite loop
-            return '0' + v;
+            return `0${v}`;
           }
           public toView(v: any) {
             return v;

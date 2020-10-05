@@ -317,6 +317,9 @@ describe('validate-binding-behavior', function () {
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   }
 
   const $it = createSpecFunction(runTest);
@@ -335,7 +338,7 @@ describe('validate-binding-behavior', function () {
     validateBindingSpy.calls.splice(0);
     validateSpy.calls.splice(0);
     target.dispatchEvent(new ctx.Event(event, { bubbles: event === 'focusout' }));
-    await scheduler.yieldAll(10);
+    await scheduler.yieldAll(3);
     assert.equal(validateBindingSpy.calls.length, callCount, 'incorrect validateBinding calls');
     assert.equal(validateSpy.calls.length, callCount, 'incorrect validate calls');
   }
@@ -565,7 +568,7 @@ describe('validate-binding-behavior', function () {
       assert.equal(controller2.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error2');
 
       app.tempController = controller2;
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll(3);
       assert.equal(app.controllerUnregisterBindingSpy.calls.length, 1);
       assertControllerBinding(controller2, 'person.name', target1, app.controller2RegisterBindingSpy);
 
@@ -705,6 +708,10 @@ describe('validate-binding-behavior', function () {
       }
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
+
+      // TODO: there's a binding somewhere without a dispose() method, causing this to fail
+      // au.dispose();
+      assert.isSchedulerEmpty();
     });
   }
 
@@ -742,7 +749,7 @@ describe('validate-binding-behavior', function () {
 
       app.clearControllerCalls();
       person.name = 'foo';
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll(3);
       assert.equal(app.controllerValidateBindingSpy.calls.length, 0);
       assert.equal(app.controllerValidateSpy.calls.length, 0);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error3');
@@ -863,7 +870,7 @@ describe('validate-binding-behavior', function () {
 
       app.clearControllerCalls();
       caHost.click();
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll(3);
       assert.equal(app.controllerValidateBindingSpy.calls.length, 1);
       assert.equal(app.controllerValidateSpy.calls.length, 1);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error3');
@@ -922,7 +929,7 @@ describe('validate-binding-behavior', function () {
       // clicking the CE host triggers change in CA value
       app.clearControllerCalls();
       caHost.click();
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll(3);
       assert.equal(app.controllerValidateBindingSpy.calls.length, 1);
       assert.equal(app.controllerValidateSpy.calls.length, 1);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error3');
@@ -948,7 +955,7 @@ describe('validate-binding-behavior', function () {
       // clicking the CE host triggers change in CA value
       app.clearControllerCalls();
       caHost.click();
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll(3);
       assert.equal(app.controllerValidateBindingSpy.calls.length, 1);
       assert.equal(app.controllerValidateSpy.calls.length, 1);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error3');
@@ -971,7 +978,7 @@ describe('validate-binding-behavior', function () {
 
       app.clearControllerCalls();
       caHost.click();
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll(3);
       assert.equal(app.controllerValidateBindingSpy.calls.length, 0);
       assert.equal(app.controllerValidateSpy.calls.length, 0);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error3');
@@ -1106,14 +1113,14 @@ describe('validate-binding-behavior', function () {
 
       app.clearControllerCalls();
       (target.querySelector('button#hire-replace') as HTMLButtonElement).click();
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll(3);
       assert.equal(app.controllerValidateBindingSpy.calls.length, 1);
       assert.equal(app.controllerValidateSpy.calls.length, 1);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees').length, 0, 'error3');
 
       app.clearControllerCalls();
       (target.querySelector('button#fire-replace') as HTMLButtonElement).click();
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll(3);
       assert.equal(app.controllerValidateBindingSpy.calls.length, 1);
       assert.equal(app.controllerValidateSpy.calls.length, 1);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees').length, 1, 'error4');
@@ -1140,14 +1147,14 @@ describe('validate-binding-behavior', function () {
 
       app.clearControllerCalls();
       (target.querySelector('button#hire-in-place') as HTMLButtonElement).click();
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll(3);
       assert.equal(app.org.employees.length, 1);
       assert.equal(app.controllerValidateSpy.calls.length, 1);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees').length, 0, 'error3');
 
       app.clearControllerCalls();
       (target.querySelector('button#fire-in-place') as HTMLButtonElement).click();
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll(3);
       assert.equal(app.org.employees.length, 0);
       assert.equal(app.controllerValidateSpy.calls.length, 1);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees').length, 1, 'error4');
@@ -1367,6 +1374,9 @@ describe('validate-binding-behavior', function () {
       }
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
+
+      au.dispose();
+      assert.isSchedulerEmpty();
     });
   }
 
@@ -1436,5 +1446,8 @@ describe('validate-binding-behavior', function () {
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
 });

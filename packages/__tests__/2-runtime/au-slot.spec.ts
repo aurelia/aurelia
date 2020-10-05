@@ -207,7 +207,7 @@ describe('au-slot', function () {
           const vm: MyElement = CustomElement.for<Element, MyElement>(el).viewModel;
 
           vm.showS1 = true;
-          await scheduler.yieldAll(10);
+          await scheduler.yieldAll(2);
 
           assert.html.innerEqual(el, `static default <div>p11</div><div>p12</div> <div>p20</div><div>p21</div>`, 'my-element.innerHTML');
         },
@@ -237,7 +237,7 @@ describe('au-slot', function () {
 
           vm1.showS1 = !vm1.showS1;
           vm2.showS1 = !vm2.showS1;
-          await scheduler.yieldAll(10);
+          await scheduler.yieldAll(2);
 
           assert.html.innerEqual(el1, `static default <div>p11</div>`, 'my-element.innerHTML');
           assert.html.innerEqual(el2, `static default <div>p22</div>`, 'my-element+my-element.innerHTML');
@@ -292,7 +292,7 @@ describe('au-slot', function () {
         { 'my-element': `<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div>` },
         async function ({ app, host, scheduler }) {
           app.people.push(new Person('Jane', 'Doe', []));
-          await scheduler.yieldAll(10);
+          await scheduler.yieldAll(2);
           assert.html.innerEqual(
             'my-element',
             `<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div> <div>Jane</div> <div>Doe</div>`,
@@ -930,7 +930,7 @@ describe('au-slot', function () {
         assert.strictEqual(input.value, "foo");
 
         vm.foo = "bar";
-        await scheduler.yieldAll(10);
+        await scheduler.yieldAll(2);
         assert.strictEqual(input.value, "bar");
       }
     );
@@ -948,7 +948,7 @@ describe('au-slot', function () {
         assert.strictEqual(input.value, app.people[0].firstName);
 
         app.people[0].firstName = "Jane";
-        await scheduler.yieldAll(10);
+        await scheduler.yieldAll(2);
         assert.strictEqual(input.value, "Jane");
       }
     );
@@ -982,6 +982,8 @@ describe('au-slot', function () {
         if (additionalAssertion != null) {
           await additionalAssertion(ctx);
         }
+
+        assert.isSchedulerEmpty();
       },
       { template, registrations });
   }
@@ -999,7 +1001,7 @@ describe('au-slot', function () {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          await scheduler.yieldAll(10);
+          await scheduler.yieldAll(2);
           assert.equal(CustomElement.for<Element, MyElement>(ce).viewModel.callCount, 1);
           assert.equal(app.callCount, 0);
         },
@@ -1010,7 +1012,7 @@ describe('au-slot', function () {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          await scheduler.yieldAll(10);
+          await scheduler.yieldAll(2);
           assert.equal(CustomElement.for<Element, MyElement>(ce).viewModel.callCount, 1);
           assert.equal(app.callCount, 0);
         },
@@ -1021,7 +1023,7 @@ describe('au-slot', function () {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          await scheduler.yieldAll(10);
+          await scheduler.yieldAll(2);
           assert.equal(CustomElement.for<Element, MyElement>(ce).viewModel.callCount, 0);
           assert.equal(app.callCount, 1);
         },

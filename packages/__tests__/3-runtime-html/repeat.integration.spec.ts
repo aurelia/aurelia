@@ -27,6 +27,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '01');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("01 _", async function () {
     const { au, host } = createFixture();
@@ -46,6 +49,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '01');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
 
   it("012 _", async function () {
@@ -66,6 +72,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '012');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("021 _", async function () {
     const { au, host } = createFixture();
@@ -85,6 +94,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '012');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("102 _", async function () {
     const { au, host } = createFixture();
@@ -104,6 +116,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '012');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("120 _", async function () {
     const { au, host } = createFixture();
@@ -123,6 +138,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '012');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("201 _", async function () {
     const { au, host } = createFixture();
@@ -142,6 +160,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '012');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("210 _", async function () {
     const { au, host } = createFixture();
@@ -161,6 +182,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '012');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
 
   it("0123 _", async function () {
@@ -181,6 +205,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("0132 _", async function () {
     const { au, host } = createFixture();
@@ -200,6 +227,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("0213 _", async function () {
     const { au, host } = createFixture();
@@ -219,6 +249,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("0231 _", async function () {
     const { au, host } = createFixture();
@@ -238,6 +271,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("0312 _", async function () {
     const { au, host } = createFixture();
@@ -257,6 +293,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("0321 _", async function () {
     const { au, host } = createFixture();
@@ -276,6 +315,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("1023 _", async function () {
     const { au, host } = createFixture();
@@ -295,6 +337,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("1032 _", async function () {
     const { au, host } = createFixture();
@@ -314,6 +359,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("1203 _", async function () {
     const { au, host } = createFixture();
@@ -333,6 +381,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("1230 _", async function () {
     const { au, host } = createFixture();
@@ -352,6 +403,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("1302 _", async function () {
     const { au, host } = createFixture();
@@ -371,6 +425,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("1320 _", async function () {
     const { au, host } = createFixture();
@@ -390,6 +447,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("2013 _", async function () {
     const { au, host } = createFixture();
@@ -409,6 +469,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("2031 _", async function () {
     const { au, host } = createFixture();
@@ -428,6 +491,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("2103 _", async function () {
     const { au, host } = createFixture();
@@ -447,6 +513,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("2130 _", async function () {
     const { au, host } = createFixture();
@@ -466,6 +535,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("2301 _", async function () {
     const { au, host } = createFixture();
@@ -485,6 +557,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("2310 _", async function () {
     const { au, host } = createFixture();
@@ -504,6 +579,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("3012 _", async function () {
     const { au, host } = createFixture();
@@ -523,6 +601,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("3021 _", async function () {
     const { au, host } = createFixture();
@@ -542,6 +623,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("3102 _", async function () {
     const { au, host } = createFixture();
@@ -561,6 +645,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("3120 _", async function () {
     const { au, host } = createFixture();
@@ -580,6 +667,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("3201 _", async function () {
     const { au, host } = createFixture();
@@ -599,6 +689,9 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
   it("3210 _", async function () {
     const { au, host } = createFixture();
@@ -618,5 +711,8 @@ describe("generated.template-compiler.repeat", function () {
     component.items.sort();
     assert.strictEqual(host.textContent, '0123');
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
 });

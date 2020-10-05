@@ -238,6 +238,9 @@ describe(spec, function () {
       await au.stop().wait();
 
       assert.strictEqual(host.textContent, '', 'host.textContent');
+
+      au.dispose();
+      assert.isSchedulerEmpty();
     });
   });
 });

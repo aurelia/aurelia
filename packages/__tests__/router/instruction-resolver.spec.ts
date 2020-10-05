@@ -30,6 +30,9 @@ describe('InstructionResolver', function () {
       router.stop();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
+
+      au.dispose();
+      assert.isSchedulerEmpty();
     }
 
     return { au, container, host, router, tearDown, ctx, instructionResolver };

@@ -55,5 +55,8 @@ describe('styles', function () {
     assert.equal(true, withoutStylesDiv.classList.contains('test'));
 
     await au.stop().wait();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
 });

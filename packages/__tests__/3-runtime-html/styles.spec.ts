@@ -101,7 +101,7 @@ describe('Styles', function () {
   describe('Shadow DOM', function () {
     it('registry provides root shadow dom styles', async function () {
       const rootStyles = '.my-class { color: red }';
-      const { container } = await startApp(au => {
+      const { container, au } = await startApp(au => {
         au.register(StyleConfiguration.shadowDOM({
           sharedStyles: [rootStyles]
         }));
@@ -112,11 +112,15 @@ describe('Styles', function () {
 
       assert.instanceOf(s, Object);
       assert.equal(typeof s.applyTo, 'function');
+
+      await au.stop().wait();
+      au.dispose();
+      assert.isSchedulerEmpty();
     });
 
     it('config passes root styles to container', async function () {
       const rootStyles = '.my-class { color: red }';
-      const { container, ctx } = await startApp(au => {
+      const { container, ctx, au } = await startApp(au => {
         au.register(StyleConfiguration.shadowDOM({
           sharedStyles: [rootStyles]
         }));
@@ -132,6 +136,10 @@ describe('Styles', function () {
         assert.instanceOf(s, StyleElementStyles);
         assert.equal(s['localStyles'].length, 1);
       }
+
+      await au.stop().wait();
+      au.dispose();
+      assert.isSchedulerEmpty();
     });
 
     it('element styles apply parent styles', function () {

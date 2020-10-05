@@ -28,6 +28,8 @@ describe('Queue', function () {
     assert.strictEqual(q.pending.length, 1, `q.pending.length`);
     await wait(110);
     assert.strictEqual(q.pending.length, 0, `q.pending.length`);
+
+    assert.isSchedulerEmpty();
   });
 
   it('adds to queue with right costs', function () {
@@ -62,6 +64,8 @@ describe('Queue', function () {
     assert.strictEqual(q.pending.length, 6, `q.pending.length`);
     assert.strictEqual(q.pending[4].cost, 6, `q.pending[4].cost`);
     assert.strictEqual(q.pending[5].cost, 7, `q.pending[5].cost`);
+
+    assert.isSchedulerEmpty();
   });
 
   it('can tick the queue', async function () {
@@ -86,6 +90,8 @@ describe('Queue', function () {
     await wait(120);
     assert.strictEqual(q.pending.length, 0, `q.pending.length`);
     q.stop();
+
+    assert.isSchedulerEmpty();
   });
 });
 

@@ -188,5 +188,8 @@ describe('local dependency inheritance', function () {
     au.register(C7, C8, C9).app({ host, component });
 
     await verifyHostText(au, host, `147258369`);
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
 });

@@ -128,6 +128,8 @@ describe('PropertyBinding', function () {
     sut.$bind(LF.fromBind, scope2, null);
 
     assert.strictEqual(target.val, count * 3, `target.val`);
+
+    assert.isSchedulerEmpty();
   }).timeout(20000);
 
   describe('$bind() [one-time] assigns the target value', function () {
@@ -195,6 +197,8 @@ describe('PropertyBinding', function () {
         // expect(targetObserver.setValue, `targetObserver.setValue`).to.have.been.calledOnce;
         // expect(targetObserver.setValue, `targetObserver.setValue`).to.have.been.calledWithExactly(srcVal, flags);
         // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
+
+        assert.isSchedulerEmpty();
       });
     }
     );
@@ -421,6 +425,8 @@ describe('PropertyBinding', function () {
             // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #61`);
           }
         }
+
+        assert.isSchedulerEmpty();
       });
     }
     );
@@ -534,6 +540,8 @@ describe('PropertyBinding', function () {
           // expect(expr.evaluate).not.to.have.been.called;
           // expect(expr.assign).not.to.have.been.called;
         }
+
+        assert.isSchedulerEmpty();
       });
     }
     );
@@ -847,6 +855,8 @@ describe('PropertyBinding', function () {
 
         verifyEqual(target[prop], srcVal);
         verifyEqual(targetObserver.currentValue, srcVal);
+
+        assert.isSchedulerEmpty();
       });
     }
     );

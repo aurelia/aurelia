@@ -441,6 +441,9 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
       dispose: async () => {
         await au.stop().wait();
         host.remove();
+
+        au.dispose();
+        assert.isSchedulerEmpty();
       }
     };
   }

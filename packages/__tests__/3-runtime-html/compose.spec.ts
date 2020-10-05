@@ -169,6 +169,9 @@ describe(spec, function () {
       assert.visibleTextEqual(au.root, 'Hello world!');
 
       await au.stop().wait();
+
+      au.dispose();
+      assert.isSchedulerEmpty();
     });
   });
 });

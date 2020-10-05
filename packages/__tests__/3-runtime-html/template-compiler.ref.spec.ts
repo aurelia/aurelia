@@ -499,9 +499,12 @@ describe('templating-compiler.ref.spec.ts', function () {
 
         await au.stop().wait();
         await assertFnAfterDestroy(ctx, host, component);
+        au.dispose();
       } finally {
         host?.remove();
         body?.focus();
+
+        assert.isSchedulerEmpty();
       }
     });
   }

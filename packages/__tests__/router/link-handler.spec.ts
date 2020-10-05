@@ -31,6 +31,9 @@ describe('LinkHandler', function () {
     async function tearDown() {
       await au.stop().wait();
       doc.body.removeChild(host);
+
+      au.dispose();
+      assert.isSchedulerEmpty();
     }
 
     return { sut, au, container, host, ctx, tearDown };

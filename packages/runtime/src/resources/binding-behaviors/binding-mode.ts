@@ -14,15 +14,15 @@ export abstract class BindingModeBehavior {
     private readonly mode: BindingMode,
   ) {}
 
-  public bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding & WithMode): void {
-    this.logger.trace(`bind(%s, scope, binding)`, flags);
+  public bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: PropertyBinding & WithMode): void {
+    this.logger.trace(`bind(%s, scope, hostScope, binding)`, flags);
 
     this.originalModes.set(binding, binding.mode);
     binding.mode = this.mode;
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding & WithMode): void {
-    this.logger.trace(`unbind(%s, scope, binding)`, flags);
+  public unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: PropertyBinding & WithMode): void {
+    this.logger.trace(`unbind(%s, scope, hostScope, binding)`, flags);
 
     binding.mode = this.originalModes.get(binding) as BindingMode;
   }

@@ -24,7 +24,7 @@ export const enum TaskSlot {
   beforeCompile         = 1,
   beforeCompileChildren = 2,
   beforeActivate        = 3,
-  afterAttach           = 4,
+  afterActivate         = 4,
 }
 
 export const IStartTask = DI.createInterface<IStartTask>('IStartTask').noDefault();
@@ -40,7 +40,7 @@ export interface ISlotChooser {
   beforeCompile(): IStartTask;
   beforeCompileChildren(): IStartTask;
   beforeActivate(): IStartTask;
-  afterAttach(): IStartTask;
+  afterActivate(): IStartTask;
   at(slot: TaskSlot): IStartTask;
 }
 
@@ -49,7 +49,7 @@ export interface ICallbackSlotChooser<K extends Key> {
   beforeCompile(): ICallbackChooser<K>;
   beforeCompileChildren(): ICallbackChooser<K>;
   beforeActivate(): ICallbackChooser<K>;
-  afterAttach(): ICallbackChooser<K>;
+  afterActivate(): ICallbackChooser<K>;
   at(slot: TaskSlot): ICallbackChooser<K>;
 }
 
@@ -142,8 +142,8 @@ export const StartTask = class $StartTask implements IStartTask {
     return this.at(TaskSlot.beforeActivate);
   }
 
-  public afterAttach(): $StartTask {
-    return this.at(TaskSlot.afterAttach);
+  public afterActivate(): $StartTask {
+    return this.at(TaskSlot.afterActivate);
   }
 
   public at(slot: TaskSlot): $StartTask {
@@ -191,7 +191,7 @@ export interface IStartTaskManager {
   runBeforeCompile(container?: IContainer): ILifecycleTask;
   runBeforeCompileChildren(container?: IContainer): ILifecycleTask;
   runBeforeActivate(container?: IContainer): ILifecycleTask;
-  runAfterAttach(container?: IContainer): ILifecycleTask;
+  runAfterActivate(container?: IContainer): ILifecycleTask;
   run(slot: TaskSlot, container?: IContainer): ILifecycleTask;
 }
 
@@ -233,8 +233,8 @@ export class StartTaskManager implements IStartTaskManager {
     return this.run(TaskSlot.beforeActivate, locator);
   }
 
-  public runAfterAttach(locator: IServiceLocator = this.locator): ILifecycleTask {
-    return this.run(TaskSlot.afterAttach, locator);
+  public runAfterActivate(locator: IServiceLocator = this.locator): ILifecycleTask {
+    return this.run(TaskSlot.afterActivate, locator);
   }
 
   public run(slot: TaskSlot, locator: IServiceLocator = this.locator): ILifecycleTask {

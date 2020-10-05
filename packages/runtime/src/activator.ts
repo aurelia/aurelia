@@ -69,9 +69,9 @@ export class Activator implements IActivator {
     }
 
     if (task.done) {
-      task = mgr.runAfterAttach();
+      task = mgr.runAfterActivate();
     } else {
-      task = new ContinuationTask(task, mgr.runAfterAttach, mgr);
+      task = new ContinuationTask(task, mgr.runAfterActivate, mgr);
     }
 
     return task;

@@ -230,7 +230,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
         tearDown,
         startPromise
       } = createFixture(
-        '<input value.bind="v">',
+        '<input value.bind="v | two">',
         App,
         [ValueConverter.define('two', class {
           public fromView(v: any) {

@@ -82,11 +82,26 @@ export class Activator implements IActivator {
     flags: LifecycleFlags = LifecycleFlags.none,
   ): ILifecycleTask {
     const controller = Controller.getCachedOrThrow(component);
-    const ret = controller.deactivate(controller, null, flags);
-    if (hasAsyncWork(ret)) {
-      return new TerminalTask(ret);
+
+    const mgr = this.taskManager;
+    let task = mgr.runBeforeDeactivate();
+
+    if (task.done) {
+      const ret = controller.deactivate(controller, null, flags);
+      if (hasAsyncWork(ret)) {
+        task = new TerminalTask(ret);
+      }
+    } else {
+      task = new ContinuationTask(task, controller.deactivate, controller, controller, null, flags);
     }
-    return LifecycleTask.done;
+
+    if (task.done) {
+      task = mgr.runAfterDeactivate();
+    } else {
+      task = new ContinuationTask(task, mgr.runAfterDeactivate, mgr);
+    }
+
+    return task;
   }
 
   private render(

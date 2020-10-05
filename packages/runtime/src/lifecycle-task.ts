@@ -25,6 +25,8 @@ export const enum TaskSlot {
   beforeCompileChildren = 2,
   beforeActivate        = 3,
   afterActivate         = 4,
+  beforeDeactivate      = 5,
+  afterDeactivate       = 6,
 }
 
 export const IStartTask = DI.createInterface<IStartTask>('IStartTask').noDefault();
@@ -41,6 +43,8 @@ export interface ISlotChooser {
   beforeCompileChildren(): IStartTask;
   beforeActivate(): IStartTask;
   afterActivate(): IStartTask;
+  beforeDeactivate(): IStartTask;
+  afterDeactivate(): IStartTask;
   at(slot: TaskSlot): IStartTask;
 }
 
@@ -50,6 +54,8 @@ export interface ICallbackSlotChooser<K extends Key> {
   beforeCompileChildren(): ICallbackChooser<K>;
   beforeActivate(): ICallbackChooser<K>;
   afterActivate(): ICallbackChooser<K>;
+  beforeDeactivate(): ICallbackChooser<K>;
+  afterDeactivate(): ICallbackChooser<K>;
   at(slot: TaskSlot): ICallbackChooser<K>;
 }
 
@@ -146,6 +152,14 @@ export const StartTask = class $StartTask implements IStartTask {
     return this.at(TaskSlot.afterActivate);
   }
 
+  public beforeDeactivate(): $StartTask {
+    return this.at(TaskSlot.beforeDeactivate);
+  }
+
+  public afterDeactivate(): $StartTask {
+    return this.at(TaskSlot.afterDeactivate);
+  }
+
   public at(slot: TaskSlot): $StartTask {
     this._slot = slot;
     return this;
@@ -192,6 +206,8 @@ export interface IStartTaskManager {
   runBeforeCompileChildren(container?: IContainer): ILifecycleTask;
   runBeforeActivate(container?: IContainer): ILifecycleTask;
   runAfterActivate(container?: IContainer): ILifecycleTask;
+  runBeforeDeactivate(container?: IContainer): ILifecycleTask;
+  runAfterDeactivate(container?: IContainer): ILifecycleTask;
   run(slot: TaskSlot, container?: IContainer): ILifecycleTask;
 }
 
@@ -235,6 +251,14 @@ export class StartTaskManager implements IStartTaskManager {
 
   public runAfterActivate(locator: IServiceLocator = this.locator): ILifecycleTask {
     return this.run(TaskSlot.afterActivate, locator);
+  }
+
+  public runBeforeDeactivate(locator: IServiceLocator = this.locator): ILifecycleTask {
+    return this.run(TaskSlot.beforeDeactivate, locator);
+  }
+
+  public runAfterDeactivate(locator: IServiceLocator = this.locator): ILifecycleTask {
+    return this.run(TaskSlot.afterDeactivate, locator);
   }
 
   public run(slot: TaskSlot, locator: IServiceLocator = this.locator): ILifecycleTask {

@@ -48,7 +48,7 @@ export class Activator implements IActivator {
     flags = flags === void 0 ? LifecycleFlags.none : flags;
     const mgr = this.taskManager;
 
-    let task = mgr.runBeforeRender();
+    let task = mgr.runBeforeCompile();
 
     if (task.done) {
       this.render(host, component, container, flags);

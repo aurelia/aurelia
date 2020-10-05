@@ -21,7 +21,7 @@ export const LifecycleTask = {
 
 export const enum TaskSlot {
   beforeCreate          = 0,
-  beforeRender          = 1,
+  beforeCompile          = 1,
   beforeCompileChildren = 2,
   beforeBind            = 3,
   afterAttach           = 4,
@@ -37,7 +37,7 @@ export interface IStartTask {
 
 export interface ISlotChooser {
   beforeCreate(): IStartTask;
-  beforeRender(): IStartTask;
+  beforeCompile(): IStartTask;
   beforeCompileChildren(): IStartTask;
   beforeBind(): IStartTask;
   afterAttach(): IStartTask;
@@ -46,7 +46,7 @@ export interface ISlotChooser {
 
 export interface ICallbackSlotChooser<K extends Key> {
   beforeCreate(): ICallbackChooser<K>;
-  beforeRender(): ICallbackChooser<K>;
+  beforeCompile(): ICallbackChooser<K>;
   beforeCompileChildren(): ICallbackChooser<K>;
   beforeBind(): ICallbackChooser<K>;
   afterAttach(): ICallbackChooser<K>;
@@ -130,8 +130,8 @@ export const StartTask = class $StartTask implements IStartTask {
     return this.at(TaskSlot.beforeCreate);
   }
 
-  public beforeRender(): $StartTask {
-    return this.at(TaskSlot.beforeRender);
+  public beforeCompile(): $StartTask {
+    return this.at(TaskSlot.beforeCompile);
   }
 
   public beforeCompileChildren(): $StartTask {
@@ -188,7 +188,7 @@ export interface IStartTaskManager {
    */
   enqueueBeforeCompileChildren(): void;
   runBeforeCreate(container?: IContainer): ILifecycleTask;
-  runBeforeRender(container?: IContainer): ILifecycleTask;
+  runBeforeCompile(container?: IContainer): ILifecycleTask;
   runBeforeCompileChildren(container?: IContainer): ILifecycleTask;
   runBeforeBind(container?: IContainer): ILifecycleTask;
   runAfterAttach(container?: IContainer): ILifecycleTask;
@@ -217,8 +217,8 @@ export class StartTaskManager implements IStartTaskManager {
     return this.run(TaskSlot.beforeCreate, locator);
   }
 
-  public runBeforeRender(locator: IServiceLocator = this.locator): ILifecycleTask {
-    return this.run(TaskSlot.beforeRender, locator);
+  public runBeforeCompile(locator: IServiceLocator = this.locator): ILifecycleTask {
+    return this.run(TaskSlot.beforeCompile, locator);
   }
 
   public runBeforeCompileChildren(locator: IServiceLocator = this.locator): ILifecycleTask {

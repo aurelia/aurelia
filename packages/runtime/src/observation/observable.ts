@@ -13,7 +13,7 @@ type $Getter = PropertyDescriptor['get'] & {
 
 export interface IObservableDefinition {
   name?: PropertyKey;
-  changeHandler?: PropertyKey;
+  callback?: PropertyKey;
   set?: InterceptorFunc;
 }
 
@@ -104,7 +104,7 @@ export function observable(
     }
 
     // determine callback name based on config or convention.
-    const changeHandler = config.changeHandler || `${String(key)}Changed`;
+    const callback = config.callback || `${String(key)}Changed`;
     let initialValue = noValue;
     if (descriptor) {
       // we're adding a getter and setter which means the property descriptor
@@ -125,13 +125,13 @@ export function observable(
     // todo(bigopon/fred): discuss string api for converter
     const $set = config.set;
     descriptor.get = function g(this: SetterObserverOwningObject) {
-      return getNotifier(this, key!, changeHandler, initialValue, $set).getValue();
+      return getNotifier(this, key!, callback, initialValue, $set).getValue();
     };
     descriptor.set = function s(this: SetterObserverOwningObject, newValue: unknown) {
-      getNotifier(this, key!, changeHandler, initialValue, $set).setValue(newValue, LifecycleFlags.none);
+      getNotifier(this, key!, callback, initialValue, $set).setValue(newValue, LifecycleFlags.none);
     };
     (descriptor.get as $Getter).getObserver = function gO(obj: SetterObserverOwningObject) {
-      return getNotifier(obj, key!, changeHandler, initialValue, $set);
+      return getNotifier(obj, key!, callback, initialValue, $set);
     };
 
     if (isClassDecorator) {
@@ -160,7 +160,7 @@ class CallbackSubscriber implements ISubscriber {
 function getNotifier(
   obj: SetterObserverOwningObject,
   key: PropertyKey,
-  changeHandler: PropertyKey,
+  callbackKey: PropertyKey,
   initialValue: unknown,
   set?: InterceptorFunc,
 ): SetterNotifier {
@@ -172,7 +172,7 @@ function getNotifier(
     if (initialValue !== noValue) {
       notifier.setValue(initialValue, LifecycleFlags.none);
     }
-    const callback = obj[changeHandler as string];
+    const callback = obj[callbackKey as string];
     if (typeof callback === 'function') {
       notifier.subscribe(new CallbackSubscriber(obj, key, callback));
     }

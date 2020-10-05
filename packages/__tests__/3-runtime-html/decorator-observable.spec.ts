@@ -79,7 +79,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
   it('should call customHandler when changing the property', function () {
     let callCount = 0;
     class Test {
-      @observable({ changeHandler: 'customHandler' })
+      @observable({ callback: 'customHandler' })
       public value = oldValue;
 
       public customHandler() {

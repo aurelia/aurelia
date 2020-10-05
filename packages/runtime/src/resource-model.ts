@@ -7,17 +7,9 @@ import {
   ResourceDefinition,
   IResourceKind,
 } from '@aurelia/kernel';
-import {
-  CustomAttributeDefinition,
-  BindingMode,
-  CustomAttribute,
-  CustomElement,
-  BindableDefinition,
-  CustomElementDefinition,
-  TemplateControllerLinkType,
-} from '@aurelia/runtime';
 import { AttrSyntax } from './attribute-parser';
 import { BindingCommand, BindingCommandInstance } from './binding-command';
+import { TemplateControllerLinkType } from './definitions';
 import { BindingMode } from './flags';
 import { CustomAttribute, CustomAttributeDefinition } from './resources/custom-attribute';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element';

@@ -1,4 +1,4 @@
-import { DI, ILogger } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ISubscriber } from '../observation';
 
@@ -17,15 +17,8 @@ export const ISignaler = DI.createInterface<ISignaler>('ISignaler').withDefault(
 export class Signaler implements ISignaler {
   public signals: Record<string, Set<ISubscriber>> = Object.create(null);
 
-  public constructor(
-    @ILogger private readonly logger: ILogger,
-  ) {
-    this.logger = logger.scopeTo('Signaler');
-  }
-
   public dispatchSignal(name: Signal, flags?: LifecycleFlags): void {
     const listeners = this.signals[name];
-    this.logger.trace(`dispatchSignal('%s', %s) - %s listeners`, name, flags, listeners?.size ?? 0);
     if (listeners === undefined) {
       return;
     }
@@ -35,7 +28,6 @@ export class Signaler implements ISignaler {
   }
 
   public addSignalListener(name: Signal, listener: ISubscriber): void {
-    this.logger.trace(`addSignalListener('%s')`, name);
     const signals = this.signals;
     const listeners = signals[name];
     if (listeners === undefined) {
@@ -46,7 +38,6 @@ export class Signaler implements ISignaler {
   }
 
   public removeSignalListener(name: Signal, listener: ISubscriber): void {
-    this.logger.trace(`removeSignalListener('%s')`, name);
     const listeners = this.signals[name];
     if (listeners) {
       listeners.delete(listener);

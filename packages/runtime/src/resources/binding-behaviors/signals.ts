@@ -1,4 +1,3 @@
-import { ILogger } from '@aurelia/kernel';
 import { IConnectableBinding } from '../../binding/connectable';
 import { LifecycleFlags } from '../../flags';
 import { IBinding } from '../../lifecycle';
@@ -12,14 +11,9 @@ export class SignalBindingBehavior implements BindingBehaviorInstance {
 
   public constructor(
     @ISignaler private readonly signaler: ISignaler,
-    @ILogger private readonly logger: ILogger,
-  ) {
-    this.logger = logger.scopeTo('SignalBindingBehavior');
-  }
+  ) {}
 
   public bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding, ...names: string[]): void {
-    this.logger.trace(`bind(%s, scope, hostScope, binding, %s)`, flags, names);
-
     if (!('handleChange' in binding)) {
       throw new Error(`The signal behavior can only be used with bindings that have a 'handleChange' method`);
     }
@@ -35,9 +29,6 @@ export class SignalBindingBehavior implements BindingBehaviorInstance {
 
   public unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
     const names = this.lookup.get(binding)!;
-
-    this.logger.trace(`unbind(%s, scope, hostScope, binding) - names: %s`, flags, names);
-
     this.lookup.delete(binding);
     for (const name of names) {
       this.signaler.removeSignalListener(name, binding);

@@ -25,8 +25,6 @@ const tests = [
 
 describe('2-runtime/binding-mode-behavior.spec.ts', function () {
   const container: IContainer = DI.createContainer();
-  container.register(LoggerConfiguration.create({ }));
-  const logger = container.get(ILogger);
   let sut: OneTimeBindingBehavior;
   let binding: PropertyBinding;
 
@@ -39,7 +37,7 @@ describe('2-runtime/binding-mode-behavior.spec.ts', function () {
       describe(Behavior.name, function () {
         // eslint-disable-next-line mocha/no-hooks
         beforeEach(function () {
-          sut = new Behavior(logger);
+          sut = new Behavior();
           binding = new PropertyBinding(undefined, undefined, undefined, initMode, undefined, container as any);
           sut.bind(undefined, undefined, undefined, binding);
         });

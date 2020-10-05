@@ -429,6 +429,9 @@ describe('simple Computed Observer test case', function () {
       tearDown: async () => {
         await au.stop().wait();
         testHost.remove();
+
+        au.dispose();
+        assert.isSchedulerEmpty();
       }
     };
   }

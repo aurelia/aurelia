@@ -11,6 +11,9 @@ describe('ChildrenObserver', function () {
       assert.instanceOf(viewModel.children[1], ChildTwo);
 
       au.stop();
+
+      au.dispose();
+      assert.isSchedulerEmpty();
     });
 
     it('children array with by custom query', function () {
@@ -22,6 +25,9 @@ describe('ChildrenObserver', function () {
       assert.instanceOf(viewModel.children[0], ChildOne);
 
       au.stop();
+
+      au.dispose();
+      assert.isSchedulerEmpty();
     });
 
     it('children array with by custom query, filter, and map', function () {
@@ -35,6 +41,9 @@ describe('ChildrenObserver', function () {
       assert.equal(viewModel.children[0].tagName, CustomElement.getDefinition(ChildOne).name.toUpperCase());
 
       au.stop();
+
+      au.dispose();
+      assert.isSchedulerEmpty();
     });
   });
 
@@ -60,6 +69,9 @@ describe('ChildrenObserver', function () {
         assert.instanceOf(viewModel.children[2], ChildTwo);
         assert.instanceOf(viewModel.children[3], ChildTwo);
         au.stop();
+
+        au.dispose();
+        assert.isSchedulerEmpty();
         done();
       });
     });
@@ -82,6 +94,9 @@ describe('ChildrenObserver', function () {
         assert.instanceOf(viewModel.children[0], ChildTwo);
         assert.instanceOf(viewModel.children[1], ChildTwo);
         au.stop();
+
+        au.dispose();
+        assert.isSchedulerEmpty();
         done();
       });
     });
@@ -108,6 +123,9 @@ describe('ChildrenObserver', function () {
         assert.equal(viewModel.children[0].tagName, tagName);
         assert.equal(viewModel.children[1].tagName, tagName);
         au.stop();
+
+        au.dispose();
+        assert.isSchedulerEmpty();
         done();
       });
     });

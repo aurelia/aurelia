@@ -96,6 +96,9 @@ describe('validation controller factory', function () {
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   }
   const $it = createSpecFunction(runTest);
 
@@ -220,6 +223,9 @@ describe('validation-controller', function () {
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   }
   const $it = createSpecFunction(runTest);
 

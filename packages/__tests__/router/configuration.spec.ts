@@ -36,6 +36,9 @@ describe('Configuration', function () {
       router.stop();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
+
+      au.dispose();
+      assert.isSchedulerEmpty();
     }
 
     return { au, container, lifecycle, host, router, ctx, tearDown };
@@ -110,5 +113,8 @@ describe('Configuration', function () {
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
     router.stop();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
 });

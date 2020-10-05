@@ -115,6 +115,7 @@ export async function createFixture<T extends Constructable>(
 
       await au.stop().wait();
 
+      au.dispose();
       assert.isSchedulerEmpty();
     },
   };

@@ -657,6 +657,8 @@ describe(`Repeat`, function () {
         }
 
         assert.strictEqual(host.textContent, '', 'host.textContent #12');
+
+        assert.isSchedulerEmpty();
       });
     });
 });

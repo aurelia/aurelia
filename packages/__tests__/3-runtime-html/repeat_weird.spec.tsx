@@ -120,6 +120,9 @@ describe('[repeat] -- funny cases', function () {
   async function tearDown(au: Aurelia) {
     await au.stop().wait();
     (au.root.host as Element).remove();
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   }
 
   function createItems(count: number, baseName: string = 'item') {

@@ -49,6 +49,9 @@ describe('Nav', function () {
       router.stop();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
+
+      au.dispose();
+      assert.isSchedulerEmpty();
     }
 
     const scheduler = ctx.scheduler;

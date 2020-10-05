@@ -247,6 +247,9 @@ describe('template-compiler.binding-commands.style', function () {
           em.dispose();
           tearDown();
           await au.stop().wait();
+
+          au.dispose();
+          assert.isSchedulerEmpty();
         }
       });
     }

@@ -961,6 +961,9 @@ describe('Router', function () {
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
         router.stop();
+
+        au.dispose();
+        assert.isSchedulerEmpty();
       }
 
       return { ctx, container, scheduler, host, component, au, router, $teardown };
@@ -1210,6 +1213,9 @@ describe('Router', function () {
         router.stop();
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
+
+        au.dispose();
+        assert.isSchedulerEmpty();
       }
 
       return { ctx, container, scheduler, host, au, router, $teardown };
@@ -1339,6 +1345,9 @@ describe('Router', function () {
         router.stop();
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
+
+        au.dispose();
+        assert.isSchedulerEmpty();
       }
 
       return { ctx, container, scheduler, host, au, router, $teardown, App };
@@ -1606,6 +1615,9 @@ describe('Router', function () {
         router.stop();
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
+
+        au.dispose();
+        assert.isSchedulerEmpty();
       }
 
       return { ctx, container, scheduler, host, au, router, $teardown, App };
@@ -1826,6 +1838,9 @@ describe('Router', function () {
         router.stop();
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
+
+        au.dispose();
+        assert.isSchedulerEmpty();
       }
 
       return { ctx, container, scheduler, host, au, router, $teardown, App };

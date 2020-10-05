@@ -334,6 +334,9 @@ describe('controller short-circuit', function () {
                   await Promise.all(promises);
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `2.1`);
+
+                  controller.dispose();
+                  assert.isSchedulerEmpty();
                 });
 
                 it('afterBind', async function () {
@@ -382,6 +385,9 @@ describe('controller short-circuit', function () {
                   await Promise.all(promises);
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `2.1`);
+
+                  controller.dispose();
+                  assert.isSchedulerEmpty();
                 });
 
                 it('afterAttach', async function () {
@@ -438,6 +444,9 @@ describe('controller short-circuit', function () {
                   await Promise.all(promises);
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `2.1`);
+
+                  controller.dispose();
+                  assert.isSchedulerEmpty();
                 });
 
                 it('afterAttachChildren', async function () {
@@ -502,6 +511,9 @@ describe('controller short-circuit', function () {
                   await Promise.all(promises);
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `2.1`);
+
+                  controller.dispose();
+                  assert.isSchedulerEmpty();
                 });
               });
 
@@ -565,6 +577,9 @@ describe('controller short-circuit', function () {
                   await Promise.all(promises);
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `2.1`);
+
+                  controller.dispose();
+                  assert.isSchedulerEmpty();
                 });
 
                 it('afterAttachChildren', async function () {
@@ -638,6 +653,9 @@ describe('controller short-circuit', function () {
                   await Promise.all(promises);
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `2.1`);
+
+                  controller.dispose();
+                  assert.isSchedulerEmpty();
                 });
               });
 
@@ -693,6 +711,9 @@ describe('controller short-circuit', function () {
                     'b-1.beforeUnbind',
                     'b-1.afterUnbind',
                   ], `2.1`);
+
+                  controller.dispose();
+                  assert.isSchedulerEmpty();
                 });
 
                 it('afterBind', async function () {
@@ -754,6 +775,9 @@ describe('controller short-circuit', function () {
                     'b-1.beforeUnbind',
                     'b-1.afterUnbind',
                   ], `2.1`);
+
+                  controller.dispose();
+                  assert.isSchedulerEmpty();
                 });
 
                 it('afterAttach', async function () {
@@ -823,6 +847,9 @@ describe('controller short-circuit', function () {
                     'b-1.beforeUnbind',
                     'b-1.afterUnbind',
                   ], `2.1`);
+
+                  controller.dispose();
+                  assert.isSchedulerEmpty();
                 });
 
                 it('afterAttachChildren', async function () {
@@ -937,6 +964,9 @@ describe('controller short-circuit', function () {
                     assert.deepStrictEqual(calls.history.splice(0), [
                     ], `2.1.2`);
                   }
+
+                  controller.dispose();
+                  assert.isSchedulerEmpty();
                 });
               });
             });
@@ -987,6 +1017,9 @@ describe('controller short-circuit', function () {
                   await au.stop().wait();
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `2.1`);
+
+                  au.dispose();
+                  assert.isSchedulerEmpty();
                 });
 
                 it('afterBind', async function () {
@@ -1035,6 +1068,9 @@ describe('controller short-circuit', function () {
                   await au.stop().wait();
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `2.1`);
+
+                  au.dispose();
+                  assert.isSchedulerEmpty();
                 });
 
                 it('afterAttach', async function () {
@@ -1091,6 +1127,9 @@ describe('controller short-circuit', function () {
                   await au.stop().wait();
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `2.1`);
+
+                  au.dispose();
+                  assert.isSchedulerEmpty();
                 });
 
                 it('afterAttachChildren', async function () {
@@ -1155,6 +1194,9 @@ describe('controller short-circuit', function () {
                   await au.stop().wait();
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `2.1`);
+
+                  au.dispose();
+                  assert.isSchedulerEmpty();
                 });
               });
             }

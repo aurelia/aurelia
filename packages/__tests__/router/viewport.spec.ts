@@ -34,6 +34,9 @@ describe('Viewport', function () {
       router.stop();
       RouterConfiguration.customize();
       await au.stop().wait();
+
+      au.dispose();
+      assert.isSchedulerEmpty();
     }
 
     return { au, container, scheduler, host, router, tearDown };

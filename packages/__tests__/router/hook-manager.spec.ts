@@ -43,6 +43,9 @@ describe('HookManager', function () {
       router.stop();
       RouterConfiguration.customize();
       await au.stop().wait();
+
+      au.dispose();
+      assert.isSchedulerEmpty();
     }
 
     const navigationInstruction = new Navigation({ instruction: 'test', fullStateInstruction: 'full-test' });

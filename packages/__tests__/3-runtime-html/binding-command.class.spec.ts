@@ -200,6 +200,9 @@ describe('template-compiler.binding-commands.class', function () {
           em.dispose();
           tearDown();
           await au.stop().wait();
+
+          au.dispose();
+          assert.isSchedulerEmpty();
         }
       });
     }

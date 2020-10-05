@@ -1394,6 +1394,8 @@ describe('TemplateCompiler - local templates', function () {
 
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
+      au.dispose();
+      assert.isSchedulerEmpty();
     });
   }
 
@@ -1418,6 +1420,8 @@ describe('TemplateCompiler - local templates', function () {
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
 
   it('works with for', async function () {
@@ -1440,6 +1444,8 @@ describe('TemplateCompiler - local templates', function () {
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
 
   it('works with nested templates - 1', async function () {
@@ -1476,6 +1482,8 @@ describe('TemplateCompiler - local templates', function () {
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
 
   it('works with nested templates - 2', async function () {
@@ -1511,6 +1519,8 @@ describe('TemplateCompiler - local templates', function () {
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
 
   it('throws error if a root template is a local template', function () {

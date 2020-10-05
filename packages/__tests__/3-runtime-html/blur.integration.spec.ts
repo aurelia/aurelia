@@ -359,6 +359,9 @@ describe('blur.integration.spec.ts', function () {
       dispose: async () => {
         await au.stop().wait();
         testHost.remove();
+
+        au.dispose();
+        assert.isSchedulerEmpty();
       }
     };
   }

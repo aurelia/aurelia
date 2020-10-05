@@ -590,6 +590,9 @@ describe(spec, function () {
 
         await au.stop().wait();
         assert.strictEqual(trimFull(host.textContent), '', `trimFull(host.textContent) === ''`);
+
+        au.dispose();
+        assert.isSchedulerEmpty();
       });
     });
 

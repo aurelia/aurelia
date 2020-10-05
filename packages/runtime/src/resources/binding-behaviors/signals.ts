@@ -1,56 +1,45 @@
-import { Reporter } from '@aurelia/kernel';
-import { PropertyBinding } from '../../binding/property-binding';
+import { ILogger } from '@aurelia/kernel';
+import { IConnectableBinding } from '../../binding/connectable';
 import { LifecycleFlags } from '../../flags';
+import { IBinding } from '../../lifecycle';
 import { IScope } from '../../observation';
 import { ISignaler } from '../../observation/signaler';
 import { bindingBehavior, BindingBehaviorInstance } from '../binding-behavior';
 
-export type SignalableBinding = PropertyBinding & {
-  signal: string | string[];
-};
-
 @bindingBehavior('signal')
 export class SignalBindingBehavior implements BindingBehaviorInstance {
+  private readonly lookup: Map<IBinding, string[]> = new Map();
+
   public constructor(
     @ISignaler private readonly signaler: ISignaler,
-  ) {}
+    @ILogger private readonly logger: ILogger,
+  ) {
+    this.logger = logger.scopeTo('SignalBindingBehavior');
+  }
 
-  public bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: SignalableBinding, ...args: string[]): void {
-    if (!binding.updateTarget) {
-      throw Reporter.error(11);
+  public bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding, ...names: string[]): void {
+    this.logger.trace(`bind(%s, scope, hostScope, binding, %s)`, flags, names);
+
+    if (!('handleChange' in binding)) {
+      throw new Error(`The signal behavior can only be used with bindings that have a 'handleChange' method`);
+    }
+    if (names.length === 0) {
+      throw new Error(`At least one signal name must be passed to the signal behavior, e.g. \`expr & signal:'my-signal'\``);
     }
 
-    if (arguments.length === 4) {
-      const name = args[0];
+    this.lookup.set(binding, names);
+    for (const name of names) {
       this.signaler.addSignalListener(name, binding);
-      binding.signal = name;
-    } else if (arguments.length > 4) {
-      const names = Array.prototype.slice.call(args.length + 3, 3);
-      let i = names.length;
-
-      while (i--) {
-        const name = names[i];
-        this.signaler.addSignalListener(name, binding);
-      }
-
-      binding.signal = names;
-    } else {
-      throw Reporter.error(12);
     }
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: SignalableBinding): void {
-    const name = binding.signal;
-    binding.signal = null! as string | string[];
+  public unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
+    const names = this.lookup.get(binding)!;
 
-    if (Array.isArray(name)) {
-      const names = name;
-      let i = names.length;
+    this.logger.trace(`unbind(%s, scope, hostScope, binding) - names: %s`, flags, names);
 
-      while (i--) {
-        this.signaler.removeSignalListener(names[i], binding);
-      }
-    } else {
+    this.lookup.delete(binding);
+    for (const name of names) {
       this.signaler.removeSignalListener(name, binding);
     }
   }

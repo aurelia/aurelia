@@ -36,12 +36,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/jit": "0.8.0-dev.202010031854",
-    "@aurelia/kernel": "0.8.0-dev.202010031854",
-    "@aurelia/metadata": "0.8.0-dev.202010031854",
-    "@aurelia/runtime-html": "0.8.0-dev.202010031854",
-    "@aurelia/runtime": "0.8.0-dev.202010031854",
-    "@aurelia/scheduler": "0.8.0-dev.202010031854",
+    "@aurelia/kernel": "0.7.0",
+    "@aurelia/metadata": "0.7.0",
+    "@aurelia/runtime-html": "0.7.0",
+    "@aurelia/runtime": "0.7.0",
+    "@aurelia/scheduler": "0.7.0",
     "i18next": "^17.0.0"
   },
   "devDependencies": {

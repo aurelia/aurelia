@@ -35,12 +35,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/debug": "0.8.0-dev.202010031854",
-    "@aurelia/jit": "0.8.0-dev.202010031854",
-    "@aurelia/kernel": "0.8.0-dev.202010031854",
-    "@aurelia/metadata": "0.8.0-dev.202010031854",
-    "@aurelia/runtime": "0.8.0-dev.202010031854",
-    "@aurelia/scheduler": "0.8.0-dev.202010031854",
+    "@aurelia/debug": "0.7.0",
+    "@aurelia/kernel": "0.7.0",
+    "@aurelia/metadata": "0.7.0",
+    "@aurelia/runtime": "0.7.0",
+    "@aurelia/scheduler": "0.7.0",
     "jsdom": "^15.2.1",
     "typescript": "^3.9.3"
   },

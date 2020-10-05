@@ -1,7 +1,4 @@
 import {
-  parseExpression
-} from '@aurelia/jit';
-import {
   DI,
   IContainer,
   inject,
@@ -50,7 +47,8 @@ import {
   ITemplateCompiler,
   IScheduler,
   CustomElement,
-  ICustomElementController
+  ICustomElementController,
+  parseExpression,
 } from '@aurelia/runtime';
 import { TestContext } from './html-test-context';
 

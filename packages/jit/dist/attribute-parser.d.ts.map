@@ -1,1 +1,0 @@
-{"version":3,"file":"attribute-parser.d.ts","sourceRoot":"","sources":["../src/attribute-parser.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,UAAU,EAAE,MAAM,OAAO,CAAC;AAGnC,MAAM,WAAW,gBAAgB;IAC/B,KAAK,CAAC,IAAI,EAAE,MAAM,EAAE,KAAK,EAAE,MAAM,GAAG,UAAU,CAAC;CAChD;AAED,eAAO,MAAM,gBAAgB,6DAA0G,CAAC"}

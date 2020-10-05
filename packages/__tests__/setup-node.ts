@@ -3,8 +3,8 @@ import {
   TestContext,
 } from '@aurelia/testing';
 import {
-  JitHtmlJsdomConfiguration
-} from '@aurelia/jit-html-jsdom';
+  RuntimeHtmlJsdomConfiguration
+} from '@aurelia/runtime-html-jsdom';
 import {
   Reporter,
   LogLevel,
@@ -17,7 +17,7 @@ function createJSDOMTestContext(): HTMLTestContext {
   const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, { pretendToBeVisual: true });
 
   return HTMLTestContext.create(
-    JitHtmlJsdomConfiguration,
+    RuntimeHtmlJsdomConfiguration,
     jsdom.window,
     jsdom.window.UIEvent,
     jsdom.window.Event,

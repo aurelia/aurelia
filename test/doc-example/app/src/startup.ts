@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
+import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
 import { RouterConfiguration } from '@aurelia/router';
 import { Aurelia } from '@aurelia/runtime';
 
@@ -46,7 +46,7 @@ import { State } from './state';
       LoginSpecial,
       Main,
 
-      JitHtmlBrowserConfiguration,
+      RuntimeHtmlBrowserConfiguration,
       RouterConfiguration.customize({ useHref: true }),
       DebugConfiguration,
     )

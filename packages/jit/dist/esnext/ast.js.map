@@ -1,1 +1,0 @@
-{"version":3,"file":"ast.js","sourceRoot":"","sources":["../../src/ast.ts"],"names":[],"mappings":"AAAA,MAAM,OAAO,UAAU;IACrB,YACS,OAAe,EACf,QAAgB,EAChB,MAAc,EACd,OAAsB;QAHtB,YAAO,GAAP,OAAO,CAAQ;QACf,aAAQ,GAAR,QAAQ,CAAQ;QAChB,WAAM,GAAN,MAAM,CAAQ;QACd,YAAO,GAAP,OAAO,CAAe;IAC5B,CAAC;CACL"}

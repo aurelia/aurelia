@@ -1,6 +1,8 @@
 import {
   DI,
   IContainer,
+  ILogger,
+  LoggerConfiguration,
   Registration,
 } from '@aurelia/kernel';
 import {
@@ -23,6 +25,8 @@ const tests = [
 
 describe('2-runtime/binding-mode-behavior.spec.ts', function () {
   const container: IContainer = DI.createContainer();
+  container.register(LoggerConfiguration.create({ }));
+  const logger = container.get(ILogger);
   let sut: OneTimeBindingBehavior;
   let binding: PropertyBinding;
 
@@ -35,9 +39,9 @@ describe('2-runtime/binding-mode-behavior.spec.ts', function () {
       describe(Behavior.name, function () {
         // eslint-disable-next-line mocha/no-hooks
         beforeEach(function () {
-          sut = new Behavior();
+          sut = new Behavior(logger);
           binding = new PropertyBinding(undefined, undefined, undefined, initMode, undefined, container as any);
-          sut.bind(undefined, undefined, binding);
+          sut.bind(undefined, undefined, undefined, binding);
         });
 
         it(`bind()   should apply  bindingMode ${mode}`, function () {
@@ -45,7 +49,7 @@ describe('2-runtime/binding-mode-behavior.spec.ts', function () {
         });
 
         it(`unbind() should revert bindingMode ${initMode}`, function () {
-          sut.unbind(undefined, undefined, binding);
+          sut.unbind(undefined, undefined, undefined, binding);
           assert.strictEqual(binding.mode, initMode, `binding.mode`);
         });
       });

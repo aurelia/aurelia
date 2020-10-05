@@ -48,13 +48,6 @@ export type IsAssignable = AccessScopeExpression | AccessKeyedExpression | Acces
 export type IsExpression = IsBindingBehavior | Interpolation;
 export type BindingIdentifierOrPattern = BindingIdentifier | ArrayBindingPattern | ObjectBindingPattern;
 export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern | HtmlLiteralExpression;
-export type Connects = AccessScopeExpression | ArrayLiteralExpression | ObjectLiteralExpression | TemplateExpression | UnaryExpression | CallScopeExpression | AccessMemberExpression | AccessKeyedExpression | TaggedTemplateExpression | BinaryExpression | ConditionalExpression | ValueConverterExpression | BindingBehaviorExpression | ForOfStatement;
-export type Observes = AccessScopeExpression | AccessKeyedExpression | AccessMemberExpression;
-export type CallsFunction = CallFunctionExpression | CallScopeExpression | CallMemberExpression | TaggedTemplateExpression;
-export type IsResource = ValueConverterExpression | BindingBehaviorExpression;
-export type HasBind = BindingBehaviorExpression | ForOfStatement;
-export type HasUnbind = ValueConverterExpression | BindingBehaviorExpression | ForOfStatement;
-export type HasAncestor = AccessThisExpression | AccessScopeExpression | CallScopeExpression;
 export type AnyBindingExpression = Interpolation | ForOfStatement | IsBindingBehavior;
 
 export interface IHydrator {
@@ -85,66 +78,6 @@ export interface IVisitor<T = unknown> {
   visitTemplate(expr: TemplateExpression): T;
   visitUnary(expr: UnaryExpression): T;
   visitValueConverter(expr: ValueConverterExpression): T;
-}
-
-export function connects(expr: IsExpressionOrStatement): expr is Connects {
-  return (expr.$kind & ExpressionKind.Connects) === ExpressionKind.Connects;
-}
-export function observes(expr: IsExpressionOrStatement): expr is Observes {
-  return (expr.$kind & ExpressionKind.Observes) === ExpressionKind.Observes;
-}
-export function callsFunction(expr: IsExpressionOrStatement): expr is CallsFunction {
-  return (expr.$kind & ExpressionKind.CallsFunction) === ExpressionKind.CallsFunction;
-}
-export function hasAncestor(expr: IsExpressionOrStatement): expr is HasAncestor {
-  return (expr.$kind & ExpressionKind.HasAncestor) === ExpressionKind.HasAncestor;
-}
-export function isAssignable(expr: IsExpressionOrStatement): expr is IsAssignable {
-  return (expr.$kind & ExpressionKind.IsAssignable) === ExpressionKind.IsAssignable;
-}
-export function isLeftHandSide(expr: IsExpressionOrStatement): expr is IsLeftHandSide {
-  return (expr.$kind & ExpressionKind.IsLeftHandSide) === ExpressionKind.IsLeftHandSide;
-}
-export function isPrimary(expr: IsExpressionOrStatement): expr is IsPrimary {
-  return (expr.$kind & ExpressionKind.IsPrimary) === ExpressionKind.IsPrimary;
-}
-export function isResource(expr: IsExpressionOrStatement): expr is IsResource {
-  return (expr.$kind & ExpressionKind.IsResource) === ExpressionKind.IsResource;
-}
-export function hasBind(expr: IsExpressionOrStatement): expr is HasBind {
-  return (expr.$kind & ExpressionKind.HasBind) === ExpressionKind.HasBind;
-}
-export function hasUnbind(expr: IsExpressionOrStatement): expr is HasUnbind {
-  return (expr.$kind & ExpressionKind.HasUnbind) === ExpressionKind.HasUnbind;
-}
-export function isLiteral(expr: IsExpressionOrStatement): expr is IsLiteral {
-  return (expr.$kind & ExpressionKind.IsLiteral) === ExpressionKind.IsLiteral;
-}
-export function arePureLiterals(expressions: readonly IsExpressionOrStatement[] | undefined): expressions is IsLiteral[] {
-  if (expressions === void 0 || expressions.length === 0) {
-    return true;
-  }
-  for (let i = 0; i < expressions.length; ++i) {
-    if (!isPureLiteral(expressions[i])) {
-      return false;
-    }
-  }
-  return true;
-}
-export function isPureLiteral(expr: IsExpressionOrStatement): expr is IsLiteral {
-  if (isLiteral(expr)) {
-    switch (expr.$kind) {
-      case ExpressionKind.ArrayLiteral:
-        return arePureLiterals(expr.elements);
-      case ExpressionKind.ObjectLiteral:
-        return arePureLiterals(expr.values);
-      case ExpressionKind.Template:
-        return arePureLiterals(expr.expressions);
-      case ExpressionKind.PrimitiveLiteral:
-        return true;
-    }
-  }
-  return false;
 }
 
 function chooseScope(accessHostScope: boolean, scope: IScope, hostScope: IScope | null){
@@ -216,7 +149,7 @@ export class BindingBehaviorExpression {
     if (!locator) {
       throw Reporter.error(RuntimeError.NoLocator, this);
     }
-    if (hasBind(this.expression)) {
+    if (this.expression.hasBind) {
       this.expression.bind(flags, scope, hostScope, binding);
     }
     const behaviorKey = this.behaviorKey;
@@ -242,7 +175,7 @@ export class BindingBehaviorExpression {
       }
       (binding as BindingWithBehavior)[behaviorKey] = void 0;
     }
-    if (hasUnbind(this.expression)) {
+    if (this.expression.hasUnbind) {
       this.expression.unbind(flags, scope, hostScope, binding);
     }
   }
@@ -1248,7 +1181,7 @@ export class ForOfStatement {
   }
 
   public unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    if (hasUnbind(this.iterable)) {
+    if (this.iterable.hasUnbind) {
       this.iterable.unbind(flags, scope, hostScope, binding);
     }
   }

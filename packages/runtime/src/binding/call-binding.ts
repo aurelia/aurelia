@@ -11,7 +11,6 @@ import {
 import { IObserverLocator } from '../observation/observer-locator';
 import {
   IsBindingBehavior,
-  hasUnbind,
 } from './ast';
 import { IConnectableBinding } from './connectable';
 
@@ -74,7 +73,7 @@ export class CallBinding {
       return;
     }
 
-    if (hasUnbind(this.sourceExpression)) {
+    if (this.sourceExpression.hasUnbind) {
       this.sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
 

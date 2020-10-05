@@ -16,20 +16,19 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/jit", "@aurelia/runtime", "./translation-binding"], factory);
+        define(["require", "exports", "@aurelia/runtime", "./translation-binding"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TranslationBindBindingRenderer = exports.TranslationBindBindingCommand = exports.TranslationBindBindingInstruction = exports.TranslationBindAttributePattern = exports.TranslationBindInstructionType = exports.TranslationBindingRenderer = exports.TranslationBindingCommand = exports.TranslationBindingInstruction = exports.TranslationAttributePattern = exports.TranslationInstructionType = void 0;
-    const jit_1 = require("@aurelia/jit");
     const runtime_1 = require("@aurelia/runtime");
     const translation_binding_1 = require("./translation-binding");
     exports.TranslationInstructionType = 'tt';
     class TranslationAttributePattern {
         static registerAlias(alias) {
             this.prototype[alias] = function (rawName, rawValue, parts) {
-                return new jit_1.AttrSyntax(rawName, rawValue, '', alias);
+                return new runtime_1.AttrSyntax(rawName, rawValue, '', alias);
             };
         }
     }
@@ -48,7 +47,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.bindingType = 284 /* CustomCommand */;
         }
         compile(binding) {
-            return new TranslationBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
+            return new TranslationBindingInstruction(binding.expression, runtime_1.getTarget(binding, false));
         }
     }
     exports.TranslationBindingCommand = TranslationBindingCommand;
@@ -76,7 +75,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         static registerAlias(alias) {
             const bindPattern = `${alias}.bind`;
             this.prototype[bindPattern] = function (rawName, rawValue, parts) {
-                return new jit_1.AttrSyntax(rawName, rawValue, parts[1], bindPattern);
+                return new runtime_1.AttrSyntax(rawName, rawValue, parts[1], bindPattern);
             };
         }
     }
@@ -95,7 +94,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.bindingType = 53 /* BindCommand */;
         }
         compile(binding) {
-            return new TranslationBindBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
+            return new TranslationBindBindingInstruction(binding.expression, runtime_1.getTarget(binding, false));
         }
     }
     exports.TranslationBindBindingCommand = TranslationBindBindingCommand;

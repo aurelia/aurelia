@@ -4,11 +4,38 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./binding/ast", "./binding/property-binding", "./binding/call-binding", "./binding/connectable", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/ref-binding", "./observation/array-observer", "./observation/map-observer", "./observation/set-observer", "./observation/binding-context", "./observation/collection-length-observer", "./observation/collection-size-observer", "./observation/computed-observer", "./observation/dirty-checker", "./observation/observer-locator", "./observation/primitive-observer", "./observation/property-accessor", "./observation/proxy-observer", "./observation/bindable-observer", "./observation/setter-observer", "./observation/signaler", "./observation/subscriber-collection", "./resources/binding-behavior", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attribute", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/with", "./resources/custom-elements/au-slot", "./resources/custom-element", "./resources/value-converter", "./resources/value-converters/sanitize", "./resources/value-converters/view", "@aurelia/scheduler", "./templating/bindable", "./templating/children", "./templating/controller", "./templating/view", "./aurelia", "./configuration", "./definitions", "./dom", "./flags", "./instructions", "./lifecycle", "./templating/render-context", "./lifecycle-task", "./observation", "./renderer"], factory);
+        define(["require", "exports", "./attribute-parser", "./attribute-pattern", "./attribute-patterns", "./binding-command", "./binding-commands", "./binding/ast", "./binding/property-binding", "./binding/call-binding", "./binding/connectable", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/ref-binding", "./observation/array-observer", "./observation/map-observer", "./observation/set-observer", "./observation/binding-context", "./observation/collection-length-observer", "./observation/collection-size-observer", "./observation/computed-observer", "./observation/dirty-checker", "./observation/observer-locator", "./observation/primitive-observer", "./observation/property-accessor", "./observation/proxy-observer", "./observation/bindable-observer", "./observation/setter-observer", "./observation/signaler", "./observation/subscriber-collection", "./resources/binding-behavior", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attribute", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/with", "./resources/custom-elements/au-slot", "./resources/custom-element", "./resources/value-converter", "./resources/value-converters/sanitize", "./resources/value-converters/view", "@aurelia/scheduler", "./templating/bindable", "./templating/children", "./templating/controller", "./templating/view", "./aurelia", "./configuration", "./definitions", "./dom", "./flags", "./instructions", "./lifecycle", "./templating/render-context", "./lifecycle-task", "./observation", "./renderer", "./resource-model", "./semantic-model"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    var attribute_parser_1 = require("./attribute-parser");
+    Object.defineProperty(exports, "AttrSyntax", { enumerable: true, get: function () { return attribute_parser_1.AttrSyntax; } });
+    Object.defineProperty(exports, "IAttributeParser", { enumerable: true, get: function () { return attribute_parser_1.IAttributeParser; } });
+    var attribute_pattern_1 = require("./attribute-pattern");
+    Object.defineProperty(exports, "attributePattern", { enumerable: true, get: function () { return attribute_pattern_1.attributePattern; } });
+    Object.defineProperty(exports, "IAttributePattern", { enumerable: true, get: function () { return attribute_pattern_1.IAttributePattern; } });
+    Object.defineProperty(exports, "AttributePattern", { enumerable: true, get: function () { return attribute_pattern_1.AttributePattern; } });
+    Object.defineProperty(exports, "Interpretation", { enumerable: true, get: function () { return attribute_pattern_1.Interpretation; } });
+    Object.defineProperty(exports, "ISyntaxInterpreter", { enumerable: true, get: function () { return attribute_pattern_1.ISyntaxInterpreter; } });
+    var attribute_patterns_1 = require("./attribute-patterns");
+    Object.defineProperty(exports, "AtPrefixedTriggerAttributePattern", { enumerable: true, get: function () { return attribute_patterns_1.AtPrefixedTriggerAttributePattern; } });
+    Object.defineProperty(exports, "ColonPrefixedBindAttributePattern", { enumerable: true, get: function () { return attribute_patterns_1.ColonPrefixedBindAttributePattern; } });
+    Object.defineProperty(exports, "DotSeparatedAttributePattern", { enumerable: true, get: function () { return attribute_patterns_1.DotSeparatedAttributePattern; } });
+    Object.defineProperty(exports, "RefAttributePattern", { enumerable: true, get: function () { return attribute_patterns_1.RefAttributePattern; } });
+    var binding_command_1 = require("./binding-command");
+    Object.defineProperty(exports, "bindingCommand", { enumerable: true, get: function () { return binding_command_1.bindingCommand; } });
+    Object.defineProperty(exports, "BindingCommand", { enumerable: true, get: function () { return binding_command_1.BindingCommand; } });
+    Object.defineProperty(exports, "BindingCommandDefinition", { enumerable: true, get: function () { return binding_command_1.BindingCommandDefinition; } });
+    Object.defineProperty(exports, "getTarget", { enumerable: true, get: function () { return binding_command_1.getTarget; } });
+    var binding_commands_1 = require("./binding-commands");
+    Object.defineProperty(exports, "CallBindingCommand", { enumerable: true, get: function () { return binding_commands_1.CallBindingCommand; } });
+    Object.defineProperty(exports, "DefaultBindingCommand", { enumerable: true, get: function () { return binding_commands_1.DefaultBindingCommand; } });
+    Object.defineProperty(exports, "ForBindingCommand", { enumerable: true, get: function () { return binding_commands_1.ForBindingCommand; } });
+    Object.defineProperty(exports, "FromViewBindingCommand", { enumerable: true, get: function () { return binding_commands_1.FromViewBindingCommand; } });
+    Object.defineProperty(exports, "OneTimeBindingCommand", { enumerable: true, get: function () { return binding_commands_1.OneTimeBindingCommand; } });
+    Object.defineProperty(exports, "ToViewBindingCommand", { enumerable: true, get: function () { return binding_commands_1.ToViewBindingCommand; } });
+    Object.defineProperty(exports, "TwoWayBindingCommand", { enumerable: true, get: function () { return binding_commands_1.TwoWayBindingCommand; } });
     var ast_1 = require("./binding/ast");
     Object.defineProperty(exports, "CallFunctionExpression", { enumerable: true, get: function () { return ast_1.CallFunctionExpression; } });
     Object.defineProperty(exports, "connects", { enumerable: true, get: function () { return ast_1.connects; } });
@@ -58,6 +85,12 @@
     var expression_parser_1 = require("./binding/expression-parser");
     Object.defineProperty(exports, "IExpressionParser", { enumerable: true, get: function () { return expression_parser_1.IExpressionParser; } });
     Object.defineProperty(exports, "BindingType", { enumerable: true, get: function () { return expression_parser_1.BindingType; } });
+    Object.defineProperty(exports, "parseExpression", { enumerable: true, get: function () { return expression_parser_1.parseExpression; } });
+    Object.defineProperty(exports, "Char", { enumerable: true, get: function () { return expression_parser_1.Char; } });
+    Object.defineProperty(exports, "Access", { enumerable: true, get: function () { return expression_parser_1.Access; } });
+    Object.defineProperty(exports, "Precedence", { enumerable: true, get: function () { return expression_parser_1.Precedence; } });
+    Object.defineProperty(exports, "parse", { enumerable: true, get: function () { return expression_parser_1.parse; } });
+    Object.defineProperty(exports, "ParserState", { enumerable: true, get: function () { return expression_parser_1.ParserState; } });
     var interpolation_binding_1 = require("./binding/interpolation-binding");
     Object.defineProperty(exports, "MultiInterpolationBinding", { enumerable: true, get: function () { return interpolation_binding_1.MultiInterpolationBinding; } });
     Object.defineProperty(exports, "InterpolationBinding", { enumerable: true, get: function () { return interpolation_binding_1.InterpolationBinding; } });
@@ -208,6 +241,20 @@
     Object.defineProperty(exports, "IDOMInitializer", { enumerable: true, get: function () { return aurelia_1.IDOMInitializer; } });
     Object.defineProperty(exports, "CompositionRoot", { enumerable: true, get: function () { return aurelia_1.CompositionRoot; } });
     var configuration_1 = require("./configuration");
+    Object.defineProperty(exports, "RefAttributePatternRegistration", { enumerable: true, get: function () { return configuration_1.RefAttributePatternRegistration; } });
+    Object.defineProperty(exports, "DotSeparatedAttributePatternRegistration", { enumerable: true, get: function () { return configuration_1.DotSeparatedAttributePatternRegistration; } });
+    Object.defineProperty(exports, "DefaultBindingSyntax", { enumerable: true, get: function () { return configuration_1.DefaultBindingSyntax; } });
+    Object.defineProperty(exports, "AtPrefixedTriggerAttributePatternRegistration", { enumerable: true, get: function () { return configuration_1.AtPrefixedTriggerAttributePatternRegistration; } });
+    Object.defineProperty(exports, "ColonPrefixedBindAttributePatternRegistration", { enumerable: true, get: function () { return configuration_1.ColonPrefixedBindAttributePatternRegistration; } });
+    Object.defineProperty(exports, "ShortHandBindingSyntax", { enumerable: true, get: function () { return configuration_1.ShortHandBindingSyntax; } });
+    Object.defineProperty(exports, "CallBindingCommandRegistration", { enumerable: true, get: function () { return configuration_1.CallBindingCommandRegistration; } });
+    Object.defineProperty(exports, "DefaultBindingCommandRegistration", { enumerable: true, get: function () { return configuration_1.DefaultBindingCommandRegistration; } });
+    Object.defineProperty(exports, "ForBindingCommandRegistration", { enumerable: true, get: function () { return configuration_1.ForBindingCommandRegistration; } });
+    Object.defineProperty(exports, "FromViewBindingCommandRegistration", { enumerable: true, get: function () { return configuration_1.FromViewBindingCommandRegistration; } });
+    Object.defineProperty(exports, "OneTimeBindingCommandRegistration", { enumerable: true, get: function () { return configuration_1.OneTimeBindingCommandRegistration; } });
+    Object.defineProperty(exports, "ToViewBindingCommandRegistration", { enumerable: true, get: function () { return configuration_1.ToViewBindingCommandRegistration; } });
+    Object.defineProperty(exports, "TwoWayBindingCommandRegistration", { enumerable: true, get: function () { return configuration_1.TwoWayBindingCommandRegistration; } });
+    Object.defineProperty(exports, "DefaultBindingLanguage", { enumerable: true, get: function () { return configuration_1.DefaultBindingLanguage; } });
     Object.defineProperty(exports, "IfRegistration", { enumerable: true, get: function () { return configuration_1.IfRegistration; } });
     Object.defineProperty(exports, "ElseRegistration", { enumerable: true, get: function () { return configuration_1.ElseRegistration; } });
     Object.defineProperty(exports, "RepeatRegistration", { enumerable: true, get: function () { return configuration_1.RepeatRegistration; } });
@@ -304,5 +351,21 @@
     Object.defineProperty(exports, "ITemplateCompiler", { enumerable: true, get: function () { return renderer_1.ITemplateCompiler; } });
     Object.defineProperty(exports, "instructionRenderer", { enumerable: true, get: function () { return renderer_1.instructionRenderer; } });
     Object.defineProperty(exports, "ensureExpression", { enumerable: true, get: function () { return renderer_1.ensureExpression; } });
+    var resource_model_1 = require("./resource-model");
+    Object.defineProperty(exports, "ResourceModel", { enumerable: true, get: function () { return resource_model_1.ResourceModel; } });
+    Object.defineProperty(exports, "BindableInfo", { enumerable: true, get: function () { return resource_model_1.BindableInfo; } });
+    Object.defineProperty(exports, "ElementInfo", { enumerable: true, get: function () { return resource_model_1.ElementInfo; } });
+    Object.defineProperty(exports, "AttrInfo", { enumerable: true, get: function () { return resource_model_1.AttrInfo; } });
+    var semantic_model_1 = require("./semantic-model");
+    Object.defineProperty(exports, "BindingSymbol", { enumerable: true, get: function () { return semantic_model_1.BindingSymbol; } });
+    Object.defineProperty(exports, "CustomAttributeSymbol", { enumerable: true, get: function () { return semantic_model_1.CustomAttributeSymbol; } });
+    Object.defineProperty(exports, "CustomElementSymbol", { enumerable: true, get: function () { return semantic_model_1.CustomElementSymbol; } });
+    Object.defineProperty(exports, "LetElementSymbol", { enumerable: true, get: function () { return semantic_model_1.LetElementSymbol; } });
+    Object.defineProperty(exports, "PlainAttributeSymbol", { enumerable: true, get: function () { return semantic_model_1.PlainAttributeSymbol; } });
+    Object.defineProperty(exports, "PlainElementSymbol", { enumerable: true, get: function () { return semantic_model_1.PlainElementSymbol; } });
+    Object.defineProperty(exports, "SymbolFlags", { enumerable: true, get: function () { return semantic_model_1.SymbolFlags; } });
+    Object.defineProperty(exports, "TemplateControllerSymbol", { enumerable: true, get: function () { return semantic_model_1.TemplateControllerSymbol; } });
+    Object.defineProperty(exports, "TextSymbol", { enumerable: true, get: function () { return semantic_model_1.TextSymbol; } });
+    Object.defineProperty(exports, "ProjectionSymbol", { enumerable: true, get: function () { return semantic_model_1.ProjectionSymbol; } });
 });
 //# sourceMappingURL=index.js.map

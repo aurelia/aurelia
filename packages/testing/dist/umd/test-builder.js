@@ -283,7 +283,7 @@
     //   private readonly container: IContainer;
     //   private readonly Type: T;
     //   constructor(Type: T) {
-    //     this.container = JitHtmlConfiguration.createContainer();
+    //     this.container = RuntimeHtmlConfiguration.createContainer();
     //     this.container.register(Type as any);
     //     this.Type = Type;
     //   }

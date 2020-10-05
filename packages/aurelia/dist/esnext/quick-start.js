@@ -1,11 +1,11 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
+import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
 import { DI } from '@aurelia/kernel';
 import { Aurelia as $Aurelia, CustomElement } from '@aurelia/runtime';
 // TODO: SSR?? abstract HTMLElement and document.
 function createAurelia() {
     const au = new Aurelia();
-    au.register(JitHtmlBrowserConfiguration);
+    au.register(RuntimeHtmlBrowserConfiguration);
     // eslint-disable-next-line sonarjs/no-collapsible-if
     if (typeof process !== 'undefined' && typeof process.env === 'object') {
         // Just use NODE_ENV to control build process.

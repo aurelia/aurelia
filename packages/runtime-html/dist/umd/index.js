@@ -4,11 +4,20 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./binding/listener", "./binding/attribute", "./observation/attribute-ns-accessor", "./observation/checked-observer", "./observation/class-attribute-accessor", "./observation/data-attribute-accessor", "./observation/element-property-accessor", "./observation/event-manager", "./observation/observer-locator", "./observation/select-value-observer", "./observation/style-attribute-accessor", "./observation/svg-analyzer", "./observation/value-attribute-observer", "./resources/binding-behaviors/attr", "./resources/binding-behaviors/self", "./resources/binding-behaviors/update-trigger", "./resources/custom-attributes/blur", "./resources/custom-attributes/focus", "./resources/custom-attributes/portal", "./resources/custom-elements/compose", "./configuration", "./create-element", "./definitions", "./dom", "./instructions", "./projectors", "./styles/style-configuration", "./styles/css-modules-registry", "./styles/shadow-dom-registry", "./styles/shadow-dom-styles"], factory);
+        define(["require", "exports", "./attribute-syntax-transformer", "./binding-commands", "./binding/listener", "./binding/attribute", "./observation/attribute-ns-accessor", "./observation/checked-observer", "./observation/class-attribute-accessor", "./observation/data-attribute-accessor", "./observation/element-property-accessor", "./observation/event-manager", "./observation/observer-locator", "./observation/select-value-observer", "./observation/style-attribute-accessor", "./observation/svg-analyzer", "./observation/value-attribute-observer", "./resources/binding-behaviors/attr", "./resources/binding-behaviors/self", "./resources/binding-behaviors/update-trigger", "./resources/custom-attributes/blur", "./resources/custom-attributes/focus", "./resources/custom-attributes/portal", "./resources/custom-elements/compose", "./configuration", "./debugging", "./template-binder", "./template-element-factory", "./create-element", "./definitions", "./dom", "./instructions", "./projectors", "./styles/style-configuration", "./styles/css-modules-registry", "./styles/shadow-dom-registry", "./styles/shadow-dom-styles"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    var attribute_syntax_transformer_1 = require("./attribute-syntax-transformer");
+    Object.defineProperty(exports, "IAttrSyntaxTransformer", { enumerable: true, get: function () { return attribute_syntax_transformer_1.IAttrSyntaxTransformer; } });
+    var binding_commands_1 = require("./binding-commands");
+    Object.defineProperty(exports, "TriggerBindingCommand", { enumerable: true, get: function () { return binding_commands_1.TriggerBindingCommand; } });
+    Object.defineProperty(exports, "DelegateBindingCommand", { enumerable: true, get: function () { return binding_commands_1.DelegateBindingCommand; } });
+    Object.defineProperty(exports, "CaptureBindingCommand", { enumerable: true, get: function () { return binding_commands_1.CaptureBindingCommand; } });
+    Object.defineProperty(exports, "AttrBindingCommand", { enumerable: true, get: function () { return binding_commands_1.AttrBindingCommand; } });
+    Object.defineProperty(exports, "ClassBindingCommand", { enumerable: true, get: function () { return binding_commands_1.ClassBindingCommand; } });
+    Object.defineProperty(exports, "StyleBindingCommand", { enumerable: true, get: function () { return binding_commands_1.StyleBindingCommand; } });
     var listener_1 = require("./binding/listener");
     Object.defineProperty(exports, "Listener", { enumerable: true, get: function () { return listener_1.Listener; } });
     var attribute_1 = require("./binding/attribute");
@@ -57,10 +66,20 @@
     var compose_1 = require("./resources/custom-elements/compose");
     Object.defineProperty(exports, "Compose", { enumerable: true, get: function () { return compose_1.Compose; } });
     var configuration_1 = require("./configuration");
+    Object.defineProperty(exports, "ITemplateCompilerRegistration", { enumerable: true, get: function () { return configuration_1.ITemplateCompilerRegistration; } });
+    Object.defineProperty(exports, "ITemplateElementFactoryRegistration", { enumerable: true, get: function () { return configuration_1.ITemplateElementFactoryRegistration; } });
+    Object.defineProperty(exports, "IAttrSyntaxTransformerRegistation", { enumerable: true, get: function () { return configuration_1.IAttrSyntaxTransformerRegistation; } });
     Object.defineProperty(exports, "IProjectorLocatorRegistration", { enumerable: true, get: function () { return configuration_1.IProjectorLocatorRegistration; } });
     Object.defineProperty(exports, "ITargetAccessorLocatorRegistration", { enumerable: true, get: function () { return configuration_1.ITargetAccessorLocatorRegistration; } });
     Object.defineProperty(exports, "ITargetObserverLocatorRegistration", { enumerable: true, get: function () { return configuration_1.ITargetObserverLocatorRegistration; } });
     Object.defineProperty(exports, "DefaultComponents", { enumerable: true, get: function () { return configuration_1.DefaultComponents; } });
+    Object.defineProperty(exports, "TriggerBindingCommandRegistration", { enumerable: true, get: function () { return configuration_1.TriggerBindingCommandRegistration; } });
+    Object.defineProperty(exports, "DelegateBindingCommandRegistration", { enumerable: true, get: function () { return configuration_1.DelegateBindingCommandRegistration; } });
+    Object.defineProperty(exports, "CaptureBindingCommandRegistration", { enumerable: true, get: function () { return configuration_1.CaptureBindingCommandRegistration; } });
+    Object.defineProperty(exports, "AttrBindingCommandRegistration", { enumerable: true, get: function () { return configuration_1.AttrBindingCommandRegistration; } });
+    Object.defineProperty(exports, "ClassBindingCommandRegistration", { enumerable: true, get: function () { return configuration_1.ClassBindingCommandRegistration; } });
+    Object.defineProperty(exports, "StyleBindingCommandRegistration", { enumerable: true, get: function () { return configuration_1.StyleBindingCommandRegistration; } });
+    Object.defineProperty(exports, "DefaultBindingLanguage", { enumerable: true, get: function () { return configuration_1.DefaultBindingLanguage; } });
     Object.defineProperty(exports, "AttrBindingBehaviorRegistration", { enumerable: true, get: function () { return configuration_1.AttrBindingBehaviorRegistration; } });
     Object.defineProperty(exports, "SelfBindingBehaviorRegistration", { enumerable: true, get: function () { return configuration_1.SelfBindingBehaviorRegistration; } });
     Object.defineProperty(exports, "UpdateTriggerBindingBehaviorRegistration", { enumerable: true, get: function () { return configuration_1.UpdateTriggerBindingBehaviorRegistration; } });
@@ -75,6 +94,14 @@
     Object.defineProperty(exports, "TextBindingRendererRegistration", { enumerable: true, get: function () { return configuration_1.TextBindingRendererRegistration; } });
     Object.defineProperty(exports, "DefaultRenderers", { enumerable: true, get: function () { return configuration_1.DefaultRenderers; } });
     Object.defineProperty(exports, "RuntimeHtmlConfiguration", { enumerable: true, get: function () { return configuration_1.RuntimeHtmlConfiguration; } });
+    var debugging_1 = require("./debugging");
+    Object.defineProperty(exports, "stringifyDOM", { enumerable: true, get: function () { return debugging_1.stringifyDOM; } });
+    Object.defineProperty(exports, "stringifyInstructions", { enumerable: true, get: function () { return debugging_1.stringifyInstructions; } });
+    Object.defineProperty(exports, "stringifyTemplateDefinition", { enumerable: true, get: function () { return debugging_1.stringifyTemplateDefinition; } });
+    var template_binder_1 = require("./template-binder");
+    Object.defineProperty(exports, "TemplateBinder", { enumerable: true, get: function () { return template_binder_1.TemplateBinder; } });
+    var template_element_factory_1 = require("./template-element-factory");
+    Object.defineProperty(exports, "ITemplateElementFactory", { enumerable: true, get: function () { return template_element_factory_1.ITemplateElementFactory; } });
     var create_element_1 = require("./create-element");
     Object.defineProperty(exports, "createElement", { enumerable: true, get: function () { return create_element_1.createElement; } });
     Object.defineProperty(exports, "RenderPlan", { enumerable: true, get: function () { return create_element_1.RenderPlan; } });

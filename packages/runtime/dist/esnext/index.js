@@ -1,8 +1,13 @@
+export { AttrSyntax, IAttributeParser, } from './attribute-parser';
+export { attributePattern, IAttributePattern, AttributePattern, Interpretation, ISyntaxInterpreter, } from './attribute-pattern';
+export { AtPrefixedTriggerAttributePattern, ColonPrefixedBindAttributePattern, DotSeparatedAttributePattern, RefAttributePattern, } from './attribute-patterns';
+export { bindingCommand, BindingCommand, BindingCommandDefinition, getTarget, } from './binding-command';
+export { CallBindingCommand, DefaultBindingCommand, ForBindingCommand, FromViewBindingCommand, OneTimeBindingCommand, ToViewBindingCommand, TwoWayBindingCommand } from './binding-commands';
 export { CallFunctionExpression, connects, observes, callsFunction, hasAncestor, isAssignable, isLeftHandSide, isPrimary, isResource, hasBind, hasUnbind, isLiteral, arePureLiterals, isPureLiteral, CustomExpression, BindingBehaviorExpression, ValueConverterExpression, AssignExpression, ConditionalExpression, AccessThisExpression, AccessScopeExpression, AccessMemberExpression, AccessKeyedExpression, CallScopeExpression, CallMemberExpression, BinaryExpression, UnaryExpression, PrimitiveLiteralExpression, HtmlLiteralExpression, ArrayLiteralExpression, ObjectLiteralExpression, TemplateExpression, TaggedTemplateExpression, ArrayBindingPattern, ObjectBindingPattern, BindingIdentifier, ForOfStatement, Interpolation } from './binding/ast';
 export { PropertyBinding } from './binding/property-binding';
 export { CallBinding } from './binding/call-binding';
 export { connectable, BindingMediator } from './binding/connectable';
-export { IExpressionParser, BindingType } from './binding/expression-parser';
+export { IExpressionParser, BindingType, parseExpression, Char, Access, Precedence, parse, ParserState, } from './binding/expression-parser';
 export { MultiInterpolationBinding, InterpolationBinding } from './binding/interpolation-binding';
 export { LetBinding } from './binding/let-binding';
 export { RefBinding } from './binding/ref-binding';
@@ -44,7 +49,7 @@ export { ChildrenDefinition, Children, children, ChildrenObserver, } from './tem
 export { Controller, isCustomElementController, isCustomElementViewModel, } from './templating/controller';
 export { ViewFactory, IViewLocator, ViewLocator, view, Views, } from './templating/view';
 export { Aurelia, IDOMInitializer, CompositionRoot, } from './aurelia';
-export { IfRegistration, ElseRegistration, RepeatRegistration, WithRegistration, SanitizeValueConverterRegistration, DebounceBindingBehaviorRegistration, OneTimeBindingBehaviorRegistration, ToViewBindingBehaviorRegistration, FromViewBindingBehaviorRegistration, SignalBindingBehaviorRegistration, ThrottleBindingBehaviorRegistration, TwoWayBindingBehaviorRegistration, RefBindingRendererRegistration, CallBindingRendererRegistration, CustomAttributeRendererRegistration, CustomElementRendererRegistration, InterpolationBindingRendererRegistration, IteratorBindingRendererRegistration, LetElementRendererRegistration, PropertyBindingRendererRegistration, SetPropertyRendererRegistration, TemplateControllerRendererRegistration, DefaultResources, IObserverLocatorRegistration, ILifecycleRegistration, IRendererRegistration, RuntimeConfiguration } from './configuration';
+export { RefAttributePatternRegistration, DotSeparatedAttributePatternRegistration, DefaultBindingSyntax, AtPrefixedTriggerAttributePatternRegistration, ColonPrefixedBindAttributePatternRegistration, ShortHandBindingSyntax, CallBindingCommandRegistration, DefaultBindingCommandRegistration, ForBindingCommandRegistration, FromViewBindingCommandRegistration, OneTimeBindingCommandRegistration, ToViewBindingCommandRegistration, TwoWayBindingCommandRegistration, DefaultBindingLanguage, IfRegistration, ElseRegistration, RepeatRegistration, WithRegistration, SanitizeValueConverterRegistration, DebounceBindingBehaviorRegistration, OneTimeBindingBehaviorRegistration, ToViewBindingBehaviorRegistration, FromViewBindingBehaviorRegistration, SignalBindingBehaviorRegistration, ThrottleBindingBehaviorRegistration, TwoWayBindingBehaviorRegistration, RefBindingRendererRegistration, CallBindingRendererRegistration, CustomAttributeRendererRegistration, CustomElementRendererRegistration, InterpolationBindingRendererRegistration, IteratorBindingRendererRegistration, LetElementRendererRegistration, PropertyBindingRendererRegistration, SetPropertyRendererRegistration, TemplateControllerRendererRegistration, DefaultResources, IObserverLocatorRegistration, ILifecycleRegistration, IRendererRegistration, RuntimeConfiguration } from './configuration';
 export { HooksDefinition, isTargetedInstruction, ITargetedInstruction, TargetedInstructionType, alias, registerAliases } from './definitions';
 export { DOM, INode, IRenderLocation, IDOM, NodeSequence } from './dom';
 export { BindingMode, BindingStrategy, ExpressionKind, LifecycleFlags, } from './flags';
@@ -54,4 +59,6 @@ export { getRenderContext, isRenderContext, } from './templating/render-context'
 export { AggregateContinuationTask, TerminalTask, AggregateTerminalTask, ContinuationTask, LifecycleTask, PromiseTask, TaskSlot, StartTask, IStartTask, IStartTaskManager, ProviderTask, } from './lifecycle-task';
 export { AccessorType, CollectionKind, DelegationStrategy, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation';
 export { applyBindingBehavior, IInstructionRenderer, IRenderer, ITemplateCompiler, instructionRenderer, ensureExpression, } from './renderer';
+export { ResourceModel, BindableInfo, ElementInfo, AttrInfo } from './resource-model';
+export { BindingSymbol, CustomAttributeSymbol, CustomElementSymbol, LetElementSymbol, PlainAttributeSymbol, PlainElementSymbol, SymbolFlags, TemplateControllerSymbol, TextSymbol, ProjectionSymbol, } from './semantic-model';
 //# sourceMappingURL=index.js.map

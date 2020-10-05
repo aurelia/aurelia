@@ -4,6 +4,8 @@ import { StartTaskManager } from './lifecycle-task';
 import { ObserverLocator } from './observation/observer-locator';
 import { CallBindingRenderer, CustomAttributeRenderer, CustomElementRenderer, InterpolationBindingRenderer, IteratorBindingRenderer, LetElementRenderer, PropertyBindingRenderer, RefBindingRenderer, Renderer, SetPropertyRenderer, TemplateControllerRenderer } from './renderer';
 import { FromViewBindingBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior } from './resources/binding-behaviors/binding-mode';
+import { AtPrefixedTriggerAttributePattern, ColonPrefixedBindAttributePattern, DotSeparatedAttributePattern, RefAttributePattern } from './attribute-patterns';
+import { CallBindingCommand, DefaultBindingCommand, ForBindingCommand, FromViewBindingCommand, OneTimeBindingCommand, ToViewBindingCommand, TwoWayBindingCommand } from './binding-commands';
 import { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
 import { SignalBindingBehavior } from './resources/binding-behaviors/signals';
 import { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
@@ -16,13 +18,60 @@ import { ViewValueConverter } from './resources/value-converters/view';
 import { ViewLocator } from './templating/view';
 import { Now } from '@aurelia/scheduler';
 import { AuSlot, ProjectionProvider } from './resources/custom-elements/au-slot';
+import { ExpressionParser } from './binding/expression-parser';
+export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern;
+export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern;
+export const RefAttributePatternRegistration = RefAttributePattern;
+export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern;
+export const IExpressionParserRegistration = ExpressionParser;
 export const IObserverLocatorRegistration = ObserverLocator;
 export const ILifecycleRegistration = Lifecycle;
 export const IRendererRegistration = Renderer;
 export const IStartTaskManagerRegistration = StartTaskManager;
 export const IViewLocatorRegistration = ViewLocator;
 /**
+ * Default binding syntax for the following attribute name patterns:
+ * - `ref`
+ * - `target.command` (dot-separated)
+ */
+export const DefaultBindingSyntax = [
+    RefAttributePatternRegistration,
+    DotSeparatedAttributePatternRegistration
+];
+/**
+ * Binding syntax for short-hand attribute name patterns:
+ * - `@target` (short-hand for `target.trigger`)
+ * - `:target` (short-hand for `target.bind`)
+ */
+export const ShortHandBindingSyntax = [
+    AtPrefixedTriggerAttributePatternRegistration,
+    ColonPrefixedBindAttributePatternRegistration
+];
+export const CallBindingCommandRegistration = CallBindingCommand;
+export const DefaultBindingCommandRegistration = DefaultBindingCommand;
+export const ForBindingCommandRegistration = ForBindingCommand;
+export const FromViewBindingCommandRegistration = FromViewBindingCommand;
+export const OneTimeBindingCommandRegistration = OneTimeBindingCommand;
+export const ToViewBindingCommandRegistration = ToViewBindingCommand;
+export const TwoWayBindingCommandRegistration = TwoWayBindingCommand;
+/**
+ * Default runtime/environment-agnostic binding commands:
+ * - Property observation: `.bind`, `.one-time`, `.from-view`, `.to-view`, `.two-way`
+ * - Function call: `.call`
+ * - Collection observation: `.for`
+ */
+export const DefaultBindingLanguage = [
+    DefaultBindingCommandRegistration,
+    OneTimeBindingCommandRegistration,
+    FromViewBindingCommandRegistration,
+    ToViewBindingCommandRegistration,
+    TwoWayBindingCommandRegistration,
+    CallBindingCommandRegistration,
+    ForBindingCommandRegistration
+];
+/**
  * Default implementations for the following interfaces:
+ * - `IExpressionParserRegistration`
  * - `IObserverLocator`
  * - `ILifecycle`
  * - `IRenderer`
@@ -32,6 +81,7 @@ export const IViewLocatorRegistration = ViewLocator;
  * - `ISchedulerRegistration`
  */
 export const DefaultComponents = [
+    IExpressionParserRegistration,
     IObserverLocatorRegistration,
     ILifecycleRegistration,
     IRendererRegistration,
@@ -128,7 +178,7 @@ export const RuntimeConfiguration = {
      * Apply this configuration to the provided container.
      */
     register(container) {
-        return container.register(...DefaultComponents, ...DefaultResources, ...DefaultRenderers);
+        return container.register(...DefaultComponents, ...DefaultResources, ...DefaultRenderers, ...DefaultBindingSyntax, ...DefaultBindingLanguage);
     },
     /**
      * Create a new container with this configuration applied to it.

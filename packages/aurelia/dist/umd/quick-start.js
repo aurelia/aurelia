@@ -4,20 +4,20 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/debug", "@aurelia/jit-html-browser", "@aurelia/kernel", "@aurelia/runtime"], factory);
+        define(["require", "exports", "@aurelia/debug", "@aurelia/runtime-html-browser", "@aurelia/kernel", "@aurelia/runtime"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Aurelia = void 0;
     const debug_1 = require("@aurelia/debug");
-    const jit_html_browser_1 = require("@aurelia/jit-html-browser");
+    const runtime_html_browser_1 = require("@aurelia/runtime-html-browser");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     // TODO: SSR?? abstract HTMLElement and document.
     function createAurelia() {
         const au = new Aurelia();
-        au.register(jit_html_browser_1.JitHtmlBrowserConfiguration);
+        au.register(runtime_html_browser_1.RuntimeHtmlBrowserConfiguration);
         // eslint-disable-next-line sonarjs/no-collapsible-if
         if (typeof process !== 'undefined' && typeof process.env === 'object') {
             // Just use NODE_ENV to control build process.

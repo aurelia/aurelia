@@ -1,5 +1,5 @@
 import { Registration } from '@aurelia/kernel';
-import { StartTask } from '@aurelia/runtime';
+import { StartTask, BindingCommand, AttributePattern } from '@aurelia/runtime';
 import { DateFormatBindingBehavior } from './df/date-format-binding-behavior';
 import { DateFormatValueConverter } from './df/date-format-value-converter';
 import { I18N, I18nService } from './i18n';
@@ -13,7 +13,6 @@ import { TranslationBindingBehavior } from './t/translation-binding-behavior';
 import { TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingRenderer } from './t/translation-parameters-renderer';
 import { TranslationAttributePattern, TranslationBindAttributePattern, TranslationBindBindingCommand, TranslationBindBindingRenderer, TranslationBindingCommand, TranslationBindingRenderer } from './t/translation-renderer';
 import { TranslationValueConverter } from './t/translation-value-converter';
-import { BindingCommand, AttributePattern } from '@aurelia/jit';
 const translation = [
     TranslationValueConverter,
     TranslationBindingBehavior,

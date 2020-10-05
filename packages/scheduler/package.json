@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/scheduler",
-  "version": "0.8.0-dev.202010031854",
+  "version": "0.8.0-dev.202010050135",
   "main": "dist/umd/index.js",
   "module": "dist/esnext/index.js",
   "types": "dist/index.d.ts",
@@ -34,8 +34,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.8.0-dev.202010031854",
-    "@aurelia/metadata": "0.8.0-dev.202010031854"
+    "@aurelia/kernel": "0.8.0-dev.202010050135",
+    "@aurelia/metadata": "0.8.0-dev.202010050135"
   },
   "devDependencies": {
     "typescript": "^3.9.3"

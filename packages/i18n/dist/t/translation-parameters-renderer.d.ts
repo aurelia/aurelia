@@ -1,6 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { AttrSyntax, BindingSymbol, BindingCommandInstance, PlainAttributeSymbol } from '@aurelia/jit';
-import { BindingMode, BindingType, ICallBindingInstruction, IRenderableController, IExpressionParser, IInstructionRenderer, IObserverLocator, IsBindingBehavior, LifecycleFlags } from '@aurelia/runtime';
+import { BindingMode, BindingType, ICallBindingInstruction, IRenderableController, IExpressionParser, IInstructionRenderer, IObserverLocator, IsBindingBehavior, LifecycleFlags, AttrSyntax, BindingSymbol, BindingCommandInstance, PlainAttributeSymbol } from '@aurelia/runtime';
 export declare const TranslationParametersInstructionType = "tpt";
 declare const attribute = "t-params.bind";
 export declare class TranslationParametersAttributePattern {

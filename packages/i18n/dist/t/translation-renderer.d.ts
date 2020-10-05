@@ -1,6 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { AttrSyntax, BindingSymbol, BindingCommandInstance, PlainAttributeSymbol } from '@aurelia/jit';
-import { BindingMode, BindingType, ICallBindingInstruction, IExpressionParser, IInstructionRenderer, IObserverLocator, IsBindingBehavior, LifecycleFlags, IRenderableController } from '@aurelia/runtime';
+import { BindingMode, BindingType, ICallBindingInstruction, IExpressionParser, IInstructionRenderer, IObserverLocator, IsBindingBehavior, LifecycleFlags, IRenderableController, AttrSyntax, BindingSymbol, BindingCommandInstance, PlainAttributeSymbol } from '@aurelia/runtime';
 export declare const TranslationInstructionType = "tt";
 export declare class TranslationAttributePattern {
     [key: string]: ((rawName: string, rawValue: string, parts: string[]) => AttrSyntax);

@@ -1,5 +1,9 @@
 import { DI } from '@aurelia/kernel';
 import { RuntimeConfiguration } from '@aurelia/runtime';
+import { AttrBindingCommand, CaptureBindingCommand, ClassBindingCommand, DelegateBindingCommand, RefBindingCommand, StyleBindingCommand, TriggerBindingCommand } from './binding-commands';
+import { HtmlAttrSyntaxTransformer } from './html-attribute-syntax-transformer';
+import { TemplateCompiler } from './template-compiler';
+import { HTMLTemplateElementFactory } from './template-element-factory';
 import { AttributeBindingRenderer, ListenerBindingRenderer, SetAttributeRenderer, StylePropertyBindingRenderer, TextBindingRenderer, SetClassAttributeRenderer, SetStyleAttributeRenderer } from './html-renderer';
 import { TargetAccessorLocator, TargetObserverLocator } from './observation/observer-locator';
 import { HTMLProjectorLocator } from './projectors';
@@ -10,20 +14,48 @@ import { Blur } from './resources/custom-attributes/blur';
 import { Focus } from './resources/custom-attributes/focus';
 import { Portal } from './resources/custom-attributes/portal';
 import { Compose } from './resources/custom-elements/compose';
+export const ITemplateCompilerRegistration = TemplateCompiler;
+export const ITemplateElementFactoryRegistration = HTMLTemplateElementFactory;
+export const IAttrSyntaxTransformerRegistation = HtmlAttrSyntaxTransformer;
 export const IProjectorLocatorRegistration = HTMLProjectorLocator;
 export const ITargetAccessorLocatorRegistration = TargetAccessorLocator;
 export const ITargetObserverLocatorRegistration = TargetObserverLocator;
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
+ * - `ITemplateCompiler`
+ * - `ITemplateElementFactory`
  * - `IProjectorLocator`
  * - `ITargetAccessorLocator`
  * - `ITargetObserverLocator`
  * - `ITemplateFactory`
  */
 export const DefaultComponents = [
+    ITemplateCompilerRegistration,
+    ITemplateElementFactoryRegistration,
+    IAttrSyntaxTransformerRegistation,
     IProjectorLocatorRegistration,
     ITargetAccessorLocatorRegistration,
     ITargetObserverLocatorRegistration,
+];
+export const RefBindingCommandRegistration = RefBindingCommand;
+export const TriggerBindingCommandRegistration = TriggerBindingCommand;
+export const DelegateBindingCommandRegistration = DelegateBindingCommand;
+export const CaptureBindingCommandRegistration = CaptureBindingCommand;
+export const AttrBindingCommandRegistration = AttrBindingCommand;
+export const ClassBindingCommandRegistration = ClassBindingCommand;
+export const StyleBindingCommandRegistration = StyleBindingCommand;
+/**
+ * Default HTML-specific (but environment-agnostic) binding commands:
+ * - Event listeners: `.trigger`, `.delegate`, `.capture`
+ */
+export const DefaultBindingLanguage = [
+    RefBindingCommandRegistration,
+    TriggerBindingCommandRegistration,
+    DelegateBindingCommandRegistration,
+    CaptureBindingCommandRegistration,
+    ClassBindingCommandRegistration,
+    StyleBindingCommandRegistration,
+    AttrBindingCommandRegistration
 ];
 export const AttrBindingBehaviorRegistration = AttrBindingBehavior;
 export const SelfBindingBehaviorRegistration = SelfBindingBehavior;
@@ -84,7 +116,7 @@ export const RuntimeHtmlConfiguration = {
     register(container) {
         return RuntimeConfiguration
             .register(container)
-            .register(...DefaultComponents, ...DefaultResources, ...DefaultRenderers);
+            .register(...DefaultComponents, ...DefaultResources, ...DefaultBindingLanguage, ...DefaultRenderers);
     },
     /**
      * Create a new container with this configuration applied to it.

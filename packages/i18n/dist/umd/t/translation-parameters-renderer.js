@@ -16,13 +16,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/jit", "@aurelia/runtime", "./translation-binding"], factory);
+        define(["require", "exports", "@aurelia/runtime", "./translation-binding"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TranslationParametersBindingRenderer = exports.TranslationParametersBindingCommand = exports.TranslationParametersBindingInstruction = exports.TranslationParametersAttributePattern = exports.TranslationParametersInstructionType = void 0;
-    const jit_1 = require("@aurelia/jit");
     const runtime_1 = require("@aurelia/runtime");
     const translation_binding_1 = require("./translation-binding");
     exports.TranslationParametersInstructionType = 'tpt';
@@ -31,11 +30,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     let TranslationParametersAttributePattern = /** @class */ (() => {
         let TranslationParametersAttributePattern = class TranslationParametersAttributePattern {
             [attribute](rawName, rawValue, parts) {
-                return new jit_1.AttrSyntax(rawName, rawValue, '', attribute);
+                return new runtime_1.AttrSyntax(rawName, rawValue, '', attribute);
             }
         };
         TranslationParametersAttributePattern = __decorate([
-            jit_1.attributePattern({ pattern: attribute, symbols: '' })
+            runtime_1.attributePattern({ pattern: attribute, symbols: '' })
         ], TranslationParametersAttributePattern);
         return TranslationParametersAttributePattern;
     })();
@@ -55,11 +54,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 this.bindingType = 53 /* BindCommand */;
             }
             compile(binding) {
-                return new TranslationParametersBindingInstruction(binding.expression, jit_1.getTarget(binding, false));
+                return new TranslationParametersBindingInstruction(binding.expression, runtime_1.getTarget(binding, false));
             }
         };
         TranslationParametersBindingCommand = __decorate([
-            jit_1.bindingCommand(attribute)
+            runtime_1.bindingCommand(attribute)
         ], TranslationParametersBindingCommand);
         return TranslationParametersBindingCommand;
     })();

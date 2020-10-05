@@ -4,18 +4,20 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./lifecycle", "./lifecycle-task", "./observation/observer-locator", "./renderer", "./resources/binding-behaviors/binding-mode", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/with", "./resources/value-converters/sanitize", "./resources/value-converters/view", "./templating/view", "@aurelia/scheduler", "./resources/custom-elements/au-slot"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./lifecycle", "./lifecycle-task", "./observation/observer-locator", "./renderer", "./resources/binding-behaviors/binding-mode", "./attribute-patterns", "./binding-commands", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/with", "./resources/value-converters/sanitize", "./resources/value-converters/view", "./templating/view", "@aurelia/scheduler", "./resources/custom-elements/au-slot", "./binding/expression-parser"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.RuntimeConfiguration = exports.DefaultRenderers = exports.TemplateControllerRendererRegistration = exports.SetPropertyRendererRegistration = exports.RefBindingRendererRegistration = exports.PropertyBindingRendererRegistration = exports.LetElementRendererRegistration = exports.IteratorBindingRendererRegistration = exports.InterpolationBindingRendererRegistration = exports.CustomElementRendererRegistration = exports.CustomAttributeRendererRegistration = exports.CallBindingRendererRegistration = exports.DefaultResources = exports.TwoWayBindingBehaviorRegistration = exports.ThrottleBindingBehaviorRegistration = exports.SignalBindingBehaviorRegistration = exports.FromViewBindingBehaviorRegistration = exports.ToViewBindingBehaviorRegistration = exports.OneTimeBindingBehaviorRegistration = exports.DebounceBindingBehaviorRegistration = exports.ViewValueConverterRegistration = exports.SanitizeValueConverterRegistration = exports.WithRegistration = exports.RepeatRegistration = exports.ElseRegistration = exports.IfRegistration = exports.ObserveShallowRegistration = exports.InfrequentMutationsRegistration = exports.FrequentMutationsRegistration = exports.DefaultComponents = exports.IViewLocatorRegistration = exports.IStartTaskManagerRegistration = exports.IRendererRegistration = exports.ILifecycleRegistration = exports.IObserverLocatorRegistration = void 0;
+    exports.RuntimeConfiguration = exports.DefaultRenderers = exports.TemplateControllerRendererRegistration = exports.SetPropertyRendererRegistration = exports.RefBindingRendererRegistration = exports.PropertyBindingRendererRegistration = exports.LetElementRendererRegistration = exports.IteratorBindingRendererRegistration = exports.InterpolationBindingRendererRegistration = exports.CustomElementRendererRegistration = exports.CustomAttributeRendererRegistration = exports.CallBindingRendererRegistration = exports.DefaultResources = exports.TwoWayBindingBehaviorRegistration = exports.ThrottleBindingBehaviorRegistration = exports.SignalBindingBehaviorRegistration = exports.FromViewBindingBehaviorRegistration = exports.ToViewBindingBehaviorRegistration = exports.OneTimeBindingBehaviorRegistration = exports.DebounceBindingBehaviorRegistration = exports.ViewValueConverterRegistration = exports.SanitizeValueConverterRegistration = exports.WithRegistration = exports.RepeatRegistration = exports.ElseRegistration = exports.IfRegistration = exports.ObserveShallowRegistration = exports.InfrequentMutationsRegistration = exports.FrequentMutationsRegistration = exports.DefaultComponents = exports.DefaultBindingLanguage = exports.TwoWayBindingCommandRegistration = exports.ToViewBindingCommandRegistration = exports.OneTimeBindingCommandRegistration = exports.FromViewBindingCommandRegistration = exports.ForBindingCommandRegistration = exports.DefaultBindingCommandRegistration = exports.CallBindingCommandRegistration = exports.ShortHandBindingSyntax = exports.DefaultBindingSyntax = exports.IViewLocatorRegistration = exports.IStartTaskManagerRegistration = exports.IRendererRegistration = exports.ILifecycleRegistration = exports.IObserverLocatorRegistration = exports.IExpressionParserRegistration = exports.DotSeparatedAttributePatternRegistration = exports.RefAttributePatternRegistration = exports.ColonPrefixedBindAttributePatternRegistration = exports.AtPrefixedTriggerAttributePatternRegistration = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const lifecycle_1 = require("./lifecycle");
     const lifecycle_task_1 = require("./lifecycle-task");
     const observer_locator_1 = require("./observation/observer-locator");
     const renderer_1 = require("./renderer");
     const binding_mode_1 = require("./resources/binding-behaviors/binding-mode");
+    const attribute_patterns_1 = require("./attribute-patterns");
+    const binding_commands_1 = require("./binding-commands");
     const debounce_1 = require("./resources/binding-behaviors/debounce");
     const signals_1 = require("./resources/binding-behaviors/signals");
     const throttle_1 = require("./resources/binding-behaviors/throttle");
@@ -28,13 +30,60 @@
     const view_2 = require("./templating/view");
     const scheduler_1 = require("@aurelia/scheduler");
     const au_slot_1 = require("./resources/custom-elements/au-slot");
+    const expression_parser_1 = require("./binding/expression-parser");
+    exports.AtPrefixedTriggerAttributePatternRegistration = attribute_patterns_1.AtPrefixedTriggerAttributePattern;
+    exports.ColonPrefixedBindAttributePatternRegistration = attribute_patterns_1.ColonPrefixedBindAttributePattern;
+    exports.RefAttributePatternRegistration = attribute_patterns_1.RefAttributePattern;
+    exports.DotSeparatedAttributePatternRegistration = attribute_patterns_1.DotSeparatedAttributePattern;
+    exports.IExpressionParserRegistration = expression_parser_1.ExpressionParser;
     exports.IObserverLocatorRegistration = observer_locator_1.ObserverLocator;
     exports.ILifecycleRegistration = lifecycle_1.Lifecycle;
     exports.IRendererRegistration = renderer_1.Renderer;
     exports.IStartTaskManagerRegistration = lifecycle_task_1.StartTaskManager;
     exports.IViewLocatorRegistration = view_2.ViewLocator;
     /**
+     * Default binding syntax for the following attribute name patterns:
+     * - `ref`
+     * - `target.command` (dot-separated)
+     */
+    exports.DefaultBindingSyntax = [
+        exports.RefAttributePatternRegistration,
+        exports.DotSeparatedAttributePatternRegistration
+    ];
+    /**
+     * Binding syntax for short-hand attribute name patterns:
+     * - `@target` (short-hand for `target.trigger`)
+     * - `:target` (short-hand for `target.bind`)
+     */
+    exports.ShortHandBindingSyntax = [
+        exports.AtPrefixedTriggerAttributePatternRegistration,
+        exports.ColonPrefixedBindAttributePatternRegistration
+    ];
+    exports.CallBindingCommandRegistration = binding_commands_1.CallBindingCommand;
+    exports.DefaultBindingCommandRegistration = binding_commands_1.DefaultBindingCommand;
+    exports.ForBindingCommandRegistration = binding_commands_1.ForBindingCommand;
+    exports.FromViewBindingCommandRegistration = binding_commands_1.FromViewBindingCommand;
+    exports.OneTimeBindingCommandRegistration = binding_commands_1.OneTimeBindingCommand;
+    exports.ToViewBindingCommandRegistration = binding_commands_1.ToViewBindingCommand;
+    exports.TwoWayBindingCommandRegistration = binding_commands_1.TwoWayBindingCommand;
+    /**
+     * Default runtime/environment-agnostic binding commands:
+     * - Property observation: `.bind`, `.one-time`, `.from-view`, `.to-view`, `.two-way`
+     * - Function call: `.call`
+     * - Collection observation: `.for`
+     */
+    exports.DefaultBindingLanguage = [
+        exports.DefaultBindingCommandRegistration,
+        exports.OneTimeBindingCommandRegistration,
+        exports.FromViewBindingCommandRegistration,
+        exports.ToViewBindingCommandRegistration,
+        exports.TwoWayBindingCommandRegistration,
+        exports.CallBindingCommandRegistration,
+        exports.ForBindingCommandRegistration
+    ];
+    /**
      * Default implementations for the following interfaces:
+     * - `IExpressionParserRegistration`
      * - `IObserverLocator`
      * - `ILifecycle`
      * - `IRenderer`
@@ -44,6 +93,7 @@
      * - `ISchedulerRegistration`
      */
     exports.DefaultComponents = [
+        exports.IExpressionParserRegistration,
         exports.IObserverLocatorRegistration,
         exports.ILifecycleRegistration,
         exports.IRendererRegistration,
@@ -140,7 +190,7 @@
          * Apply this configuration to the provided container.
          */
         register(container) {
-            return container.register(...exports.DefaultComponents, ...exports.DefaultResources, ...exports.DefaultRenderers);
+            return container.register(...exports.DefaultComponents, ...exports.DefaultResources, ...exports.DefaultRenderers, ...exports.DefaultBindingSyntax, ...exports.DefaultBindingLanguage);
         },
         /**
          * Create a new container with this configuration applied to it.

@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./quick-start", "@aurelia/debug", "@aurelia/fetch-client", "@aurelia/jit", "@aurelia/jit-html-browser", "@aurelia/kernel", "@aurelia/router", "@aurelia/runtime", "@aurelia/runtime-html"], factory);
+        define(["require", "exports", "./quick-start", "@aurelia/debug", "@aurelia/fetch-client", "@aurelia/runtime-html-browser", "@aurelia/kernel", "@aurelia/router", "@aurelia/runtime", "@aurelia/runtime-html"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,41 +24,8 @@
     // RetryInterceptor,
     Object.defineProperty(exports, "HttpClientConfiguration", { enumerable: true, get: function () { return fetch_client_1.HttpClientConfiguration; } });
     Object.defineProperty(exports, "HttpClient", { enumerable: true, get: function () { return fetch_client_1.HttpClient; } });
-    var jit_1 = require("@aurelia/jit");
-    // AttrSyntax,
-    // IAttributeParser,
-    Object.defineProperty(exports, "attributePattern", { enumerable: true, get: function () { return jit_1.attributePattern; } });
-    // AttributePatternDefinition,
-    Object.defineProperty(exports, "IAttributePattern", { enumerable: true, get: function () { return jit_1.IAttributePattern; } });
-    // IAttributePatternHandler,
-    // Interpretation,
-    // ISyntaxInterpreter,
-    // AtPrefixedTriggerAttributePattern,
-    // ColonPrefixedBindAttributePattern,
-    // DotSeparatedAttributePattern,
-    // RefAttributePattern,
-    Object.defineProperty(exports, "bindingCommand", { enumerable: true, get: function () { return jit_1.bindingCommand; } });
-    // BindingCommandDefinition,
-    // BindingCommandKind,
-    // BindingCommandType,
-    Object.defineProperty(exports, "getTarget", { enumerable: true, get: function () { return jit_1.getTarget; } });
-    // CallBindingCommand,
-    // DefaultBindingCommand,
-    // ForBindingCommand,
-    // FromViewBindingCommand,
-    // OneTimeBindingCommand,
-    // ToViewBindingCommand,
-    // TwoWayBindingCommand,
-    // IExpressionParserRegistration,
-    // DefaultComponents as JitDefaultComponents,
-    // RefAttributePatternRegistration,
-    // DotSeparatedAttributePatternRegistration,
-    // DefaultBindingSyntax,
-    // AtPrefixedTriggerAttributePatternRegistration,
-    // ColonPrefixedBindAttributePatternRegistration,
-    Object.defineProperty(exports, "ShortHandBindingSyntax", { enumerable: true, get: function () { return jit_1.ShortHandBindingSyntax; } });
-    var jit_html_browser_1 = require("@aurelia/jit-html-browser");
-    Object.defineProperty(exports, "JitHtmlBrowserConfiguration", { enumerable: true, get: function () { return jit_html_browser_1.JitHtmlBrowserConfiguration; } });
+    var runtime_html_browser_1 = require("@aurelia/runtime-html-browser");
+    Object.defineProperty(exports, "RuntimeHtmlBrowserConfiguration", { enumerable: true, get: function () { return runtime_html_browser_1.RuntimeHtmlBrowserConfiguration; } });
     var kernel_1 = require("@aurelia/kernel");
     Object.defineProperty(exports, "all", { enumerable: true, get: function () { return kernel_1.all; } });
     Object.defineProperty(exports, "DI", { enumerable: true, get: function () { return kernel_1.DI; } });
@@ -524,6 +491,48 @@
     // createIndexMap,
     Object.defineProperty(exports, "instructionRenderer", { enumerable: true, get: function () { return runtime_1.instructionRenderer; } });
     Object.defineProperty(exports, "ensureExpression", { enumerable: true, get: function () { return runtime_1.ensureExpression; } });
+    // CompiledTemplate,
+    // ChildrenObserver,
+    // IInstructionRenderer,
+    // IInstructionTypeClassifier,
+    // IRenderer,
+    // IRenderingEngine,
+    // ITemplate,
+    // ITemplateCompiler,
+    // ITemplateFactory,
+    // RenderContext
+    // AttrSyntax,
+    // IAttributeParser,
+    Object.defineProperty(exports, "attributePattern", { enumerable: true, get: function () { return runtime_1.attributePattern; } });
+    // AttributePatternDefinition,
+    Object.defineProperty(exports, "IAttributePattern", { enumerable: true, get: function () { return runtime_1.IAttributePattern; } });
+    // IAttributePatternHandler,
+    // Interpretation,
+    // ISyntaxInterpreter,
+    // AtPrefixedTriggerAttributePattern,
+    // ColonPrefixedBindAttributePattern,
+    // DotSeparatedAttributePattern,
+    // RefAttributePattern,
+    Object.defineProperty(exports, "bindingCommand", { enumerable: true, get: function () { return runtime_1.bindingCommand; } });
+    // BindingCommandDefinition,
+    // BindingCommandKind,
+    // BindingCommandType,
+    Object.defineProperty(exports, "getTarget", { enumerable: true, get: function () { return runtime_1.getTarget; } });
+    // CallBindingCommand,
+    // DefaultBindingCommand,
+    // ForBindingCommand,
+    // FromViewBindingCommand,
+    // OneTimeBindingCommand,
+    // ToViewBindingCommand,
+    // TwoWayBindingCommand,
+    // IExpressionParserRegistration,
+    // DefaultComponents as JitDefaultComponents,
+    // RefAttributePatternRegistration,
+    // DotSeparatedAttributePatternRegistration,
+    // DefaultBindingSyntax,
+    // AtPrefixedTriggerAttributePatternRegistration,
+    // ColonPrefixedBindAttributePatternRegistration,
+    Object.defineProperty(exports, "ShortHandBindingSyntax", { enumerable: true, get: function () { return runtime_1.ShortHandBindingSyntax; } });
     var runtime_html_1 = require("@aurelia/runtime-html");
     // Listener,
     // AttributeBinding,

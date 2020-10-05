@@ -13,13 +13,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/jit", "@aurelia/kernel", "@aurelia/runtime", "./html-test-context"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./html-test-context"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AuDOMTest = exports.AuDOMConfiguration = exports.AuTextRenderer = exports.AuTextInstruction = exports.AuObserverLocator = exports.AuDOMInitializer = exports.AuNodeSequenceFactory = exports.AuNodeSequence = exports.AuProjector = exports.AuProjectorLocator = exports.AuDOM = exports.AuNode = void 0;
-    const jit_1 = require("@aurelia/jit");
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const html_test_context_1 = require("./html-test-context");
@@ -575,7 +574,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 needsCompile: false,
                 name,
                 template: AuNode.createText().makeTarget(),
-                instructions: [[new AuTextInstruction(jit_1.parseExpression(expression))]]
+                instructions: [[new AuTextInstruction(runtime_1.parseExpression(expression))]]
             };
         },
         createTemplateControllerDefinition(instruction, name = instruction.res) {
@@ -599,22 +598,22 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             };
         },
         createIfInstruction(expression, def) {
-            return new runtime_1.HydrateTemplateController(def, 'if', [new runtime_1.ToViewBindingInstruction(jit_1.parseExpression(expression), 'value')]);
+            return new runtime_1.HydrateTemplateController(def, 'if', [new runtime_1.ToViewBindingInstruction(runtime_1.parseExpression(expression), 'value')]);
         },
         createElseInstruction(def) {
             return new runtime_1.HydrateTemplateController(def, 'else', [], true);
         },
         createRepeatInstruction(expression, def) {
-            return new runtime_1.HydrateTemplateController(def, 'repeat', [new runtime_1.IteratorBindingInstruction(jit_1.parseExpression(expression, 539 /* ForCommand */), 'items')]);
+            return new runtime_1.HydrateTemplateController(def, 'repeat', [new runtime_1.IteratorBindingInstruction(runtime_1.parseExpression(expression, 539 /* ForCommand */), 'items')]);
         },
         createWithInstruction(expression, def) {
-            return new runtime_1.HydrateTemplateController(def, 'with', [new runtime_1.ToViewBindingInstruction(jit_1.parseExpression(expression), 'value')]);
+            return new runtime_1.HydrateTemplateController(def, 'with', [new runtime_1.ToViewBindingInstruction(runtime_1.parseExpression(expression), 'value')]);
         },
         createElementInstruction(name, bindings) {
-            return new runtime_1.HydrateElementInstruction(name, bindings.map(([from, to]) => new runtime_1.ToViewBindingInstruction(jit_1.parseExpression(from), to)), null);
+            return new runtime_1.HydrateElementInstruction(name, bindings.map(([from, to]) => new runtime_1.ToViewBindingInstruction(runtime_1.parseExpression(from), to)), null);
         },
         createLetInstruction(bindings, toBindingContext = false) {
-            return new runtime_1.LetElementInstruction(bindings.map(([from, to]) => new runtime_1.LetBindingInstruction(jit_1.parseExpression(from), to)), toBindingContext);
+            return new runtime_1.LetElementInstruction(bindings.map(([from, to]) => new runtime_1.LetBindingInstruction(runtime_1.parseExpression(from), to)), toBindingContext);
         }
     };
 });

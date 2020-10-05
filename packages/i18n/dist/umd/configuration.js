@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./df/date-format-binding-behavior", "./df/date-format-value-converter", "./i18n", "./i18n-configuration-options", "./i18next-wrapper", "./nf/number-format-binding-behavior", "./nf/number-format-value-converter", "./rt/relative-time-binding-behavior", "./rt/relative-time-value-converter", "./t/translation-binding-behavior", "./t/translation-parameters-renderer", "./t/translation-renderer", "./t/translation-value-converter", "@aurelia/jit"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./df/date-format-binding-behavior", "./df/date-format-value-converter", "./i18n", "./i18n-configuration-options", "./i18next-wrapper", "./nf/number-format-binding-behavior", "./nf/number-format-value-converter", "./rt/relative-time-binding-behavior", "./rt/relative-time-value-converter", "./t/translation-binding-behavior", "./t/translation-parameters-renderer", "./t/translation-renderer", "./t/translation-value-converter"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -25,7 +25,6 @@
     const translation_parameters_renderer_1 = require("./t/translation-parameters-renderer");
     const translation_renderer_1 = require("./t/translation-renderer");
     const translation_value_converter_1 = require("./t/translation-value-converter");
-    const jit_1 = require("@aurelia/jit");
     const translation = [
         translation_value_converter_1.TranslationValueConverter,
         translation_binding_behavior_1.TranslationBindingBehavior,
@@ -49,11 +48,11 @@
             }
         }
         const renderers = [
-            jit_1.AttributePattern.define(patterns, translation_renderer_1.TranslationAttributePattern),
-            jit_1.BindingCommand.define({ name: 't', aliases: commandAliases }, translation_renderer_1.TranslationBindingCommand),
+            runtime_1.AttributePattern.define(patterns, translation_renderer_1.TranslationAttributePattern),
+            runtime_1.BindingCommand.define({ name: 't', aliases: commandAliases }, translation_renderer_1.TranslationBindingCommand),
             translation_renderer_1.TranslationBindingRenderer,
-            jit_1.AttributePattern.define(bindPatterns, translation_renderer_1.TranslationBindAttributePattern),
-            jit_1.BindingCommand.define({ name: 't.bind', aliases: bindCommandAliases }, translation_renderer_1.TranslationBindBindingCommand),
+            runtime_1.AttributePattern.define(bindPatterns, translation_renderer_1.TranslationBindAttributePattern),
+            runtime_1.BindingCommand.define({ name: 't.bind', aliases: bindCommandAliases }, translation_renderer_1.TranslationBindBindingCommand),
             translation_renderer_1.TranslationBindBindingRenderer,
             translation_parameters_renderer_1.TranslationParametersAttributePattern,
             translation_parameters_renderer_1.TranslationParametersBindingCommand,

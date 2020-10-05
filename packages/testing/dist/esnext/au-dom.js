@@ -7,9 +7,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { parseExpression } from '@aurelia/jit';
 import { DI, IContainer, inject, Registration, Metadata } from '@aurelia/kernel';
-import { Aurelia, BindingMode, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, PropertyBinding, RuntimeConfiguration, ToViewBindingInstruction, ITemplateCompiler, IScheduler, CustomElement } from '@aurelia/runtime';
+import { Aurelia, BindingMode, HydrateElementInstruction, HydrateTemplateController, IDOM, IDOMInitializer, ILifecycle, INode, instructionRenderer, IObserverLocator, IProjectorLocator, ITargetAccessorLocator, ITargetObserverLocator, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, PropertyBinding, RuntimeConfiguration, ToViewBindingInstruction, ITemplateCompiler, IScheduler, CustomElement, parseExpression, } from '@aurelia/runtime';
 import { TestContext } from './html-test-context';
 export class AuNode {
     constructor(name, isWrapper, isTarget, isMarker, isRenderLocation, isMounted, isConnected) {

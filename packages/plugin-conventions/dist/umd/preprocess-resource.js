@@ -21,7 +21,6 @@
         const sf = ts.createSourceFile(unit.path, unit.contents, ts.ScriptTarget.Latest);
         let auImport = { names: [], start: 0, end: 0 };
         let runtimeImport = { names: [], start: 0, end: 0 };
-        let jitImport = { names: [], start: 0, end: 0 };
         let implicitElement;
         let customElementName; // for @customName('custom-name')
         // When there are multiple exported classes (e.g. local value converters),
@@ -43,13 +42,6 @@
                 runtimeImport = runtime;
                 return;
             }
-            // Find existing import {bindingCommand} from '@aurelia/jit';
-            const jit = captureImport(s, '@aurelia/jit', unit.contents);
-            if (jit) {
-                // Assumes only one import statement for @aurelia/jit
-                jitImport = jit;
-                return;
-            }
             // Only care about export class Foo {...}.
             // Note this convention simply doesn't work for
             //   class Foo {}
@@ -57,7 +49,7 @@
             const resource = findResource(s, expectedResourceName, unit.filePair, unit.contents);
             if (!resource)
                 return;
-            const { localDep, needDecorator, implicitStatement, runtimeImportName, jitImportName, customName } = resource;
+            const { localDep, needDecorator, implicitStatement, runtimeImportName, customName } = resource;
             if (localDep)
                 localDeps.push(localDep);
             if (needDecorator)
@@ -67,16 +59,12 @@
             if (runtimeImportName && !auImport.names.includes(runtimeImportName)) {
                 ensureTypeIsExported(runtimeImport.names, runtimeImportName);
             }
-            if (jitImportName && !auImport.names.includes(jitImportName)) {
-                ensureTypeIsExported(jitImport.names, jitImportName);
-            }
             if (customName)
                 customElementName = customName;
         });
         return modifyResource(unit, {
             expectedResourceName,
             runtimeImport,
-            jitImport,
             implicitElement,
             localDeps,
             conventionalDecorators,
@@ -85,7 +73,7 @@
     }
     exports.preprocessResource = preprocessResource;
     function modifyResource(unit, options) {
-        const { expectedResourceName, runtimeImport, jitImport, implicitElement, localDeps, conventionalDecorators, customElementName } = options;
+        const { expectedResourceName, runtimeImport, implicitElement, localDeps, conventionalDecorators, customElementName } = options;
         const m = modify_code_1.default(unit.contents, unit.path);
         if (implicitElement && unit.filePair) {
             // @view() for foo.js and foo-view.html
@@ -124,12 +112,6 @@
                 if (runtimeImport.end === runtimeImport.start)
                     runtimeImportStatement += '\n';
                 m.replace(runtimeImport.start, runtimeImport.end, runtimeImportStatement);
-            }
-            if (jitImport.names.length) {
-                let jitImportStatement = `import { ${jitImport.names.join(', ')} } from '@aurelia/jit';`;
-                if (jitImport.end === jitImport.start)
-                    jitImportStatement += '\n';
-                m.replace(jitImport.start, jitImport.end, jitImportStatement);
             }
             conventionalDecorators.forEach(([pos, str]) => m.insert(pos, str));
         }
@@ -239,12 +221,7 @@
                     needDecorator: [pos, `@${type}('${name}')\n`],
                     localDep: className,
                 };
-                if (type === 'bindingCommand') {
-                    result.jitImportName = type;
-                }
-                else {
-                    result.runtimeImportName = type;
-                }
+                result.runtimeImportName = type;
                 return result;
             }
         }

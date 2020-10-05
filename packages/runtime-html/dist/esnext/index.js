@@ -1,3 +1,5 @@
+export { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
+export { TriggerBindingCommand, DelegateBindingCommand, CaptureBindingCommand, AttrBindingCommand, ClassBindingCommand, StyleBindingCommand } from './binding-commands';
 export { Listener } from './binding/listener';
 export { AttributeBinding } from './binding/attribute';
 export { AttributeNSAccessor } from './observation/attribute-ns-accessor';
@@ -18,7 +20,10 @@ export { Blur, BlurManager } from './resources/custom-attributes/blur';
 export { Focus } from './resources/custom-attributes/focus';
 export { Portal } from './resources/custom-attributes/portal';
 export { Compose } from './resources/custom-elements/compose';
-export { IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, DefaultComponents, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, AttributeBindingRendererRegistration, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, SetClassAttributeRendererRegistration, SetStyleAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, RuntimeHtmlConfiguration } from './configuration';
+export { ITemplateCompilerRegistration, ITemplateElementFactoryRegistration, IAttrSyntaxTransformerRegistation, IProjectorLocatorRegistration, ITargetAccessorLocatorRegistration, ITargetObserverLocatorRegistration, DefaultComponents, TriggerBindingCommandRegistration, DelegateBindingCommandRegistration, CaptureBindingCommandRegistration, AttrBindingCommandRegistration, ClassBindingCommandRegistration, StyleBindingCommandRegistration, DefaultBindingLanguage, AttrBindingBehaviorRegistration, SelfBindingBehaviorRegistration, UpdateTriggerBindingBehaviorRegistration, ComposeRegistration, DefaultResources, AttributeBindingRendererRegistration, ListenerBindingRendererRegistration, SetAttributeRendererRegistration, SetClassAttributeRendererRegistration, SetStyleAttributeRendererRegistration, StylePropertyBindingRendererRegistration, TextBindingRendererRegistration, DefaultRenderers, RuntimeHtmlConfiguration } from './configuration';
+export { stringifyDOM, stringifyInstructions, stringifyTemplateDefinition } from './debugging';
+export { TemplateBinder, } from './template-binder';
+export { ITemplateElementFactory } from './template-element-factory';
 export { createElement, RenderPlan } from './create-element';
 export { HTMLTargetedInstructionType, isHTMLTargetedInstruction } from './definitions';
 export { NodeType, HTMLDOM, DOM, FragmentNodeSequence, IHistory, IWindow, ILocation, } from './dom';

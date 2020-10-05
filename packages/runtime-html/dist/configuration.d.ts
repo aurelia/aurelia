@@ -1,15 +1,32 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
+export declare const ITemplateCompilerRegistration: IRegistry;
+export declare const ITemplateElementFactoryRegistration: IRegistry;
+export declare const IAttrSyntaxTransformerRegistation: IRegistry;
 export declare const IProjectorLocatorRegistration: IRegistry;
 export declare const ITargetAccessorLocatorRegistration: IRegistry;
 export declare const ITargetObserverLocatorRegistration: IRegistry;
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
+ * - `ITemplateCompiler`
+ * - `ITemplateElementFactory`
  * - `IProjectorLocator`
  * - `ITargetAccessorLocator`
  * - `ITargetObserverLocator`
  * - `ITemplateFactory`
  */
 export declare const DefaultComponents: IRegistry[];
+export declare const RefBindingCommandRegistration: IRegistry;
+export declare const TriggerBindingCommandRegistration: IRegistry;
+export declare const DelegateBindingCommandRegistration: IRegistry;
+export declare const CaptureBindingCommandRegistration: IRegistry;
+export declare const AttrBindingCommandRegistration: IRegistry;
+export declare const ClassBindingCommandRegistration: IRegistry;
+export declare const StyleBindingCommandRegistration: IRegistry;
+/**
+ * Default HTML-specific (but environment-agnostic) binding commands:
+ * - Event listeners: `.trigger`, `.delegate`, `.capture`
+ */
+export declare const DefaultBindingLanguage: IRegistry[];
 export declare const AttrBindingBehaviorRegistration: IRegistry;
 export declare const SelfBindingBehaviorRegistration: IRegistry;
 export declare const UpdateTriggerBindingBehaviorRegistration: IRegistry;

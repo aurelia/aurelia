@@ -2,7 +2,6 @@ import {
   DI,
   IContainer,
   Registration,
-  resolveAll
 } from '@aurelia/kernel';
 import {
   Aurelia,

@@ -287,6 +287,7 @@ export class Controller<
       /* bindingContext */void 0,
       /* host           */void 0,
     );
+    // deepscan-disable-next-line
     controller.parent = parentController as Controller<T> ?? null;
 
     controller.hydrateSynthetic(context);

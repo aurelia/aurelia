@@ -275,8 +275,6 @@ describe('checked-observer.spec.ts', function () {
           // test cases could be sharing the same context document
           // so wait a bit before running the next test
           await tearDown();
-
-          assert.isSchedulerEmpty();
         });
       }
     }

@@ -171,7 +171,6 @@ describe(spec, function () {
       await au.stop().wait();
 
       au.dispose();
-      assert.isSchedulerEmpty();
     });
   });
 });

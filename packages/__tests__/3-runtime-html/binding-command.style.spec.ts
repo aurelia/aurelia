@@ -249,7 +249,6 @@ describe('template-compiler.binding-commands.style', function () {
           await au.stop().wait();
 
           au.dispose();
-          assert.isSchedulerEmpty();
         }
       });
     }

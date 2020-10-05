@@ -14,7 +14,6 @@ function startAndStop(component: CustomElementType) {
   au.stop();
 
   au.dispose();
-  assert.isSchedulerEmpty();
 }
 
 function getMetadataAsObject(target: any): Record<string, any> {

@@ -431,7 +431,6 @@ describe('simple Computed Observer test case', function () {
         testHost.remove();
 
         au.dispose();
-        assert.isSchedulerEmpty();
       }
     };
   }

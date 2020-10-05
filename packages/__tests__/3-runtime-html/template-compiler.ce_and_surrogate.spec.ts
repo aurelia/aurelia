@@ -188,8 +188,6 @@ describe('template-compiler.ce_and_surrogate.spec.ts', function () {
         host.remove();
       } finally {
         host?.remove();
-
-        assert.isSchedulerEmpty();
       }
     });
   }

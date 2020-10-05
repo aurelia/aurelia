@@ -66,24 +66,18 @@ describe('template-binder.au-slot', function () {
       '<au-slot></au-slot>',
       (mfr) => {
         verifyAuSlot(mfr.childNodes[0] as CustomElementSymbol, "default");
-
-        assert.isSchedulerEmpty();
       }
     );
     yield new TestData(
       '<au-slot name="s1"></au-slot>',
       (mfr) => {
         verifyAuSlot(mfr.childNodes[0] as CustomElementSymbol, "s1");
-
-        assert.isSchedulerEmpty();
       }
     );
     yield new TestData(
       '<au-slot name="s2" name="s1"></au-slot>',
       (mfr) => {
         verifyAuSlot(mfr.childNodes[0] as CustomElementSymbol, "s2");
-
-        assert.isSchedulerEmpty();
       }
     );
     yield new TestData(
@@ -92,8 +86,6 @@ describe('template-binder.au-slot', function () {
         const tc = mfr.childNodes[0] as TemplateControllerSymbol;
         assert.instanceOf(tc, TemplateControllerSymbol);
         verifyAuSlot(tc.template as CustomElementSymbol, "s1");
-
-        assert.isSchedulerEmpty();
       }
     );
     yield new TestData(
@@ -102,8 +94,6 @@ describe('template-binder.au-slot', function () {
         const tc = mfr.childNodes[0] as TemplateControllerSymbol;
         assert.instanceOf(tc, TemplateControllerSymbol);
         verifyAuSlot((tc.template as PlainElementSymbol).childNodes[0] as CustomElementSymbol, "s1");
-
-        assert.isSchedulerEmpty();
       }
     );
     yield new TestData(
@@ -112,8 +102,6 @@ describe('template-binder.au-slot', function () {
         const tc = mfr.childNodes[1] as TemplateControllerSymbol;
         assert.instanceOf(tc, TemplateControllerSymbol);
         verifyAuSlot(tc.template as CustomElementSymbol, "s1");
-
-        assert.isSchedulerEmpty();
       }
     );
     yield new TestData(
@@ -126,8 +114,6 @@ describe('template-binder.au-slot', function () {
         const tc2 = mfr.childNodes[1] as TemplateControllerSymbol;
         assert.instanceOf(tc2, TemplateControllerSymbol);
         verifyAuSlot(tc2.template as CustomElementSymbol, "s2");
-
-        assert.isSchedulerEmpty();
       }
     );
     yield new TestData(
@@ -136,8 +122,6 @@ describe('template-binder.au-slot', function () {
         const tc = mfr.childNodes[0] as TemplateControllerSymbol;
         assert.instanceOf(tc, TemplateControllerSymbol);
         verifyAuSlot(tc.template as CustomElementSymbol, "s1");
-
-        assert.isSchedulerEmpty();
       }
     );
     yield new TestData(
@@ -146,8 +130,6 @@ describe('template-binder.au-slot', function () {
         const tc = mfr.childNodes[0] as TemplateControllerSymbol;
         assert.instanceOf(tc, TemplateControllerSymbol);
         verifyAuSlot((tc.template as PlainElementSymbol).childNodes[0] as CustomElementSymbol, "s1");
-
-        assert.isSchedulerEmpty();
       }
     );
     yield new TestData(
@@ -156,8 +138,6 @@ describe('template-binder.au-slot', function () {
         const tc = mfr.childNodes[0] as TemplateControllerSymbol;
         assert.instanceOf(tc, TemplateControllerSymbol);
         verifyAuSlot(tc.template as CustomElementSymbol, "s1");
-
-        assert.isSchedulerEmpty();
       }
     );
     yield new TestData(
@@ -166,8 +146,6 @@ describe('template-binder.au-slot', function () {
         const tc = mfr.childNodes[0] as TemplateControllerSymbol;
         assert.instanceOf(tc, TemplateControllerSymbol);
         verifyAuSlot((tc.template as PlainElementSymbol).childNodes[0] as CustomElementSymbol, "s1");
-
-        assert.isSchedulerEmpty();
       }
     );
     yield new TestData(
@@ -175,8 +153,6 @@ describe('template-binder.au-slot', function () {
       (mfr) => {
         verifyAuSlot(mfr.childNodes[0] as CustomElementSymbol, "s1");
         verifyAuSlot(mfr.childNodes[1] as CustomElementSymbol, "s2");
-
-        assert.isSchedulerEmpty();
       }
     );
     yield new TestData(
@@ -185,8 +161,6 @@ describe('template-binder.au-slot', function () {
         const node1 = (mfr.childNodes[0] as CustomElementSymbol);
         verifyAuSlot(node1, "s1");
         verifyAuSlot(node1.childNodes[0] as CustomElementSymbol, "s2");
-
-        assert.isSchedulerEmpty();
       }
     );
     yield new TestData(
@@ -197,8 +171,6 @@ describe('template-binder.au-slot', function () {
         const node2 = (node1.childNodes[0] as CustomElementSymbol);
         verifyAuSlot(node2, "s2");
         verifyAuSlot(node2.childNodes[0] as CustomElementSymbol, "s3");
-
-        assert.isSchedulerEmpty();
       }
     );
     yield new TestData(
@@ -210,8 +182,6 @@ describe('template-binder.au-slot', function () {
         assert.deepStrictEqual(
           node.projections.map((p) => [p.name, (p.template.physicalNode as HTMLElement).outerHTML]),
           [["default", '<div></div>']]);
-
-        assert.isSchedulerEmpty();
       }
     );
     // #endregion
@@ -226,8 +196,6 @@ describe('template-binder.au-slot', function () {
         assert.deepStrictEqual(
           ce.projections.map((p) => [p.name, (p.template.physicalNode as HTMLElement).outerHTML]),
           [["default", '<div></div>']]);
-
-        assert.isSchedulerEmpty();
       },
       [createElement('')]
     );
@@ -240,8 +208,6 @@ describe('template-binder.au-slot', function () {
         assert.deepStrictEqual(
           ce.projections.map((p) => [p.name, (p.template.physicalNode as HTMLElement).outerHTML]),
           [["s1", '<div></div>'], ["s2", '<div></div>']]);
-
-        assert.isSchedulerEmpty();
       },
       [createElement('')]
     );
@@ -263,8 +229,6 @@ describe('template-binder.au-slot', function () {
           ),
         ];
         assert.deepStrictEqual(JSON.parse(JSON.stringify(ce.projections)), JSON.parse(JSON.stringify(expected)));
-
-        assert.isSchedulerEmpty();
       },
       [
         createElement('', 'my-element1'),
@@ -286,8 +250,6 @@ describe('template-binder.au-slot', function () {
         assert.deepStrictEqual(
           ce2.projections.map((p) => [p.name, (p.template.physicalNode as HTMLElement).outerHTML]),
           [["s1", '<div></div>']]);
-
-        assert.isSchedulerEmpty();
       },
       [
         createElement('', 'my-element1'),
@@ -303,8 +265,6 @@ describe('template-binder.au-slot', function () {
       const template = factory.createTemplate(markup) as HTMLTemplateElement;
 
       verify(ctx.binder.bind(template), ctx.dom, factory, ctx.resources);
-
-      assert.isSchedulerEmpty();
     });
   }
 

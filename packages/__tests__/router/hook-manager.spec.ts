@@ -40,12 +40,10 @@ describe('HookManager', function () {
 
     async function tearDown() {
       unspyNavigationStates(router, _pushState, _replaceState);
-      router.stop();
       RouterConfiguration.customize();
       await au.stop().wait();
 
       au.dispose();
-      assert.isSchedulerEmpty();
     }
 
     const navigationInstruction = new Navigation({ instruction: 'test', fullStateInstruction: 'full-test' });

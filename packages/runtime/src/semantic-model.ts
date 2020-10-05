@@ -1,6 +1,6 @@
-import { AnyBindingExpression, IInterpolationExpression } from './ast';
 import { AttrSyntax } from './attribute-parser';
 import { BindingCommandInstance } from './binding-command';
+import { AnyBindingExpression, Interpolation } from './binding/ast';
 import { IDOM, INode } from './dom';
 import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';
 
@@ -331,7 +331,7 @@ export class TextSymbol<TText extends INode = INode, TMarker extends INode = INo
   public constructor(
     dom: IDOM,
     public physicalNode: TText,
-    public interpolation: IInterpolationExpression,
+    public interpolation: Interpolation,
     public marker: TMarker = createMarker(dom),
   ) {}
 }

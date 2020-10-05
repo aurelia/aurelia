@@ -7,10 +7,6 @@ import {
   QueueTaskOptions,
 } from '@aurelia/scheduler';
 import {
-  IForOfStatement,
-  IsBindingBehavior,
-} from '../ast';
-import {
   BindingMode,
   ExpressionKind,
   LifecycleFlags,
@@ -25,8 +21,8 @@ import {
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import {
-  hasBind,
-  hasUnbind,
+  ForOfStatement,
+  IsBindingBehavior,
 } from './ast';
 import {
   connectable,
@@ -65,7 +61,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
   private readonly $scheduler: IScheduler;
 
   public constructor(
-    public sourceExpression: IsBindingBehavior | IForOfStatement,
+    public sourceExpression: IsBindingBehavior | ForOfStatement,
     public target: object,
     public targetProperty: string,
     public mode: BindingMode,
@@ -169,7 +165,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     this.$hostScope = hostScope;
 
     let sourceExpression = this.sourceExpression;
-    if (hasBind(sourceExpression)) {
+    if (sourceExpression.hasBind) {
       sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
@@ -221,7 +217,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     // clear persistent flags
     this.persistentFlags = LifecycleFlags.none;
 
-    if (hasUnbind(this.sourceExpression)) {
+    if (this.sourceExpression.hasUnbind) {
       this.sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
 

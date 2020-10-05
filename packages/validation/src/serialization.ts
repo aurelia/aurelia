@@ -1,4 +1,4 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser, BindingType, LifecycleFlags, Scope } from '@aurelia/runtime';
 import { Deserializer, serializePrimitive, Serializer } from './ast-serialization';
 import {
@@ -85,12 +85,13 @@ export class ValidationDeserializer implements IValidationHydrator {
   public static deserialize(json: string, validationRules: IValidationRules): IValidationRule | IRuleProperty | IPropertyRule {
     const messageProvider = this.container.get(IValidationMessageProvider);
     const parser = this.container.get(IExpressionParser);
-    const deserializer = new ValidationDeserializer(messageProvider, parser);
+    const deserializer = new ValidationDeserializer(this.container, messageProvider, parser);
     const raw = JSON.parse(json);
     return deserializer.hydrate(raw, validationRules);
   }
   public readonly astDeserializer: Deserializer = new Deserializer();
   public constructor(
+    @IServiceLocator private readonly locator: IServiceLocator,
     @IValidationMessageProvider public readonly messageProvider: IValidationMessageProvider,
     @IExpressionParser public readonly parser: IExpressionParser
   ) { }
@@ -163,6 +164,7 @@ export class ValidationDeserializer implements IValidationHydrator {
       case PropertyRule.$TYPE: {
         const $raw: Pick<PropertyRule, 'property' | '$rules'> = raw;
         return new PropertyRule(
+          this.locator,
           validationRules,
           this.messageProvider,
           this.hydrate($raw.property, validationRules),
@@ -188,6 +190,7 @@ interface ModelPropertyRule<TRuleConfig extends { tag?: string; messageKey?: str
 export class ModelValidationHydrator implements IValidationHydrator {
   public readonly astDeserializer: Deserializer = new Deserializer();
   public constructor(
+    @IServiceLocator private readonly locator: IServiceLocator,
     @IValidationMessageProvider public readonly messageProvider: IValidationMessageProvider,
     @IExpressionParser public readonly parser: IExpressionParser
   ) { }
@@ -205,7 +208,7 @@ export class ModelValidationHydrator implements IValidationHydrator {
           const rules: IValidationRule[][] = value.rules.map((rule) => Object.entries(rule).map(([ruleName, ruleConfig]) => this.hydrateRule(ruleName, ruleConfig)));
           const propertyPrefix = propertyPath.join('.');
           const property = this.hydrateRuleProperty({ name: propertyPrefix !== '' ? `${propertyPrefix}.${key}` : key, displayName: value.displayName });
-          accRules.push(new PropertyRule(validationRules, this.messageProvider, property, rules));
+          accRules.push(new PropertyRule(this.locator, validationRules, this.messageProvider, property, rules));
         } else {
           iterate(Object.entries(value), [...propertyPath, key]);
         }
@@ -252,7 +255,7 @@ export class ModelValidationHydrator implements IValidationHydrator {
         const parsed = this.parser.parse(when, BindingType.None);
         rule.canExecute = (object: IValidateable) => {
           const flags = LifecycleFlags.none; // TODO? need to get the flags propagated here?
-          return parsed.evaluate(flags, Scope.create(flags, { $object: object }), null, null) as boolean; // TODO get hostScope?
+          return parsed.evaluate(flags, Scope.create(flags, { $object: object }), null, this.locator) as boolean; // TODO get hostScope?
         };
       } else if (typeof when === 'function') {
         rule.canExecute = when;

@@ -138,11 +138,11 @@ export class TranslationBinding implements IPartialConnectableBinding {
       return;
     }
 
-    if (this.expr.unbind) {
+    if (this.expr.hasUnbind) {
       this.expr.unbind(flags, this.scope, this.hostScope, this as any);
     }
 
-    if (this.parametersExpr && this.parametersExpr.unbind) {
+    if (this.parametersExpr?.hasUnbind) {
       this.parametersExpr.unbind(flags | LifecycleFlags.secondaryExpression, this.scope, this.hostScope, this as any);
     }
     this.unobserveTargets(flags);

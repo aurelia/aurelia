@@ -1,5 +1,5 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
-import { StartTask } from '@aurelia/runtime';
+import { AppTask } from '@aurelia/runtime';
 import { NavCustomElement } from './resources/nav';
 import { ViewportCustomElement } from './resources/viewport';
 import { ViewportScopeCustomElement } from './resources/viewport-scope';
@@ -65,9 +65,9 @@ const routerConfiguration = {
     return container.register(
       ...DefaultComponents,
       ...DefaultResources,
-      StartTask.with(IRouter).beforeActivate().call(configurationCall),
-      StartTask.with(IRouter).afterActivate().call(router => router.loadUrl()),
-      StartTask.with(IRouter).afterDeactivate().call(router => router.stop()),
+      AppTask.with(IRouter).beforeActivate().call(configurationCall),
+      AppTask.with(IRouter).afterActivate().call(router => router.loadUrl()),
+      AppTask.with(IRouter).afterDeactivate().call(router => router.stop()),
     );
   },
   /**

@@ -68,40 +68,40 @@ const enum TaskType {
   from,
 }
 
-export const StartTask = class $StartTask implements IStartTask {
+export const AppTask = class $AppTask implements IStartTask {
   public get slot(): TaskSlot {
     if (this._slot === void 0) {
-      throw new Error('StartTask.slot is not set');
+      throw new Error('AppTask.slot is not set');
     }
     return this._slot;
   }
   public get promiseOrTask(): PromiseOrTask {
     if (this._promiseOrTask === void 0) {
-      throw new Error('StartTask.promiseOrTask is not set');
+      throw new Error('AppTask.promiseOrTask is not set');
     }
     return this._promiseOrTask;
   }
   public get container(): IContainer {
     if (this._container === void 0) {
-      throw new Error('StartTask.container is not set');
+      throw new Error('AppTask.container is not set');
     }
     return this._container;
   }
   public get key(): Key {
     if (this._key === void 0) {
-      throw new Error('StartTask.key is not set');
+      throw new Error('AppTask.key is not set');
     }
     return this._key;
   }
   public get callback(): (instance: unknown) => PromiseOrTask {
     if (this._callback === void 0) {
-      throw new Error('StartTask.callback is not set');
+      throw new Error('AppTask.callback is not set');
     }
     return this._callback;
   }
   public get task(): ILifecycleTask {
     if (this._task === void 0) {
-      throw new Error('StartTask.task is not set');
+      throw new Error('AppTask.task is not set');
     }
     return this._task;
   }
@@ -118,7 +118,7 @@ export const StartTask = class $StartTask implements IStartTask {
   ) {}
 
   public static with<K extends Key>(key: K): ICallbackSlotChooser<K> {
-    const task = new $StartTask(TaskType.with);
+    const task = new $AppTask(TaskType.with);
     task._key = key;
     return task as ICallbackSlotChooser<K>;
   }
@@ -127,45 +127,45 @@ export const StartTask = class $StartTask implements IStartTask {
   public static from(promise: Promise<unknown>): ISlotChooser;
   public static from(promiseOrTask: PromiseOrTask): ISlotChooser;
   public static from(promiseOrTask: PromiseOrTask): ISlotChooser {
-    const task = new $StartTask(TaskType.from);
+    const task = new $AppTask(TaskType.from);
     task._promiseOrTask = promiseOrTask;
     return task;
   }
 
-  public beforeCreate(): $StartTask {
+  public beforeCreate(): $AppTask {
     return this.at(TaskSlot.beforeCreate);
   }
 
-  public beforeCompile(): $StartTask {
+  public beforeCompile(): $AppTask {
     return this.at(TaskSlot.beforeCompile);
   }
 
-  public beforeCompileChildren(): $StartTask {
+  public beforeCompileChildren(): $AppTask {
     return this.at(TaskSlot.beforeCompileChildren);
   }
 
-  public beforeActivate(): $StartTask {
+  public beforeActivate(): $AppTask {
     return this.at(TaskSlot.beforeActivate);
   }
 
-  public afterActivate(): $StartTask {
+  public afterActivate(): $AppTask {
     return this.at(TaskSlot.afterActivate);
   }
 
-  public beforeDeactivate(): $StartTask {
+  public beforeDeactivate(): $AppTask {
     return this.at(TaskSlot.beforeDeactivate);
   }
 
-  public afterDeactivate(): $StartTask {
+  public afterDeactivate(): $AppTask {
     return this.at(TaskSlot.afterDeactivate);
   }
 
-  public at(slot: TaskSlot): $StartTask {
+  public at(slot: TaskSlot): $AppTask {
     this._slot = slot;
     return this;
   }
 
-  public call(fn: (instance: unknown) => PromiseOrTask): $StartTask {
+  public call(fn: (instance: unknown) => PromiseOrTask): $AppTask {
     this._callback = fn;
     return this;
   }

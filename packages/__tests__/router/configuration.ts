@@ -2,7 +2,7 @@ import { IContainer, Registration, IRegistry, LoggerConfiguration, LogLevel } fr
 import { MockBrowserHistoryLocation, HTMLTestContext } from '@aurelia/testing';
 import { IRouter } from '@aurelia/router';
 import { IHistory, ILocation } from '@aurelia/runtime-html';
-import { StartTask } from '@aurelia/runtime';
+import { AppTask } from '@aurelia/runtime';
 
 export const TestRouterConfiguration = {
   for(ctx: HTMLTestContext, logLevel: LogLevel = LogLevel.debug): IRegistry {
@@ -14,7 +14,7 @@ export const TestRouterConfiguration = {
         container.register(
           Registration.instance(IHistory, mockBrowserHistoryLocation),
           Registration.instance(ILocation, mockBrowserHistoryLocation),
-          StartTask.with(IRouter).beforeCompile().call(router => {
+          AppTask.with(IRouter).beforeCompile().call(router => {
             // mockBrowserHistoryLocation.changeCallback = router['handlePopstate'];
             mockBrowserHistoryLocation.changeCallback = router.navigation.handlePopstate;
           }),

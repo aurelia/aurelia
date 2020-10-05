@@ -115,7 +115,6 @@ describe('Styles', function () {
 
       await au.stop().wait();
       au.dispose();
-      assert.isSchedulerEmpty();
     });
 
     it('config passes root styles to container', async function () {
@@ -139,7 +138,6 @@ describe('Styles', function () {
 
       await au.stop().wait();
       au.dispose();
-      assert.isSchedulerEmpty();
     });
 
     it('element styles apply parent styles', function () {

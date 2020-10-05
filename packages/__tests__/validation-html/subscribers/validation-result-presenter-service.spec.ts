@@ -93,7 +93,6 @@ describe('validation-result-presenter-service', function () {
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
     au.dispose();
-    assert.isSchedulerEmpty();
   }
 
   const $it = createSpecFunction(runTest);

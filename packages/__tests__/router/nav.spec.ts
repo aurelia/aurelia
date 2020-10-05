@@ -50,7 +50,6 @@ describe('Nav', function () {
       ctx.doc.body.removeChild(host);
 
       au.dispose();
-      assert.isSchedulerEmpty();
     }
 
     const scheduler = ctx.scheduler;

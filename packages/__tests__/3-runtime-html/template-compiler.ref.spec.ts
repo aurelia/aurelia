@@ -503,8 +503,6 @@ describe('templating-compiler.ref.spec.ts', function () {
       } finally {
         host?.remove();
         body?.focus();
-
-        assert.isSchedulerEmpty();
       }
     });
   }

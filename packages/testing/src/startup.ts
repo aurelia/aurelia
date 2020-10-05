@@ -42,7 +42,6 @@ export function createFixture<T>(template: string | Node,
       await au.stop().wait();
       root.remove();
       au.dispose();
-      assert.isSchedulerEmpty();
     }
   };
 }

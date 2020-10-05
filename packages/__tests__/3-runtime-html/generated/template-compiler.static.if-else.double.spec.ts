@@ -35,7 +35,6 @@ describe("generated.template-compiler.static.if-else.double", function () {
         assert.strictEqual(outerHtmlAfterStart1, outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         assert.strictEqual(outerHtmlAfterStop1, outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
         au.dispose();
-        assert.isSchedulerEmpty();
     }
     it("tag$01 text$01 if$01 if$01 double$01 _", function () {
         const { au, host } = createFixture();

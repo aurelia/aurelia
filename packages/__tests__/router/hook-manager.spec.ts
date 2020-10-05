@@ -44,7 +44,6 @@ describe('HookManager', function () {
       await au.stop().wait();
 
       au.dispose();
-      assert.isSchedulerEmpty();
     }
 
     const navigationInstruction = new Navigation({ instruction: 'test', fullStateInstruction: 'full-test' });

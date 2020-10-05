@@ -116,7 +116,9 @@ export class SetterNotifier implements IAccessor, ISubscribable {
   // probably this flag is redundant, just None?
   public type: AccessorType = AccessorType.Obj;
 
-  /**@internal */
+  /**
+   * @internal
+   */
   public v: unknown = void 0;
   public task: ITask | null = null;
 

@@ -239,7 +239,6 @@ describe('DirtyChecker', function () {
                             observer2.unsubscribe(subscriber3);
                             observer2.unsubscribe(subscriber4);
 
-                            assert.isSchedulerEmpty();
                             done();
                           });
                         });
@@ -289,7 +288,6 @@ describe('DirtyChecker', function () {
               assert.strictEqual(callCount, 0, `callCount`);
               observer.unsubscribe(subscriber);
 
-              assert.isSchedulerEmpty();
               done();
             });
           });

@@ -95,7 +95,6 @@ describe('validation-errors-custom-attribute', function () {
       assert.equal(app.controllerRemoveSubscriberSpy.calls.length, template.match(/validation-errors|validate/g).length);
     }
     au.dispose();
-    assert.isSchedulerEmpty();
   }
 
   const $it = createSpecFunction(runTest);
@@ -434,6 +433,5 @@ describe('validation-errors-custom-attribute', function () {
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
     au.dispose();
-    assert.isSchedulerEmpty();
   });
 });

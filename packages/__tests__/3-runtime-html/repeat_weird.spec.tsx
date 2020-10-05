@@ -122,7 +122,6 @@ describe('[repeat] -- funny cases', function () {
     (au.root.host as Element).remove();
 
     au.dispose();
-    assert.isSchedulerEmpty();
   }
 
   function createItems(count: number, baseName: string = 'item') {

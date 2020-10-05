@@ -319,7 +319,6 @@ describe('validate-binding-behavior', function () {
     ctx.doc.body.removeChild(host);
 
     au.dispose();
-    assert.isSchedulerEmpty();
   }
 
   const $it = createSpecFunction(runTest);
@@ -711,7 +710,6 @@ describe('validate-binding-behavior', function () {
 
       // TODO: there's a binding somewhere without a dispose() method, causing this to fail
       // au.dispose();
-      assert.isSchedulerEmpty();
     });
   }
 
@@ -1376,7 +1374,6 @@ describe('validate-binding-behavior', function () {
       ctx.doc.body.removeChild(host);
 
       au.dispose();
-      assert.isSchedulerEmpty();
     });
   }
 
@@ -1448,6 +1445,5 @@ describe('validate-binding-behavior', function () {
     ctx.doc.body.removeChild(host);
 
     au.dispose();
-    assert.isSchedulerEmpty();
   });
 });

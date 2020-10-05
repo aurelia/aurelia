@@ -202,7 +202,6 @@ describe('template-compiler.binding-commands.class', function () {
           await au.stop().wait();
 
           au.dispose();
-          assert.isSchedulerEmpty();
         }
       });
     }

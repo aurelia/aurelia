@@ -56,8 +56,6 @@ describe('AttributeNSAccessor', function () {
         sut.bind(LifecycleFlags.none);
         actual = sut.getValue();
         assert.strictEqual(actual, value, `actual`);
-
-        assert.isSchedulerEmpty();
       });
     }
   });
@@ -74,8 +72,6 @@ describe('AttributeNSAccessor', function () {
       sut.setValue('foo', LifecycleFlags.none);
 
       assert.strictEqual(el.getAttributeNS(sut.namespace, sut.propertyKey), 'foo', `el.getAttributeNS(sut.namespace, sut.propertyKey) after flush`);
-
-      assert.isSchedulerEmpty();
     });
   }
 });
@@ -102,8 +98,6 @@ describe('DataAttributeAccessor', function () {
           sut.bind(LifecycleFlags.none);
           actual = sut.getValue();
           assert.strictEqual(actual, value, `actual`);
-
-          assert.isSchedulerEmpty();
         });
       }
     }
@@ -123,8 +117,6 @@ describe('DataAttributeAccessor', function () {
         sut.setValue(value, LifecycleFlags.none);
 
         assert.strictEqual(el.outerHTML, expected, `el.outerHTML after flush`);
-
-        assert.isSchedulerEmpty();
       });
     }
   }
@@ -172,8 +164,6 @@ describe('StyleAccessor', function () {
         ],
         `setPropertySpy.calls`,
       );
-
-      assert.isSchedulerEmpty();
     });
   }
 
@@ -197,8 +187,6 @@ describe('StyleAccessor', function () {
         ],
         `setPropertySpy.calls`,
       );
-
-      assert.isSchedulerEmpty();
     });
   }
 
@@ -330,8 +318,6 @@ describe('StyleAccessor', function () {
 
       const actual = sut.getValue();
       assert.strictEqual(actual, expected);
-
-      assert.isSchedulerEmpty();
     });
   }
 });
@@ -397,8 +383,6 @@ describe('ClassAccessor', function () {
 
         function tearDown() {
           scheduler.getRenderTaskQueue().flush();
-
-          assert.isSchedulerEmpty();
         }
 
         return { sut, el, initialClassList, scheduler, tearDown };

@@ -488,7 +488,7 @@ export {
   LifecycleTask,
   PromiseTask,
   TaskSlot,
-  StartTask,
+  AppTask,
   IStartTask,
   IStartTaskManager,
   ProviderTask,

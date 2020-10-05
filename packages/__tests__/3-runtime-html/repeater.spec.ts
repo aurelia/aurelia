@@ -240,7 +240,6 @@ describe(spec, function () {
       assert.strictEqual(host.textContent, '', 'host.textContent');
 
       au.dispose();
-      assert.isSchedulerEmpty();
-    });
+      });
   });
 });

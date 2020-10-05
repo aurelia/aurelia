@@ -131,7 +131,7 @@ export class BindingBehaviorExpression {
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown {
-    return this.expression.assign!(flags, scope, hostScope, locator, value);
+    return this.expression.assign(flags, scope, hostScope, locator, value);
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
@@ -231,7 +231,7 @@ export class ValueConverterExpression {
     if ('fromView' in converter) {
       value = (converter.fromView!.call as (...args: unknown[]) => void)(converter, value, ...(evalList(flags, scope, locator, this.args, hostScope)));
     }
-    return this.expression.assign!(flags, scope, hostScope, locator, value);
+    return this.expression.assign(flags, scope, hostScope, locator, value);
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
@@ -301,7 +301,7 @@ export class AssignExpression {
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown {
-    this.value.assign!(flags, scope, hostScope, locator, value);
+    this.value.assign(flags, scope, hostScope, locator, value);
     return this.target.assign(flags, scope, hostScope, locator, value);
   }
 
@@ -460,7 +460,7 @@ export class AccessMemberExpression {
         obj[this.name] = value;
       }
     } else {
-      this.object.assign!(flags, scope, hostScope, locator, { [this.name]: value });
+      this.object.assign(flags, scope, hostScope, locator, { [this.name]: value });
     }
     return value;
   }
@@ -655,15 +655,84 @@ export class BinaryExpression {
     public readonly operation: BinaryOperator,
     public readonly left: IsBinary,
     public readonly right: IsBinary,
-  ) {
-    // what we're doing here is effectively moving the large switch statement from evaluate to the constructor
-    // so that the check only needs to be done once, and evaluate (which is called many times) will have a lot less
-    // work to do; we can do this because the operation can't change after it's parsed
-    this.evaluate = this[operation];
-  }
+  ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
-    throw Reporter.error(RuntimeError.UnknownOperator, this);
+  public evaluate(f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
+    switch (this.operation) {
+      case '&&':
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        return this.left.evaluate(f, s, hs, l) && this.right.evaluate(f, s, hs, l);
+      case '||':
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        return this.left.evaluate(f, s, hs, l) || this.right.evaluate(f, s, hs, l);
+      case '==':
+        // eslint-disable-next-line eqeqeq
+        return this.left.evaluate(f, s, hs, l) == this.right.evaluate(f, s, hs, l);
+      case '===':
+        return this.left.evaluate(f, s, hs, l) === this.right.evaluate(f, s, hs, l);
+      case '!=':
+        // eslint-disable-next-line eqeqeq
+        return this.left.evaluate(f, s, hs, l) != this.right.evaluate(f, s, hs, l);
+      case '!==':
+        return this.left.evaluate(f, s, hs, l) !== this.right.evaluate(f, s, hs, l);
+      case 'instanceof': {
+        const right = this.right.evaluate(f, s, hs, l);
+        if (typeof right === 'function') {
+          return this.left.evaluate(f, s, hs, l) instanceof right;
+        }
+        return false;
+      }
+      case 'in': {
+        const right = this.right.evaluate(f, s, hs, l);
+        if (right instanceof Object) {
+          return this.left.evaluate(f, s, hs, l) as string in right;
+        }
+        return false;
+      }
+      // note: autoConvertAdd (and the null check) is removed because the default spec behavior is already largely similar
+      // and where it isn't, you kind of want it to behave like the spec anyway (e.g. return NaN when adding a number to undefined)
+      // this makes bugs in user code easier to track down for end users
+      // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
+      case '+': {
+        const left: any = this.left.evaluate(f, s, hs, l);
+        const right: any = this.right.evaluate(f, s, hs, l);
+
+        if ((f & LifecycleFlags.isStrictBindingStrategy) > 0) {
+          return (left as number) + (right as number);
+        }
+
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        if (!left || !right) {
+          if (isNumberOrBigInt(left) || isNumberOrBigInt(right)) {
+            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+            return (left as number || 0) + (right as number || 0);
+          }
+          if (isStringOrDate(left) || isStringOrDate(right)) {
+            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+            return (left as string || '') + (right as string || '');
+          }
+        }
+        return (left as number) + (right as number);
+      }
+      case '-':
+        return (this.left.evaluate(f, s, hs, l) as number) - (this.right.evaluate(f, s, hs, l) as number);
+      case '*':
+        return (this.left.evaluate(f, s, hs, l) as number) * (this.right.evaluate(f, s, hs, l) as number);
+      case '/':
+        return (this.left.evaluate(f, s, hs, l) as number) / (this.right.evaluate(f, s, hs, l) as number);
+      case '%':
+        return (this.left.evaluate(f, s, hs, l) as number) % (this.right.evaluate(f, s, hs, l) as number);
+      case '<':
+        return (this.left.evaluate(f, s, hs, l) as number) < (this.right.evaluate(f, s, hs, l) as number);
+      case '>':
+        return (this.left.evaluate(f, s, hs, l) as number) > (this.right.evaluate(f, s, hs, l) as number);
+      case '<=':
+        return (this.left.evaluate(f, s, hs, l) as number) <= (this.right.evaluate(f, s, hs, l) as number);
+      case '>=':
+        return (this.left.evaluate(f, s, hs, l) as number) >= (this.right.evaluate(f, s, hs, l) as number);
+      default:
+        throw Reporter.error(RuntimeError.UnknownOperator, this);
+    }
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
@@ -674,93 +743,6 @@ export class BinaryExpression {
     this.left.connect(flags, scope, hostScope, binding);
     this.right.connect(flags, scope, hostScope, binding);
   }
-
-  /* eslint-disable no-useless-computed-key */
-  private ['&&'](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
-    return this.left.evaluate(f, s, hs, l) && this.right.evaluate(f, s, hs, l);
-  }
-  private ['||'](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
-    return this.left.evaluate(f, s, hs, l) || this.right.evaluate(f, s, hs, l);
-  }
-  private ['=='](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): boolean {
-    // eslint-disable-next-line eqeqeq
-    return this.left.evaluate(f, s, hs, l) == this.right.evaluate(f, s, hs, l);
-  }
-  private ['==='](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): boolean {
-    return this.left.evaluate(f, s, hs, l) === this.right.evaluate(f, s, hs, l);
-  }
-  private ['!='](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): boolean {
-    // eslint-disable-next-line eqeqeq
-    return this.left.evaluate(f, s, hs, l) != this.right.evaluate(f, s, hs, l);
-  }
-  private ['!=='](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): boolean {
-    return this.left.evaluate(f, s, hs, l) !== this.right.evaluate(f, s, hs, l);
-  }
-  private ['instanceof'](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): boolean {
-    const right = this.right.evaluate(f, s, hs, l);
-    if (typeof right === 'function') {
-      return this.left.evaluate(f, s, hs, l) instanceof right;
-    }
-    return false;
-  }
-  private ['in'](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): boolean {
-    const right = this.right.evaluate(f, s, hs, l);
-    if (right instanceof Object) {
-      return this.left.evaluate(f, s, hs, l) as string in right;
-    }
-    return false;
-  }
-
-  // note: autoConvertAdd (and the null check) is removed because the default spec behavior is already largely similar
-  // and where it isn't, you kind of want it to behave like the spec anyway (e.g. return NaN when adding a number to undefined)
-  // this makes bugs in user code easier to track down for end users
-  // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
-  private ['+'](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): number | string {
-    const left: any = this.left.evaluate(f, s, hs, l);
-    const right: any = this.right.evaluate(f, s, hs, l);
-
-    if ((f & LifecycleFlags.isStrictBindingStrategy) > 0) {
-      return (left as number) + (right as number);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    if (!left || !right) {
-      if (isNumberOrBigInt(left) || isNumberOrBigInt(right)) {
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-        return (left as number || 0) + (right as number || 0);
-      }
-      if (isStringOrDate(left) || isStringOrDate(right)) {
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-        return (left as string || '') + (right as string || '');
-      }
-    }
-    return (left as number) + (right as number);
-  }
-  private ['-'](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): number {
-    return (this.left.evaluate(f, s, hs, l) as number) - (this.right.evaluate(f, s, hs, l) as number);
-  }
-  private ['*'](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): number {
-    return (this.left.evaluate(f, s, hs, l) as number) * (this.right.evaluate(f, s, hs, l) as number);
-  }
-  private ['/'](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): number {
-    return (this.left.evaluate(f, s, hs, l) as number) / (this.right.evaluate(f, s, hs, l) as number);
-  }
-  private ['%'](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): number {
-    return (this.left.evaluate(f, s, hs, l) as number) % (this.right.evaluate(f, s, hs, l) as number);
-  }
-  private ['<'](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): boolean {
-    return (this.left.evaluate(f, s, hs, l) as number) < (this.right.evaluate(f, s, hs, l) as number);
-  }
-  private ['>'](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): boolean {
-    return (this.left.evaluate(f, s, hs, l) as number) > (this.right.evaluate(f, s, hs, l) as number);
-  }
-  private ['<='](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): boolean {
-    return (this.left.evaluate(f, s, hs, l) as number) <= (this.right.evaluate(f, s, hs, l) as number);
-  }
-  private ['>='](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): boolean {
-    return (this.left.evaluate(f, s, hs, l) as number) >= (this.right.evaluate(f, s, hs, l) as number);
-  }
-  /* eslint-enable no-useless-computed-key */
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBinary(this);
@@ -775,13 +757,23 @@ export class UnaryExpression {
   public constructor(
     public readonly operation: UnaryOperator,
     public readonly expression: IsLeftHandSide,
-  ) {
-    // see Binary (we're doing the same thing here)
-    this.evaluate = this[operation];
-  }
+  ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
-    throw Reporter.error(RuntimeError.UnknownOperator, this);
+  public evaluate(f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
+    switch (this.operation) {
+      case 'void':
+        return void this.expression.evaluate(f, s, hs, l);
+      case 'typeof':
+        return typeof this.expression.evaluate(f | LifecycleFlags.isStrictBindingStrategy, s, hs, l);
+      case '!':
+        return !this.expression.evaluate(f, s, hs, l);
+      case '-':
+        return -(this.expression.evaluate(f, s, hs, l) as number);
+      case '+':
+        return +(this.expression.evaluate(f, s, hs, l) as number);
+      default:
+        throw Reporter.error(RuntimeError.UnknownOperator, this);
+    }
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
@@ -791,24 +783,6 @@ export class UnaryExpression {
   public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
     this.expression.connect(flags, scope, hostScope, binding);
   }
-
-  /* eslint-disable no-useless-computed-key */
-  public ['void'](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): undefined {
-    return void this.expression.evaluate(f, s, hs, l);
-  }
-  public ['typeof'](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): string {
-    return typeof this.expression.evaluate(f | LifecycleFlags.isStrictBindingStrategy, s, hs, l);
-  }
-  public ['!'](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): boolean {
-    return !this.expression.evaluate(f, s, hs, l);
-  }
-  public ['-'](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): number {
-    return -(this.expression.evaluate(f, s, hs, l) as number);
-  }
-  public ['+'](f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): number {
-    return +(this.expression.evaluate(f, s, hs, l) as number);
-  }
-  /* eslint-enable no-useless-computed-key */
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitUnary(this);

@@ -1,4 +1,4 @@
-import { IContainer, InstanceProvider } from '@aurelia/kernel';
+import { IContainer, InstanceProvider, IDisposable } from '@aurelia/kernel';
 import { IActivator } from './activator';
 import { IDOM, INode } from './dom';
 import { BindingStrategy } from './flags';
@@ -10,7 +10,7 @@ export interface ISinglePageApp<THost extends INode = INode> {
     host: THost;
     component: unknown;
 }
-export declare class CompositionRoot<T extends INode = INode> {
+export declare class CompositionRoot<T extends INode = INode> implements IDisposable {
     readonly config: ISinglePageApp<T>;
     readonly container: IContainer;
     readonly host: T & {
@@ -28,9 +28,10 @@ export declare class CompositionRoot<T extends INode = INode> {
     constructor(config: ISinglePageApp<T>, container: IContainer, rootProvider: InstanceProvider<CompositionRoot<T>>, enhance?: boolean);
     activate(antecedent?: ILifecycleTask): ILifecycleTask;
     deactivate(antecedent?: ILifecycleTask): ILifecycleTask;
+    dispose(): void;
     private create;
 }
-export declare class Aurelia<TNode extends INode = INode> {
+export declare class Aurelia<TNode extends INode = INode> implements IDisposable {
     readonly container: IContainer;
     get isRunning(): boolean;
     get isStarting(): boolean;
@@ -50,6 +51,7 @@ export declare class Aurelia<TNode extends INode = INode> {
     start(root?: CompositionRoot<TNode> | undefined): ILifecycleTask;
     stop(root?: CompositionRoot<TNode> | undefined): ILifecycleTask;
     wait(): Promise<void>;
+    dispose(): void;
     private configureRoot;
     private onBeforeStart;
     private onAfterStart;

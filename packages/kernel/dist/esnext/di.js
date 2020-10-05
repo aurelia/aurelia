@@ -496,6 +496,9 @@ export class Resolver {
                 return null;
         }
     }
+    dispose() {
+        this.key = this.state = null;
+    }
 }
 /** @internal */
 export class Factory {
@@ -889,6 +892,18 @@ export class Container {
         while (disposables.length > 0) {
             (_a = disposables.pop()) === null || _a === void 0 ? void 0 : _a.dispose();
         }
+    }
+    dispose() {
+        var _a, _b, _c, _d;
+        this.disposeResolvers();
+        for (const key in this.resourceResolvers) {
+            (_b = (_a = this.resourceResolvers[key]).dispose) === null || _b === void 0 ? void 0 : _b.call(_a);
+        }
+        for (const key of this.resolvers.keys()) {
+            (_d = (_c = this.resolvers.get(key)).dispose) === null || _d === void 0 ? void 0 : _d.call(_c);
+        }
+        this.resolvers.clear();
+        this.root = this.parent = this.config = this.resolvers = this.resourceResolvers = this.disposableResolvers = null;
     }
     jitRegister(keyAsValue, handler) {
         if (typeof keyAsValue !== 'function') {

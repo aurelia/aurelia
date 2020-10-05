@@ -104,6 +104,10 @@ export class CompositionRoot {
         }
         return this.task;
     }
+    dispose() {
+        var _a;
+        (_a = this.controller) === null || _a === void 0 ? void 0 : _a.dispose();
+    }
     create() {
         const config = this.config;
         const instance = this.viewModel = CustomElement.isType(config.component)
@@ -201,6 +205,15 @@ export class Aurelia {
     }
     wait() {
         return this.task.wait();
+    }
+    dispose() {
+        var _a;
+        if (this._isRunning || this._isStopping) {
+            throw new Error(`The aurelia instance must be fully stopped before it can be disposed`);
+        }
+        (_a = this._root) === null || _a === void 0 ? void 0 : _a.dispose();
+        this._root = void 0;
+        this.container.dispose();
     }
     configureRoot(config, enhance) {
         this.next = new CompositionRoot(config, this.container, this.rootProvider, enhance);

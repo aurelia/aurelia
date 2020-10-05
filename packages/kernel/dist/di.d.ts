@@ -1,4 +1,4 @@
-import { Constructable } from './interfaces';
+import { Constructable, IDisposable } from './interfaces';
 export declare type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
 export declare type InterfaceSymbol<K = any> = (target: Injectable<K>, property: string, index: number) => void;
 export interface IDefaultableInterfaceSymbol<K> extends InterfaceSymbol<K> {
@@ -36,7 +36,7 @@ export interface IServiceLocator {
 export interface IRegistry {
     register(container: IContainer, ...params: unknown[]): void | IResolver | IContainer;
 }
-export interface IContainer extends IServiceLocator {
+export interface IContainer extends IServiceLocator, IDisposable {
     register(...params: any[]): IContainer;
     registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
     registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;

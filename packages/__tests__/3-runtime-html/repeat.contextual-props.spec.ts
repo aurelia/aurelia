@@ -419,8 +419,9 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
             if (!mutationWillThrow) {
               try {
                 await au.stop().wait();
-              } catch {/* and ignore all errors trying to stop */}
-              finally {
+              } catch {
+                /* and ignore all errors trying to stop */
+              } finally {
                 au.dispose();
               }
               throw ex;

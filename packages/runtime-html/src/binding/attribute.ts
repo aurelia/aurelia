@@ -7,11 +7,9 @@ import {
   BindingMode,
   connectable,
   ExpressionKind,
-  hasBind,
-  hasUnbind,
   IBindingTargetObserver,
   IConnectableBinding,
-  IForOfStatement,
+  ForOfStatement,
   IObserverLocator,
   IPartialConnectableBinding,
   IsBindingBehavior,
@@ -68,7 +66,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public target: Element;
 
   public constructor(
-    public sourceExpression: IsBindingBehavior | IForOfStatement,
+    public sourceExpression: IsBindingBehavior | ForOfStatement,
     target: INode,
     // some attributes may have inner structure
     // such as class -> collection of class names
@@ -177,7 +175,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     this.projection = projection;
 
     let sourceExpression = this.sourceExpression;
-    if (hasBind(sourceExpression)) {
+    if (sourceExpression.hasBind) {
       sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
@@ -224,7 +222,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     // clear persistent flags
     this.persistentFlags = LifecycleFlags.none;
 
-    if (hasUnbind(this.sourceExpression)) {
+    if (this.sourceExpression.hasUnbind) {
       this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
     }
     this.$scope = null!;

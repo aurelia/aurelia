@@ -10,7 +10,6 @@ import {
   DI,
   IServiceLocator,
 } from '@aurelia/kernel';
-import { AnyBindingExpression, IsBindingBehavior } from './ast';
 import { CallBinding } from './binding/call-binding';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
 import { InterpolationBinding, MultiInterpolationBinding } from './binding/interpolation-binding';
@@ -53,7 +52,7 @@ import {
 import { Controller } from './templating/controller';
 import { ObserversLookup } from './observation';
 import { ICompiledRenderContext, getRenderContext } from './templating/render-context';
-import { BindingBehaviorExpression } from './binding/ast';
+import { AnyBindingExpression, BindingBehaviorExpression, IsBindingBehavior } from './binding/ast';
 import { BindingBehaviorFactory, BindingBehaviorInstance, IInterceptableBinding } from './resources/binding-behavior';
 import { RegisteredProjections } from './resources/custom-elements/au-slot';
 

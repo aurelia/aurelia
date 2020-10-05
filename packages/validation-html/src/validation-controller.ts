@@ -5,6 +5,7 @@ import {
   Constructable,
   Transformer,
   Key,
+  IServiceLocator,
 } from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
@@ -311,6 +312,7 @@ export class ValidationController implements IValidationController {
     @IValidator public readonly validator: IValidator,
     @IExpressionParser private readonly parser: IExpressionParser,
     @IScheduler private readonly scheduler: IScheduler,
+    @IServiceLocator private readonly locator: IServiceLocator,
   ) { }
 
   public addObject(object: IValidateable, rules?: PropertyRule[]): void {
@@ -478,7 +480,7 @@ export class ValidationController implements IValidationController {
             .map(([
               { validationRules, messageProvider, property },
               rules
-            ]) => new PropertyRule(validationRules, messageProvider, property, [rules]))
+            ]) => new PropertyRule(this.locator, validationRules, messageProvider, property, [rules]))
         ))
       );
     }
@@ -579,7 +581,8 @@ export class ValidationControllerFactory implements IFactory<Constructable<IVali
       : new ValidationController(
         container.get<IValidator>(IValidator),
         container.get(IExpressionParser),
-        container.get(IScheduler)
+        container.get(IScheduler),
+        container,
       );
   }
 }

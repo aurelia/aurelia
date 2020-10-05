@@ -1,10 +1,9 @@
-import { IsBindingBehavior } from './ast';
 import {
   bindingCommand,
   getTarget,
   BindingCommandInstance,
 } from './binding-command';
-import { ForOfStatement } from './binding/ast';
+import { ForOfStatement, IsBindingBehavior } from './binding/ast';
 import { BindingType } from './binding/expression-parser';
 import { AttributeInstruction } from './definitions';
 import { BindingMode } from './flags';

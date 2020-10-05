@@ -5,7 +5,6 @@ import {
 import {
   ITask,
 } from '@aurelia/scheduler';
-import { IExpression } from '../ast';
 import {
   LifecycleFlags,
 } from '../flags';
@@ -17,6 +16,7 @@ import {
   IScope,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
+import { IsExpression } from './ast';
 import {
   connectable,
   IConnectableBinding,
@@ -39,7 +39,7 @@ export class LetBinding implements IPartialConnectableBinding {
   public target: (IObservable & IIndexable) | null = null;
 
   public constructor(
-    public sourceExpression: IExpression,
+    public sourceExpression: IsExpression,
     public targetProperty: string,
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator,
@@ -81,7 +81,7 @@ export class LetBinding implements IPartialConnectableBinding {
     this.target = (this.toBindingContext ? (hostScope ?? scope).bindingContext : (hostScope ?? scope).overrideContext) as IIndexable;
 
     const sourceExpression = this.sourceExpression;
-    if (sourceExpression.bind) {
+    if (sourceExpression.hasBind) {
       sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
     // sourceExpression might have been changed during bind
@@ -98,7 +98,7 @@ export class LetBinding implements IPartialConnectableBinding {
     }
 
     const sourceExpression = this.sourceExpression;
-    if (sourceExpression.unbind) {
+    if (sourceExpression.hasUnbind) {
       sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
     this.$scope = void 0;

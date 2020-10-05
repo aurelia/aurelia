@@ -13,7 +13,7 @@ import {
   HydrateElementInstruction,
   HydrateTemplateController,
   IExpressionParser,
-  IInterpolationExpression,
+  Interpolation,
   ILetBindingInstruction,
   InterpolationInstruction,
   IsBindingBehavior,
@@ -324,7 +324,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         return new SetPropertyInstruction(symbol.rawValue, symbol.bindable.propName);
       } else {
         // either an element binding interpolation or a dynamic options attribute binding interpolation
-        return new InterpolationInstruction(symbol.expression as IInterpolationExpression, symbol.bindable.propName);
+        return new InterpolationInstruction(symbol.expression as Interpolation, symbol.bindable.propName);
       }
     } else {
       // either an element binding command, dynamic options attribute binding command,
@@ -393,7 +393,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         return new SetAttributeInstruction(attrRawValue, syntax.target);
       } else {
         // a plain attribute with an interpolation
-        return new InterpolationInstruction(symbol.expression as IInterpolationExpression, syntax.target);
+        return new InterpolationInstruction(symbol.expression as Interpolation, syntax.target);
       }
     } else {
       // a plain attribute with a binding command

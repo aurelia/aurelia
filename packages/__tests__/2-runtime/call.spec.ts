@@ -4,7 +4,7 @@ import {
   CallBinding,
   CallScopeExpression,
   ExpressionKind,
-  IExpression,
+  IsBindingBehavior,
   ILifecycle,
   IScope,
   LifecycleFlags as LF,
@@ -19,7 +19,7 @@ import {
 } from '@aurelia/testing';
 
 describe.skip('CallBinding', function () {
-  function createFixture(sourceExpression: IExpression, target: any, targetProperty: string) {
+  function createFixture(sourceExpression: IsBindingBehavior, target: any, targetProperty: string) {
     const container = RuntimeConfiguration.createContainer();
     const lifecycle = container.get(ILifecycle);
     const observerLocator = createObserverLocator(container);
@@ -40,7 +40,7 @@ describe.skip('CallBinding', function () {
       () => ['barz', `'barz' `]
     ];
 
-    const exprVariations: (() => [IExpression, string])[] = [
+    const exprVariations: (() => [IsBindingBehavior, string])[] = [
       () => [new CallScopeExpression('theFunc', []),          `theFunc()`],
       () => [new BindingBehaviorExpression(new CallScopeExpression('theFunc', []), 'debounce', []),          `theFunc()`]
     ];
@@ -141,7 +141,7 @@ describe.skip('CallBinding', function () {
       () => ['barz', `'barz' `]
     ];
 
-    const exprVariations: (() => [IExpression, string])[] = [
+    const exprVariations: (() => [IsBindingBehavior, string])[] = [
       () => [new CallScopeExpression('theFunc', []),          `theFunc()`],
       () => [new BindingBehaviorExpression(new CallScopeExpression('theFunc', []), 'debounce', []),          `theFunc()`]
     ];
@@ -245,7 +245,7 @@ describe.skip('CallBinding', function () {
       () => [{ arg3: ';lkasdf', arg1: {}, arg2: 42  }, `{} `]
     ];
 
-    const exprVariations: (() => [IExpression, string])[] = [
+    const exprVariations: (() => [IsBindingBehavior, string])[] = [
       () => [new CallScopeExpression('theFunc', []),          `theFunc()`],
       () => [new CallScopeExpression('theFunc', [new AccessScopeExpression('arg1'), new AccessScopeExpression('arg2'), new AccessScopeExpression('arg3')]), `theFunc(arg1, arg2, arg3)`]
     ];

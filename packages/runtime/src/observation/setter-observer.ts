@@ -1,8 +1,11 @@
 import { IIndexable, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor } from '../observation';
+import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor, ISubscriberCollection } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { ITask } from '@aurelia/scheduler';
+import { InterceptorFunc } from '../templating/bindable';
+
+const $is = Object.is;
 
 export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
 
@@ -106,37 +109,36 @@ export class SetterObserver {
   }
 }
 
+export interface SetterNotifier extends ISubscriberCollection {}
+@subscriberCollection()
 export class SetterNotifier implements IAccessor, ISubscribable {
   // ideally, everything is an object,
   // probably this flag is redundant, just None?
   public type: AccessorType = AccessorType.Obj;
 
-  private _subs?: Set<ISubscriber>;
-  public get subs(): Set<ISubscriber> {
-    return (this._subs || (this._subs = new Set()));
-  }
-
   /**@internal */
   public v: unknown = void 0;
   public task: ITask | null = null;
-  
+
+  public readonly persistentFlags: LifecycleFlags = LifecycleFlags.none;
+
+  // todo(bigopon): remove flag aware assignment in ast, move to the decorator itself
+  public constructor(
+    private readonly s?: InterceptorFunc
+  ) {}
+
   public getValue(): unknown {
     return this.v;
   }
 
   public setValue(value: unknown, flags: LifecycleFlags): void {
-    const oldValue = this.v;
-    if (value !== oldValue) {
-      this.v = value;
-      this._subs?.forEach(sub => sub.handleChange(value, oldValue, flags));
+    if (typeof this.s === 'function') {
+      value = this.s(value);
     }
-  }
-
-  public subscribe(subscriber: ISubscriber): void {
-    this.subs.add(subscriber);
-  }
-
-  public unsubscribe(subscriber: ISubscriber): void {
-    this.subs.delete(subscriber);
+    const oldValue = this.v;
+    if (!$is(value, oldValue)) {
+      this.v = value;
+      this.callSubscribers(value, oldValue, flags);
+    }
   }
 }

@@ -156,6 +156,7 @@ export {
   DirtyCheckSettings
 } from './observation/dirty-checker';
 export {
+  IObservableDefinition,
   observable,
 } from './observation/observable';
 export {

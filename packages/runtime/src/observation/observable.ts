@@ -1,5 +1,5 @@
 import { Constructable, IIndexable } from '@aurelia/kernel';
-import { IBindingContext, IBindingTargetObserver, ObserversLookup, PropertyObserver, ISubscriber } from '../observation';
+import { IBindingContext, ObserversLookup, PropertyObserver, ISubscriber } from '../observation';
 import { SetterObserver, SetterNotifier } from './setter-observer';
 import { LifecycleFlags } from '../flags';
 import { InternalObserversLookup } from './binding-context';
@@ -11,28 +11,10 @@ type $Getter = PropertyDescriptor['get'] & {
   getObserver(obj: IIndexable): SetterObserver | SetterNotifier;
 };
 
-export interface IObservableDecoratorDefinition {
+export interface IObservableDefinition {
   name?: PropertyKey;
   changeHandler?: PropertyKey;
   set?: InterceptorFunc;
-}
-
-/**
- * To be expanded into getObserver of ObserverLocator.getObserver
- */
-function getSetterObserver(
-  obj: IIndexable<{ $observers?: ObserversLookup }, PropertyObserver>,
-  key: PropertyKey
-): SetterObserver {
-  let $observers = obj.$observers;
-  if ($observers == null) {
-    $observers = new InternalObserversLookup();
-    if (!Reflect.defineProperty(obj, '$observers', { configurable: false, value: $observers })) {
-      // todo: define in a weakmap
-    }
-  }
-  return $observers[key as string] as SetterObserver
-    || ($observers[key as string] = new SetterObserver(LifecycleFlags.none, obj, key as string));
 }
 
 function getObserversLookup(obj: IIndexable<{ $observers?: ObserversLookup }>): ObserversLookup {
@@ -54,7 +36,7 @@ type SetterObserverOwningObject = IIndexable<IBindingContext, PropertyObserver>;
 //    class {
 //      @observable prop
 //    }
-export function observable(target: Constructable['prototype'], key: PropertyKey, descriptor?: PropertyDescriptor): void;
+export function observable(target: Constructable['prototype'], key: PropertyKey, descriptor?: PropertyDescriptor & { initializer?: () => unknown }): void;
 // for
 //    @observable({...})
 //    class {}
@@ -62,7 +44,7 @@ export function observable(target: Constructable['prototype'], key: PropertyKey,
 //    class {
 //      @observable({...}) prop
 //    }
-export function observable(config: IObservableDecoratorDefinition): (target: Constructable | Constructable['prototype'], ...args: unknown[]) => void;
+export function observable(config: IObservableDefinition): (target: Constructable | Constructable['prototype'], ...args: unknown[]) => void;
 // for
 //    @observable('') class {}
 //    @observable(5) class {}
@@ -75,7 +57,7 @@ export function observable(key: PropertyKey): ClassDecorator;
 export function observable(): PropertyDecorator;
 // impl, wont be seen
 export function observable(
-  targetOrConfig?: Constructable | Constructable['prototype'] | PropertyKey | IObservableDecoratorDefinition,
+  targetOrConfig?: Constructable | Constructable['prototype'] | PropertyKey | IObservableDefinition,
   key?: PropertyKey,
   descriptor?: PropertyDescriptor
 ): ClassDecorator | PropertyDecorator {
@@ -99,13 +81,13 @@ export function observable(
   //    class {
   //      @observable prop
   //    }
-  return deco(targetOrConfig as Constructable, key, descriptor) as PropertyDecorator;
+  return deco(targetOrConfig as Constructable['prototype'], key, descriptor) as PropertyDecorator;
 
   function deco(
     target: Constructable | Constructable['prototype'],
     key?: PropertyKey,
     descriptor?: PropertyDescriptor & { initializer?: CallableFunction },
-    config?: PropertyKey | IObservableDecoratorDefinition,
+    config?: PropertyKey | IObservableDefinition,
   ): void | PropertyDescriptor {
     // class decorator?
     const isClassDecorator = key === void 0;
@@ -143,16 +125,13 @@ export function observable(
     // todo(bigopon/fred): discuss string api for converter
     const $set = config.set;
     descriptor.get = function g(this: SetterObserverOwningObject) {
-      return getNotifier(this, key!, changeHandler, initialValue).getValue();
+      return getNotifier(this, key!, changeHandler, initialValue, $set).getValue();
     };
     descriptor.set = function s(this: SetterObserverOwningObject, newValue: unknown) {
-      if (typeof $set === 'function') {
-        newValue = $set(newValue);
-      }
-      getNotifier(this, key!, changeHandler, initialValue).setValue(newValue, LifecycleFlags.none);
+      getNotifier(this, key!, changeHandler, initialValue, $set).setValue(newValue, LifecycleFlags.none);
     };
     (descriptor.get as $Getter).getObserver = function gO(obj: SetterObserverOwningObject) {
-      return getNotifier(obj, key!, changeHandler, initialValue);
+      return getNotifier(obj, key!, changeHandler, initialValue, $set);
     };
 
     if (isClassDecorator) {
@@ -183,11 +162,12 @@ function getNotifier(
   key: PropertyKey,
   changeHandler: PropertyKey,
   initialValue: unknown,
+  set?: InterceptorFunc,
 ): SetterNotifier {
   const lookup = getObserversLookup(obj) as unknown as Record<PropertyKey, SetterObserver | SetterNotifier>;
   let notifier = lookup[key as string] as SetterNotifier;
   if (notifier == null) {
-    notifier = new SetterNotifier();
+    notifier = new SetterNotifier(set);
     lookup[key as string] = notifier;
     if (initialValue !== noValue) {
       notifier.setValue(initialValue, LifecycleFlags.none);

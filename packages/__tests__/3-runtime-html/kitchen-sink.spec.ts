@@ -6,108 +6,12 @@ import {
   Aurelia,
   CustomElement,
   IExpressionParser,
-  ISignaler,
-  LifecycleFlags,
   IAttributeParser,
   ResourceModel,
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
-const spec = 'kitchen-sink';
-
 // TemplateCompiler - integration with various different parts
-describe(spec, function () {
-  it.skip('startup with App type', function () {
-    const ctx = TestContext.createHTMLTestContext();
-    const component = CustomElement.define({ name: 'app', template: `<template>\${message}</template>` }, class { public message = 'Hello!'; });
-    const host = ctx.createElement('div');
-    const au = new Aurelia(ctx.container).register().app({ host, component });
-    au.start();
-    assert.strictEqual(host.textContent, 'Hello!', `host.textContent`);
-    au.stop();
-    assert.strictEqual(host.textContent, '', `host.textContent`);
-    au.start();
-    assert.strictEqual(host.textContent, 'Hello!', `host.textContent`);
-    au.stop();
-    assert.strictEqual(host.textContent, '', `host.textContent`);
-  });
-
-  it.skip('signaler', function () {
-
-    const items = [0, 1, 2];
-    const App = CustomElement.define(
-      {
-        name: 'app',
-        template: `<template><div repeat.for="i of 3">\${items[i] & signal:'updateItem'}</div></template>`
-      },
-      class {
-        public items = items;
-      }
-    );
-
-    const ctx = TestContext.createHTMLTestContext();
-    const signaler = ctx.container.get(ISignaler);
-    const scheduler = ctx.scheduler;
-    const au = new Aurelia(ctx.container);
-
-    const host = ctx.createElement('div');
-    const component = new App();
-
-    au.app({ host, component });
-
-    au.start();
-
-    assert.strictEqual(host.textContent, '012', `host.textContent`);
-
-    items[0] = 2;
-
-    scheduler.getRenderTaskQueue().flush();
-
-    assert.strictEqual(host.textContent, '012', `host.textContent`);
-
-    signaler.dispatchSignal('updateItem', LifecycleFlags.none);
-
-    assert.strictEqual(host.textContent, '212', `host.textContent`);
-
-  });
-
-  it.skip('signaler + oneTime', function () {
-
-    const items = [0, 1, 2];
-    const App = CustomElement.define({
-      name: 'app',
-      template: `<template><div repeat.for="i of 3">\${items[i] & signal:'updateItem' & oneTime}</div></template>`
-    }, class {
-      public items = items;
-    });
-
-    const ctx = TestContext.createHTMLTestContext();
-    const signaler = ctx.container.get(ISignaler);
-    const scheduler = ctx.scheduler;
-    const au = new Aurelia(ctx.container);
-
-    const host = ctx.createElement('div');
-    const component = new App();
-
-    au.app({ host, component });
-
-    au.start();
-
-    assert.strictEqual(host.textContent, '012', `host.textContent`);
-
-    items[0] = 2;
-
-    scheduler.getRenderTaskQueue().flush();
-
-    assert.strictEqual(host.textContent, '012', `host.textContent`);
-
-    signaler.dispatchSignal('updateItem', LifecycleFlags.none);
-
-    assert.strictEqual(host.textContent, '212', `host.textContent`);
-
-  });
-});
-
 describe('xml node compiler tests', function () {
   // TODO: add some content assertions and verify different kinds of xml compilation
   // (for now these tests are just to ensure the binder doesn't hang or crash when given "unusual" node types)

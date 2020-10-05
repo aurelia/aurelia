@@ -2,9 +2,9 @@ import { ILogger } from '@aurelia/kernel';
 import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode, LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
-import { bindingBehavior } from '../binding-behavior';
+import { bindingBehavior, BindingBehaviorInstance } from '../binding-behavior';
 
-export abstract class BindingModeBehavior {
+export abstract class BindingModeBehavior implements BindingBehaviorInstance {
   private readonly originalModes: Map<PropertyBinding, BindingMode> = new Map();
 
   public constructor(

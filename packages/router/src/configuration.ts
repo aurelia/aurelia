@@ -65,7 +65,7 @@ const routerConfiguration = {
     return container.register(
       ...DefaultComponents,
       ...DefaultResources,
-      StartTask.with(IRouter).beforeBind().call(configurationCall),
+      StartTask.with(IRouter).beforeActivate().call(configurationCall),
       StartTask.with(IRouter).afterAttach().call(router => router.loadUrl()),
     );
   },

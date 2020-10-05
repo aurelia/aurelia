@@ -57,9 +57,9 @@ export class Activator implements IActivator {
     }
 
     if (task.done) {
-      task = mgr.runBeforeBind();
+      task = mgr.runBeforeActivate();
     } else {
-      task = new ContinuationTask(task, mgr.runBeforeBind, mgr);
+      task = new ContinuationTask(task, mgr.runBeforeActivate, mgr);
     }
 
     if (task.done) {

@@ -1,8 +1,8 @@
 import {
-  IForOfStatement,
-  IInterpolationExpression,
+  ForOfStatement,
+  Interpolation,
   IsBindingBehavior,
-} from './ast';
+} from './binding/ast';
 import {
   ICallBindingInstruction,
   IHydrateAttributeInstruction,
@@ -27,7 +27,7 @@ export class InterpolationInstruction implements IInterpolationInstruction {
   public type: TargetedInstructionType.interpolation = TargetedInstructionType.interpolation;
 
   public constructor(
-    public from: string | IInterpolationExpression,
+    public from: string | Interpolation,
     public to: string,
   ) {}
 }
@@ -84,7 +84,7 @@ export class IteratorBindingInstruction implements IIteratorBindingInstruction {
   public type: TargetedInstructionType.iteratorBinding = TargetedInstructionType.iteratorBinding;
 
   public constructor(
-    public from: string | IForOfStatement,
+    public from: string | ForOfStatement,
     public to: string,
   ) {}
 }
@@ -161,7 +161,7 @@ export class LetBindingInstruction implements ILetBindingInstruction {
   public type: TargetedInstructionType.letBinding = TargetedInstructionType.letBinding;
 
   public constructor(
-    public from: string | IsBindingBehavior | IInterpolationExpression,
+    public from: string | IsBindingBehavior | Interpolation,
     public to: string,
   ) {}
 }

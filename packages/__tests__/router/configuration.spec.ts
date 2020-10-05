@@ -33,9 +33,10 @@ describe('Configuration', function () {
     await au.start().wait();
 
     async function tearDown() {
-      router.stop();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
+
+      au.dispose();
     }
 
     return { au, container, lifecycle, host, router, ctx, tearDown };
@@ -109,6 +110,7 @@ describe('Configuration', function () {
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
-    router.stop();
+
+    au.dispose();
   });
 });

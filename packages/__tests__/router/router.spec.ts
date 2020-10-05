@@ -151,7 +151,6 @@ describe('Router', function () {
 
     async function tearDown() {
       unspyNavigationStates(router, _pushState, _replaceState);
-      router.stop();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
     }
@@ -960,7 +959,8 @@ describe('Router', function () {
       async function $teardown() {
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
-        router.stop();
+
+        au.dispose();
       }
 
       return { ctx, container, scheduler, host, component, au, router, $teardown };
@@ -1207,9 +1207,10 @@ describe('Router', function () {
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        router.stop();
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
+
+        au.dispose();
       }
 
       return { ctx, container, scheduler, host, au, router, $teardown };
@@ -1336,9 +1337,10 @@ describe('Router', function () {
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        router.stop();
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
+
+        au.dispose();
       }
 
       return { ctx, container, scheduler, host, au, router, $teardown, App };
@@ -1603,9 +1605,10 @@ describe('Router', function () {
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        router.stop();
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
+
+        au.dispose();
       }
 
       return { ctx, container, scheduler, host, au, router, $teardown, App };
@@ -1823,9 +1826,10 @@ describe('Router', function () {
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        router.stop();
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
+
+        au.dispose();
       }
 
       return { ctx, container, scheduler, host, au, router, $teardown, App };

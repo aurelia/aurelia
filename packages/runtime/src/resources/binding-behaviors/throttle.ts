@@ -2,8 +2,7 @@ import { LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
 import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../binding-behavior';
 import { ITask, IScheduler, ITaskQueue, QueueTaskOptions, Now } from '@aurelia/scheduler';
-import { BindingBehaviorExpression } from '../../binding/ast';
-import { IsAssign } from '../../ast';
+import { BindingBehaviorExpression, IsAssign } from '../../binding/ast';
 
 @bindingBehavior('throttle')
 export class ThrottleBindingBehavior extends BindingInterceptor {

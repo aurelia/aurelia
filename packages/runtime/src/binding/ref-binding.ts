@@ -2,7 +2,6 @@ import {
   IIndexable,
   IServiceLocator,
 } from '@aurelia/kernel';
-import { IsBindingBehavior } from '../ast';
 import {
   LifecycleFlags,
 } from '../flags';
@@ -11,8 +10,7 @@ import {
   IScope,
 } from '../observation';
 import {
-  hasBind,
-  hasUnbind,
+  IsBindingBehavior,
 } from './ast';
 import { IConnectableBinding } from './connectable';
 
@@ -42,7 +40,7 @@ export class RefBinding implements IBinding {
     this.$scope = scope;
     this.$hostScope = hostScope;
 
-    if (hasBind(this.sourceExpression)) {
+    if (this.sourceExpression.hasBind) {
       this.sourceExpression.bind(flags, scope, hostScope, this);
     }
 
@@ -64,7 +62,7 @@ export class RefBinding implements IBinding {
 
     // source expression might have been modified durring assign, via a BB
     sourceExpression = this.sourceExpression;
-    if (hasUnbind(sourceExpression)) {
+    if (sourceExpression.hasUnbind) {
       sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
 

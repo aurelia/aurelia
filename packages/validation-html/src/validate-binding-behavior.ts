@@ -3,7 +3,6 @@ import {
   bindingBehavior,
   BindingInterceptor,
   BindingMediator,
-  IBindingBehaviorExpression,
   IsAssign,
   IScheduler,
   IScope,
@@ -82,7 +81,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
 
   public constructor(
     public readonly binding: BindingWithBehavior,
-    expr: IBindingBehaviorExpression,
+    expr: BindingBehaviorExpression,
   ) {
     super(binding, expr);
     const locator = this.locator;
@@ -142,9 +141,6 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     this.controller?.removeSubscriber(this);
     this.controller?.unregisterBinding(this.propertyBinding);
     this.binding.$unbind(flags);
-    for (const expr of this.connectedExpressions) {
-      expr.unbind?.(flags, this.scope, this.hostScope, this);
-    }
   }
 
   public handleTriggerChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {

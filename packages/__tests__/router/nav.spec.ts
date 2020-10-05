@@ -46,9 +46,10 @@ describe('Nav', function () {
     await au.start().wait();
 
     async function tearDown() {
-      router.stop();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
+
+      au.dispose();
     }
 
     const scheduler = ctx.scheduler;

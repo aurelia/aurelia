@@ -1,7 +1,4 @@
 import {
-  parseExpression
-} from '@aurelia/jit';
-import {
   DI,
   IContainer,
   inject,
@@ -51,7 +48,8 @@ import {
   IScheduler,
   CustomElement,
   ICustomElementController,
-  TemplateControllerLinkType
+  TemplateControllerLinkType,
+  parseExpression,
 } from '@aurelia/runtime';
 import { TestContext } from './html-test-context';
 

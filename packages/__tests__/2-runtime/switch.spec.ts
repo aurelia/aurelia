@@ -828,7 +828,6 @@ describe('switch', function () {
           'change2'
         );
 
-        // TODO: fix
         $switch.clearCalls();
         ctx.app.statuses = [ctx.app.status = Status.delivered];
         await $switch.wait();
@@ -837,7 +836,7 @@ describe('switch', function () {
           $switch,
           new SwitchCallsExpectation(
             [2, 1, 1],
-            [0, 0, 1],
+            [1, 0, 1],
             [0, 0, 1],
             new DefaultCaseCallsExpectation(0, 1),
           ),
@@ -902,7 +901,6 @@ describe('switch', function () {
           'change2'
         );
 
-        // TODO: fix
         $switch.clearCalls();
         ctx.app.statuses.push(ctx.app.status = Status.delivered);
         await $switch.wait();
@@ -912,7 +910,7 @@ describe('switch', function () {
           new SwitchCallsExpectation(
             [2, 1, 1],
             [1, 0, 1],
-            [0, 0, 0],
+            [0, 0, 1],
             new DefaultCaseCallsExpectation(0, 1),
           ),
           'change3'
@@ -955,8 +953,8 @@ describe('switch', function () {
           $switch,
           new SwitchCallsExpectation(
             [1, 1, 1, 1],
-            [0, 0, 0, 1],
-            [0, 1, 1, 1], // TODO: fix this. the last case is activated at the end. thus, there is no need to deactivate.
+            [0, 0, 0, 0], // already activated; nothing to do.
+            [0, 1, 1, 0],
           ),
           'change'
         );
@@ -1646,7 +1644,7 @@ describe('switch', function () {
   }
 
   for (const data of getTestData()) {
-    $it.only(data.name,
+    $it(data.name,
       async function (ctx) {
 
         assert.strictEqual(ctx.error, null);

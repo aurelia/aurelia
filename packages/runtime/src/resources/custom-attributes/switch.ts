@@ -56,94 +56,60 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
    * This is kept around here so that changes can be awaited from the tests.
    * This needs to be removed after the scheduler is ready to handle/queue the floating promises.
    */
-  public readonly promise: Promise<void> = (void 0)!; // TODO: create a `queue` method, that specifically handles assignment of promise.
+  public readonly promise: Promise<void> | void = void 0;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,
     @IRenderLocation private readonly location: IRenderLocation<T>,
   ) { }
 
-  public beforeBind(
-    initiator: IHydratedController<T>,
-    parent: IHydratedParentController<T>,
-    flags: LifecycleFlags,
-  ): void | Promise<void> {
+  public beforeBind(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void | Promise<void> {
     const view = this.view = this.factory.create(flags, this.$controller);
     view.setLocation(this.location, MountStrategy.insertBefore);
 
     const $controller = this.$controller;
 
-    return (this as Writable<Switch<T>>).promise = onResolve(
-      this.promise,
-      () => onResolve(
-        view.activate(view, $controller, flags, $controller.scope, $controller.hostScope),
-        () => this.swap(flags, this.value)
-      )
-    ) as Promise<void>;
+    this.queue(() => onResolve(
+      view.activate(view, $controller, flags, $controller.scope, $controller.hostScope),
+      () => this.swap(flags, this.value)
+    ));
+    return this.promise;
   }
 
-  public afterBind(
-    initiator: IHydratedController<T>,
-    parent: IHydratedParentController<T>,
-    flags: LifecycleFlags,
-  ): void | Promise<void> {
-    return (this as Writable<Switch<T>>).promise = onResolve(
-      this.promise,
-      () => this.activateCases(flags)
-    ) as Promise<void>;
+  public afterBind(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void | Promise<void> {
+    this.queue(() => this.activateCases(flags));
+    return this.promise;
   }
 
-  public beforeDetach(
-    initiator: IHydratedController<T>,
-    parent: IHydratedParentController<T>,
-    flags: LifecycleFlags,
-  ): void | Promise<void> {
+  public beforeDetach(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void | Promise<void> {
     const cases = this.activeCases;
 
     const length = cases.length;
     if (length === 0) { return this.promise; }
 
-    let promise = this.promise;
-    if (length === 1) {
-      promise = onResolve(
-        promise,
-        () => cases[0].deactivate(flags)
-      ) as Promise<void>;
-    } else {
-      promise = onResolve(
-        promise,
-        () => resolveAll(...cases.map(($case) => $case.deactivate(flags)))
-      ) as Promise<void>;
-    }
-    return (this as Writable<Switch<T>>).promise = onResolve(
-      promise,
-      () => {
-        const view = this.view;
-        return view.deactivate(view, this.$controller, flags);
-      }
-    ) as Promise<void>;
+    this.queue(length === 1
+      ? () => cases[0].deactivate(flags)
+      : () => resolveAll(...cases.map(($case) => $case.deactivate(flags)))
+    );
+    this.queue(() => {
+      const view = this.view;
+      return view.deactivate(view, this.$controller, flags);
+    });
+    return this.promise;
   }
 
   public valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags): void {
     if ((this.$controller.state & State.activated) === 0) {
       return;
     }
-    (this as Writable<Switch<T>>).promise = onResolve(
-      this.promise,
-      () => this.swap(flags, this.value)
-    ) as Promise<void>;
+    void (this.queue(() => this.swap(flags, this.value)));
   }
 
-  // eslint-disable-next-line @typescript-eslint/promise-function-async
-  public caseChanged($case: Case<T>, flags: LifecycleFlags): Promise<void> {
-    return (this as Writable<Switch<T>>).promise = onResolve(
-      this.promise,
-      async () => this.handleCaseChange($case, flags)
-    ) as Promise<void>;
+  public caseChanged($case: Case<T>, flags: LifecycleFlags): void {
+    void (this.queue(async () => this.handleCaseChange($case, flags)));
   }
 
   private async handleCaseChange($case: Case<T>, flags: LifecycleFlags): Promise<void> {
-    // console.log(`caseChanged`, $case.value);
     const isMatch = $case.isMatch(this.value, flags);
     const activeCases = this.activeCases;
     const numActiveCases = activeCases.length;
@@ -152,10 +118,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     if (!isMatch) {
       /** The previous match started with this; thus clear. */
       if (numActiveCases > 0 && activeCases[0].id === $case.id) {
-        (this as Writable<Switch<T>>).promise = onResolve(
-          this.promise,
-          () => this.clearActiveCases(flags)
-        ) as Promise<void>;
+        void (this.queue(() => this.clearActiveCases(flags)));
       }
       /**
        * There are 2 different scenarios here:
@@ -258,10 +221,31 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     }
 
     return onResolve(
-      resolveAll(...cases.map(($case) => $case.deactivate(flags))),
+      resolveAll(...cases.reduce((acc: (void | Promise<void>)[], $case) => {
+        if (!newActiveCases.includes($case)) {
+          acc.push($case.deactivate(flags));
+        }
+        return acc;
+      }, [])),
       () => {
         cases.splice(0);
       }
+    );
+  }
+
+  private queue(action: () => void | Promise<void>): void {
+    let promise: void | Promise<void> = void 0;
+    const unset = () => {
+      if (this.promise === promise) {
+        (this as Writable<Switch<T>>).promise = void 0;
+      }
+    };
+    promise = (this as Writable<Switch<T>>).promise = onResolve(
+      onResolve(
+        this.promise,
+        action
+      ),
+      unset
     );
   }
 }
@@ -277,11 +261,6 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   public view: ISyntheticView<T>;
   private $switch!: Switch<T>;
   private isObserving: boolean = false;
-  /**
-   * This is kept around here so that changes can be awaited from the tests.
-   * This needs to be removed after the scheduler is ready to handle/queue the floating promises.
-   */
-  public readonly promise: Promise<void> | undefined;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,
@@ -317,11 +296,11 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   }
 
   public valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags) {
-    (this as Writable<Case<T>>).promise = this.$switch.caseChanged(this, flags);
+    this.$switch.caseChanged(this, flags);
   }
 
   public handleCollectionChange(_indexMap: IndexMap, flags: LifecycleFlags) {
-    (this as Writable<Case<T>>).promise = this.$switch.caseChanged(this, flags);
+    this.$switch.caseChanged(this, flags);
   }
 
   public activate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void | Promise<void> {

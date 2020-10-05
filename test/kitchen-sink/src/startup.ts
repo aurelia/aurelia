@@ -17,6 +17,14 @@ import {
   SetPropertyRendererRegistration,
   TemplateControllerRendererRegistration,
   ValueConverter,
+  AtPrefixedTriggerAttributePatternRegistration,
+  ColonPrefixedBindAttributePatternRegistration,
+  DotSeparatedAttributePatternRegistration,
+  DefaultBindingCommandRegistration,
+  ForBindingCommandRegistration,
+  IExpressionParserRegistration,
+  OneTimeBindingCommandRegistration,
+  TwoWayBindingCommandRegistration,
 } from '@aurelia/runtime';
 import {
   IProjectorLocatorRegistration,
@@ -25,26 +33,14 @@ import {
   ListenerBindingRendererRegistration,
   SetAttributeRendererRegistration,
   TextBindingRendererRegistration,
-  ITargetObserverLocatorRegistration
+  ITargetObserverLocatorRegistration,
+  ITemplateCompilerRegistration,
+  ITemplateElementFactoryRegistration,
+  TriggerBindingCommandRegistration,
 } from '@aurelia/runtime-html';
 import {
   IDOMInitializerRegistration
 } from '@aurelia/runtime-html-browser';
-import {
-  AtPrefixedTriggerAttributePatternRegistration,
-  ColonPrefixedBindAttributePatternRegistration,
-  DotSeparatedAttributePatternRegistration,
-  DefaultBindingCommandRegistration,
-  ForBindingCommandRegistration,
-  IExpressionParserRegistration,
-  OneTimeBindingCommandRegistration,
-  TwoWayBindingCommandRegistration
-} from '@aurelia/jit';
-import {
-  ITemplateCompilerRegistration,
-  ITemplateElementFactoryRegistration,
-  TriggerBindingCommandRegistration
-} from '@aurelia/jit-html';
 import {
   ViewportCustomElement,
   Router

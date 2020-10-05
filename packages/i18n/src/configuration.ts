@@ -1,5 +1,5 @@
 import { IContainer, Registration } from '@aurelia/kernel';
-import { StartTask } from '@aurelia/runtime';
+import { StartTask, AttributePatternDefinition, BindingCommand, AttributePattern } from '@aurelia/runtime';
 import { DateFormatBindingBehavior } from './df/date-format-binding-behavior';
 import { DateFormatValueConverter } from './df/date-format-value-converter';
 import { I18N, I18nService } from './i18n';
@@ -24,7 +24,6 @@ import {
   TranslationBindingRenderer
 } from './t/translation-renderer';
 import { TranslationValueConverter } from './t/translation-value-converter';
-import { AttributePatternDefinition, BindingCommand, AttributePattern } from '@aurelia/jit';
 
 export type I18NConfigOptionsProvider = (options: I18nConfigurationOptions) => void;
 

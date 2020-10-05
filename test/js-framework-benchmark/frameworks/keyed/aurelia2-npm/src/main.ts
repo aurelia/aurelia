@@ -1,9 +1,9 @@
-import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
+import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
 import { Aurelia } from '@aurelia/runtime';
 import { App } from './app';
 
 new Aurelia()
-  .register(JitHtmlBrowserConfiguration)
+  .register(RuntimeHtmlBrowserConfiguration)
   .app({
     host: document.querySelector('app'),
     component: App

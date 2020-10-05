@@ -11,7 +11,6 @@ import {
   ShadowDOMProjector
 } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
-import { ResourceModel } from '@aurelia/jit';
 
 describe('Styles', function () {
   async function startApp(configure: (au: Aurelia) => void) {

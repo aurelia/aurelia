@@ -16,7 +16,7 @@
     const shadow_dom_registry_1 = require("./shadow-dom-registry");
     exports.StyleConfiguration = {
         shadowDOM(config) {
-            return runtime_1.StartTask.with(kernel_1.IContainer).beforeCreate().call(container => {
+            return runtime_1.AppTask.with(kernel_1.IContainer).beforeCreate().call(container => {
                 if (config.sharedStyles) {
                     const factory = container.get(shadow_dom_registry_1.IShadowDOMStyleFactory);
                     container.register(kernel_1.Registration.instance(shadow_dom_styles_1.IShadowDOMGlobalStyles, factory.createStyles(config.sharedStyles, null)));

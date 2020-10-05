@@ -9,10 +9,12 @@ export declare const LifecycleTask: {
 };
 export declare const enum TaskSlot {
     beforeCreate = 0,
-    beforeRender = 1,
+    beforeCompile = 1,
     beforeCompileChildren = 2,
-    beforeBind = 3,
-    afterAttach = 4
+    beforeActivate = 3,
+    afterActivate = 4,
+    beforeDeactivate = 5,
+    afterDeactivate = 6
 }
 export declare const IStartTask: import("@aurelia/kernel").InterfaceSymbol<IStartTask>;
 export interface IStartTask {
@@ -22,24 +24,28 @@ export interface IStartTask {
 }
 export interface ISlotChooser {
     beforeCreate(): IStartTask;
-    beforeRender(): IStartTask;
+    beforeCompile(): IStartTask;
     beforeCompileChildren(): IStartTask;
-    beforeBind(): IStartTask;
-    afterAttach(): IStartTask;
+    beforeActivate(): IStartTask;
+    afterActivate(): IStartTask;
+    beforeDeactivate(): IStartTask;
+    afterDeactivate(): IStartTask;
     at(slot: TaskSlot): IStartTask;
 }
 export interface ICallbackSlotChooser<K extends Key> {
     beforeCreate(): ICallbackChooser<K>;
-    beforeRender(): ICallbackChooser<K>;
+    beforeCompile(): ICallbackChooser<K>;
     beforeCompileChildren(): ICallbackChooser<K>;
-    beforeBind(): ICallbackChooser<K>;
-    afterAttach(): ICallbackChooser<K>;
+    beforeActivate(): ICallbackChooser<K>;
+    afterActivate(): ICallbackChooser<K>;
+    beforeDeactivate(): ICallbackChooser<K>;
+    afterDeactivate(): ICallbackChooser<K>;
     at(slot: TaskSlot): ICallbackChooser<K>;
 }
 export interface ICallbackChooser<K extends Key> {
     call<K1 extends Key = K>(fn: (instance: Resolved<K1>) => MaybePromiseOrTask): IStartTask;
 }
-export declare const StartTask: {
+export declare const AppTask: {
     with<K extends Key>(key: K): ICallbackSlotChooser<K>;
     from(task: ILifecycleTask): ISlotChooser;
     from(promise: Promise<unknown>): ISlotChooser;
@@ -52,10 +58,12 @@ export interface IStartTaskManager {
      */
     enqueueBeforeCompileChildren(): void;
     runBeforeCreate(container?: IContainer): ILifecycleTask;
-    runBeforeRender(container?: IContainer): ILifecycleTask;
+    runBeforeCompile(container?: IContainer): ILifecycleTask;
     runBeforeCompileChildren(container?: IContainer): ILifecycleTask;
-    runBeforeBind(container?: IContainer): ILifecycleTask;
-    runAfterAttach(container?: IContainer): ILifecycleTask;
+    runBeforeActivate(container?: IContainer): ILifecycleTask;
+    runAfterActivate(container?: IContainer): ILifecycleTask;
+    runBeforeDeactivate(container?: IContainer): ILifecycleTask;
+    runAfterDeactivate(container?: IContainer): ILifecycleTask;
     run(slot: TaskSlot, container?: IContainer): ILifecycleTask;
 }
 export declare class StartTaskManager implements IStartTaskManager {
@@ -65,10 +73,12 @@ export declare class StartTaskManager implements IStartTaskManager {
     static register(container: IContainer): IResolver<IStartTaskManager>;
     enqueueBeforeCompileChildren(): void;
     runBeforeCreate(locator?: IServiceLocator): ILifecycleTask;
-    runBeforeRender(locator?: IServiceLocator): ILifecycleTask;
+    runBeforeCompile(locator?: IServiceLocator): ILifecycleTask;
     runBeforeCompileChildren(locator?: IServiceLocator): ILifecycleTask;
-    runBeforeBind(locator?: IServiceLocator): ILifecycleTask;
-    runAfterAttach(locator?: IServiceLocator): ILifecycleTask;
+    runBeforeActivate(locator?: IServiceLocator): ILifecycleTask;
+    runAfterActivate(locator?: IServiceLocator): ILifecycleTask;
+    runBeforeDeactivate(locator?: IServiceLocator): ILifecycleTask;
+    runAfterDeactivate(locator?: IServiceLocator): ILifecycleTask;
     run(slot: TaskSlot, locator?: IServiceLocator): ILifecycleTask;
 }
 export interface ILifecycleTask<T = unknown> {

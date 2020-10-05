@@ -21,7 +21,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.hasAsyncWork = exports.AggregateTerminalTask = exports.AggregateContinuationTask = exports.TerminalTask = exports.ContinuationTask = exports.ProviderTask = exports.PromiseTask = exports.StartTaskManager = exports.IStartTaskManager = exports.StartTask = exports.IStartTask = exports.TaskSlot = exports.LifecycleTask = void 0;
+    exports.hasAsyncWork = exports.AggregateTerminalTask = exports.AggregateContinuationTask = exports.TerminalTask = exports.ContinuationTask = exports.ProviderTask = exports.PromiseTask = exports.StartTaskManager = exports.IStartTaskManager = exports.AppTask = exports.IStartTask = exports.TaskSlot = exports.LifecycleTask = void 0;
     /* eslint-disable @typescript-eslint/promise-function-async */
     const kernel_1 = require("@aurelia/kernel");
     exports.LifecycleTask = {
@@ -33,10 +33,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     var TaskSlot;
     (function (TaskSlot) {
         TaskSlot[TaskSlot["beforeCreate"] = 0] = "beforeCreate";
-        TaskSlot[TaskSlot["beforeRender"] = 1] = "beforeRender";
+        TaskSlot[TaskSlot["beforeCompile"] = 1] = "beforeCompile";
         TaskSlot[TaskSlot["beforeCompileChildren"] = 2] = "beforeCompileChildren";
-        TaskSlot[TaskSlot["beforeBind"] = 3] = "beforeBind";
-        TaskSlot[TaskSlot["afterAttach"] = 4] = "afterAttach";
+        TaskSlot[TaskSlot["beforeActivate"] = 3] = "beforeActivate";
+        TaskSlot[TaskSlot["afterActivate"] = 4] = "afterActivate";
+        TaskSlot[TaskSlot["beforeDeactivate"] = 5] = "beforeDeactivate";
+        TaskSlot[TaskSlot["afterDeactivate"] = 6] = "afterDeactivate";
     })(TaskSlot = exports.TaskSlot || (exports.TaskSlot = {}));
     exports.IStartTask = kernel_1.DI.createInterface('IStartTask').noDefault();
     var TaskType;
@@ -44,7 +46,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         TaskType[TaskType["with"] = 0] = "with";
         TaskType[TaskType["from"] = 1] = "from";
     })(TaskType || (TaskType = {}));
-    exports.StartTask = class $StartTask {
+    exports.AppTask = class $AppTask {
         constructor(type) {
             this.type = type;
             this._slot = void 0;
@@ -56,64 +58,70 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         get slot() {
             if (this._slot === void 0) {
-                throw new Error('StartTask.slot is not set');
+                throw new Error('AppTask.slot is not set');
             }
             return this._slot;
         }
         get promiseOrTask() {
             if (this._promiseOrTask === void 0) {
-                throw new Error('StartTask.promiseOrTask is not set');
+                throw new Error('AppTask.promiseOrTask is not set');
             }
             return this._promiseOrTask;
         }
         get container() {
             if (this._container === void 0) {
-                throw new Error('StartTask.container is not set');
+                throw new Error('AppTask.container is not set');
             }
             return this._container;
         }
         get key() {
             if (this._key === void 0) {
-                throw new Error('StartTask.key is not set');
+                throw new Error('AppTask.key is not set');
             }
             return this._key;
         }
         get callback() {
             if (this._callback === void 0) {
-                throw new Error('StartTask.callback is not set');
+                throw new Error('AppTask.callback is not set');
             }
             return this._callback;
         }
         get task() {
             if (this._task === void 0) {
-                throw new Error('StartTask.task is not set');
+                throw new Error('AppTask.task is not set');
             }
             return this._task;
         }
         static with(key) {
-            const task = new $StartTask(0 /* with */);
+            const task = new $AppTask(0 /* with */);
             task._key = key;
             return task;
         }
         static from(promiseOrTask) {
-            const task = new $StartTask(1 /* from */);
+            const task = new $AppTask(1 /* from */);
             task._promiseOrTask = promiseOrTask;
             return task;
         }
         beforeCreate() {
             return this.at(0 /* beforeCreate */);
         }
-        beforeRender() {
-            return this.at(1 /* beforeRender */);
+        beforeCompile() {
+            return this.at(1 /* beforeCompile */);
         }
         beforeCompileChildren() {
             return this.at(2 /* beforeCompileChildren */);
         }
-        beforeBind() {
-            return this.at(3 /* beforeBind */);
+        beforeActivate() {
+            return this.at(3 /* beforeActivate */);
         }
-        afterAttach() {
-            return this.at(4 /* afterAttach */);
+        afterActivate() {
+            return this.at(4 /* afterActivate */);
+        }
+        beforeDeactivate() {
+            return this.at(5 /* beforeDeactivate */);
+        }
+        afterDeactivate() {
+            return this.at(6 /* afterDeactivate */);
         }
         at(slot) {
             this._slot = slot;
@@ -159,8 +167,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             runBeforeCreate(locator = this.locator) {
                 return this.run(0 /* beforeCreate */, locator);
             }
-            runBeforeRender(locator = this.locator) {
-                return this.run(1 /* beforeRender */, locator);
+            runBeforeCompile(locator = this.locator) {
+                return this.run(1 /* beforeCompile */, locator);
             }
             runBeforeCompileChildren(locator = this.locator) {
                 if (this.beforeCompileChildrenQueued) {
@@ -169,11 +177,17 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 }
                 return exports.LifecycleTask.done;
             }
-            runBeforeBind(locator = this.locator) {
-                return this.run(3 /* beforeBind */, locator);
+            runBeforeActivate(locator = this.locator) {
+                return this.run(3 /* beforeActivate */, locator);
             }
-            runAfterAttach(locator = this.locator) {
-                return this.run(4 /* afterAttach */, locator);
+            runAfterActivate(locator = this.locator) {
+                return this.run(4 /* afterActivate */, locator);
+            }
+            runBeforeDeactivate(locator = this.locator) {
+                return this.run(5 /* beforeDeactivate */, locator);
+            }
+            runAfterDeactivate(locator = this.locator) {
+                return this.run(6 /* afterDeactivate */, locator);
             }
             run(slot, locator = this.locator) {
                 const tasks = locator.getAll(exports.IStartTask)

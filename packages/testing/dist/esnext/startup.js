@@ -1,5 +1,4 @@
 import { CustomElement, Aurelia } from '@aurelia/runtime';
-import { assert } from './assert';
 import { TestContext } from './html-test-context';
 export function createFixture(template, $class, registrations = [], autoStart = true, ctx = TestContext.createHTMLTestContext()) {
     const { container, lifecycle, scheduler, observerLocator } = ctx;
@@ -34,7 +33,6 @@ export function createFixture(template, $class, registrations = [], autoStart = 
             await au.stop().wait();
             root.remove();
             au.dispose();
-            assert.isSchedulerEmpty();
         }
     };
 }

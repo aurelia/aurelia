@@ -319,7 +319,7 @@
     Object.defineProperty(exports, "LifecycleTask", { enumerable: true, get: function () { return lifecycle_task_1.LifecycleTask; } });
     Object.defineProperty(exports, "PromiseTask", { enumerable: true, get: function () { return lifecycle_task_1.PromiseTask; } });
     Object.defineProperty(exports, "TaskSlot", { enumerable: true, get: function () { return lifecycle_task_1.TaskSlot; } });
-    Object.defineProperty(exports, "StartTask", { enumerable: true, get: function () { return lifecycle_task_1.StartTask; } });
+    Object.defineProperty(exports, "AppTask", { enumerable: true, get: function () { return lifecycle_task_1.AppTask; } });
     Object.defineProperty(exports, "IStartTask", { enumerable: true, get: function () { return lifecycle_task_1.IStartTask; } });
     Object.defineProperty(exports, "IStartTaskManager", { enumerable: true, get: function () { return lifecycle_task_1.IStartTaskManager; } });
     Object.defineProperty(exports, "ProviderTask", { enumerable: true, get: function () { return lifecycle_task_1.ProviderTask; } });

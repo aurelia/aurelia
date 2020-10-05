@@ -56,7 +56,7 @@ export { BindingMode, BindingStrategy, ExpressionKind, LifecycleFlags, } from '.
 export { CallBindingInstruction, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, InterpolationInstruction, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, OneTimeBindingInstruction, RefBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TwoWayBindingInstruction } from './instructions';
 export { ViewModelKind, ILifecycle, IController, IViewFactory, MountStrategy, } from './lifecycle';
 export { getRenderContext, isRenderContext, } from './templating/render-context';
-export { AggregateContinuationTask, TerminalTask, AggregateTerminalTask, ContinuationTask, LifecycleTask, PromiseTask, TaskSlot, StartTask, IStartTask, IStartTaskManager, ProviderTask, } from './lifecycle-task';
+export { AggregateContinuationTask, TerminalTask, AggregateTerminalTask, ContinuationTask, LifecycleTask, PromiseTask, TaskSlot, AppTask, IStartTask, IStartTaskManager, ProviderTask, } from './lifecycle-task';
 export { AccessorType, CollectionKind, DelegationStrategy, isIndexMap, copyIndexMap, cloneIndexMap, createIndexMap, } from './observation';
 export { applyBindingBehavior, IInstructionRenderer, IRenderer, ITemplateCompiler, instructionRenderer, ensureExpression, } from './renderer';
 export { ResourceModel, BindableInfo, ElementInfo, AttrInfo } from './resource-model';

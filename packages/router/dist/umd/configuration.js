@@ -64,7 +64,7 @@
          * Apply this configuration to the provided container.
          */
         register(container) {
-            return container.register(...exports.DefaultComponents, ...exports.DefaultResources, runtime_1.StartTask.with(router_1.IRouter).beforeBind().call(configurationCall), runtime_1.StartTask.with(router_1.IRouter).afterAttach().call(router => router.loadUrl()));
+            return container.register(...exports.DefaultComponents, ...exports.DefaultResources, runtime_1.AppTask.with(router_1.IRouter).beforeActivate().call(configurationCall), runtime_1.AppTask.with(router_1.IRouter).afterActivate().call(router => router.loadUrl()), runtime_1.AppTask.with(router_1.IRouter).afterDeactivate().call(router => router.stop()));
         },
         /**
          * Create a new container with this configuration applied to it.

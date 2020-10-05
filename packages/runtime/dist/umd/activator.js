@@ -27,7 +27,7 @@
             activate(host, component, container, flags = 0 /* none */, parentScope) {
                 flags = flags === void 0 ? 0 /* none */ : flags;
                 const mgr = this.taskManager;
-                let task = mgr.runBeforeRender();
+                let task = mgr.runBeforeCompile();
                 if (task.done) {
                     this.render(host, component, container, flags);
                 }
@@ -35,10 +35,10 @@
                     task = new lifecycle_task_1.ContinuationTask(task, this.render, this, host, component, container, flags);
                 }
                 if (task.done) {
-                    task = mgr.runBeforeBind();
+                    task = mgr.runBeforeActivate();
                 }
                 else {
-                    task = new lifecycle_task_1.ContinuationTask(task, mgr.runBeforeBind, mgr);
+                    task = new lifecycle_task_1.ContinuationTask(task, mgr.runBeforeActivate, mgr);
                 }
                 if (task.done) {
                     task = this.activateController(component, flags, parentScope);
@@ -47,20 +47,33 @@
                     task = new lifecycle_task_1.ContinuationTask(task, this.activateController, this, component, flags, parentScope);
                 }
                 if (task.done) {
-                    task = mgr.runAfterAttach();
+                    task = mgr.runAfterActivate();
                 }
                 else {
-                    task = new lifecycle_task_1.ContinuationTask(task, mgr.runAfterAttach, mgr);
+                    task = new lifecycle_task_1.ContinuationTask(task, mgr.runAfterActivate, mgr);
                 }
                 return task;
             }
             deactivate(component, flags = 0 /* none */) {
                 const controller = controller_1.Controller.getCachedOrThrow(component);
-                const ret = controller.deactivate(controller, null, flags);
-                if (lifecycle_task_1.hasAsyncWork(ret)) {
-                    return new lifecycle_task_1.TerminalTask(ret);
+                const mgr = this.taskManager;
+                let task = mgr.runBeforeDeactivate();
+                if (task.done) {
+                    const ret = controller.deactivate(controller, null, flags);
+                    if (lifecycle_task_1.hasAsyncWork(ret)) {
+                        task = new lifecycle_task_1.TerminalTask(ret);
+                    }
                 }
-                return lifecycle_task_1.LifecycleTask.done;
+                else {
+                    task = new lifecycle_task_1.ContinuationTask(task, controller.deactivate, controller, controller, null, flags);
+                }
+                if (task.done) {
+                    task = mgr.runAfterDeactivate();
+                }
+                else {
+                    task = new lifecycle_task_1.ContinuationTask(task, mgr.runAfterDeactivate, mgr);
+                }
+                return task;
             }
             render(host, component, container, flags) {
                 const lifecycle = container.get(lifecycle_1.ILifecycle);

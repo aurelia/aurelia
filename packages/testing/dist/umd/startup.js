@@ -4,14 +4,13 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "./assert", "./html-test-context"], factory);
+        define(["require", "exports", "@aurelia/runtime", "./html-test-context"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.createFixture = void 0;
     const runtime_1 = require("@aurelia/runtime");
-    const assert_1 = require("./assert");
     const html_test_context_1 = require("./html-test-context");
     function createFixture(template, $class, registrations = [], autoStart = true, ctx = html_test_context_1.TestContext.createHTMLTestContext()) {
         const { container, lifecycle, scheduler, observerLocator } = ctx;
@@ -46,7 +45,6 @@
                 await au.stop().wait();
                 root.remove();
                 au.dispose();
-                assert_1.assert.isSchedulerEmpty();
             }
         };
     }

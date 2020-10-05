@@ -88,6 +88,9 @@ describe('validation-container-custom-element', function () {
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
     assert.equal(app.controllerRemoveSubscriberSpy.calls.length, template.match(/validation-container/g).length / 2 + template.match(/validate/g).length);
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   }
 
   const $it = createSpecFunction(runTest);
@@ -103,7 +106,7 @@ describe('validation-container-custom-element', function () {
     handleValidationEventSpy.calls.splice(0);
     controllerValidateSpy.calls.splice(0);
     target.dispatchEvent(new ctx.Event(event));
-    await scheduler.yieldAll(10);
+    await scheduler.yieldAll(3);
     assert.equal(controllerValidateSpy.calls.length, 1, 'incorrect #calls for validate');
     assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
   }
@@ -321,5 +324,8 @@ describe('validation-container-custom-element', function () {
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
+
+    au.dispose();
+    assert.isSchedulerEmpty();
   });
 });

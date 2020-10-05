@@ -517,6 +517,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
         await assertFn(ctx, host, component, attrs);
 
         await au.stop().wait();
+        au.dispose();
         // await assertFn_AfterDestroy(ctx, host, component);
       } finally {
         if (host) {
@@ -525,6 +526,8 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
         if (body) {
           body.focus();
         }
+
+        assert.isSchedulerEmpty();
       }
     });
   }
@@ -607,7 +610,9 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
       }
 
       await au.stop().wait();
+      au.dispose();
       host.remove();
+      assert.isSchedulerEmpty();
     });
 
     it('works correctly when using with value converter and a colon', async function () {
@@ -633,7 +638,9 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
       }
 
       await au.stop().wait();
+      au.dispose();
       host.remove();
+      assert.isSchedulerEmpty();
     });
 
     // todo: fix:
@@ -677,7 +684,9 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
       }
 
       await au.stop().wait();
+      au.dispose();
       host.remove();
+      assert.isSchedulerEmpty();
     });
   });
 });

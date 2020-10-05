@@ -420,6 +420,9 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
               try {
                 await au.stop().wait();
               } catch {/* and ignore all errors trying to stop */}
+              finally {
+                au.dispose();
+              }
               throw ex;
             }
           }
@@ -431,6 +434,7 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
           if (body) {
             body.focus();
           }
+          assert.isSchedulerEmpty();
         }
       });
     }

@@ -39,6 +39,8 @@ describe('SelectValueObserver', function () {
             assert.strictEqual(el.value, next, `el.value`);
 
             sut.unbind(LF.none);
+
+            assert.isSchedulerEmpty();
           });
         }
       }
@@ -64,6 +66,8 @@ describe('SelectValueObserver', function () {
           assert.strictEqual(callbackSpy.calls.length, 1, 'callbackSpy.calls.length');
 
           sut.unbind(LF.none);
+
+          assert.isSchedulerEmpty();
         }
       });
     }
@@ -84,6 +88,8 @@ describe('SelectValueObserver', function () {
 
         assert.strictEqual(count, 1, `count`);
         assert.strictEqual(sut['nodeObserver'], null, `sut['nodeObserver']`);
+
+        assert.isSchedulerEmpty();
       }
     });
     it('unsubscribes array observer', function () {
@@ -106,6 +112,8 @@ describe('SelectValueObserver', function () {
 
         assert.strictEqual(count, 1, `count`);
         assert.strictEqual(sut['arrayObserver'], null, `sut['arrayObserver']`);
+
+        assert.isSchedulerEmpty();
       }
     });
   });
@@ -143,6 +151,8 @@ describe('SelectValueObserver', function () {
         assert.strictEqual(currentValue['length'], 2, `currentValue['length']`);
 
         sut.unbind(LF.none);
+
+        assert.isSchedulerEmpty();
       });
 
       it('synchronizes with null', function () {
@@ -162,6 +172,8 @@ describe('SelectValueObserver', function () {
         assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
 
         sut.unbind(LF.none);
+
+        assert.isSchedulerEmpty();
       });
 
       it('synchronizes with undefined', function () {
@@ -181,6 +193,8 @@ describe('SelectValueObserver', function () {
         assert.strictEqual(currentValue, sut.currentValue, `currentValue`);
 
         sut.unbind(LF.none);
+
+        assert.isSchedulerEmpty();
       });
 
       it('synchronizes with array (2)', function () {
@@ -208,6 +222,8 @@ describe('SelectValueObserver', function () {
         );
 
         sut.unbind(LF.none);
+
+        assert.isSchedulerEmpty();
       });
 
       it('synchronizes with array (3): disregard "value" when there is model', function () {
@@ -235,6 +251,8 @@ describe('SelectValueObserver', function () {
         );
 
         sut.unbind(LF.none);
+
+        assert.isSchedulerEmpty();
       });
 
       it('synchronize regardless disabled state of <option/>', function () {
@@ -262,6 +280,8 @@ describe('SelectValueObserver', function () {
         );
 
         sut.unbind(LF.none);
+
+        assert.isSchedulerEmpty();
       });
 
       describe('with <optgroup>', function () {
@@ -293,6 +313,8 @@ describe('SelectValueObserver', function () {
           );
 
           sut.unbind(LF.none);
+
+          assert.isSchedulerEmpty();
         });
 
       });

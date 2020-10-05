@@ -183,9 +183,13 @@ describe('template-compiler.ce_and_surrogate.spec.ts', function () {
         await assertFn(ctx, host, aurelia.container.get(Root));
 
         await aurelia.stop().wait();
+
+        aurelia.dispose();
         host.remove();
       } finally {
         host?.remove();
+
+        assert.isSchedulerEmpty();
       }
     });
   }

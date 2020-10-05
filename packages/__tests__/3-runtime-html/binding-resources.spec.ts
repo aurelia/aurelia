@@ -59,6 +59,8 @@ describe('binding-resources', function () {
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
 
       await au.stop().wait();
+
+      au.dispose();
       assert.isSchedulerEmpty();
     });
 
@@ -112,6 +114,8 @@ describe('binding-resources', function () {
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
 
       await au.stop().wait();
+
+      au.dispose();
       assert.isSchedulerEmpty();
     });
 
@@ -168,6 +172,8 @@ describe('binding-resources', function () {
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
 
       await au.stop().wait();
+
+      au.dispose();
       assert.isSchedulerEmpty();
     });
 
@@ -225,6 +231,9 @@ describe('binding-resources', function () {
         host.remove();
 
         await au.stop().wait();
+
+        au.dispose();
+        assert.isSchedulerEmpty();
       });
     }
   });

@@ -61,7 +61,6 @@ describe('binding-resources', function () {
       await au.stop().wait();
 
       au.dispose();
-      assert.isSchedulerEmpty();
     });
 
     it('works with toView bindings to other components', async function () {
@@ -116,7 +115,6 @@ describe('binding-resources', function () {
       await au.stop().wait();
 
       au.dispose();
-      assert.isSchedulerEmpty();
     });
 
     it('works with twoWay bindings to other components', async function () {
@@ -174,7 +172,6 @@ describe('binding-resources', function () {
       await au.stop().wait();
 
       au.dispose();
-      assert.isSchedulerEmpty();
     });
 
     for (const command of ['trigger', 'capture', 'delegate']) {
@@ -233,7 +230,6 @@ describe('binding-resources', function () {
         await au.stop().wait();
 
         au.dispose();
-        assert.isSchedulerEmpty();
       });
     }
   });

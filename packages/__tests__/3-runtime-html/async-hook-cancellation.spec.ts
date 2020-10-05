@@ -336,7 +336,6 @@ describe('controller short-circuit', function () {
                   ], `2.1`);
 
                   controller.dispose();
-                  assert.isSchedulerEmpty();
                 });
 
                 it('afterBind', async function () {
@@ -387,7 +386,6 @@ describe('controller short-circuit', function () {
                   ], `2.1`);
 
                   controller.dispose();
-                  assert.isSchedulerEmpty();
                 });
 
                 it('afterAttach', async function () {
@@ -446,7 +444,6 @@ describe('controller short-circuit', function () {
                   ], `2.1`);
 
                   controller.dispose();
-                  assert.isSchedulerEmpty();
                 });
 
                 it('afterAttachChildren', async function () {
@@ -513,7 +510,6 @@ describe('controller short-circuit', function () {
                   ], `2.1`);
 
                   controller.dispose();
-                  assert.isSchedulerEmpty();
                 });
               });
 
@@ -579,7 +575,6 @@ describe('controller short-circuit', function () {
                   ], `2.1`);
 
                   controller.dispose();
-                  assert.isSchedulerEmpty();
                 });
 
                 it('afterAttachChildren', async function () {
@@ -655,7 +650,6 @@ describe('controller short-circuit', function () {
                   ], `2.1`);
 
                   controller.dispose();
-                  assert.isSchedulerEmpty();
                 });
               });
 
@@ -713,7 +707,6 @@ describe('controller short-circuit', function () {
                   ], `2.1`);
 
                   controller.dispose();
-                  assert.isSchedulerEmpty();
                 });
 
                 it('afterBind', async function () {
@@ -777,7 +770,6 @@ describe('controller short-circuit', function () {
                   ], `2.1`);
 
                   controller.dispose();
-                  assert.isSchedulerEmpty();
                 });
 
                 it('afterAttach', async function () {
@@ -849,7 +841,6 @@ describe('controller short-circuit', function () {
                   ], `2.1`);
 
                   controller.dispose();
-                  assert.isSchedulerEmpty();
                 });
 
                 it('afterAttachChildren', async function () {
@@ -966,7 +957,6 @@ describe('controller short-circuit', function () {
                   }
 
                   controller.dispose();
-                  assert.isSchedulerEmpty();
                 });
               });
             });
@@ -1019,7 +1009,6 @@ describe('controller short-circuit', function () {
                   ], `2.1`);
 
                   au.dispose();
-                  assert.isSchedulerEmpty();
                 });
 
                 it('afterBind', async function () {
@@ -1070,7 +1059,6 @@ describe('controller short-circuit', function () {
                   ], `2.1`);
 
                   au.dispose();
-                  assert.isSchedulerEmpty();
                 });
 
                 it('afterAttach', async function () {
@@ -1129,7 +1117,6 @@ describe('controller short-circuit', function () {
                   ], `2.1`);
 
                   au.dispose();
-                  assert.isSchedulerEmpty();
                 });
 
                 it('afterAttachChildren', async function () {
@@ -1196,7 +1183,6 @@ describe('controller short-circuit', function () {
                   ], `2.1`);
 
                   au.dispose();
-                  assert.isSchedulerEmpty();
                 });
               });
             }

@@ -171,7 +171,6 @@ describe('validation-i18n', function () {
     ctx.doc.body.removeChild(host);
 
     au.dispose();
-    assert.isSchedulerEmpty();
   }
 
   const $it = createSpecFunction(runTest);

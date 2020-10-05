@@ -592,8 +592,7 @@ describe(spec, function () {
         assert.strictEqual(trimFull(host.textContent), '', `trimFull(host.textContent) === ''`);
 
         au.dispose();
-        assert.isSchedulerEmpty();
-      });
+          });
     });
 
 });

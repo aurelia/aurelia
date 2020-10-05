@@ -90,7 +90,6 @@ describe('validation-container-custom-element', function () {
     assert.equal(app.controllerRemoveSubscriberSpy.calls.length, template.match(/validation-container/g).length / 2 + template.match(/validate/g).length);
 
     au.dispose();
-    assert.isSchedulerEmpty();
   }
 
   const $it = createSpecFunction(runTest);
@@ -326,6 +325,5 @@ describe('validation-container-custom-element', function () {
     ctx.doc.body.removeChild(host);
 
     au.dispose();
-    assert.isSchedulerEmpty();
   });
 });

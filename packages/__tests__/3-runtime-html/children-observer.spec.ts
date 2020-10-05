@@ -13,7 +13,6 @@ describe('ChildrenObserver', function () {
       au.stop();
 
       au.dispose();
-      assert.isSchedulerEmpty();
     });
 
     it('children array with by custom query', function () {
@@ -25,9 +24,7 @@ describe('ChildrenObserver', function () {
       assert.instanceOf(viewModel.children[0], ChildOne);
 
       au.stop();
-
       au.dispose();
-      assert.isSchedulerEmpty();
     });
 
     it('children array with by custom query, filter, and map', function () {
@@ -41,9 +38,7 @@ describe('ChildrenObserver', function () {
       assert.equal(viewModel.children[0].tagName, CustomElement.getDefinition(ChildOne).name.toUpperCase());
 
       au.stop();
-
       au.dispose();
-      assert.isSchedulerEmpty();
     });
   });
 
@@ -71,7 +66,6 @@ describe('ChildrenObserver', function () {
         au.stop();
 
         au.dispose();
-        assert.isSchedulerEmpty();
         done();
       });
     });
@@ -96,7 +90,6 @@ describe('ChildrenObserver', function () {
         au.stop();
 
         au.dispose();
-        assert.isSchedulerEmpty();
         done();
       });
     });
@@ -125,7 +118,6 @@ describe('ChildrenObserver', function () {
         au.stop();
 
         au.dispose();
-        assert.isSchedulerEmpty();
         done();
       });
     });

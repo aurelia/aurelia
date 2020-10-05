@@ -48,7 +48,7 @@ export class Activator implements IActivator {
     flags = flags === void 0 ? LifecycleFlags.none : flags;
     const mgr = this.taskManager;
 
-    let task = mgr.runBeforeRender();
+    let task = mgr.runBeforeCompile();
 
     if (task.done) {
       this.render(host, component, container, flags);
@@ -57,9 +57,9 @@ export class Activator implements IActivator {
     }
 
     if (task.done) {
-      task = mgr.runBeforeBind();
+      task = mgr.runBeforeActivate();
     } else {
-      task = new ContinuationTask(task, mgr.runBeforeBind, mgr);
+      task = new ContinuationTask(task, mgr.runBeforeActivate, mgr);
     }
 
     if (task.done) {
@@ -69,9 +69,9 @@ export class Activator implements IActivator {
     }
 
     if (task.done) {
-      task = mgr.runAfterAttach();
+      task = mgr.runAfterActivate();
     } else {
-      task = new ContinuationTask(task, mgr.runAfterAttach, mgr);
+      task = new ContinuationTask(task, mgr.runAfterActivate, mgr);
     }
 
     return task;
@@ -82,11 +82,26 @@ export class Activator implements IActivator {
     flags: LifecycleFlags = LifecycleFlags.none,
   ): ILifecycleTask {
     const controller = Controller.getCachedOrThrow(component);
-    const ret = controller.deactivate(controller, null, flags);
-    if (hasAsyncWork(ret)) {
-      return new TerminalTask(ret);
+
+    const mgr = this.taskManager;
+    let task = mgr.runBeforeDeactivate();
+
+    if (task.done) {
+      const ret = controller.deactivate(controller, null, flags);
+      if (hasAsyncWork(ret)) {
+        task = new TerminalTask(ret);
+      }
+    } else {
+      task = new ContinuationTask(task, controller.deactivate, controller, controller, null, flags);
     }
-    return LifecycleTask.done;
+
+    if (task.done) {
+      task = mgr.runAfterDeactivate();
+    } else {
+      task = new ContinuationTask(task, mgr.runAfterDeactivate, mgr);
+    }
+
+    return task;
   }
 
   private render(

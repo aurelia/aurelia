@@ -230,8 +230,6 @@ describe(`If/Else`, function () {
         }
 
         assert.strictEqual(host.textContent, '', 'host.textContent #6');
-
-        assert.isSchedulerEmpty();
       });
     });
 });

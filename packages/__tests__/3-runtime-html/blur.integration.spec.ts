@@ -361,7 +361,6 @@ describe('blur.integration.spec.ts', function () {
         testHost.remove();
 
         au.dispose();
-        assert.isSchedulerEmpty();
       }
     };
   }

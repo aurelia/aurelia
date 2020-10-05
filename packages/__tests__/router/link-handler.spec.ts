@@ -33,7 +33,6 @@ describe('LinkHandler', function () {
       doc.body.removeChild(host);
 
       au.dispose();
-      assert.isSchedulerEmpty();
     }
 
     return { sut, au, container, host, ctx, tearDown };

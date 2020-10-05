@@ -443,7 +443,6 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
         host.remove();
 
         au.dispose();
-        assert.isSchedulerEmpty();
       }
     };
   }

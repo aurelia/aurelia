@@ -3,6 +3,7 @@ import { IBindingContext, IBindingTargetObserver, ObserversLookup, PropertyObser
 import { SetterObserver, SetterNotifier } from './setter-observer';
 import { LifecycleFlags } from '../flags';
 import { InternalObserversLookup } from './binding-context';
+import { InterceptorFunc } from '../templating/bindable';
 
 // todo(bigopon): static obs here
 
@@ -13,6 +14,7 @@ type $Getter = PropertyDescriptor['get'] & {
 export interface IObservableDecoratorDefinition {
   name?: PropertyKey;
   changeHandler?: PropertyKey;
+  set?: InterceptorFunc;
 }
 
 /**
@@ -33,7 +35,7 @@ function getSetterObserver(
     || ($observers[key as string] = new SetterObserver(LifecycleFlags.none, obj, key as string));
 }
 
-function getOrCreateLookup(obj: IIndexable<{ $observers?: ObserversLookup }>): ObserversLookup {
+function getObserversLookup(obj: IIndexable<{ $observers?: ObserversLookup }>): ObserversLookup {
   let $observers = obj.$observers;
   if ($observers == null) {
     $observers = new InternalObserversLookup();
@@ -138,18 +140,19 @@ export function observable(
       descriptor.enumerable = true;
     }
 
-    // in the following getter/setter/getter.getObserver
-    // also force start observation
-    // after the first interaction (get/set/get observer), the getter/setter here will be disposed
-
+    // todo(bigopon/fred): discuss string api for converter
+    const $set = config.set;
     descriptor.get = function g(this: SetterObserverOwningObject) {
-      return getOrCreateNotifier(this, key!, changeHandler, initialValue).getValue();
+      return getNotifier(this, key!, changeHandler, initialValue).getValue();
     };
     descriptor.set = function s(this: SetterObserverOwningObject, newValue: unknown) {
-      getOrCreateNotifier(this, key!, changeHandler, initialValue).setValue(newValue, LifecycleFlags.none);
+      if (typeof $set === 'function') {
+        newValue = $set(newValue);
+      }
+      getNotifier(this, key!, changeHandler, initialValue).setValue(newValue, LifecycleFlags.none);
     };
     (descriptor.get as $Getter).getObserver = function gO(obj: SetterObserverOwningObject) {
-      return getOrCreateNotifier(obj, key!, changeHandler, initialValue);
+      return getNotifier(obj, key!, changeHandler, initialValue);
     };
 
     if (isClassDecorator) {
@@ -175,28 +178,25 @@ class CallbackSubscriber implements ISubscriber {
   }
 }
 
-function getOrCreateNotifier(
+function getNotifier(
   obj: SetterObserverOwningObject,
   key: PropertyKey,
   changeHandler: PropertyKey,
   initialValue: unknown,
 ): SetterNotifier {
-  const lookup = getOrCreateLookup(obj) as unknown as Record<PropertyKey, SetterObserver | SetterNotifier>;
+  const lookup = getObserversLookup(obj) as unknown as Record<PropertyKey, SetterObserver | SetterNotifier>;
   let notifier = lookup[key as string] as SetterNotifier;
   if (notifier == null) {
     notifier = new SetterNotifier();
+    lookup[key as string] = notifier;
     if (initialValue !== noValue) {
-      notifier.v = initialValue;
+      notifier.setValue(initialValue, LifecycleFlags.none);
     }
     const callback = obj[changeHandler as string];
     if (typeof callback === 'function') {
       notifier.subscribe(new CallbackSubscriber(obj, key, callback));
     }
   }
-  // const observer = getSetterObserver(obj, key).start();
-  // if (initialValue !== noValue) {
-  //   observer.currentValue = initialValue;
-  // }
   return notifier;
 }
 

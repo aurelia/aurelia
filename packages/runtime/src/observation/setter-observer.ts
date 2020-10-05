@@ -118,8 +118,6 @@ export class SetterNotifier implements IAccessor, ISubscribable {
 
   /**@internal */
   public v: unknown = void 0;
-  private oV: unknown = void 0;
-  private f: LifecycleFlags = 0;
   public task: ITask | null = null;
   
   public getValue(): unknown {
@@ -130,21 +128,15 @@ export class SetterNotifier implements IAccessor, ISubscribable {
     const oldValue = this.v;
     if (value !== oldValue) {
       this.v = value;
-      this.oV = oldValue;
-      this.f = flags;
-      this.subs.forEach(this.callSubscriber, this);
+      this._subs?.forEach(sub => sub.handleChange(value, oldValue, flags));
     }
   }
 
-  public subscribe(subscriber: ISubscriber<unknown>): void {
+  public subscribe(subscriber: ISubscriber): void {
     this.subs.add(subscriber);
   }
 
-  public unsubscribe(subscriber: ISubscriber<unknown>): void {
+  public unsubscribe(subscriber: ISubscriber): void {
     this.subs.delete(subscriber);
-  }
-
-  private callSubscriber(subscriber: ISubscriber<unknown>) {
-    subscriber.handleChange(this.v, this.oV, this.f);
   }
 }

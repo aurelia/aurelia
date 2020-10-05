@@ -1,11 +1,11 @@
 import { observable, SetterObserver, IObservable } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
-describe('5-jit-html/decorator-observable.spec.ts', () => {
+describe('3-runtime-html/decorator-observable.spec.ts', function () {
   const oldValue = 'old';
   const newValue = 'new';
 
-  it('initializes with TS', () => {
+  it('initializes with TS', function () {
     let callCount = 0;
     class Test {
       @observable

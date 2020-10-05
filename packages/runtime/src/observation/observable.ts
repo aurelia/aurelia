@@ -3,6 +3,7 @@ import { IBindingContext, IBindingTargetObserver, ObserversLookup, PropertyObser
 import { SetterObserver } from './setter-observer';
 import { LifecycleFlags } from '../flags';
 import { InternalObserversLookup } from './binding-context';
+import { InterceptorFunc } from '../templating/bindable';
 
 // todo(bigopon): static obs here
 
@@ -13,6 +14,7 @@ type $Getter = PropertyDescriptor['get'] & {
 export interface IObservableDecoratorDefinition {
   name?: PropertyKey;
   changeHandler?: PropertyKey;
+  set?: InterceptorFunc;
 }
 
 /**

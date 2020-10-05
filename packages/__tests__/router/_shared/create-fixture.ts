@@ -106,9 +106,6 @@ export async function createFixture<T extends Constructable>(
       logConfig.level = level;
     },
     async tearDown() {
-
-      router.stop();
-
       assert.isSchedulerEmpty();
 
       hia.setPhase('stop');

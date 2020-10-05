@@ -31,7 +31,6 @@ describe('Viewport', function () {
     await au.start().wait();
 
     async function tearDown() {
-      router.stop();
       RouterConfiguration.customize();
       await au.stop().wait();
 

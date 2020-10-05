@@ -151,7 +151,6 @@ describe('Router', function () {
 
     async function tearDown() {
       unspyNavigationStates(router, _pushState, _replaceState);
-      router.stop();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
     }
@@ -960,7 +959,6 @@ describe('Router', function () {
       async function $teardown() {
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
-        router.stop();
 
         au.dispose();
         assert.isSchedulerEmpty();
@@ -1210,7 +1208,6 @@ describe('Router', function () {
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        router.stop();
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
 
@@ -1342,7 +1339,6 @@ describe('Router', function () {
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        router.stop();
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
 
@@ -1612,7 +1608,6 @@ describe('Router', function () {
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        router.stop();
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
 
@@ -1835,7 +1830,6 @@ describe('Router', function () {
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        router.stop();
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
 

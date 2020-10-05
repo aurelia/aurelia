@@ -6,25 +6,6 @@ import {
   Reporter,
 } from '@aurelia/kernel';
 import {
-  AnyBindingExpression,
-  BinaryOperator,
-  BindingIdentifierOrPattern,
-  IForOfStatement,
-  IInterpolationExpression,
-  IPrimitiveLiteralExpression,
-  IsAssign,
-  IsAssignable,
-  IsBinary,
-  IsBindingBehavior,
-  IsConditional,
-  IsExpressionOrStatement,
-  IsLeftHandSide,
-  IsPrimary,
-  IsUnary,
-  IsValueConverter,
-  UnaryOperator,
-} from '../ast';
-import {
   ExpressionKind,
 } from '../flags';
 import {
@@ -52,6 +33,20 @@ import {
   TemplateExpression,
   UnaryExpression,
   ValueConverterExpression,
+  AnyBindingExpression,
+  BinaryOperator,
+  BindingIdentifierOrPattern,
+  IsAssign,
+  IsAssignable,
+  IsBinary,
+  IsBindingBehavior,
+  IsConditional,
+  IsExpressionOrStatement,
+  IsLeftHandSide,
+  IsPrimary,
+  IsUnary,
+  IsValueConverter,
+  UnaryOperator,
 } from './ast';
 
 export interface IExpressionParser extends ExpressionParser {}
@@ -59,15 +54,15 @@ export const IExpressionParser = DI.createInterface<IExpressionParser>('IExpress
 
 export class ExpressionParser {
   private readonly expressionLookup: Record<string, IsBindingBehavior> = Object.create(null);
-  private readonly forOfLookup: Record<string, IForOfStatement> = Object.create(null);
-  private readonly interpolationLookup: Record<string, IInterpolationExpression> = Object.create(null);
+  private readonly forOfLookup: Record<string, ForOfStatement> = Object.create(null);
+  private readonly interpolationLookup: Record<string, Interpolation> = Object.create(null);
 
   public static register(container: IContainer): IResolver<IExpressionParser> {
     return Registration.singleton(IExpressionParser, this).register(container);
   }
 
-  public parse(expression: string, bindingType: BindingType.ForCommand): IForOfStatement;
-  public parse(expression: string, bindingType: BindingType.Interpolation): IInterpolationExpression;
+  public parse(expression: string, bindingType: BindingType.ForCommand): ForOfStatement;
+  public parse(expression: string, bindingType: BindingType.Interpolation): Interpolation;
   public parse(expression: string, bindingType: Exclude<BindingType, BindingType.ForCommand | BindingType.Interpolation>): IsBindingBehavior;
   public parse(expression: string, bindingType: BindingType): AnyBindingExpression;
   public parse(expression: string, bindingType: BindingType): AnyBindingExpression {
@@ -408,8 +403,8 @@ const enum SemanticError {
 
 /** @internal */
 export function parseExpression<TType extends BindingType = BindingType.BindCommand>(input: string, bindingType?: TType):
-TType extends BindingType.Interpolation ? IInterpolationExpression :
-  TType extends BindingType.ForCommand ? IForOfStatement :
+TType extends BindingType.Interpolation ? Interpolation :
+  TType extends BindingType.ForCommand ? ForOfStatement :
     IsBindingBehavior {
 
   $state.input = input;
@@ -442,8 +437,8 @@ TPrec extends Precedence.Unary ? IsUnary :
                     TPrec extends Precedence.LogicalAND ? IsBinary :
                       TPrec extends Precedence.LogicalOR ? IsBinary :
                         TPrec extends Precedence.Variadic ?
-                          TType extends BindingType.Interpolation ? IInterpolationExpression :
-                            TType extends BindingType.ForCommand ? IForOfStatement :
+                          TType extends BindingType.Interpolation ? Interpolation :
+                            TType extends BindingType.ForCommand ? ForOfStatement :
                               never : never {
 
   if (bindingType === BindingType.CustomCommand) {
@@ -591,7 +586,7 @@ TPrec extends Precedence.Unary ? IsUnary :
       case Token.UndefinedKeyword:
       case Token.TrueKeyword:
       case Token.FalseKeyword:
-        result = TokenValues[state.currentToken & Token.Type] as IPrimitiveLiteralExpression;
+        result = TokenValues[state.currentToken & Token.Type] as PrimitiveLiteralExpression;
         state.assignable = false;
         nextToken(state);
         access = Access.Reset;
@@ -959,7 +954,7 @@ function parseObjectLiteralExpression(state: ParserState, bindingType: BindingTy
 
 function parseInterpolation(state: ParserState): Interpolation {
   const parts = [];
-  const expressions: (IsBindingBehavior | IInterpolationExpression)[] = [];
+  const expressions: (IsBindingBehavior | Interpolation)[] = [];
   const length = state.length;
   let result = '';
   while (state.index < length) {

@@ -92,7 +92,7 @@ describe('validate-binding-behavior', function () {
         .rules;
 
       const { validationRules: vrs, messageProvider, property, $rules } = rules.find((rule) => rule.property.name === 'age')!;
-      this.ageMinRule = new PropertyRule(vrs, messageProvider, property, [[$rules[0].find((rule) => rule instanceof RangeRule)]]);
+      this.ageMinRule = new PropertyRule(serviceLocator, vrs, messageProvider, property, [[$rules[0].find((rule) => rule instanceof RangeRule)]]);
 
       validationRules
         .on(this.org)

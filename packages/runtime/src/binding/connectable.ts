@@ -2,10 +2,10 @@ import {
   Class,
   IServiceLocator
 } from '@aurelia/kernel';
-import { IConnectable } from '../ast';
 import { LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
 import {
+  IConnectable,
   IBindingTargetObserver,
   IProxySubscribable,
   ISubscribable,
@@ -13,6 +13,7 @@ import {
   IScope
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
+import { BindingBehaviorInstance } from '../resources/binding-behavior';
 import { CustomElementDefinition } from '../resources/custom-element';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time

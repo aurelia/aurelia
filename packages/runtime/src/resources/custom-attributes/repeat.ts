@@ -3,7 +3,18 @@ import { ForOfStatement } from '../../binding/ast';
 import { PropertyBinding } from '../../binding/property-binding';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags as LF, LifecycleFlags } from '../../flags';
-import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, IRenderableController, IController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../lifecycle';
+import {
+  ISyntheticView,
+  IViewFactory,
+  MountStrategy,
+  ICustomAttributeController,
+  IRenderableController,
+  IController,
+  ICustomAttributeViewModel,
+  IHydratedController,
+  IHydratedParentController,
+  ControllerVisitor,
+} from '../../lifecycle';
 import {
   CollectionObserver,
   IndexMap,
@@ -55,7 +66,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   ): void | Promise<void> {
     this.checkCollectionObserver(flags);
     const bindings = this.renderable.bindings as PropertyBinding[];
-    let binding: PropertyBinding;
+    let binding: PropertyBinding = (void 0)!;
     for (let i = 0, ii = bindings.length; i < ii; ++i) {
       binding = bindings[i];
       if ((binding.target as { id?: number }).id === this.id && binding.targetProperty === 'items') {
@@ -64,7 +75,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       }
     }
 
-    this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, null) as string;
+    this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, binding.locator) as string;
   }
 
   public afterAttach(

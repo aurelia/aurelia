@@ -3,19 +3,19 @@ import { PropertyBinding } from '../../binding/property-binding';
 import { LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
 import { ISignaler } from '../../observation/signaler';
-import { bindingBehavior } from '../binding-behavior';
+import { bindingBehavior, BindingBehaviorInstance } from '../binding-behavior';
 
 export type SignalableBinding = PropertyBinding & {
   signal: string | string[];
 };
 
 @bindingBehavior('signal')
-export class SignalBindingBehavior {
+export class SignalBindingBehavior implements BindingBehaviorInstance {
   public constructor(
     @ISignaler private readonly signaler: ISignaler,
   ) {}
 
-  public bind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding, ...args: string[]): void {
+  public bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: SignalableBinding, ...args: string[]): void {
     if (!binding.updateTarget) {
       throw Reporter.error(11);
     }
@@ -39,7 +39,7 @@ export class SignalBindingBehavior {
     }
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding): void {
+  public unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: SignalableBinding): void {
     const name = binding.signal;
     binding.signal = null! as string | string[];
 

@@ -17,39 +17,31 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
     }
     const instance = new Test();
 
-    debugger;
     // with TS, initialization of class field are in constructor
     assert.strictEqual(callCount, 1);
     assert.strictEqual(instance.value, oldValue);
-    assert.instanceOf((instance as IObservable).$observers['value'], SetterObserver);
+    assert.notInstanceOf((instance as IObservable).$observers['value'], SetterObserver);
 
-    debugger;
     instance.value = newValue;
     assert.strictEqual(callCount, 2);
     assert.strictEqual(instance.value, newValue);
   });
 
-  // it('should call valueChanged when changing the undefined property', () => {
-  //   const instance = new class {
-  //     @observable value;
-  //     valueChanged() { }
-  //   };
-  //   spyOn(instance, 'valueChanged');
+  it('should not call valueChanged when property is assigned the same value', () => {
+    let callCount = 0;
+    class Test {
+      @observable value = oldValue;
+      public valueChanged() {
+        callCount++;
+      }
+    };
 
-  //   instance.value = newValue;
-  //   assert.strictEqual(instance.valueChanged).toHaveBeenCalledWith(newValue, undefined, 'value');
-  // });
+    const instance = new Test();
+    assert.strictEqual(callCount, 1);
 
-  // it('should not call valueChanged when property is assigned the same value', () => {
-  //   const instance = new class {
-  //     @observable value = oldValue;
-  //     valueChanged() { }
-  //   };
-  //   spyOn(instance, 'valueChanged');
-
-  //   instance.value = oldValue;
-  //   assert.strictEqual(instance.valueChanged).not.toHaveBeenCalled();
-  // });
+    instance.value = oldValue;
+    assert.strictEqual(callCount, 1);
+  });
 
   // it('should call customHandler when changing the property', () => {
   //   const instance = new class Test {

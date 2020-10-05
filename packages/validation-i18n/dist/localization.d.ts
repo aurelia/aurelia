@@ -1,6 +1,6 @@
 import { I18N } from '@aurelia/i18n';
-import { EventAggregator, IContainer, ILogger, Key } from '@aurelia/kernel';
-import { IExpressionParser, IInterpolationExpression, IScheduler, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { EventAggregator, IContainer, ILogger, IServiceLocator, Key } from '@aurelia/kernel';
+import { IExpressionParser, Interpolation, IScheduler, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IValidationRule, IValidator, ValidationMessageProvider } from '@aurelia/validation';
 import { IValidationController, ValidationController, ValidationControllerFactory, ValidationHtmlCustomizationOptions } from '@aurelia/validation-html';
 export interface ValidationI18nCustomizationOptions extends ValidationHtmlCustomizationOptions {
@@ -11,7 +11,7 @@ export declare type I18nKeyConfiguration = Pick<ValidationI18nCustomizationOptio
 export declare const I18nKeyConfiguration: import("@aurelia/kernel").InterfaceSymbol<Pick<ValidationI18nCustomizationOptions, "DefaultNamespace" | "DefaultKeyPrefix">>;
 export declare class LocalizedValidationController extends ValidationController {
     private readonly localeChangeSubscription;
-    constructor(ea: EventAggregator, validator: IValidator, parser: IExpressionParser, scheduler: IScheduler);
+    constructor(locator: IServiceLocator, ea: EventAggregator, validator: IValidator, parser: IExpressionParser, scheduler: IScheduler);
 }
 export declare class LocalizedValidationControllerFactory extends ValidationControllerFactory {
     construct(container: IContainer, _dynamicDependencies?: Key[] | undefined): IValidationController;
@@ -20,7 +20,7 @@ export declare class LocalizedValidationMessageProvider extends ValidationMessag
     private readonly i18n;
     private readonly keyPrefix?;
     constructor(keyConfiguration: I18nKeyConfiguration, i18n: I18N, ea: EventAggregator, parser: IExpressionParser, logger: ILogger);
-    getMessage(rule: IValidationRule): IInterpolationExpression | PrimitiveLiteralExpression;
+    getMessage(rule: IValidationRule): Interpolation | PrimitiveLiteralExpression;
     getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined;
     private getKey;
 }

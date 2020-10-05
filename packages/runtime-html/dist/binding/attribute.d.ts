@@ -1,12 +1,12 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { AccessorOrObserver, BindingMode, IConnectableBinding, IForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, IScheduler, INode, CustomElementDefinition, ITask } from '@aurelia/runtime';
+import { AccessorOrObserver, BindingMode, IConnectableBinding, ForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, IScheduler, INode, CustomElementDefinition, ITask } from '@aurelia/runtime';
 export interface AttributeBinding extends IConnectableBinding {
 }
 /**
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
 export declare class AttributeBinding implements IPartialConnectableBinding {
-    sourceExpression: IsBindingBehavior | IForOfStatement;
+    sourceExpression: IsBindingBehavior | ForOfStatement;
     targetAttribute: string;
     targetProperty: string;
     mode: BindingMode;
@@ -26,7 +26,7 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     targetObserver: AccessorOrObserver;
     persistentFlags: LifecycleFlags;
     target: Element;
-    constructor(sourceExpression: IsBindingBehavior | IForOfStatement, target: INode, targetAttribute: string, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator);
+    constructor(sourceExpression: IsBindingBehavior | ForOfStatement, target: INode, targetAttribute: string, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;

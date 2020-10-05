@@ -4,13 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime"], factory);
+        define(["require", "exports"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Listener = void 0;
-    const runtime_1 = require("@aurelia/runtime");
     /**
      * Listener binding. Handle event binding between view and view model
      */
@@ -51,7 +50,7 @@
             this.$scope = scope;
             this.$hostScope = hostScope;
             const sourceExpression = this.sourceExpression;
-            if (runtime_1.hasBind(sourceExpression)) {
+            if (sourceExpression.hasBind) {
                 sourceExpression.bind(flags, scope, hostScope, this.interceptor);
             }
             this.handler = this.eventManager.addEventListener(this.dom, this.target, this.targetEvent, this, this.delegationStrategy);
@@ -63,7 +62,7 @@
                 return;
             }
             const sourceExpression = this.sourceExpression;
-            if (runtime_1.hasUnbind(sourceExpression)) {
+            if (sourceExpression.hasUnbind) {
                 sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
             }
             this.$scope = null;

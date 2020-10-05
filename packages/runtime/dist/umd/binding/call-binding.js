@@ -4,13 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./ast"], factory);
+        define(["require", "exports"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.CallBinding = void 0;
-    const ast_1 = require("./ast");
     class CallBinding {
         constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
             this.sourceExpression = sourceExpression;
@@ -38,7 +37,7 @@
             }
             this.$scope = scope;
             this.$hostScope = hostScope;
-            if (ast_1.hasBind(this.sourceExpression)) {
+            if (this.sourceExpression.hasBind) {
                 this.sourceExpression.bind(flags, scope, hostScope, this.interceptor);
             }
             this.targetObserver.setValue(($args) => this.interceptor.callSource($args), flags);
@@ -49,7 +48,7 @@
             if (!this.isBound) {
                 return;
             }
-            if (ast_1.hasUnbind(this.sourceExpression)) {
+            if (this.sourceExpression.hasUnbind) {
                 this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
             }
             this.$scope = void 0;

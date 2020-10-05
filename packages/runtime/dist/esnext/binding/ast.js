@@ -4,65 +4,6 @@ import { ProxyObserver } from '../observation/proxy-observer';
 import { ISignaler } from '../observation/signaler';
 import { BindingBehavior, BindingBehaviorFactory, } from '../resources/binding-behavior';
 import { ValueConverter, } from '../resources/value-converter';
-export function connects(expr) {
-    return (expr.$kind & 32 /* Connects */) === 32 /* Connects */;
-}
-export function observes(expr) {
-    return (expr.$kind & 64 /* Observes */) === 64 /* Observes */;
-}
-export function callsFunction(expr) {
-    return (expr.$kind & 128 /* CallsFunction */) === 128 /* CallsFunction */;
-}
-export function hasAncestor(expr) {
-    return (expr.$kind & 256 /* HasAncestor */) === 256 /* HasAncestor */;
-}
-export function isAssignable(expr) {
-    return (expr.$kind & 8192 /* IsAssignable */) === 8192 /* IsAssignable */;
-}
-export function isLeftHandSide(expr) {
-    return (expr.$kind & 1024 /* IsLeftHandSide */) === 1024 /* IsLeftHandSide */;
-}
-export function isPrimary(expr) {
-    return (expr.$kind & 512 /* IsPrimary */) === 512 /* IsPrimary */;
-}
-export function isResource(expr) {
-    return (expr.$kind & 32768 /* IsResource */) === 32768 /* IsResource */;
-}
-export function hasBind(expr) {
-    return (expr.$kind & 2048 /* HasBind */) === 2048 /* HasBind */;
-}
-export function hasUnbind(expr) {
-    return (expr.$kind & 4096 /* HasUnbind */) === 4096 /* HasUnbind */;
-}
-export function isLiteral(expr) {
-    return (expr.$kind & 16384 /* IsLiteral */) === 16384 /* IsLiteral */;
-}
-export function arePureLiterals(expressions) {
-    if (expressions === void 0 || expressions.length === 0) {
-        return true;
-    }
-    for (let i = 0; i < expressions.length; ++i) {
-        if (!isPureLiteral(expressions[i])) {
-            return false;
-        }
-    }
-    return true;
-}
-export function isPureLiteral(expr) {
-    if (isLiteral(expr)) {
-        switch (expr.$kind) {
-            case 17955 /* ArrayLiteral */:
-                return arePureLiterals(expr.elements);
-            case 17956 /* ObjectLiteral */:
-                return arePureLiterals(expr.values);
-            case 17958 /* Template */:
-                return arePureLiterals(expr.expressions);
-            case 17925 /* PrimitiveLiteral */:
-                return true;
-        }
-    }
-    return false;
-}
 function chooseScope(accessHostScope, scope, hostScope) {
     if (accessHostScope) {
         if (hostScope === null || hostScope === void 0) {
@@ -96,9 +37,11 @@ export class BindingBehaviorExpression {
         this.expression = expression;
         this.name = name;
         this.args = args;
-        this.$kind = 38962 /* BindingBehavior */;
         this.behaviorKey = BindingBehavior.keyFrom(name);
     }
+    get $kind() { return 38962 /* BindingBehavior */; }
+    get hasBind() { return true; }
+    get hasUnbind() { return true; }
     evaluate(flags, scope, hostScope, locator) {
         return this.expression.evaluate(flags, scope, hostScope, locator);
     }
@@ -119,7 +62,7 @@ export class BindingBehaviorExpression {
         if (!locator) {
             throw Reporter.error(202 /* NoLocator */, this);
         }
-        if (hasBind(this.expression)) {
+        if (this.expression.hasBind) {
             this.expression.bind(flags, scope, hostScope, binding);
         }
         const behaviorKey = this.behaviorKey;
@@ -145,7 +88,7 @@ export class BindingBehaviorExpression {
             }
             binding[behaviorKey] = void 0;
         }
-        if (hasUnbind(this.expression)) {
+        if (this.expression.hasUnbind) {
             this.expression.unbind(flags, scope, hostScope, binding);
         }
     }
@@ -158,9 +101,11 @@ export class ValueConverterExpression {
         this.expression = expression;
         this.name = name;
         this.args = args;
-        this.$kind = 36913 /* ValueConverter */;
         this.converterKey = ValueConverter.keyFrom(name);
     }
+    get $kind() { return 36913 /* ValueConverter */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return true; }
     evaluate(flags, scope, hostScope, locator) {
         if (!locator) {
             throw Reporter.error(202 /* NoLocator */, this);
@@ -243,8 +188,10 @@ export class AssignExpression {
     constructor(target, value) {
         this.target = target;
         this.value = value;
-        this.$kind = 8208 /* Assign */;
     }
+    get $kind() { return 8208 /* Assign */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
     evaluate(flags, scope, hostScope, locator) {
         return this.target.assign(flags, scope, hostScope, locator, this.value.evaluate(flags, scope, hostScope, locator));
     }
@@ -264,8 +211,10 @@ export class ConditionalExpression {
         this.condition = condition;
         this.yes = yes;
         this.no = no;
-        this.$kind = 63 /* Conditional */;
     }
+    get $kind() { return 63 /* Conditional */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
     evaluate(flags, scope, hostScope, locator) {
         return (!!this.condition.evaluate(flags, scope, hostScope, locator))
             ? this.yes.evaluate(flags, scope, hostScope, locator)
@@ -276,7 +225,7 @@ export class ConditionalExpression {
     }
     connect(flags, scope, hostScope, binding) {
         const condition = this.condition;
-        if (condition.evaluate(flags, scope, hostScope, null)) {
+        if (condition.evaluate(flags, scope, hostScope, binding.locator)) {
             this.condition.connect(flags, scope, hostScope, binding);
             this.yes.connect(flags, scope, hostScope, binding);
         }
@@ -293,8 +242,10 @@ let AccessThisExpression = /** @class */ (() => {
     class AccessThisExpression {
         constructor(ancestor = 0) {
             this.ancestor = ancestor;
-            this.$kind = 1793 /* AccessThis */;
         }
+        get $kind() { return 1793 /* AccessThis */; }
+        get hasBind() { return false; }
+        get hasUnbind() { return false; }
         evaluate(flags, scope, hostScope, locator) {
             var _a;
             if (scope == null) {
@@ -334,8 +285,10 @@ export class AccessScopeExpression {
         this.name = name;
         this.ancestor = ancestor;
         this.accessHostScope = accessHostScope;
-        this.$kind = 10082 /* AccessScope */;
     }
+    get $kind() { return 10082 /* AccessScope */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
     evaluate(flags, scope, hostScope, locator) {
         const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope);
         const evaluatedValue = obj[this.name];
@@ -369,8 +322,10 @@ export class AccessMemberExpression {
     constructor(object, name) {
         this.object = object;
         this.name = name;
-        this.$kind = 9323 /* AccessMember */;
     }
+    get $kind() { return 9323 /* AccessMember */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
     evaluate(flags, scope, hostScope, locator) {
         const instance = this.object.evaluate(flags, scope, hostScope, locator);
         if (flags & 4 /* isStrictBindingStrategy */) {
@@ -394,7 +349,7 @@ export class AccessMemberExpression {
         return value;
     }
     connect(flags, scope, hostScope, binding) {
-        const obj = this.object.evaluate(flags, scope, hostScope, null);
+        const obj = this.object.evaluate(flags, scope, hostScope, binding.locator);
         if ((flags & 2048 /* observeLeafPropertiesOnly */) === 0) {
             this.object.connect(flags, scope, hostScope, binding);
         }
@@ -410,8 +365,10 @@ export class AccessKeyedExpression {
     constructor(object, key) {
         this.object = object;
         this.key = key;
-        this.$kind = 9324 /* AccessKeyed */;
     }
+    get $kind() { return 9324 /* AccessKeyed */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
     evaluate(flags, scope, hostScope, locator) {
         const instance = this.object.evaluate(flags, scope, hostScope, locator);
         if (instance instanceof Object) {
@@ -426,13 +383,13 @@ export class AccessKeyedExpression {
         return instance[key] = value;
     }
     connect(flags, scope, hostScope, binding) {
-        const obj = this.object.evaluate(flags, scope, hostScope, null);
+        const obj = this.object.evaluate(flags, scope, hostScope, binding.locator);
         if ((flags & 2048 /* observeLeafPropertiesOnly */) === 0) {
             this.object.connect(flags, scope, hostScope, binding);
         }
         if (obj instanceof Object) {
             this.key.connect(flags, scope, hostScope, binding);
-            const key = this.key.evaluate(flags, scope, hostScope, null);
+            const key = this.key.evaluate(flags, scope, hostScope, binding.locator);
             // (note: string indexers behave the same way as numeric indexers as long as they represent numbers)
             binding.observeProperty(flags, obj, key);
         }
@@ -447,8 +404,10 @@ export class CallScopeExpression {
         this.args = args;
         this.ancestor = ancestor;
         this.accessHostScope = accessHostScope;
-        this.$kind = 1448 /* CallScope */;
     }
+    get $kind() { return 1448 /* CallScope */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
     evaluate(flags, scope, hostScope, locator) {
         scope = chooseScope(this.accessHostScope, scope, hostScope);
         const args = evalList(flags, scope, locator, this.args, hostScope);
@@ -477,8 +436,10 @@ export class CallMemberExpression {
         this.object = object;
         this.name = name;
         this.args = args;
-        this.$kind = 1161 /* CallMember */;
     }
+    get $kind() { return 1161 /* CallMember */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
     evaluate(flags, scope, hostScope, locator) {
         const instance = this.object.evaluate(flags, scope, hostScope, locator);
         const args = evalList(flags, scope, locator, this.args, hostScope);
@@ -492,7 +453,7 @@ export class CallMemberExpression {
         return void 0;
     }
     connect(flags, scope, hostScope, binding) {
-        const obj = this.object.evaluate(flags, scope, hostScope, null);
+        const obj = this.object.evaluate(flags, scope, hostScope, binding.locator);
         if ((flags & 2048 /* observeLeafPropertiesOnly */) === 0) {
             this.object.connect(flags, scope, hostScope, binding);
         }
@@ -511,8 +472,10 @@ export class CallFunctionExpression {
     constructor(func, args) {
         this.func = func;
         this.args = args;
-        this.$kind = 1162 /* CallFunction */;
     }
+    get $kind() { return 1162 /* CallFunction */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
     evaluate(flags, scope, hostScope, locator) {
         const func = this.func.evaluate(flags, scope, hostScope, locator);
         if (typeof func === 'function') {
@@ -527,7 +490,7 @@ export class CallFunctionExpression {
         return void 0;
     }
     connect(flags, scope, hostScope, binding) {
-        const func = this.func.evaluate(flags, scope, hostScope, null);
+        const func = this.func.evaluate(flags, scope, hostScope, binding.locator);
         this.func.connect(flags, scope, hostScope, binding);
         if (typeof func === 'function') {
             const args = this.args;
@@ -545,14 +508,84 @@ export class BinaryExpression {
         this.operation = operation;
         this.left = left;
         this.right = right;
-        this.$kind = 46 /* Binary */;
-        // what we're doing here is effectively moving the large switch statement from evaluate to the constructor
-        // so that the check only needs to be done once, and evaluate (which is called many times) will have a lot less
-        // work to do; we can do this because the operation can't change after it's parsed
-        this.evaluate = this[operation];
     }
-    evaluate(flags, scope, hostScope, locator) {
-        throw Reporter.error(208 /* UnknownOperator */, this);
+    get $kind() { return 46 /* Binary */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
+    evaluate(f, s, hs, l) {
+        switch (this.operation) {
+            case '&&':
+                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                return this.left.evaluate(f, s, hs, l) && this.right.evaluate(f, s, hs, l);
+            case '||':
+                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                return this.left.evaluate(f, s, hs, l) || this.right.evaluate(f, s, hs, l);
+            case '==':
+                // eslint-disable-next-line eqeqeq
+                return this.left.evaluate(f, s, hs, l) == this.right.evaluate(f, s, hs, l);
+            case '===':
+                return this.left.evaluate(f, s, hs, l) === this.right.evaluate(f, s, hs, l);
+            case '!=':
+                // eslint-disable-next-line eqeqeq
+                return this.left.evaluate(f, s, hs, l) != this.right.evaluate(f, s, hs, l);
+            case '!==':
+                return this.left.evaluate(f, s, hs, l) !== this.right.evaluate(f, s, hs, l);
+            case 'instanceof': {
+                const right = this.right.evaluate(f, s, hs, l);
+                if (typeof right === 'function') {
+                    return this.left.evaluate(f, s, hs, l) instanceof right;
+                }
+                return false;
+            }
+            case 'in': {
+                const right = this.right.evaluate(f, s, hs, l);
+                if (right instanceof Object) {
+                    return this.left.evaluate(f, s, hs, l) in right;
+                }
+                return false;
+            }
+            // note: autoConvertAdd (and the null check) is removed because the default spec behavior is already largely similar
+            // and where it isn't, you kind of want it to behave like the spec anyway (e.g. return NaN when adding a number to undefined)
+            // this makes bugs in user code easier to track down for end users
+            // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
+            case '+': {
+                const left = this.left.evaluate(f, s, hs, l);
+                const right = this.right.evaluate(f, s, hs, l);
+                if ((f & 4 /* isStrictBindingStrategy */) > 0) {
+                    return left + right;
+                }
+                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                if (!left || !right) {
+                    if (isNumberOrBigInt(left) || isNumberOrBigInt(right)) {
+                        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                        return (left || 0) + (right || 0);
+                    }
+                    if (isStringOrDate(left) || isStringOrDate(right)) {
+                        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                        return (left || '') + (right || '');
+                    }
+                }
+                return left + right;
+            }
+            case '-':
+                return this.left.evaluate(f, s, hs, l) - this.right.evaluate(f, s, hs, l);
+            case '*':
+                return this.left.evaluate(f, s, hs, l) * this.right.evaluate(f, s, hs, l);
+            case '/':
+                return this.left.evaluate(f, s, hs, l) / this.right.evaluate(f, s, hs, l);
+            case '%':
+                return this.left.evaluate(f, s, hs, l) % this.right.evaluate(f, s, hs, l);
+            case '<':
+                return this.left.evaluate(f, s, hs, l) < this.right.evaluate(f, s, hs, l);
+            case '>':
+                return this.left.evaluate(f, s, hs, l) > this.right.evaluate(f, s, hs, l);
+            case '<=':
+                return this.left.evaluate(f, s, hs, l) <= this.right.evaluate(f, s, hs, l);
+            case '>=':
+                return this.left.evaluate(f, s, hs, l) >= this.right.evaluate(f, s, hs, l);
+            default:
+                throw Reporter.error(208 /* UnknownOperator */, this);
+        }
     }
     assign(flags, scope, hostScope, locator, obj) {
         return void 0;
@@ -561,89 +594,6 @@ export class BinaryExpression {
         this.left.connect(flags, scope, hostScope, binding);
         this.right.connect(flags, scope, hostScope, binding);
     }
-    /* eslint-disable no-useless-computed-key */
-    ['&&'](f, s, hs, l) {
-        return this.left.evaluate(f, s, hs, l) && this.right.evaluate(f, s, hs, l);
-    }
-    ['||'](f, s, hs, l) {
-        return this.left.evaluate(f, s, hs, l) || this.right.evaluate(f, s, hs, l);
-    }
-    ['=='](f, s, hs, l) {
-        // eslint-disable-next-line eqeqeq
-        return this.left.evaluate(f, s, hs, l) == this.right.evaluate(f, s, hs, l);
-    }
-    ['==='](f, s, hs, l) {
-        return this.left.evaluate(f, s, hs, l) === this.right.evaluate(f, s, hs, l);
-    }
-    ['!='](f, s, hs, l) {
-        // eslint-disable-next-line eqeqeq
-        return this.left.evaluate(f, s, hs, l) != this.right.evaluate(f, s, hs, l);
-    }
-    ['!=='](f, s, hs, l) {
-        return this.left.evaluate(f, s, hs, l) !== this.right.evaluate(f, s, hs, l);
-    }
-    ['instanceof'](f, s, hs, l) {
-        const right = this.right.evaluate(f, s, hs, l);
-        if (typeof right === 'function') {
-            return this.left.evaluate(f, s, hs, l) instanceof right;
-        }
-        return false;
-    }
-    ['in'](f, s, hs, l) {
-        const right = this.right.evaluate(f, s, hs, l);
-        if (right instanceof Object) {
-            return this.left.evaluate(f, s, hs, l) in right;
-        }
-        return false;
-    }
-    // note: autoConvertAdd (and the null check) is removed because the default spec behavior is already largely similar
-    // and where it isn't, you kind of want it to behave like the spec anyway (e.g. return NaN when adding a number to undefined)
-    // this makes bugs in user code easier to track down for end users
-    // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
-    ['+'](f, s, hs, l) {
-        const left = this.left.evaluate(f, s, hs, l);
-        const right = this.right.evaluate(f, s, hs, l);
-        if ((f & 4 /* isStrictBindingStrategy */) > 0) {
-            return left + right;
-        }
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        if (!left || !right) {
-            if (isNumberOrBigInt(left) || isNumberOrBigInt(right)) {
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-                return (left || 0) + (right || 0);
-            }
-            if (isStringOrDate(left) || isStringOrDate(right)) {
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unnecessary-condition
-                return (left || '') + (right || '');
-            }
-        }
-        return left + right;
-    }
-    ['-'](f, s, hs, l) {
-        return this.left.evaluate(f, s, hs, l) - this.right.evaluate(f, s, hs, l);
-    }
-    ['*'](f, s, hs, l) {
-        return this.left.evaluate(f, s, hs, l) * this.right.evaluate(f, s, hs, l);
-    }
-    ['/'](f, s, hs, l) {
-        return this.left.evaluate(f, s, hs, l) / this.right.evaluate(f, s, hs, l);
-    }
-    ['%'](f, s, hs, l) {
-        return this.left.evaluate(f, s, hs, l) % this.right.evaluate(f, s, hs, l);
-    }
-    ['<'](f, s, hs, l) {
-        return this.left.evaluate(f, s, hs, l) < this.right.evaluate(f, s, hs, l);
-    }
-    ['>'](f, s, hs, l) {
-        return this.left.evaluate(f, s, hs, l) > this.right.evaluate(f, s, hs, l);
-    }
-    ['<='](f, s, hs, l) {
-        return this.left.evaluate(f, s, hs, l) <= this.right.evaluate(f, s, hs, l);
-    }
-    ['>='](f, s, hs, l) {
-        return this.left.evaluate(f, s, hs, l) >= this.right.evaluate(f, s, hs, l);
-    }
-    /* eslint-enable no-useless-computed-key */
     accept(visitor) {
         return visitor.visitBinary(this);
     }
@@ -652,12 +602,25 @@ export class UnaryExpression {
     constructor(operation, expression) {
         this.operation = operation;
         this.expression = expression;
-        this.$kind = 39 /* Unary */;
-        // see Binary (we're doing the same thing here)
-        this.evaluate = this[operation];
     }
-    evaluate(flags, scope, hostScope, locator) {
-        throw Reporter.error(208 /* UnknownOperator */, this);
+    get $kind() { return 39 /* Unary */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
+    evaluate(f, s, hs, l) {
+        switch (this.operation) {
+            case 'void':
+                return void this.expression.evaluate(f, s, hs, l);
+            case 'typeof':
+                return typeof this.expression.evaluate(f | 4 /* isStrictBindingStrategy */, s, hs, l);
+            case '!':
+                return !this.expression.evaluate(f, s, hs, l);
+            case '-':
+                return -this.expression.evaluate(f, s, hs, l);
+            case '+':
+                return +this.expression.evaluate(f, s, hs, l);
+            default:
+                throw Reporter.error(208 /* UnknownOperator */, this);
+        }
     }
     assign(flags, scope, hostScope, locator, obj) {
         return void 0;
@@ -665,23 +628,6 @@ export class UnaryExpression {
     connect(flags, scope, hostScope, binding) {
         this.expression.connect(flags, scope, hostScope, binding);
     }
-    /* eslint-disable no-useless-computed-key */
-    ['void'](f, s, hs, l) {
-        return void this.expression.evaluate(f, s, hs, l);
-    }
-    ['typeof'](f, s, hs, l) {
-        return typeof this.expression.evaluate(f | 4 /* isStrictBindingStrategy */, s, hs, l);
-    }
-    ['!'](f, s, hs, l) {
-        return !this.expression.evaluate(f, s, hs, l);
-    }
-    ['-'](f, s, hs, l) {
-        return -this.expression.evaluate(f, s, hs, l);
-    }
-    ['+'](f, s, hs, l) {
-        return +this.expression.evaluate(f, s, hs, l);
-    }
-    /* eslint-enable no-useless-computed-key */
     accept(visitor) {
         return visitor.visitUnary(this);
     }
@@ -690,8 +636,10 @@ let PrimitiveLiteralExpression = /** @class */ (() => {
     class PrimitiveLiteralExpression {
         constructor(value) {
             this.value = value;
-            this.$kind = 17925 /* PrimitiveLiteral */;
         }
+        get $kind() { return 17925 /* PrimitiveLiteral */; }
+        get hasBind() { return false; }
+        get hasUnbind() { return false; }
         evaluate(flags, scope, hostScope, locator) {
             return this.value;
         }
@@ -716,8 +664,10 @@ export { PrimitiveLiteralExpression };
 export class HtmlLiteralExpression {
     constructor(parts) {
         this.parts = parts;
-        this.$kind = 51 /* HtmlLiteral */;
     }
+    get $kind() { return 51 /* HtmlLiteral */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
     evaluate(flags, scope, hostScope, locator) {
         const elements = this.parts;
         let result = '';
@@ -747,8 +697,10 @@ let ArrayLiteralExpression = /** @class */ (() => {
     class ArrayLiteralExpression {
         constructor(elements) {
             this.elements = elements;
-            this.$kind = 17955 /* ArrayLiteral */;
         }
+        get $kind() { return 17955 /* ArrayLiteral */; }
+        get hasBind() { return false; }
+        get hasUnbind() { return false; }
         evaluate(flags, scope, hostScope, locator) {
             const elements = this.elements;
             const length = elements.length;
@@ -780,8 +732,10 @@ let ObjectLiteralExpression = /** @class */ (() => {
         constructor(keys, values) {
             this.keys = keys;
             this.values = values;
-            this.$kind = 17956 /* ObjectLiteral */;
         }
+        get $kind() { return 17956 /* ObjectLiteral */; }
+        get hasBind() { return false; }
+        get hasUnbind() { return false; }
         evaluate(flags, scope, hostScope, locator) {
             const instance = {};
             const keys = this.keys;
@@ -814,8 +768,10 @@ let TemplateExpression = /** @class */ (() => {
         constructor(cooked, expressions = PLATFORM.emptyArray) {
             this.cooked = cooked;
             this.expressions = expressions;
-            this.$kind = 17958 /* Template */;
         }
+        get $kind() { return 17958 /* Template */; }
+        get hasBind() { return false; }
+        get hasUnbind() { return false; }
         evaluate(flags, scope, hostScope, locator) {
             const expressions = this.expressions;
             const cooked = this.cooked;
@@ -849,9 +805,11 @@ export class TaggedTemplateExpression {
         this.cooked = cooked;
         this.func = func;
         this.expressions = expressions;
-        this.$kind = 1197 /* TaggedTemplate */;
         cooked.raw = raw;
     }
+    get $kind() { return 1197 /* TaggedTemplate */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
     evaluate(flags, scope, hostScope, locator) {
         const expressions = this.expressions;
         const len = expressions.length;
@@ -883,8 +841,10 @@ export class ArrayBindingPattern {
     // We'll either have elements, or keys+values, but never all 3
     constructor(elements) {
         this.elements = elements;
-        this.$kind = 65556 /* ArrayBindingPattern */;
     }
+    get $kind() { return 65556 /* ArrayBindingPattern */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
     evaluate(flags, scope, hostScope, locator) {
         // TODO
         return void 0;
@@ -905,8 +865,10 @@ export class ObjectBindingPattern {
     constructor(keys, values) {
         this.keys = keys;
         this.values = values;
-        this.$kind = 65557 /* ObjectBindingPattern */;
     }
+    get $kind() { return 65557 /* ObjectBindingPattern */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
     evaluate(flags, scope, hostScope, locator) {
         // TODO
         return void 0;
@@ -925,8 +887,10 @@ export class ObjectBindingPattern {
 export class BindingIdentifier {
     constructor(name) {
         this.name = name;
-        this.$kind = 65558 /* BindingIdentifier */;
     }
+    get $kind() { return 65558 /* BindingIdentifier */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
     evaluate(flags, scope, hostScope, locator) {
         return this.name;
     }
@@ -944,8 +908,10 @@ export class ForOfStatement {
     constructor(declaration, iterable) {
         this.declaration = declaration;
         this.iterable = iterable;
-        this.$kind = 6199 /* ForOfStatement */;
     }
+    get $kind() { return 6199 /* ForOfStatement */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
     evaluate(flags, scope, hostScope, locator) {
         return this.iterable.evaluate(flags, scope, hostScope, locator);
     }
@@ -979,12 +945,12 @@ export class ForOfStatement {
         this.iterable.connect(flags, scope, hostScope, binding);
     }
     bind(flags, scope, hostScope, binding) {
-        if (hasBind(this.iterable)) {
+        if (this.iterable.hasBind) {
             this.iterable.bind(flags, scope, hostScope, binding);
         }
     }
     unbind(flags, scope, hostScope, binding) {
-        if (hasUnbind(this.iterable)) {
+        if (this.iterable.hasUnbind) {
             this.iterable.unbind(flags, scope, hostScope, binding);
         }
     }
@@ -1001,10 +967,12 @@ export class Interpolation {
     constructor(parts, expressions = PLATFORM.emptyArray) {
         this.parts = parts;
         this.expressions = expressions;
-        this.$kind = 24 /* Interpolation */;
         this.isMulti = expressions.length > 1;
         this.firstExpression = expressions[0];
     }
+    get $kind() { return 24 /* Interpolation */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
     evaluate(flags, scope, hostScope, locator) {
         if (this.isMulti) {
             const expressions = this.expressions;

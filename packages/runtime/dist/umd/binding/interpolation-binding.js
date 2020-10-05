@@ -13,7 +13,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/scheduler", "../flags", "../observation/observer-locator", "./connectable"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/scheduler", "../flags", "../observation/observer-locator", "./ast", "./connectable"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -23,6 +23,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     const scheduler_1 = require("@aurelia/scheduler");
     const flags_1 = require("../flags");
     const observer_locator_1 = require("../observation/observer-locator");
+    const ast_1 = require("./ast");
     const connectable_1 = require("./connectable");
     const { toView, oneTime } = flags_1.BindingMode;
     const queueTaskOptions = {
@@ -151,7 +152,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 this.$scope = scope;
                 this.$hostScope = hostScope;
                 const sourceExpression = this.sourceExpression;
-                if (sourceExpression.bind) {
+                if (sourceExpression.hasBind) {
                     sourceExpression.bind(flags, scope, hostScope, this.interceptor);
                 }
                 const targetObserver = this.targetObserver;
@@ -174,7 +175,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 }
                 this.isBound = false;
                 const sourceExpression = this.sourceExpression;
-                if (sourceExpression.unbind) {
+                if (sourceExpression.hasUnbind) {
                     sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
                 }
                 const targetObserver = this.targetObserver;
@@ -201,7 +202,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         };
         InterpolationBinding = __decorate([
             connectable_1.connectable(),
-            __metadata("design:paramtypes", [Object, Object, Object, String, Number, Object, Object, Boolean])
+            __metadata("design:paramtypes", [Object, ast_1.Interpolation, Object, String, Number, Object, Object, Boolean])
         ], InterpolationBinding);
         return InterpolationBinding;
     })();

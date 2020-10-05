@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { DI, } from '@aurelia/kernel';
+import { DI, IServiceLocator, } from '@aurelia/kernel';
 import { IExpressionParser, IScheduler } from '@aurelia/runtime';
 import { parsePropertyName, PropertyRule, ValidationResult, IValidator, ValidateInstruction } from '@aurelia/validation';
 export var ValidateEventKind;
@@ -146,10 +146,11 @@ export function getPropertyInfo(binding, info, flags = 0 /* none */) {
 export const IValidationController = DI.createInterface('IValidationController').noDefault();
 let ValidationController = /** @class */ (() => {
     let ValidationController = class ValidationController {
-        constructor(validator, parser, scheduler) {
+        constructor(validator, parser, scheduler, locator) {
             this.validator = validator;
             this.parser = parser;
             this.scheduler = scheduler;
+            this.locator = locator;
             this.bindings = new Map();
             this.subscribers = new Set();
             this.results = [];
@@ -294,7 +295,7 @@ let ValidationController = /** @class */ (() => {
             const promises = [];
             for (const [object, innerMap] of map) {
                 promises.push(this.validate(new ValidateInstruction(object, undefined, Array.from(innerMap)
-                    .map(([{ validationRules, messageProvider, property }, rules]) => new PropertyRule(validationRules, messageProvider, property, [rules])))));
+                    .map(([{ validationRules, messageProvider, property }, rules]) => new PropertyRule(this.locator, validationRules, messageProvider, property, [rules])))));
             }
             await Promise.all(promises);
         }
@@ -369,7 +370,8 @@ let ValidationController = /** @class */ (() => {
         __param(0, IValidator),
         __param(1, IExpressionParser),
         __param(2, IScheduler),
-        __metadata("design:paramtypes", [Object, Object, Object])
+        __param(3, IServiceLocator),
+        __metadata("design:paramtypes", [Object, Object, Object, Object])
     ], ValidationController);
     return ValidationController;
 })();
@@ -384,7 +386,7 @@ export class ValidationControllerFactory {
     construct(container, _dynamicDependencies) {
         return _dynamicDependencies !== void 0
             ? Reflect.construct(ValidationController, _dynamicDependencies)
-            : new ValidationController(container.get(IValidator), container.get(IExpressionParser), container.get(IScheduler));
+            : new ValidationController(container.get(IValidator), container.get(IExpressionParser), container.get(IScheduler), container);
     }
 }
 //# sourceMappingURL=validation-controller.js.map

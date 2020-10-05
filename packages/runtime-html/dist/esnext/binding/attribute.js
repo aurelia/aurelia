@@ -8,7 +8,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { IServiceLocator, } from '@aurelia/kernel';
-import { BindingMode, connectable, hasBind, hasUnbind, IObserverLocator, IScheduler, INode, } from '@aurelia/runtime';
+import { BindingMode, connectable, IObserverLocator, IScheduler, INode, } from '@aurelia/runtime';
 import { AttributeObserver, } from '../observation/element-attribute-observer';
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -122,7 +122,7 @@ let AttributeBinding = /** @class */ (() => {
             this.$hostScope = hostScope;
             this.projection = projection;
             let sourceExpression = this.sourceExpression;
-            if (hasBind(sourceExpression)) {
+            if (sourceExpression.hasBind) {
                 sourceExpression.bind(flags, scope, hostScope, this.interceptor);
             }
             let targetObserver = this.targetObserver;
@@ -155,7 +155,7 @@ let AttributeBinding = /** @class */ (() => {
             }
             // clear persistent flags
             this.persistentFlags = 0 /* none */;
-            if (hasUnbind(this.sourceExpression)) {
+            if (this.sourceExpression.hasUnbind) {
                 this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
             }
             this.$scope = null;

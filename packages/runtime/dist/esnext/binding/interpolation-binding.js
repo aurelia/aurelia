@@ -11,6 +11,7 @@ import { IServiceLocator } from '@aurelia/kernel';
 import { IScheduler, } from '@aurelia/scheduler';
 import { BindingMode, } from '../flags';
 import { IObserverLocator } from '../observation/observer-locator';
+import { Interpolation } from './ast';
 import { connectable, } from './connectable';
 const { toView, oneTime } = BindingMode;
 const queueTaskOptions = {
@@ -138,7 +139,7 @@ let InterpolationBinding = /** @class */ (() => {
             this.$scope = scope;
             this.$hostScope = hostScope;
             const sourceExpression = this.sourceExpression;
-            if (sourceExpression.bind) {
+            if (sourceExpression.hasBind) {
                 sourceExpression.bind(flags, scope, hostScope, this.interceptor);
             }
             const targetObserver = this.targetObserver;
@@ -161,7 +162,7 @@ let InterpolationBinding = /** @class */ (() => {
             }
             this.isBound = false;
             const sourceExpression = this.sourceExpression;
-            if (sourceExpression.unbind) {
+            if (sourceExpression.hasUnbind) {
                 sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
             }
             const targetObserver = this.targetObserver;
@@ -188,7 +189,7 @@ let InterpolationBinding = /** @class */ (() => {
     };
     InterpolationBinding = __decorate([
         connectable(),
-        __metadata("design:paramtypes", [Object, Object, Object, String, Number, Object, Object, Boolean])
+        __metadata("design:paramtypes", [Object, Interpolation, Object, String, Number, Object, Object, Boolean])
     ], InterpolationBinding);
     return InterpolationBinding;
 })();

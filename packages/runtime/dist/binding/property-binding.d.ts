@@ -1,14 +1,14 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { IForOfStatement, IsBindingBehavior } from '../ast';
 import { BindingMode, LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { AccessorOrObserver, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
+import { ForOfStatement, IsBindingBehavior } from './ast';
 import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
 export interface PropertyBinding extends IConnectableBinding {
 }
 export declare class PropertyBinding implements IPartialConnectableBinding {
-    sourceExpression: IsBindingBehavior | IForOfStatement;
+    sourceExpression: IsBindingBehavior | ForOfStatement;
     target: object;
     targetProperty: string;
     mode: BindingMode;
@@ -24,7 +24,7 @@ export declare class PropertyBinding implements IPartialConnectableBinding {
     persistentFlags: LifecycleFlags;
     private task;
     private readonly $scheduler;
-    constructor(sourceExpression: IsBindingBehavior | IForOfStatement, target: object, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator);
+    constructor(sourceExpression: IsBindingBehavior | ForOfStatement, target: object, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;

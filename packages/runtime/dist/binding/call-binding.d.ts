@@ -1,8 +1,8 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { IsBindingBehavior } from '../ast';
 import { LifecycleFlags } from '../flags';
 import { IAccessor, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
+import { IsBindingBehavior } from './ast';
 import { IConnectableBinding } from './connectable';
 export interface CallBinding extends IConnectableBinding {
 }

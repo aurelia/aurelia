@@ -1,15 +1,15 @@
 import { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { ITask } from '@aurelia/scheduler';
-import { IExpression } from '../ast';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { IObservable, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
+import { IsExpression } from './ast';
 import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
 export interface LetBinding extends IConnectableBinding {
 }
 export declare class LetBinding implements IPartialConnectableBinding {
-    sourceExpression: IExpression;
+    sourceExpression: IsExpression;
     targetProperty: string;
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
@@ -22,7 +22,7 @@ export declare class LetBinding implements IPartialConnectableBinding {
     $hostScope: IScope | null;
     task: ITask | null;
     target: (IObservable & IIndexable) | null;
-    constructor(sourceExpression: IExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toBindingContext?: boolean);
+    constructor(sourceExpression: IsExpression, targetProperty: string, observerLocator: IObserverLocator, locator: IServiceLocator, toBindingContext?: boolean);
     handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
     $unbind(flags: LifecycleFlags): void;

@@ -1,12 +1,12 @@
-import { IHydrator } from '@aurelia/runtime/dist/ast';
+import { IHydrator } from '@aurelia/runtime';
 import * as AST from '@aurelia/runtime';
 export declare class Deserializer implements IHydrator {
-    static deserialize(serializedExpr: string): AST.IExpression;
+    static deserialize(serializedExpr: string): AST.IsExpressionOrStatement;
     hydrate(raw: any): any;
     private deserializeExpressions;
 }
 export declare class Serializer implements AST.IVisitor<string> {
-    static serialize(expr: AST.IExpression): string;
+    static serialize(expr: AST.IsExpressionOrStatement): string;
     visitAccessMember(expr: AST.AccessMemberExpression): string;
     visitAccessKeyed(expr: AST.AccessKeyedExpression): string;
     visitAccessThis(expr: AST.AccessThisExpression): string;

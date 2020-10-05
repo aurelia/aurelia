@@ -95,7 +95,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     }
     let PropertyRule = /** @class */ (() => {
         class PropertyRule {
-            constructor(validationRules, messageProvider, property, $rules = [[]]) {
+            constructor(locator, validationRules, messageProvider, property, $rules = [[]]) {
+                this.locator = locator;
                 this.validationRules = validationRules;
                 this.messageProvider = messageProvider;
                 this.property = property;
@@ -127,7 +128,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     value = object;
                 }
                 else {
-                    value = expression.evaluate(flags, scope, null, null); // TODO: get proper hostScope?
+                    value = expression.evaluate(flags, scope, null, this.locator); // TODO: get proper hostScope?
                 }
                 let isValid = true;
                 const validateRuleset = async (rules) => {
@@ -359,7 +360,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.IValidationRules = kernel_1.DI.createInterface('IValidationRules').noDefault();
     let ValidationRules = /** @class */ (() => {
         let ValidationRules = class ValidationRules {
-            constructor(parser, messageProvider, deserializer) {
+            constructor(locator, parser, messageProvider, deserializer) {
+                this.locator = locator;
                 this.parser = parser;
                 this.messageProvider = messageProvider;
                 this.deserializer = deserializer;
@@ -371,13 +373,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 // eslint-disable-next-line eqeqeq
                 let rule = this.rules.find((r) => r.property.name == name);
                 if (rule === void 0) {
-                    rule = new PropertyRule(this, this.messageProvider, new RuleProperty(expression, name));
+                    rule = new PropertyRule(this.locator, this, this.messageProvider, new RuleProperty(expression, name));
                     this.rules.push(rule);
                 }
                 return rule;
             }
             ensureObject() {
-                const rule = new PropertyRule(this, this.messageProvider, new RuleProperty());
+                const rule = new PropertyRule(this.locator, this, this.messageProvider, new RuleProperty());
                 this.rules.push(rule);
                 return rule;
             }
@@ -414,10 +416,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             }
         };
         ValidationRules = __decorate([
-            __param(0, runtime_1.IExpressionParser),
-            __param(1, rules_1.IValidationMessageProvider),
-            __param(2, rule_interfaces_1.IValidationHydrator),
-            __metadata("design:paramtypes", [Object, Object, Object])
+            __param(0, kernel_1.IServiceLocator),
+            __param(1, runtime_1.IExpressionParser),
+            __param(2, rules_1.IValidationMessageProvider),
+            __param(3, rule_interfaces_1.IValidationHydrator),
+            __metadata("design:paramtypes", [Object, Object, Object, Object])
         ], ValidationRules);
         return ValidationRules;
     })();

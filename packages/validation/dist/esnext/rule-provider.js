@@ -11,7 +11,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 /* eslint-disable no-template-curly-in-string */
-import { DI, Protocol, Metadata, ILogger } from '@aurelia/kernel';
+import { DI, Protocol, Metadata, ILogger, IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser, PrimitiveLiteralExpression, Scope, } from '@aurelia/runtime';
 import { RequiredRule, RegexRule, LengthRule, SizeRule, RangeRule, EqualsRule, IValidationMessageProvider, ValidationRuleAliasMessage, BaseValidationRule, } from './rules';
 import { IValidationHydrator, } from './rule-interfaces';
@@ -83,7 +83,8 @@ class ValidationMessageEvaluationContext {
 }
 let PropertyRule = /** @class */ (() => {
     class PropertyRule {
-        constructor(validationRules, messageProvider, property, $rules = [[]]) {
+        constructor(locator, validationRules, messageProvider, property, $rules = [[]]) {
+            this.locator = locator;
             this.validationRules = validationRules;
             this.messageProvider = messageProvider;
             this.property = property;
@@ -115,7 +116,7 @@ let PropertyRule = /** @class */ (() => {
                 value = object;
             }
             else {
-                value = expression.evaluate(flags, scope, null, null); // TODO: get proper hostScope?
+                value = expression.evaluate(flags, scope, null, this.locator); // TODO: get proper hostScope?
             }
             let isValid = true;
             const validateRuleset = async (rules) => {
@@ -346,7 +347,8 @@ export class ModelBasedRule {
 export const IValidationRules = DI.createInterface('IValidationRules').noDefault();
 let ValidationRules = /** @class */ (() => {
     let ValidationRules = class ValidationRules {
-        constructor(parser, messageProvider, deserializer) {
+        constructor(locator, parser, messageProvider, deserializer) {
+            this.locator = locator;
             this.parser = parser;
             this.messageProvider = messageProvider;
             this.deserializer = deserializer;
@@ -358,13 +360,13 @@ let ValidationRules = /** @class */ (() => {
             // eslint-disable-next-line eqeqeq
             let rule = this.rules.find((r) => r.property.name == name);
             if (rule === void 0) {
-                rule = new PropertyRule(this, this.messageProvider, new RuleProperty(expression, name));
+                rule = new PropertyRule(this.locator, this, this.messageProvider, new RuleProperty(expression, name));
                 this.rules.push(rule);
             }
             return rule;
         }
         ensureObject() {
-            const rule = new PropertyRule(this, this.messageProvider, new RuleProperty());
+            const rule = new PropertyRule(this.locator, this, this.messageProvider, new RuleProperty());
             this.rules.push(rule);
             return rule;
         }
@@ -401,10 +403,11 @@ let ValidationRules = /** @class */ (() => {
         }
     };
     ValidationRules = __decorate([
-        __param(0, IExpressionParser),
-        __param(1, IValidationMessageProvider),
-        __param(2, IValidationHydrator),
-        __metadata("design:paramtypes", [Object, Object, Object])
+        __param(0, IServiceLocator),
+        __param(1, IExpressionParser),
+        __param(2, IValidationMessageProvider),
+        __param(3, IValidationHydrator),
+        __metadata("design:paramtypes", [Object, Object, Object, Object])
     ], ValidationRules);
     return ValidationRules;
 })();

@@ -1,4 +1,4 @@
-import { IContainer, IFactory, Constructable, Transformer, Key } from '@aurelia/kernel';
+import { IContainer, IFactory, Constructable, Transformer, Key, IServiceLocator } from '@aurelia/kernel';
 import { BindingBehaviorExpression, IExpressionParser, IScope, LifecycleFlags, IScheduler, PropertyBinding } from '@aurelia/runtime';
 import { PropertyAccessor, PropertyRule, ValidationResult, IValidator, ValidateInstruction, IValidateable } from '@aurelia/validation';
 export declare type BindingWithBehavior = PropertyBinding & {
@@ -177,6 +177,7 @@ export declare class ValidationController implements IValidationController {
     readonly validator: IValidator;
     private readonly parser;
     private readonly scheduler;
+    private readonly locator;
     readonly bindings: Map<BindingWithBehavior, BindingInfo>;
     readonly subscribers: Set<ValidationResultsSubscriber>;
     readonly results: ValidationResult[];
@@ -189,7 +190,7 @@ export declare class ValidationController implements IValidationController {
      */
     private readonly elements;
     readonly objects: Map<IValidateable, PropertyRule[] | undefined>;
-    constructor(validator: IValidator, parser: IExpressionParser, scheduler: IScheduler);
+    constructor(validator: IValidator, parser: IExpressionParser, scheduler: IScheduler, locator: IServiceLocator);
     addObject(object: IValidateable, rules?: PropertyRule[]): void;
     removeObject(object: IValidateable): void;
     addError<TObject>(message: string, object: TObject, propertyName?: string | PropertyAccessor): ValidationResult;

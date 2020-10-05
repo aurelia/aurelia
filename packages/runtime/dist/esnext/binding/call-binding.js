@@ -1,4 +1,3 @@
-import { hasBind, hasUnbind, } from './ast';
 export class CallBinding {
     constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
         this.sourceExpression = sourceExpression;
@@ -26,7 +25,7 @@ export class CallBinding {
         }
         this.$scope = scope;
         this.$hostScope = hostScope;
-        if (hasBind(this.sourceExpression)) {
+        if (this.sourceExpression.hasBind) {
             this.sourceExpression.bind(flags, scope, hostScope, this.interceptor);
         }
         this.targetObserver.setValue(($args) => this.interceptor.callSource($args), flags);
@@ -37,7 +36,7 @@ export class CallBinding {
         if (!this.isBound) {
             return;
         }
-        if (hasUnbind(this.sourceExpression)) {
+        if (this.sourceExpression.hasUnbind) {
             this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
         }
         this.$scope = void 0;

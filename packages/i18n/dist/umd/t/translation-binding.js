@@ -82,13 +82,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 this.isBound = true;
             }
             $unbind(flags) {
+                var _a;
                 if (!this.isBound) {
                     return;
                 }
-                if (this.expr.unbind) {
+                if (this.expr.hasUnbind) {
                     this.expr.unbind(flags, this.scope, this.hostScope, this);
                 }
-                if (this.parametersExpr && this.parametersExpr.unbind) {
+                if ((_a = this.parametersExpr) === null || _a === void 0 ? void 0 : _a.hasUnbind) {
                     this.parametersExpr.unbind(flags | 16384 /* secondaryExpression */, this.scope, this.hostScope, this);
                 }
                 this.unobserveTargets(flags);

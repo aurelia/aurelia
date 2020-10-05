@@ -1,8 +1,7 @@
 import { Class, IServiceLocator } from '@aurelia/kernel';
-import { IConnectable } from '../ast';
 import { LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
-import { IProxySubscribable, ISubscribable, ISubscriber, IScope } from '../observation';
+import { IConnectable, IProxySubscribable, ISubscribable, ISubscriber, IScope } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { CustomElementDefinition } from '../resources/custom-element';
 export interface IPartialConnectableBinding extends IBinding, ISubscriber {

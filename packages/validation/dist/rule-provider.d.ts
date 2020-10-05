@@ -1,5 +1,5 @@
-import { Class, ILogger } from '@aurelia/kernel';
-import { IExpressionParser, IInterpolationExpression, IsBindingBehavior, LifecycleFlags, PrimitiveLiteralExpression, Scope } from '@aurelia/runtime';
+import { Class, ILogger, IServiceLocator } from '@aurelia/kernel';
+import { IExpressionParser, Interpolation, IsBindingBehavior, LifecycleFlags, PrimitiveLiteralExpression, AccessScopeExpression, Scope } from '@aurelia/runtime';
 import { ValidationRuleAlias, IValidationMessageProvider } from './rules';
 import { IValidateable, ValidationRuleExecutionPredicate, IValidationVisitor, ValidationDisplayNameAccessor, IRuleProperty, IPropertyRule, IValidationHydrator, IValidationRule } from './rule-interfaces';
 /**
@@ -10,11 +10,11 @@ export interface ICustomMessage<TRule extends IValidationRule = IValidationRule>
     aliases: ValidationRuleAlias[];
 }
 export declare class RuleProperty implements IRuleProperty {
-    expression?: import("@aurelia/runtime").IAccessThisExpression | import("@aurelia/runtime").IAccessScopeExpression | import("@aurelia/runtime").IArrayLiteralExpression | import("@aurelia/runtime").IObjectLiteralExpression | import("@aurelia/runtime").IPrimitiveLiteralExpression<import("@aurelia/kernel").StrictPrimitive> | import("@aurelia/runtime").ITemplateExpression | import("@aurelia/runtime").ICallFunctionExpression | import("@aurelia/runtime").ICallMemberExpression | import("@aurelia/runtime").ICallScopeExpression | import("@aurelia/runtime").IAccessMemberExpression | import("@aurelia/runtime").IAccessKeyedExpression | import("@aurelia/runtime").ITaggedTemplateExpression | import("@aurelia/runtime").IUnaryExpression | import("@aurelia/runtime").IBinaryExpression | import("@aurelia/runtime").IConditionalExpression | import("@aurelia/runtime").IAssignExpression | import("@aurelia/runtime").IValueConverterExpression | import("@aurelia/runtime").IBindingBehaviorExpression | undefined;
+    expression?: import("@aurelia/runtime").AccessThisExpression | AccessScopeExpression | import("@aurelia/runtime").ArrayLiteralExpression | import("@aurelia/runtime").ObjectLiteralExpression | PrimitiveLiteralExpression<import("@aurelia/kernel").StrictPrimitive> | import("@aurelia/runtime").TemplateExpression | import("@aurelia/runtime").CallFunctionExpression | import("@aurelia/runtime").CallMemberExpression | import("@aurelia/runtime").CallScopeExpression | import("@aurelia/runtime").AccessMemberExpression | import("@aurelia/runtime").AccessKeyedExpression | import("@aurelia/runtime").TaggedTemplateExpression | import("@aurelia/runtime").UnaryExpression | import("@aurelia/runtime").BinaryExpression | import("@aurelia/runtime").ConditionalExpression | import("@aurelia/runtime").AssignExpression | import("@aurelia/runtime").ValueConverterExpression | import("@aurelia/runtime").BindingBehaviorExpression | undefined;
     name: string | number | undefined;
     displayName: string | ValidationDisplayNameAccessor | undefined;
     static $TYPE: string;
-    constructor(expression?: import("@aurelia/runtime").IAccessThisExpression | import("@aurelia/runtime").IAccessScopeExpression | import("@aurelia/runtime").IArrayLiteralExpression | import("@aurelia/runtime").IObjectLiteralExpression | import("@aurelia/runtime").IPrimitiveLiteralExpression<import("@aurelia/kernel").StrictPrimitive> | import("@aurelia/runtime").ITemplateExpression | import("@aurelia/runtime").ICallFunctionExpression | import("@aurelia/runtime").ICallMemberExpression | import("@aurelia/runtime").ICallScopeExpression | import("@aurelia/runtime").IAccessMemberExpression | import("@aurelia/runtime").IAccessKeyedExpression | import("@aurelia/runtime").ITaggedTemplateExpression | import("@aurelia/runtime").IUnaryExpression | import("@aurelia/runtime").IBinaryExpression | import("@aurelia/runtime").IConditionalExpression | import("@aurelia/runtime").IAssignExpression | import("@aurelia/runtime").IValueConverterExpression | import("@aurelia/runtime").IBindingBehaviorExpression | undefined, name?: string | number | undefined, displayName?: string | ValidationDisplayNameAccessor | undefined);
+    constructor(expression?: import("@aurelia/runtime").AccessThisExpression | AccessScopeExpression | import("@aurelia/runtime").ArrayLiteralExpression | import("@aurelia/runtime").ObjectLiteralExpression | PrimitiveLiteralExpression<import("@aurelia/kernel").StrictPrimitive> | import("@aurelia/runtime").TemplateExpression | import("@aurelia/runtime").CallFunctionExpression | import("@aurelia/runtime").CallMemberExpression | import("@aurelia/runtime").CallScopeExpression | import("@aurelia/runtime").AccessMemberExpression | import("@aurelia/runtime").AccessKeyedExpression | import("@aurelia/runtime").TaggedTemplateExpression | import("@aurelia/runtime").UnaryExpression | import("@aurelia/runtime").BinaryExpression | import("@aurelia/runtime").ConditionalExpression | import("@aurelia/runtime").AssignExpression | import("@aurelia/runtime").ValueConverterExpression | import("@aurelia/runtime").BindingBehaviorExpression | undefined, name?: string | number | undefined, displayName?: string | ValidationDisplayNameAccessor | undefined);
     accept(visitor: IValidationVisitor): string;
 }
 export declare type RuleCondition<TObject extends IValidateable = IValidateable, TValue = any> = (value: TValue, object?: TObject) => boolean | Promise<boolean>;
@@ -27,13 +27,14 @@ export declare const validationRulesRegistrar: Readonly<{
     isValidationRulesSet(target: IValidateable): boolean;
 }>;
 export declare class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> implements IPropertyRule {
+    private readonly locator;
     readonly validationRules: IValidationRules;
     readonly messageProvider: IValidationMessageProvider;
     property: RuleProperty;
     $rules: IValidationRule[][];
     static readonly $TYPE: string;
     private latestRule?;
-    constructor(validationRules: IValidationRules, messageProvider: IValidationMessageProvider, property: RuleProperty, $rules?: IValidationRule[][]);
+    constructor(locator: IServiceLocator, validationRules: IValidationRules, messageProvider: IValidationMessageProvider, property: RuleProperty, $rules?: IValidationRule[][]);
     accept(visitor: IValidationVisitor): string;
     private getLeafRules;
     validate(object?: IValidateable, tag?: string, flags?: LifecycleFlags, scope?: Scope): Promise<ValidationResult[]>;
@@ -195,12 +196,13 @@ export interface IValidationRules<TObject extends IValidateable = IValidateable>
 }
 export declare const IValidationRules: import("@aurelia/kernel").InterfaceSymbol<IValidationRules<IValidateable<any>>>;
 export declare class ValidationRules<TObject extends IValidateable = IValidateable> implements IValidationRules<TObject> {
+    private readonly locator;
     private readonly parser;
     private readonly messageProvider;
     private readonly deserializer;
     rules: PropertyRule[];
     private readonly targets;
-    constructor(parser: IExpressionParser, messageProvider: IValidationMessageProvider, deserializer: IValidationHydrator);
+    constructor(locator: IServiceLocator, parser: IExpressionParser, messageProvider: IValidationMessageProvider, deserializer: IValidationHydrator);
     ensure<TValue>(property: keyof TObject | string | PropertyAccessor): PropertyRule;
     ensureObject(): PropertyRule;
     on(target: IValidateable, tag?: string): this;
@@ -241,11 +243,11 @@ export declare class ValidationResult<TRule extends IValidationRule = IValidatio
 export declare class ValidationMessageProvider implements IValidationMessageProvider {
     parser: IExpressionParser;
     private readonly logger;
-    protected registeredMessages: WeakMap<IValidationRule, IInterpolationExpression | PrimitiveLiteralExpression>;
+    protected registeredMessages: WeakMap<IValidationRule, Interpolation | PrimitiveLiteralExpression>;
     constructor(parser: IExpressionParser, logger: ILogger, customMessages: ICustomMessage[]);
-    getMessage(rule: IValidationRule): IInterpolationExpression | PrimitiveLiteralExpression;
-    setMessage(rule: IValidationRule, message: string): IInterpolationExpression | PrimitiveLiteralExpression;
-    parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression;
+    getMessage(rule: IValidationRule): Interpolation | PrimitiveLiteralExpression;
+    setMessage(rule: IValidationRule, message: string): Interpolation | PrimitiveLiteralExpression;
+    parseMessage(message: string): Interpolation | PrimitiveLiteralExpression;
     getDisplayName(propertyName: string | number | undefined, displayName?: string | null | ValidationDisplayNameAccessor): string | undefined;
 }
 //# sourceMappingURL=rule-provider.d.ts.map

@@ -1,6 +1,6 @@
-import { AnyBindingExpression, IInterpolationExpression } from './ast';
 import { AttrSyntax } from './attribute-parser';
 import { BindingCommandInstance } from './binding-command';
+import { AnyBindingExpression, Interpolation } from './binding/ast';
 import { IDOM, INode } from './dom';
 import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';
 export declare const enum SymbolFlags {
@@ -154,9 +154,9 @@ export declare class PlainElementSymbol<TText extends INode = INode, TElement ex
  */
 export declare class TextSymbol<TText extends INode = INode, TMarker extends INode = INode> {
     physicalNode: TText;
-    interpolation: IInterpolationExpression;
+    interpolation: Interpolation;
     marker: TMarker;
     flags: SymbolFlags;
-    constructor(dom: IDOM, physicalNode: TText, interpolation: IInterpolationExpression, marker?: TMarker);
+    constructor(dom: IDOM, physicalNode: TText, interpolation: Interpolation, marker?: TMarker);
 }
 //# sourceMappingURL=semantic-model.d.ts.map

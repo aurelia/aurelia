@@ -2,7 +2,7 @@ import * as AST from '@aurelia/runtime';
 export declare function enableImprovedExpressionDebugging(): void;
 export declare class Unparser implements AST.IVisitor<void> {
     text: string;
-    static unparse(expr: AST.IExpression): string;
+    static unparse(expr: AST.IsExpressionOrStatement): string;
     visitAccessMember(expr: AST.AccessMemberExpression): void;
     visitAccessKeyed(expr: AST.AccessKeyedExpression): void;
     visitAccessThis(expr: AST.AccessThisExpression): void;

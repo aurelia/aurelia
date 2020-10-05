@@ -55,7 +55,7 @@ let LetBinding = /** @class */ (() => {
             this.$hostScope = hostScope;
             this.target = (this.toBindingContext ? (hostScope !== null && hostScope !== void 0 ? hostScope : scope).bindingContext : (hostScope !== null && hostScope !== void 0 ? hostScope : scope).overrideContext);
             const sourceExpression = this.sourceExpression;
-            if (sourceExpression.bind) {
+            if (sourceExpression.hasBind) {
                 sourceExpression.bind(flags, scope, hostScope, this.interceptor);
             }
             // sourceExpression might have been changed during bind
@@ -69,7 +69,7 @@ let LetBinding = /** @class */ (() => {
                 return;
             }
             const sourceExpression = this.sourceExpression;
-            if (sourceExpression.unbind) {
+            if (sourceExpression.hasUnbind) {
                 sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
             }
             this.$scope = void 0;

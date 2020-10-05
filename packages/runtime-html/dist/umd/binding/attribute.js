@@ -134,7 +134,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 this.$hostScope = hostScope;
                 this.projection = projection;
                 let sourceExpression = this.sourceExpression;
-                if (runtime_1.hasBind(sourceExpression)) {
+                if (sourceExpression.hasBind) {
                     sourceExpression.bind(flags, scope, hostScope, this.interceptor);
                 }
                 let targetObserver = this.targetObserver;
@@ -167,7 +167,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 }
                 // clear persistent flags
                 this.persistentFlags = 0 /* none */;
-                if (runtime_1.hasUnbind(this.sourceExpression)) {
+                if (this.sourceExpression.hasUnbind) {
                     this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
                 }
                 this.$scope = null;

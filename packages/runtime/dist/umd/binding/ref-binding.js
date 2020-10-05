@@ -4,13 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./ast"], factory);
+        define(["require", "exports"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RefBinding = void 0;
-    const ast_1 = require("./ast");
     class RefBinding {
         constructor(sourceExpression, target, locator) {
             this.sourceExpression = sourceExpression;
@@ -30,7 +29,7 @@
             }
             this.$scope = scope;
             this.$hostScope = hostScope;
-            if (ast_1.hasBind(this.sourceExpression)) {
+            if (this.sourceExpression.hasBind) {
                 this.sourceExpression.bind(flags, scope, hostScope, this);
             }
             this.sourceExpression.assign(flags | 16 /* updateSourceExpression */, this.$scope, hostScope, this.locator, this.target);
@@ -47,7 +46,7 @@
             }
             // source expression might have been modified durring assign, via a BB
             sourceExpression = this.sourceExpression;
-            if (ast_1.hasUnbind(sourceExpression)) {
+            if (sourceExpression.hasUnbind) {
                 sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
             }
             this.$scope = void 0;

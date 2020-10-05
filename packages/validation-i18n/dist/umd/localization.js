@@ -31,17 +31,18 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.I18nKeyConfiguration = kernel_1.DI.createInterface('I18nKeyConfiguration').noDefault();
     let LocalizedValidationController = /** @class */ (() => {
         let LocalizedValidationController = class LocalizedValidationController extends validation_html_1.ValidationController {
-            constructor(ea, validator, parser, scheduler) {
-                super(validator, parser, scheduler);
+            constructor(locator, ea, validator, parser, scheduler) {
+                super(validator, parser, scheduler, locator);
                 this.localeChangeSubscription = ea.subscribe(I18N_VALIDATION_EA_CHANNEL, () => { scheduler.getPostRenderTaskQueue().queueTask(async () => { await this.revalidateErrors(); }); });
             }
         };
         LocalizedValidationController = __decorate([
-            __param(0, kernel_1.IEventAggregator),
-            __param(1, validation_1.IValidator),
-            __param(2, runtime_1.IExpressionParser),
-            __param(3, runtime_1.IScheduler),
-            __metadata("design:paramtypes", [kernel_1.EventAggregator, Object, Object, Object])
+            __param(0, kernel_1.IServiceLocator),
+            __param(1, kernel_1.IEventAggregator),
+            __param(2, validation_1.IValidator),
+            __param(3, runtime_1.IExpressionParser),
+            __param(4, runtime_1.IScheduler),
+            __metadata("design:paramtypes", [Object, kernel_1.EventAggregator, Object, Object, Object])
         ], LocalizedValidationController);
         return LocalizedValidationController;
     })();
@@ -50,7 +51,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         construct(container, _dynamicDependencies) {
             return _dynamicDependencies !== void 0
                 ? Reflect.construct(LocalizedValidationController, _dynamicDependencies)
-                : new LocalizedValidationController(container.get(kernel_1.IEventAggregator), container.get(validation_1.IValidator), container.get(runtime_1.IExpressionParser), container.get(runtime_1.IScheduler));
+                : new LocalizedValidationController(container, container.get(kernel_1.IEventAggregator), container.get(validation_1.IValidator), container.get(runtime_1.IExpressionParser), container.get(runtime_1.IScheduler));
         }
     }
     exports.LocalizedValidationControllerFactory = LocalizedValidationControllerFactory;

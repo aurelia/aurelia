@@ -13,7 +13,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/scheduler", "../flags", "../lifecycle", "../observation/observer-locator", "./ast", "./connectable"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/scheduler", "../flags", "../lifecycle", "../observation/observer-locator", "./connectable"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -24,7 +24,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     const flags_1 = require("../flags");
     const lifecycle_1 = require("../lifecycle");
     const observer_locator_1 = require("../observation/observer-locator");
-    const ast_1 = require("./ast");
     const connectable_1 = require("./connectable");
     // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
     const { oneTime, toView, fromView } = flags_1.BindingMode;
@@ -133,7 +132,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 this.$scope = scope;
                 this.$hostScope = hostScope;
                 let sourceExpression = this.sourceExpression;
-                if (ast_1.hasBind(sourceExpression)) {
+                if (sourceExpression.hasBind) {
                     sourceExpression.bind(flags, scope, hostScope, this.interceptor);
                 }
                 let $mode = this.mode;
@@ -178,7 +177,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 }
                 // clear persistent flags
                 this.persistentFlags = 0 /* none */;
-                if (ast_1.hasUnbind(this.sourceExpression)) {
+                if (this.sourceExpression.hasUnbind) {
                     this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
                 }
                 this.$scope = void 0;

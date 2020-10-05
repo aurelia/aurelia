@@ -16,12 +16,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/runtime", "./ast-serialization", "./rule-provider", "./rules"], factory);
+        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "./ast-serialization", "./rule-provider", "./rules"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ModelValidationHydrator = exports.ValidationDeserializer = exports.ValidationSerializer = void 0;
+    const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const ast_serialization_1 = require("./ast-serialization");
     const rule_provider_1 = require("./rule-provider");
@@ -82,7 +83,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.ValidationSerializer = ValidationSerializer;
     let ValidationDeserializer = /** @class */ (() => {
         let ValidationDeserializer = class ValidationDeserializer {
-            constructor(messageProvider, parser) {
+            constructor(locator, messageProvider, parser) {
+                this.locator = locator;
                 this.messageProvider = messageProvider;
                 this.parser = parser;
                 this.astDeserializer = new ast_serialization_1.Deserializer();
@@ -93,7 +95,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             static deserialize(json, validationRules) {
                 const messageProvider = this.container.get(rules_1.IValidationMessageProvider);
                 const parser = this.container.get(runtime_1.IExpressionParser);
-                const deserializer = new ValidationDeserializer(messageProvider, parser);
+                const deserializer = new ValidationDeserializer(this.container, messageProvider, parser);
                 const raw = JSON.parse(json);
                 return deserializer.hydrate(raw, validationRules);
             }
@@ -165,7 +167,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     }
                     case rule_provider_1.PropertyRule.$TYPE: {
                         const $raw = raw;
-                        return new rule_provider_1.PropertyRule(validationRules, this.messageProvider, this.hydrate($raw.property, validationRules), $raw.$rules.map((rules) => rules.map((rule) => this.hydrate(rule, validationRules))));
+                        return new rule_provider_1.PropertyRule(this.locator, validationRules, this.messageProvider, this.hydrate($raw.property, validationRules), $raw.$rules.map((rules) => rules.map((rule) => this.hydrate(rule, validationRules))));
                     }
                 }
             }
@@ -177,16 +179,18 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             }
         };
         ValidationDeserializer = __decorate([
-            __param(0, rules_1.IValidationMessageProvider),
-            __param(1, runtime_1.IExpressionParser),
-            __metadata("design:paramtypes", [Object, Object])
+            __param(0, kernel_1.IServiceLocator),
+            __param(1, rules_1.IValidationMessageProvider),
+            __param(2, runtime_1.IExpressionParser),
+            __metadata("design:paramtypes", [Object, Object, Object])
         ], ValidationDeserializer);
         return ValidationDeserializer;
     })();
     exports.ValidationDeserializer = ValidationDeserializer;
     let ModelValidationHydrator = /** @class */ (() => {
         let ModelValidationHydrator = class ModelValidationHydrator {
-            constructor(messageProvider, parser) {
+            constructor(locator, messageProvider, parser) {
+                this.locator = locator;
                 this.messageProvider = messageProvider;
                 this.parser = parser;
                 this.astDeserializer = new ast_serialization_1.Deserializer();
@@ -203,7 +207,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                             const rules = value.rules.map((rule) => Object.entries(rule).map(([ruleName, ruleConfig]) => this.hydrateRule(ruleName, ruleConfig)));
                             const propertyPrefix = propertyPath.join('.');
                             const property = this.hydrateRuleProperty({ name: propertyPrefix !== '' ? `${propertyPrefix}.${key}` : key, displayName: value.displayName });
-                            accRules.push(new rule_provider_1.PropertyRule(validationRules, this.messageProvider, property, rules));
+                            accRules.push(new rule_provider_1.PropertyRule(this.locator, validationRules, this.messageProvider, property, rules));
                         }
                         else {
                             iterate(Object.entries(value), [...propertyPath, key]);
@@ -249,7 +253,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                         const parsed = this.parser.parse(when, 0 /* None */);
                         rule.canExecute = (object) => {
                             const flags = 0 /* none */; // TODO? need to get the flags propagated here?
-                            return parsed.evaluate(flags, runtime_1.Scope.create(flags, { $object: object }), null, null); // TODO get hostScope?
+                            return parsed.evaluate(flags, runtime_1.Scope.create(flags, { $object: object }), null, this.locator); // TODO get hostScope?
                         };
                     }
                     else if (typeof when === 'function') {
@@ -301,9 +305,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             }
         };
         ModelValidationHydrator = __decorate([
-            __param(0, rules_1.IValidationMessageProvider),
-            __param(1, runtime_1.IExpressionParser),
-            __metadata("design:paramtypes", [Object, Object])
+            __param(0, kernel_1.IServiceLocator),
+            __param(1, rules_1.IValidationMessageProvider),
+            __param(2, runtime_1.IExpressionParser),
+            __metadata("design:paramtypes", [Object, Object, Object])
         ], ModelValidationHydrator);
         return ModelValidationHydrator;
     })();

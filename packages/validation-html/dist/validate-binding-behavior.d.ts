@@ -1,4 +1,4 @@
-import { BindingInterceptor, IBindingBehaviorExpression, IScope, LifecycleFlags } from '@aurelia/runtime';
+import { BindingInterceptor, IScope, LifecycleFlags, BindingBehaviorExpression } from '@aurelia/runtime';
 import { BindingWithBehavior, ValidationResultsSubscriber, ValidationEvent } from './validation-controller';
 /**
  * Validation triggers.
@@ -52,7 +52,7 @@ export declare class ValidateBindingBehavior extends BindingInterceptor implemen
     private validatedOnce;
     private triggerEvent;
     private bindingInfo;
-    constructor(binding: BindingWithBehavior, expr: IBindingBehaviorExpression);
+    constructor(binding: BindingWithBehavior, expr: BindingBehaviorExpression);
     updateSource(value: unknown, flags: LifecycleFlags): void;
     handleEvent(_event: Event): void;
     $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;

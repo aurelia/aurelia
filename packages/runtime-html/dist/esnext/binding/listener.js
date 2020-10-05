@@ -1,4 +1,3 @@
-import { hasBind, hasUnbind, } from '@aurelia/runtime';
 /**
  * Listener binding. Handle event binding between view and view model
  */
@@ -39,7 +38,7 @@ export class Listener {
         this.$scope = scope;
         this.$hostScope = hostScope;
         const sourceExpression = this.sourceExpression;
-        if (hasBind(sourceExpression)) {
+        if (sourceExpression.hasBind) {
             sourceExpression.bind(flags, scope, hostScope, this.interceptor);
         }
         this.handler = this.eventManager.addEventListener(this.dom, this.target, this.targetEvent, this, this.delegationStrategy);
@@ -51,7 +50,7 @@ export class Listener {
             return;
         }
         const sourceExpression = this.sourceExpression;
-        if (hasUnbind(sourceExpression)) {
+        if (sourceExpression.hasUnbind) {
             sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
         }
         this.$scope = null;

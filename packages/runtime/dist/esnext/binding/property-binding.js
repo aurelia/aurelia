@@ -12,7 +12,6 @@ import { IScheduler, } from '@aurelia/scheduler';
 import { BindingMode, } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { IObserverLocator } from '../observation/observer-locator';
-import { hasBind, hasUnbind, } from './ast';
 import { connectable, } from './connectable';
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -121,7 +120,7 @@ let PropertyBinding = /** @class */ (() => {
             this.$scope = scope;
             this.$hostScope = hostScope;
             let sourceExpression = this.sourceExpression;
-            if (hasBind(sourceExpression)) {
+            if (sourceExpression.hasBind) {
                 sourceExpression.bind(flags, scope, hostScope, this.interceptor);
             }
             let $mode = this.mode;
@@ -166,7 +165,7 @@ let PropertyBinding = /** @class */ (() => {
             }
             // clear persistent flags
             this.persistentFlags = 0 /* none */;
-            if (hasUnbind(this.sourceExpression)) {
+            if (this.sourceExpression.hasUnbind) {
                 this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
             }
             this.$scope = void 0;

@@ -1,4 +1,3 @@
-import { hasBind, hasUnbind, } from './ast';
 export class RefBinding {
     constructor(sourceExpression, target, locator) {
         this.sourceExpression = sourceExpression;
@@ -18,7 +17,7 @@ export class RefBinding {
         }
         this.$scope = scope;
         this.$hostScope = hostScope;
-        if (hasBind(this.sourceExpression)) {
+        if (this.sourceExpression.hasBind) {
             this.sourceExpression.bind(flags, scope, hostScope, this);
         }
         this.sourceExpression.assign(flags | 16 /* updateSourceExpression */, this.$scope, hostScope, this.locator, this.target);
@@ -35,7 +34,7 @@ export class RefBinding {
         }
         // source expression might have been modified durring assign, via a BB
         sourceExpression = this.sourceExpression;
-        if (hasUnbind(sourceExpression)) {
+        if (sourceExpression.hasUnbind) {
             sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
         }
         this.$scope = void 0;

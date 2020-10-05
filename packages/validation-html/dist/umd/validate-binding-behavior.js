@@ -117,7 +117,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 this.processDelta(delta);
             }
             $unbind(flags) {
-                var _a, _b, _c, _d, _e;
+                var _a, _b, _c, _d;
                 (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
                 this.task = null;
                 const event = this.triggerEvent;
@@ -127,9 +127,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 (_c = this.controller) === null || _c === void 0 ? void 0 : _c.removeSubscriber(this);
                 (_d = this.controller) === null || _d === void 0 ? void 0 : _d.unregisterBinding(this.propertyBinding);
                 this.binding.$unbind(flags);
-                for (const expr of this.connectedExpressions) {
-                    (_e = expr.unbind) === null || _e === void 0 ? void 0 : _e.call(expr, flags, this.scope, this.hostScope, this);
-                }
             }
             handleTriggerChange(newValue, _previousValue, _flags) {
                 this.processDelta(new ValidateArgumentsDelta(void 0, this.ensureTrigger(newValue), void 0));
@@ -287,7 +284,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         };
         ValidateBindingBehavior = __decorate([
             runtime_1.bindingBehavior('validate'),
-            __metadata("design:paramtypes", [Object, Object])
+            __metadata("design:paramtypes", [Object, runtime_1.BindingBehaviorExpression])
         ], ValidateBindingBehavior);
         return ValidateBindingBehavior;
     })();

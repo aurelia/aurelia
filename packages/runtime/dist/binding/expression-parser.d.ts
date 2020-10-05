@@ -1,5 +1,5 @@
 import { IContainer, IResolver } from '@aurelia/kernel';
-import { AnyBindingExpression, IForOfStatement, IInterpolationExpression, IsBindingBehavior } from '../ast';
+import { ForOfStatement, Interpolation, AnyBindingExpression, IsBindingBehavior } from './ast';
 export interface IExpressionParser extends ExpressionParser {
 }
 export declare const IExpressionParser: import("@aurelia/kernel").InterfaceSymbol<IExpressionParser>;
@@ -8,8 +8,8 @@ export declare class ExpressionParser {
     private readonly forOfLookup;
     private readonly interpolationLookup;
     static register(container: IContainer): IResolver<IExpressionParser>;
-    parse(expression: string, bindingType: BindingType.ForCommand): IForOfStatement;
-    parse(expression: string, bindingType: BindingType.Interpolation): IInterpolationExpression;
+    parse(expression: string, bindingType: BindingType.ForCommand): ForOfStatement;
+    parse(expression: string, bindingType: BindingType.Interpolation): Interpolation;
     parse(expression: string, bindingType: Exclude<BindingType, BindingType.ForCommand | BindingType.Interpolation>): IsBindingBehavior;
     parse(expression: string, bindingType: BindingType): AnyBindingExpression;
     private $parse;

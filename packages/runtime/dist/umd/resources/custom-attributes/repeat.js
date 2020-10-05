@@ -49,7 +49,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             beforeBind(initiator, parent, flags) {
                 this.checkCollectionObserver(flags);
                 const bindings = this.renderable.bindings;
-                let binding;
+                let binding = (void 0);
                 for (let i = 0, ii = bindings.length; i < ii; ++i) {
                     binding = bindings[i];
                     if (binding.target.id === this.id && binding.targetProperty === 'items') {
@@ -57,7 +57,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                         break;
                     }
                 }
-                this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, null);
+                this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, binding.locator);
             }
             afterAttach(initiator, parent, flags) {
                 this.normalizeToArray(flags);

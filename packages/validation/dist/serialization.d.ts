@@ -1,4 +1,4 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/runtime';
 import { Deserializer } from './ast-serialization';
 import { IPropertyRule, IRuleProperty, IValidationHydrator, IValidationRule, IValidationVisitor, IValidateable } from './rule-interfaces';
@@ -21,21 +21,23 @@ export declare class ValidationSerializer implements IValidationVisitor {
     private serializeRules;
 }
 export declare class ValidationDeserializer implements IValidationHydrator {
+    private readonly locator;
     readonly messageProvider: IValidationMessageProvider;
     readonly parser: IExpressionParser;
     private static container;
     static register(container: IContainer): void;
     static deserialize(json: string, validationRules: IValidationRules): IValidationRule | IRuleProperty | IPropertyRule;
     readonly astDeserializer: Deserializer;
-    constructor(messageProvider: IValidationMessageProvider, parser: IExpressionParser);
+    constructor(locator: IServiceLocator, messageProvider: IValidationMessageProvider, parser: IExpressionParser);
     hydrate(raw: any, validationRules: IValidationRules): any;
     hydrateRuleset(ruleset: any[], validationRules: IValidationRules): PropertyRule[];
 }
 export declare class ModelValidationHydrator implements IValidationHydrator {
+    private readonly locator;
     readonly messageProvider: IValidationMessageProvider;
     readonly parser: IExpressionParser;
     readonly astDeserializer: Deserializer;
-    constructor(messageProvider: IValidationMessageProvider, parser: IExpressionParser);
+    constructor(locator: IServiceLocator, messageProvider: IValidationMessageProvider, parser: IExpressionParser);
     hydrate(_raw: any, _validationRules: IValidationRules): void;
     hydrateRuleset(ruleset: Record<string, any>, validationRules: IValidationRules): any[];
     protected hydrateRule(ruleName: string, ruleConfig: any): IValidationRule;

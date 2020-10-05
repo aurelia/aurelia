@@ -8,7 +8,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { DI } from '@aurelia/kernel';
-import { bindingBehavior, BindingInterceptor, BindingMediator, IScheduler, DOM, PropertyBinding, } from '@aurelia/runtime';
+import { bindingBehavior, BindingInterceptor, BindingMediator, IScheduler, DOM, PropertyBinding, BindingBehaviorExpression, } from '@aurelia/runtime';
 import { PropertyRule } from '@aurelia/validation';
 import { IValidationController, ValidationController, BindingInfo } from './validation-controller';
 /**
@@ -105,7 +105,7 @@ let ValidateBindingBehavior = /** @class */ (() => {
             this.processDelta(delta);
         }
         $unbind(flags) {
-            var _a, _b, _c, _d, _e;
+            var _a, _b, _c, _d;
             (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
             this.task = null;
             const event = this.triggerEvent;
@@ -115,9 +115,6 @@ let ValidateBindingBehavior = /** @class */ (() => {
             (_c = this.controller) === null || _c === void 0 ? void 0 : _c.removeSubscriber(this);
             (_d = this.controller) === null || _d === void 0 ? void 0 : _d.unregisterBinding(this.propertyBinding);
             this.binding.$unbind(flags);
-            for (const expr of this.connectedExpressions) {
-                (_e = expr.unbind) === null || _e === void 0 ? void 0 : _e.call(expr, flags, this.scope, this.hostScope, this);
-            }
         }
         handleTriggerChange(newValue, _previousValue, _flags) {
             this.processDelta(new ValidateArgumentsDelta(void 0, this.ensureTrigger(newValue), void 0));
@@ -275,7 +272,7 @@ let ValidateBindingBehavior = /** @class */ (() => {
     };
     ValidateBindingBehavior = __decorate([
         bindingBehavior('validate'),
-        __metadata("design:paramtypes", [Object, Object])
+        __metadata("design:paramtypes", [Object, BindingBehaviorExpression])
     ], ValidateBindingBehavior);
     return ValidateBindingBehavior;
 })();

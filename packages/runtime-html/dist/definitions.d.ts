@@ -1,4 +1,4 @@
-import { AttributeInstruction, DelegationStrategy, IInterpolationExpression, IsBindingBehavior, ITargetedInstruction, NodeInstruction } from '@aurelia/runtime';
+import { AttributeInstruction, DelegationStrategy, Interpolation, IsBindingBehavior, ITargetedInstruction, NodeInstruction } from '@aurelia/runtime';
 export declare const enum HTMLTargetedInstructionType {
     textBinding = "ha",
     listenerBinding = "hb",
@@ -15,7 +15,7 @@ export declare type HTMLInstructionRow = [HTMLTargetedInstruction, ...HTMLAttrib
 export declare function isHTMLTargetedInstruction(value: unknown): value is HTMLTargetedInstruction;
 export interface ITextBindingInstruction extends ITargetedInstruction {
     type: HTMLTargetedInstructionType.textBinding;
-    from: string | IInterpolationExpression;
+    from: string | Interpolation;
 }
 export interface IListenerBindingInstruction extends ITargetedInstruction {
     type: HTMLTargetedInstructionType.listenerBinding;

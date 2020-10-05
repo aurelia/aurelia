@@ -1,5 +1,5 @@
 import { Constructable, ResourceDefinition, IContainer, IResourceKind } from '@aurelia/kernel';
-import { IForOfStatement, IInterpolationExpression, IsBindingBehavior } from './ast';
+import { ForOfStatement, Interpolation, IsBindingBehavior } from './binding/ast';
 import { BindingMode } from './flags';
 import { PartialCustomElementDefinition } from './resources/custom-element';
 import { SlotInfo } from './resources/custom-elements/au-slot';
@@ -40,7 +40,7 @@ export declare type InstructionRow = [TargetedInstruction, ...AttributeInstructi
 export declare function isTargetedInstruction(value: unknown): value is TargetedInstruction;
 export interface IInterpolationInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.interpolation;
-    from: string | IInterpolationExpression;
+    from: string | Interpolation;
     to: string;
 }
 export interface IPropertyBindingInstruction extends ITargetedInstruction {
@@ -52,7 +52,7 @@ export interface IPropertyBindingInstruction extends ITargetedInstruction {
 }
 export interface IIteratorBindingInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.iteratorBinding;
-    from: string | IForOfStatement;
+    from: string | ForOfStatement;
     to: string;
 }
 export interface ICallBindingInstruction extends ITargetedInstruction {
@@ -95,7 +95,7 @@ export interface IHydrateLetElementInstruction extends IHydrateInstruction {
 }
 export interface ILetBindingInstruction extends ITargetedInstruction {
     type: TargetedInstructionType.letBinding;
-    from: string | IsBindingBehavior | IInterpolationExpression;
+    from: string | IsBindingBehavior | Interpolation;
     to: string;
 }
 export declare class HooksDefinition {

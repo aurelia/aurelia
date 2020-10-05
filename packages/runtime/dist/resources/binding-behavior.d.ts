@@ -4,7 +4,7 @@ import { IScope, ISubscribable, IProxySubscribable } from '../observation';
 import { IBinding } from '../lifecycle';
 import { IConnectableBinding } from '../binding/connectable';
 import { IObserverLocator } from '../observation/observer-locator';
-import { IBindingBehaviorExpression } from '../ast';
+import { BindingBehaviorExpression, IBindingBehaviorExpression } from '../binding/ast';
 export declare type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
     strategy?: BindingBehaviorStrategy;
 }>;
@@ -45,7 +45,7 @@ export declare class BindingBehaviorFactory<T extends Constructable = Constructa
     private readonly Type;
     private readonly deps;
     constructor(container: IContainer, Type: BindingBehaviorType<T>);
-    construct(binding: IInterceptableBinding, expr: IBindingBehaviorExpression): IInterceptableBinding;
+    construct(binding: IInterceptableBinding, expr: BindingBehaviorExpression): IInterceptableBinding;
 }
 export interface IInterceptableBinding extends IBinding {
     id?: number;

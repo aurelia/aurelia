@@ -1,5 +1,4 @@
 import { Class, IContainer, IRegistry, IServiceLocator } from '@aurelia/kernel';
-import { IsBindingBehavior } from './ast';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
 import { ICallBindingInstruction, IHydrateAttributeInstruction, IHydrateElementInstruction, IHydrateLetElementInstruction, IHydrateTemplateController, IInterpolationInstruction, IIteratorBindingInstruction, InstructionTypeName, IPropertyBindingInstruction, IRefBindingInstruction, ISetPropertyInstruction, ITargetedInstruction } from './definitions';
 import { INode } from './dom';
@@ -8,6 +7,7 @@ import { IController, IRenderableController } from './lifecycle';
 import { IObserverLocator } from './observation/observer-locator';
 import { CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
 import { ICompiledRenderContext } from './templating/render-context';
+import { IsBindingBehavior } from './binding/ast';
 import { IInterceptableBinding } from './resources/binding-behavior';
 import { RegisteredProjections } from './resources/custom-elements/au-slot';
 export interface ITemplateCompiler {

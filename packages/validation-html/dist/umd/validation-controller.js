@@ -163,10 +163,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.IValidationController = kernel_1.DI.createInterface('IValidationController').noDefault();
     let ValidationController = /** @class */ (() => {
         let ValidationController = class ValidationController {
-            constructor(validator, parser, scheduler) {
+            constructor(validator, parser, scheduler, locator) {
                 this.validator = validator;
                 this.parser = parser;
                 this.scheduler = scheduler;
+                this.locator = locator;
                 this.bindings = new Map();
                 this.subscribers = new Set();
                 this.results = [];
@@ -311,7 +312,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 const promises = [];
                 for (const [object, innerMap] of map) {
                     promises.push(this.validate(new validation_1.ValidateInstruction(object, undefined, Array.from(innerMap)
-                        .map(([{ validationRules, messageProvider, property }, rules]) => new validation_1.PropertyRule(validationRules, messageProvider, property, [rules])))));
+                        .map(([{ validationRules, messageProvider, property }, rules]) => new validation_1.PropertyRule(this.locator, validationRules, messageProvider, property, [rules])))));
                 }
                 await Promise.all(promises);
             }
@@ -386,7 +387,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             __param(0, validation_1.IValidator),
             __param(1, runtime_1.IExpressionParser),
             __param(2, runtime_1.IScheduler),
-            __metadata("design:paramtypes", [Object, Object, Object])
+            __param(3, kernel_1.IServiceLocator),
+            __metadata("design:paramtypes", [Object, Object, Object, Object])
         ], ValidationController);
         return ValidationController;
     })();
@@ -401,7 +403,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         construct(container, _dynamicDependencies) {
             return _dynamicDependencies !== void 0
                 ? Reflect.construct(ValidationController, _dynamicDependencies)
-                : new ValidationController(container.get(validation_1.IValidator), container.get(runtime_1.IExpressionParser), container.get(runtime_1.IScheduler));
+                : new ValidationController(container.get(validation_1.IValidator), container.get(runtime_1.IExpressionParser), container.get(runtime_1.IScheduler), container);
         }
     }
     exports.ValidationControllerFactory = ValidationControllerFactory;

@@ -11,7 +11,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { I18N } from '@aurelia/i18n';
-import { DI, EventAggregator, IEventAggregator, ILogger } from '@aurelia/kernel';
+import { DI, EventAggregator, IEventAggregator, ILogger, IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser, IScheduler } from '@aurelia/runtime';
 import { IValidator, ValidationMessageProvider } from '@aurelia/validation';
 import { ValidationController, ValidationControllerFactory } from '@aurelia/validation-html';
@@ -19,17 +19,18 @@ const I18N_VALIDATION_EA_CHANNEL = 'i18n:locale:changed:validation';
 export const I18nKeyConfiguration = DI.createInterface('I18nKeyConfiguration').noDefault();
 let LocalizedValidationController = /** @class */ (() => {
     let LocalizedValidationController = class LocalizedValidationController extends ValidationController {
-        constructor(ea, validator, parser, scheduler) {
-            super(validator, parser, scheduler);
+        constructor(locator, ea, validator, parser, scheduler) {
+            super(validator, parser, scheduler, locator);
             this.localeChangeSubscription = ea.subscribe(I18N_VALIDATION_EA_CHANNEL, () => { scheduler.getPostRenderTaskQueue().queueTask(async () => { await this.revalidateErrors(); }); });
         }
     };
     LocalizedValidationController = __decorate([
-        __param(0, IEventAggregator),
-        __param(1, IValidator),
-        __param(2, IExpressionParser),
-        __param(3, IScheduler),
-        __metadata("design:paramtypes", [EventAggregator, Object, Object, Object])
+        __param(0, IServiceLocator),
+        __param(1, IEventAggregator),
+        __param(2, IValidator),
+        __param(3, IExpressionParser),
+        __param(4, IScheduler),
+        __metadata("design:paramtypes", [Object, EventAggregator, Object, Object, Object])
     ], LocalizedValidationController);
     return LocalizedValidationController;
 })();
@@ -38,7 +39,7 @@ export class LocalizedValidationControllerFactory extends ValidationControllerFa
     construct(container, _dynamicDependencies) {
         return _dynamicDependencies !== void 0
             ? Reflect.construct(LocalizedValidationController, _dynamicDependencies)
-            : new LocalizedValidationController(container.get(IEventAggregator), container.get(IValidator), container.get(IExpressionParser), container.get(IScheduler));
+            : new LocalizedValidationController(container, container.get(IEventAggregator), container.get(IValidator), container.get(IExpressionParser), container.get(IScheduler));
     }
 }
 let LocalizedValidationMessageProvider = /** @class */ (() => {

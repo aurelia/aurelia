@@ -1,5 +1,6 @@
 import { observable, SetterObserver, IObservable } from '@aurelia/runtime';
-import { assert } from '@aurelia/testing';
+import { assert, createFixture } from '@aurelia/testing';
+import { PLATFORM } from '@aurelia/kernel';
 
 describe('3-runtime-html/decorator-observable.spec.ts', function () {
   const oldValue = 'old';
@@ -27,14 +28,14 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
     assert.strictEqual(instance.value, newValue);
   });
 
-  it('should not call valueChanged when property is assigned the same value', () => {
+  it('should not call valueChanged when property is assigned the same value', function () {
     let callCount = 0;
     class Test {
       @observable value = oldValue;
       public valueChanged() {
         callCount++;
       }
-    };
+    }
 
     const instance = new Test();
     assert.strictEqual(callCount, 1);
@@ -43,16 +44,157 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
     assert.strictEqual(callCount, 1);
   });
 
-  // it('should call customHandler when changing the property', () => {
-  //   const instance = new class Test {
-  //     @observable({ changeHandler: 'customHandler' }) value = oldValue;
-  //     customHandler() { }
-  //   };
-  //   spyOn(instance, 'customHandler');
+  it('initialize with Babel property decorator', function () {
+    let callCount = 0;
+    class Test {
+      public value: any;
 
-  //   instance.value = newValue;
-  //   assert.strictEqual(instance.customHandler).toHaveBeenCalledWith(newValue, oldValue, 'value');
-  // });
+      public valueChanged() {
+        callCount++;
+      }
+    }
+    Object.defineProperty(Test.prototype, 'value', observable(Test.prototype, 'value', {
+      configurable: true,
+      writable: true,
+      initializer: () => oldValue
+    }) as unknown as PropertyDescriptor);
+
+    const instance = new Test();
+    assert.strictEqual(callCount, 0);
+    assert.strictEqual(instance.value, oldValue);
+
+    instance.value = oldValue;
+    assert.strictEqual(callCount, 0);
+
+    instance.value = newValue;
+    assert.strictEqual(callCount, 1);
+  });
+
+  it('should call customHandler when changing the property', function () {
+    let callCount = 0;
+    class Test {
+      @observable({ changeHandler: 'customHandler' })
+      public value = oldValue;
+
+      public customHandler() {
+        callCount++;
+      }
+    };
+    const instance = new Test();
+    assert.strictEqual(callCount, 1);
+
+    instance.value = newValue;
+    assert.strictEqual(callCount, 2);
+
+    instance.customHandler = PLATFORM.noop;
+    instance.value = oldValue;
+    // change handler is resolved once
+    assert.strictEqual(callCount, 3);
+  });
+
+  describe('with normal app', function () {
+    it('works in basic scenario', async function () {
+      let noValue = {};
+      let $div = noValue;
+      class App {
+        @observable
+        public div: any;
+        public divChanged(div) {
+          $div = div;
+        }
+      }
+      const { component, scheduler, testHost, tearDown, startPromise } = createFixture('<div ref="div"></div>${div.tagName}', App);
+      await startPromise;
+
+      assert.strictEqual(testHost.textContent, 'DIV');
+      component.div = { tagName: 'hello' };
+
+      scheduler.getRenderTaskQueue().flush();
+      assert.strictEqual(testHost.textContent, 'hello');
+
+      await tearDown();
+    });
+
+    it('works for 2 way binding', async function () {
+      let changeCount = 0;
+      class App {
+        @observable
+        public v: any;
+        public vChanged(input) {
+          changeCount++;
+        }
+      }
+      const { ctx, component, scheduler, testHost, tearDown, startPromise }
+        = createFixture('<input value.bind="v">', App);
+      await startPromise;
+
+      const input = testHost.querySelector('input')!;
+      assert.strictEqual(input.value, '');
+      component.v = 'v';
+      assert.strictEqual(changeCount, 1);
+      assert.strictEqual(input.value, '');
+      scheduler.getRenderTaskQueue().flush();
+      assert.strictEqual(changeCount, 1);
+      assert.strictEqual(input.value, 'v');
+
+      input.value = 'vv';
+      input.dispatchEvent(new ctx.CustomEvent('input'));
+      assert.strictEqual(component.v, 'vv');
+      assert.strictEqual(changeCount, 2);
+
+      input.dispatchEvent(new ctx.CustomEvent('input'));
+      assert.strictEqual(component.v, 'vv');
+      assert.strictEqual(changeCount, 2);
+
+      await tearDown();
+    });
+
+    it('works with 2 way binding and converter', async function () {
+      let changeCount = 0;
+      class App {
+        @observable({
+          set: v => Number(v) || 0
+        })
+        public v: any;
+        public vChanged(input) {
+          changeCount++;
+        }
+      }
+      const { ctx, component, scheduler, testHost, tearDown, startPromise }
+        = createFixture('<input value.bind="v">', App);
+      await startPromise;
+
+      const input = testHost.querySelector('input')!;
+      assert.strictEqual(input.value, '');
+      component.v = 'v';
+      assert.strictEqual(component.v, 0);
+      assert.strictEqual(changeCount, 1);
+      assert.strictEqual(input.value, '');
+      scheduler.getRenderTaskQueue().flush();
+      assert.strictEqual(changeCount, 1);
+      assert.strictEqual(input.value, '0');
+
+      input.value = 'vv';
+      debugger;
+      input.dispatchEvent(new ctx.CustomEvent('input'));
+      assert.strictEqual(component.v, 0);
+      assert.strictEqual(changeCount, 2);
+      assert.strictEqual(input.value, 'vv');
+      scheduler.getRenderTaskQueue().flush();
+      assert.strictEqual(input.value, '0');
+      assert.strictEqual(component.v, 0);
+
+      input.dispatchEvent(new ctx.CustomEvent('input'));
+      assert.strictEqual(component.v, 0);
+      assert.strictEqual(changeCount, 3);
+      assert.strictEqual(input.value, 'vv');
+      scheduler.getRenderTaskQueue().flush();
+      assert.strictEqual(input.value, '0');
+      assert.strictEqual(component.v, 0);
+
+      await tearDown();
+    });
+  });
 
   // it('should call customHandler when changing the undefined property', () => {
   //   const instance = new class {

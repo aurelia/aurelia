@@ -2568,6 +2568,8 @@ describe('BindingBehaviorExpression', function () {
       const value = {};
       const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0, isHostScoped));
       expr.$kind = $kind;
+      if ($kind & ExpressionKind.HasBind) { Reflect.defineProperty(expr, 'hasBind', { value: true }); }
+      if ($kind & ExpressionKind.HasUnbind) { Reflect.defineProperty(expr, 'hasUnbind', { value: true }); }
       const args = [];
       const sut = new BindingBehaviorExpression(expr as any, 'mock', args);
 
@@ -2590,6 +2592,8 @@ describe('BindingBehaviorExpression', function () {
       const arg1 = {};
       const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0, isHostScoped));
       expr.$kind = $kind;
+      if ($kind & ExpressionKind.HasBind) { Reflect.defineProperty(expr, 'hasBind', { value: true }); }
+      if ($kind & ExpressionKind.HasUnbind) { Reflect.defineProperty(expr, 'hasUnbind', { value: true }); }
       const args = [new MockTracingExpression(new AccessScopeExpression('a', 0, isHostScoped))];
       const sut = new BindingBehaviorExpression(expr as any, 'mock', args as any);
 
@@ -2614,6 +2618,8 @@ describe('BindingBehaviorExpression', function () {
       const arg3 = {};
       const expr = new MockTracingExpression(new AccessScopeExpression('foo', 0, isHostScoped));
       expr.$kind = $kind;
+      if ($kind & ExpressionKind.HasBind) { Reflect.defineProperty(expr, 'hasBind', { value: true }); }
+      if ($kind & ExpressionKind.HasUnbind) { Reflect.defineProperty(expr, 'hasUnbind', { value: true }); }
       const args = [
         new MockTracingExpression(new AccessScopeExpression('a', 0, isHostScoped)),
         new MockTracingExpression(new AccessScopeExpression('b', 0, isHostScoped)),

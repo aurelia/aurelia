@@ -113,7 +113,7 @@ export class CustomExpression {
 /** @internal - only exists to workaround circular reference caused by emitted metadata */
 export interface IBindingBehaviorExpression extends BindingBehaviorExpression {}
 export class BindingBehaviorExpression {
-  public readonly $kind: ExpressionKind.BindingBehavior = ExpressionKind.BindingBehavior;
+  public get $kind(): ExpressionKind.BindingBehavior { return ExpressionKind.BindingBehavior; }
   public get hasBind(): true { return true; }
   public get hasUnbind(): true { return true; }
   public readonly behaviorKey: string;
@@ -186,7 +186,7 @@ export class BindingBehaviorExpression {
 }
 
 export class ValueConverterExpression {
-  public readonly $kind: ExpressionKind.ValueConverter = ExpressionKind.ValueConverter;
+  public get $kind(): ExpressionKind.ValueConverter { return ExpressionKind.ValueConverter; }
   public readonly converterKey: string;
   public get hasBind(): false { return false; }
   public get hasUnbind(): true { return true; }
@@ -283,7 +283,7 @@ export class ValueConverterExpression {
 }
 
 export class AssignExpression {
-  public readonly $kind: ExpressionKind.Assign = ExpressionKind.Assign;
+  public get $kind(): ExpressionKind.Assign { return ExpressionKind.Assign; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -311,7 +311,7 @@ export class AssignExpression {
 }
 
 export class ConditionalExpression {
-  public readonly $kind: ExpressionKind.Conditional = ExpressionKind.Conditional;
+  public get $kind(): ExpressionKind.Conditional { return ExpressionKind.Conditional; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -352,7 +352,7 @@ export class AccessThisExpression {
   // $host and $this are loosely the same thing. $host is used in the context of `au-slot` with the primary objective of determining the scope.
   public static readonly $host: AccessThisExpression = new AccessThisExpression(0);
   public static readonly $parent: AccessThisExpression = new AccessThisExpression(1);
-  public readonly $kind: ExpressionKind.AccessThis = ExpressionKind.AccessThis;
+  public get $kind(): ExpressionKind.AccessThis { return ExpressionKind.AccessThis; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -391,7 +391,7 @@ export class AccessThisExpression {
 }
 
 export class AccessScopeExpression {
-  public readonly $kind: ExpressionKind.AccessScope = ExpressionKind.AccessScope;
+  public get $kind(): ExpressionKind.AccessScope { return ExpressionKind.AccessScope; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -434,7 +434,7 @@ export class AccessScopeExpression {
 }
 
 export class AccessMemberExpression {
-  public readonly $kind: ExpressionKind.AccessMember = ExpressionKind.AccessMember;
+  public get $kind(): ExpressionKind.AccessMember { return ExpressionKind.AccessMember; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -481,7 +481,7 @@ export class AccessMemberExpression {
 }
 
 export class AccessKeyedExpression {
-  public readonly $kind: ExpressionKind.AccessKeyed = ExpressionKind.AccessKeyed;
+  public get $kind(): ExpressionKind.AccessKeyed { return ExpressionKind.AccessKeyed; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -524,7 +524,7 @@ export class AccessKeyedExpression {
 }
 
 export class CallScopeExpression {
-  public readonly $kind: ExpressionKind.CallScope = ExpressionKind.CallScope;
+  public get $kind(): ExpressionKind.CallScope { return ExpressionKind.CallScope; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -563,7 +563,7 @@ export class CallScopeExpression {
 }
 
 export class CallMemberExpression {
-  public readonly $kind: ExpressionKind.CallMember = ExpressionKind.CallMember;
+  public get $kind(): ExpressionKind.CallMember { return ExpressionKind.CallMember; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -606,7 +606,7 @@ export class CallMemberExpression {
 }
 
 export class CallFunctionExpression {
-  public readonly $kind: ExpressionKind.CallFunction = ExpressionKind.CallFunction;
+  public get $kind(): ExpressionKind.CallFunction { return ExpressionKind.CallFunction; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -647,7 +647,7 @@ export class CallFunctionExpression {
 }
 
 export class BinaryExpression {
-  public readonly $kind: ExpressionKind.Binary = ExpressionKind.Binary;
+  public get $kind(): ExpressionKind.Binary { return ExpressionKind.Binary; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -768,7 +768,7 @@ export class BinaryExpression {
 }
 
 export class UnaryExpression {
-  public readonly $kind: ExpressionKind.Unary = ExpressionKind.Unary;
+  public get $kind(): ExpressionKind.Unary { return ExpressionKind.Unary; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -820,7 +820,7 @@ export class PrimitiveLiteralExpression<TValue extends StrictPrimitive = StrictP
   public static readonly $true: PrimitiveLiteralExpression<true> = new PrimitiveLiteralExpression<true>(true);
   public static readonly $false: PrimitiveLiteralExpression<false> = new PrimitiveLiteralExpression<false>(false);
   public static readonly $empty: PrimitiveLiteralExpression<string> = new PrimitiveLiteralExpression<''>('');
-  public readonly $kind: ExpressionKind.PrimitiveLiteral = ExpressionKind.PrimitiveLiteral;
+  public get $kind(): ExpressionKind.PrimitiveLiteral { return ExpressionKind.PrimitiveLiteral; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -846,7 +846,7 @@ export class PrimitiveLiteralExpression<TValue extends StrictPrimitive = StrictP
 }
 
 export class HtmlLiteralExpression {
-  public readonly $kind: ExpressionKind.HtmlLiteral = ExpressionKind.HtmlLiteral;
+  public get $kind(): ExpressionKind.HtmlLiteral { return ExpressionKind.HtmlLiteral; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -885,7 +885,7 @@ export class HtmlLiteralExpression {
 
 export class ArrayLiteralExpression {
   public static readonly $empty: ArrayLiteralExpression = new ArrayLiteralExpression(PLATFORM.emptyArray);
-  public readonly $kind: ExpressionKind.ArrayLiteral = ExpressionKind.ArrayLiteral;
+  public get $kind(): ExpressionKind.ArrayLiteral { return ExpressionKind.ArrayLiteral; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -921,7 +921,7 @@ export class ArrayLiteralExpression {
 
 export class ObjectLiteralExpression {
   public static readonly $empty: ObjectLiteralExpression = new ObjectLiteralExpression(PLATFORM.emptyArray, PLATFORM.emptyArray);
-  public readonly $kind: ExpressionKind.ObjectLiteral = ExpressionKind.ObjectLiteral;
+  public get $kind(): ExpressionKind.ObjectLiteral { return ExpressionKind.ObjectLiteral; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -959,7 +959,7 @@ export class ObjectLiteralExpression {
 
 export class TemplateExpression {
   public static readonly $empty: TemplateExpression = new TemplateExpression(['']);
-  public readonly $kind: ExpressionKind.Template = ExpressionKind.Template;
+  public get $kind(): ExpressionKind.Template { return ExpressionKind.Template; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -997,7 +997,7 @@ export class TemplateExpression {
 }
 
 export class TaggedTemplateExpression {
-  public readonly $kind: ExpressionKind.TaggedTemplate = ExpressionKind.TaggedTemplate;
+  public get $kind(): ExpressionKind.TaggedTemplate { return ExpressionKind.TaggedTemplate; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -1042,7 +1042,7 @@ export class TaggedTemplateExpression {
 }
 
 export class ArrayBindingPattern {
-  public readonly $kind: ExpressionKind.ArrayBindingPattern = ExpressionKind.ArrayBindingPattern;
+  public get $kind(): ExpressionKind.ArrayBindingPattern { return ExpressionKind.ArrayBindingPattern; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -1071,7 +1071,7 @@ export class ArrayBindingPattern {
 }
 
 export class ObjectBindingPattern {
-  public readonly $kind: ExpressionKind.ObjectBindingPattern = ExpressionKind.ObjectBindingPattern;
+  public get $kind(): ExpressionKind.ObjectBindingPattern { return ExpressionKind.ObjectBindingPattern; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -1101,7 +1101,7 @@ export class ObjectBindingPattern {
 }
 
 export class BindingIdentifier {
-  public readonly $kind: ExpressionKind.BindingIdentifier = ExpressionKind.BindingIdentifier;
+  public get $kind(): ExpressionKind.BindingIdentifier { return ExpressionKind.BindingIdentifier; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -1128,7 +1128,7 @@ const toStringTag = Object.prototype.toString as {
 // https://tc39.github.io/ecma262/#sec-iteration-statements
 // https://tc39.github.io/ecma262/#sec-for-in-and-for-of-statements
 export class ForOfStatement {
-  public readonly $kind: ExpressionKind.ForOfStatement = ExpressionKind.ForOfStatement;
+  public get $kind(): ExpressionKind.ForOfStatement { return ExpressionKind.ForOfStatement; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
 
@@ -1197,7 +1197,7 @@ export class ForOfStatement {
 * but this class might be a candidate for removal if it turns out it does provide all we need
 */
 export class Interpolation {
-  public readonly $kind: ExpressionKind.Interpolation = ExpressionKind.Interpolation;
+  public get $kind(): ExpressionKind.Interpolation { return ExpressionKind.Interpolation; }
   public readonly isMulti: boolean;
   public readonly firstExpression: IsBindingBehavior;
   public get hasBind(): false { return false; }

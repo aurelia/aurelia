@@ -1,7 +1,8 @@
 import { IIndexable, Reporter } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IPropertyObserver, ISubscriber, AccessorType } from '../observation';
+import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
+import { ITask } from '@aurelia/scheduler';
 
 export interface SetterObserver extends IPropertyObserver<IIndexable, string> {}
 
@@ -102,5 +103,48 @@ export class SetterObserver {
       // todo(bigopon/fred): add .removeAllSubscribers()
     }
     return this;
+  }
+}
+
+export class SetterNotifier implements IAccessor, ISubscribable {
+  // ideally, everything is an object,
+  // probably this flag is redundant, just None?
+  public type: AccessorType = AccessorType.Obj;
+
+  private _subs?: Set<ISubscriber>;
+  public get subs(): Set<ISubscriber> {
+    return (this._subs || (this._subs = new Set()));
+  }
+
+  /**@internal */
+  public v: unknown = void 0;
+  private oV: unknown = void 0;
+  private f: LifecycleFlags = 0;
+  public task: ITask | null = null;
+  
+  public getValue(): unknown {
+    return this.v;
+  }
+
+  public setValue(value: unknown, flags: LifecycleFlags): void {
+    const oldValue = this.v;
+    if (value !== oldValue) {
+      this.v = value;
+      this.oV = oldValue;
+      this.f = flags;
+      this.subs.forEach(this.callSubscriber, this);
+    }
+  }
+
+  public subscribe(subscriber: ISubscriber<unknown>): void {
+    this.subs.add(subscriber);
+  }
+
+  public unsubscribe(subscriber: ISubscriber<unknown>): void {
+    this.subs.delete(subscriber);
+  }
+
+  private callSubscriber(subscriber: ISubscriber<unknown>) {
+    subscriber.handleChange(this.v, this.oV, this.f);
   }
 }

@@ -1,20 +1,18 @@
 import { Constructable, IIndexable } from '@aurelia/kernel';
 import { IBindingContext, IBindingTargetObserver, ObserversLookup, PropertyObserver, ISubscriber } from '../observation';
-import { SetterObserver } from './setter-observer';
+import { SetterObserver, SetterNotifier } from './setter-observer';
 import { LifecycleFlags } from '../flags';
 import { InternalObserversLookup } from './binding-context';
-import { InterceptorFunc } from '../templating/bindable';
 
 // todo(bigopon): static obs here
 
 type $Getter = PropertyDescriptor['get'] & {
-  getObserver(obj: IIndexable): IBindingTargetObserver;
+  getObserver(obj: IIndexable): SetterObserver | SetterNotifier;
 };
 
 export interface IObservableDecoratorDefinition {
   name?: PropertyKey;
   changeHandler?: PropertyKey;
-  set?: InterceptorFunc;
 }
 
 /**
@@ -33,6 +31,17 @@ function getSetterObserver(
   }
   return $observers[key as string] as SetterObserver
     || ($observers[key as string] = new SetterObserver(LifecycleFlags.none, obj, key as string));
+}
+
+function getOrCreateLookup(obj: IIndexable<{ $observers?: ObserversLookup }>): ObserversLookup {
+  let $observers = obj.$observers;
+  if ($observers == null) {
+    $observers = new InternalObserversLookup();
+    if (!Reflect.defineProperty(obj, '$observers', { configurable: false, value: $observers })) {
+      // todo: define in a weakmap
+    }
+  }
+  return $observers;
 }
 
 const noValue: unknown = {};
@@ -134,13 +143,13 @@ export function observable(
     // after the first interaction (get/set/get observer), the getter/setter here will be disposed
 
     descriptor.get = function g(this: SetterObserverOwningObject) {
-      return startObserver(this, key!, changeHandler, initialValue).getValue();
+      return getOrCreateNotifier(this, key!, changeHandler, initialValue).getValue();
     };
     descriptor.set = function s(this: SetterObserverOwningObject, newValue: unknown) {
-      startObserver(this, key!, changeHandler, initialValue).setValue(newValue, LifecycleFlags.none);
+      getOrCreateNotifier(this, key!, changeHandler, initialValue).setValue(newValue, LifecycleFlags.none);
     };
     (descriptor.get as $Getter).getObserver = function gO(obj: SetterObserverOwningObject) {
-      return startObserver(obj, key!, changeHandler, initialValue);
+      return getOrCreateNotifier(obj, key!, changeHandler, initialValue);
     };
 
     if (isClassDecorator) {
@@ -154,7 +163,7 @@ export function observable(
 type ChangeHandlerCallback =
   (this: SetterObserverOwningObject, value: unknown, oldValue: unknown, key: PropertyKey) => void;
 
-  class CallbackSubscriber implements ISubscriber {
+class CallbackSubscriber implements ISubscriber {
   public constructor(
     private readonly obj: SetterObserverOwningObject,
     private readonly key: PropertyKey,
@@ -166,16 +175,29 @@ type ChangeHandlerCallback =
   }
 }
 
-function startObserver(obj: SetterObserverOwningObject, key: PropertyKey, changeHandler: PropertyKey, initialValue: unknown): SetterObserver {
-  const observer = getSetterObserver(obj, key).start();
-  if (initialValue !== noValue) {
-    observer.currentValue = initialValue;
+function getOrCreateNotifier(
+  obj: SetterObserverOwningObject,
+  key: PropertyKey,
+  changeHandler: PropertyKey,
+  initialValue: unknown,
+): SetterNotifier {
+  const lookup = getOrCreateLookup(obj) as unknown as Record<PropertyKey, SetterObserver | SetterNotifier>;
+  let notifier = lookup[key as string] as SetterNotifier;
+  if (notifier == null) {
+    notifier = new SetterNotifier();
+    if (initialValue !== noValue) {
+      notifier.v = initialValue;
+    }
+    const callback = obj[changeHandler as string];
+    if (typeof callback === 'function') {
+      notifier.subscribe(new CallbackSubscriber(obj, key, callback));
+    }
   }
-  const callback = obj[changeHandler as string];
-  if (typeof callback === 'function') {
-    observer.subscribe(new CallbackSubscriber(obj, key, callback));
-  }
-  return observer;
+  // const observer = getSetterObserver(obj, key).start();
+  // if (initialValue !== noValue) {
+  //   observer.currentValue = initialValue;
+  // }
+  return notifier;
 }
 
 /*

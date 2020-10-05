@@ -17,11 +17,13 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
     }
     const instance = new Test();
 
+    debugger;
     // with TS, initialization of class field are in constructor
     assert.strictEqual(callCount, 1);
     assert.strictEqual(instance.value, oldValue);
     assert.instanceOf((instance as IObservable).$observers['value'], SetterObserver);
 
+    debugger;
     instance.value = newValue;
     assert.strictEqual(callCount, 2);
     assert.strictEqual(instance.value, newValue);

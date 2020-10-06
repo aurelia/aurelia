@@ -30,7 +30,7 @@
     "@aurelia/http-server": "dev",
     "css-loader": "^4.3.0",
     "html-loader": "^1.3.1",
-    "html-webpack-plugin": "latest",
+    "html-webpack-plugin": "^4.5.0",
     "rimraf": "^3.0.0",
     "style-loader": "^1.1.1",
     "ts-loader": "^8.0.4",

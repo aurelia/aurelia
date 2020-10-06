@@ -151,7 +151,7 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
   ): void | Promise<void> {
     const { $controller } = this;
     return onResolve(
-      view?.activate(initiator ?? view, $controller, flags, $controller.scope, $controller.part),
+      view?.activate(initiator ?? view, $controller, flags, $controller.scope, $controller.hostScope),
       () => {
         this.composing = false;
       },
@@ -189,7 +189,7 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
 
     if ('template' in subject) { // Raw Template Definition
       const definition = CustomElementDefinition.getOrCreate(subject);
-      return getRenderContext<T>(definition, this.$controller.context!, void 0).getViewFactory().create(flags);
+      return getRenderContext<T>(definition, this.$controller.context!).getViewFactory().create(flags);
     }
 
     // Constructable (Custom Element Constructor)

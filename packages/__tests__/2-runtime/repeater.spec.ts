@@ -561,10 +561,9 @@ describe(`Repeat`, function () {
             needsCompile: false,
           }),
           container,
-          void 0,
         );
 
-        const itemFactory = new ViewFactory<AuNode>(`item-view`, itemContext, lifecycle, void 0);
+        const itemFactory = new ViewFactory<AuNode>(`item-view`, itemContext, lifecycle, void 0, null);
 
         const binding: PropertyBinding = {
           target: null,

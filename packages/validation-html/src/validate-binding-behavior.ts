@@ -3,7 +3,6 @@ import {
   bindingBehavior,
   BindingInterceptor,
   BindingMediator,
-  IBindingBehaviorExpression,
   IsAssign,
   IScheduler,
   IScope,
@@ -71,6 +70,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   private readonly defaultTrigger: ValidationTrigger;
   private readonly connectedExpressions: IsAssign[] = [];
   private scope!: IScope;
+  private hostScope: IScope | null = null;
   private readonly triggerMediator: BindingMediator<'handleTriggerChange'> = new BindingMediator('handleTriggerChange', this, this.observerLocator, this.locator);
   private readonly controllerMediator: BindingMediator<'handleControllerChange'> = new BindingMediator('handleControllerChange', this, this.observerLocator, this.locator);
   private readonly rulesMediator: BindingMediator<'handleRulesChange'> = new BindingMediator('handleRulesChange', this, this.observerLocator, this.locator);
@@ -81,7 +81,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
 
   public constructor(
     public readonly binding: BindingWithBehavior,
-    expr: IBindingBehaviorExpression,
+    expr: BindingBehaviorExpression,
   ) {
     super(binding, expr);
     const locator = this.locator;
@@ -121,9 +121,10 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined) {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null) {
     this.scope = scope;
-    this.binding.$bind(flags, scope, part);
+    this.hostScope = hostScope;
+    this.binding.$bind(flags, scope, hostScope);
     this.setTarget();
     const delta = this.processBindingExpressionArgs(flags);
     this.processDelta(delta);
@@ -140,9 +141,6 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     this.controller?.removeSubscriber(this);
     this.controller?.unregisterBinding(this.propertyBinding);
     this.binding.$unbind(flags);
-    for (const expr of this.connectedExpressions) {
-      expr.unbind?.(flags, this.scope, this);
-    }
   }
 
   public handleTriggerChange(newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
@@ -167,6 +165,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
 
   private processBindingExpressionArgs(flags: LifecycleFlags): ValidateArgumentsDelta {
     const scope: IScope = this.scope;
+    const hostScope: IScope | null = this.hostScope;
     const locator = this.locator;
     let rules: PropertyRule[] | undefined;
     let trigger: ValidationTrigger | undefined;
@@ -180,19 +179,19 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     const args = expression.args;
     for (let i = 0, ii = args.length; i < ii; i++) {
       const arg = args[i];
-      const temp = arg.evaluate(evaluationFlags, scope, locator);
+      const temp = arg.evaluate(evaluationFlags, scope, hostScope, locator);
       switch (i) {
         case 0:
           trigger = this.ensureTrigger(temp);
-          arg.connect(flags, scope, this.triggerMediator);
+          arg.connect(flags, scope, hostScope, this.triggerMediator);
           break;
         case 1:
           controller = this.ensureController(temp);
-          arg.connect(flags, scope, this.controllerMediator);
+          arg.connect(flags, scope, hostScope, this.controllerMediator);
           break;
         case 2:
           rules = this.ensureRules(temp);
-          arg.connect(flags, scope, this.rulesMediator);
+          arg.connect(flags, scope, hostScope, this.rulesMediator);
           break;
         default:
           throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${temp}`); // TODO: use reporter
@@ -307,7 +306,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   }
 
   private setBindingInfo(rules: PropertyRule[] | undefined): BindingInfo {
-    return this.bindingInfo = new BindingInfo(this.target, this.scope, rules);
+    return this.bindingInfo = new BindingInfo(this.target, this.scope, this.hostScope, rules);
   }
 }
 

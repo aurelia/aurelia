@@ -707,6 +707,26 @@ function isValueEqual(inputElementOrSelector: string | Node, expected: unknown, 
     });
   }
 }
+function isInnerHtmlEqual(elementOrSelector: string | Node, expected: string, message?: string, root?: Node, compact: boolean = true) {
+  const node = getNode(elementOrSelector, root) as HTMLElement;
+  let actual = node.innerHTML;
+  if (compact) {
+    actual = actual
+      .replace(/<!--au-start-->/g, '')
+      .replace(/<!--au-end-->/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  if (actual !== expected) {
+    innerFail({
+      actual,
+      expected: expected,
+      message,
+      operator: '==' as any,
+      stackStartFn: isInnerHtmlEqual
+    });
+  }
+}
 
 type styleMatch = { isMatch: true } | { isMatch: false; property: string; actual: string; expected: string };
 function matchStyle(element: Node, expectedStyles: Record<string, string>): styleMatch {
@@ -777,7 +797,8 @@ const isSchedulerEmpty = (function () {
     const persistent = task.persistent;
     const status = task._status;
 
-    return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}`;
+    return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}\n`
+      + `    task callback="${task.callback?.toString()}"`;
   }
 
   function toArray(task: any) {
@@ -899,6 +920,7 @@ const assert = Object_freeze({
   },
   html: {
     textContent: isTextContentEqual,
+    innerEqual: isInnerHtmlEqual,
     value: isValueEqual,
     computedStyle: computedStyle,
     notComputedStyle: notComputedStyle

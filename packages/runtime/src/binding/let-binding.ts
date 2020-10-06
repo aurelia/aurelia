@@ -5,7 +5,6 @@ import {
 import {
   ITask,
 } from '@aurelia/scheduler';
-import { IExpression } from '../ast';
 import {
   LifecycleFlags,
 } from '../flags';
@@ -17,6 +16,7 @@ import {
   IScope,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
+import { IsExpression } from './ast';
 import {
   connectable,
   IConnectableBinding,
@@ -33,13 +33,13 @@ export class LetBinding implements IPartialConnectableBinding {
   public isBound: boolean = false;
   public $lifecycle: ILifecycle;
   public $scope?: IScope = void 0;
-  public part?: string;
+  public $hostScope: IScope | null = null;
   public task: ITask | null = null;
 
   public target: (IObservable & IIndexable) | null = null;
 
   public constructor(
-    public sourceExpression: IExpression,
+    public sourceExpression: IsExpression,
     public targetProperty: string,
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator,
@@ -58,7 +58,7 @@ export class LetBinding implements IPartialConnectableBinding {
       const target = this.target as IIndexable;
       const targetProperty = this.targetProperty as string;
       const previousValue: unknown = target[targetProperty];
-      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part);
+      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator);
       if (newValue !== previousValue) {
         target[targetProperty] = newValue;
       }
@@ -68,7 +68,7 @@ export class LetBinding implements IPartialConnectableBinding {
     throw new Error('Unexpected handleChange context in LetBinding');
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -77,16 +77,16 @@ export class LetBinding implements IPartialConnectableBinding {
     }
 
     this.$scope = scope;
-    this.part = part;
-    this.target = (this.toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
+    this.$hostScope = hostScope;
+    this.target = (this.toBindingContext ? (hostScope ?? scope).bindingContext : (hostScope ?? scope).overrideContext) as IIndexable;
 
     const sourceExpression = this.sourceExpression;
-    if (sourceExpression.bind) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+    if (sourceExpression.hasBind) {
+      sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
     // sourceExpression might have been changed during bind
-    this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, this.locator, part);
-    this.sourceExpression.connect(flags, scope, this.interceptor, part);
+    this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, hostScope, this.locator);
+    this.sourceExpression.connect(flags, scope, hostScope, this.interceptor);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;
@@ -98,8 +98,8 @@ export class LetBinding implements IPartialConnectableBinding {
     }
 
     const sourceExpression = this.sourceExpression;
-    if (sourceExpression.unbind) {
-      sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+    if (sourceExpression.hasUnbind) {
+      sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
     this.$scope = void 0;
     this.interceptor.unobserve(true);

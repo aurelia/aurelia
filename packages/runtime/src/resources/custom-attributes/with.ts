@@ -60,7 +60,7 @@ export class With<T extends INode = INode> implements ICustomAttributeViewModel<
   ): void | Promise<void> {
     const { $controller, value } = this;
     const scope = Scope.fromParent(flags, $controller.scope, value === void 0 ? {} : value);
-    return this.view.activate(initiator, $controller, flags, scope, $controller.part);
+    return this.view.activate(initiator, $controller, flags, scope, $controller.hostScope);
   }
 
   public onCancel(

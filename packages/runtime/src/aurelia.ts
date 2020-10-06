@@ -4,7 +4,8 @@ import {
   IContainer,
   PLATFORM,
   Registration,
-  InstanceProvider
+  InstanceProvider,
+  IDisposable
 } from '@aurelia/kernel';
 import { IActivator } from './activator';
 import {
@@ -39,7 +40,7 @@ export interface ISinglePageApp<THost extends INode = INode> {
 
 type Publisher = { dispatchEvent(evt: unknown, options?: unknown): void };
 
-export class CompositionRoot<T extends INode = INode> {
+export class CompositionRoot<T extends INode = INode> implements IDisposable {
   public readonly config: ISinglePageApp<T>;
   public readonly container: IContainer;
   public readonly host: T & { $aurelia?: Aurelia<T> };
@@ -163,6 +164,10 @@ export class CompositionRoot<T extends INode = INode> {
     return this.task;
   }
 
+  public dispose(): void {
+    this.controller?.dispose();
+  }
+
   private create(): void {
     const config = this.config;
     const instance = this.viewModel = CustomElement.isType(config.component as Constructable)
@@ -174,12 +179,12 @@ export class CompositionRoot<T extends INode = INode> {
     const taskManager = container.get(IStartTaskManager);
     taskManager.enqueueBeforeCompileChildren();
     // This hack with delayed hydration is to make the controller instance accessible to the `beforeCompileChildren` hook via the composition root.
-    this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy as number, false, this.enhanceDefinition);
-    (this.controller as unknown as Controller)['hydrateCustomElement'](container, void 0);
+    this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, null, this.strategy as number, false, this.enhanceDefinition);
+    (this.controller as unknown as Controller)['hydrateCustomElement'](container, null);
   }
 }
 
-export class Aurelia<TNode extends INode = INode> {
+export class Aurelia<TNode extends INode = INode> implements IDisposable {
   public readonly container: IContainer;
   public get isRunning(): boolean {
     return this._isRunning;
@@ -287,6 +292,15 @@ export class Aurelia<TNode extends INode = INode> {
 
   public wait(): Promise<void> {
     return this.task.wait() as Promise<void>;
+  }
+
+  public dispose(): void {
+    if (this._isRunning || this._isStopping) {
+      throw new Error(`The aurelia instance must be fully stopped before it can be disposed`);
+    }
+    this._root?.dispose();
+    this._root = void 0;
+    this.container.dispose();
   }
 
   private configureRoot(config: ISinglePageApp<TNode>, enhance?: boolean): Omit<this, 'register' | 'app' | 'enhance'> {

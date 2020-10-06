@@ -31,7 +31,7 @@ export class If<T extends INode = INode> implements ICustomAttributeViewModel<T>
     const view = this.view = this.updateView(this.value, flags);
     if (view !== void 0) {
       const { $controller } = this;
-      return view.activate(initiator, $controller, flags, $controller.scope, $controller.part);
+      return view.activate(initiator, $controller, flags, $controller.scope, $controller.hostScope);
     }
   }
 
@@ -60,7 +60,7 @@ export class If<T extends INode = INode> implements ICustomAttributeViewModel<T>
         const view = this.view = this.updateView(this.value, flags);
         if (view !== void 0) {
           // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-          return view.activate(view, $controller, flags, $controller.scope, $controller.part);
+          return view.activate(view, $controller, flags, $controller.scope, $controller.hostScope);
         }
       },
     );

@@ -54,6 +54,7 @@ describe('2-runtime/enhance.spec.ts', function () {
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
+    au.dispose();
   }
 
   const $it = createSpecFunction(testEnhance);
@@ -143,6 +144,7 @@ describe('2-runtime/enhance.spec.ts', function () {
 
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
+      au.dispose();
     });
   }
 
@@ -214,6 +216,7 @@ describe('2-runtime/enhance.spec.ts', function () {
 
         await au.stop().wait();
         ctx.doc.body.removeChild(host);
+        au.dispose();
       });
     }
   );
@@ -254,6 +257,7 @@ describe('2-runtime/enhance.spec.ts', function () {
       'afterAttach',
       'afterAttachChildren',
     ]);
+    au.dispose();
   });
 
   it(`enhance is idempotent`, async function () {
@@ -284,5 +288,6 @@ describe('2-runtime/enhance.spec.ts', function () {
     assert.html.textContent('span', 'Fiz', 'span.text - 3', host);
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
+    au.dispose();
   });
 });

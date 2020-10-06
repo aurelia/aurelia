@@ -1,7 +1,4 @@
 import {
-  parseExpression
-} from '@aurelia/jit';
-import {
   DI,
   IContainer,
   inject,
@@ -50,7 +47,8 @@ import {
   ITemplateCompiler,
   IScheduler,
   CustomElement,
-  ICustomElementController
+  ICustomElementController,
+  parseExpression,
 } from '@aurelia/runtime';
 import { TestContext } from './html-test-context';
 
@@ -748,9 +746,6 @@ export const AuDOMTest = {
       [new IteratorBindingInstruction(parseExpression(expression, BindingType.ForCommand), 'items')]
     );
   },
-  createReplaceableInstruction(def: PartialCustomElementDefinition): HydrateTemplateController {
-    return new HydrateTemplateController(def, 'replaceable', []);
-  },
   createWithInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController {
     return new HydrateTemplateController(
       def,
@@ -758,11 +753,11 @@ export const AuDOMTest = {
       [new ToViewBindingInstruction(parseExpression(expression), 'value')]
     );
   },
-  createElementInstruction(name: string, bindings: [string, string][], parts?: Record<string, PartialCustomElementDefinition>): HydrateElementInstruction {
+  createElementInstruction(name: string, bindings: [string, string][]): HydrateElementInstruction {
     return new HydrateElementInstruction(
       name,
       bindings.map(([from, to]) => new ToViewBindingInstruction(parseExpression(from), to)),
-      parts
+      null,
     );
   },
   createLetInstruction(bindings: [string, string][], toBindingContext: boolean = false): LetElementInstruction {

@@ -12,8 +12,6 @@ This is the umbrella package for Aurelia 2. It re-exports selected internals fro
 @aurelia/debug
 @aurelia/fetch-client
 @aurelia/jit
-@aurelia/jit-html
-@aurelia/jit-html-browser
 @aurelia/kernel
 @aurelia/router
 @aurelia/runtime

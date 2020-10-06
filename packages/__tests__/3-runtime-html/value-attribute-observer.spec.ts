@@ -38,6 +38,7 @@ describe.skip('ValueAttributeObserver', function () {
 
       function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
         ctx.doc.body.removeChild(el);
+        assert.isSchedulerEmpty();
       }
 
       for (const hasSubscriber of [true, false]) {

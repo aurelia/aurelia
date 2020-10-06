@@ -20,7 +20,7 @@ import {
 } from 'path';
 import {
   Char,
-} from '@aurelia/jit';
+} from '@aurelia/runtime';
 import {
   ILogger,
 } from '@aurelia/kernel';

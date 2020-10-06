@@ -3,7 +3,7 @@ import { Metadata, isObject, applyMetadataPolyfill } from '@aurelia/metadata';
 applyMetadataPolyfill(Reflect);
 
 import { isArrayIndex, isNativeFunction } from './functions';
-import { Class, Constructable } from './interfaces';
+import { Class, Constructable, IDisposable, Writable } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { Protocol } from './resource';
@@ -58,7 +58,7 @@ export interface IRegistry {
   register(container: IContainer, ...params: unknown[]): void | IResolver | IContainer;
 }
 
-export interface IContainer extends IServiceLocator {
+export interface IContainer extends IServiceLocator, IDisposable {
   register(...params: any[]): IContainer;
   registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
@@ -301,7 +301,7 @@ export const DI = {
       return target;
     };
     Interface.$isInterface = true;
-    Interface.friendlyName = friendlyName == null ? 'Interface' : friendlyName;
+    Interface.friendlyName = friendlyName == null ? '(anonymous)' : friendlyName;
 
     Interface.noDefault = function (): InterfaceSymbol<K> {
       return Interface;
@@ -317,6 +317,10 @@ export const DI = {
       };
 
       return Interface;
+    };
+
+    Interface.toString = function toString(): string {
+      return `InterfaceSymbol<${Interface.friendlyName}>`;
     };
 
     return Interface;
@@ -601,7 +605,7 @@ export const enum ResolverStrategy {
 }
 
 /** @internal */
-export class Resolver implements IResolver, IRegistration {
+export class Resolver implements IDisposableResolver, IRegistration {
   public constructor(
     public key: Key,
     public strategy: ResolverStrategy,
@@ -668,6 +672,10 @@ export class Resolver implements IResolver, IRegistration {
       default:
         return null;
     }
+  }
+
+  public dispose(): void {
+    this.key = this.state = null!;
   }
 }
 
@@ -879,17 +887,17 @@ const factoryAnnotationKey = Protocol.annotation.keyFor(factoryKey);
 export class Container implements IContainer {
   private registerDepth: number = 0;
 
-  private readonly root: Container;
+  private root: Container;
 
-  private readonly resolvers: Map<Key, IResolver>;
+  private resolvers: Map<Key, IResolver | IDisposableResolver>;
 
-  private readonly resourceResolvers: Record<string, IResolver | undefined>;
+  private resourceResolvers: Record<string, IResolver | IDisposableResolver | undefined>;
 
-  private readonly disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
+  private disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
 
   public constructor(
-    private readonly parent: Container | null,
-    private readonly config: IContainerConfiguration = DefaultContainerConfiguration,
+    private parent: Container | null,
+    private config: IContainerConfiguration = DefaultContainerConfiguration,
   ) {
     if (parent === null) {
       this.root = this;
@@ -986,6 +994,39 @@ export class Container implements IContainer {
 
     return resolver;
   }
+
+  // public deregisterResolverFor<K extends Key, T = K>(key: K): void {
+  //   // const console =  (globalThis as any).console;
+  //   // console.group("deregisterResolverFor");
+  //   validateKey(key);
+
+  //   let current: Container = this;
+  //   let resolver: IResolver | undefined;
+
+  //   while (current != null) {
+  //     resolver = current.resolvers.get(key);
+
+  //     if (resolver != null) { break; }
+  //     if (current.parent == null) { return; }
+  //     current = current.parent;
+  //   }
+
+  //   if (resolver === void 0) { return; }
+  //   if (resolver instanceof Resolver && resolver.strategy === ResolverStrategy.array) {
+  //     throw new Error('Cannot deregister a resolver with array strategy');
+  //   }
+  //   if (this.disposableResolvers.has(resolver as IDisposableResolver<T>)) {
+  //     (resolver as IDisposableResolver<T>).dispose();
+  //   }
+  //   if (isResourceKey(key)) {
+  //     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+  //     delete this.resourceResolvers[key];
+  //   }
+  //   // console.log(`BEFORE delete ${Array.from(current.resolvers.keys()).map((k) => k.toString())}`);
+  //   current.resolvers.delete(key);
+  //   // console.log(`AFTER delete ${Array.from(current.resolvers.keys()).map((k) => k.toString())}`);
+  //   // console.groupEnd();
+  // }
 
   public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
     const resolver = this.getResolver(key);
@@ -1122,6 +1163,18 @@ export class Container implements IContainer {
     while (disposables.length > 0) {
       disposables.pop()?.dispose();
     }
+  }
+
+  public dispose(): void {
+    this.disposeResolvers();
+    for (const key in this.resourceResolvers) {
+      (this.resourceResolvers[key] as Partial<IDisposableResolver>).dispose?.();
+    }
+    for (const key of this.resolvers.keys()) {
+      (this.resolvers.get(key) as Partial<IDisposableResolver>).dispose?.();
+    }
+    this.resolvers.clear();
+    this.root = this.parent = this.config = this.resolvers = this.resourceResolvers = this.disposableResolvers = null!;
   }
 
   private jitRegister(keyAsValue: any, handler: Container): IResolver {

@@ -1,7 +1,12 @@
-import { IIndexable } from '@aurelia/kernel';
+import { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { LifecycleFlags } from './flags';
 import { ILifecycle } from './lifecycle';
 import { ITask } from '@aurelia/scheduler';
+
+export interface IConnectable {
+  readonly locator: IServiceLocator;
+  observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void;
+}
 
 /** @internal */
 export const enum SubscriberFlags {
@@ -369,13 +374,11 @@ export interface IOverrideContext {
   readonly $synthetic?: true;
   readonly $observers?: ObserversLookup;
   readonly bindingContext: IBindingContext;
-  readonly parentOverrideContext: IOverrideContext | null;
   getObservers(flags: LifecycleFlags): ObserversLookup;
 }
 
 export interface IScope {
   readonly parentScope: IScope | null;
-  readonly scopeParts: readonly string[];
   readonly bindingContext: IBindingContext;
   readonly overrideContext: IOverrideContext;
 }

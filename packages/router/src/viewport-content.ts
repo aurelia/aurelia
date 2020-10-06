@@ -84,7 +84,7 @@ export class ViewportContent {
       connectedCE.container.get(ILifecycle),
       connectedCE.element,
       connectedCE.container,
-      void 0,
+      null,
       void 0,
     );
   }

@@ -29,7 +29,7 @@
     "@types/node": "^12.12.21",
     "@aurelia/http-server": "dev",
     "css-loader": "latest",
-    "html-loader": "^0.5.5",
+    "html-loader": "^1.3.1",
     "html-webpack-plugin": "latest",
     "rimraf": "^3.0.0",
     "style-loader": "^1.1.1",

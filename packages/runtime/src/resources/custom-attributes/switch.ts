@@ -2,18 +2,18 @@ import {
   nextId,
   onResolve,
   resolveAll,
-  Writable
+  Writable,
 } from '@aurelia/kernel';
 import {
-  TemplateControllerLinkType
+  TemplateControllerLinkType,
 } from '../../definitions';
 import {
   INode,
-  IRenderLocation
+  IRenderLocation,
 } from '../../dom';
 import {
   BindingMode,
-  LifecycleFlags
+  LifecycleFlags,
 } from '../../flags';
 import {
   ICustomAttributeController,
@@ -23,20 +23,19 @@ import {
   ISyntheticView,
   IViewFactory,
   MountStrategy,
-  State
 } from '../../lifecycle';
 import {
   IndexMap,
-  IScope
+  IScope,
 } from '../../observation';
 import {
-  IObserverLocator
+  IObserverLocator,
 } from '../../observation/observer-locator';
 import {
-  bindable
+  bindable,
 } from '../../templating/bindable';
 import {
-  templateController
+  templateController,
 } from '../custom-attribute';
 
 @templateController('switch')
@@ -45,7 +44,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
   public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
   private view!: ISyntheticView<T>;
 
-  @bindable public value: any;
+  @bindable public value: unknown;
 
   /** @internal */
   public readonly cases: Case<T>[] = [];
@@ -99,14 +98,12 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
   }
 
   public valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags): void {
-    if ((this.$controller.state & State.activated) === 0) {
-      return;
-    }
-    void (this.queue(() => this.swap(flags, this.value)));
+    if (!this.$controller.isActive) { return; }
+    this.queue(() => this.swap(flags, this.value));
   }
 
   public caseChanged($case: Case<T>, flags: LifecycleFlags): void {
-    void (this.queue(async () => this.handleCaseChange($case, flags)));
+    this.queue(async () => this.handleCaseChange($case, flags));
   }
 
   private async handleCaseChange($case: Case<T>, flags: LifecycleFlags): Promise<void> {
@@ -118,7 +115,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     if (!isMatch) {
       /** The previous match started with this; thus clear. */
       if (numActiveCases > 0 && activeCases[0].id === $case.id) {
-        void (this.queue(() => this.clearActiveCases(flags)));
+        this.queue(() => this.clearActiveCases(flags));
       }
       /**
        * There are 2 different scenarios here:
@@ -141,24 +138,21 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
       newActiveCases.push($case);
     } else {
       const cases = this.cases;
-      const idx = cases.findIndex((c) => c === $case);
+      const idx = cases.indexOf($case);
       for (let i = idx, ii = cases.length; i < ii && fallThrough; i++) {
         const c = cases[i];
         newActiveCases.push(c);
         fallThrough = c.fallThrough;
       }
     }
-    // console.log(`It's a match! #newActiveCases: ${newActiveCases.length}`);
 
     await this.clearActiveCases(flags, newActiveCases);
-    // console.log(`cleared old active cases`);
     this.activeCases = newActiveCases;
 
     await this.activateCases(flags);
-    // console.log(`activated new active cases`);
   }
 
-  private swap(flags: LifecycleFlags, value: any): void | Promise<void> {
+  private swap(flags: LifecycleFlags, value: unknown): void | Promise<void> {
     const newActiveCases: Case<T>[] = [];
 
     let fallThrough: boolean = false;
@@ -188,7 +182,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
 
   private activateCases(flags: LifecycleFlags): void | Promise<void> {
     const controller = this.$controller;
-    if ((controller.state & State.activated) === 0) { return; }
+    if (!controller.isActive) { return; }
 
     const cases = this.activeCases;
     const length = cases.length;
@@ -214,7 +208,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     if (numCases === 1) {
       const firstCase = cases[0];
       if (!newActiveCases.includes(firstCase)) {
-        cases.splice(0);
+        cases.length = 0;
         return firstCase.deactivate(flags);
       }
       return;
@@ -228,24 +222,23 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
         return acc;
       }, [])),
       () => {
-        cases.splice(0);
+        cases.length = 0;
       }
     );
   }
 
   private queue(action: () => void | Promise<void>): void {
     let promise: void | Promise<void> = void 0;
-    const unset = () => {
-      if (this.promise === promise) {
-        (this as Writable<Switch<T>>).promise = void 0;
-      }
-    };
     promise = (this as Writable<Switch<T>>).promise = onResolve(
       onResolve(
         this.promise,
         action
       ),
-      unset
+      () => {
+        if (this.promise === promise) {
+          (this as Writable<Switch<T>>).promise = void 0;
+        }
+      }
     );
   }
 }
@@ -255,7 +248,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   public readonly id: number = nextId('au$component');
   public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
 
-  @bindable public value: any;
+  @bindable public value: unknown;
   @bindable({ mode: BindingMode.oneTime }) public fallThrough: boolean = false;
 
   public view: ISyntheticView<T>;
@@ -282,7 +275,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
     }
   }
 
-  public isMatch(value: any, flags: LifecycleFlags): boolean {
+  public isMatch(value: unknown, flags: LifecycleFlags): boolean {
     const $value = this.value;
     if (Array.isArray($value)) {
       if (!this.isObserving) {

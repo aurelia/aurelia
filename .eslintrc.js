@@ -32,7 +32,6 @@ module.exports = {
   reportUnusedDisableDirectives: true,
   rules: {
     // Opinionated overrides of the default recommended rules:
-    '@typescript-eslint/ban-ts-ignore': 'warn',
     '@typescript-eslint/indent': 'off', // Disabled until typescript-eslint properly fixes indentation (see https://github.com/typescript-eslint/typescript-eslint/issues/1232) - there are recurring issues and breaking changes, and this rule usually isn't violated due to autoformatting anyway.
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
@@ -47,7 +46,6 @@ module.exports = {
     'no-dupe-class-members': 'off',
 
     // Opinionated non default rules:
-    '@typescript-eslint/camelcase': 'error',
     '@typescript-eslint/explicit-member-accessibility': 'error',
     '@typescript-eslint/await-thenable': 'error',
     '@typescript-eslint/adjacent-overload-signatures': 'error',
@@ -64,7 +62,6 @@ module.exports = {
       }
     }],
     '@typescript-eslint/brace-style': ['error', '1tbs', { allowSingleLine: true }],
-    '@typescript-eslint/class-name-casing': 'error',
     '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'as', objectLiteralTypeAssertions: 'never' }],
     '@typescript-eslint/func-call-spacing': ['error', 'never'],
     '@typescript-eslint/member-delimiter-style': 'error',

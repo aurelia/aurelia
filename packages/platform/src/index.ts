@@ -1,4 +1,19 @@
-export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
+// Limit the accessible properties to that of the native ES globalThis and WindowOrWorkerGlobalScope by default.
+// We need the whole DOM lib to have access to the WindowOrWorkerGlobalScope type, but that turns globalThis into a union with Window
+// which exposes properties we don't want to assume exist here.
+// Hence, we create a synthetic type that has only the properties we can more or less safely assume to exist.
+type GlobalThisOrWindowOrWorkerGlobalScope = Pick<
+  typeof globalThis,
+  Exclude<
+    keyof typeof globalThis,
+    Exclude<
+      keyof Window,
+      keyof WindowOrWorkerGlobalScope
+    >
+  >
+>;
+
+export class Platform<TGlobal extends GlobalThisOrWindowOrWorkerGlobalScope = GlobalThisOrWindowOrWorkerGlobalScope> {
   // http://www.ecma-international.org/ecma-262/#sec-value-properties-of-the-global-object
   public readonly globalThis: TGlobal;
 

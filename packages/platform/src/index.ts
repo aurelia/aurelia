@@ -41,6 +41,8 @@ export class Platform<TGlobal extends GlobalThisOrWindowOrWorkerGlobalScope = Gl
   public readonly setTimeout: TGlobal['setTimeout'];
   public readonly console: TGlobal['console'];
 
+  public readonly performanceNow: TGlobal['performance']['now'];
+
   public constructor(
     g: TGlobal,
     overrides: Partial<Exclude<Platform, 'globalThis'>> = {},
@@ -63,6 +65,8 @@ export class Platform<TGlobal extends GlobalThisOrWindowOrWorkerGlobalScope = Gl
     this.setInterval = 'setInterval' in overrides ? overrides.setInterval! : g.setInterval;
     this.setTimeout = 'setTimeout' in overrides ? overrides.setTimeout! : g.setTimeout;
     this.console = 'console' in overrides ? overrides.console! : g.console;
+
+    this.performanceNow = 'performanceNow' in overrides ? overrides.performanceNow! : g.performance.now.bind(g.performance);
     /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
   }
 }

@@ -97,10 +97,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const locator = this.locator;
 
     if ((flags & LifecycleFlags.updateTargetInstance) > 0) {
-      // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-      if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        newValue = this.sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator);
-      }
       // Alpha: during bind a simple strategy for bind is always flush immediately
       // todo:
       //  (1). determine whether this should be the behavior
@@ -108,6 +104,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
       const oldValue = targetObserver.getValue();
 
+      // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
         // todo: in VC expressions, from view also requires connect
         const shouldConnect = this.mode > oneTime;
@@ -138,7 +135,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     }
 
     if ((flags & LifecycleFlags.updateSourceExpression) > 0) {
-      if (newValue !== sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator)) {
+      if (newValue !== sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator, null)) {
         interceptor.updateSource(newValue, flags);
       }
       return;
@@ -194,7 +191,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const shouldConnect = ($mode & toView) > 0;
     if ($mode & toViewOrOneTime) {
       interceptor.updateTarget(
-        sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : void 0),
+        sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null),
         flags,
       );
     }

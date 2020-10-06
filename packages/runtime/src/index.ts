@@ -210,7 +210,6 @@ export {
   DebounceBindingBehavior
 } from './resources/binding-behaviors/debounce';
 export {
-  SignalableBinding,
   SignalBindingBehavior
 } from './resources/binding-behaviors/signals';
 export {

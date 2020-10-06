@@ -149,7 +149,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     }
 
     if (flags & LifecycleFlags.updateSourceExpression) {
-      if (newValue !== this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator)) {
+      if (newValue !== this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, null)) {
         interceptor.updateSource(newValue, flags);
       }
       return;
@@ -202,7 +202,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     if ($mode & toViewOrOneTime) {
       const shouldConnect = ($mode & toView) > 0;
       interceptor.updateTarget(
-        sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : void 0),
+        sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null),
         flags
       );
     }

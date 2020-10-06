@@ -18,7 +18,7 @@ function createJSDOMTestContext(): HTMLTestContext {
 
   return HTMLTestContext.create(
     RuntimeHtmlJsdomConfiguration,
-    jsdom.window,
+    jsdom.window as unknown as Window,
     jsdom.window.UIEvent,
     jsdom.window.Event,
     jsdom.window.CustomEvent,

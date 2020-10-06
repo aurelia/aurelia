@@ -46,11 +46,13 @@ module.exports = {
     'no-dupe-class-members': 'off',
 
     // Opinionated non default rules:
+    '@typescript-eslint/ban-ts-comment': 'warn',
     '@typescript-eslint/explicit-member-accessibility': 'error',
     '@typescript-eslint/await-thenable': 'error',
     '@typescript-eslint/adjacent-overload-signatures': 'error',
     '@typescript-eslint/array-type': 'error',
     '@typescript-eslint/ban-types': ['error', {
+      'extendDefaults': false,
       'types': {
         // '{}': 'Avoid using the `{}` type. Prefer a specific lookup type, like `Record<string, unknown>`, or use `object` (lowercase) when referring simply to non-primitives.',
         Function: 'Avoid using the `Function` type. Prefer a specific function type, like `() => void`, or use `Constructable` / `Class<TProto, TStatic>` when referring to a constructor function.',

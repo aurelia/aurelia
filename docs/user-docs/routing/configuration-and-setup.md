@@ -50,7 +50,7 @@ Enabling pushState routing setting `useUrlFragmentHash` to false will require a 
 
 ## Styling Active Router Links
 
-A common scenario is styling an active router link with styling to signify that the link is active, such as making the text bold. By default, any link with a `goto` attribute that is routed to, will receive the class `goto-active` if it is currently active.
+A common scenario is styling an active router link with styling to signify that the link is active, such as making the text bold. By default, any link with a `load` attribute that is routed to, will receive the class `goto-active` if it is currently active.
 
 {% hint style="info" %}
 A future update to the router package will allow this class to be user-configurable. For now, the class name cannot be changed.

@@ -48,9 +48,8 @@ If you are working with components you are rendering, implementing `IRouteableCo
 ```typescript
 export class MyComponent implements IRouteableComponent {
     public canLoad(parameters) {}
-    public loaderparameters) {}
+    public load(parameters) {}
     public canUnload() {}
     public unload() {}
 }
 ```
-

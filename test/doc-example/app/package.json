@@ -31,17 +31,14 @@
     "ts-loader": "^6.2.1",
     "@types/node": "^12.12.21",
     "typescript": "^4.0.3",
-    "tslint": "^5.20.1",
     "cypress": "^3.8.0",
     "babel-eslint": "^10.0.3",
     "eslint": "^7.10.0"
   },
   "scripts": {
     "lint:html": "htmlhint -c .htmlhintrc src",
-    "lint": "npm run lint:js && npm run lint:html",
     "start": "webpack-dev-server",
     "build": "rimraf dist && webpack --mode=production",
-    "lint:js": "tslint --project tsconfig.json",
     "watch": "webpack-dev-server --no-inline",
     "serve": "node -r esm ./node_modules/@aurelia/http-server/dist/esnext/cli.js au.conf.js",
     "build-serve": "rimraf dist && webpack --mode=production && node -r esm ./node_modules/@aurelia/http-server/dist/esnext/cli.js au.conf.js",

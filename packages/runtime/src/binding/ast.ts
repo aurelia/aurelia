@@ -431,7 +431,7 @@ export class AccessScopeExpression {
   public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown {
     const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope) as IBindingContext;
     if (obj instanceof Object) {
-      if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
+      if (obj.$observers?.[this.name] != null) {
         obj.$observers[this.name].setValue(value, flags);
         return value;
       } else {

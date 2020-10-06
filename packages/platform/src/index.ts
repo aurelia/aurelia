@@ -39,6 +39,7 @@ export class Platform<TGlobal extends GlobalThisOrWindowOrWorkerGlobalScope = Gl
   public readonly queueMicrotask: TGlobal['queueMicrotask'];
   public readonly setInterval: TGlobal['setInterval'];
   public readonly setTimeout: TGlobal['setTimeout'];
+  public readonly console: TGlobal['console'];
 
   public constructor(
     g: TGlobal,
@@ -61,6 +62,7 @@ export class Platform<TGlobal extends GlobalThisOrWindowOrWorkerGlobalScope = Gl
     this.queueMicrotask = 'queueMicrotask' in overrides ? overrides.queueMicrotask! : g.queueMicrotask;
     this.setInterval = 'setInterval' in overrides ? overrides.setInterval! : g.setInterval;
     this.setTimeout = 'setTimeout' in overrides ? overrides.setTimeout! : g.setTimeout;
+    this.console = 'console' in overrides ? overrides.console! : g.console;
     /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
   }
 }

@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@types/chai": "^4.2.7",
-    "@types/mocha": "^5.2.7",
+    "@types/mocha": "^8.0.3",
     "@types/node": "^14.11.5",
     "@wdio/browserstack-service": "^5.16.10",
     "@wdio/cli": "^5.18.0",

@@ -13,7 +13,6 @@ module.exports = {
     'mocha'
   ],
   rules: {
-    '@typescript-eslint/class-name-casing': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     'compat/compat': 'off',
     'import/no-nodejs-modules': 'off',

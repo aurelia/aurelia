@@ -28,7 +28,7 @@
   "devDependencies": {
     "@types/node": "^12.12.21",
     "@aurelia/http-server": "dev",
-    "css-loader": "latest",
+    "css-loader": "^4.3.0",
     "html-loader": "^1.3.1",
     "html-webpack-plugin": "latest",
     "rimraf": "^3.0.0",

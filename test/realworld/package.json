@@ -31,7 +31,7 @@
     "@types/marked": "^0.7.2",
     "@types/node": "^12.12.21",
     "@types/querystringify": "^2.0.0",
-    "css-loader": "^3.4.0",
+    "css-loader": "^4.3.0",
     "html-webpack-plugin": "^4.5.0",
     "htmlhint": "^0.11.0",
     "rimraf": "^3.0.0",

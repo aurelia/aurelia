@@ -70,7 +70,7 @@
     "@types/vinyl": "^2.0.4",
     "@types/webpack": "^4.41.0",
     "@types/webpack-env": "^1.14.1",
-    "@typescript-eslint/eslint-plugin": "^2.12.0",
+    "@typescript-eslint/eslint-plugin": "^4.4.0",
     "@typescript-eslint/parser": "^2.12.0",
     "babel-jest": "^26.0.1",
     "chalk": "^3.0.0",

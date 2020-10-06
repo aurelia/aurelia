@@ -17,6 +17,7 @@
     "packages/kernel",
     "packages/metadata",
     "packages/platform",
+    "packages/platform-browser",
     "packages/plugin-conventions",
     "packages/plugin-gulp",
     "packages/plugin-parcel",

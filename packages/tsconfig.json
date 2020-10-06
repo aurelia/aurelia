@@ -12,6 +12,7 @@
     { "path": "kernel" },
     { "path": "metadata" },
     { "path": "platform" },
+    { "path": "platform-browser" },
     { "path": "plugin-conventions" },
     { "path": "plugin-gulp" },
     { "path": "plugin-parcel" },

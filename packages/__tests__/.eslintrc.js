@@ -17,6 +17,7 @@ module.exports = {
     'compat/compat': 'off',
     'import/no-nodejs-modules': 'off',
     'jsdoc/require-jsdoc': 'off',
+    'mocha/no-exports': 'off',
     'mocha/no-async-describe': 'error',
     'mocha/no-exclusive-tests': 'warn',
     'mocha/no-hooks': 'error',

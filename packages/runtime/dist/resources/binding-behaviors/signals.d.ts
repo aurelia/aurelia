@@ -1,14 +1,13 @@
-import { PropertyBinding } from '../../binding/property-binding';
+import { IConnectableBinding } from '../../binding/connectable';
 import { LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
 import { ISignaler } from '../../observation/signaler';
-export declare type SignalableBinding = PropertyBinding & {
-    signal: string | string[];
-};
-export declare class SignalBindingBehavior {
+import { BindingBehaviorInstance } from '../binding-behavior';
+export declare class SignalBindingBehavior implements BindingBehaviorInstance {
     private readonly signaler;
+    private readonly lookup;
     constructor(signaler: ISignaler);
-    bind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding, ...args: string[]): void;
-    unbind(flags: LifecycleFlags, scope: IScope, binding: SignalableBinding): void;
+    bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding, ...names: string[]): void;
+    unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
 }
 //# sourceMappingURL=signals.d.ts.map

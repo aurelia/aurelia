@@ -1,15 +1,13 @@
 import { PropertyBinding } from '../../binding/property-binding';
 import { BindingMode, LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
-export declare type WithMode = {
-    mode: BindingMode;
-};
-export declare abstract class BindingModeBehavior {
+import { BindingBehaviorInstance } from '../binding-behavior';
+export declare abstract class BindingModeBehavior implements BindingBehaviorInstance {
     private readonly mode;
     private readonly originalModes;
     constructor(mode: BindingMode);
-    bind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding & WithMode): void;
-    unbind(flags: LifecycleFlags, scope: IScope, binding: PropertyBinding & WithMode): void;
+    bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: PropertyBinding): void;
+    unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: PropertyBinding): void;
 }
 export declare class OneTimeBindingBehavior extends BindingModeBehavior {
     constructor();

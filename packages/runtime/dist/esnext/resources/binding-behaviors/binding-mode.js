@@ -12,14 +12,15 @@ import { bindingBehavior } from '../binding-behavior';
 export class BindingModeBehavior {
     constructor(mode) {
         this.mode = mode;
-        this.originalModes = new WeakMap();
+        this.originalModes = new Map();
     }
-    bind(flags, scope, binding) {
+    bind(flags, scope, hostScope, binding) {
         this.originalModes.set(binding, binding.mode);
         binding.mode = this.mode;
     }
-    unbind(flags, scope, binding) {
+    unbind(flags, scope, hostScope, binding) {
         binding.mode = this.originalModes.get(binding);
+        this.originalModes.delete(binding);
     }
 }
 let OneTimeBindingBehavior = /** @class */ (() => {

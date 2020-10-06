@@ -30,7 +30,7 @@ export { subscriberCollection, collectionSubscriberCollection, proxySubscriberCo
 export { bindingBehavior, BindingBehavior, BindingBehaviorDefinition, PartialBindingBehaviorDefinition, BindingBehaviorKind, BindingBehaviorDecorator, BindingBehaviorInstance, BindingBehaviorType, BindingInterceptor, IInterceptableBinding } from './resources/binding-behavior';
 export { BindingModeBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior } from './resources/binding-behaviors/binding-mode';
 export { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
-export { SignalableBinding, SignalBindingBehavior } from './resources/binding-behaviors/signals';
+export { SignalBindingBehavior } from './resources/binding-behaviors/signals';
 export { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
 export { customAttribute, CustomAttributeDecorator, CustomAttribute, CustomAttributeDefinition, CustomAttributeKind, CustomAttributeType, PartialCustomAttributeDefinition, templateController, } from './resources/custom-attribute';
 export { FrequentMutations, InfrequentMutations, ObserveShallow, } from './resources/custom-attributes/flags';

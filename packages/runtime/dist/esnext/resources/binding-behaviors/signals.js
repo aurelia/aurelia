@@ -10,47 +10,30 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Reporter } from '@aurelia/kernel';
 import { ISignaler } from '../../observation/signaler';
 import { bindingBehavior } from '../binding-behavior';
 let SignalBindingBehavior = /** @class */ (() => {
     let SignalBindingBehavior = class SignalBindingBehavior {
         constructor(signaler) {
             this.signaler = signaler;
+            this.lookup = new Map();
         }
-        bind(flags, scope, binding, ...args) {
-            if (!binding.updateTarget) {
-                throw Reporter.error(11);
+        bind(flags, scope, hostScope, binding, ...names) {
+            if (!('handleChange' in binding)) {
+                throw new Error(`The signal behavior can only be used with bindings that have a 'handleChange' method`);
             }
-            if (arguments.length === 4) {
-                const name = args[0];
+            if (names.length === 0) {
+                throw new Error(`At least one signal name must be passed to the signal behavior, e.g. \`expr & signal:'my-signal'\``);
+            }
+            this.lookup.set(binding, names);
+            for (const name of names) {
                 this.signaler.addSignalListener(name, binding);
-                binding.signal = name;
-            }
-            else if (arguments.length > 4) {
-                const names = Array.prototype.slice.call(args.length + 3, 3);
-                let i = names.length;
-                while (i--) {
-                    const name = names[i];
-                    this.signaler.addSignalListener(name, binding);
-                }
-                binding.signal = names;
-            }
-            else {
-                throw Reporter.error(12);
             }
         }
-        unbind(flags, scope, binding) {
-            const name = binding.signal;
-            binding.signal = null;
-            if (Array.isArray(name)) {
-                const names = name;
-                let i = names.length;
-                while (i--) {
-                    this.signaler.removeSignalListener(names[i], binding);
-                }
-            }
-            else {
+        unbind(flags, scope, hostScope, binding) {
+            const names = this.lookup.get(binding);
+            this.lookup.delete(binding);
+            for (const name of names) {
                 this.signaler.removeSignalListener(name, binding);
             }
         }

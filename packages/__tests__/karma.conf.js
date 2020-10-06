@@ -97,9 +97,7 @@ module.exports = function (config) {
             use: [
               {
                 loader: 'source-map-loader',
-                options: {
-                  enforce: 'pre',
-                },
+                enforce: 'pre',
               },
             ],
           },

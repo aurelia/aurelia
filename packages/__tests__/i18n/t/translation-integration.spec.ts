@@ -54,7 +54,6 @@ describe('translation-integration', function () {
     testFunction: TestFunction<I18nIntegrationTestContext<TApp>>,
     { component, aliases, skipTranslationOnMissingKey = false }: TestSetupContext<TApp>,
   ) {
-    /* eslint-disable @typescript-eslint/camelcase */
     const translation = {
       simple: {
         text: 'simple text',
@@ -107,7 +106,6 @@ describe('translation-integration', function () {
 
       imgPath: 'bar.jpg'
     };
-    /* eslint-enable @typescript-eslint/camelcase */
     const ctx = TestContext.createHTMLTestContext();
     const host = DOM.createElement('app');
     const au = new Aurelia(ctx.container);

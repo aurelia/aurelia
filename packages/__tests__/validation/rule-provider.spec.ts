@@ -841,7 +841,6 @@ describe('parsePropertyName', function () {
     };
   }
 
-  /* eslint-disable @typescript-eslint/camelcase */
   const cov_1wjh4ld5ut: any = {};
   const a: string = 'foo';
   const positiveDataRows = [
@@ -948,7 +947,6 @@ describe('parsePropertyName', function () {
     { property: function (o: any) { "use strict"; /* istanbul ignore next */ cov_1wjh4ld5ut.s[50]++; return o.prop; },                        expected: 'prop' },
     { property: function (o: any) { "use strict"; /* istanbul ignore next */ cov_1wjh4ld5ut.f[9]++;cov_1wjh4ld5ut.s[50]++; return o.prop; },  expected: 'prop' },
   ];
-  /* eslint-enable @typescript-eslint/camelcase */
   for(const { property, expected } of positiveDataRows) {
     it(`parses ${property.toString()} to ${expected}`, function () {
       const { parser } = setup();

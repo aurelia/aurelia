@@ -29,7 +29,7 @@
     "loglevel": "^1.6.6",
     "rimraf": "^3.0.0",
     "style-loader": "^1.1.1",
-    "ts-loader": "^6.2.1",
+    "ts-loader": "^8.0.4",
     "typescript": "^4.0.3",
     "webpack": "^4.41.4",
     "webpack-cli": "^3.3.10",

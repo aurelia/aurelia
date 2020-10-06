@@ -27,7 +27,7 @@
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^3.2.0",
     "rimraf": "^3.0.0",
-    "ts-loader": "^6.2.1",
+    "ts-loader": "^8.0.4",
     "typescript": "^4.0.3",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.10.1",

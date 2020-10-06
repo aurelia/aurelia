@@ -108,7 +108,7 @@
     "source-map": "^0.7.3",
     "source-map-loader": "^0.2.4",
     "style-loader": "^1.1.1",
-    "ts-loader": "^6.2.1",
+    "ts-loader": "^8.0.4",
     "ts-node": "^9.0.0",
     "tsconfig-paths": "^3.9.0",
     "vinyl": "^2.2.0",

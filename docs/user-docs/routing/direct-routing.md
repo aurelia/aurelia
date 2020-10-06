@@ -58,7 +58,7 @@ The `load` attribute on our link denotes that this link is to navigate to a comp
 
 The simple example above shows you how to render a component using the router, and now we are going to introduce support for parameters. A parameter is a dynamic value in your route which can be accessed inside of the routed component. For example, this might be a product ID or a category name.
 
-To access parameters from the route, we can get those from the router lifecycle hook called `enter` which also supports promises and can be asynchronous.
+To access parameters from the route, we can get those from the router lifecycle hook called `load` which also supports promises and can be asynchronous.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -78,7 +78,7 @@ To access parameters from the route, we can get those from the router lifecycle 
 import { IRouteableComponent } from '@aurelia/router';
 
 export class TestComponent implements IRouteableComponent {
-    public enter(parameters) {
+    public load(parameters) {
         console.log(parameters); // Should display {0: "hello"} in the browser developer tools console
     }
 }
@@ -116,7 +116,7 @@ You can name your route parameters inline by specifying the name inside of the `
 import { IRouteableComponent } from '@aurelia/router';
 
 export class TestComponent implements IRouteableComponent {
-    public enter(parameters) {
+    public load(parameters) {
         console.log(parameters); // Should display {named: "hello"} in the browser developer tools console
     }
 }
@@ -156,7 +156,7 @@ import { IRouteableComponent } from '@aurelia/router';
 export class TestComponent implements IRouteableComponent {
     public static parameters = ['id'];
 
-    public enter(parameters) {
+    public load(parameters) {
         console.log(parameters); // Should display {id: "hello"} in the browser developer tools console
     }
 }

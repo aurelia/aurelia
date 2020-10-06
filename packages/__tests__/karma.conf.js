@@ -94,12 +94,8 @@ module.exports = function (config) {
           },
           {
             test: /\.js$/,
-            use: [
-              {
-                loader: 'source-map-loader',
-                enforce: 'pre',
-              },
-            ],
+            enforce: 'pre',
+            use: ['source-map-loader'],
           },
           {
             test: /\.html$/i,

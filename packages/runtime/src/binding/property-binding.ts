@@ -109,7 +109,15 @@ export class PropertyBinding implements IPartialConnectableBinding {
       const oldValue = targetObserver.getValue();
 
       if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        newValue = sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator);
+        // todo: in VC expressions, from view also requires connect
+        const shouldConnect = this.mode > oneTime;
+        if (shouldConnect) {
+          this.version++;
+        }
+        newValue = sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator, interceptor);
+        if (shouldConnect) {
+          interceptor.unobserve(false);
+        }
       }
 
       // todo(fred): maybe let the obsrever decides whether it updates
@@ -117,21 +125,13 @@ export class PropertyBinding implements IPartialConnectableBinding {
         if (shouldQueueFlush) {
           flags |= LifecycleFlags.noTargetObserverQueue;
           this.task?.cancel();
-          targetObserver.task?.cancel();
-          targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+          this.task = this.$scheduler.queueRenderTask(() => {
             (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
-            this.task = targetObserver.task = null;
+            this.task = null;
           }, updateTaskOpts);
         }
 
         interceptor.updateTarget(newValue, flags);
-      }
-
-      // todo: merge this with evaluate above
-      if ((this.mode & oneTime) === 0) {
-        this.version++;
-        sourceExpression.connect(flags, $scope!, this.$hostScope, this.interceptor);
-        interceptor.unobserve(false);
       }
 
       return;
@@ -191,15 +191,16 @@ export class PropertyBinding implements IPartialConnectableBinding {
     sourceExpression = this.sourceExpression;
     const interceptor = this.interceptor;
 
+    const shouldConnect = ($mode & toView) > 0;
     if ($mode & toViewOrOneTime) {
-      interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator), flags);
-    }
-    if ($mode & toView) {
-      sourceExpression.connect(flags, scope, this.$hostScope, interceptor);
+      interceptor.updateTarget(
+        sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : void 0),
+        flags,
+      );
     }
     if ($mode & fromView) {
       targetObserver.subscribe(interceptor);
-      if (($mode & toView) === 0) {
+      if (!shouldConnect) {
         interceptor.updateSource(targetObserver.getValue(), flags);
       }
       targetObserver[this.id] |= LifecycleFlags.updateSourceExpression;

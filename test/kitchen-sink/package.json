@@ -28,7 +28,7 @@
     "perf-monitor": "latest"
   },
   "devDependencies": {
-    "@types/node": "^12.12.21",
+    "@types/node": "^14.11.5",
     "@types/faker": "latest",
     "@aurelia/http-server": "0.7.0",
     "autoprefixer": "latest",

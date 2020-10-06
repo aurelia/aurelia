@@ -25,7 +25,7 @@
     "font-awesome": "^4.6.3"
   },
   "devDependencies": {
-    "@types/node": "^12.12.21",
+    "@types/node": "^14.11.5",
     "@aurelia/http-server": "0.7.0",
     "css-loader": "^4.3.0",
     "file-loader": "^5.0.2",

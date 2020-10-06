@@ -83,7 +83,7 @@
     "cz-conventional-changelog": "^3.0.2",
     "date-fns": "^2.8.1",
     "eslint": "^7.10.0",
-    "eslint-plugin-compat": "^3.3.0",
+    "eslint-plugin-compat": "^3.8.0",
     "eslint-plugin-cypress": "^2.8.1",
     "eslint-plugin-import": "^2.19.1",
     "eslint-plugin-jsdoc": "^18.4.3",

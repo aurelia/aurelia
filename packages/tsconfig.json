@@ -11,6 +11,7 @@
     { "path": "fetch-client" },
     { "path": "kernel" },
     { "path": "metadata" },
+    { "path": "platform" },
     { "path": "plugin-conventions" },
     { "path": "plugin-gulp" },
     { "path": "plugin-parcel" },

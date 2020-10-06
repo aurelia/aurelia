@@ -16,6 +16,7 @@
     "packages/i18n",
     "packages/kernel",
     "packages/metadata",
+    "packages/platform",
     "packages/plugin-conventions",
     "packages/plugin-gulp",
     "packages/plugin-parcel",

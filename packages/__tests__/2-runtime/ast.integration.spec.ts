@@ -21,19 +21,17 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         const observerLocator = createObserverLocator(container);
         const accessScopeExpr = new AccessScopeExpression('name', 0);
         // disable connect to verifies evaluate works
-        accessScopeExpr.connect = () => {};
+        accessScopeExpr.connect = () => {/* empty */};
 
         const source = { name: 'hello' };
         const target = { name: '' };
         const binding = new PropertyBinding(accessScopeExpr, target, 'name', BindingMode.toView, observerLocator, container);
-    
+
         binding.$bind(LifecycleFlags.none, createScopeForTest(source), null);
-    
-        // target.name = accessScope.evaluate(LifecycleFlags.none, createScopeForTest(source), null, container, binding) as string;
-    
+
         assert.strictEqual(target.name, 'hello');
-    
-        Array.from({ length: 5 }, (_, idx) => {
+
+        Array.from({ length: 5 }).forEach(idx => {
           source.name = idx + '';
           assert.strictEqual(target.name, idx + '');
         });
@@ -51,20 +49,18 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         );
 
         // disable connect to verifies evaluate works
-        conditionalExpr.connect = () => {};
+        conditionalExpr.connect = () => {/* empty */};
 
         const source = { checked: false, yesMessage: 'yes', noMessage: 'no' };
         const target = { value: '' };
         const scope = createScopeForTest(target, source);
         const binding = new PropertyBinding(conditionalExpr, target, 'value', BindingMode.toView, observerLocator, container);
-    
+
         binding.$bind(LifecycleFlags.none, scope, null);
-    
-        // target.name = accessScope.evaluate(LifecycleFlags.none, createScopeForTest(source), null, container, binding) as string;
-    
+
         assert.strictEqual(target.value, 'no');
-    
-        Array.from({ length: 5 }, (_, idx) => {
+
+        Array.from({ length: 5 }).forEach(idx => {
           source.checked = !source.checked;
           assert.strictEqual(target.value, source.checked ? 'yes' : 'no');
           if (source.checked) {
@@ -89,7 +85,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         binding.dispose();
       });
     });
-  
+
     describe('LetBinding', function () {
       it('auto connects when evaluates', function () {
         const container = DI.createContainer();
@@ -97,20 +93,18 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         const accessScopeExpr = new AccessScopeExpression('name', 0);
 
         // disable connect to verifies evaluate works
-        accessScopeExpr.connect = () => {};
+        accessScopeExpr.connect = () => {/* empty */};
 
         const source = { value: '' };
         const oc = { name: 'hello' };
         const scope = createScopeForTest(source, oc);
         const binding = new LetBinding(accessScopeExpr, 'value', observerLocator, container, true);
-    
+
         binding.$bind(LifecycleFlags.none, scope, null);
-    
-        // target.name = accessScope.evaluate(LifecycleFlags.none, createScopeForTest(source), null, container, binding) as string;
-    
+
         assert.strictEqual(source.value, 'hello');
-    
-        Array.from({ length: 5 }, (_, idx) => {
+
+        Array.from({ length: 5 }).forEach(idx => {
           oc.name = idx + '';
           assert.strictEqual(source.value, idx + '');
         });
@@ -128,20 +122,18 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         );
 
         // disable connect to verifies evaluate works
-        conditionalExpr.connect = () => {};
+        conditionalExpr.connect = () => {/* empty */};
 
         const source = { value: '' };
         const oc = { checked: false, yesMessage: 'yes', noMessage: 'no' };
         const scope = createScopeForTest(source, oc);
         const binding = new LetBinding(conditionalExpr, 'value', observerLocator, container, true);
-    
+
         binding.$bind(LifecycleFlags.none, scope, null);
-    
-        // target.name = accessScope.evaluate(LifecycleFlags.none, createScopeForTest(source), null, container, binding) as string;
-    
+
         assert.strictEqual(source.value, 'no');
-    
-        Array.from({ length: 5 }, (_, idx) => {
+
+        Array.from({ length: 5 }).forEach(idx => {
           oc.checked = !oc.checked;
           assert.strictEqual(source.value, oc.checked ? 'yes' : 'no');
           if (oc.checked) {

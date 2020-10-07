@@ -11,7 +11,6 @@ import {
   ExpressionKind,
   LifecycleFlags,
 } from '../flags';
-import { IBinding } from '../lifecycle';
 import {
   Collection,
   IBindingContext,

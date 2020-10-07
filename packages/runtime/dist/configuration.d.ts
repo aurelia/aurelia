@@ -11,6 +11,7 @@ export declare const ILifecycleRegistration: IRegistry;
 export declare const IRendererRegistration: IRegistry;
 export declare const IStartTaskManagerRegistration: IRegistry;
 export declare const IViewLocatorRegistration: IRegistry;
+export declare const IProjectionProviderRegistration: IRegistry;
 /**
  * Default binding syntax for the following attribute name patterns:
  * - `ref`

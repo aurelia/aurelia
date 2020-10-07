@@ -9,7 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.RuntimeConfiguration = exports.DefaultRenderers = exports.TemplateControllerRendererRegistration = exports.SetPropertyRendererRegistration = exports.RefBindingRendererRegistration = exports.PropertyBindingRendererRegistration = exports.LetElementRendererRegistration = exports.IteratorBindingRendererRegistration = exports.InterpolationBindingRendererRegistration = exports.CustomElementRendererRegistration = exports.CustomAttributeRendererRegistration = exports.CallBindingRendererRegistration = exports.DefaultResources = exports.TwoWayBindingBehaviorRegistration = exports.ThrottleBindingBehaviorRegistration = exports.SignalBindingBehaviorRegistration = exports.FromViewBindingBehaviorRegistration = exports.ToViewBindingBehaviorRegistration = exports.OneTimeBindingBehaviorRegistration = exports.DebounceBindingBehaviorRegistration = exports.ViewValueConverterRegistration = exports.SanitizeValueConverterRegistration = exports.WithRegistration = exports.RepeatRegistration = exports.ElseRegistration = exports.IfRegistration = exports.ObserveShallowRegistration = exports.InfrequentMutationsRegistration = exports.FrequentMutationsRegistration = exports.DefaultComponents = exports.DefaultBindingLanguage = exports.TwoWayBindingCommandRegistration = exports.ToViewBindingCommandRegistration = exports.OneTimeBindingCommandRegistration = exports.FromViewBindingCommandRegistration = exports.ForBindingCommandRegistration = exports.DefaultBindingCommandRegistration = exports.CallBindingCommandRegistration = exports.ShortHandBindingSyntax = exports.DefaultBindingSyntax = exports.IViewLocatorRegistration = exports.IStartTaskManagerRegistration = exports.IRendererRegistration = exports.ILifecycleRegistration = exports.IObserverLocatorRegistration = exports.IExpressionParserRegistration = exports.DotSeparatedAttributePatternRegistration = exports.RefAttributePatternRegistration = exports.ColonPrefixedBindAttributePatternRegistration = exports.AtPrefixedTriggerAttributePatternRegistration = void 0;
+    exports.RuntimeConfiguration = exports.DefaultRenderers = exports.TemplateControllerRendererRegistration = exports.SetPropertyRendererRegistration = exports.RefBindingRendererRegistration = exports.PropertyBindingRendererRegistration = exports.LetElementRendererRegistration = exports.IteratorBindingRendererRegistration = exports.InterpolationBindingRendererRegistration = exports.CustomElementRendererRegistration = exports.CustomAttributeRendererRegistration = exports.CallBindingRendererRegistration = exports.DefaultResources = exports.TwoWayBindingBehaviorRegistration = exports.ThrottleBindingBehaviorRegistration = exports.SignalBindingBehaviorRegistration = exports.FromViewBindingBehaviorRegistration = exports.ToViewBindingBehaviorRegistration = exports.OneTimeBindingBehaviorRegistration = exports.DebounceBindingBehaviorRegistration = exports.ViewValueConverterRegistration = exports.SanitizeValueConverterRegistration = exports.WithRegistration = exports.RepeatRegistration = exports.ElseRegistration = exports.IfRegistration = exports.ObserveShallowRegistration = exports.InfrequentMutationsRegistration = exports.FrequentMutationsRegistration = exports.DefaultComponents = exports.DefaultBindingLanguage = exports.TwoWayBindingCommandRegistration = exports.ToViewBindingCommandRegistration = exports.OneTimeBindingCommandRegistration = exports.FromViewBindingCommandRegistration = exports.ForBindingCommandRegistration = exports.DefaultBindingCommandRegistration = exports.CallBindingCommandRegistration = exports.ShortHandBindingSyntax = exports.DefaultBindingSyntax = exports.IProjectionProviderRegistration = exports.IViewLocatorRegistration = exports.IStartTaskManagerRegistration = exports.IRendererRegistration = exports.ILifecycleRegistration = exports.IObserverLocatorRegistration = exports.IExpressionParserRegistration = exports.DotSeparatedAttributePatternRegistration = exports.RefAttributePatternRegistration = exports.ColonPrefixedBindAttributePatternRegistration = exports.AtPrefixedTriggerAttributePatternRegistration = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const lifecycle_1 = require("./lifecycle");
     const lifecycle_task_1 = require("./lifecycle-task");
@@ -41,6 +41,7 @@
     exports.IRendererRegistration = renderer_1.Renderer;
     exports.IStartTaskManagerRegistration = lifecycle_task_1.StartTaskManager;
     exports.IViewLocatorRegistration = view_2.ViewLocator;
+    exports.IProjectionProviderRegistration = au_slot_1.ProjectionProvider;
     /**
      * Default binding syntax for the following attribute name patterns:
      * - `ref`
@@ -100,7 +101,7 @@
         exports.IStartTaskManagerRegistration,
         exports.IViewLocatorRegistration,
         scheduler_1.Now,
-        au_slot_1.ProjectionProvider,
+        exports.IProjectionProviderRegistration,
     ];
     exports.FrequentMutationsRegistration = flags_1.FrequentMutations;
     exports.InfrequentMutationsRegistration = flags_1.InfrequentMutations;

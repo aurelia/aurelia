@@ -44,7 +44,7 @@ export interface IEventAggregator extends EventAggregator {}
 /**
  * Enables loosely coupled publish/subscribe messaging.
  */
-export class EventAggregator implements IEventAggregator {
+export class EventAggregator {
   /** @internal */
   public readonly eventLookup: Record<string, ((message: unknown, channel: string) => void)[]> = {};
   /** @internal */

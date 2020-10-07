@@ -75,7 +75,7 @@ describe('Queue', function () {
       qAnimal.resolve();
     };
     const q = new Queue<Animal>(callback as (item: QueueItem<Animal>) => void);
-    q.activate({ allowedExecutionCostWithinTick: 0, scheduler });
+    q.start({ allowedExecutionCostWithinTick: 0, scheduler });
     let promise = q.enqueue(new Animal('dog', 'Pluto'));
     assert.strictEqual(q.pending.length, 1, `q.pending.length`);
     await wait(50);
@@ -85,7 +85,7 @@ describe('Queue', function () {
     assert.strictEqual(q.pending.length, 1, `q.pending.length`);
     await wait(120);
     assert.strictEqual(q.pending.length, 0, `q.pending.length`);
-    q.deactivate();
+    q.stop();
   });
 });
 

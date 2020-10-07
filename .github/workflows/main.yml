@@ -1,5 +1,5 @@
 name: Github Actions
-on: [push, pull_request]
+on: [push]
 jobs:
 
   lint:
@@ -21,8 +21,6 @@ jobs:
           "aot",
           "babel-jest",
           "i18n",
-          "jit",
-          "jit-html",
           "kernel",
           "plugin-conventions",
           "plugin-gulp",

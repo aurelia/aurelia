@@ -31,9 +31,10 @@ describe('Viewport', function () {
     await au.start().wait();
 
     async function tearDown() {
-      router.deactivate();
       RouterConfiguration.customize();
       await au.stop().wait();
+
+      au.dispose();
     }
 
     return { au, container, scheduler, host, router, tearDown };

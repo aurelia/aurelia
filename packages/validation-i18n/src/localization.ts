@@ -1,6 +1,6 @@
 import { I18N, Signals } from '@aurelia/i18n';
-import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, ILogger, Key } from '@aurelia/kernel';
-import { IExpressionParser, IInterpolationExpression, IScheduler, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, ILogger, IServiceLocator, Key } from '@aurelia/kernel';
+import { IExpressionParser, Interpolation, IScheduler, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IValidationRule, IValidator, ValidationMessageProvider } from '@aurelia/validation';
 import { IValidationController, ValidationController, ValidationControllerFactory, ValidationHtmlCustomizationOptions } from '@aurelia/validation-html';
 
@@ -17,12 +17,13 @@ export const I18nKeyConfiguration = DI.createInterface<I18nKeyConfiguration>('I1
 export class LocalizedValidationController extends ValidationController {
   private readonly localeChangeSubscription: IDisposable;
   public constructor(
+    @IServiceLocator locator: IServiceLocator,
     @IEventAggregator ea: EventAggregator,
     @IValidator validator: IValidator,
     @IExpressionParser parser: IExpressionParser,
     @IScheduler scheduler: IScheduler,
   ) {
-    super(validator, parser, scheduler);
+    super(validator, parser, scheduler, locator);
     this.localeChangeSubscription = ea.subscribe(
       I18N_VALIDATION_EA_CHANNEL,
       () => { scheduler.getPostRenderTaskQueue().queueTask(async () => { await this.revalidateErrors(); }); }
@@ -35,6 +36,7 @@ export class LocalizedValidationControllerFactory extends ValidationControllerFa
     return _dynamicDependencies !== void 0
       ? Reflect.construct(LocalizedValidationController, _dynamicDependencies)
       : new LocalizedValidationController(
+        container,
         container.get(IEventAggregator),
         container.get<IValidator>(IValidator),
         container.get(IExpressionParser),
@@ -66,12 +68,12 @@ export class LocalizedValidationMessageProvider extends ValidationMessageProvide
     ea.subscribe(
       Signals.I18N_EA_CHANNEL,
       () => {
-        this.registeredMessages = new WeakMap<IValidationRule, IInterpolationExpression | PrimitiveLiteralExpression>();
+        this.registeredMessages = new WeakMap<IValidationRule, Interpolation | PrimitiveLiteralExpression>();
         ea.publish(I18N_VALIDATION_EA_CHANNEL);
       });
   }
 
-  public getMessage(rule: IValidationRule): IInterpolationExpression | PrimitiveLiteralExpression {
+  public getMessage(rule: IValidationRule): Interpolation | PrimitiveLiteralExpression {
     const parsedMessage = this.registeredMessages.get(rule);
     if (parsedMessage !== void 0) { return parsedMessage; }
 

@@ -28,13 +28,13 @@
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "build": "tsc -b",
-    "dev": "tsc -b -w"
+    "dev": "tsc -b -w --preserveWatchOutput"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {},
   "devDependencies": {
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.3"
   }
 }

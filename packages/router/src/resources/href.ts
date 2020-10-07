@@ -1,4 +1,4 @@
-import { customAttribute, INode, bindable, BindingMode, ViewModelKind, IDOM, DelegationStrategy, ICustomAttributeViewModel, IController, IRenderableController, ICustomAttributeController } from '@aurelia/runtime';
+import { customAttribute, INode, bindable, BindingMode, ViewModelKind, IDOM, DelegationStrategy, ICustomAttributeViewModel, ICustomAttributeController } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { GotoCustomAttribute } from '../configuration';
 import { IEventManager } from '@aurelia/runtime-html';
@@ -8,13 +8,13 @@ import { IDisposable } from '@aurelia/kernel';
   name: 'href',
   noMultiBindings: true
 })
-export class HrefCustomAttribute implements ICustomAttributeViewModel<HTMLElement> {
+export class HrefCustomAttribute implements ICustomAttributeViewModel<Element> {
   @bindable({ mode: BindingMode.toView })
   public value: string | undefined;
 
   private eventListener: IDisposable | null = null;
-  private readonly element: HTMLElement;
-  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
+  private readonly element: Element;
+  public readonly $controller!: ICustomAttributeController<Element, this>;
 
   public constructor(
     @IDOM private readonly dom: IDOM,
@@ -22,7 +22,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel<HTMLElemen
     @IRouter private readonly router: IRouter,
     @IEventManager private readonly eventManager: IEventManager,
   ) {
-    this.element = element as HTMLElement;
+    this.element = element as Element;
   }
 
   public beforeBind(): void {
@@ -48,7 +48,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel<HTMLElemen
 
   private hasGoto(): boolean {
     const parent = this.$controller.parent!;
-    const siblings = parent.vmKind !== ViewModelKind.customAttribute ? parent.controllers : void 0;
+    const siblings = parent.children;
     return siblings !== void 0
       && siblings.some(c => c.vmKind === ViewModelKind.customAttribute && c.viewModel instanceof GotoCustomAttribute);
   }

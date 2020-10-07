@@ -2,8 +2,7 @@ import { LifecycleFlags } from '../../flags';
 import { IScope } from '../../observation';
 import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../binding-behavior';
 import { ITask, IScheduler, ITaskQueue, QueueTaskOptions } from '@aurelia/scheduler';
-import { BindingBehaviorExpression } from '../../binding/ast';
-import { IsAssign } from '../../ast';
+import { BindingBehaviorExpression, IsAssign } from '../../binding/ast';
 
 @bindingBehavior('debounce')
 export class DebounceBindingBehavior extends BindingInterceptor {
@@ -39,13 +38,13 @@ export class DebounceBindingBehavior extends BindingInterceptor {
     this.task = this.taskQueue.queueTask(callback, this.opts);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
     if (this.firstArg !== null) {
-      const delay = Number(this.firstArg.evaluate(flags, scope, this.locator, part));
+      const delay = Number(this.firstArg.evaluate(flags, scope, hostScope, this.locator));
       if (!isNaN(delay)) {
         this.opts.delay = delay;
       }
     }
-    this.binding.$bind(flags, scope, part);
+    this.binding.$bind(flags, scope, hostScope);
   }
 }

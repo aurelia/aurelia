@@ -1,1 +1,1 @@
-{"version":3,"file":"svg-analyzer.d.ts","sourceRoot":"","sources":["../src/svg-analyzer.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,UAAU,EAAE,MAAM,iBAAiB,CAAC;AAiO7C,wBAAgB,QAAQ,CAAC,SAAS,EAAE,UAAU,GAAG,IAAI,CAoBpD"}
+{"version":3,"file":"svg-analyzer.d.ts","sourceRoot":"","sources":["../src/svg-analyzer.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,UAAU,EAAE,MAAM,iBAAiB,CAAC;AAqN7C,wBAAgB,QAAQ,CAAC,SAAS,EAAE,UAAU,GAAG,IAAI,CAoCpD"}

@@ -1,3 +1,4 @@
+import { IDOM } from '@aurelia/runtime';
 import { ISVGAnalyzer } from '@aurelia/runtime-html';
 const svgElements = {
     'a': ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],
@@ -196,27 +197,29 @@ const svgPresentationAttributes = {
     'writing-mode': true
 };
 // SVG elements/attributes are case-sensitive.  Not all browsers use the same casing for all attributes.
-function createElement(html) {
+function createElement(html, dom) {
     // Using very HTML-specific code here since you won't install this module
     // unless you are actually running in a browser, using HTML,
     // and dealing with browser inconsistencies.
-    const div = document.createElement('div');
+    const div = dom.createElement('div');
     div.innerHTML = html;
     return div.firstElementChild;
 }
-if (createElement('<svg><altGlyph /></svg>').firstElementChild.nodeName === 'altglyph' && svgElements.altGlyph !== undefined) {
-    // handle chrome casing inconsistencies.
-    svgElements.altglyph = svgElements.altGlyph;
-    Reflect.deleteProperty(svgElements, 'altGlyph');
-    svgElements.altglyphdef = svgElements.altGlyphDef;
-    Reflect.deleteProperty(svgElements, 'altGlyphDef');
-    svgElements.altglyphitem = svgElements.altGlyphItem;
-    Reflect.deleteProperty(svgElements, 'altGlyphItem');
-    svgElements.glyphref = svgElements.glyphRef;
-    Reflect.deleteProperty(svgElements, 'glyphRef');
-}
 export function register(container) {
     container.registerTransformer(ISVGAnalyzer, analyzer => {
+        const dom = container.get(IDOM);
+        if ((createElement('<svg><altGlyph /></svg>', dom).firstElementChild).nodeName === 'altglyph'
+            && svgElements.altGlyph !== undefined) {
+            // handle chrome casing inconsistencies.
+            svgElements.altglyph = svgElements.altGlyph;
+            Reflect.deleteProperty(svgElements, 'altGlyph');
+            svgElements.altglyphdef = svgElements.altGlyphDef;
+            Reflect.deleteProperty(svgElements, 'altGlyphDef');
+            svgElements.altglyphitem = svgElements.altGlyphItem;
+            Reflect.deleteProperty(svgElements, 'altGlyphItem');
+            svgElements.glyphref = svgElements.glyphRef;
+            Reflect.deleteProperty(svgElements, 'glyphRef');
+        }
         return {
             ...analyzer,
             isStandardSvgAttribute(node, attributeName) {

@@ -44,6 +44,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 return kernel_1.Registration.singleton(exports.ITemplateElementFactory, this).register(container);
             }
             createTemplate(input) {
+                var _a;
                 if (typeof input === 'string') {
                     let result = markupCache[input];
                     if (result === void 0) {
@@ -74,10 +75,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 }
                 // we got a template element, remove it from the DOM if it's present there and don't
                 // do any other processing
-                if (input.parentNode != null) {
-                    input.parentNode.removeChild(input);
-                }
-                return input;
+                (_a = input.parentNode) === null || _a === void 0 ? void 0 : _a.removeChild(input);
+                return input.cloneNode(true);
             }
         };
         HTMLTemplateElementFactory = __decorate([

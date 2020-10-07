@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ServiceHost = exports.DeferredModule = exports.ExecutionContext = exports.Realm = exports.Job = exports.$ESScript = exports.$DocumentFragment = exports.$ESModule = exports.ISourceFileProvider = exports.$Undefined = exports.$Symbol = exports.$String = exports.$Object = exports.$Number = exports.$Null = exports.$URIError = exports.$TypeError = exports.$SyntaxError = exports.$ReferenceError = exports.$RangeError = exports.$Error = exports.$Empty = exports.$Boolean = exports.IFileSystem = exports.FileKind = exports.Encoding = exports.NodeFileSystem = void 0;
     var file_system_1 = require("./system/file-system");
     Object.defineProperty(exports, "NodeFileSystem", { enumerable: true, get: function () { return file_system_1.NodeFileSystem; } });
     var interfaces_1 = require("./system/interfaces");

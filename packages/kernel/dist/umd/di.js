@@ -16,6 +16,7 @@
     const platform_1 = require("./platform");
     const reporter_1 = require("./reporter");
     const resource_1 = require("./resource");
+    const { emptyArray } = platform_1.PLATFORM;
     class ResolverBuilder {
         constructor(container, key) {
             this.container = container;
@@ -289,7 +290,7 @@
                 const registration = exports.Registration.transient(target, target);
                 return registration.register(container, target);
             };
-            target.registerInRequester = false;
+            target.registerInRequestor = false;
             return target;
         },
         /**
@@ -314,7 +315,7 @@
                 const registration = exports.Registration.singleton(target, target);
                 return registration.register(container, target);
             };
-            target.registerInRequester = options.scoped;
+            target.registerInRequestor = options.scoped;
             return target;
         },
     };
@@ -353,7 +354,20 @@
         };
     }
     exports.singleton = singleton;
-    exports.all = createResolver((key, handler, requestor) => requestor.getAll(key));
+    function createAllResolver(getter) {
+        return function (key, searchAncestors) {
+            searchAncestors = !!searchAncestors;
+            const resolver = function (target, property, descriptor) {
+                exports.DI.inject(resolver)(target, property, descriptor);
+            };
+            resolver.$isResolver = true;
+            resolver.resolve = function (handler, requestor) {
+                return getter(key, handler, requestor, searchAncestors);
+            };
+            return resolver;
+        };
+    }
+    exports.all = createAllResolver((key, handler, requestor, searchAncestors) => requestor.getAll(key, searchAncestors));
     /**
      * Lazily inject a dependency depending on whether the [[`Key`]] is present at the time of function call.
      *
@@ -627,10 +641,10 @@
         return typeof obj.register === 'function';
     }
     function isSelfRegistry(obj) {
-        return isRegistry(obj) && typeof obj.registerInRequester === 'boolean';
+        return isRegistry(obj) && typeof obj.registerInRequestor === 'boolean';
     }
     function isRegisterInRequester(obj) {
-        return isSelfRegistry(obj) && obj.registerInRequester;
+        return isSelfRegistry(obj) && obj.registerInRequestor;
     }
     function isClass(obj) {
         return obj.prototype !== void 0;
@@ -871,23 +885,37 @@
             }
             throw new Error(`Unable to resolve key: ${key}`);
         }
-        getAll(key) {
+        getAll(key, searchAncestors = false) {
             validateKey(key);
-            let current = this;
+            const requestor = this;
+            let current = requestor;
             let resolver;
-            while (current != null) {
-                resolver = current.resolvers.get(key);
-                if (resolver == null) {
-                    if (this.parent == null) {
-                        return platform_1.PLATFORM.emptyArray;
+            if (searchAncestors) {
+                let resolutions = emptyArray;
+                while (current != null) {
+                    resolver = current.resolvers.get(key);
+                    if (resolver != null) {
+                        resolutions = resolutions.concat(buildAllResponse(resolver, current, requestor));
                     }
                     current = current.parent;
                 }
-                else {
-                    return buildAllResponse(resolver, current, this);
+                return resolutions;
+            }
+            else {
+                while (current != null) {
+                    resolver = current.resolvers.get(key);
+                    if (resolver == null) {
+                        current = current.parent;
+                        if (current == null) {
+                            return emptyArray;
+                        }
+                    }
+                    else {
+                        return buildAllResponse(resolver, current, requestor);
+                    }
                 }
             }
-            return platform_1.PLATFORM.emptyArray;
+            return emptyArray;
         }
         getFactory(Type) {
             let factory = metadata_1.Metadata.getOwn(factoryAnnotationKey, Type);

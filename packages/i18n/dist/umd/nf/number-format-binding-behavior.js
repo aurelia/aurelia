@@ -18,17 +18,14 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     exports.NumberFormatBindingBehavior = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const utils_1 = require("../utils");
-    let NumberFormatBindingBehavior = /** @class */ (() => {
-        let NumberFormatBindingBehavior = class NumberFormatBindingBehavior {
-            bind(flags, _scope, _hostScope, binding) {
-                utils_1.createIntlFormatValueConverterExpression("nf" /* numberFormatValueConverterName */, binding);
-            }
-        };
-        NumberFormatBindingBehavior = __decorate([
-            runtime_1.bindingBehavior("nf" /* numberFormatValueConverterName */)
-        ], NumberFormatBindingBehavior);
-        return NumberFormatBindingBehavior;
-    })();
+    let NumberFormatBindingBehavior = class NumberFormatBindingBehavior {
+        bind(flags, _scope, _hostScope, binding) {
+            utils_1.createIntlFormatValueConverterExpression("nf" /* numberFormatValueConverterName */, binding);
+        }
+    };
+    NumberFormatBindingBehavior = __decorate([
+        runtime_1.bindingBehavior("nf" /* numberFormatValueConverterName */)
+    ], NumberFormatBindingBehavior);
     exports.NumberFormatBindingBehavior = NumberFormatBindingBehavior;
 });
 //# sourceMappingURL=number-format-binding-behavior.js.map

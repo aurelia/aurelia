@@ -12,38 +12,35 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { ISignaler } from '../../observation/signaler';
 import { bindingBehavior } from '../binding-behavior';
-let SignalBindingBehavior = /** @class */ (() => {
-    let SignalBindingBehavior = class SignalBindingBehavior {
-        constructor(signaler) {
-            this.signaler = signaler;
-            this.lookup = new Map();
+let SignalBindingBehavior = class SignalBindingBehavior {
+    constructor(signaler) {
+        this.signaler = signaler;
+        this.lookup = new Map();
+    }
+    bind(flags, scope, hostScope, binding, ...names) {
+        if (!('handleChange' in binding)) {
+            throw new Error(`The signal behavior can only be used with bindings that have a 'handleChange' method`);
         }
-        bind(flags, scope, hostScope, binding, ...names) {
-            if (!('handleChange' in binding)) {
-                throw new Error(`The signal behavior can only be used with bindings that have a 'handleChange' method`);
-            }
-            if (names.length === 0) {
-                throw new Error(`At least one signal name must be passed to the signal behavior, e.g. \`expr & signal:'my-signal'\``);
-            }
-            this.lookup.set(binding, names);
-            for (const name of names) {
-                this.signaler.addSignalListener(name, binding);
-            }
+        if (names.length === 0) {
+            throw new Error(`At least one signal name must be passed to the signal behavior, e.g. \`expr & signal:'my-signal'\``);
         }
-        unbind(flags, scope, hostScope, binding) {
-            const names = this.lookup.get(binding);
-            this.lookup.delete(binding);
-            for (const name of names) {
-                this.signaler.removeSignalListener(name, binding);
-            }
+        this.lookup.set(binding, names);
+        for (const name of names) {
+            this.signaler.addSignalListener(name, binding);
         }
-    };
-    SignalBindingBehavior = __decorate([
-        bindingBehavior('signal'),
-        __param(0, ISignaler),
-        __metadata("design:paramtypes", [Object])
-    ], SignalBindingBehavior);
-    return SignalBindingBehavior;
-})();
+    }
+    unbind(flags, scope, hostScope, binding) {
+        const names = this.lookup.get(binding);
+        this.lookup.delete(binding);
+        for (const name of names) {
+            this.signaler.removeSignalListener(name, binding);
+        }
+    }
+};
+SignalBindingBehavior = __decorate([
+    bindingBehavior('signal'),
+    __param(0, ISignaler),
+    __metadata("design:paramtypes", [Object])
+], SignalBindingBehavior);
 export { SignalBindingBehavior };
 //# sourceMappingURL=signals.js.map

@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.HrefCustomAttributeRegistration = exports.HrefCustomAttribute = exports.LoadCustomAttributeRegistration = exports.LoadCustomAttribute = exports.GotoCustomAttributeRegistration = exports.GotoCustomAttribute = exports.NavCustomElementRegistration = exports.NavCustomElement = exports.ViewportCustomElementRegistration = exports.ViewportCustomElement = exports.DefaultResources = exports.DefaultComponents = exports.RouterRegistration = exports.RouterConfiguration = exports.ViewportInstruction = exports.ViewportContent = exports.ContentStatus = exports.Viewport = exports.RouterOptions = exports.Router = exports.IRouter = exports.Endpoint = exports.RecognizedRoute = exports.ConfigurableRoute = exports.RouteRecognizer = exports.Queue = exports.Runner = exports.Navigator = exports.Navigation = exports.NavRoute = exports.Nav = exports.HookTypes = exports.HookManager = exports.LifecycleClass = exports.lifecycleLogger = exports.ReentryBehavior = exports.InstructionResolver = exports.LinkHandler = void 0;
     var link_handler_1 = require("./link-handler");
     Object.defineProperty(exports, "LinkHandler", { enumerable: true, get: function () { return link_handler_1.LinkHandler; } });
     var instruction_resolver_1 = require("./instruction-resolver");

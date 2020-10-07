@@ -7,48 +7,45 @@ const marker = {
     prev: null,
     next: null
 };
-let TraceInfo = /** @class */ (() => {
-    class TraceInfo {
-        constructor(objName, methodName, params) {
-            this.objName = objName;
-            this.methodName = methodName;
-            this.params = params;
-            this.objName = objName;
-            this.methodName = methodName;
-            this.depth = TraceInfo.stack.length;
-            this.params = params;
-            this.next = marker;
-            this.prev = TraceInfo.tail;
-            TraceInfo.tail.next = this;
-            TraceInfo.tail = this;
-            TraceInfo.stack.push(this);
-        }
-        static reset() {
-            let current = TraceInfo.head;
-            let next = null;
-            while (current != null) {
-                next = current.next;
-                current.next = null;
-                current.prev = null;
-                current.params = null;
-                current = next;
-            }
-            TraceInfo.head = marker;
-            TraceInfo.tail = marker;
-            TraceInfo.stack = [];
-        }
-        static enter(objName, methodName, params) {
-            return new TraceInfo(objName, methodName, params);
-        }
-        static leave() {
-            return TraceInfo.stack.pop();
-        }
+class TraceInfo {
+    constructor(objName, methodName, params) {
+        this.objName = objName;
+        this.methodName = methodName;
+        this.params = params;
+        this.objName = objName;
+        this.methodName = methodName;
+        this.depth = TraceInfo.stack.length;
+        this.params = params;
+        this.next = marker;
+        this.prev = TraceInfo.tail;
+        TraceInfo.tail.next = this;
+        TraceInfo.tail = this;
+        TraceInfo.stack.push(this);
     }
-    TraceInfo.head = marker;
-    TraceInfo.tail = marker;
-    TraceInfo.stack = [];
-    return TraceInfo;
-})();
+    static reset() {
+        let current = TraceInfo.head;
+        let next = null;
+        while (current != null) {
+            next = current.next;
+            current.next = null;
+            current.prev = null;
+            current.params = null;
+            current = next;
+        }
+        TraceInfo.head = marker;
+        TraceInfo.tail = marker;
+        TraceInfo.stack = [];
+    }
+    static enter(objName, methodName, params) {
+        return new TraceInfo(objName, methodName, params);
+    }
+    static leave() {
+        return TraceInfo.stack.pop();
+    }
+}
+TraceInfo.head = marker;
+TraceInfo.tail = marker;
+TraceInfo.stack = [];
 export const DebugTracer = {
     ...Tracer,
     /**

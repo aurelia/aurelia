@@ -56,57 +56,54 @@ export function instructionRenderer(instructionType) {
     };
 }
 /* @internal */
-let Renderer = /** @class */ (() => {
-    let Renderer = class Renderer {
-        constructor(instructionRenderers) {
-            const record = this.instructionRenderers = {};
-            instructionRenderers.forEach(item => {
-                // Binding the functions to the renderer instances and calling the functions directly,
-                // prevents the `render` call sites from going megamorphic.
-                // Consumes slightly more memory but significantly less CPU.
-                record[item.instructionType] = item.render.bind(item);
-            });
+let Renderer = class Renderer {
+    constructor(instructionRenderers) {
+        const record = this.instructionRenderers = {};
+        instructionRenderers.forEach(item => {
+            // Binding the functions to the renderer instances and calling the functions directly,
+            // prevents the `render` call sites from going megamorphic.
+            // Consumes slightly more memory but significantly less CPU.
+            record[item.instructionType] = item.render.bind(item);
+        });
+    }
+    static register(container) {
+        return Registration.singleton(IRenderer, this).register(container);
+    }
+    render(flags, context, controller, targets, definition, host) {
+        const targetInstructions = definition.instructions;
+        if (targets.length !== targetInstructions.length) {
+            throw new Error(`The compiled template is not aligned with the render instructions. There are ${targets.length} targets and ${targetInstructions.length} instructions.`);
         }
-        static register(container) {
-            return Registration.singleton(IRenderer, this).register(container);
+        for (let i = 0, ii = targets.length; i < ii; ++i) {
+            this.renderInstructions(
+            /* flags        */ flags, 
+            /* context      */ context, 
+            /* instructions */ targetInstructions[i], 
+            /* controller   */ controller, 
+            /* target       */ targets[i]);
         }
-        render(flags, context, controller, targets, definition, host) {
-            const targetInstructions = definition.instructions;
-            if (targets.length !== targetInstructions.length) {
-                throw new Error(`The compiled template is not aligned with the render instructions. There are ${targets.length} targets and ${targetInstructions.length} instructions.`);
-            }
-            for (let i = 0, ii = targets.length; i < ii; ++i) {
-                this.renderInstructions(
-                /* flags        */ flags, 
-                /* context      */ context, 
-                /* instructions */ targetInstructions[i], 
-                /* controller   */ controller, 
-                /* target       */ targets[i]);
-            }
-            if (host !== void 0 && host !== null) {
-                this.renderInstructions(
-                /* flags        */ flags, 
-                /* context      */ context, 
-                /* instructions */ definition.surrogates, 
-                /* controller   */ controller, 
-                /* target       */ host);
-            }
+        if (host !== void 0 && host !== null) {
+            this.renderInstructions(
+            /* flags        */ flags, 
+            /* context      */ context, 
+            /* instructions */ definition.surrogates, 
+            /* controller   */ controller, 
+            /* target       */ host);
         }
-        renderInstructions(flags, context, instructions, controller, target) {
-            const instructionRenderers = this.instructionRenderers;
-            let current;
-            for (let i = 0, ii = instructions.length; i < ii; ++i) {
-                current = instructions[i];
-                instructionRenderers[current.type](flags, context, controller, target, current);
-            }
+    }
+    renderInstructions(flags, context, instructions, controller, target) {
+        const instructionRenderers = this.instructionRenderers;
+        let current;
+        for (let i = 0, ii = instructions.length; i < ii; ++i) {
+            current = instructions[i];
+            instructionRenderers[current.type](flags, context, controller, target, current);
         }
-    };
-    Renderer = __decorate([
-        __param(0, all(IInstructionRenderer)),
-        __metadata("design:paramtypes", [Array])
-    ], Renderer);
-    return Renderer;
-})();
+    }
+};
+Renderer = __decorate([
+    __param(0, all(IInstructionRenderer)),
+    __metadata("design:paramtypes", [Array])
+], Renderer);
 export { Renderer };
 export function ensureExpression(parser, srcOrExpr, bindingType) {
     if (typeof srcOrExpr === 'string') {
@@ -147,312 +144,282 @@ export function getRefTarget(refHost, refTargetName) {
         }
     }
 }
-let SetPropertyRenderer = /** @class */ (() => {
-    let SetPropertyRenderer = 
-    /** @internal */
-    class SetPropertyRenderer {
-        render(flags, context, controller, target, instruction) {
-            const obj = getTarget(target);
-            if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
-                obj.$observers[instruction.to].setValue(instruction.value, 32 /* fromBind */);
-            }
-            else {
-                obj[instruction.to] = instruction.value;
-            }
+let SetPropertyRenderer = 
+/** @internal */
+class SetPropertyRenderer {
+    render(flags, context, controller, target, instruction) {
+        const obj = getTarget(target);
+        if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
+            obj.$observers[instruction.to].setValue(instruction.value, 32 /* fromBind */);
         }
-    };
-    SetPropertyRenderer = __decorate([
-        instructionRenderer("re" /* setProperty */)
-        /** @internal */
-    ], SetPropertyRenderer);
-    return SetPropertyRenderer;
-})();
+        else {
+            obj[instruction.to] = instruction.value;
+        }
+    }
+};
+SetPropertyRenderer = __decorate([
+    instructionRenderer("re" /* setProperty */)
+    /** @internal */
+], SetPropertyRenderer);
 export { SetPropertyRenderer };
-let CustomElementRenderer = /** @class */ (() => {
-    let CustomElementRenderer = 
-    /** @internal */
-    class CustomElementRenderer {
-        render(flags, context, controller, target, instruction) {
-            let viewFactory;
-            const slotInfo = instruction.slotInfo;
-            if (slotInfo !== null) {
-                const projectionCtx = slotInfo.projectionContext;
-                viewFactory = getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
-            }
-            const factory = context.getComponentFactory(
-            /* parentController */ controller, 
-            /* host             */ target, 
-            /* instruction      */ instruction, 
-            /* viewFactory      */ viewFactory, 
-            /* location         */ target);
-            const key = CustomElement.keyFrom(instruction.res);
-            const component = factory.createComponent(key);
-            const lifecycle = context.get(ILifecycle);
-            const childController = Controller.forCustomElement(
-            /* viewModel           */ component, 
-            /* lifecycle           */ lifecycle, 
-            /* host                */ target, 
-            /* parentContainer     */ context, 
-            /* targetedProjections */ context.getProjectionFor(instruction), 
-            /* flags               */ flags);
-            flags = childController.flags;
-            Metadata.define(key, childController, target);
-            context.renderInstructions(
-            /* flags        */ flags, 
-            /* instructions */ instruction.instructions, 
-            /* controller   */ controller, 
-            /* target       */ childController);
-            controller.addController(childController);
-            factory.dispose();
+let CustomElementRenderer = 
+/** @internal */
+class CustomElementRenderer {
+    render(flags, context, controller, target, instruction) {
+        let viewFactory;
+        const slotInfo = instruction.slotInfo;
+        if (slotInfo !== null) {
+            const projectionCtx = slotInfo.projectionContext;
+            viewFactory = getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
         }
-    };
-    CustomElementRenderer = __decorate([
-        instructionRenderer("ra" /* hydrateElement */)
-        /** @internal */
-    ], CustomElementRenderer);
-    return CustomElementRenderer;
-})();
+        const factory = context.getComponentFactory(
+        /* parentController */ controller, 
+        /* host             */ target, 
+        /* instruction      */ instruction, 
+        /* viewFactory      */ viewFactory, 
+        /* location         */ target);
+        const key = CustomElement.keyFrom(instruction.res);
+        const component = factory.createComponent(key);
+        const lifecycle = context.get(ILifecycle);
+        const childController = Controller.forCustomElement(
+        /* viewModel           */ component, 
+        /* lifecycle           */ lifecycle, 
+        /* host                */ target, 
+        /* parentContainer     */ context, 
+        /* targetedProjections */ context.getProjectionFor(instruction), 
+        /* flags               */ flags);
+        flags = childController.flags;
+        Metadata.define(key, childController, target);
+        context.renderInstructions(
+        /* flags        */ flags, 
+        /* instructions */ instruction.instructions, 
+        /* controller   */ controller, 
+        /* target       */ childController);
+        controller.addController(childController);
+        factory.dispose();
+    }
+};
+CustomElementRenderer = __decorate([
+    instructionRenderer("ra" /* hydrateElement */)
+    /** @internal */
+], CustomElementRenderer);
 export { CustomElementRenderer };
-let CustomAttributeRenderer = /** @class */ (() => {
-    let CustomAttributeRenderer = 
+let CustomAttributeRenderer = 
+/** @internal */
+class CustomAttributeRenderer {
+    render(flags, context, controller, target, instruction) {
+        const factory = context.getComponentFactory(
+        /* parentController */ controller, 
+        /* host             */ target, 
+        /* instruction      */ instruction, 
+        /* viewFactory      */ void 0, 
+        /* location         */ void 0);
+        const key = CustomAttribute.keyFrom(instruction.res);
+        const component = factory.createComponent(key);
+        const lifecycle = context.get(ILifecycle);
+        const childController = Controller.forCustomAttribute(
+        /* viewModel */ component, 
+        /* lifecycle */ lifecycle, 
+        /* host      */ target, 
+        /* flags     */ flags);
+        Metadata.define(key, childController, target);
+        context.renderInstructions(
+        /* flags        */ flags, 
+        /* instructions */ instruction.instructions, 
+        /* controller   */ controller, 
+        /* target       */ childController);
+        controller.addController(childController);
+        factory.dispose();
+    }
+};
+CustomAttributeRenderer = __decorate([
+    instructionRenderer("rb" /* hydrateAttribute */)
     /** @internal */
-    class CustomAttributeRenderer {
-        render(flags, context, controller, target, instruction) {
-            const factory = context.getComponentFactory(
-            /* parentController */ controller, 
-            /* host             */ target, 
-            /* instruction      */ instruction, 
-            /* viewFactory      */ void 0, 
-            /* location         */ void 0);
-            const key = CustomAttribute.keyFrom(instruction.res);
-            const component = factory.createComponent(key);
-            const lifecycle = context.get(ILifecycle);
-            const childController = Controller.forCustomAttribute(
-            /* viewModel */ component, 
-            /* lifecycle */ lifecycle, 
-            /* host      */ target, 
-            /* flags     */ flags);
-            Metadata.define(key, childController, target);
-            context.renderInstructions(
-            /* flags        */ flags, 
-            /* instructions */ instruction.instructions, 
-            /* controller   */ controller, 
-            /* target       */ childController);
-            controller.addController(childController);
-            factory.dispose();
-        }
-    };
-    CustomAttributeRenderer = __decorate([
-        instructionRenderer("rb" /* hydrateAttribute */)
-        /** @internal */
-    ], CustomAttributeRenderer);
-    return CustomAttributeRenderer;
-})();
+], CustomAttributeRenderer);
 export { CustomAttributeRenderer };
-let TemplateControllerRenderer = /** @class */ (() => {
-    let TemplateControllerRenderer = 
-    /** @internal */
-    class TemplateControllerRenderer {
-        render(flags, parentContext, controller, target, instruction) {
-            const viewFactory = getRenderContext(instruction.def, parentContext).getViewFactory();
-            const renderLocation = parentContext.dom.convertToRenderLocation(target);
-            const componentFactory = parentContext.getComponentFactory(
-            /* parentController */ controller, 
-            /* host             */ target, 
-            /* instruction      */ instruction, 
-            /* viewFactory      */ viewFactory, 
-            /* location         */ renderLocation);
-            const key = CustomAttribute.keyFrom(instruction.res);
-            const component = componentFactory.createComponent(key);
-            const lifecycle = parentContext.get(ILifecycle);
-            const childController = Controller.forCustomAttribute(
-            /* viewModel */ component, 
-            /* lifecycle */ lifecycle, 
-            /* host      */ target, 
-            /* flags     */ flags);
-            Metadata.define(key, childController, renderLocation);
-            if (instruction.link) {
-                const children = controller.children;
-                component.link(children[children.length - 1]);
-            }
-            parentContext.renderInstructions(
-            /* flags        */ flags, 
-            /* instructions */ instruction.instructions, 
-            /* controller   */ controller, 
-            /* target       */ childController);
-            controller.addController(childController);
-            componentFactory.dispose();
+let TemplateControllerRenderer = 
+/** @internal */
+class TemplateControllerRenderer {
+    render(flags, parentContext, controller, target, instruction) {
+        const viewFactory = getRenderContext(instruction.def, parentContext).getViewFactory();
+        const renderLocation = parentContext.dom.convertToRenderLocation(target);
+        const componentFactory = parentContext.getComponentFactory(
+        /* parentController */ controller, 
+        /* host             */ target, 
+        /* instruction      */ instruction, 
+        /* viewFactory      */ viewFactory, 
+        /* location         */ renderLocation);
+        const key = CustomAttribute.keyFrom(instruction.res);
+        const component = componentFactory.createComponent(key);
+        const lifecycle = parentContext.get(ILifecycle);
+        const childController = Controller.forCustomAttribute(
+        /* viewModel */ component, 
+        /* lifecycle */ lifecycle, 
+        /* host      */ target, 
+        /* flags     */ flags);
+        Metadata.define(key, childController, renderLocation);
+        if (instruction.link) {
+            const children = controller.children;
+            component.link(children[children.length - 1]);
         }
-    };
-    TemplateControllerRenderer = __decorate([
-        instructionRenderer("rc" /* hydrateTemplateController */)
-        /** @internal */
-    ], TemplateControllerRenderer);
-    return TemplateControllerRenderer;
-})();
+        parentContext.renderInstructions(
+        /* flags        */ flags, 
+        /* instructions */ instruction.instructions, 
+        /* controller   */ controller, 
+        /* target       */ childController);
+        controller.addController(childController);
+        componentFactory.dispose();
+    }
+};
+TemplateControllerRenderer = __decorate([
+    instructionRenderer("rc" /* hydrateTemplateController */)
+    /** @internal */
+], TemplateControllerRenderer);
 export { TemplateControllerRenderer };
-let LetElementRenderer = /** @class */ (() => {
-    let LetElementRenderer = 
+let LetElementRenderer = 
+/** @internal */
+class LetElementRenderer {
+    constructor(parser, observerLocator) {
+        this.parser = parser;
+        this.observerLocator = observerLocator;
+    }
+    render(flags, context, controller, target, instruction) {
+        context.dom.remove(target);
+        const childInstructions = instruction.instructions;
+        const toBindingContext = instruction.toBindingContext;
+        let childInstruction;
+        let expr;
+        let binding;
+        for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
+            childInstruction = childInstructions[i];
+            expr = ensureExpression(this.parser, childInstruction.from, 48 /* IsPropertyCommand */);
+            binding = applyBindingBehavior(new LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext), expr, context);
+            controller.addBinding(binding);
+        }
+    }
+};
+LetElementRenderer = __decorate([
+    instructionRenderer("rd" /* hydrateLetElement */)
     /** @internal */
-    class LetElementRenderer {
-        constructor(parser, observerLocator) {
-            this.parser = parser;
-            this.observerLocator = observerLocator;
-        }
-        render(flags, context, controller, target, instruction) {
-            context.dom.remove(target);
-            const childInstructions = instruction.instructions;
-            const toBindingContext = instruction.toBindingContext;
-            let childInstruction;
-            let expr;
-            let binding;
-            for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
-                childInstruction = childInstructions[i];
-                expr = ensureExpression(this.parser, childInstruction.from, 48 /* IsPropertyCommand */);
-                binding = applyBindingBehavior(new LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext), expr, context);
-                controller.addBinding(binding);
-            }
-        }
-    };
-    LetElementRenderer = __decorate([
-        instructionRenderer("rd" /* hydrateLetElement */)
-        /** @internal */
-        ,
-        __param(0, IExpressionParser),
-        __param(1, IObserverLocator),
-        __metadata("design:paramtypes", [Object, Object])
-    ], LetElementRenderer);
-    return LetElementRenderer;
-})();
+    ,
+    __param(0, IExpressionParser),
+    __param(1, IObserverLocator),
+    __metadata("design:paramtypes", [Object, Object])
+], LetElementRenderer);
 export { LetElementRenderer };
-let CallBindingRenderer = /** @class */ (() => {
-    let CallBindingRenderer = 
+let CallBindingRenderer = 
+/** @internal */
+class CallBindingRenderer {
+    constructor(parser, observerLocator) {
+        this.parser = parser;
+        this.observerLocator = observerLocator;
+    }
+    render(flags, context, controller, target, instruction) {
+        const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
+        const binding = applyBindingBehavior(new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context), expr, context);
+        controller.addBinding(binding);
+    }
+};
+CallBindingRenderer = __decorate([
+    instructionRenderer("rh" /* callBinding */)
     /** @internal */
-    class CallBindingRenderer {
-        constructor(parser, observerLocator) {
-            this.parser = parser;
-            this.observerLocator = observerLocator;
-        }
-        render(flags, context, controller, target, instruction) {
-            const expr = ensureExpression(this.parser, instruction.from, 153 /* CallCommand */);
-            const binding = applyBindingBehavior(new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context), expr, context);
-            controller.addBinding(binding);
-        }
-    };
-    CallBindingRenderer = __decorate([
-        instructionRenderer("rh" /* callBinding */)
-        /** @internal */
-        ,
-        __param(0, IExpressionParser),
-        __param(1, IObserverLocator),
-        __metadata("design:paramtypes", [Object, Object])
-    ], CallBindingRenderer);
-    return CallBindingRenderer;
-})();
+    ,
+    __param(0, IExpressionParser),
+    __param(1, IObserverLocator),
+    __metadata("design:paramtypes", [Object, Object])
+], CallBindingRenderer);
 export { CallBindingRenderer };
-let RefBindingRenderer = /** @class */ (() => {
-    let RefBindingRenderer = 
+let RefBindingRenderer = 
+/** @internal */
+class RefBindingRenderer {
+    constructor(parser) {
+        this.parser = parser;
+    }
+    render(flags, context, controller, target, instruction) {
+        const expr = ensureExpression(this.parser, instruction.from, 5376 /* IsRef */);
+        const binding = applyBindingBehavior(new RefBinding(expr, getRefTarget(target, instruction.to), context), expr, context);
+        controller.addBinding(binding);
+    }
+};
+RefBindingRenderer = __decorate([
+    instructionRenderer("rj" /* refBinding */)
     /** @internal */
-    class RefBindingRenderer {
-        constructor(parser) {
-            this.parser = parser;
-        }
-        render(flags, context, controller, target, instruction) {
-            const expr = ensureExpression(this.parser, instruction.from, 5376 /* IsRef */);
-            const binding = applyBindingBehavior(new RefBinding(expr, getRefTarget(target, instruction.to), context), expr, context);
-            controller.addBinding(binding);
-        }
-    };
-    RefBindingRenderer = __decorate([
-        instructionRenderer("rj" /* refBinding */)
-        /** @internal */
-        ,
-        __param(0, IExpressionParser),
-        __metadata("design:paramtypes", [Object])
-    ], RefBindingRenderer);
-    return RefBindingRenderer;
-})();
+    ,
+    __param(0, IExpressionParser),
+    __metadata("design:paramtypes", [Object])
+], RefBindingRenderer);
 export { RefBindingRenderer };
-let InterpolationBindingRenderer = /** @class */ (() => {
-    let InterpolationBindingRenderer = 
+let InterpolationBindingRenderer = 
+/** @internal */
+class InterpolationBindingRenderer {
+    constructor(parser, observerLocator) {
+        this.parser = parser;
+        this.observerLocator = observerLocator;
+    }
+    render(flags, context, controller, target, instruction) {
+        let binding;
+        const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
+        if (expr.isMulti) {
+            binding = applyBindingBehavior(new MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context), expr, context);
+        }
+        else {
+            binding = applyBindingBehavior(new InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, true), expr, context);
+        }
+        controller.addBinding(binding);
+    }
+};
+InterpolationBindingRenderer = __decorate([
+    instructionRenderer("rf" /* interpolation */)
     /** @internal */
-    class InterpolationBindingRenderer {
-        constructor(parser, observerLocator) {
-            this.parser = parser;
-            this.observerLocator = observerLocator;
-        }
-        render(flags, context, controller, target, instruction) {
-            let binding;
-            const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
-            if (expr.isMulti) {
-                binding = applyBindingBehavior(new MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context), expr, context);
-            }
-            else {
-                binding = applyBindingBehavior(new InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, true), expr, context);
-            }
-            controller.addBinding(binding);
-        }
-    };
-    InterpolationBindingRenderer = __decorate([
-        instructionRenderer("rf" /* interpolation */)
-        /** @internal */
-        ,
-        __param(0, IExpressionParser),
-        __param(1, IObserverLocator),
-        __metadata("design:paramtypes", [Object, Object])
-    ], InterpolationBindingRenderer);
-    return InterpolationBindingRenderer;
-})();
+    ,
+    __param(0, IExpressionParser),
+    __param(1, IObserverLocator),
+    __metadata("design:paramtypes", [Object, Object])
+], InterpolationBindingRenderer);
 export { InterpolationBindingRenderer };
-let PropertyBindingRenderer = /** @class */ (() => {
-    let PropertyBindingRenderer = 
+let PropertyBindingRenderer = 
+/** @internal */
+class PropertyBindingRenderer {
+    constructor(parser, observerLocator) {
+        this.parser = parser;
+        this.observerLocator = observerLocator;
+    }
+    render(flags, context, controller, target, instruction) {
+        const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
+        const binding = applyBindingBehavior(new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context), expr, context);
+        controller.addBinding(binding);
+    }
+};
+PropertyBindingRenderer = __decorate([
+    instructionRenderer("rg" /* propertyBinding */)
     /** @internal */
-    class PropertyBindingRenderer {
-        constructor(parser, observerLocator) {
-            this.parser = parser;
-            this.observerLocator = observerLocator;
-        }
-        render(flags, context, controller, target, instruction) {
-            const expr = ensureExpression(this.parser, instruction.from, 48 /* IsPropertyCommand */ | instruction.mode);
-            const binding = applyBindingBehavior(new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context), expr, context);
-            controller.addBinding(binding);
-        }
-    };
-    PropertyBindingRenderer = __decorate([
-        instructionRenderer("rg" /* propertyBinding */)
-        /** @internal */
-        ,
-        __param(0, IExpressionParser),
-        __param(1, IObserverLocator),
-        __metadata("design:paramtypes", [Object, Object])
-    ], PropertyBindingRenderer);
-    return PropertyBindingRenderer;
-})();
+    ,
+    __param(0, IExpressionParser),
+    __param(1, IObserverLocator),
+    __metadata("design:paramtypes", [Object, Object])
+], PropertyBindingRenderer);
 export { PropertyBindingRenderer };
-let IteratorBindingRenderer = /** @class */ (() => {
-    let IteratorBindingRenderer = 
+let IteratorBindingRenderer = 
+/** @internal */
+class IteratorBindingRenderer {
+    constructor(parser, observerLocator) {
+        this.parser = parser;
+        this.observerLocator = observerLocator;
+    }
+    render(flags, context, controller, target, instruction) {
+        const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
+        const binding = applyBindingBehavior(new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context), expr, context);
+        controller.addBinding(binding);
+    }
+};
+IteratorBindingRenderer = __decorate([
+    instructionRenderer("rk" /* iteratorBinding */)
     /** @internal */
-    class IteratorBindingRenderer {
-        constructor(parser, observerLocator) {
-            this.parser = parser;
-            this.observerLocator = observerLocator;
-        }
-        render(flags, context, controller, target, instruction) {
-            const expr = ensureExpression(this.parser, instruction.from, 539 /* ForCommand */);
-            const binding = applyBindingBehavior(new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context), expr, context);
-            controller.addBinding(binding);
-        }
-    };
-    IteratorBindingRenderer = __decorate([
-        instructionRenderer("rk" /* iteratorBinding */)
-        /** @internal */
-        ,
-        __param(0, IExpressionParser),
-        __param(1, IObserverLocator),
-        __metadata("design:paramtypes", [Object, Object])
-    ], IteratorBindingRenderer);
-    return IteratorBindingRenderer;
-})();
+    ,
+    __param(0, IExpressionParser),
+    __param(1, IObserverLocator),
+    __metadata("design:paramtypes", [Object, Object])
+], IteratorBindingRenderer);
 export { IteratorBindingRenderer };
 let behaviorExpressionIndex = 0;
 const behaviorExpressions = [];

@@ -6,16 +6,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 import { bindingBehavior } from '@aurelia/runtime';
 import { createIntlFormatValueConverterExpression } from '../utils';
-let NumberFormatBindingBehavior = /** @class */ (() => {
-    let NumberFormatBindingBehavior = class NumberFormatBindingBehavior {
-        bind(flags, _scope, _hostScope, binding) {
-            createIntlFormatValueConverterExpression("nf" /* numberFormatValueConverterName */, binding);
-        }
-    };
-    NumberFormatBindingBehavior = __decorate([
-        bindingBehavior("nf" /* numberFormatValueConverterName */)
-    ], NumberFormatBindingBehavior);
-    return NumberFormatBindingBehavior;
-})();
+let NumberFormatBindingBehavior = class NumberFormatBindingBehavior {
+    bind(flags, _scope, _hostScope, binding) {
+        createIntlFormatValueConverterExpression("nf" /* numberFormatValueConverterName */, binding);
+    }
+};
+NumberFormatBindingBehavior = __decorate([
+    bindingBehavior("nf" /* numberFormatValueConverterName */)
+], NumberFormatBindingBehavior);
 export { NumberFormatBindingBehavior };
 //# sourceMappingURL=number-format-binding-behavior.js.map

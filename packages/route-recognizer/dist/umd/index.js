@@ -38,13 +38,12 @@
     exports.RecognizedRoute = RecognizedRoute;
     class Candidate {
         constructor(chars, states, skippedStates, result) {
-            var _a;
             this.chars = chars;
             this.states = states;
             this.skippedStates = skippedStates;
             this.result = result;
             this.head = states[states.length - 1];
-            this.endpoint = (_a = this.head) === null || _a === void 0 ? void 0 : _a.endpoint;
+            this.endpoint = this.head.endpoint;
         }
         advance(ch) {
             const { chars, states, skippedStates, result } = this;

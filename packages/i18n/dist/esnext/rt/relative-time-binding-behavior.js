@@ -6,16 +6,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 import { bindingBehavior } from '@aurelia/runtime';
 import { createIntlFormatValueConverterExpression } from '../utils';
-let RelativeTimeBindingBehavior = /** @class */ (() => {
-    let RelativeTimeBindingBehavior = class RelativeTimeBindingBehavior {
-        bind(flags, _scope, _hostScope, binding) {
-            createIntlFormatValueConverterExpression("rt" /* relativeTimeValueConverterName */, binding);
-        }
-    };
-    RelativeTimeBindingBehavior = __decorate([
-        bindingBehavior("rt" /* relativeTimeValueConverterName */)
-    ], RelativeTimeBindingBehavior);
-    return RelativeTimeBindingBehavior;
-})();
+let RelativeTimeBindingBehavior = class RelativeTimeBindingBehavior {
+    bind(flags, _scope, _hostScope, binding) {
+        createIntlFormatValueConverterExpression("rt" /* relativeTimeValueConverterName */, binding);
+    }
+};
+RelativeTimeBindingBehavior = __decorate([
+    bindingBehavior("rt" /* relativeTimeValueConverterName */)
+], RelativeTimeBindingBehavior);
 export { RelativeTimeBindingBehavior };
 //# sourceMappingURL=relative-time-binding-behavior.js.map

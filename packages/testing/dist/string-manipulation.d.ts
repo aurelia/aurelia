@@ -16,8 +16,12 @@ export declare function _(strings: TemplateStringsArray, ...vars: any[]): string
 /**
  * stringify primitive value (null -> 'null' and undefined -> 'undefined') or complex values with recursion guard
  */
-export declare function stringify(value: any): string;
-export declare function jsonStringify(o: unknown): string;
+export declare function stringify(value: any, ctx: {
+    result: string;
+}): string;
+export declare function jsonStringify(o: unknown, ctx: {
+    result: string;
+}): string;
 export declare function htmlStringify(node: object & {
     nodeName?: string;
     content?: any;
@@ -25,6 +29,8 @@ export declare function htmlStringify(node: object & {
     textContent?: string;
     childNodes?: ArrayLike<object>;
     nodeType?: number;
+}, ctx: {
+    result: string;
 }): string;
 /**
  * pad a string with spaces on the right-hand side until it's the specified length

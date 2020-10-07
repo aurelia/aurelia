@@ -71,49 +71,46 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     }
     exports.ProjectionProvider = ProjectionProvider;
-    let AuSlot = /** @class */ (() => {
-        let AuSlot = class AuSlot {
-            constructor(factory, location) {
-                this.factory = factory;
-                this.hostScope = null;
-                this.view = factory.create();
-                this.view.setLocation(location, 1 /* insertBefore */);
-                this.isProjection = factory.contentType === AuSlotContentType.Projection;
-                this.outerScope = factory.projectionScope;
+    let AuSlot = class AuSlot {
+        constructor(factory, location) {
+            this.factory = factory;
+            this.hostScope = null;
+            this.view = factory.create();
+            this.view.setLocation(location, 1 /* insertBefore */);
+            this.isProjection = factory.contentType === AuSlotContentType.Projection;
+            this.outerScope = factory.projectionScope;
+        }
+        beforeBind(initiator, parent, flags) {
+            this.hostScope = this.$controller.scope.parentScope;
+        }
+        afterAttach(initiator, parent, flags) {
+            var _a;
+            const { $controller } = this;
+            return this.view.activate(initiator, $controller, flags, (_a = this.outerScope) !== null && _a !== void 0 ? _a : this.hostScope, this.hostScope);
+        }
+        afterUnbind(initiator, parent, flags) {
+            return this.view.deactivate(initiator, this.$controller, flags);
+        }
+        onCancel(initiator, parent, flags) {
+            this.view.cancel(initiator, this.$controller, flags);
+        }
+        dispose() {
+            this.view.dispose();
+            this.view = (void 0);
+        }
+        accept(visitor) {
+            var _a;
+            if (((_a = this.view) === null || _a === void 0 ? void 0 : _a.accept(visitor)) === true) {
+                return true;
             }
-            beforeBind(initiator, parent, flags) {
-                this.hostScope = this.$controller.scope.parentScope;
-            }
-            afterAttach(initiator, parent, flags) {
-                var _a;
-                const { $controller } = this;
-                return this.view.activate(initiator, $controller, flags, (_a = this.outerScope) !== null && _a !== void 0 ? _a : this.hostScope, this.hostScope);
-            }
-            afterUnbind(initiator, parent, flags) {
-                return this.view.deactivate(initiator, this.$controller, flags);
-            }
-            onCancel(initiator, parent, flags) {
-                this.view.cancel(initiator, this.$controller, flags);
-            }
-            dispose() {
-                this.view.dispose();
-                this.view = (void 0);
-            }
-            accept(visitor) {
-                var _a;
-                if (((_a = this.view) === null || _a === void 0 ? void 0 : _a.accept(visitor)) === true) {
-                    return true;
-                }
-            }
-        };
-        AuSlot = __decorate([
-            custom_element_1.customElement({ name: 'au-slot', template: null, containerless: true }),
-            __param(0, lifecycle_1.IViewFactory),
-            __param(1, dom_1.IRenderLocation),
-            __metadata("design:paramtypes", [Object, Object])
-        ], AuSlot);
-        return AuSlot;
-    })();
+        }
+    };
+    AuSlot = __decorate([
+        custom_element_1.customElement({ name: 'au-slot', template: null, containerless: true }),
+        __param(0, lifecycle_1.IViewFactory),
+        __param(1, dom_1.IRenderLocation),
+        __metadata("design:paramtypes", [Object, Object])
+    ], AuSlot);
     exports.AuSlot = AuSlot;
 });
 //# sourceMappingURL=au-slot.js.map

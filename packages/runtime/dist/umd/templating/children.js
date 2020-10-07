@@ -17,6 +17,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     }
 })(function (require, exports) {
     "use strict";
+    var ChildrenObserver_1;
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.filterChildren = exports.ChildrenObserver = exports.ChildrenDefinition = exports.Children = exports.children = void 0;
     /* eslint-disable @typescript-eslint/no-use-before-define */
@@ -126,64 +127,60 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     }
     exports.ChildrenDefinition = ChildrenDefinition;
     /** @internal */
-    let ChildrenObserver = /** @class */ (() => {
-        var ChildrenObserver_1;
-        let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
-            constructor(controller, obj, flags, propertyKey, cbName, query = defaultChildQuery, filter = defaultChildFilter, map = defaultChildMap, options) {
-                this.controller = controller;
-                this.obj = obj;
-                this.propertyKey = propertyKey;
-                this.query = query;
-                this.filter = filter;
-                this.map = map;
-                this.options = options;
-                this.observing = false;
-                this.children = (void 0);
-                this.callback = obj[cbName];
-                this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
-                this.createGetterSetter();
+    let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
+        constructor(controller, obj, flags, propertyKey, cbName, query = defaultChildQuery, filter = defaultChildFilter, map = defaultChildMap, options) {
+            this.controller = controller;
+            this.obj = obj;
+            this.propertyKey = propertyKey;
+            this.query = query;
+            this.filter = filter;
+            this.map = map;
+            this.options = options;
+            this.observing = false;
+            this.children = (void 0);
+            this.callback = obj[cbName];
+            this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+            this.createGetterSetter();
+        }
+        getValue() {
+            this.tryStartObserving();
+            return this.children;
+        }
+        setValue(newValue) { }
+        subscribe(subscriber) {
+            this.tryStartObserving();
+            this.addSubscriber(subscriber);
+        }
+        tryStartObserving() {
+            if (!this.observing) {
+                this.observing = true;
+                const projector = this.controller.projector;
+                this.children = filterChildren(projector, this.query, this.filter, this.map);
+                projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); }, this.options);
             }
-            getValue() {
-                this.tryStartObserving();
-                return this.children;
+        }
+        onChildrenChanged() {
+            this.children = filterChildren(this.controller.projector, this.query, this.filter, this.map);
+            if (this.callback !== void 0) {
+                this.callback.call(this.obj);
             }
-            setValue(newValue) { }
-            subscribe(subscriber) {
-                this.tryStartObserving();
-                this.addSubscriber(subscriber);
+            this.callSubscribers(this.children, undefined, this.persistentFlags | 8 /* updateTargetInstance */);
+        }
+        createGetterSetter() {
+            if (!Reflect.defineProperty(this.obj, this.propertyKey, {
+                enumerable: true,
+                configurable: true,
+                get: () => this.getValue(),
+                set: () => { return; },
+            })) {
+                kernel_1.Reporter.write(1, this.propertyKey, this.obj);
             }
-            tryStartObserving() {
-                if (!this.observing) {
-                    this.observing = true;
-                    const projector = this.controller.projector;
-                    this.children = filterChildren(projector, this.query, this.filter, this.map);
-                    projector.subscribeToChildrenChange(() => { this.onChildrenChanged(); }, this.options);
-                }
-            }
-            onChildrenChanged() {
-                this.children = filterChildren(this.controller.projector, this.query, this.filter, this.map);
-                if (this.callback !== void 0) {
-                    this.callback.call(this.obj);
-                }
-                this.callSubscribers(this.children, undefined, this.persistentFlags | 8 /* updateTargetInstance */);
-            }
-            createGetterSetter() {
-                if (!Reflect.defineProperty(this.obj, this.propertyKey, {
-                    enumerable: true,
-                    configurable: true,
-                    get: () => this.getValue(),
-                    set: () => { return; },
-                })) {
-                    kernel_1.Reporter.write(1, this.propertyKey, this.obj);
-                }
-            }
-        };
-        ChildrenObserver = ChildrenObserver_1 = __decorate([
-            subscriber_collection_1.subscriberCollection(),
-            __metadata("design:paramtypes", [Object, Object, Number, String, String, Object, Object, Object, Object])
-        ], ChildrenObserver);
-        return ChildrenObserver;
-    })();
+        }
+    };
+    ChildrenObserver = ChildrenObserver_1 = __decorate([
+        subscriber_collection_1.subscriberCollection(),
+        __metadata("design:paramtypes", [Object, Object, Number, String, String, Object, Object, Object, Object])
+    ], ChildrenObserver);
     exports.ChildrenObserver = ChildrenObserver;
     function defaultChildQuery(projector) {
         return projector.children;

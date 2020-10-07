@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.preprocessOptions = exports.defaultTemplateExtensions = exports.defaultJsExtensions = exports.defaultCssExtensions = exports.preprocess = exports.stripMetaData = exports.preprocessHtmlTemplate = exports.preprocessResource = exports.nameConvention = void 0;
     var name_convention_1 = require("./name-convention");
     Object.defineProperty(exports, "nameConvention", { enumerable: true, get: function () { return name_convention_1.nameConvention; } });
     var preprocess_resource_1 = require("./preprocess-resource");

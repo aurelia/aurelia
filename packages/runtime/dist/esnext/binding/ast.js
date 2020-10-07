@@ -238,48 +238,44 @@ export class ConditionalExpression {
         return visitor.visitConditional(this);
     }
 }
-let AccessThisExpression = /** @class */ (() => {
-    class AccessThisExpression {
-        constructor(ancestor = 0) {
-            this.ancestor = ancestor;
-        }
-        get $kind() { return 1793 /* AccessThis */; }
-        get hasBind() { return false; }
-        get hasUnbind() { return false; }
-        evaluate(flags, scope, hostScope, locator) {
-            var _a;
-            if (scope == null) {
-                throw Reporter.error(250 /* NilScope */, this);
-            }
-            if (this === AccessThisExpression.$host) {
-                scope = chooseScope(true, scope, hostScope);
-            }
-            let oc = scope.overrideContext;
-            let currentScope = scope;
-            let i = this.ancestor;
-            while (i-- && oc) {
-                currentScope = currentScope.parentScope;
-                oc = (_a = currentScope === null || currentScope === void 0 ? void 0 : currentScope.overrideContext) !== null && _a !== void 0 ? _a : null;
-            }
-            return i < 1 && oc ? oc.bindingContext : void 0;
-        }
-        assign(flags, scope, hostScope, locator, obj) {
-            return void 0;
-        }
-        connect(flags, scope, hostScope, binding) {
-            return;
-        }
-        accept(visitor) {
-            return visitor.visitAccessThis(this);
-        }
+export class AccessThisExpression {
+    constructor(ancestor = 0) {
+        this.ancestor = ancestor;
     }
-    AccessThisExpression.$this = new AccessThisExpression(0);
-    // $host and $this are loosely the same thing. $host is used in the context of `au-slot` with the primary objective of determining the scope.
-    AccessThisExpression.$host = new AccessThisExpression(0);
-    AccessThisExpression.$parent = new AccessThisExpression(1);
-    return AccessThisExpression;
-})();
-export { AccessThisExpression };
+    get $kind() { return 1793 /* AccessThis */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
+    evaluate(flags, scope, hostScope, locator) {
+        var _a;
+        if (scope == null) {
+            throw Reporter.error(250 /* NilScope */, this);
+        }
+        if (this === AccessThisExpression.$host) {
+            scope = chooseScope(true, scope, hostScope);
+        }
+        let oc = scope.overrideContext;
+        let currentScope = scope;
+        let i = this.ancestor;
+        while (i-- && oc) {
+            currentScope = currentScope.parentScope;
+            oc = (_a = currentScope === null || currentScope === void 0 ? void 0 : currentScope.overrideContext) !== null && _a !== void 0 ? _a : null;
+        }
+        return i < 1 && oc ? oc.bindingContext : void 0;
+    }
+    assign(flags, scope, hostScope, locator, obj) {
+        return void 0;
+    }
+    connect(flags, scope, hostScope, binding) {
+        return;
+    }
+    accept(visitor) {
+        return visitor.visitAccessThis(this);
+    }
+}
+AccessThisExpression.$this = new AccessThisExpression(0);
+// $host and $this are loosely the same thing. $host is used in the context of `au-slot` with the primary objective of determining the scope.
+AccessThisExpression.$host = new AccessThisExpression(0);
+AccessThisExpression.$parent = new AccessThisExpression(1);
 export class AccessScopeExpression {
     constructor(name, ancestor = 0, accessHostScope = false) {
         this.name = name;
@@ -632,35 +628,31 @@ export class UnaryExpression {
         return visitor.visitUnary(this);
     }
 }
-let PrimitiveLiteralExpression = /** @class */ (() => {
-    class PrimitiveLiteralExpression {
-        constructor(value) {
-            this.value = value;
-        }
-        get $kind() { return 17925 /* PrimitiveLiteral */; }
-        get hasBind() { return false; }
-        get hasUnbind() { return false; }
-        evaluate(flags, scope, hostScope, locator) {
-            return this.value;
-        }
-        assign(flags, scope, hostScope, locator, obj) {
-            return void 0;
-        }
-        connect(flags, scope, hostScope, binding) {
-            return;
-        }
-        accept(visitor) {
-            return visitor.visitPrimitiveLiteral(this);
-        }
+export class PrimitiveLiteralExpression {
+    constructor(value) {
+        this.value = value;
     }
-    PrimitiveLiteralExpression.$undefined = new PrimitiveLiteralExpression(void 0);
-    PrimitiveLiteralExpression.$null = new PrimitiveLiteralExpression(null);
-    PrimitiveLiteralExpression.$true = new PrimitiveLiteralExpression(true);
-    PrimitiveLiteralExpression.$false = new PrimitiveLiteralExpression(false);
-    PrimitiveLiteralExpression.$empty = new PrimitiveLiteralExpression('');
-    return PrimitiveLiteralExpression;
-})();
-export { PrimitiveLiteralExpression };
+    get $kind() { return 17925 /* PrimitiveLiteral */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
+    evaluate(flags, scope, hostScope, locator) {
+        return this.value;
+    }
+    assign(flags, scope, hostScope, locator, obj) {
+        return void 0;
+    }
+    connect(flags, scope, hostScope, binding) {
+        return;
+    }
+    accept(visitor) {
+        return visitor.visitPrimitiveLiteral(this);
+    }
+}
+PrimitiveLiteralExpression.$undefined = new PrimitiveLiteralExpression(void 0);
+PrimitiveLiteralExpression.$null = new PrimitiveLiteralExpression(null);
+PrimitiveLiteralExpression.$true = new PrimitiveLiteralExpression(true);
+PrimitiveLiteralExpression.$false = new PrimitiveLiteralExpression(false);
+PrimitiveLiteralExpression.$empty = new PrimitiveLiteralExpression('');
 export class HtmlLiteralExpression {
     constructor(parts) {
         this.parts = parts;
@@ -693,113 +685,101 @@ export class HtmlLiteralExpression {
         return visitor.visitHtmlLiteral(this);
     }
 }
-let ArrayLiteralExpression = /** @class */ (() => {
-    class ArrayLiteralExpression {
-        constructor(elements) {
-            this.elements = elements;
+export class ArrayLiteralExpression {
+    constructor(elements) {
+        this.elements = elements;
+    }
+    get $kind() { return 17955 /* ArrayLiteral */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
+    evaluate(flags, scope, hostScope, locator) {
+        const elements = this.elements;
+        const length = elements.length;
+        const result = Array(length);
+        for (let i = 0; i < length; ++i) {
+            result[i] = elements[i].evaluate(flags, scope, hostScope, locator);
         }
-        get $kind() { return 17955 /* ArrayLiteral */; }
-        get hasBind() { return false; }
-        get hasUnbind() { return false; }
-        evaluate(flags, scope, hostScope, locator) {
-            const elements = this.elements;
-            const length = elements.length;
-            const result = Array(length);
-            for (let i = 0; i < length; ++i) {
-                result[i] = elements[i].evaluate(flags, scope, hostScope, locator);
-            }
-            return result;
-        }
-        assign(flags, scope, hostScope, locator, obj) {
-            return void 0;
-        }
-        connect(flags, scope, hostScope, binding) {
-            const elements = this.elements;
-            for (let i = 0, ii = elements.length; i < ii; ++i) {
-                elements[i].connect(flags, scope, hostScope, binding);
-            }
-        }
-        accept(visitor) {
-            return visitor.visitArrayLiteral(this);
+        return result;
+    }
+    assign(flags, scope, hostScope, locator, obj) {
+        return void 0;
+    }
+    connect(flags, scope, hostScope, binding) {
+        const elements = this.elements;
+        for (let i = 0, ii = elements.length; i < ii; ++i) {
+            elements[i].connect(flags, scope, hostScope, binding);
         }
     }
-    ArrayLiteralExpression.$empty = new ArrayLiteralExpression(PLATFORM.emptyArray);
-    return ArrayLiteralExpression;
-})();
-export { ArrayLiteralExpression };
-let ObjectLiteralExpression = /** @class */ (() => {
-    class ObjectLiteralExpression {
-        constructor(keys, values) {
-            this.keys = keys;
-            this.values = values;
+    accept(visitor) {
+        return visitor.visitArrayLiteral(this);
+    }
+}
+ArrayLiteralExpression.$empty = new ArrayLiteralExpression(PLATFORM.emptyArray);
+export class ObjectLiteralExpression {
+    constructor(keys, values) {
+        this.keys = keys;
+        this.values = values;
+    }
+    get $kind() { return 17956 /* ObjectLiteral */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
+    evaluate(flags, scope, hostScope, locator) {
+        const instance = {};
+        const keys = this.keys;
+        const values = this.values;
+        for (let i = 0, ii = keys.length; i < ii; ++i) {
+            instance[keys[i]] = values[i].evaluate(flags, scope, hostScope, locator);
         }
-        get $kind() { return 17956 /* ObjectLiteral */; }
-        get hasBind() { return false; }
-        get hasUnbind() { return false; }
-        evaluate(flags, scope, hostScope, locator) {
-            const instance = {};
-            const keys = this.keys;
-            const values = this.values;
-            for (let i = 0, ii = keys.length; i < ii; ++i) {
-                instance[keys[i]] = values[i].evaluate(flags, scope, hostScope, locator);
-            }
-            return instance;
-        }
-        assign(flags, scope, hostScope, locator, obj) {
-            return void 0;
-        }
-        connect(flags, scope, hostScope, binding) {
-            const keys = this.keys;
-            const values = this.values;
-            for (let i = 0, ii = keys.length; i < ii; ++i) {
-                values[i].connect(flags, scope, hostScope, binding);
-            }
-        }
-        accept(visitor) {
-            return visitor.visitObjectLiteral(this);
+        return instance;
+    }
+    assign(flags, scope, hostScope, locator, obj) {
+        return void 0;
+    }
+    connect(flags, scope, hostScope, binding) {
+        const keys = this.keys;
+        const values = this.values;
+        for (let i = 0, ii = keys.length; i < ii; ++i) {
+            values[i].connect(flags, scope, hostScope, binding);
         }
     }
-    ObjectLiteralExpression.$empty = new ObjectLiteralExpression(PLATFORM.emptyArray, PLATFORM.emptyArray);
-    return ObjectLiteralExpression;
-})();
-export { ObjectLiteralExpression };
-let TemplateExpression = /** @class */ (() => {
-    class TemplateExpression {
-        constructor(cooked, expressions = PLATFORM.emptyArray) {
-            this.cooked = cooked;
-            this.expressions = expressions;
+    accept(visitor) {
+        return visitor.visitObjectLiteral(this);
+    }
+}
+ObjectLiteralExpression.$empty = new ObjectLiteralExpression(PLATFORM.emptyArray, PLATFORM.emptyArray);
+export class TemplateExpression {
+    constructor(cooked, expressions = PLATFORM.emptyArray) {
+        this.cooked = cooked;
+        this.expressions = expressions;
+    }
+    get $kind() { return 17958 /* Template */; }
+    get hasBind() { return false; }
+    get hasUnbind() { return false; }
+    evaluate(flags, scope, hostScope, locator) {
+        const expressions = this.expressions;
+        const cooked = this.cooked;
+        let result = cooked[0];
+        for (let i = 0, ii = expressions.length; i < ii; ++i) {
+            result += expressions[i].evaluate(flags, scope, hostScope, locator);
+            result += cooked[i + 1];
         }
-        get $kind() { return 17958 /* Template */; }
-        get hasBind() { return false; }
-        get hasUnbind() { return false; }
-        evaluate(flags, scope, hostScope, locator) {
-            const expressions = this.expressions;
-            const cooked = this.cooked;
-            let result = cooked[0];
-            for (let i = 0, ii = expressions.length; i < ii; ++i) {
-                result += expressions[i].evaluate(flags, scope, hostScope, locator);
-                result += cooked[i + 1];
-            }
-            return result;
-        }
-        assign(flags, scope, hostScope, locator, obj) {
-            return void 0;
-        }
-        connect(flags, scope, hostScope, binding) {
-            const expressions = this.expressions;
-            for (let i = 0, ii = expressions.length; i < ii; ++i) {
-                expressions[i].connect(flags, scope, hostScope, binding);
-                i++;
-            }
-        }
-        accept(visitor) {
-            return visitor.visitTemplate(this);
+        return result;
+    }
+    assign(flags, scope, hostScope, locator, obj) {
+        return void 0;
+    }
+    connect(flags, scope, hostScope, binding) {
+        const expressions = this.expressions;
+        for (let i = 0, ii = expressions.length; i < ii; ++i) {
+            expressions[i].connect(flags, scope, hostScope, binding);
+            i++;
         }
     }
-    TemplateExpression.$empty = new TemplateExpression(['']);
-    return TemplateExpression;
-})();
-export { TemplateExpression };
+    accept(visitor) {
+        return visitor.visitTemplate(this);
+    }
+}
+TemplateExpression.$empty = new TemplateExpression(['']);
 export class TaggedTemplateExpression {
     constructor(cooked, raw, func, expressions = PLATFORM.emptyArray) {
         this.cooked = cooked;

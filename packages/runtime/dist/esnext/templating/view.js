@@ -2,63 +2,59 @@ import { DI, Registration, Metadata, Protocol } from '@aurelia/kernel';
 import { Scope } from '../observation/binding-context';
 import { CustomElement, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
-let ViewFactory = /** @class */ (() => {
-    class ViewFactory {
-        constructor(name, context, lifecycle, contentType, projectionScope = null) {
-            this.name = name;
-            this.context = context;
-            this.lifecycle = lifecycle;
-            this.contentType = contentType;
-            this.projectionScope = projectionScope;
-            this.isCaching = false;
+export class ViewFactory {
+    constructor(name, context, lifecycle, contentType, projectionScope = null) {
+        this.name = name;
+        this.context = context;
+        this.lifecycle = lifecycle;
+        this.contentType = contentType;
+        this.projectionScope = projectionScope;
+        this.isCaching = false;
+        this.cache = null;
+        this.cacheSize = -1;
+    }
+    setCacheSize(size, doNotOverrideIfAlreadySet) {
+        if (size) {
+            if (size === '*') {
+                size = ViewFactory.maxCacheSize;
+            }
+            else if (typeof size === 'string') {
+                size = parseInt(size, 10);
+            }
+            if (this.cacheSize === -1 || !doNotOverrideIfAlreadySet) {
+                this.cacheSize = size;
+            }
+        }
+        if (this.cacheSize > 0) {
+            this.cache = [];
+        }
+        else {
             this.cache = null;
-            this.cacheSize = -1;
         }
-        setCacheSize(size, doNotOverrideIfAlreadySet) {
-            if (size) {
-                if (size === '*') {
-                    size = ViewFactory.maxCacheSize;
-                }
-                else if (typeof size === 'string') {
-                    size = parseInt(size, 10);
-                }
-                if (this.cacheSize === -1 || !doNotOverrideIfAlreadySet) {
-                    this.cacheSize = size;
-                }
-            }
-            if (this.cacheSize > 0) {
-                this.cache = [];
-            }
-            else {
-                this.cache = null;
-            }
-            this.isCaching = this.cacheSize > 0;
+        this.isCaching = this.cacheSize > 0;
+    }
+    canReturnToCache(controller) {
+        return this.cache != null && this.cache.length < this.cacheSize;
+    }
+    tryReturnToCache(controller) {
+        if (this.canReturnToCache(controller)) {
+            this.cache.push(controller);
+            return true;
         }
-        canReturnToCache(controller) {
-            return this.cache != null && this.cache.length < this.cacheSize;
-        }
-        tryReturnToCache(controller) {
-            if (this.canReturnToCache(controller)) {
-                this.cache.push(controller);
-                return true;
-            }
-            return false;
-        }
-        create(flags) {
-            const cache = this.cache;
-            let controller;
-            if (cache != null && cache.length > 0) {
-                controller = cache.pop();
-                return controller;
-            }
-            controller = Controller.forSyntheticView(this, this.lifecycle, this.context, flags);
+        return false;
+    }
+    create(flags) {
+        const cache = this.cache;
+        let controller;
+        if (cache != null && cache.length > 0) {
+            controller = cache.pop();
             return controller;
         }
+        controller = Controller.forSyntheticView(this, this.lifecycle, this.context, flags);
+        return controller;
     }
-    ViewFactory.maxCacheSize = 0xFFFF;
-    return ViewFactory;
-})();
-export { ViewFactory };
+}
+ViewFactory.maxCacheSize = 0xFFFF;
 const seenViews = new WeakSet();
 function notYetSeen($view) {
     return !seenViews.has($view);

@@ -153,60 +153,57 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     }
     exports.disableMapObservation = disableMapObservation;
     const slice = Array.prototype.slice;
-    let MapObserver = /** @class */ (() => {
-        let MapObserver = class MapObserver {
-            constructor(flags, lifecycle, map) {
-                this.type = 34 /* Map */;
-                this.task = null;
-                if (!enableMapObservationCalled) {
-                    enableMapObservationCalled = true;
-                    enableMapObservation();
-                }
-                this.inBatch = false;
-                this.collection = map;
-                this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
-                this.indexMap = observation_1.createIndexMap(map.size);
-                this.lifecycle = lifecycle;
-                this.lengthObserver = (void 0);
-                observerLookup.set(map, this);
+    let MapObserver = class MapObserver {
+        constructor(flags, lifecycle, map) {
+            this.type = 34 /* Map */;
+            this.task = null;
+            if (!enableMapObservationCalled) {
+                enableMapObservationCalled = true;
+                enableMapObservation();
             }
-            notify() {
-                if (this.lifecycle.batch.depth > 0) {
-                    if (!this.inBatch) {
-                        this.inBatch = true;
-                        this.lifecycle.batch.add(this);
-                    }
-                }
-                else {
-                    this.flushBatch(0 /* none */);
+            this.inBatch = false;
+            this.collection = map;
+            this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+            this.indexMap = observation_1.createIndexMap(map.size);
+            this.lifecycle = lifecycle;
+            this.lengthObserver = (void 0);
+            observerLookup.set(map, this);
+        }
+        notify() {
+            if (this.lifecycle.batch.depth > 0) {
+                if (!this.inBatch) {
+                    this.inBatch = true;
+                    this.lifecycle.batch.add(this);
                 }
             }
-            getLengthObserver() {
-                if (this.lengthObserver === void 0) {
-                    this.lengthObserver = new collection_size_observer_1.CollectionSizeObserver(this.collection);
-                }
-                return this.lengthObserver;
+            else {
+                this.flushBatch(0 /* none */);
             }
-            getIndexObserver(index) {
-                throw new Error('Map index observation not supported');
+        }
+        getLengthObserver() {
+            if (this.lengthObserver === void 0) {
+                this.lengthObserver = new collection_size_observer_1.CollectionSizeObserver(this.collection);
             }
-            flushBatch(flags) {
-                const indexMap = this.indexMap;
-                const size = this.collection.size;
-                this.inBatch = false;
-                this.indexMap = observation_1.createIndexMap(size);
-                this.callCollectionSubscribers(indexMap, 8 /* updateTargetInstance */ | this.persistentFlags);
-                if (this.lengthObserver !== void 0) {
-                    this.lengthObserver.setValue(size, 8 /* updateTargetInstance */);
-                }
+            return this.lengthObserver;
+        }
+        getIndexObserver(index) {
+            throw new Error('Map index observation not supported');
+        }
+        flushBatch(flags) {
+            const indexMap = this.indexMap;
+            const size = this.collection.size;
+            this.inBatch = false;
+            this.indexMap = observation_1.createIndexMap(size);
+            this.callCollectionSubscribers(indexMap, 8 /* updateTargetInstance */ | this.persistentFlags);
+            if (this.lengthObserver !== void 0) {
+                this.lengthObserver.setValue(size, 8 /* updateTargetInstance */);
             }
-        };
-        MapObserver = __decorate([
-            subscriber_collection_1.collectionSubscriberCollection(),
-            __metadata("design:paramtypes", [Number, Object, Object])
-        ], MapObserver);
-        return MapObserver;
-    })();
+        }
+    };
+    MapObserver = __decorate([
+        subscriber_collection_1.collectionSubscriberCollection(),
+        __metadata("design:paramtypes", [Number, Object, Object])
+    ], MapObserver);
     exports.MapObserver = MapObserver;
     function getMapObserver(flags, lifecycle, map) {
         const observer = observerLookup.get(map);

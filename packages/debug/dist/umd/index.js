@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Unparser = exports.stringifyLifecycleFlags = exports.DebugTracer = exports.TraceConfiguration = exports.DebugConfiguration = void 0;
     var configuration_1 = require("./configuration");
     Object.defineProperty(exports, "DebugConfiguration", { enumerable: true, get: function () { return configuration_1.DebugConfiguration; } });
     Object.defineProperty(exports, "TraceConfiguration", { enumerable: true, get: function () { return configuration_1.TraceConfiguration; } });

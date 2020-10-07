@@ -8,61 +8,52 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { bindable, customElement, valueConverter } from '@aurelia/runtime';
-let SortValueConverter = /** @class */ (() => {
-    let SortValueConverter = class SortValueConverter {
-        toView(arr, prop, dir = 'asc') {
-            if (Array.isArray(arr)) {
-                const factor = dir === 'asc' ? 1 : -1;
-                if (prop && prop.length) {
-                    arr.sort((a, b) => a[prop] - b[prop] * factor);
-                }
-                else {
-                    arr.sort((a, b) => a - b * factor);
-                }
+let SortValueConverter = class SortValueConverter {
+    toView(arr, prop, dir = 'asc') {
+        if (Array.isArray(arr)) {
+            const factor = dir === 'asc' ? 1 : -1;
+            if (prop && prop.length) {
+                arr.sort((a, b) => a[prop] - b[prop] * factor);
             }
-            return arr;
+            else {
+                arr.sort((a, b) => a - b * factor);
+            }
         }
-    };
-    SortValueConverter = __decorate([
-        valueConverter('sort')
-    ], SortValueConverter);
-    return SortValueConverter;
-})();
+        return arr;
+    }
+};
+SortValueConverter = __decorate([
+    valueConverter('sort')
+], SortValueConverter);
 export { SortValueConverter };
-let JsonValueConverter = /** @class */ (() => {
-    let JsonValueConverter = class JsonValueConverter {
-        toView(input) {
-            return JSON.stringify(input);
-        }
-        fromView(input) {
-            return JSON.parse(input);
-        }
-    };
-    JsonValueConverter = __decorate([
-        valueConverter('json')
-    ], JsonValueConverter);
-    return JsonValueConverter;
-})();
+let JsonValueConverter = class JsonValueConverter {
+    toView(input) {
+        return JSON.stringify(input);
+    }
+    fromView(input) {
+        return JSON.parse(input);
+    }
+};
+JsonValueConverter = __decorate([
+    valueConverter('json')
+], JsonValueConverter);
 export { JsonValueConverter };
-let NameTag = /** @class */ (() => {
-    let NameTag = class NameTag {
-    };
-    __decorate([
-        bindable(),
-        __metadata("design:type", String)
-    ], NameTag.prototype, "name", void 0);
-    NameTag = __decorate([
-        customElement({
-            name: 'name-tag',
-            template: `<template>\${name}</template>`,
-            needsCompile: true,
-            dependencies: [],
-            instructions: [],
-            surrogates: []
-        })
-    ], NameTag);
-    return NameTag;
-})();
+let NameTag = class NameTag {
+};
+__decorate([
+    bindable(),
+    __metadata("design:type", String)
+], NameTag.prototype, "name", void 0);
+NameTag = __decorate([
+    customElement({
+        name: 'name-tag',
+        template: `<template>\${name}</template>`,
+        needsCompile: true,
+        dependencies: [],
+        instructions: [],
+        surrogates: []
+    })
+], NameTag);
 const globalResources = [
     SortValueConverter,
     JsonValueConverter,

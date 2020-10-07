@@ -6,19 +6,16 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 import { bindingBehavior, IScheduler } from '@aurelia/runtime';
 import { DataAttributeAccessor } from '../../observation/data-attribute-accessor';
-let AttrBindingBehavior = /** @class */ (() => {
-    let AttrBindingBehavior = class AttrBindingBehavior {
-        bind(flags, _scope, _hostScope, binding) {
-            binding.targetObserver = new DataAttributeAccessor(binding.locator.get(IScheduler), flags, binding.target, binding.targetProperty);
-        }
-        unbind(flags, _scope, _hostScope, binding) {
-            return;
-        }
-    };
-    AttrBindingBehavior = __decorate([
-        bindingBehavior('attr')
-    ], AttrBindingBehavior);
-    return AttrBindingBehavior;
-})();
+let AttrBindingBehavior = class AttrBindingBehavior {
+    bind(flags, _scope, _hostScope, binding) {
+        binding.targetObserver = new DataAttributeAccessor(binding.locator.get(IScheduler), flags, binding.target, binding.targetProperty);
+    }
+    unbind(flags, _scope, _hostScope, binding) {
+        return;
+    }
+};
+AttrBindingBehavior = __decorate([
+    bindingBehavior('attr')
+], AttrBindingBehavior);
 export { AttrBindingBehavior };
 //# sourceMappingURL=attr.js.map

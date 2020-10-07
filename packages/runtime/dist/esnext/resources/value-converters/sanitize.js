@@ -21,29 +21,26 @@ export const ISanitizer = DI.createInterface('ISanitizer').withDefault(x => x.si
 /**
  * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
  */
-let SanitizeValueConverter = /** @class */ (() => {
-    let SanitizeValueConverter = class SanitizeValueConverter {
-        constructor(sanitizer) {
-            this.sanitizer = sanitizer;
+let SanitizeValueConverter = class SanitizeValueConverter {
+    constructor(sanitizer) {
+        this.sanitizer = sanitizer;
+    }
+    /**
+     * Process the provided markup that flows to the view.
+     *
+     * @param untrustedMarkup - The untrusted markup to be sanitized.
+     */
+    toView(untrustedMarkup) {
+        if (untrustedMarkup == null) {
+            return null;
         }
-        /**
-         * Process the provided markup that flows to the view.
-         *
-         * @param untrustedMarkup - The untrusted markup to be sanitized.
-         */
-        toView(untrustedMarkup) {
-            if (untrustedMarkup == null) {
-                return null;
-            }
-            return this.sanitizer.sanitize(untrustedMarkup);
-        }
-    };
-    SanitizeValueConverter = __decorate([
-        valueConverter('sanitize'),
-        __param(0, ISanitizer),
-        __metadata("design:paramtypes", [Object])
-    ], SanitizeValueConverter);
-    return SanitizeValueConverter;
-})();
+        return this.sanitizer.sanitize(untrustedMarkup);
+    }
+};
+SanitizeValueConverter = __decorate([
+    valueConverter('sanitize'),
+    __param(0, ISanitizer),
+    __metadata("design:paramtypes", [Object])
+], SanitizeValueConverter);
 export { SanitizeValueConverter };
 //# sourceMappingURL=sanitize.js.map

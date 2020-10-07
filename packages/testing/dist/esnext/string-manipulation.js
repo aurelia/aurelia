@@ -13,12 +13,12 @@
  * - Instance of custom class (returns class name + json representation)
  */
 export function _(strings, ...vars) {
-    let retVal = '';
+    const ctx = { result: '' };
     const length = vars.length;
     for (let i = 0; i < length; ++i) {
-        retVal = retVal + strings[i] + stringify(vars[i]);
+        ctx.result = ctx.result + strings[i] + stringify(vars[i], ctx);
     }
-    return retVal + strings[length];
+    return ctx.result + strings[length];
 }
 const newline = /\r?\n/g;
 const whitespace = /\s+/g;
@@ -26,7 +26,7 @@ const toStringTag = Object.prototype.toString;
 /**
  * stringify primitive value (null -> 'null' and undefined -> 'undefined') or complex values with recursion guard
  */
-export function stringify(value) {
+export function stringify(value, ctx) {
     const Type = toStringTag.call(value);
     switch (Type) {
         case '[object Undefined]':
@@ -39,15 +39,15 @@ export function stringify(value) {
         case '[object Number]':
             return value;
         case '[object Array]':
-            return `[${value.map(stringify).join(',')}]`;
+            return `[${value.map((x) => stringify(x, ctx)).join(',')}]`;
         case '[object Event]':
             return `'${value.type}'`;
         case '[object Object]': {
             const proto = Object.getPrototypeOf(value);
             if (!proto || !proto.constructor || proto.constructor.name === 'Object') {
-                return jsonStringify(value);
+                return jsonStringify(value, ctx);
             }
-            return `class ${proto.constructor.name}${jsonStringify(value)}`;
+            return `class ${proto.constructor.name}${jsonStringify(value, ctx)}`;
         }
         case '[object Function]':
             if (value.name && value.name.length) {
@@ -55,19 +55,31 @@ export function stringify(value) {
             }
             return value.toString().replace(whitespace, '');
         default:
-            return jsonStringify(value);
+            return jsonStringify(value, ctx);
     }
 }
-export function jsonStringify(o) {
+export function jsonStringify(o, ctx) {
+    if (ctx.result.length > 100) {
+        return '(json string)';
+    }
     try {
         let cache = [];
+        let depth = 0;
         const result = JSON.stringify(o, function (_key, value) {
+            if (_key === 'dom') {
+                return '(dom)';
+            }
+            if (++depth === 2) {
+                return String(value);
+            }
             if (typeof value === 'object' && value !== null) {
                 if (value.nodeType > 0) {
-                    return htmlStringify(value);
+                    --depth;
+                    return htmlStringify(value, ctx);
                 }
                 if (cache.includes(value)) {
                     try {
+                        --depth;
                         return JSON.parse(JSON.stringify(value));
                     }
                     catch (error) {
@@ -76,16 +88,26 @@ export function jsonStringify(o) {
                 }
                 cache.push(value);
             }
+            --depth;
             return value;
         });
         cache = void 0;
-        return result.replace(newline, '');
+        let ret = result.replace(newline, '');
+        if (ret.length > 25) {
+            const len = ret.length;
+            ret = `${ret.slice(0, 25)}...(+${len - 25})`;
+        }
+        ctx.result += ret;
+        return ret;
     }
     catch (e) {
         return `error stringifying to json: ${e}`;
     }
 }
-export function htmlStringify(node) {
+export function htmlStringify(node, ctx) {
+    if (ctx.result.length > 100) {
+        return '(html string)';
+    }
     if (node === null) {
         return 'null';
     }
@@ -93,20 +115,30 @@ export function htmlStringify(node) {
         return 'undefined';
     }
     if ((node.textContent != null && node.textContent.length) || node.nodeType === 3 /* Text */ || node.nodeType === 8 /* Comment */) {
-        return node.textContent.replace(newline, '');
+        const ret = node.textContent.replace(newline, '');
+        if (ret.length > 10) {
+            const len = ret.length;
+            return `${ret.slice(0, 10)}...(+${len - 10})`;
+        }
+        return ret;
     }
     if (node.nodeType === 1 /* Element */) {
         if (node.innerHTML.length) {
-            return node.innerHTML.replace(newline, '');
+            const ret = node.innerHTML.replace(newline, '');
+            if (ret.length > 10) {
+                const len = ret.length;
+                return `${ret.slice(0, 10)}...(+${len - 10})`;
+            }
+            return ret;
         }
         if (node.nodeName === 'TEMPLATE') {
-            return htmlStringify(node.content);
+            return htmlStringify(node.content, ctx);
         }
     }
     let val = '';
     for (let i = 0, ii = node.childNodes.length; i < ii; ++i) {
         const child = node.childNodes[i];
-        val += htmlStringify(child);
+        val += htmlStringify(child, ctx);
     }
     return val;
 }

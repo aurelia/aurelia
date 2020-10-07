@@ -249,7 +249,7 @@
                     else {
                         const tsConfigText = tsConfigFile.getContentSync();
                         // tsconfig allows some stuff that's not valid JSON, so parse it as a JS object instead
-                        // eslint-disable-next-line no-new-func
+                        // eslint-disable-next-line no-new-func,@typescript-eslint/no-implied-eval
                         const tsConfigObj = new Function(`return ${tsConfigText}`)();
                         compilerOptions = tsConfigObj.compilerOptions;
                         if (compilerOptions === null || typeof compilerOptions !== 'object') {

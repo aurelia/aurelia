@@ -56,40 +56,34 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     }
     exports.ShadowDOMRegistry = ShadowDOMRegistry;
-    let AdoptedStyleSheetsStylesFactory = /** @class */ (() => {
-        let AdoptedStyleSheetsStylesFactory = class AdoptedStyleSheetsStylesFactory {
-            constructor(dom) {
-                this.dom = dom;
-                this.cache = new Map();
+    let AdoptedStyleSheetsStylesFactory = class AdoptedStyleSheetsStylesFactory {
+        constructor(dom) {
+            this.dom = dom;
+            this.cache = new Map();
+        }
+        createStyles(localStyles, sharedStyles) {
+            return new shadow_dom_styles_1.AdoptedStyleSheetsStyles(this.dom, localStyles, this.cache, sharedStyles);
+        }
+    };
+    AdoptedStyleSheetsStylesFactory = __decorate([
+        __param(0, runtime_1.IDOM),
+        __metadata("design:paramtypes", [dom_1.HTMLDOM])
+    ], AdoptedStyleSheetsStylesFactory);
+    let StyleElementStylesFactory = class StyleElementStylesFactory {
+        constructor(dom) {
+            this.dom = dom;
+        }
+        createStyles(localStyles, sharedStyles) {
+            if (localStyles.some(x => typeof x !== 'string')) {
+                // TODO: use reporter
+                throw new Error('Shadow DOM CSS must be a string.');
             }
-            createStyles(localStyles, sharedStyles) {
-                return new shadow_dom_styles_1.AdoptedStyleSheetsStyles(this.dom, localStyles, this.cache, sharedStyles);
-            }
-        };
-        AdoptedStyleSheetsStylesFactory = __decorate([
-            __param(0, runtime_1.IDOM),
-            __metadata("design:paramtypes", [dom_1.HTMLDOM])
-        ], AdoptedStyleSheetsStylesFactory);
-        return AdoptedStyleSheetsStylesFactory;
-    })();
-    let StyleElementStylesFactory = /** @class */ (() => {
-        let StyleElementStylesFactory = class StyleElementStylesFactory {
-            constructor(dom) {
-                this.dom = dom;
-            }
-            createStyles(localStyles, sharedStyles) {
-                if (localStyles.some(x => typeof x !== 'string')) {
-                    // TODO: use reporter
-                    throw new Error('Shadow DOM CSS must be a string.');
-                }
-                return new shadow_dom_styles_1.StyleElementStyles(this.dom, localStyles, sharedStyles);
-            }
-        };
-        StyleElementStylesFactory = __decorate([
-            __param(0, runtime_1.IDOM),
-            __metadata("design:paramtypes", [dom_1.HTMLDOM])
-        ], StyleElementStylesFactory);
-        return StyleElementStylesFactory;
-    })();
+            return new shadow_dom_styles_1.StyleElementStyles(this.dom, localStyles, sharedStyles);
+        }
+    };
+    StyleElementStylesFactory = __decorate([
+        __param(0, runtime_1.IDOM),
+        __metadata("design:paramtypes", [dom_1.HTMLDOM])
+    ], StyleElementStylesFactory);
 });
 //# sourceMappingURL=shadow-dom-registry.js.map

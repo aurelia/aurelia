@@ -38,170 +38,164 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         compress: '.lzw'
     };
     const compressedFileExtensions = new Set(Object.values(contentEncodingExtensionMap));
-    let FileServer = /** @class */ (() => {
-        let FileServer = class FileServer {
-            constructor(opts, logger) {
-                var _a;
-                this.opts = opts;
-                this.logger = logger;
-                this.cacheControlDirective = (_a = this.opts.responseCacheControl) !== null && _a !== void 0 ? _a : 'max-age=3600';
-                this.logger = logger.root.scopeTo('FileServer');
-                this.root = path_1.resolve(opts.root);
-                this.logger.debug(`Now serving files from: "${this.root}"`);
+    let FileServer = class FileServer {
+        constructor(opts, logger) {
+            var _a;
+            this.opts = opts;
+            this.logger = logger;
+            this.cacheControlDirective = (_a = this.opts.responseCacheControl) !== null && _a !== void 0 ? _a : 'max-age=3600';
+            this.logger = logger.root.scopeTo('FileServer');
+            this.root = path_1.resolve(opts.root);
+            this.logger.debug(`Now serving files from: "${this.root}"`);
+        }
+        async handleRequest(context) {
+            const request = context.request;
+            const response = context.response;
+            if (!(request instanceof http_1.IncomingMessage && response instanceof http_1.ServerResponse)) {
+                return;
             }
-            async handleRequest(context) {
-                const request = context.request;
-                const response = context.response;
-                if (!(request instanceof http_1.IncomingMessage && response instanceof http_1.ServerResponse)) {
-                    return;
-                }
-                const parsedUrl = url.parse(request.url);
-                let parsedPath = parsedUrl.path;
-                if (parsedPath.endsWith('/')) {
-                    parsedPath = `${parsedPath}index.html`;
-                }
-                const path = path_1.join(this.root, parsedPath);
-                if (await file_utils_1.isReadable(path)) {
-                    this.logger.debug(`Serving file "${path}"`);
-                    const contentType = http_utils_1.getContentType(path);
-                    const clientEncoding = determineContentEncoding(request.headers);
-                    let contentEncoding = (void 0);
-                    let content = (void 0);
-                    if (clientEncoding === 'br'
-                        || clientEncoding === 'gzip'
-                        || clientEncoding === 'compress') {
-                        const compressedFile = `${path}${contentEncodingExtensionMap[clientEncoding]}`;
-                        if (await file_utils_1.exists(compressedFile)) {
-                            content = await file_utils_1.readFile(compressedFile);
-                            contentEncoding = http_utils_1.getContentEncoding(compressedFile);
-                        }
-                    }
-                    // handles 'identity' and 'deflate' (as no specific extension is known, and on-the-fly compression might be expensive)
-                    if (contentEncoding === void 0 || content === void 0) {
-                        content = await file_utils_1.readFile(path);
-                        contentEncoding = http_utils_1.getContentEncoding(path);
-                    }
-                    response.writeHead(200 /* OK */, {
-                        'Content-Type': contentType,
-                        'Content-Encoding': contentEncoding,
-                        'Cache-Control': this.cacheControlDirective
-                    });
-                    await new Promise(function (resolve) {
-                        response.end(content, resolve);
-                    });
-                }
-                else {
-                    this.logger.debug(`File "${path}" could not be found`);
-                    response.writeHead(404 /* NotFound */);
-                    await new Promise(function (resolve) {
-                        response.end(resolve);
-                    });
-                }
-                context.state = 3 /* end */;
+            const parsedUrl = url.parse(request.url);
+            let parsedPath = parsedUrl.path;
+            if (parsedPath.endsWith('/')) {
+                parsedPath = `${parsedPath}index.html`;
             }
-        };
-        FileServer = __decorate([
-            __param(0, interfaces_1.IHttpServerOptions),
-            __param(1, kernel_1.ILogger),
-            __metadata("design:paramtypes", [Object, Object])
-        ], FileServer);
-        return FileServer;
-    })();
+            const path = path_1.join(this.root, parsedPath);
+            if (await file_utils_1.isReadable(path)) {
+                this.logger.debug(`Serving file "${path}"`);
+                const contentType = http_utils_1.getContentType(path);
+                const clientEncoding = determineContentEncoding(request.headers);
+                let contentEncoding = (void 0);
+                let content = (void 0);
+                if (clientEncoding === 'br'
+                    || clientEncoding === 'gzip'
+                    || clientEncoding === 'compress') {
+                    const compressedFile = `${path}${contentEncodingExtensionMap[clientEncoding]}`;
+                    if (await file_utils_1.exists(compressedFile)) {
+                        content = await file_utils_1.readFile(compressedFile);
+                        contentEncoding = http_utils_1.getContentEncoding(compressedFile);
+                    }
+                }
+                // handles 'identity' and 'deflate' (as no specific extension is known, and on-the-fly compression might be expensive)
+                if (contentEncoding === void 0 || content === void 0) {
+                    content = await file_utils_1.readFile(path);
+                    contentEncoding = http_utils_1.getContentEncoding(path);
+                }
+                response.writeHead(200 /* OK */, {
+                    'Content-Type': contentType,
+                    'Content-Encoding': contentEncoding,
+                    'Cache-Control': this.cacheControlDirective
+                });
+                await new Promise(function (resolve) {
+                    response.end(content, resolve);
+                });
+            }
+            else {
+                this.logger.debug(`File "${path}" could not be found`);
+                response.writeHead(404 /* NotFound */);
+                await new Promise(function (resolve) {
+                    response.end(resolve);
+                });
+            }
+            context.state = 3 /* end */;
+        }
+    };
+    FileServer = __decorate([
+        __param(0, interfaces_1.IHttpServerOptions),
+        __param(1, kernel_1.ILogger),
+        __metadata("design:paramtypes", [Object, Object])
+    ], FileServer);
     exports.FileServer = FileServer;
     /**
      * File server with HTTP/2 push support
      */
-    let Http2FileServer = /** @class */ (() => {
-        let Http2FileServer = class Http2FileServer {
-            constructor(opts, logger) {
-                var _a;
-                this.opts = opts;
-                this.logger = logger;
-                this.filePushMap = new Map();
-                this.cacheControlDirective = (_a = this.opts.responseCacheControl) !== null && _a !== void 0 ? _a : 'max-age=3600';
-                this.logger = logger.root.scopeTo('Http2FileServer');
-                this.root = path_1.resolve(opts.root);
-                this.prepare();
-                this.logger.debug(`Now serving files from: "${this.root}"`);
+    let Http2FileServer = class Http2FileServer {
+        constructor(opts, logger) {
+            var _a;
+            this.opts = opts;
+            this.logger = logger;
+            this.filePushMap = new Map();
+            this.cacheControlDirective = (_a = this.opts.responseCacheControl) !== null && _a !== void 0 ? _a : 'max-age=3600';
+            this.logger = logger.root.scopeTo('Http2FileServer');
+            this.root = path_1.resolve(opts.root);
+            this.prepare();
+            this.logger.debug(`Now serving files from: "${this.root}"`);
+        }
+        handleRequest(context) {
+            const request = context.request;
+            const response = context.response;
+            if (!(request instanceof http2_1.Http2ServerRequest && response instanceof http2_1.Http2ServerResponse)) {
+                return;
             }
-            handleRequest(context) {
-                const request = context.request;
-                const response = context.response;
-                if (!(request instanceof http2_1.Http2ServerRequest && response instanceof http2_1.Http2ServerResponse)) {
-                    return;
+            const parsedUrl = url.parse(request.url);
+            let parsedPath = parsedUrl.path;
+            if (parsedPath.endsWith('/')) {
+                parsedPath = `${parsedPath}index.html`;
+            }
+            const path = path_1.join(this.root, parsedPath);
+            const contentEncoding = determineContentEncoding(request.headers);
+            const file = this.getPushInfo(parsedPath, contentEncoding);
+            if (file !== void 0) {
+                this.logger.debug(`Serving file "${path}"`);
+                const stream = response.stream;
+                // TODO make this configurable
+                if (parsedPath === '/index.html') {
+                    this.pushAll(stream, contentEncoding);
                 }
-                const parsedUrl = url.parse(request.url);
-                let parsedPath = parsedUrl.path;
-                if (parsedPath.endsWith('/')) {
-                    parsedPath = `${parsedPath}index.html`;
+                stream.respondWithFD(file.fd, file.headers);
+            }
+            else {
+                this.logger.debug(`File "${path}" could not be found`);
+                response.writeHead(404 /* NotFound */);
+                response.end();
+            }
+            context.state = 3 /* end */;
+        }
+        pushAll(stream, contentEncoding) {
+            for (const path of this.filePushMap.keys()) {
+                if (!path.endsWith('index.html') && !compressedFileExtensions.has(path_1.extname(path))) {
+                    this.push(stream, path, this.getPushInfo(path, contentEncoding));
                 }
-                const path = path_1.join(this.root, parsedPath);
-                const contentEncoding = determineContentEncoding(request.headers);
-                const file = this.getPushInfo(parsedPath, contentEncoding);
-                if (file !== void 0) {
-                    this.logger.debug(`Serving file "${path}"`);
-                    const stream = response.stream;
-                    // TODO make this configurable
-                    if (parsedPath === '/index.html') {
-                        this.pushAll(stream, contentEncoding);
-                    }
-                    stream.respondWithFD(file.fd, file.headers);
+            }
+        }
+        push(stream, filePath, { fd, headers }) {
+            const pushHeaders = { [HTTP2_HEADER_PATH]: filePath };
+            stream.pushStream(pushHeaders, (_err, pushStream) => {
+                // TODO handle error
+                this.logger.debug(`pushing ${filePath}`);
+                pushStream.respondWithFD(fd, headers);
+            });
+        }
+        prepare(root = this.opts.root) {
+            const cacheControlDirective = this.cacheControlDirective;
+            for (const item of fs_1.readdirSync(root)) {
+                const path = path_1.join(root, item);
+                const stats = fs_1.statSync(path);
+                if (stats.isFile()) {
+                    this.filePushMap.set(`/${path_1.relative(this.root, path)}`, PushInfo.create(path, cacheControlDirective));
                 }
                 else {
-                    this.logger.debug(`File "${path}" could not be found`);
-                    response.writeHead(404 /* NotFound */);
-                    response.end();
-                }
-                context.state = 3 /* end */;
-            }
-            pushAll(stream, contentEncoding) {
-                for (const path of this.filePushMap.keys()) {
-                    if (!path.endsWith('index.html') && !compressedFileExtensions.has(path_1.extname(path))) {
-                        this.push(stream, path, this.getPushInfo(path, contentEncoding));
-                    }
+                    this.prepare(path);
                 }
             }
-            push(stream, filePath, { fd, headers }) {
-                const pushHeaders = { [HTTP2_HEADER_PATH]: filePath };
-                stream.pushStream(pushHeaders, (_err, pushStream) => {
-                    // TODO handle error
-                    this.logger.debug(`pushing ${filePath}`);
-                    pushStream.respondWithFD(fd, headers);
-                });
-            }
-            prepare(root = this.opts.root) {
-                const cacheControlDirective = this.cacheControlDirective;
-                for (const item of fs_1.readdirSync(root)) {
-                    const path = path_1.join(root, item);
-                    const stats = fs_1.statSync(path);
-                    if (stats.isFile()) {
-                        this.filePushMap.set(`/${path_1.relative(this.root, path)}`, PushInfo.create(path, cacheControlDirective));
-                    }
-                    else {
-                        this.prepare(path);
-                    }
+        }
+        getPushInfo(path, contentEncoding) {
+            if (contentEncoding === 'br'
+                || contentEncoding === 'gzip'
+                || contentEncoding === 'compress') {
+                const info = this.filePushMap.get(`${path}${contentEncodingExtensionMap[contentEncoding]}`);
+                if (info !== void 0) {
+                    return info;
                 }
             }
-            getPushInfo(path, contentEncoding) {
-                if (contentEncoding === 'br'
-                    || contentEncoding === 'gzip'
-                    || contentEncoding === 'compress') {
-                    const info = this.filePushMap.get(`${path}${contentEncodingExtensionMap[contentEncoding]}`);
-                    if (info !== void 0) {
-                        return info;
-                    }
-                }
-                // handles 'identity' and 'deflate' (as no specific extension is known, and on-the-fly compression might be expensive)
-                return this.filePushMap.get(path);
-            }
-        };
-        Http2FileServer = __decorate([
-            __param(0, interfaces_1.IHttpServerOptions),
-            __param(1, kernel_1.ILogger),
-            __metadata("design:paramtypes", [Object, Object])
-        ], Http2FileServer);
-        return Http2FileServer;
-    })();
+            // handles 'identity' and 'deflate' (as no specific extension is known, and on-the-fly compression might be expensive)
+            return this.filePushMap.get(path);
+        }
+    };
+    Http2FileServer = __decorate([
+        __param(0, interfaces_1.IHttpServerOptions),
+        __param(1, kernel_1.ILogger),
+        __metadata("design:paramtypes", [Object, Object])
+    ], Http2FileServer);
     exports.Http2FileServer = Http2FileServer;
     class PushInfo {
         constructor(fd, headers) {

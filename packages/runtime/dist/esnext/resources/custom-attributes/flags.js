@@ -44,46 +44,37 @@ class FlagsTemplateController {
         }
     }
 }
-let InfrequentMutations = /** @class */ (() => {
-    let InfrequentMutations = class InfrequentMutations extends FlagsTemplateController {
-        constructor(factory, location) {
-            super(factory, location, 4096 /* noTargetObserverQueue */);
-        }
-    };
-    InfrequentMutations = __decorate([
-        templateController('infrequent-mutations'),
-        __param(0, IViewFactory), __param(1, IRenderLocation),
-        __metadata("design:paramtypes", [Object, Object])
-    ], InfrequentMutations);
-    return InfrequentMutations;
-})();
+let InfrequentMutations = class InfrequentMutations extends FlagsTemplateController {
+    constructor(factory, location) {
+        super(factory, location, 4096 /* noTargetObserverQueue */);
+    }
+};
+InfrequentMutations = __decorate([
+    templateController('infrequent-mutations'),
+    __param(0, IViewFactory), __param(1, IRenderLocation),
+    __metadata("design:paramtypes", [Object, Object])
+], InfrequentMutations);
 export { InfrequentMutations };
-let FrequentMutations = /** @class */ (() => {
-    let FrequentMutations = class FrequentMutations extends FlagsTemplateController {
-        constructor(factory, location) {
-            super(factory, location, 8192 /* persistentTargetObserverQueue */);
-        }
-    };
-    FrequentMutations = __decorate([
-        templateController('frequent-mutations'),
-        __param(0, IViewFactory), __param(1, IRenderLocation),
-        __metadata("design:paramtypes", [Object, Object])
-    ], FrequentMutations);
-    return FrequentMutations;
-})();
+let FrequentMutations = class FrequentMutations extends FlagsTemplateController {
+    constructor(factory, location) {
+        super(factory, location, 8192 /* persistentTargetObserverQueue */);
+    }
+};
+FrequentMutations = __decorate([
+    templateController('frequent-mutations'),
+    __param(0, IViewFactory), __param(1, IRenderLocation),
+    __metadata("design:paramtypes", [Object, Object])
+], FrequentMutations);
 export { FrequentMutations };
-let ObserveShallow = /** @class */ (() => {
-    let ObserveShallow = class ObserveShallow extends FlagsTemplateController {
-        constructor(factory, location) {
-            super(factory, location, 2048 /* observeLeafPropertiesOnly */);
-        }
-    };
-    ObserveShallow = __decorate([
-        templateController('observe-shallow'),
-        __param(0, IViewFactory), __param(1, IRenderLocation),
-        __metadata("design:paramtypes", [Object, Object])
-    ], ObserveShallow);
-    return ObserveShallow;
-})();
+let ObserveShallow = class ObserveShallow extends FlagsTemplateController {
+    constructor(factory, location) {
+        super(factory, location, 2048 /* observeLeafPropertiesOnly */);
+    }
+};
+ObserveShallow = __decorate([
+    templateController('observe-shallow'),
+    __param(0, IViewFactory), __param(1, IRenderLocation),
+    __metadata("design:paramtypes", [Object, Object])
+], ObserveShallow);
 export { ObserveShallow };
 //# sourceMappingURL=flags.js.map

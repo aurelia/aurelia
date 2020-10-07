@@ -24,57 +24,56 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.NavCustomElement = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const router_1 = require("../router");
-    let NavCustomElement = /** @class */ (() => {
-        let NavCustomElement = class NavCustomElement {
-            constructor(router) {
-                this.router = router;
-                this.name = null;
-                this.routes = null;
-                this.level = 0;
-                this.classes = {};
-            }
-            get navRoutes() {
-                const nav = this.router.navs[this.name];
-                return (nav !== void 0 && nav !== null ? nav.routes : []);
-            }
-            get navClasses() {
-                const nav = this.router.navs[this.name];
-                const navClasses = (nav !== void 0 && nav !== null ? nav.classes : {});
-                return {
-                    ...{
-                        nav: '',
-                        ul: '',
-                        li: '',
-                        a: '',
-                        ulActive: '',
-                        liActive: 'nav-active',
-                        aActive: '',
-                    }, ...navClasses
-                };
-            }
-            active(route) {
-                return 'Active';
-            }
-        };
-        __decorate([
-            runtime_1.bindable,
-            __metadata("design:type", Object)
-        ], NavCustomElement.prototype, "name", void 0);
-        __decorate([
-            runtime_1.bindable,
-            __metadata("design:type", Object)
-        ], NavCustomElement.prototype, "routes", void 0);
-        __decorate([
-            runtime_1.bindable,
-            __metadata("design:type", Number)
-        ], NavCustomElement.prototype, "level", void 0);
-        __decorate([
-            runtime_1.bindable,
-            __metadata("design:type", Object)
-        ], NavCustomElement.prototype, "classes", void 0);
-        NavCustomElement = __decorate([
-            runtime_1.customElement({
-                name: 'au-nav', template: `<template>
+    let NavCustomElement = class NavCustomElement {
+        constructor(router) {
+            this.router = router;
+            this.name = null;
+            this.routes = null;
+            this.level = 0;
+            this.classes = {};
+        }
+        get navRoutes() {
+            const nav = this.router.navs[this.name];
+            return (nav !== void 0 && nav !== null ? nav.routes : []);
+        }
+        get navClasses() {
+            const nav = this.router.navs[this.name];
+            const navClasses = (nav !== void 0 && nav !== null ? nav.classes : {});
+            return {
+                ...{
+                    nav: '',
+                    ul: '',
+                    li: '',
+                    a: '',
+                    ulActive: '',
+                    liActive: 'nav-active',
+                    aActive: '',
+                }, ...navClasses
+            };
+        }
+        active(route) {
+            return 'Active';
+        }
+    };
+    __decorate([
+        runtime_1.bindable,
+        __metadata("design:type", Object)
+    ], NavCustomElement.prototype, "name", void 0);
+    __decorate([
+        runtime_1.bindable,
+        __metadata("design:type", Object)
+    ], NavCustomElement.prototype, "routes", void 0);
+    __decorate([
+        runtime_1.bindable,
+        __metadata("design:type", Number)
+    ], NavCustomElement.prototype, "level", void 0);
+    __decorate([
+        runtime_1.bindable,
+        __metadata("design:type", Object)
+    ], NavCustomElement.prototype, "classes", void 0);
+    NavCustomElement = __decorate([
+        runtime_1.customElement({
+            name: 'au-nav', template: `<template>
   <nav if.bind="name" class="\${name} \${navClasses.nav}">
     <au-nav routes.bind="navRoutes" classes.bind="navClasses" containerless></au-nav>
   </nav>
@@ -88,12 +87,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     </li>
   </ul>
 </template>`
-            }),
-            __param(0, router_1.IRouter),
-            __metadata("design:paramtypes", [Object])
-        ], NavCustomElement);
-        return NavCustomElement;
-    })();
+        }),
+        __param(0, router_1.IRouter),
+        __metadata("design:paramtypes", [Object])
+    ], NavCustomElement);
     exports.NavCustomElement = NavCustomElement;
 });
 //# sourceMappingURL=nav.js.map

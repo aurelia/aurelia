@@ -6,58 +6,46 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 import { AttrSyntax } from './attribute-parser';
 import { attributePattern } from './attribute-pattern';
-let DotSeparatedAttributePattern = /** @class */ (() => {
-    let DotSeparatedAttributePattern = class DotSeparatedAttributePattern {
-        ['PART.PART'](rawName, rawValue, parts) {
-            return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
-        }
-        ['PART.PART.PART'](rawName, rawValue, parts) {
-            return new AttrSyntax(rawName, rawValue, parts[0], parts[2]);
-        }
-    };
-    DotSeparatedAttributePattern = __decorate([
-        attributePattern({ pattern: 'PART.PART', symbols: '.' }, { pattern: 'PART.PART.PART', symbols: '.' })
-    ], DotSeparatedAttributePattern);
-    return DotSeparatedAttributePattern;
-})();
+let DotSeparatedAttributePattern = class DotSeparatedAttributePattern {
+    ['PART.PART'](rawName, rawValue, parts) {
+        return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
+    }
+    ['PART.PART.PART'](rawName, rawValue, parts) {
+        return new AttrSyntax(rawName, rawValue, parts[0], parts[2]);
+    }
+};
+DotSeparatedAttributePattern = __decorate([
+    attributePattern({ pattern: 'PART.PART', symbols: '.' }, { pattern: 'PART.PART.PART', symbols: '.' })
+], DotSeparatedAttributePattern);
 export { DotSeparatedAttributePattern };
-let RefAttributePattern = /** @class */ (() => {
-    let RefAttributePattern = class RefAttributePattern {
-        ['ref'](rawName, rawValue, parts) {
-            return new AttrSyntax(rawName, rawValue, 'element', 'ref');
-        }
-        ['PART.ref'](rawName, rawValue, parts) {
-            return new AttrSyntax(rawName, rawValue, parts[0], 'ref');
-        }
-    };
-    RefAttributePattern = __decorate([
-        attributePattern({ pattern: 'ref', symbols: '' }, { pattern: 'PART.ref', symbols: '.' })
-    ], RefAttributePattern);
-    return RefAttributePattern;
-})();
+let RefAttributePattern = class RefAttributePattern {
+    ['ref'](rawName, rawValue, parts) {
+        return new AttrSyntax(rawName, rawValue, 'element', 'ref');
+    }
+    ['PART.ref'](rawName, rawValue, parts) {
+        return new AttrSyntax(rawName, rawValue, parts[0], 'ref');
+    }
+};
+RefAttributePattern = __decorate([
+    attributePattern({ pattern: 'ref', symbols: '' }, { pattern: 'PART.ref', symbols: '.' })
+], RefAttributePattern);
 export { RefAttributePattern };
-let ColonPrefixedBindAttributePattern = /** @class */ (() => {
-    let ColonPrefixedBindAttributePattern = class ColonPrefixedBindAttributePattern {
-        [':PART'](rawName, rawValue, parts) {
-            return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
-        }
-    };
-    ColonPrefixedBindAttributePattern = __decorate([
-        attributePattern({ pattern: ':PART', symbols: ':' })
-    ], ColonPrefixedBindAttributePattern);
-    return ColonPrefixedBindAttributePattern;
-})();
+let ColonPrefixedBindAttributePattern = class ColonPrefixedBindAttributePattern {
+    [':PART'](rawName, rawValue, parts) {
+        return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
+    }
+};
+ColonPrefixedBindAttributePattern = __decorate([
+    attributePattern({ pattern: ':PART', symbols: ':' })
+], ColonPrefixedBindAttributePattern);
 export { ColonPrefixedBindAttributePattern };
-let AtPrefixedTriggerAttributePattern = /** @class */ (() => {
-    let AtPrefixedTriggerAttributePattern = class AtPrefixedTriggerAttributePattern {
-        ['@PART'](rawName, rawValue, parts) {
-            return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
-        }
-    };
-    AtPrefixedTriggerAttributePattern = __decorate([
-        attributePattern({ pattern: '@PART', symbols: '@' })
-    ], AtPrefixedTriggerAttributePattern);
-    return AtPrefixedTriggerAttributePattern;
-})();
+let AtPrefixedTriggerAttributePattern = class AtPrefixedTriggerAttributePattern {
+    ['@PART'](rawName, rawValue, parts) {
+        return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
+    }
+};
+AtPrefixedTriggerAttributePattern = __decorate([
+    attributePattern({ pattern: '@PART', symbols: '@' })
+], AtPrefixedTriggerAttributePattern);
 export { AtPrefixedTriggerAttributePattern };
 //# sourceMappingURL=attribute-patterns.js.map

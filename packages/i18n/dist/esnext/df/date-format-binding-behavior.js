@@ -6,16 +6,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 import { bindingBehavior } from '@aurelia/runtime';
 import { createIntlFormatValueConverterExpression } from '../utils';
-let DateFormatBindingBehavior = /** @class */ (() => {
-    let DateFormatBindingBehavior = class DateFormatBindingBehavior {
-        bind(flags, _scope, _hostScope, binding) {
-            createIntlFormatValueConverterExpression("df" /* dateFormatValueConverterName */, binding);
-        }
-    };
-    DateFormatBindingBehavior = __decorate([
-        bindingBehavior("df" /* dateFormatValueConverterName */)
-    ], DateFormatBindingBehavior);
-    return DateFormatBindingBehavior;
-})();
+let DateFormatBindingBehavior = class DateFormatBindingBehavior {
+    bind(flags, _scope, _hostScope, binding) {
+        createIntlFormatValueConverterExpression("df" /* dateFormatValueConverterName */, binding);
+    }
+};
+DateFormatBindingBehavior = __decorate([
+    bindingBehavior("df" /* dateFormatValueConverterName */)
+], DateFormatBindingBehavior);
 export { DateFormatBindingBehavior };
 //# sourceMappingURL=date-format-binding-behavior.js.map

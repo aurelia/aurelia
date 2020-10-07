@@ -149,63 +149,60 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     exports.IStartTaskManager = kernel_1.DI.createInterface('IStartTaskManager').noDefault();
-    let StartTaskManager = /** @class */ (() => {
-        let StartTaskManager = class StartTaskManager {
-            constructor(locator) {
-                this.locator = locator;
+    let StartTaskManager = class StartTaskManager {
+        constructor(locator) {
+            this.locator = locator;
+            this.beforeCompileChildrenQueued = false;
+        }
+        static register(container) {
+            return kernel_1.Registration.singleton(exports.IStartTaskManager, this).register(container);
+        }
+        enqueueBeforeCompileChildren() {
+            if (this.beforeCompileChildrenQueued) {
+                throw new Error(`BeforeCompileChildren already queued`);
+            }
+            this.beforeCompileChildrenQueued = true;
+        }
+        runBeforeCreate(locator = this.locator) {
+            return this.run(0 /* beforeCreate */, locator);
+        }
+        runBeforeCompile(locator = this.locator) {
+            return this.run(1 /* beforeCompile */, locator);
+        }
+        runBeforeCompileChildren(locator = this.locator) {
+            if (this.beforeCompileChildrenQueued) {
                 this.beforeCompileChildrenQueued = false;
+                return this.run(2 /* beforeCompileChildren */, locator);
             }
-            static register(container) {
-                return kernel_1.Registration.singleton(exports.IStartTaskManager, this).register(container);
-            }
-            enqueueBeforeCompileChildren() {
-                if (this.beforeCompileChildrenQueued) {
-                    throw new Error(`BeforeCompileChildren already queued`);
-                }
-                this.beforeCompileChildrenQueued = true;
-            }
-            runBeforeCreate(locator = this.locator) {
-                return this.run(0 /* beforeCreate */, locator);
-            }
-            runBeforeCompile(locator = this.locator) {
-                return this.run(1 /* beforeCompile */, locator);
-            }
-            runBeforeCompileChildren(locator = this.locator) {
-                if (this.beforeCompileChildrenQueued) {
-                    this.beforeCompileChildrenQueued = false;
-                    return this.run(2 /* beforeCompileChildren */, locator);
-                }
+            return exports.LifecycleTask.done;
+        }
+        runBeforeActivate(locator = this.locator) {
+            return this.run(3 /* beforeActivate */, locator);
+        }
+        runAfterActivate(locator = this.locator) {
+            return this.run(4 /* afterActivate */, locator);
+        }
+        runBeforeDeactivate(locator = this.locator) {
+            return this.run(5 /* beforeDeactivate */, locator);
+        }
+        runAfterDeactivate(locator = this.locator) {
+            return this.run(6 /* afterDeactivate */, locator);
+        }
+        run(slot, locator = this.locator) {
+            const tasks = locator.getAll(exports.IStartTask)
+                .filter(startTask => startTask.slot === slot)
+                .map(startTask => startTask.resolveTask())
+                .filter(task => !task.done);
+            if (tasks.length === 0) {
                 return exports.LifecycleTask.done;
             }
-            runBeforeActivate(locator = this.locator) {
-                return this.run(3 /* beforeActivate */, locator);
-            }
-            runAfterActivate(locator = this.locator) {
-                return this.run(4 /* afterActivate */, locator);
-            }
-            runBeforeDeactivate(locator = this.locator) {
-                return this.run(5 /* beforeDeactivate */, locator);
-            }
-            runAfterDeactivate(locator = this.locator) {
-                return this.run(6 /* afterDeactivate */, locator);
-            }
-            run(slot, locator = this.locator) {
-                const tasks = locator.getAll(exports.IStartTask)
-                    .filter(startTask => startTask.slot === slot)
-                    .map(startTask => startTask.resolveTask())
-                    .filter(task => !task.done);
-                if (tasks.length === 0) {
-                    return exports.LifecycleTask.done;
-                }
-                return new AggregateTerminalTask(tasks);
-            }
-        };
-        StartTaskManager = __decorate([
-            __param(0, kernel_1.IServiceLocator),
-            __metadata("design:paramtypes", [Object])
-        ], StartTaskManager);
-        return StartTaskManager;
-    })();
+            return new AggregateTerminalTask(tasks);
+        }
+    };
+    StartTaskManager = __decorate([
+        __param(0, kernel_1.IServiceLocator),
+        __metadata("design:paramtypes", [Object])
+    ], StartTaskManager);
     exports.StartTaskManager = StartTaskManager;
     class PromiseTask {
         constructor(promise, next, context, ...args) {

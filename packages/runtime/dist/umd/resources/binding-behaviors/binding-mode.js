@@ -36,57 +36,45 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
     }
     exports.BindingModeBehavior = BindingModeBehavior;
-    let OneTimeBindingBehavior = /** @class */ (() => {
-        let OneTimeBindingBehavior = class OneTimeBindingBehavior extends BindingModeBehavior {
-            constructor() {
-                super(flags_1.BindingMode.oneTime);
-            }
-        };
-        OneTimeBindingBehavior = __decorate([
-            binding_behavior_1.bindingBehavior('oneTime'),
-            __metadata("design:paramtypes", [])
-        ], OneTimeBindingBehavior);
-        return OneTimeBindingBehavior;
-    })();
+    let OneTimeBindingBehavior = class OneTimeBindingBehavior extends BindingModeBehavior {
+        constructor() {
+            super(flags_1.BindingMode.oneTime);
+        }
+    };
+    OneTimeBindingBehavior = __decorate([
+        binding_behavior_1.bindingBehavior('oneTime'),
+        __metadata("design:paramtypes", [])
+    ], OneTimeBindingBehavior);
     exports.OneTimeBindingBehavior = OneTimeBindingBehavior;
-    let ToViewBindingBehavior = /** @class */ (() => {
-        let ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehavior {
-            constructor() {
-                super(flags_1.BindingMode.toView);
-            }
-        };
-        ToViewBindingBehavior = __decorate([
-            binding_behavior_1.bindingBehavior('toView'),
-            __metadata("design:paramtypes", [])
-        ], ToViewBindingBehavior);
-        return ToViewBindingBehavior;
-    })();
+    let ToViewBindingBehavior = class ToViewBindingBehavior extends BindingModeBehavior {
+        constructor() {
+            super(flags_1.BindingMode.toView);
+        }
+    };
+    ToViewBindingBehavior = __decorate([
+        binding_behavior_1.bindingBehavior('toView'),
+        __metadata("design:paramtypes", [])
+    ], ToViewBindingBehavior);
     exports.ToViewBindingBehavior = ToViewBindingBehavior;
-    let FromViewBindingBehavior = /** @class */ (() => {
-        let FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeBehavior {
-            constructor() {
-                super(flags_1.BindingMode.fromView);
-            }
-        };
-        FromViewBindingBehavior = __decorate([
-            binding_behavior_1.bindingBehavior('fromView'),
-            __metadata("design:paramtypes", [])
-        ], FromViewBindingBehavior);
-        return FromViewBindingBehavior;
-    })();
+    let FromViewBindingBehavior = class FromViewBindingBehavior extends BindingModeBehavior {
+        constructor() {
+            super(flags_1.BindingMode.fromView);
+        }
+    };
+    FromViewBindingBehavior = __decorate([
+        binding_behavior_1.bindingBehavior('fromView'),
+        __metadata("design:paramtypes", [])
+    ], FromViewBindingBehavior);
     exports.FromViewBindingBehavior = FromViewBindingBehavior;
-    let TwoWayBindingBehavior = /** @class */ (() => {
-        let TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehavior {
-            constructor() {
-                super(flags_1.BindingMode.twoWay);
-            }
-        };
-        TwoWayBindingBehavior = __decorate([
-            binding_behavior_1.bindingBehavior('twoWay'),
-            __metadata("design:paramtypes", [])
-        ], TwoWayBindingBehavior);
-        return TwoWayBindingBehavior;
-    })();
+    let TwoWayBindingBehavior = class TwoWayBindingBehavior extends BindingModeBehavior {
+        constructor() {
+            super(flags_1.BindingMode.twoWay);
+        }
+    };
+    TwoWayBindingBehavior = __decorate([
+        binding_behavior_1.bindingBehavior('twoWay'),
+        __metadata("design:paramtypes", [])
+    ], TwoWayBindingBehavior);
     exports.TwoWayBindingBehavior = TwoWayBindingBehavior;
 });
 //# sourceMappingURL=binding-mode.js.map

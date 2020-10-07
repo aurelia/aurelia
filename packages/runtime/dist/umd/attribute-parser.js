@@ -35,42 +35,39 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.AttrSyntax = AttrSyntax;
     exports.IAttributeParser = kernel_1.DI.createInterface('IAttributeParser').withDefault(x => x.singleton(AttributeParser));
     /** @internal */
-    let AttributeParser = /** @class */ (() => {
-        let AttributeParser = class AttributeParser {
-            constructor(interpreter, attrPatterns) {
-                this.interpreter = interpreter;
-                this.cache = {};
-                this.interpreter = interpreter;
-                const patterns = this.patterns = {};
-                attrPatterns.forEach(attrPattern => {
-                    const defs = attribute_pattern_1.AttributePattern.getPatternDefinitions(attrPattern.constructor);
-                    interpreter.add(defs);
-                    defs.forEach(def => {
-                        patterns[def.pattern] = attrPattern;
-                    });
+    let AttributeParser = class AttributeParser {
+        constructor(interpreter, attrPatterns) {
+            this.interpreter = interpreter;
+            this.cache = {};
+            this.interpreter = interpreter;
+            const patterns = this.patterns = {};
+            attrPatterns.forEach(attrPattern => {
+                const defs = attribute_pattern_1.AttributePattern.getPatternDefinitions(attrPattern.constructor);
+                interpreter.add(defs);
+                defs.forEach(def => {
+                    patterns[def.pattern] = attrPattern;
                 });
+            });
+        }
+        parse(name, value) {
+            let interpretation = this.cache[name];
+            if (interpretation == null) {
+                interpretation = this.cache[name] = this.interpreter.interpret(name);
             }
-            parse(name, value) {
-                let interpretation = this.cache[name];
-                if (interpretation == null) {
-                    interpretation = this.cache[name] = this.interpreter.interpret(name);
-                }
-                const pattern = interpretation.pattern;
-                if (pattern == null) {
-                    return new AttrSyntax(name, value, name, null);
-                }
-                else {
-                    return this.patterns[pattern][pattern](name, value, interpretation.parts);
-                }
+            const pattern = interpretation.pattern;
+            if (pattern == null) {
+                return new AttrSyntax(name, value, name, null);
             }
-        };
-        AttributeParser = __decorate([
-            __param(0, attribute_pattern_1.ISyntaxInterpreter),
-            __param(1, kernel_1.all(attribute_pattern_1.IAttributePattern)),
-            __metadata("design:paramtypes", [Object, Array])
-        ], AttributeParser);
-        return AttributeParser;
-    })();
+            else {
+                return this.patterns[pattern][pattern](name, value, interpretation.parts);
+            }
+        }
+    };
+    AttributeParser = __decorate([
+        __param(0, attribute_pattern_1.ISyntaxInterpreter),
+        __param(1, kernel_1.all(attribute_pattern_1.IAttributePattern)),
+        __metadata("design:paramtypes", [Object, Array])
+    ], AttributeParser);
     exports.AttributeParser = AttributeParser;
 });
 //# sourceMappingURL=attribute-parser.js.map

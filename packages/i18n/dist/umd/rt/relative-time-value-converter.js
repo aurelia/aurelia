@@ -24,26 +24,23 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.RelativeTimeValueConverter = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const i18n_1 = require("../i18n");
-    let RelativeTimeValueConverter = /** @class */ (() => {
-        let RelativeTimeValueConverter = class RelativeTimeValueConverter {
-            constructor(i18n) {
-                this.i18n = i18n;
-                this.signals = ["aurelia-translation-signal" /* I18N_SIGNAL */, "aurelia-relativetime-signal" /* RT_SIGNAL */];
+    let RelativeTimeValueConverter = class RelativeTimeValueConverter {
+        constructor(i18n) {
+            this.i18n = i18n;
+            this.signals = ["aurelia-translation-signal" /* I18N_SIGNAL */, "aurelia-relativetime-signal" /* RT_SIGNAL */];
+        }
+        toView(value, options, locale) {
+            if (!(value instanceof Date)) {
+                return value;
             }
-            toView(value, options, locale) {
-                if (!(value instanceof Date)) {
-                    return value;
-                }
-                return this.i18n.rt(value, options, locale);
-            }
-        };
-        RelativeTimeValueConverter = __decorate([
-            runtime_1.valueConverter("rt" /* relativeTimeValueConverterName */),
-            __param(0, i18n_1.I18N),
-            __metadata("design:paramtypes", [Object])
-        ], RelativeTimeValueConverter);
-        return RelativeTimeValueConverter;
-    })();
+            return this.i18n.rt(value, options, locale);
+        }
+    };
+    RelativeTimeValueConverter = __decorate([
+        runtime_1.valueConverter("rt" /* relativeTimeValueConverterName */),
+        __param(0, i18n_1.I18N),
+        __metadata("design:paramtypes", [Object])
+    ], RelativeTimeValueConverter);
     exports.RelativeTimeValueConverter = RelativeTimeValueConverter;
 });
 //# sourceMappingURL=relative-time-value-converter.js.map

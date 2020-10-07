@@ -18,20 +18,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     exports.AttrBindingBehavior = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const data_attribute_accessor_1 = require("../../observation/data-attribute-accessor");
-    let AttrBindingBehavior = /** @class */ (() => {
-        let AttrBindingBehavior = class AttrBindingBehavior {
-            bind(flags, _scope, _hostScope, binding) {
-                binding.targetObserver = new data_attribute_accessor_1.DataAttributeAccessor(binding.locator.get(runtime_1.IScheduler), flags, binding.target, binding.targetProperty);
-            }
-            unbind(flags, _scope, _hostScope, binding) {
-                return;
-            }
-        };
-        AttrBindingBehavior = __decorate([
-            runtime_1.bindingBehavior('attr')
-        ], AttrBindingBehavior);
-        return AttrBindingBehavior;
-    })();
+    let AttrBindingBehavior = class AttrBindingBehavior {
+        bind(flags, _scope, _hostScope, binding) {
+            binding.targetObserver = new data_attribute_accessor_1.DataAttributeAccessor(binding.locator.get(runtime_1.IScheduler), flags, binding.target, binding.targetProperty);
+        }
+        unbind(flags, _scope, _hostScope, binding) {
+            return;
+        }
+    };
+    AttrBindingBehavior = __decorate([
+        runtime_1.bindingBehavior('attr')
+    ], AttrBindingBehavior);
     exports.AttrBindingBehavior = AttrBindingBehavior;
 });
 //# sourceMappingURL=attr.js.map

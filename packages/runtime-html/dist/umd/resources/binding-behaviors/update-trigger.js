@@ -25,44 +25,41 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const event_manager_1 = require("../../observation/event-manager");
-    let UpdateTriggerBindingBehavior = /** @class */ (() => {
-        let UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
-            constructor(observerLocator) {
-                this.observerLocator = observerLocator;
+    let UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
+        constructor(observerLocator) {
+            this.observerLocator = observerLocator;
+        }
+        bind(flags, _scope, _hostScope, binding, ...events) {
+            if (events.length === 0) {
+                throw kernel_1.Reporter.error(9);
             }
-            bind(flags, _scope, _hostScope, binding, ...events) {
-                if (events.length === 0) {
-                    throw kernel_1.Reporter.error(9);
-                }
-                if (binding.mode !== runtime_1.BindingMode.twoWay && binding.mode !== runtime_1.BindingMode.fromView) {
-                    throw kernel_1.Reporter.error(10);
-                }
-                this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
-                // ensure the binding's target observer has been set.
-                const targetObserver = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
-                if (!targetObserver.handler) {
-                    throw kernel_1.Reporter.error(10);
-                }
-                binding.targetObserver = targetObserver;
-                // stash the original element subscribe function.
-                targetObserver.originalHandler = binding.targetObserver.handler;
-                // replace the element subscribe function with one that uses the correct events.
-                targetObserver.handler = new event_manager_1.EventSubscriber(binding.locator.get(runtime_1.IDOM), events);
+            if (binding.mode !== runtime_1.BindingMode.twoWay && binding.mode !== runtime_1.BindingMode.fromView) {
+                throw kernel_1.Reporter.error(10);
             }
-            unbind(flags, _scope, _hostScope, binding) {
-                // restore the state of the binding.
-                binding.targetObserver.handler.dispose();
-                binding.targetObserver.handler = binding.targetObserver.originalHandler;
-                binding.targetObserver.originalHandler = null;
+            this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+            // ensure the binding's target observer has been set.
+            const targetObserver = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
+            if (!targetObserver.handler) {
+                throw kernel_1.Reporter.error(10);
             }
-        };
-        UpdateTriggerBindingBehavior = __decorate([
-            runtime_1.bindingBehavior('updateTrigger'),
-            __param(0, runtime_1.IObserverLocator),
-            __metadata("design:paramtypes", [Object])
-        ], UpdateTriggerBindingBehavior);
-        return UpdateTriggerBindingBehavior;
-    })();
+            binding.targetObserver = targetObserver;
+            // stash the original element subscribe function.
+            targetObserver.originalHandler = binding.targetObserver.handler;
+            // replace the element subscribe function with one that uses the correct events.
+            targetObserver.handler = new event_manager_1.EventSubscriber(binding.locator.get(runtime_1.IDOM), events);
+        }
+        unbind(flags, _scope, _hostScope, binding) {
+            // restore the state of the binding.
+            binding.targetObserver.handler.dispose();
+            binding.targetObserver.handler = binding.targetObserver.originalHandler;
+            binding.targetObserver.originalHandler = null;
+        }
+    };
+    UpdateTriggerBindingBehavior = __decorate([
+        runtime_1.bindingBehavior('updateTrigger'),
+        __param(0, runtime_1.IObserverLocator),
+        __metadata("design:paramtypes", [Object])
+    ], UpdateTriggerBindingBehavior);
     exports.UpdateTriggerBindingBehavior = UpdateTriggerBindingBehavior;
 });
 //# sourceMappingURL=update-trigger.js.map

@@ -26,44 +26,41 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const runtime_1 = require("@aurelia/runtime");
     const runtime_html_1 = require("@aurelia/runtime-html");
     const scheduler_dom_1 = require("@aurelia/scheduler-dom");
-    let BrowserDOMInitializer = /** @class */ (() => {
-        let BrowserDOMInitializer = class BrowserDOMInitializer {
-            constructor(container) {
-                this.container = container;
+    let BrowserDOMInitializer = class BrowserDOMInitializer {
+        constructor(container) {
+            this.container = container;
+        }
+        static register(container) {
+            return kernel_1.Registration.singleton(runtime_1.IDOMInitializer, this).register(container);
+        }
+        initialize(config) {
+            if (this.container.has(runtime_1.IDOM, false)) {
+                return this.container.get(runtime_1.IDOM);
             }
-            static register(container) {
-                return kernel_1.Registration.singleton(runtime_1.IDOMInitializer, this).register(container);
-            }
-            initialize(config) {
-                if (this.container.has(runtime_1.IDOM, false)) {
-                    return this.container.get(runtime_1.IDOM);
+            let dom;
+            if (config !== undefined) {
+                if (config.dom !== undefined) {
+                    dom = config.dom;
                 }
-                let dom;
-                if (config !== undefined) {
-                    if (config.dom !== undefined) {
-                        dom = config.dom;
-                    }
-                    else if (config.host.ownerDocument !== null) {
-                        dom = new runtime_html_1.HTMLDOM(window, config.host.ownerDocument, Node, Element, HTMLElement, CustomEvent, CSSStyleSheet, ShadowRoot);
-                    }
-                    else {
-                        dom = new runtime_html_1.HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent, CSSStyleSheet, ShadowRoot);
-                    }
+                else if (config.host.ownerDocument !== null) {
+                    dom = new runtime_html_1.HTMLDOM(window, config.host.ownerDocument, Node, Element, HTMLElement, CustomEvent, CSSStyleSheet, ShadowRoot);
                 }
                 else {
                     dom = new runtime_html_1.HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent, CSSStyleSheet, ShadowRoot);
                 }
-                kernel_1.Registration.instance(runtime_1.IDOM, dom).register(this.container);
-                kernel_1.Registration.instance(runtime_1.IScheduler, scheduler_dom_1.createDOMScheduler(this.container, window)).register(this.container);
-                return dom;
             }
-        };
-        BrowserDOMInitializer = __decorate([
-            __param(0, kernel_1.IContainer),
-            __metadata("design:paramtypes", [Object])
-        ], BrowserDOMInitializer);
-        return BrowserDOMInitializer;
-    })();
+            else {
+                dom = new runtime_html_1.HTMLDOM(window, document, Node, Element, HTMLElement, CustomEvent, CSSStyleSheet, ShadowRoot);
+            }
+            kernel_1.Registration.instance(runtime_1.IDOM, dom).register(this.container);
+            kernel_1.Registration.instance(runtime_1.IScheduler, scheduler_dom_1.createDOMScheduler(this.container, window)).register(this.container);
+            return dom;
+        }
+    };
+    BrowserDOMInitializer = __decorate([
+        __param(0, kernel_1.IContainer),
+        __metadata("design:paramtypes", [Object])
+    ], BrowserDOMInitializer);
     exports.BrowserDOMInitializer = BrowserDOMInitializer;
     exports.IDOMInitializerRegistration = BrowserDOMInitializer;
     /**

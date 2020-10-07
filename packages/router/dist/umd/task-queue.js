@@ -68,108 +68,105 @@ var __metadata = (this && this.__metadata) || function (k, v) {
      *
      * @internal - Shouldn't be used directly.
      */
-    let TaskQueue = /** @class */ (() => {
-        class TaskQueue {
-            constructor(callback) {
-                this.callback = callback;
-                this.pending = [];
-                this.processing = null;
-                this.allowedExecutionCostWithinTick = null;
+    class TaskQueue {
+        constructor(callback) {
+            this.callback = callback;
+            this.pending = [];
+            this.processing = null;
+            this.allowedExecutionCostWithinTick = null;
+            this.currentExecutionCostInCurrentTick = 0;
+            this.scheduler = null;
+            this.task = null;
+        }
+        get isActive() {
+            return this.task !== null;
+        }
+        get length() {
+            return this.pending.length;
+        }
+        start(options) {
+            if (this.isActive) {
+                throw new Error('TaskQueue has already been started');
+            }
+            this.scheduler = options.scheduler;
+            this.allowedExecutionCostWithinTick = options.allowedExecutionCostWithinTick;
+            this.task = this.scheduler.queueRenderTask(this.dequeue, { persistent: true });
+        }
+        stop() {
+            if (!this.isActive) {
+                throw new Error('TaskQueue has not been started');
+            }
+            this.task.cancel();
+            this.task = null;
+            this.allowedExecutionCostWithinTick = null;
+            this.clear();
+        }
+        enqueue(itemOrItems, costOrCosts) {
+            const list = Array.isArray(itemOrItems);
+            const items = (list ? itemOrItems : [itemOrItems]);
+            const costs = items
+                .map((value, index) => !Array.isArray(costOrCosts) ? costOrCosts : costOrCosts[index])
+                .map((value) => value !== undefined ? value : 1);
+            const tasks = [];
+            for (const item of items) {
+                tasks.push(item instanceof QueueTask
+                    ? item
+                    : this.createQueueTask(item, costs.shift())); // TODO: Get cancellable in as well
+            }
+            this.pending.push(...tasks);
+            this.dequeue();
+            return list ? tasks : tasks[0];
+        }
+        createQueueTask(item, cost) {
+            return new QueueTask(this, item, cost);
+        }
+        dequeue(delta) {
+            var _a;
+            if (this.processing !== null) {
+                return;
+            }
+            if (delta !== undefined) {
                 this.currentExecutionCostInCurrentTick = 0;
-                this.scheduler = null;
-                this.task = null;
             }
-            get isActive() {
-                return this.task !== null;
+            if (!this.pending.length) {
+                return;
             }
-            get length() {
-                return this.pending.length;
+            if (this.allowedExecutionCostWithinTick !== null && delta === undefined && this.currentExecutionCostInCurrentTick + (this.pending[0].cost || 0) > this.allowedExecutionCostWithinTick) {
+                return;
             }
-            start(options) {
-                if (this.isActive) {
-                    throw new Error('TaskQueue has already been started');
+            this.processing = this.pending.shift() || null;
+            if (this.processing) {
+                this.currentExecutionCostInCurrentTick += (_a = this.processing.cost) !== null && _a !== void 0 ? _a : 0;
+                if (this.callback !== void 0) {
+                    this.callback(this.processing);
                 }
-                this.scheduler = options.scheduler;
-                this.allowedExecutionCostWithinTick = options.allowedExecutionCostWithinTick;
-                this.task = this.scheduler.queueRenderTask(this.dequeue, { persistent: true });
-            }
-            stop() {
-                if (!this.isActive) {
-                    throw new Error('TaskQueue has not been started');
+                else {
+                    // Don't need to await this since next task won't be dequeued until
+                    // executed function is resolved
+                    this.processing.execute().catch(error => { throw error; });
                 }
-                this.task.cancel();
-                this.task = null;
-                this.allowedExecutionCostWithinTick = null;
-                this.clear();
-            }
-            enqueue(itemOrItems, costOrCosts) {
-                const list = Array.isArray(itemOrItems);
-                const items = (list ? itemOrItems : [itemOrItems]);
-                const costs = items
-                    .map((value, index) => !Array.isArray(costOrCosts) ? costOrCosts : costOrCosts[index])
-                    .map((value) => value !== undefined ? value : 1);
-                const tasks = [];
-                for (const item of items) {
-                    tasks.push(item instanceof QueueTask
-                        ? item
-                        : this.createQueueTask(item, costs.shift())); // TODO: Get cancellable in as well
-                }
-                this.pending.push(...tasks);
-                this.dequeue();
-                return list ? tasks : tasks[0];
-            }
-            createQueueTask(item, cost) {
-                return new QueueTask(this, item, cost);
-            }
-            dequeue(delta) {
-                var _a;
-                if (this.processing !== null) {
-                    return;
-                }
-                if (delta !== undefined) {
-                    this.currentExecutionCostInCurrentTick = 0;
-                }
-                if (!this.pending.length) {
-                    return;
-                }
-                if (this.allowedExecutionCostWithinTick !== null && delta === undefined && this.currentExecutionCostInCurrentTick + (this.pending[0].cost || 0) > this.allowedExecutionCostWithinTick) {
-                    return;
-                }
-                this.processing = this.pending.shift() || null;
-                if (this.processing) {
-                    this.currentExecutionCostInCurrentTick += (_a = this.processing.cost) !== null && _a !== void 0 ? _a : 0;
-                    if (this.callback !== void 0) {
-                        this.callback(this.processing);
-                    }
-                    else {
-                        // Don't need to await this since next task won't be dequeued until
-                        // executed function is resolved
-                        this.processing.execute().catch(error => { throw error; });
-                    }
-                }
-            }
-            clear() {
-                this.pending.splice(0, this.pending.length);
-            }
-            resolve(task, resolve) {
-                resolve();
-                this.processing = null;
-                this.dequeue();
-            }
-            reject(task, reject, reason) {
-                reject(reason);
-                this.processing = null;
-                this.dequeue();
             }
         }
-        __decorate([
-            kernel_1.bound,
-            __metadata("design:type", Function),
-            __metadata("design:paramtypes", [Number]),
-            __metadata("design:returntype", void 0)
-        ], TaskQueue.prototype, "dequeue", null);
-        return TaskQueue;
-    })();
+        clear() {
+            this.pending.splice(0, this.pending.length);
+        }
+        resolve(task, resolve) {
+            resolve();
+            this.processing = null;
+            this.dequeue();
+        }
+        reject(task, reject, reason) {
+            reject(reason);
+            this.processing = null;
+            this.dequeue();
+        }
+    }
+    __decorate([
+        kernel_1.bound,
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", [Number]),
+        __metadata("design:returntype", void 0)
+    ], TaskQueue.prototype, "dequeue", null);
     exports.TaskQueue = TaskQueue;
 });
 //# sourceMappingURL=task-queue.js.map

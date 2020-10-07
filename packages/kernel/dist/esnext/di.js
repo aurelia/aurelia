@@ -4,6 +4,7 @@ import { isArrayIndex, isNativeFunction } from './functions';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { Protocol } from './resource';
+const { emptyArray } = PLATFORM;
 export class ResolverBuilder {
     constructor(container, key) {
         this.container = container;
@@ -276,7 +277,7 @@ export const DI = {
             const registration = Registration.transient(target, target);
             return registration.register(container, target);
         };
-        target.registerInRequester = false;
+        target.registerInRequestor = false;
         return target;
     },
     /**
@@ -301,7 +302,7 @@ export const DI = {
             const registration = Registration.singleton(target, target);
             return registration.register(container, target);
         };
-        target.registerInRequester = options.scoped;
+        target.registerInRequestor = options.scoped;
         return target;
     },
 };
@@ -338,7 +339,20 @@ export function singleton(targetOrOptions) {
         return DI.singleton($target, targetOrOptions);
     };
 }
-export const all = createResolver((key, handler, requestor) => requestor.getAll(key));
+function createAllResolver(getter) {
+    return function (key, searchAncestors) {
+        searchAncestors = !!searchAncestors;
+        const resolver = function (target, property, descriptor) {
+            DI.inject(resolver)(target, property, descriptor);
+        };
+        resolver.$isResolver = true;
+        resolver.resolve = function (handler, requestor) {
+            return getter(key, handler, requestor, searchAncestors);
+        };
+        return resolver;
+    };
+}
+export const all = createAllResolver((key, handler, requestor, searchAncestors) => requestor.getAll(key, searchAncestors));
 /**
  * Lazily inject a dependency depending on whether the [[`Key`]] is present at the time of function call.
  *
@@ -609,10 +623,10 @@ function isRegistry(obj) {
     return typeof obj.register === 'function';
 }
 function isSelfRegistry(obj) {
-    return isRegistry(obj) && typeof obj.registerInRequester === 'boolean';
+    return isRegistry(obj) && typeof obj.registerInRequestor === 'boolean';
 }
 function isRegisterInRequester(obj) {
-    return isSelfRegistry(obj) && obj.registerInRequester;
+    return isSelfRegistry(obj) && obj.registerInRequestor;
 }
 function isClass(obj) {
     return obj.prototype !== void 0;
@@ -853,23 +867,37 @@ export class Container {
         }
         throw new Error(`Unable to resolve key: ${key}`);
     }
-    getAll(key) {
+    getAll(key, searchAncestors = false) {
         validateKey(key);
-        let current = this;
+        const requestor = this;
+        let current = requestor;
         let resolver;
-        while (current != null) {
-            resolver = current.resolvers.get(key);
-            if (resolver == null) {
-                if (this.parent == null) {
-                    return PLATFORM.emptyArray;
+        if (searchAncestors) {
+            let resolutions = emptyArray;
+            while (current != null) {
+                resolver = current.resolvers.get(key);
+                if (resolver != null) {
+                    resolutions = resolutions.concat(buildAllResponse(resolver, current, requestor));
                 }
                 current = current.parent;
             }
-            else {
-                return buildAllResponse(resolver, current, this);
+            return resolutions;
+        }
+        else {
+            while (current != null) {
+                resolver = current.resolvers.get(key);
+                if (resolver == null) {
+                    current = current.parent;
+                    if (current == null) {
+                        return emptyArray;
+                    }
+                }
+                else {
+                    return buildAllResponse(resolver, current, requestor);
+                }
             }
         }
-        return PLATFORM.emptyArray;
+        return emptyArray;
     }
     getFactory(Type) {
         let factory = Metadata.getOwn(factoryAnnotationKey, Type);

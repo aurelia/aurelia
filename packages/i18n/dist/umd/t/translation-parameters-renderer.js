@@ -27,17 +27,14 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     exports.TranslationParametersInstructionType = 'tpt';
     // `.bind` part is needed here only for vCurrent compliance
     const attribute = 't-params.bind';
-    let TranslationParametersAttributePattern = /** @class */ (() => {
-        let TranslationParametersAttributePattern = class TranslationParametersAttributePattern {
-            [attribute](rawName, rawValue, parts) {
-                return new runtime_1.AttrSyntax(rawName, rawValue, '', attribute);
-            }
-        };
-        TranslationParametersAttributePattern = __decorate([
-            runtime_1.attributePattern({ pattern: attribute, symbols: '' })
-        ], TranslationParametersAttributePattern);
-        return TranslationParametersAttributePattern;
-    })();
+    let TranslationParametersAttributePattern = class TranslationParametersAttributePattern {
+        [attribute](rawName, rawValue, parts) {
+            return new runtime_1.AttrSyntax(rawName, rawValue, '', attribute);
+        }
+    };
+    TranslationParametersAttributePattern = __decorate([
+        runtime_1.attributePattern({ pattern: attribute, symbols: '' })
+    ], TranslationParametersAttributePattern);
     exports.TranslationParametersAttributePattern = TranslationParametersAttributePattern;
     class TranslationParametersBindingInstruction {
         constructor(from, to) {
@@ -48,39 +45,33 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     }
     exports.TranslationParametersBindingInstruction = TranslationParametersBindingInstruction;
-    let TranslationParametersBindingCommand = /** @class */ (() => {
-        let TranslationParametersBindingCommand = class TranslationParametersBindingCommand {
-            constructor() {
-                this.bindingType = 53 /* BindCommand */;
-            }
-            compile(binding) {
-                return new TranslationParametersBindingInstruction(binding.expression, runtime_1.getTarget(binding, false));
-            }
-        };
-        TranslationParametersBindingCommand = __decorate([
-            runtime_1.bindingCommand(attribute)
-        ], TranslationParametersBindingCommand);
-        return TranslationParametersBindingCommand;
-    })();
+    let TranslationParametersBindingCommand = class TranslationParametersBindingCommand {
+        constructor() {
+            this.bindingType = 53 /* BindCommand */;
+        }
+        compile(binding) {
+            return new TranslationParametersBindingInstruction(binding.expression, runtime_1.getTarget(binding, false));
+        }
+    };
+    TranslationParametersBindingCommand = __decorate([
+        runtime_1.bindingCommand(attribute)
+    ], TranslationParametersBindingCommand);
     exports.TranslationParametersBindingCommand = TranslationParametersBindingCommand;
-    let TranslationParametersBindingRenderer = /** @class */ (() => {
-        let TranslationParametersBindingRenderer = class TranslationParametersBindingRenderer {
-            constructor(parser, observerLocator) {
-                this.parser = parser;
-                this.observerLocator = observerLocator;
-            }
-            render(flags, context, controller, target, instruction) {
-                translation_binding_1.TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true });
-            }
-        };
-        TranslationParametersBindingRenderer = __decorate([
-            runtime_1.instructionRenderer(exports.TranslationParametersInstructionType),
-            __param(0, runtime_1.IExpressionParser),
-            __param(1, runtime_1.IObserverLocator),
-            __metadata("design:paramtypes", [Object, Object])
-        ], TranslationParametersBindingRenderer);
-        return TranslationParametersBindingRenderer;
-    })();
+    let TranslationParametersBindingRenderer = class TranslationParametersBindingRenderer {
+        constructor(parser, observerLocator) {
+            this.parser = parser;
+            this.observerLocator = observerLocator;
+        }
+        render(flags, context, controller, target, instruction) {
+            translation_binding_1.TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true });
+        }
+    };
+    TranslationParametersBindingRenderer = __decorate([
+        runtime_1.instructionRenderer(exports.TranslationParametersInstructionType),
+        __param(0, runtime_1.IExpressionParser),
+        __param(1, runtime_1.IObserverLocator),
+        __metadata("design:paramtypes", [Object, Object])
+    ], TranslationParametersBindingRenderer);
     exports.TranslationParametersBindingRenderer = TranslationParametersBindingRenderer;
 });
 //# sourceMappingURL=translation-parameters-renderer.js.map

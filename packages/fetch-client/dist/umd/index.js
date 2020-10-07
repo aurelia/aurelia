@@ -9,6 +9,7 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.HttpClient = exports.HttpClientConfiguration = exports.RetryInterceptor = exports.retryStrategy = exports.json = void 0;
     var util_1 = require("./util");
     Object.defineProperty(exports, "json", { enumerable: true, get: function () { return util_1.json; } });
     var retry_interceptor_1 = require("./retry-interceptor");

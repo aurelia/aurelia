@@ -80,55 +80,52 @@ export var MountStrategy;
 })(MountStrategy || (MountStrategy = {}));
 export const IViewFactory = DI.createInterface('IViewFactory').noDefault();
 export const ILifecycle = DI.createInterface('ILifecycle').withDefault(x => x.singleton(Lifecycle));
-let BatchQueue = /** @class */ (() => {
-    let BatchQueue = class BatchQueue {
-        constructor(lifecycle) {
-            this.lifecycle = lifecycle;
+let BatchQueue = class BatchQueue {
+    constructor(lifecycle) {
+        this.lifecycle = lifecycle;
+        this.queue = [];
+        this.depth = 0;
+    }
+    begin() {
+        ++this.depth;
+    }
+    end(flags) {
+        if (flags === void 0) {
+            flags = 0 /* none */;
+        }
+        if (--this.depth === 0) {
+            this.process(flags);
+        }
+    }
+    inline(fn, flags) {
+        this.begin();
+        fn();
+        this.end(flags);
+    }
+    add(requestor) {
+        this.queue.push(requestor);
+    }
+    remove(requestor) {
+        const index = this.queue.indexOf(requestor);
+        if (index > -1) {
+            this.queue.splice(index, 1);
+        }
+    }
+    process(flags) {
+        while (this.queue.length > 0) {
+            const batch = this.queue.slice();
             this.queue = [];
-            this.depth = 0;
-        }
-        begin() {
-            ++this.depth;
-        }
-        end(flags) {
-            if (flags === void 0) {
-                flags = 0 /* none */;
-            }
-            if (--this.depth === 0) {
-                this.process(flags);
+            const { length } = batch;
+            for (let i = 0; i < length; ++i) {
+                batch[i].flushBatch(flags);
             }
         }
-        inline(fn, flags) {
-            this.begin();
-            fn();
-            this.end(flags);
-        }
-        add(requestor) {
-            this.queue.push(requestor);
-        }
-        remove(requestor) {
-            const index = this.queue.indexOf(requestor);
-            if (index > -1) {
-                this.queue.splice(index, 1);
-            }
-        }
-        process(flags) {
-            while (this.queue.length > 0) {
-                const batch = this.queue.slice();
-                this.queue = [];
-                const { length } = batch;
-                for (let i = 0; i < length; ++i) {
-                    batch[i].flushBatch(flags);
-                }
-            }
-        }
-    };
-    BatchQueue = __decorate([
-        __param(0, ILifecycle),
-        __metadata("design:paramtypes", [Object])
-    ], BatchQueue);
-    return BatchQueue;
-})();
+    }
+};
+BatchQueue = __decorate([
+    __param(0, ILifecycle),
+    __metadata("design:paramtypes", [Object])
+], BatchQueue);
 export { BatchQueue };
 export class Lifecycle {
     constructor() {

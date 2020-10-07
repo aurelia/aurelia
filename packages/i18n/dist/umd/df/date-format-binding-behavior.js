@@ -18,17 +18,14 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     exports.DateFormatBindingBehavior = void 0;
     const runtime_1 = require("@aurelia/runtime");
     const utils_1 = require("../utils");
-    let DateFormatBindingBehavior = /** @class */ (() => {
-        let DateFormatBindingBehavior = class DateFormatBindingBehavior {
-            bind(flags, _scope, _hostScope, binding) {
-                utils_1.createIntlFormatValueConverterExpression("df" /* dateFormatValueConverterName */, binding);
-            }
-        };
-        DateFormatBindingBehavior = __decorate([
-            runtime_1.bindingBehavior("df" /* dateFormatValueConverterName */)
-        ], DateFormatBindingBehavior);
-        return DateFormatBindingBehavior;
-    })();
+    let DateFormatBindingBehavior = class DateFormatBindingBehavior {
+        bind(flags, _scope, _hostScope, binding) {
+            utils_1.createIntlFormatValueConverterExpression("df" /* dateFormatValueConverterName */, binding);
+        }
+    };
+    DateFormatBindingBehavior = __decorate([
+        runtime_1.bindingBehavior("df" /* dateFormatValueConverterName */)
+    ], DateFormatBindingBehavior);
     exports.DateFormatBindingBehavior = DateFormatBindingBehavior;
 });
 //# sourceMappingURL=date-format-binding-behavior.js.map

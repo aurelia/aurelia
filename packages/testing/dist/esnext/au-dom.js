@@ -461,24 +461,20 @@ export class AuNodeSequenceFactory {
         return new AuNodeSequence(this.dom, this.wrapper.cloneNode(true));
     }
 }
-let AuDOMInitializer = /** @class */ (() => {
-    class AuDOMInitializer {
-        constructor(container) {
-            this.container = container;
-        }
-        initialize(config) {
-            if (this.container.has(IDOM, false)) {
-                return this.container.get(IDOM);
-            }
-            const dom = new AuDOM();
-            Registration.instance(IDOM, dom).register(this.container, IDOM);
-            return dom;
-        }
+export class AuDOMInitializer {
+    constructor(container) {
+        this.container = container;
     }
-    AuDOMInitializer.inject = [IContainer];
-    return AuDOMInitializer;
-})();
-export { AuDOMInitializer };
+    initialize(config) {
+        if (this.container.has(IDOM, false)) {
+            return this.container.get(IDOM);
+        }
+        const dom = new AuDOM();
+        Registration.instance(IDOM, dom).register(this.container, IDOM);
+        return dom;
+    }
+}
+AuDOMInitializer.inject = [IContainer];
 export class AuObserverLocator {
     getObserver(flags, scheduler, lifecycle, observerLocator, obj, propertyName) {
         return null;
@@ -499,35 +495,32 @@ export class AuTextInstruction {
         this.from = from;
     }
 }
-let AuTextRenderer = /** @class */ (() => {
-    let AuTextRenderer = 
+let AuTextRenderer = 
+/** @internal */
+class AuTextRenderer {
+    constructor(observerLocator) {
+        this.observerLocator = observerLocator;
+    }
+    render(flags, context, controller, target, instruction) {
+        let realTarget;
+        if (target.isRenderLocation) {
+            realTarget = AuNode.createText();
+            target.parentNode.insertBefore(realTarget, target);
+        }
+        else {
+            realTarget = target;
+        }
+        const bindable = new PropertyBinding(instruction.from, realTarget, 'textContent', BindingMode.toView, this.observerLocator, context);
+        controller.addBinding(bindable);
+    }
+};
+AuTextRenderer = __decorate([
+    inject(IObserverLocator),
+    instructionRenderer('au')
     /** @internal */
-    class AuTextRenderer {
-        constructor(observerLocator) {
-            this.observerLocator = observerLocator;
-        }
-        render(flags, context, controller, target, instruction) {
-            let realTarget;
-            if (target.isRenderLocation) {
-                realTarget = AuNode.createText();
-                target.parentNode.insertBefore(realTarget, target);
-            }
-            else {
-                realTarget = target;
-            }
-            const bindable = new PropertyBinding(instruction.from, realTarget, 'textContent', BindingMode.toView, this.observerLocator, context);
-            controller.addBinding(bindable);
-        }
-    };
-    AuTextRenderer = __decorate([
-        inject(IObserverLocator),
-        instructionRenderer('au')
-        /** @internal */
-        ,
-        __metadata("design:paramtypes", [Object])
-    ], AuTextRenderer);
-    return AuTextRenderer;
-})();
+    ,
+    __metadata("design:paramtypes", [Object])
+], AuTextRenderer);
 export { AuTextRenderer };
 export const AuDOMConfiguration = {
     register(container) {

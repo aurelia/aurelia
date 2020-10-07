@@ -16,60 +16,57 @@ import { IViewFactory } from '../../lifecycle';
 import { templateController } from '../custom-attribute';
 import { bindable } from '../../templating/bindable';
 import { Scope } from '../../observation/binding-context';
-let With = /** @class */ (() => {
-    let With = class With {
-        constructor(factory, location) {
-            this.factory = factory;
-            this.location = location;
-            this.id = nextId('au$component');
-            this.id = nextId('au$component');
-            this.view = this.factory.create();
-            this.view.setLocation(location, 1 /* insertBefore */);
+let With = class With {
+    constructor(factory, location) {
+        this.factory = factory;
+        this.location = location;
+        this.id = nextId('au$component');
+        this.id = nextId('au$component');
+        this.view = this.factory.create();
+        this.view.setLocation(location, 1 /* insertBefore */);
+    }
+    valueChanged(newValue, oldValue, flags) {
+        if (this.$controller.isActive) {
+            // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            this.activateView(this.view, 32 /* fromBind */);
         }
-        valueChanged(newValue, oldValue, flags) {
-            if (this.$controller.isActive) {
-                // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
-                // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                this.activateView(this.view, 32 /* fromBind */);
-            }
+    }
+    afterAttach(initiator, parent, flags) {
+        return this.activateView(initiator, flags);
+    }
+    afterUnbind(initiator, parent, flags) {
+        return this.view.deactivate(initiator, this.$controller, flags);
+    }
+    activateView(initiator, flags) {
+        const { $controller, value } = this;
+        const scope = Scope.fromParent(flags, $controller.scope, value === void 0 ? {} : value);
+        return this.view.activate(initiator, $controller, flags, scope, $controller.hostScope);
+    }
+    onCancel(initiator, parent, flags) {
+        var _a;
+        (_a = this.view) === null || _a === void 0 ? void 0 : _a.cancel(initiator, this.$controller, flags);
+    }
+    dispose() {
+        this.view.dispose();
+        this.view = (void 0);
+    }
+    accept(visitor) {
+        var _a;
+        if (((_a = this.view) === null || _a === void 0 ? void 0 : _a.accept(visitor)) === true) {
+            return true;
         }
-        afterAttach(initiator, parent, flags) {
-            return this.activateView(initiator, flags);
-        }
-        afterUnbind(initiator, parent, flags) {
-            return this.view.deactivate(initiator, this.$controller, flags);
-        }
-        activateView(initiator, flags) {
-            const { $controller, value } = this;
-            const scope = Scope.fromParent(flags, $controller.scope, value === void 0 ? {} : value);
-            return this.view.activate(initiator, $controller, flags, scope, $controller.hostScope);
-        }
-        onCancel(initiator, parent, flags) {
-            var _a;
-            (_a = this.view) === null || _a === void 0 ? void 0 : _a.cancel(initiator, this.$controller, flags);
-        }
-        dispose() {
-            this.view.dispose();
-            this.view = (void 0);
-        }
-        accept(visitor) {
-            var _a;
-            if (((_a = this.view) === null || _a === void 0 ? void 0 : _a.accept(visitor)) === true) {
-                return true;
-            }
-        }
-    };
-    __decorate([
-        bindable,
-        __metadata("design:type", Object)
-    ], With.prototype, "value", void 0);
-    With = __decorate([
-        templateController('with'),
-        __param(0, IViewFactory),
-        __param(1, IRenderLocation),
-        __metadata("design:paramtypes", [Object, Object])
-    ], With);
-    return With;
-})();
+    }
+};
+__decorate([
+    bindable,
+    __metadata("design:type", Object)
+], With.prototype, "value", void 0);
+With = __decorate([
+    templateController('with'),
+    __param(0, IViewFactory),
+    __param(1, IRenderLocation),
+    __metadata("design:paramtypes", [Object, Object])
+], With);
 export { With };
 //# sourceMappingURL=with.js.map

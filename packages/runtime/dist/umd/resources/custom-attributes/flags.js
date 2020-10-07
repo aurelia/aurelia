@@ -56,47 +56,38 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             }
         }
     }
-    let InfrequentMutations = /** @class */ (() => {
-        let InfrequentMutations = class InfrequentMutations extends FlagsTemplateController {
-            constructor(factory, location) {
-                super(factory, location, 4096 /* noTargetObserverQueue */);
-            }
-        };
-        InfrequentMutations = __decorate([
-            custom_attribute_1.templateController('infrequent-mutations'),
-            __param(0, lifecycle_1.IViewFactory), __param(1, dom_1.IRenderLocation),
-            __metadata("design:paramtypes", [Object, Object])
-        ], InfrequentMutations);
-        return InfrequentMutations;
-    })();
+    let InfrequentMutations = class InfrequentMutations extends FlagsTemplateController {
+        constructor(factory, location) {
+            super(factory, location, 4096 /* noTargetObserverQueue */);
+        }
+    };
+    InfrequentMutations = __decorate([
+        custom_attribute_1.templateController('infrequent-mutations'),
+        __param(0, lifecycle_1.IViewFactory), __param(1, dom_1.IRenderLocation),
+        __metadata("design:paramtypes", [Object, Object])
+    ], InfrequentMutations);
     exports.InfrequentMutations = InfrequentMutations;
-    let FrequentMutations = /** @class */ (() => {
-        let FrequentMutations = class FrequentMutations extends FlagsTemplateController {
-            constructor(factory, location) {
-                super(factory, location, 8192 /* persistentTargetObserverQueue */);
-            }
-        };
-        FrequentMutations = __decorate([
-            custom_attribute_1.templateController('frequent-mutations'),
-            __param(0, lifecycle_1.IViewFactory), __param(1, dom_1.IRenderLocation),
-            __metadata("design:paramtypes", [Object, Object])
-        ], FrequentMutations);
-        return FrequentMutations;
-    })();
+    let FrequentMutations = class FrequentMutations extends FlagsTemplateController {
+        constructor(factory, location) {
+            super(factory, location, 8192 /* persistentTargetObserverQueue */);
+        }
+    };
+    FrequentMutations = __decorate([
+        custom_attribute_1.templateController('frequent-mutations'),
+        __param(0, lifecycle_1.IViewFactory), __param(1, dom_1.IRenderLocation),
+        __metadata("design:paramtypes", [Object, Object])
+    ], FrequentMutations);
     exports.FrequentMutations = FrequentMutations;
-    let ObserveShallow = /** @class */ (() => {
-        let ObserveShallow = class ObserveShallow extends FlagsTemplateController {
-            constructor(factory, location) {
-                super(factory, location, 2048 /* observeLeafPropertiesOnly */);
-            }
-        };
-        ObserveShallow = __decorate([
-            custom_attribute_1.templateController('observe-shallow'),
-            __param(0, lifecycle_1.IViewFactory), __param(1, dom_1.IRenderLocation),
-            __metadata("design:paramtypes", [Object, Object])
-        ], ObserveShallow);
-        return ObserveShallow;
-    })();
+    let ObserveShallow = class ObserveShallow extends FlagsTemplateController {
+        constructor(factory, location) {
+            super(factory, location, 2048 /* observeLeafPropertiesOnly */);
+        }
+    };
+    ObserveShallow = __decorate([
+        custom_attribute_1.templateController('observe-shallow'),
+        __param(0, lifecycle_1.IViewFactory), __param(1, dom_1.IRenderLocation),
+        __metadata("design:paramtypes", [Object, Object])
+    ], ObserveShallow);
     exports.ObserveShallow = ObserveShallow;
 });
 //# sourceMappingURL=flags.js.map

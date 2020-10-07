@@ -140,60 +140,57 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     }
     exports.disableSetObservation = disableSetObservation;
     const slice = Array.prototype.slice;
-    let SetObserver = /** @class */ (() => {
-        let SetObserver = class SetObserver {
-            constructor(flags, lifecycle, observedSet) {
-                this.type = 18 /* Set */;
-                this.task = null;
-                if (!enableSetObservationCalled) {
-                    enableSetObservationCalled = true;
-                    enableSetObservation();
-                }
-                this.inBatch = false;
-                this.collection = observedSet;
-                this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
-                this.indexMap = observation_1.createIndexMap(observedSet.size);
-                this.lifecycle = lifecycle;
-                this.lengthObserver = (void 0);
-                observerLookup.set(observedSet, this);
+    let SetObserver = class SetObserver {
+        constructor(flags, lifecycle, observedSet) {
+            this.type = 18 /* Set */;
+            this.task = null;
+            if (!enableSetObservationCalled) {
+                enableSetObservationCalled = true;
+                enableSetObservation();
             }
-            notify() {
-                if (this.lifecycle.batch.depth > 0) {
-                    if (!this.inBatch) {
-                        this.inBatch = true;
-                        this.lifecycle.batch.add(this);
-                    }
-                }
-                else {
-                    this.flushBatch(0 /* none */);
+            this.inBatch = false;
+            this.collection = observedSet;
+            this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
+            this.indexMap = observation_1.createIndexMap(observedSet.size);
+            this.lifecycle = lifecycle;
+            this.lengthObserver = (void 0);
+            observerLookup.set(observedSet, this);
+        }
+        notify() {
+            if (this.lifecycle.batch.depth > 0) {
+                if (!this.inBatch) {
+                    this.inBatch = true;
+                    this.lifecycle.batch.add(this);
                 }
             }
-            getLengthObserver() {
-                if (this.lengthObserver === void 0) {
-                    this.lengthObserver = new collection_size_observer_1.CollectionSizeObserver(this.collection);
-                }
-                return this.lengthObserver;
+            else {
+                this.flushBatch(0 /* none */);
             }
-            getIndexObserver(index) {
-                throw new Error('Set index observation not supported');
+        }
+        getLengthObserver() {
+            if (this.lengthObserver === void 0) {
+                this.lengthObserver = new collection_size_observer_1.CollectionSizeObserver(this.collection);
             }
-            flushBatch(flags) {
-                const indexMap = this.indexMap;
-                const size = this.collection.size;
-                this.inBatch = false;
-                this.indexMap = observation_1.createIndexMap(size);
-                this.callCollectionSubscribers(indexMap, 8 /* updateTargetInstance */ | this.persistentFlags);
-                if (this.lengthObserver !== void 0) {
-                    this.lengthObserver.setValue(size, 8 /* updateTargetInstance */);
-                }
+            return this.lengthObserver;
+        }
+        getIndexObserver(index) {
+            throw new Error('Set index observation not supported');
+        }
+        flushBatch(flags) {
+            const indexMap = this.indexMap;
+            const size = this.collection.size;
+            this.inBatch = false;
+            this.indexMap = observation_1.createIndexMap(size);
+            this.callCollectionSubscribers(indexMap, 8 /* updateTargetInstance */ | this.persistentFlags);
+            if (this.lengthObserver !== void 0) {
+                this.lengthObserver.setValue(size, 8 /* updateTargetInstance */);
             }
-        };
-        SetObserver = __decorate([
-            subscriber_collection_1.collectionSubscriberCollection(),
-            __metadata("design:paramtypes", [Number, Object, Object])
-        ], SetObserver);
-        return SetObserver;
-    })();
+        }
+    };
+    SetObserver = __decorate([
+        subscriber_collection_1.collectionSubscriberCollection(),
+        __metadata("design:paramtypes", [Number, Object, Object])
+    ], SetObserver);
     exports.SetObserver = SetObserver;
     function getSetObserver(flags, lifecycle, observedSet) {
         const observer = observerLookup.get(observedSet);

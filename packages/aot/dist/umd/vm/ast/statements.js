@@ -1319,7 +1319,6 @@
             }
         }
         get $kind() { return typescript_1.SyntaxKind.LabeledStatement; }
-        ;
         // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-runtime-semantics-labelledevaluation
         // 13.13.14 Runtime Semantics: LabelledEvaluation
         EvaluateLabelled(ctx) {

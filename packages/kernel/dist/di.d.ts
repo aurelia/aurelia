@@ -29,9 +29,9 @@ export interface IServiceLocator {
     get<K extends Key>(key: K): Resolved<K>;
     get<K extends Key>(key: Key): Resolved<K>;
     get<K extends Key>(key: K | Key): Resolved<K>;
-    getAll<K extends Key>(key: K): readonly Resolved<K>[];
-    getAll<K extends Key>(key: Key): readonly Resolved<K>[];
-    getAll<K extends Key>(key: K | Key): readonly Resolved<K>[];
+    getAll<K extends Key>(key: K, searchAncestors?: boolean): readonly Resolved<K>[];
+    getAll<K extends Key>(key: Key, searchAncestors?: boolean): readonly Resolved<K>[];
+    getAll<K extends Key>(key: K | Key, searchAncestors?: boolean): readonly Resolved<K>[];
 }
 export interface IRegistry {
     register(container: IContainer, ...params: unknown[]): void | IResolver | IContainer;
@@ -60,7 +60,7 @@ export declare class ResolverBuilder<K> {
 }
 export declare type RegisterSelf<T extends Constructable> = {
     register(container: IContainer): IResolver<InstanceType<T>>;
-    registerInRequester: boolean;
+    registerInRequestor: boolean;
 };
 export declare type Key = PropertyKey | object | InterfaceSymbol | Constructable | IResolver;
 export declare type Resolved<K> = (K extends InterfaceSymbol<infer T> ? T : K extends Constructable ? InstanceType<K> : K extends IResolverLike<any, infer T1> ? T1 extends Constructable ? InstanceType<T1> : T1 : K);
@@ -218,7 +218,7 @@ export declare function singleton<T extends Constructable>(options?: SingletonOp
  * ```
  */
 export declare function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
-export declare const all: (key: any) => any;
+export declare const all: (key: any, searchAncestors?: boolean | undefined) => ReturnType<typeof DI.inject>;
 /**
  * Lazily inject a dependency depending on whether the [[`Key`]] is present at the time of function call.
  *

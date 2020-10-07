@@ -3,7 +3,7 @@ import { Stats } from "fs";
 export declare function readFile(path: string): Promise<Buffer>;
 export declare function readFile(path: string, options: string): Promise<string>;
 export declare function readFile(path: string, options: {
-    encoding: string;
+    encoding: BufferEncoding;
 }): Promise<string>;
 export declare function readFile(path: string, options: {
     encoding?: null;

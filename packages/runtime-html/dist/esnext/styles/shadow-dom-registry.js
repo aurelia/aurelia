@@ -42,39 +42,33 @@ export class ShadowDOMRegistry {
         return container.get(StyleElementStylesFactory);
     }
 }
-let AdoptedStyleSheetsStylesFactory = /** @class */ (() => {
-    let AdoptedStyleSheetsStylesFactory = class AdoptedStyleSheetsStylesFactory {
-        constructor(dom) {
-            this.dom = dom;
-            this.cache = new Map();
+let AdoptedStyleSheetsStylesFactory = class AdoptedStyleSheetsStylesFactory {
+    constructor(dom) {
+        this.dom = dom;
+        this.cache = new Map();
+    }
+    createStyles(localStyles, sharedStyles) {
+        return new AdoptedStyleSheetsStyles(this.dom, localStyles, this.cache, sharedStyles);
+    }
+};
+AdoptedStyleSheetsStylesFactory = __decorate([
+    __param(0, IDOM),
+    __metadata("design:paramtypes", [HTMLDOM])
+], AdoptedStyleSheetsStylesFactory);
+let StyleElementStylesFactory = class StyleElementStylesFactory {
+    constructor(dom) {
+        this.dom = dom;
+    }
+    createStyles(localStyles, sharedStyles) {
+        if (localStyles.some(x => typeof x !== 'string')) {
+            // TODO: use reporter
+            throw new Error('Shadow DOM CSS must be a string.');
         }
-        createStyles(localStyles, sharedStyles) {
-            return new AdoptedStyleSheetsStyles(this.dom, localStyles, this.cache, sharedStyles);
-        }
-    };
-    AdoptedStyleSheetsStylesFactory = __decorate([
-        __param(0, IDOM),
-        __metadata("design:paramtypes", [HTMLDOM])
-    ], AdoptedStyleSheetsStylesFactory);
-    return AdoptedStyleSheetsStylesFactory;
-})();
-let StyleElementStylesFactory = /** @class */ (() => {
-    let StyleElementStylesFactory = class StyleElementStylesFactory {
-        constructor(dom) {
-            this.dom = dom;
-        }
-        createStyles(localStyles, sharedStyles) {
-            if (localStyles.some(x => typeof x !== 'string')) {
-                // TODO: use reporter
-                throw new Error('Shadow DOM CSS must be a string.');
-            }
-            return new StyleElementStyles(this.dom, localStyles, sharedStyles);
-        }
-    };
-    StyleElementStylesFactory = __decorate([
-        __param(0, IDOM),
-        __metadata("design:paramtypes", [HTMLDOM])
-    ], StyleElementStylesFactory);
-    return StyleElementStylesFactory;
-})();
+        return new StyleElementStyles(this.dom, localStyles, sharedStyles);
+    }
+};
+StyleElementStylesFactory = __decorate([
+    __param(0, IDOM),
+    __metadata("design:paramtypes", [HTMLDOM])
+], StyleElementStylesFactory);
 //# sourceMappingURL=shadow-dom-registry.js.map

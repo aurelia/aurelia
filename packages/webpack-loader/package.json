@@ -34,18 +34,18 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.8.0-dev.202010070120",
-    "@aurelia/metadata": "0.8.0-dev.202010070120",
-    "@aurelia/plugin-conventions": "0.8.0-dev.202010070120",
-    "@aurelia/runtime": "0.8.0-dev.202010070120",
-    "@aurelia/scheduler": "0.8.0-dev.202010070120",
-    "loader-utils": "^1.2.3",
+    "@aurelia/kernel": "0.7.0",
+    "@aurelia/metadata": "0.7.0",
+    "@aurelia/plugin-conventions": "0.7.0",
+    "@aurelia/runtime": "0.7.0",
+    "@aurelia/scheduler": "0.7.0",
+    "loader-utils": "^2.0.0",
     "webpack": "^4.41.4"
   },
   "devDependencies": {
-    "@types/node": "^12.12.21",
-    "@types/loader-utils": "^1.1.3",
+    "@types/node": "^14.11.5",
+    "@types/loader-utils": "^2.0.1",
     "@types/webpack": "^4.41.0",
-    "typescript": "^3.9.3"
+    "typescript": "^4.0.3"
   }
 }

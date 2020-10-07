@@ -14,9 +14,9 @@ import { join } from 'path';
 
 export async function readFile(path: string): Promise<Buffer>;
 export async function readFile(path: string, options: string): Promise<string>;
-export async function readFile(path: string, options: { encoding: string }): Promise<string>;
+export async function readFile(path: string, options: { encoding: BufferEncoding }): Promise<string>;
 export async function readFile(path: string, options: { encoding?: null }): Promise<Buffer>;
-export async function readFile(path: string, options?: string | { encoding?: null | string; flag?: string } | null) {
+export async function readFile(path: string, options?: string | { encoding?: null | BufferEncoding; flag?: string } | null) {
 
   return new Promise<string | Buffer>(function (resolve, reject) {
     $readFile(path, options, function (err, data) {

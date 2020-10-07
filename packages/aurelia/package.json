@@ -46,6 +46,6 @@
     "@aurelia/scheduler": "0.8.0-dev.202010070120"
   },
   "devDependencies": {
-    "typescript": "^3.9.3"
+    "typescript": "^4.0.3"
   }
 }

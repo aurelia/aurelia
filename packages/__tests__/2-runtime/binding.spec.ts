@@ -169,7 +169,7 @@ describe('PropertyBinding', function () {
       it(`$bind() [one-time]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
         // - Arrange -
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.oneTime);
-        const srcVal = expr.evaluate(LF.none, scope, null, container);
+        const srcVal = expr.evaluate(LF.none, scope, null, container, null);
         const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
         // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
         // $stub.withArgs(LF.none, target, prop);
@@ -241,7 +241,7 @@ describe('PropertyBinding', function () {
       it(`$bind() [to-view]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
         // - Arrange - Part 1
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.toView);
-        const srcVal = expr.evaluate(LF.none, scope, null, container);
+        const srcVal = expr.evaluate(LF.none, scope, null, container, null);
         const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
 
         // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
@@ -588,7 +588,7 @@ describe('PropertyBinding', function () {
         const originalScope = JSON.parse(JSON.stringify(scope));
         // - Arrange - Part 1
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.twoWay);
-        const srcVal = expr.evaluate(LF.none, scope, null, container);
+        const srcVal = expr.evaluate(LF.none, scope, null, container, null);
         const targetObserver = observerLocator.getObserver(LF.none, target, prop) as IBindingTargetObserver;
 
         // massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers', 'subscribe');

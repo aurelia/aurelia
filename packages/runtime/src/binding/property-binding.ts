@@ -97,10 +97,6 @@ export class PropertyBinding implements IPartialConnectableBinding {
     const locator = this.locator;
 
     if ((flags & LifecycleFlags.updateTargetInstance) > 0) {
-      // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-      if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        newValue = this.sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator);
-      }
       // Alpha: during bind a simple strategy for bind is always flush immediately
       // todo:
       //  (1). determine whether this should be the behavior
@@ -108,8 +104,17 @@ export class PropertyBinding implements IPartialConnectableBinding {
       const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
       const oldValue = targetObserver.getValue();
 
+      // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        newValue = sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator);
+        // todo: in VC expressions, from view also requires connect
+        const shouldConnect = this.mode > oneTime;
+        if (shouldConnect) {
+          this.version++;
+        }
+        newValue = sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator, interceptor);
+        if (shouldConnect) {
+          interceptor.unobserve(false);
+        }
       }
 
       // todo(fred): maybe let the obsrever decides whether it updates
@@ -117,28 +122,20 @@ export class PropertyBinding implements IPartialConnectableBinding {
         if (shouldQueueFlush) {
           flags |= LifecycleFlags.noTargetObserverQueue;
           this.task?.cancel();
-          targetObserver.task?.cancel();
-          targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+          this.task = this.$scheduler.queueRenderTask(() => {
             (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
-            this.task = targetObserver.task = null;
+            this.task = null;
           }, updateTaskOpts);
         }
 
         interceptor.updateTarget(newValue, flags);
       }
 
-      // todo: merge this with evaluate above
-      if ((this.mode & oneTime) === 0) {
-        this.version++;
-        sourceExpression.connect(flags, $scope!, this.$hostScope, this.interceptor);
-        interceptor.unobserve(false);
-      }
-
       return;
     }
 
     if ((flags & LifecycleFlags.updateSourceExpression) > 0) {
-      if (newValue !== sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator)) {
+      if (newValue !== sourceExpression.evaluate(flags, $scope!, this.$hostScope, locator, null)) {
         interceptor.updateSource(newValue, flags);
       }
       return;
@@ -191,15 +188,16 @@ export class PropertyBinding implements IPartialConnectableBinding {
     sourceExpression = this.sourceExpression;
     const interceptor = this.interceptor;
 
+    const shouldConnect = ($mode & toView) > 0;
     if ($mode & toViewOrOneTime) {
-      interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator), flags);
-    }
-    if ($mode & toView) {
-      sourceExpression.connect(flags, scope, this.$hostScope, interceptor);
+      interceptor.updateTarget(
+        sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null),
+        flags,
+      );
     }
     if ($mode & fromView) {
       targetObserver.subscribe(interceptor);
-      if (($mode & toView) === 0) {
+      if (!shouldConnect) {
         interceptor.updateSource(targetObserver.getValue(), flags);
       }
       targetObserver[this.id] |= LifecycleFlags.updateSourceExpression;

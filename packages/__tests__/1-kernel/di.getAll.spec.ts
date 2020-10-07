@@ -47,7 +47,7 @@ describe('1-kernel/di.getAll.spec.ts', function () {
     for (const regInChild of [true, false])
     for (const regInParent of [true, false]) {
       // eslint-enable
-      it.only(`@all(IAttrPattern, ${searchAncestors}) + [child ${regInChild}] + [parent ${regInParent}]`, function () {
+      it(`@all(IAttrPattern, ${searchAncestors}) + [child ${regInChild}] + [parent ${regInParent}]`, function () {
         class Foo {
           public constructor(@all(IAttrPattern, searchAncestors) public readonly attrPatterns: IAttrPattern[]) {}
           public patterns(): number[] {
@@ -75,7 +75,7 @@ describe('1-kernel/di.getAll.spec.ts', function () {
             })
             .forEach(klass => child.register(klass));
         }
-        const parentExpectation = [];
+        let parentExpectation = [];
         const childExpectation = regInChild ? [5, 6, 7, 8, 9] : [];
         if (regInParent) {
           if (searchAncestors || !regInChild) {
@@ -84,8 +84,20 @@ describe('1-kernel/di.getAll.spec.ts', function () {
           parentExpectation.push(0, 1, 2, 3, 4);
         }
 
-        assert.deepStrictEqual(child.get(Foo).patterns(), childExpectation);
-        assert.deepStrictEqual(container.get(Foo).patterns(), regInChild ? parentExpectation : childExpectation);
+        if (regInChild) {
+          parentExpectation = childExpectation;
+        }
+
+        assert.deepStrictEqual(
+          child.get(Foo).patterns(),
+          childExpectation,
+          `Deps in [child] should have been ${JSON.stringify(childExpectation)}`
+        );
+        assert.deepStrictEqual(
+          container.get(Foo).patterns(),
+          parentExpectation,
+          `Deps in [parent] should have been ${JSON.stringify(regInChild ? childExpectation : parentExpectation)}`
+        );
       });
     }
   });

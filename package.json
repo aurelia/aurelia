@@ -36,7 +36,8 @@
     "bump-version:latest": "ts-node -P tsconfig.json scripts/bump-version.ts latest",
     "check-dependencies": "ts-node -P tsconfig.json scripts/check-dependencies.ts",
     "refresh": "lerna clean -y && nodetouch ensurestash && git add . && git stash && git clean -xfd && git stash pop && git rm -f ensurestash && npm ci && npm run build",
-    "generate-tests:template-compiler.static": "ts-node -P tsconfig.json scripts/generate-tests/template-compiler.static.ts",
+    "pregenerate-tests:template-compiler.static": "tsc --resolveJsonModule --module commonjs --moduleResolution node --outDir scripts/dist scripts/generate-tests/template-compiler.static.ts",
+    "generate-tests:template-compiler.static": "node scripts/dist/scripts/generate-tests/template-compiler.static.js",
     "generate-tests:template-compiler.mutations": "ts-node -P tsconfig.json scripts/generate-tests/template-compiler.mutations.ts",
     "mermaid": "ts-node -P tsconfig.json scripts/generate-mermaid-diagrams.ts"
   },
@@ -130,7 +131,7 @@
     "ts-node": "^8.8.2",
     "tsconfig-paths": "^3.9.0",
     "tslint": "^5.20.1",
-    "typescript": "^3.8.3",
+    "typescript": "^3.9.3",
     "typescript-tslint-plugin": "^0.5.5",
     "vinyl": "^2.2.0",
     "webpack": "^4.41.4",

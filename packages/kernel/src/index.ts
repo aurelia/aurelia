@@ -118,7 +118,6 @@ export {
 } from './resource';
 export {
   EventAggregator,
-  EventAggregatorCallback,
   IEventAggregator,
 } from './eventaggregator';
 export {
@@ -139,4 +138,6 @@ export {
   firstDefined,
   getPrototypeChain,
   isNativeFunction,
+  onResolve,
+  resolveAll,
 } from './functions';

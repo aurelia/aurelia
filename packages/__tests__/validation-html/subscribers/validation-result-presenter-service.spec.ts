@@ -52,7 +52,7 @@ describe('validation-result-presenter-service', function () {
       this.controller.reset();
     }
 
-    public afterUnbind() {
+    public afterUnbindChildren() {
       const controller = this.controller;
       assert.equal(controller.results.length, 0, 'the result should have been removed');
       assert.equal(controller.bindings.size, 0, 'the bindings should have been removed');
@@ -92,6 +92,7 @@ describe('validation-result-presenter-service', function () {
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
+    au.dispose();
   }
 
   const $it = createSpecFunction(runTest);
@@ -108,7 +109,7 @@ describe('validation-result-presenter-service', function () {
     handleValidationEventSpy.calls.splice(0);
     controllerValidateSpy.calls.splice(0);
     target.dispatchEvent(new ctx.Event(event));
-    await scheduler.yieldAll(10);
+    await scheduler.yieldAll(3);
     assert.equal(controllerValidateSpy.calls.length, 1, 'incorrect #calls for validate');
     assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
   }
@@ -203,7 +204,7 @@ describe('validation-result-presenter-service', function () {
 
       input2.value = '22';
       input2.dispatchEvent(new ctx.Event('change'));
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll(3);
       await assertEventHandler(input2, scheduler, controllerSpy, spy, ctx);
 
       addArgs = addSpy.calls;
@@ -229,7 +230,7 @@ describe('validation-result-presenter-service', function () {
 
       input2.value = '15';
       input2.dispatchEvent(new ctx.Event('change'));
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll(3);
       await assertEventHandler(input2, scheduler, controllerSpy, spy, ctx);
 
       addArgs = addSpy.calls;
@@ -310,7 +311,7 @@ describe('validation-result-presenter-service', function () {
 
       input2.value = '22';
       input2.dispatchEvent(new ctx.Event('change'));
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll(3);
       await assertEventHandler(input2, scheduler, controllerSpy, spy, ctx);
 
       addArgs = addSpy.calls;
@@ -336,7 +337,7 @@ describe('validation-result-presenter-service', function () {
 
       input2.value = '15';
       input2.dispatchEvent(new ctx.Event('change'));
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll(3);
       await assertEventHandler(input2, scheduler, controllerSpy, spy, ctx);
 
       addArgs = addSpy.calls;
@@ -406,7 +407,7 @@ describe('validation-result-presenter-service', function () {
 
       input2.value = '22';
       input2.dispatchEvent(new ctx.Event('change'));
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll(3);
       await assertEventHandler(input2, scheduler, controllerSpy, spy, ctx);
 
       addArgs = addSpy.calls;

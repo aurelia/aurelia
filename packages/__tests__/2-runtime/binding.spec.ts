@@ -6,7 +6,6 @@ import {
   BindingMode,
   ExpressionKind,
   IBindingTargetObserver,
-  IExpression,
   ILifecycle,
   ISubscriber,
   IScope,
@@ -17,7 +16,7 @@ import {
   RuntimeConfiguration,
   Scope,
   SetterObserver,
-  State
+  IsBindingBehavior,
 } from '@aurelia/runtime';
 import {
   createObserverLocator,
@@ -44,7 +43,7 @@ const $nil: any = undefined;
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
 describe('PropertyBinding', function () {
-  let dummySourceExpression: IExpression;
+  let dummySourceExpression: IsBindingBehavior;
   let dummyTarget: Record<string, unknown>;
   let dummyTargetProperty: string;
   let dummyMode: BindingMode;
@@ -110,7 +109,7 @@ describe('PropertyBinding', function () {
     const sut = new PropertyBinding(expr as any, target, 'val', BindingMode.toView, observerLocator, container);
     const scope = Scope.create(LF.none, ctx, null);
 
-    sut.$bind(LF.fromBind, scope);
+    sut.$bind(LF.fromBind, scope, null);
 
     assert.strictEqual(target.val, count, `target.val`);
 
@@ -126,7 +125,7 @@ describe('PropertyBinding', function () {
     }
     const scope2 = Scope.create(LF.none, ctx2, null);
 
-    sut.$bind(LF.fromBind, scope2);
+    sut.$bind(LF.fromBind, scope2, null);
 
     assert.strictEqual(target.val, count * 3, `target.val`);
   }).timeout(20000);
@@ -142,7 +141,7 @@ describe('PropertyBinding', function () {
       () => ['barz', `'bar' `]
     ];
 
-    const exprVariations: (() => [IExpression, string])[] = [
+    const exprVariations: (() => [IsBindingBehavior, string])[] = [
       () => [new ObjectLiteralExpression(['foo'], [new PrimitiveLiteralExpression(null)]), `{foo:null} `],
       () => [new AccessScopeExpression('foo'),                                   `foo        `],
       () => [new AccessMemberExpression(new AccessScopeExpression('foo'), 'bar'),          `foo.bar    `],
@@ -153,7 +152,6 @@ describe('PropertyBinding', function () {
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
       () => [LF.updateTargetInstance,                                `updateTarget           `],
-      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -171,7 +169,7 @@ describe('PropertyBinding', function () {
       it(`$bind() [one-time]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
         // - Arrange -
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.oneTime);
-        const srcVal = expr.evaluate(LF.none, scope, container);
+        const srcVal = expr.evaluate(LF.none, scope, null, container);
         const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
         // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
         // $stub.withArgs(LF.none, target, prop);
@@ -183,7 +181,7 @@ describe('PropertyBinding', function () {
         // ensureNotCalled(expr, 'assign', 'connect');
 
         // - Act -
-        sut.$bind(flags, scope);
+        sut.$bind(flags, scope, null);
 
         // - Assert -
         // double check we have the correct target observer
@@ -215,7 +213,7 @@ describe('PropertyBinding', function () {
       () => ['barz', `'barz' `]
     ];
 
-    const exprVariations: (() => [IExpression, string])[] = [
+    const exprVariations: (() => [IsBindingBehavior, string])[] = [
       () => [new ObjectLiteralExpression(['foo'], [new PrimitiveLiteralExpression(null)]), `{foo:null} `],
       () => [new AccessScopeExpression('foo'),                                   `foo        `],
       () => [new AccessMemberExpression(new AccessScopeExpression('foo'), 'bar'),          `foo.bar    `],
@@ -226,7 +224,6 @@ describe('PropertyBinding', function () {
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
       () => [LF.updateTargetInstance,                                `updateTarget           `],
-      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -244,7 +241,7 @@ describe('PropertyBinding', function () {
       it(`$bind() [to-view]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
         // - Arrange - Part 1
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.toView);
-        const srcVal = expr.evaluate(LF.none, scope, container);
+        const srcVal = expr.evaluate(LF.none, scope, null, container);
         const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
 
         // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
@@ -257,7 +254,7 @@ describe('PropertyBinding', function () {
         // ensureNotCalled(sut, 'handleChange');
 
         // - Act - Part 1
-        sut.$bind(flags, scope);
+        sut.$bind(flags, scope, null);
 
         // - Assert - Part 1
         // verify the behavior inside $bind
@@ -334,7 +331,7 @@ describe('PropertyBinding', function () {
         const newValue = {};
 
         // - Act - Part 2
-        expr.assign(flags, scope, container, newValue);
+        expr.assign(flags, scope, null, container, newValue);
 
         // - Assert - Part 2
         // verify that no observers were added/removed/changed (redundant)
@@ -449,14 +446,13 @@ describe('PropertyBinding', function () {
       () => [42,        `42        `]
     ];
 
-    const exprVariations: (() => [IExpression, string])[] = [
+    const exprVariations: (() => [IsBindingBehavior, string])[] = [
       () => [new AccessScopeExpression('foo'), `foo `]
     ];
 
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
       () => [LF.updateTargetInstance,                                `updateTarget           `],
-      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -480,7 +476,7 @@ describe('PropertyBinding', function () {
         const initialVal = target[prop];
 
         // - Act - Part 1
-        sut.$bind(flags, scope);
+        sut.$bind(flags, scope, null);
 
         // - Assert - Part 1
         // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
@@ -562,7 +558,7 @@ describe('PropertyBinding', function () {
       () => [[41, 43],      `41, 43 `]
     ];
 
-    const exprVariations: (() => [IExpression, string])[] = [
+    const exprVariations: (() => [IsBindingBehavior, string])[] = [
       () => [new ObjectLiteralExpression(['foo'], [new PrimitiveLiteralExpression(null)]), `{foo:null} `],
       () => [new AccessScopeExpression('foo'),                                   `foo        `],
       () => [new AccessMemberExpression(new AccessScopeExpression('foo'), 'bar'),          `foo.bar    `],
@@ -592,7 +588,7 @@ describe('PropertyBinding', function () {
         const originalScope = JSON.parse(JSON.stringify(scope));
         // - Arrange - Part 1
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.twoWay);
-        const srcVal = expr.evaluate(LF.none, scope, container);
+        const srcVal = expr.evaluate(LF.none, scope, null, container);
         const targetObserver = observerLocator.getObserver(LF.none, target, prop) as IBindingTargetObserver;
 
         // massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers', 'subscribe');
@@ -600,7 +596,7 @@ describe('PropertyBinding', function () {
         // massSpy(sut, 'addObserver', 'observeProperty', 'handleChange', 'unobserve');
 
         // - Act - Part 1
-        sut.$bind(flags, scope);
+        sut.$bind(flags, scope, null);
 
         // - Assert - Part 1
         // verify the behavior inside $bind
@@ -697,7 +693,7 @@ describe('PropertyBinding', function () {
         }
 
         // - Act - Part 2
-        expr.assign(flags, scope, container, newValue1);
+        expr.assign(flags, scope, null, container, newValue1);
 
         // - Assert - Part 2
         // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #37`);
@@ -847,7 +843,7 @@ describe('PropertyBinding', function () {
         // massRestore(targetObserver);
         // massRestore(sut, 'unobserve');
         // massRestore(expr);
-        sut.$bind(flags, originalScope);
+        sut.$bind(flags, originalScope, null);
 
         verifyEqual(target[prop], srcVal);
         verifyEqual(targetObserver.currentValue, srcVal);
@@ -869,14 +865,14 @@ describe('PropertyBinding', function () {
       const { sut } = createFixture();
       const scope: any = {};
       sut['$scope'] = scope;
-      sut.$state = State.isBound;
+      sut.isBound = true;
       sut['targetObserver'] = {} as any;
       const unobserveSpy = createSpy(sut, 'unobserve');
-      const unbindSpy = dummySourceExpression.unbind = createSpy();
+      const unbindSpy = (dummySourceExpression as any).unbind = createSpy();
       (dummySourceExpression as any).$kind |= ExpressionKind.HasUnbind;
       sut.$unbind(LF.fromUnbind);
       assert.strictEqual(sut['$scope'], undefined, `sut['$scope']`);
-      assert.strictEqual(sut['$state'] & State.isBound, 0, `sut['$state'] & State.isBound`);
+      assert.strictEqual(sut.isBound, false, `sut.isBound`);
       // expect(unobserveSpy, `unobserveSpy`).to.have.been.calledWith(true);
       // expect(unbindSpy, `unbindSpy`).to.have.been.calledWith(LF.fromUnbind, scope, sut);
     });
@@ -985,7 +981,7 @@ describe('PropertyBinding', function () {
   });
 
   // TODO: create proper unparser
-  function unparse(expr: IExpression): string {
+  function unparse(expr: IsBindingBehavior): string {
     return expr instanceof AccessScopeExpression
       ? `AccessScopeExpression{${expr.name} | ${expr.ancestor}}`
       : expr instanceof AccessMemberExpression

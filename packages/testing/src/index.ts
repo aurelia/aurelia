@@ -66,6 +66,9 @@ export {
   TestConfiguration,
 } from './resources';
 export {
+  ensureSchedulerEmpty,
+} from './scheduler';
+export {
   // verifyASTEqual,
   verifyBindingInstructionsEqual,
   verifyEqual,

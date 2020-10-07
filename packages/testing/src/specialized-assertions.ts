@@ -2,7 +2,7 @@
 //   Serializer,
 //   Unparser,
 // } from '@aurelia/debug';
-import { IElementProjector, If, Repeat, Replaceable, TargetedInstructionType, With, ICustomElementController, ViewModelKind, ISyntheticView } from '@aurelia/runtime';
+import { IElementProjector, If, Repeat, TargetedInstructionType, With, ICustomElementController, ViewModelKind, ISyntheticView } from '@aurelia/runtime';
 import { Compose, HTMLTargetedInstructionType } from '@aurelia/runtime-html';
 import { assert } from './assert';
 
@@ -80,14 +80,14 @@ function $getVisibleText(root: ICustomElementController | ISyntheticView, contex
     return;
   }
 
-  const { controllers } = root;
-  if (controllers == void 0) {
+  const { children } = root;
+  if (children == void 0) {
     return;
   }
-  const { length } = controllers;
+  const { length } = children;
   let controller;
   for (let i = 0; i < length; ++i) {
-    controller = controllers[i];
+    controller = children[i];
     switch (controller.vmKind) {
       case ViewModelKind.customElement:
         if (isShadowDOMProjector(controller.projector)) {
@@ -98,9 +98,7 @@ function $getVisibleText(root: ICustomElementController | ISyntheticView, contex
         }
         break;
       case ViewModelKind.customAttribute:
-        if (controller.viewModel instanceof Replaceable) {
-          $getVisibleText((controller.viewModel as Replaceable).view, context);
-        } else if (controller.viewModel instanceof With) {
+        if (controller.viewModel instanceof With) {
           $getVisibleText((controller.viewModel as With).view, context);
         } else if (controller.viewModel instanceof If) {
           $getVisibleText((controller.viewModel as If).view!, context);

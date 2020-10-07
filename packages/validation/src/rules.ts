@@ -1,5 +1,5 @@
 import { Constructable, Protocol, Metadata, Class, DI, toArray } from '@aurelia/kernel';
-import { IInterpolationExpression, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import {
   IValidateable,
   IValidationRule,
@@ -20,15 +20,15 @@ export interface IValidationMessageProvider {
   /**
    * Gets the parsed message for the `rule`.
    */
-  getMessage(rule: IValidationRule): IInterpolationExpression | PrimitiveLiteralExpression;
+  getMessage(rule: IValidationRule): Interpolation | PrimitiveLiteralExpression;
   /**
    * Gets the parsed message for the `rule`.
    */
-  setMessage(rule: IValidationRule, message: string): IInterpolationExpression | PrimitiveLiteralExpression;
+  setMessage(rule: IValidationRule, message: string): Interpolation | PrimitiveLiteralExpression;
   /**
    * Core message parsing function.
    */
-  parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression;
+  parseMessage(message: string): Interpolation | PrimitiveLiteralExpression;
   /**
    * Formulates a property display name using the property name and the configured displayName (if provided).
    */

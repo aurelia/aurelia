@@ -1,12 +1,12 @@
 import {
   IIndexable,
   IServiceLocator,
-  Reporter,
 } from '@aurelia/kernel';
-import { IExpression } from '../ast';
+import {
+  ITask,
+} from '@aurelia/scheduler';
 import {
   LifecycleFlags,
-  State,
 } from '../flags';
 import {
   ILifecycle,
@@ -16,6 +16,7 @@ import {
   IScope,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
+import { IsExpression } from './ast';
 import {
   connectable,
   IConnectableBinding,
@@ -29,15 +30,16 @@ export class LetBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
 
   public id!: number;
-  public $state: State = State.none;
+  public isBound: boolean = false;
   public $lifecycle: ILifecycle;
   public $scope?: IScope = void 0;
-  public part?: string;
+  public $hostScope: IScope | null = null;
+  public task: ITask | null = null;
 
   public target: (IObservable & IIndexable) | null = null;
 
   public constructor(
-    public sourceExpression: IExpression,
+    public sourceExpression: IsExpression,
     public targetProperty: string,
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator,
@@ -48,65 +50,68 @@ export class LetBinding implements IPartialConnectableBinding {
   }
 
   public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
 
     if (flags & LifecycleFlags.updateTargetInstance) {
-      const { target, targetProperty } = this as {target: IIndexable; targetProperty: string};
+      const target = this.target as IIndexable;
+      const targetProperty = this.targetProperty as string;
       const previousValue: unknown = target[targetProperty];
-      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.locator, this.part);
+      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator);
       if (newValue !== previousValue) {
         target[targetProperty] = newValue;
       }
       return;
     }
 
-    throw Reporter.error(15, flags);
+    throw new Error('Unexpected handleChange context in LetBinding');
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
-    if (this.$state & State.isBound) {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+    if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
       this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
-    // add isBinding flag
-    this.$state |= State.isBinding;
 
     this.$scope = scope;
-    this.part = part;
-    this.target = (this.toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
+    this.$hostScope = hostScope;
+    this.target = (this.toBindingContext ? (hostScope ?? scope).bindingContext : (hostScope ?? scope).overrideContext) as IIndexable;
 
     const sourceExpression = this.sourceExpression;
-    if (sourceExpression.bind) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+    if (sourceExpression.hasBind) {
+      sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
     // sourceExpression might have been changed during bind
-    this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, this.locator, part);
-    this.sourceExpression.connect(flags, scope, this.interceptor, part);
+    this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, hostScope, this.locator);
+    this.sourceExpression.connect(flags, scope, hostScope, this.interceptor);
 
     // add isBound flag and remove isBinding flag
-    this.$state |= State.isBound;
-    this.$state &= ~State.isBinding;
+    this.isBound = true;
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
-    // add isUnbinding flag
-    this.$state |= State.isUnbinding;
 
     const sourceExpression = this.sourceExpression;
-    if (sourceExpression.unbind) {
-      sourceExpression.unbind(flags, this.$scope!, this.interceptor);
+    if (sourceExpression.hasUnbind) {
+      sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
     this.$scope = void 0;
     this.interceptor.unobserve(true);
 
     // remove isBound and isUnbinding flags
-    this.$state &= ~(State.isBound | State.isUnbinding);
+    this.isBound = false;
+  }
+
+  public dispose(): void {
+    this.interceptor = (void 0)!;
+    this.sourceExpression = (void 0)!;
+    this.locator = (void 0)!;
+    this.target = (void 0)!;
   }
 }

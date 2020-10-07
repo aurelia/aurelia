@@ -10,13 +10,15 @@ import {
   IContextualCustomElementController,
   ICompiledCustomElementController,
   ICustomElementController,
+  IHydratedController,
+  IHydratedParentController,
 } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
 import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
-import { PartialCustomElementDefinitionParts, mergeParts } from '../definitions';
-import { IRenderContext, getRenderContext } from './render-context';
-import { MaybePromiseOrTask } from '../lifecycle-task';
+import { IRenderContext } from './render-context';
+import { AuSlotContentType } from '../resources/custom-elements/au-slot';
+import { IScope } from '../observation';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
@@ -28,9 +30,10 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 
   public constructor(
     public name: string,
-    private readonly context: IRenderContext<T>,
+    public readonly context: IRenderContext<T>,
     private readonly lifecycle: ILifecycle,
-    public readonly parts: PartialCustomElementDefinitionParts | undefined,
+    public readonly contentType: AuSlotContentType | undefined,
+    public readonly projectionScope: IScope | null = null,
   ) {}
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
@@ -61,7 +64,6 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 
   public tryReturnToCache(controller: ISyntheticView<T>): boolean {
     if (this.canReturnToCache(controller)) {
-      controller.cache(LifecycleFlags.none);
       this.cache.push(controller);
       return true;
     }
@@ -80,20 +82,6 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 
     controller = Controller.forSyntheticView(this, this.lifecycle, this.context, flags);
     return controller;
-  }
-
-  public resolve(requestor: IContainer, parts?: PartialCustomElementDefinitionParts): IViewFactory<T> {
-    parts = mergeParts(this.parts, parts);
-    if (parts === void 0) {
-      return this;
-    }
-
-    const part = parts[this.name];
-    if (part === void 0) {
-      return this;
-    }
-
-    return getRenderContext<T>(part, requestor, parts).getViewFactory(this.name);
   }
 }
 
@@ -213,7 +201,7 @@ export class ViewLocator implements IViewLocator {
         resolvedViewName
       );
 
-      BoundComponent = CustomElement.define<ComposableObjectComponentType<T>>(
+      BoundComponent = CustomElement.define<INode, ComposableObjectComponentType<T>>(
         CustomElement.getDefinition(UnboundComponent),
         class extends UnboundComponent {
           public constructor() {
@@ -244,7 +232,7 @@ export class ViewLocator implements IViewLocator {
     }
 
     if (UnboundComponent === void 0) {
-      UnboundComponent = CustomElement.define<ComposableObjectComponentType<T>>(
+      UnboundComponent = CustomElement.define<INode, ComposableObjectComponentType<T>>(
         this.getView(availableViews, resolvedViewName),
         class {
           public constructor(public viewModel: T) {}
@@ -253,7 +241,6 @@ export class ViewLocator implements IViewLocator {
             controller: IDryCustomElementController<INode, T>,
             parentContainer: IContainer,
             definition: CustomElementDefinition,
-            parts: PartialCustomElementDefinitionParts | undefined,
           ): PartialCustomElementDefinition | void {
             const vm = this.viewModel;
             controller.scope = Scope.fromParent(
@@ -263,7 +250,7 @@ export class ViewLocator implements IViewLocator {
             );
 
             if (vm.create !== void 0) {
-              return vm.create(controller, parentContainer, definition, parts);
+              return vm.create(controller, parentContainer, definition);
             }
           }
         }
@@ -292,49 +279,82 @@ export class ViewLocator implements IViewLocator {
           this.viewModel.afterCompileChildren!(controller as ICustomElementController<INode, T>);
         };
       }
+
       if ('beforeBind' in object) {
-        proto.beforeBind = function beforeBind(flags: LifecycleFlags): MaybePromiseOrTask {
-          return this.viewModel.beforeBind!(flags);
+        proto.beforeBind = function beforeBind(
+          initiator: IHydratedController<T>,
+          parent: IHydratedParentController<T> | null,
+          flags: LifecycleFlags,
+        ): void | Promise<void> {
+          return this.viewModel.beforeBind!(initiator, parent, flags);
         };
       }
       if ('afterBind' in object) {
-        proto.afterBind = function afterBind(flags: LifecycleFlags): void {
-          this.viewModel.afterBind!(flags);
-        };
-      }
-      if ('beforeUnbind' in object) {
-        proto.beforeUnbind = function beforeUnbind(flags: LifecycleFlags): MaybePromiseOrTask {
-          return this.viewModel.beforeUnbind!(flags);
-        };
-      }
-      if ('afterUnbind' in object) {
-        proto.afterUnbind = function afterUnbind(flags: LifecycleFlags): void {
-          this.viewModel.afterUnbind!(flags);
-        };
-      }
-      if ('beforeAttach' in object) {
-        proto.beforeAttach = function beforeAttach(flags: LifecycleFlags): void {
-          this.viewModel.beforeAttach!(flags);
+        proto.afterBind = function afterBind(
+          initiator: IHydratedController<T>,
+          parent: IHydratedParentController<T> | null,
+          flags: LifecycleFlags,
+        ): void | Promise<void> {
+          return this.viewModel.afterBind!(initiator, parent, flags);
         };
       }
       if ('afterAttach' in object) {
-        proto.afterAttach = function afterAttach(flags: LifecycleFlags): void {
-          this.viewModel.afterAttach!(flags);
+        proto.afterAttach = function afterAttach(
+          initiator: IHydratedController<T>,
+          parent: IHydratedParentController<T> | null,
+          flags: LifecycleFlags,
+        ): void | Promise<void> {
+          return this.viewModel.afterAttach!(initiator, parent, flags);
         };
       }
+      if ('afterAttachChildren' in object) {
+        proto.afterAttachChildren = function afterAttachChildren(
+          initiator: IHydratedController<T>,
+          flags: LifecycleFlags,
+        ): void | Promise<void> {
+          return this.viewModel.afterAttachChildren!(initiator, flags);
+        };
+      }
+
       if ('beforeDetach' in object) {
-        proto.beforeDetach = function beforeDetach(flags: LifecycleFlags): void {
-          this.viewModel.beforeDetach!(flags);
+        proto.beforeDetach = function beforeDetach(
+          initiator: IHydratedController<T>,
+          parent: IHydratedParentController<T> | null,
+          flags: LifecycleFlags,
+        ): void | Promise<void> {
+          return this.viewModel.beforeDetach!(initiator, parent, flags);
         };
       }
-      if ('afterDetach' in object) {
-        proto.afterDetach = function afterDetach(flags: LifecycleFlags): void {
-          this.viewModel.afterDetach!(flags);
+      if ('beforeUnbind' in object) {
+        proto.beforeUnbind = function beforeUnbind(
+          initiator: IHydratedController<T>,
+          parent: IHydratedParentController<T> | null,
+          flags: LifecycleFlags,
+        ): void | Promise<void> {
+          return this.viewModel.beforeUnbind!(initiator, parent, flags);
         };
       }
-      if ('caching' in object) {
-        proto.caching = function caching(flags: LifecycleFlags): void {
-          this.viewModel.caching!(flags);
+      if ('afterUnbind' in object) {
+        proto.afterUnbind = function afterUnbind(
+          initiator: IHydratedController<T>,
+          parent: IHydratedParentController<T> | null,
+          flags: LifecycleFlags,
+        ): void | Promise<void> {
+          return this.viewModel.afterUnbind!(initiator, parent, flags);
+        };
+      }
+      if ('afterUnbindChildren' in object) {
+        proto.afterUnbindChildren = function afterUnbindChildren(
+          initiator: IHydratedController<T>,
+          flags: LifecycleFlags,
+        ): void | Promise<void> {
+          return this.viewModel.afterUnbindChildren!(initiator, flags);
+        };
+      }
+
+      if ('dispose' in object) {
+        proto.dispose = function dispose(): void {
+          this.viewModel.dispose!();
         };
       }
 

@@ -1,12 +1,16 @@
 import { LifecycleFlags } from '../flags';
-import { ISubscriberCollection } from '../observation';
+import { ISubscriberCollection, AccessorType } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
+import { ITask } from '@aurelia/scheduler';
 
 export interface CollectionSizeObserver extends ISubscriberCollection {}
 
 @subscriberCollection()
 export class CollectionSizeObserver {
   public currentValue: number;
+  public type: AccessorType = AccessorType.Obj;
+  public task: ITask | null = null;
+
   public constructor(
     public obj: Set<unknown> | Map<unknown, unknown>,
   ) {

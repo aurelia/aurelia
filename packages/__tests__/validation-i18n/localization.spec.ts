@@ -73,7 +73,7 @@ describe('validation-i18n', function () {
       this.controller.reset();
     }
 
-    public afterUnbind() {
+    public afterUnbindChildren() {
       const controller = this.controller;
       assert.equal(controller.results.length, 0, 'the result should have been removed');
       assert.equal(controller.bindings.size, 0, 'the bindings should have been removed');
@@ -169,6 +169,8 @@ describe('validation-i18n', function () {
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
+
+    au.dispose();
   }
 
   const $it = createSpecFunction(runTest);
@@ -186,7 +188,7 @@ describe('validation-i18n', function () {
   async function assertEventHandler(target: HTMLElement, event: 'change' | 'focusout', callCount: number, scheduler: IScheduler, controllerSpy: Spy, ctx: HTMLTestContext) {
     controllerSpy.clearCallRecords();
     target.dispatchEvent(new ctx.Event(event));
-    await scheduler.yieldAll(10);
+    await scheduler.yieldAll(3);
     controllerSpy.methodCalledTimes('validateBinding', callCount);
     controllerSpy.methodCalledTimes('validate', callCount);
   }
@@ -194,7 +196,7 @@ describe('validation-i18n', function () {
   async function changeLocale(container: IContainer, scheduler: IScheduler, controllerSpy: Spy) {
     const i18n = container.get(I18N);
     await i18n.setLocale('de');
-    await scheduler.yieldAll(10);
+    await scheduler.yieldAll(3);
     controllerSpy.methodCalledTimes('validate', 1);
   }
 

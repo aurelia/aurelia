@@ -1,25 +1,26 @@
 import {
   IServiceLocator,
-  Reporter,
 } from '@aurelia/kernel';
 import {
   AccessorOrObserver,
+  INodeAccessor,
   BindingMode,
   connectable,
   ExpressionKind,
-  hasBind,
-  hasUnbind,
   IBindingTargetObserver,
   IConnectableBinding,
-  IForOfStatement,
+  ForOfStatement,
   IObserverLocator,
   IPartialConnectableBinding,
   IsBindingBehavior,
   IScope,
   LifecycleFlags,
-  State,
   IScheduler,
   INode,
+  CustomElementDefinition,
+  ITask,
+  AccessorType,
+  QueueTaskOptions,
 } from '@aurelia/runtime';
 import {
   AttributeObserver,
@@ -32,6 +33,11 @@ const { oneTime, toView, fromView } = BindingMode;
 // pre-combining flags for bitwise checks is a minor perf tweak
 const toViewOrOneTime = toView | oneTime;
 
+const taskOptions: QueueTaskOptions = {
+  reusable: false,
+  preempt: true,
+};
+
 export interface AttributeBinding extends IConnectableBinding {}
 
 /**
@@ -42,10 +48,12 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
 
   public id!: number;
-  public $state: State = State.none;
+  public isBound: boolean = false;
   public $scheduler: IScheduler;
   public $scope: IScope = null!;
-  public part?: string;
+  public $hostScope: IScope | null = null;
+  public projection?: CustomElementDefinition;
+  public task: ITask | null = null;
 
   /**
    * Target key. In case Attr has inner structure, such as class -> classList, style -> CSSStyleDeclaration
@@ -58,7 +66,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public target: Element;
 
   public constructor(
-    public sourceExpression: IsBindingBehavior | IForOfStatement,
+    public sourceExpression: IsBindingBehavior | ForOfStatement,
     target: INode,
     // some attributes may have inner structure
     // such as class -> collection of class names
@@ -83,68 +91,92 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.locator, value);
+    this.sourceExpression.assign!(flags | LifecycleFlags.updateSourceExpression, this.$scope, this.$hostScope, this.locator, value);
   }
 
   public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
 
     flags |= this.persistentFlags;
 
-    if (this.mode === BindingMode.fromView) {
+    const mode = this.mode;
+    const interceptor = this.interceptor;
+    const sourceExpression = this.sourceExpression;
+    const $scope = this.$scope;
+    const locator = this.locator;
+
+    if (mode === BindingMode.fromView) {
       flags &= ~LifecycleFlags.updateTargetInstance;
       flags |= LifecycleFlags.updateSourceExpression;
     }
 
     if (flags & LifecycleFlags.updateTargetInstance) {
-      const previousValue = this.targetObserver.getValue();
-      // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-      if (this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        newValue = this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part);
+      const targetObserver = this.targetObserver;
+      // Alpha: during bind a simple strategy for bind is always flush immediately
+      // todo:
+      //  (1). determine whether this should be the behavior
+      //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
+      const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
+      const oldValue = targetObserver.getValue();
+
+      if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
+        newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator);
       }
-      if (newValue !== previousValue) {
-        this.interceptor.updateTarget(newValue, flags);
+
+      if (newValue !== oldValue) {
+        if (shouldQueueFlush) {
+          flags |= LifecycleFlags.noTargetObserverQueue;
+          this.task?.cancel();
+          targetObserver.task?.cancel();
+          targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+            (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
+            this.task = targetObserver.task = null;
+          }, taskOptions);
+        }
+
+        interceptor.updateTarget(newValue, flags);
       }
-      if ((this.mode & oneTime) === 0) {
+
+      if ((mode & oneTime) === 0) {
         this.version++;
-        this.sourceExpression.connect(flags, this.$scope, this.interceptor, this.part);
-        this.interceptor.unobserve(false);
+        sourceExpression.connect(flags, $scope, this.$hostScope, interceptor);
+        interceptor.unobserve(false);
       }
+
       return;
     }
 
     if (flags & LifecycleFlags.updateSourceExpression) {
-      if (newValue !== this.sourceExpression.evaluate(flags, this.$scope, this.locator, this.part)) {
-        this.interceptor.updateSource(newValue, flags);
+      if (newValue !== this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator)) {
+        interceptor.updateSource(newValue, flags);
       }
       return;
     }
 
-    throw Reporter.error(15, flags);
+    throw new Error('Unexpected handleChange context in AttributeBinding');
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
-    if (this.$state & State.isBound) {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, projection?: CustomElementDefinition): void {
+    if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
       this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
-    // add isBinding flag
-    this.$state |= State.isBinding;
 
     // Store flags which we can only receive during $bind and need to pass on
     // to the AST during evaluate/connect/assign
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
 
     this.$scope = scope;
-    this.part = part;
+    this.$hostScope = hostScope;
+    this.projection = projection;
 
     let sourceExpression = this.sourceExpression;
-    if (hasBind(sourceExpression)) {
-      sourceExpression.bind(flags, scope, this.interceptor);
+    if (sourceExpression.hasBind) {
+      sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
     let targetObserver = this.targetObserver as IBindingTargetObserver;
@@ -164,54 +196,71 @@ export class AttributeBinding implements IPartialConnectableBinding {
 
     // during bind, binding behavior might have changed sourceExpression
     sourceExpression = this.sourceExpression;
-    if (this.mode & toViewOrOneTime) {
-      this.interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.locator, part), flags);
+    const $mode = this.mode;
+    const interceptor = this.interceptor;
+
+    if ($mode & toViewOrOneTime) {
+      interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator), flags);
     }
-    if (this.mode & toView) {
-      sourceExpression.connect(flags, scope, this, part);
+    if ($mode & toView) {
+      sourceExpression.connect(flags, scope, this.$hostScope, this);
     }
-    if (this.mode & fromView) {
-      (targetObserver as IBindingTargetObserver & { [key: string]: number })[this.id] |= LifecycleFlags.updateSourceExpression;
-      targetObserver.subscribe(this.interceptor);
+    if ($mode & fromView) {
+      targetObserver[this.id] |= LifecycleFlags.updateSourceExpression;
+      targetObserver.subscribe(interceptor);
     }
 
     // add isBound flag and remove isBinding flag
-    this.$state |= State.isBound;
-    this.$state &= ~State.isBinding;
+    this.isBound = true;
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
-    // add isUnbinding flag
-    this.$state |= State.isUnbinding;
 
     // clear persistent flags
     this.persistentFlags = LifecycleFlags.none;
 
-    if (hasUnbind(this.sourceExpression)) {
-      this.sourceExpression.unbind(flags, this.$scope, this.interceptor);
+    if (this.sourceExpression.hasUnbind) {
+      this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
     }
     this.$scope = null!;
 
-    if ((this.targetObserver as IBindingTargetObserver).unbind) {
-      (this.targetObserver as IBindingTargetObserver).unbind!(flags);
+    const targetObserver = this.targetObserver as IBindingTargetObserver;
+    const task = this.task;
+    if (targetObserver.unbind) {
+      targetObserver.unbind!(flags);
     }
-    if ((this.targetObserver as IBindingTargetObserver).unsubscribe) {
-      (this.targetObserver as IBindingTargetObserver).unsubscribe(this.interceptor);
-      (this.targetObserver as IBindingTargetObserver & { [key: string]: number })[this.id] &= ~LifecycleFlags.updateSourceExpression;
+    if (targetObserver.unsubscribe) {
+      targetObserver.unsubscribe(this.interceptor);
+      targetObserver[this.id] &= ~LifecycleFlags.updateSourceExpression;
+    }
+    if (task != null) {
+      task.cancel();
+      if (task === targetObserver.task) {
+        targetObserver.task = null;
+      }
+      this.task = null;
     }
     this.interceptor.unobserve(true);
 
     // remove isBound and isUnbinding flags
-    this.$state &= ~(State.isBound | State.isUnbinding);
+    this.isBound = false;
   }
 
   public connect(flags: LifecycleFlags): void {
-    if (this.$state & State.isBound) {
+    if (this.isBound) {
       flags |= this.persistentFlags;
-      this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this.interceptor, this.part); // why do we have a connect method here in the first place? will this be called after bind?
+      this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this.$hostScope, this.interceptor); // why do we have a connect method here in the first place? will this be called after bind?
     }
+  }
+
+  public dispose(): void {
+    this.interceptor = (void 0)!;
+    this.sourceExpression = (void 0)!;
+    this.locator = (void 0)!;
+    this.targetObserver = (void 0)!;
+    this.target = (void 0)!;
   }
 }

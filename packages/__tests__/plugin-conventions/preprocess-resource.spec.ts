@@ -503,7 +503,7 @@ export class FooBar {}
 
   it('injects bindingCommand decorator', function () {
     const code = `export class FooBarBindingCommand {}\n`;
-    const expected = `import { bindingCommand } from '@aurelia/jit';
+    const expected = `import { bindingCommand } from '@aurelia/runtime';
 @bindingCommand('foo-bar')
 export class FooBarBindingCommand {}
 `;
@@ -519,7 +519,7 @@ export class FooBarBindingCommand {}
 
   it('injects bindingCommand decorator for non-kebab case file name', function () {
     const code = `export class FooBarBindingCommand {}\n`;
-    const expected = `import { bindingCommand } from '@aurelia/jit';
+    const expected = `import { bindingCommand } from '@aurelia/runtime';
 @bindingCommand('foo-bar')
 export class FooBarBindingCommand {}
 `;
@@ -535,11 +535,11 @@ export class FooBarBindingCommand {}
   });
 
   it('skips existing bindingCommand decorator', function () {
-    const code = `import { bindingCommand } from '@aurelia/jit';
+    const code = `import { bindingCommand } from '@aurelia/runtime';
 @bindingCommand('lorem')
 export class FooBarBindingCommand {}
 `;
-    const expected = `import { bindingCommand } from '@aurelia/jit';
+    const expected = `import { bindingCommand } from '@aurelia/runtime';
 @bindingCommand('lorem')
 export class FooBarBindingCommand {}
 `;
@@ -588,8 +588,7 @@ export class AbcBindingCommand {
 
 }
 `;
-    const expected = `import { customAttribute, bindingBehavior } from '@aurelia/runtime';
-import { bindingCommand } from '@aurelia/jit';
+    const expected = `import { customAttribute, bindingBehavior, bindingCommand } from '@aurelia/runtime';
 import {Foo} from './foo';
 import Aurelia, { valueConverter } from 'aurelia';
 
@@ -637,8 +636,7 @@ export class AbcBindingCommand {
 
   it('injects various decorators when there is implicit custom element', function () {
     const code = `import {Foo} from './foo';
-import { templateController } from '@aurelia/runtime';
-import { other } from '@aurelia/jit';
+import { templateController, other } from '@aurelia/runtime';
 
 export class LeaveMeAlone {}
 
@@ -668,8 +666,7 @@ export class AbcBindingCommand {
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
 import {Foo} from './foo';
-import { templateController, customElement, customAttribute, valueConverter, bindingBehavior } from '@aurelia/runtime';
-import { other, bindingCommand } from '@aurelia/jit';
+import { templateController, other, customElement, customAttribute, valueConverter, bindingBehavior, bindingCommand } from '@aurelia/runtime';
 
 export class LeaveMeAlone {}
 
@@ -717,8 +714,7 @@ export class FooBar {}
 
   it('injects various decorators when there is implicit custom element with customized name', function () {
     const code = `import {Foo} from './foo';
-import { templateController, customElement } from '@aurelia/runtime';
-import { other } from '@aurelia/jit';
+import { templateController, customElement, other } from '@aurelia/runtime';
 
 export class LeaveMeAlone {}
 
@@ -749,8 +745,7 @@ export class AbcBindingCommand {
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
 import {Foo} from './foo';
-import { templateController, customElement, customAttribute, valueConverter, bindingBehavior } from '@aurelia/runtime';
-import { other, bindingCommand } from '@aurelia/jit';
+import { templateController, customElement, other, customAttribute, valueConverter, bindingBehavior, bindingCommand } from '@aurelia/runtime';
 
 export class LeaveMeAlone {}
 

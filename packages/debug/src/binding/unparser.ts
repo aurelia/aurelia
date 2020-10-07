@@ -40,7 +40,7 @@ export function adoptDebugMethods($type: Unwrap<typeof astTypeMap>['type'], name
 export class Unparser implements AST.IVisitor<void> {
   public text: string = '';
 
-  public static unparse(expr: AST.IExpression): string {
+  public static unparse(expr: AST.IsExpressionOrStatement): string {
     const visitor = new Unparser();
     expr.accept(visitor);
     return visitor.text;
@@ -275,7 +275,7 @@ export class Unparser implements AST.IVisitor<void> {
     this.text += '}';
   }
 
-  private writeArgs(args: readonly AST.IExpression[]): void {
+  private writeArgs(args: readonly AST.IsBindingBehavior[]): void {
     this.text += '(';
     for (let i = 0, length = args.length; i < length; ++i) {
       if (i !== 0) {

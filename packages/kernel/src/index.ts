@@ -69,10 +69,6 @@ export {
   format,
   sink,
 } from './logger';
-export {
-  relativeToFile,
-  join,
-} from './path';
 export { PLATFORM } from './platform';
 export {
   ITraceInfo,

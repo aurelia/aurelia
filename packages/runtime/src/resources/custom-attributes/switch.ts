@@ -259,7 +259,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   @bindable({
     set: v => {
       switch (v) {
-        case 'true':  return true;
+        case 'true': return true;
         case 'false': return false;
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         default: return !!v;
@@ -342,6 +342,9 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
 export class DefaultCase<T extends INode = Node> extends Case<T>{
 
   protected linkToSwitch($switch: Switch<T>) {
+    if ($switch.defaultCase !== void 0) {
+      throw new Error('Multiple \'default-case\'s are not allowed.');
+    }
     $switch.defaultCase = this;
   }
 }

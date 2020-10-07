@@ -197,6 +197,7 @@ describe('switch', function () {
     const au = new Aurelia(container);
     let error: Error | null = null;
     let app: App | null = null;
+    let controller: Controller = null!;
     try {
       await au
         .register(
@@ -216,11 +217,12 @@ describe('switch', function () {
         .start()
         .wait();
       app = au.root.viewModel as App;
+      controller = au.root.controller! as unknown as Controller;
     } catch (e) {
       error = e;
     }
 
-    await testFunction(new SwitchTestExecutionContext(ctx, container, host, app, au.root.controller! as unknown as Controller, error));
+    await testFunction(new SwitchTestExecutionContext(ctx, container, host, app, controller, error));
 
     if (error === null) {
       await au.stop().wait();
@@ -920,8 +922,8 @@ describe('switch', function () {
       <template>
         <template switch.bind="status">
           <span case="received">Order received.</span>
-          <span case="value.bind:'dispatched'; fall-through.bind:true">On the way.</span>
-          <span case="value.bind:'processing'; fall-through.bind:true">Processing your order.</span>
+          <span case="value:dispatched; fall-through.bind:true">On the way.</span>
+          <span case="value.bind:'processing'; fall-through:true">Processing your order.</span>
           <span case="delivered">Delivered.</span>
         </template>
       </template>`;
@@ -1000,7 +1002,7 @@ describe('switch', function () {
     <template>
       <template switch.bind="true">
         <span case.bind="status === 'received'">Order received.</span>
-        <span case="value.bind:status === 'processing'; fall-through.bind:true">Processing your order.</span>
+        <span case="value.bind:status === 'processing'; fall-through:true">Processing your order.</span>
         <span case="value.bind:status === 'dispatched'; fall-through.bind:true">On the way.</span>
         <span case.bind="status === 'delivered'">Delivered.</span>
       </template>
@@ -1666,6 +1668,17 @@ describe('switch', function () {
 
   function* getNegativeTestData() {
     yield new TestData(
+      'case without switch',
+      {
+        template: `
+        <template as-custom-element="foo-bar">
+          <span case="delivered">delivered</span>
+        </template>
+        <foo-bar></foo-bar>
+        `,
+      }
+    );
+    yield new TestData(
       '*[switch]>*[if]>*[case]',
       {
         template: `
@@ -1717,4 +1730,18 @@ describe('switch', function () {
       },
       data);
   }
+
+  $it(`multiple default-cases throws error`,
+    function (ctx) {
+      assert.match(ctx.error.message, /Multiple 'default-case's are not allowed./);
+    },
+    { template: `
+  <template>
+    <template switch.bind="status">
+      <span case.bind="statuses">Processing.</span>
+      <span case="dispatched">On the way.</span>
+      <span default-case>dc1.</span>
+      <span default-case>dc2.</span>
+    </template>
+  </template>` });
 });

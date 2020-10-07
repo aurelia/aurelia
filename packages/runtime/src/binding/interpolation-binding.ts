@@ -7,6 +7,7 @@ import {
 import {
   BindingMode,
   LifecycleFlags,
+  ExpressionKind,
 } from '../flags';
 import { IBinding } from '../lifecycle';
 import {
@@ -14,6 +15,7 @@ import {
   IScope,
   AccessorType,
   INodeAccessor,
+  IAccessor,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { Interpolation, IsExpression } from './ast';
@@ -30,13 +32,22 @@ const queueTaskOptions: QueueTaskOptions = {
   preempt: true,
 };
 
+// a pseudo binding to manage multiple InterpolationBinding s
+// ========
+// Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
+// value converters and binding behaviors.
+// Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
+// in which case the renderer will create the TextBinding directly
 export class MultiInterpolationBinding implements IBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;
   public $scope?: IScope = void 0;
 
-  public parts: InterpolationBinding[];
+  public partBindings: PseudoBinding[];
+
+  private targetObserver: IBindingTargetAccessor;
+  private task: ITask | null = null;
 
   public constructor(
     public observerLocator: IObserverLocator,
@@ -45,16 +56,52 @@ export class MultiInterpolationBinding implements IBinding {
     public targetProperty: string,
     public mode: BindingMode,
     public locator: IServiceLocator,
+    public $scheduler: IScheduler,
   ) {
-    // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
-    // value converters and binding behaviors.
-    // Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
-    // in which case the renderer will create the TextBinding directly
+    this.targetObserver = observerLocator.getAccessor(LifecycleFlags.none, target, targetProperty);
     const expressions = interpolation.expressions;
-    const parts = this.parts = Array(expressions.length);
+    const partBindings = this.partBindings = Array(expressions.length);
     for (let i = 0, ii = expressions.length; i < ii; ++i) {
-      parts[i] = new InterpolationBinding(expressions[i], interpolation, target, targetProperty, mode, observerLocator, locator, i === 0);
+      partBindings[i] = new PseudoBinding(expressions[i], target, targetProperty, locator, observerLocator, this);
     }
+  }
+
+  public updateTarget(value: unknown, flags: LifecycleFlags): void {
+    const staticParts = this.interpolation.parts;
+    const results: unknown[] = [];
+    let len = 0;
+    let interceptedBinding: PseudoBinding | undefined;
+    for (let i = 0, ii = staticParts.length; i < ii; i++) {
+      if (i % 2 === 0) {
+        results[len++] = staticParts[i];
+      } else {
+        const pseudoBinding = this.partBindings[i];
+        if (interceptedBinding === void 0 && pseudoBinding.interceptor !== pseudoBinding) {
+          interceptedBinding = pseudoBinding;
+        }
+        results[len++] = pseudoBinding.value;
+      }
+    }
+
+    this.task?.cancel();
+    if (interceptedBinding !== void 0 && interceptedBinding.updateTarget !== interceptedBinding.interceptor.updateTarget) {
+      interceptedBinding.interceptor.updateTarget(results.join(''), flags);
+      return;
+    }
+
+    const targetObserver = this.targetObserver;
+    // Alpha: during bind a simple strategy for bind is always flush immediately
+    // todo:
+    //  (1). determine whether this should be the behavior
+    //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
+    const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
+    if (shouldQueueFlush) {
+      this.task = this.$scheduler.queueRenderTask(() => {
+        (targetObserver as unknown as INodeAccessor).flushChanges(flags);
+        this.task = null;
+      }, queueTaskOptions);
+    }
+    targetObserver.setValue(results.join(''), flags | LifecycleFlags.noTargetObserverQueue);
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
@@ -66,11 +113,11 @@ export class MultiInterpolationBinding implements IBinding {
     }
     this.isBound = true;
     this.$scope = scope;
-
-    const parts = this.parts;
-    for (let i = 0, ii = parts.length; i < ii; ++i) {
-      parts[i].interceptor.$bind(flags, scope, hostScope);
+    const partBindings = this.partBindings;
+    for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+      partBindings[i].$bind(flags, scope, hostScope);
     }
+    this.updateTarget(void 0, flags);
   }
 
   public $unbind(flags: LifecycleFlags): void {
@@ -79,9 +126,14 @@ export class MultiInterpolationBinding implements IBinding {
     }
     this.isBound = false;
     this.$scope = void 0;
-    const parts = this.parts;
+    const task = this.task;
+    const parts = this.partBindings;
     for (let i = 0, ii = parts.length; i < ii; ++i) {
       parts[i].interceptor.$unbind(flags);
+    }
+    if (task != null) {
+      task.cancel();
+      this.task = null;
     }
   }
 
@@ -90,6 +142,115 @@ export class MultiInterpolationBinding implements IBinding {
     this.interpolation = (void 0)!;
     this.locator = (void 0)!;
     this.target = (void 0)!;
+  }
+}
+
+// a pseudo binding, part of a larger interpolation binding
+// employed to support full expression per expression part of an interpolation
+export interface PseudoBinding extends IConnectableBinding {}
+
+@connectable()
+export class PseudoBinding implements PseudoBinding {
+  public interceptor: this = this;
+
+  // at runtime, mode may be overriden by binding behavior
+  // but it wouldn't matter here, just start with something for later check
+  public readonly mode: BindingMode = BindingMode.toView;
+  public value: unknown = '';
+  public isBound: boolean = false;
+  public $scope?: IScope = void 0;
+  public $hostScope: IScope | null = null;
+
+  // if the source expression supplies a target observer
+  // the master MultiInterpolationBinding will use this target observer to update
+  // instead of its own default targetObserver
+  public targetObserver?: IBindingTargetAccessor;
+
+  public constructor(
+    public readonly sourceExpression: IsExpression,
+    public readonly target: object,
+    public readonly targetProperty: string,
+    public readonly locator: IServiceLocator,
+    public readonly observerLocator: IObserverLocator,
+    public readonly owner: MultiInterpolationBinding,
+  ) {
+
+  }
+
+  // deepscan-disable-next-line
+  public updateTarget(value: unknown, flags: LifecycleFlags): void {
+    // intentionally empty
+    // used to support typing
+  }
+
+  public handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {
+    if (!this.isBound) {
+      return;
+    }
+    const sourceExpression = this.sourceExpression;
+    const canOptimize = sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1;
+    if (!canOptimize) {
+      const shouldConnect = (this.mode & toView) > 0;
+      if (shouldConnect) {
+        this.version++;
+      }
+      newValue = sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, this.interceptor);
+      if (shouldConnect) {
+        this.interceptor.unobserve(false);
+      }
+    }
+    if (newValue != this.value) {
+      this.value = newValue;
+      this.owner.updateTarget(newValue, flags);
+    }
+  }
+
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+    if (this.isBound) {
+      if (this.$scope === scope) {
+        return;
+      }
+      this.interceptor.$unbind(flags);
+    }
+
+    this.isBound = true;
+    this.$scope = scope;
+    this.$hostScope = hostScope;
+
+    if (this.sourceExpression.hasBind) {
+      this.sourceExpression.bind(flags, scope, hostScope, this.interceptor as IIndexable & this);
+    }
+
+    if (this.targetObserver?.bind) {
+      this.targetObserver.bind(flags);
+    }
+
+    this.value = this.sourceExpression.evaluate(
+      flags,
+      scope,
+      hostScope,
+      this.locator,
+      (this.mode & toView) > 0 ?  this.interceptor : null,
+    );
+  }
+
+  public $unbind(flags: LifecycleFlags) : void {
+    if (!this.isBound) {
+      return;
+    }
+    this.isBound = false;
+
+    if (this.sourceExpression.hasUnbind) {
+      this.sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
+    }
+
+    if (this.targetObserver?.unbind) {
+      this.targetObserver.unbind(flags);
+    }
+
+    this.$scope = void 0;
+    this.$hostScope = null;
+    this.interceptor.unobserve(true);
   }
 }
 
@@ -107,6 +268,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public isBound: boolean = false;
 
   public targetObserver: IBindingTargetAccessor;
+  public value: unknown;
 
   public constructor(
     public sourceExpression: IsExpression,
@@ -149,10 +311,9 @@ export class InterpolationBinding implements IPartialConnectableBinding {
         flags |= LifecycleFlags.noTargetObserverQueue;
 
         this.task?.cancel();
-        targetObserver.task?.cancel();
-        targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+        this.task = this.$scheduler.queueRenderTask(() => {
           (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
-          this.task = targetObserver.task = null;
+          this.task = null;
         }, queueTaskOptions);
       }
 
@@ -208,21 +369,19 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     this.isBound = false;
 
     const sourceExpression = this.sourceExpression;
+    const targetObserver = this.targetObserver;
+    const task = this.task;
+
     if (sourceExpression.hasUnbind) {
       sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
 
-    const targetObserver = this.targetObserver;
-    const task = this.task;
-
     if (targetObserver.unbind) {
       targetObserver.unbind(flags);
     }
+
     if (task != null) {
       task.cancel();
-      if (task === targetObserver.task) {
-        targetObserver.task = null;
-      }
       this.task = null;
     }
 

@@ -416,7 +416,7 @@ export class AccessScopeExpression {
     public readonly accessHostScope: boolean = false,
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): IBindingContext | IBinding | IOverrideContext {
+  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): unknown {
     const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope) as IBindingContext;
     if (connectable != null) {
       connectable.observeProperty(flags, obj, this.name);

@@ -47,6 +47,7 @@
     "test/fractals-tree",
     "test/grid",
     "test/js-framework-benchmark",
+    "test/js-framework-benchmark/frameworks/keyed/aurelia2-local",
     "test/kitchen-sink",
     "test/navigation-skeleton/app",
     "test/rainbow-spiral",

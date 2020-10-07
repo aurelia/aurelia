@@ -42,6 +42,6 @@
     "build": "rimraf dist && webpack",
     "build-dev": "npm run build",
     "build-prod": "npm run build -- --mode=production",
-    "serve": "ws -c-1 -p 8081 -d dist"
+    "serve": "ws -p 8081 -d dist"
   }
 }

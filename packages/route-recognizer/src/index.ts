@@ -42,7 +42,7 @@ class Candidate<T> {
     private readonly result: RecognizeResult<T>,
   ) {
     this.head = states[states.length - 1];
-    this.endpoint = this.head?.endpoint!;
+    this.endpoint = this.head!.endpoint!;
   }
 
   public advance(ch: string): void {

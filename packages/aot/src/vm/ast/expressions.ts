@@ -3087,6 +3087,8 @@ export class $BinaryExpression implements I$Node {
         // 8. Return r.
         return r;
       }
+      default:
+        throw new Error(`SyntaxKind ${this.node.operatorToken.kind} not yet implemented`);
     }
   }
 }

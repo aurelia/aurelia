@@ -256,7 +256,18 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
 
   @bindable public value: unknown;
-  @bindable({ mode: BindingMode.oneTime }) public fallThrough: boolean = false;
+  @bindable({
+    set: v => {
+      switch (v) {
+        case 'true':  return true;
+        case 'false': return false;
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        default: return !!v;
+      }
+    },
+    mode: BindingMode.oneTime
+  })
+  public fallThrough: boolean = false;
 
   public view: ISyntheticView<T>;
   private $switch!: Switch<T>;

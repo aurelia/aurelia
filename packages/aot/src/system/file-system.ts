@@ -236,7 +236,7 @@ export class NodeFileSystem implements IFileSystem {
   public async mkdir(path: string): Promise<void> {
     this.logger.trace(`mkdir(path: ${path})`);
 
-    return mkdir(path, { recursive: true });
+    return mkdir(path, { recursive: true }) as unknown as Promise<void>;
   }
 
   public mkdirSync(path: string): void {
@@ -324,7 +324,7 @@ export class NodeFileSystem implements IFileSystem {
           await tick.wait();
         }
         ++this.pendingReads;
-        content = await readFile(path, encoding) as string;
+        content = await readFile(path, encoding as BufferEncoding) as string;
         --this.pendingReads;
       } catch (err) {
         if (err.code === 'EMFILE') {
@@ -351,7 +351,7 @@ export class NodeFileSystem implements IFileSystem {
     const contentCache = this.contentCache;
     let content = contentCache.get(path);
     if (content === void 0 || force) {
-      content = readFileSync(path, encoding);
+      content = readFileSync(path, encoding as BufferEncoding);
       if (cache) {
         contentCache.set(path, content);
       }
@@ -385,7 +385,7 @@ export class NodeFileSystem implements IFileSystem {
 
     await this.ensureDir(dirname(path));
 
-    return writeFile(path, content, { encoding });
+    return writeFile(path, content, { encoding: encoding as BufferEncoding });
   }
 
   public writeFileSync(path: string, content: string, encoding: Encoding): void {

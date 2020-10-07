@@ -31,11 +31,6 @@
         "state/*"
       ]
     },
-    "plugins": [
-      {
-        "name": "typescript-tslint-plugin"
-      }
-    ],
     "strictBindCallApply": true,
     "strictNullChecks": true,
     "strictPropertyInitialization": true,

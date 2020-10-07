@@ -1,4 +1,6 @@
 import {
+  assert,
+  ensureSchedulerEmpty,
   HTMLTestContext,
   TestContext,
 } from '@aurelia/testing';
@@ -18,7 +20,7 @@ function createJSDOMTestContext(): HTMLTestContext {
 
   return HTMLTestContext.create(
     RuntimeHtmlJsdomConfiguration,
-    jsdom.window,
+    jsdom.window as unknown as Window,
     jsdom.window.UIEvent,
     jsdom.window.Event,
     jsdom.window.CustomEvent,
@@ -37,7 +39,27 @@ function createJSDOMTestContext(): HTMLTestContext {
 function initializeJSDOMTestContext(): void {
   TestContext.createHTMLTestContext = createJSDOMTestContext;
   // Just trigger the HTMLDOM to be resolved once so it sets the DOM globals
-  TestContext.createHTMLTestContext().dom.createElement('div');
+  const ctx = TestContext.createHTMLTestContext();
+  ctx.dom.createElement('div');
+  ctx.scheduler.getIdleTaskQueue();
+
+  // eslint-disable-next-line
+  beforeEach(function() {
+    const title = this.currentTest?.fullTitle();
+    if (title.length > 1000) {
+      console.log(`Super long title! "${title.slice(0, 1000)}...(+${title.length - 1000})"`);
+    }
+  });
+
+  // eslint-disable-next-line
+  afterEach(function() {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
 }
 
 initializeJSDOMTestContext();

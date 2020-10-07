@@ -54,7 +54,7 @@ let AttributeBinding = class AttributeBinding {
         this.sourceExpression.assign(flags | 16 /* updateSourceExpression */, this.$scope, this.$hostScope, this.locator, value);
     }
     handleChange(newValue, _previousValue, flags) {
-        var _a, _b;
+        var _a;
         if (!this.isBound) {
             return;
         }
@@ -77,30 +77,31 @@ let AttributeBinding = class AttributeBinding {
             const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
             const oldValue = targetObserver.getValue();
             if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
-                newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator);
+                const shouldConnect = (mode & oneTime) === 0;
+                if (shouldConnect) {
+                    this.version++;
+                }
+                newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, interceptor);
+                if (shouldConnect) {
+                    interceptor.unobserve(false);
+                }
             }
             if (newValue !== oldValue) {
                 if (shouldQueueFlush) {
                     flags |= 4096 /* noTargetObserverQueue */;
                     (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
-                    (_b = targetObserver.task) === null || _b === void 0 ? void 0 : _b.cancel();
-                    targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+                    this.task = this.$scheduler.queueRenderTask(() => {
                         var _a, _b;
                         (_b = (_a = targetObserver).flushChanges) === null || _b === void 0 ? void 0 : _b.call(_a, flags);
-                        this.task = targetObserver.task = null;
+                        this.task = null;
                     }, taskOptions);
                 }
                 interceptor.updateTarget(newValue, flags);
             }
-            if ((mode & oneTime) === 0) {
-                this.version++;
-                sourceExpression.connect(flags, $scope, this.$hostScope, interceptor);
-                interceptor.unobserve(false);
-            }
             return;
         }
         if (flags & 16 /* updateSourceExpression */) {
-            if (newValue !== this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator)) {
+            if (newValue !== this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, null)) {
                 interceptor.updateSource(newValue, flags);
             }
             return;
@@ -136,10 +137,8 @@ let AttributeBinding = class AttributeBinding {
         const $mode = this.mode;
         const interceptor = this.interceptor;
         if ($mode & toViewOrOneTime) {
-            interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator), flags);
-        }
-        if ($mode & toView) {
-            sourceExpression.connect(flags, scope, this.$hostScope, this);
+            const shouldConnect = ($mode & toView) > 0;
+            interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null), flags);
         }
         if ($mode & fromView) {
             targetObserver[this.id] |= 16 /* updateSourceExpression */;

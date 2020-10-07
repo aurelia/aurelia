@@ -44,7 +44,7 @@ let Repeat = class Repeat {
                 break;
             }
         }
-        this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, binding.locator);
+        this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, binding.locator, null);
     }
     afterAttach(initiator, parent, flags) {
         this.normalizeToArray(flags);

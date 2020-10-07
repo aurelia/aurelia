@@ -63,7 +63,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
         $bind(flags, scope, hostScope) {
             if (this.firstArg !== null) {
-                const delay = Number(this.firstArg.evaluate(flags, scope, hostScope, this.locator));
+                const delay = Number(this.firstArg.evaluate(flags, scope, hostScope, this.locator, null));
                 if (!isNaN(delay)) {
                     this.opts.delay = delay;
                 }

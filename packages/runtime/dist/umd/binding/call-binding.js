@@ -22,7 +22,7 @@
         callSource(args) {
             const overrideContext = this.$scope.overrideContext;
             Object.assign(overrideContext, args);
-            const result = this.sourceExpression.evaluate(128 /* mustEvaluate */, this.$scope, this.$hostScope, this.locator);
+            const result = this.sourceExpression.evaluate(128 /* mustEvaluate */, this.$scope, this.$hostScope, this.locator, null);
             for (const prop in args) {
                 Reflect.deleteProperty(overrideContext, prop);
             }

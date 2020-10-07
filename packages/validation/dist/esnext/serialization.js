@@ -236,7 +236,7 @@ let ModelValidationHydrator = class ModelValidationHydrator {
                 const parsed = this.parser.parse(when, 0 /* None */);
                 rule.canExecute = (object) => {
                     const flags = 0 /* none */; // TODO? need to get the flags propagated here?
-                    return parsed.evaluate(flags, Scope.create(flags, { $object: object }), null, this.locator); // TODO get hostScope?
+                    return parsed.evaluate(flags, Scope.create(flags, { $object: object }), null, this.locator, null); // TODO get hostScope?
                 };
             }
             else if (typeof when === 'function') {

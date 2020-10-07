@@ -147,7 +147,7 @@ let ValidateBindingBehavior = class ValidateBindingBehavior extends BindingInter
         const args = expression.args;
         for (let i = 0, ii = args.length; i < ii; i++) {
             const arg = args[i];
-            const temp = arg.evaluate(evaluationFlags, scope, hostScope, locator);
+            const temp = arg.evaluate(evaluationFlags, scope, hostScope, locator, null);
             switch (i) {
                 case 0:
                     trigger = this.ensureTrigger(temp);

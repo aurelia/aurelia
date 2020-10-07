@@ -124,7 +124,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 value = object;
             }
             else {
-                value = expression.evaluate(flags, scope, null, this.locator); // TODO: get proper hostScope?
+                value = expression.evaluate(flags, scope, null, this.locator, null); // TODO: get proper hostScope?
             }
             let isValid = true;
             const validateRuleset = async (rules) => {
@@ -138,7 +138,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     let message;
                     if (!isValidOrPromise) {
                         const messageEvaluationScope = runtime_1.Scope.create(flags, new ValidationMessageEvaluationContext(this.messageProvider, this.messageProvider.getDisplayName(name, displayName), name, value, rule, object));
-                        message = this.messageProvider.getMessage(rule).evaluate(flags, messageEvaluationScope, null, null);
+                        message = this.messageProvider.getMessage(rule).evaluate(flags, messageEvaluationScope, null, null, null);
                     }
                     return new ValidationResult(isValidOrPromise, message, name, object, rule, this);
                 };

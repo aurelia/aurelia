@@ -56,7 +56,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     break;
                 }
             }
-            this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, binding.locator);
+            this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, binding.locator, null);
         }
         afterAttach(initiator, parent, flags) {
             this.normalizeToArray(flags);

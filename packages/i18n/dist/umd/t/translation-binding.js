@@ -66,11 +66,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.scope = scope;
             this.hostScope = hostScope;
             this.isInterpolatedSourceExpr = this.expr instanceof runtime_1.Interpolation;
-            this.keyExpression = this.expr.evaluate(flags, scope, hostScope, this.locator);
+            this.keyExpression = this.expr.evaluate(flags, scope, hostScope, this.locator, null);
             this.ensureKeyExpression();
             if (this.parametersExpr) {
                 const parametersFlags = flags | 16384 /* secondaryExpression */;
-                this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, hostScope, this.locator);
+                this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, hostScope, this.locator, null);
                 this.parametersExpr.connect(parametersFlags, scope, hostScope, this);
             }
             const expressions = !(this.expr instanceof runtime_1.CustomExpression) ? this.isInterpolatedSourceExpr ? this.expr.expressions : [this.expr] : [];
@@ -97,11 +97,11 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
         handleChange(newValue, _previousValue, flags) {
             if (flags & 16384 /* secondaryExpression */) {
-                this.translationParameters = this.parametersExpr.evaluate(flags, this.scope, this.hostScope, this.locator);
+                this.translationParameters = this.parametersExpr.evaluate(flags, this.scope, this.hostScope, this.locator, null);
             }
             else {
                 this.keyExpression = this.isInterpolatedSourceExpr
-                    ? this.expr.evaluate(flags, this.scope, this.hostScope, this.locator)
+                    ? this.expr.evaluate(flags, this.scope, this.hostScope, this.locator, null)
                     : newValue;
                 this.ensureKeyExpression();
             }

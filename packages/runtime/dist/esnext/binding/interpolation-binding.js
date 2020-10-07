@@ -103,7 +103,7 @@ let InterpolationBinding = class InterpolationBinding {
         //  (1). determine whether this should be the behavior
         //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
         const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
-        const newValue = this.interpolation.evaluate(flags, this.$scope, this.$hostScope, this.locator);
+        const newValue = this.interpolation.evaluate(flags, this.$scope, this.$hostScope, this.locator, null);
         const oldValue = targetObserver.getValue();
         const interceptor = this.interceptor;
         // todo(fred): maybe let the observer decides whether it updates
@@ -149,7 +149,7 @@ let InterpolationBinding = class InterpolationBinding {
         // since the interpolation already gets the whole value, we only need to let the first
         // text binding do the update if there are multiple
         if (this.isFirst) {
-            this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, hostScope, this.locator), flags);
+            this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, hostScope, this.locator, null), flags);
         }
         if ((mode & toView) > 0) {
             sourceExpression.connect(flags, scope, hostScope, this.interceptor);

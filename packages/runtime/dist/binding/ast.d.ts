@@ -1,7 +1,6 @@
 import { IServiceLocator, StrictPrimitive } from '@aurelia/kernel';
 import { ExpressionKind, LifecycleFlags } from '../flags';
-import { IBinding } from '../lifecycle';
-import { Collection, IBindingContext, IOverrideContext, IScope, ObservedCollection } from '../observation';
+import { Collection, IBindingContext, IScope, ObservedCollection, IConnectable } from '../observation';
 import { IConnectableBinding } from './connectable';
 import { CustomElementDefinition } from '../resources/custom-element';
 export declare type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
@@ -52,7 +51,7 @@ export interface IVisitor<T = unknown> {
 export declare class CustomExpression {
     readonly value: string;
     constructor(value: string);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): string;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): string;
 }
 export declare class BindingBehaviorExpression {
     readonly expression: IsBindingBehavior;
@@ -63,7 +62,7 @@ export declare class BindingBehaviorExpression {
     get hasUnbind(): true;
     readonly behaviorKey: string;
     constructor(expression: IsBindingBehavior, name: string, args: readonly IsAssign[]);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): unknown;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
@@ -79,7 +78,7 @@ export declare class ValueConverterExpression {
     get hasBind(): false;
     get hasUnbind(): true;
     constructor(expression: IsValueConverter, name: string, args: readonly IsAssign[]);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): unknown;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
@@ -92,7 +91,7 @@ export declare class AssignExpression {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(target: IsAssignable, value: IsAssign);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown;
     accept<T>(visitor: IVisitor<T>): T;
@@ -105,7 +104,7 @@ export declare class ConditionalExpression {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(condition: IsBinary, yes: IsAssign, no: IsAssign);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): unknown;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -119,7 +118,7 @@ export declare class AccessThisExpression {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(ancestor?: number);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): IBindingContext | undefined;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): IBindingContext | undefined;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -132,7 +131,7 @@ export declare class AccessScopeExpression {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(name: string, ancestor?: number, accessHostScope?: boolean);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): IBindingContext | IBinding | IOverrideContext;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): unknown;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -144,7 +143,7 @@ export declare class AccessMemberExpression {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(object: IsLeftHandSide, name: string);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): unknown;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -156,7 +155,7 @@ export declare class AccessKeyedExpression {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(object: IsLeftHandSide, key: IsAssign);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): unknown;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -170,7 +169,7 @@ export declare class CallScopeExpression {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(name: string, args: readonly IsAssign[], ancestor?: number, accessHostScope?: boolean);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): unknown;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -183,7 +182,7 @@ export declare class CallMemberExpression {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(object: IsLeftHandSide, name: string, args: readonly IsAssign[]);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): unknown;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -195,7 +194,7 @@ export declare class CallFunctionExpression {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(func: IsLeftHandSide, args: readonly IsAssign[]);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): unknown;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -208,7 +207,7 @@ export declare class BinaryExpression {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(operation: BinaryOperator, left: IsBinary, right: IsBinary);
-    evaluate(f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): unknown;
+    evaluate(f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator, c: IConnectable | null): unknown;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -220,7 +219,7 @@ export declare class UnaryExpression {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(operation: UnaryOperator, expression: IsLeftHandSide);
-    evaluate(f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): unknown;
+    evaluate(f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator, c: IConnectable | null): unknown;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -236,7 +235,7 @@ export declare class PrimitiveLiteralExpression<TValue extends StrictPrimitive =
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(value: TValue);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): TValue;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): TValue;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -247,7 +246,7 @@ export declare class HtmlLiteralExpression {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(parts: readonly HtmlLiteralExpression[]);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): string;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): string;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown, rojection?: CustomElementDefinition): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -259,7 +258,7 @@ export declare class ArrayLiteralExpression {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(elements: readonly IsAssign[]);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): readonly unknown[];
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): readonly unknown[];
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -272,7 +271,7 @@ export declare class ObjectLiteralExpression {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(keys: readonly (number | string)[], values: readonly IsAssign[]);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): Record<string, unknown>;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): Record<string, unknown>;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -285,7 +284,7 @@ export declare class TemplateExpression {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(cooked: readonly string[], expressions?: readonly IsAssign[]);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): string;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): string;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -302,7 +301,7 @@ export declare class TaggedTemplateExpression {
     constructor(cooked: readonly string[] & {
         raw?: readonly string[];
     }, raw: readonly string[], func: IsLeftHandSide, expressions?: readonly IsAssign[]);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): string;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): string;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -313,7 +312,7 @@ export declare class ArrayBindingPattern {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(elements: readonly IsAssign[]);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): unknown;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -325,7 +324,7 @@ export declare class ObjectBindingPattern {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(keys: readonly (string | number)[], values: readonly IsAssign[]);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): unknown;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
@@ -336,7 +335,7 @@ export declare class BindingIdentifier {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(name: string);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator | null): string;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator | null, connectable: IConnectable | null): string;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;
 }
@@ -347,7 +346,7 @@ export declare class ForOfStatement {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(declaration: BindingIdentifierOrPattern, iterable: IsBindingBehavior);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): unknown;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown;
     count(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined): number;
     iterate(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void;
@@ -365,7 +364,7 @@ export declare class Interpolation {
     get hasBind(): false;
     get hasUnbind(): false;
     constructor(parts: readonly string[], expressions?: readonly IsBindingBehavior[]);
-    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): string;
+    evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): string;
     assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown;
     connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void;
     accept<T>(visitor: IVisitor<T>): T;

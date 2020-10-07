@@ -36,7 +36,7 @@ let DebounceBindingBehavior = class DebounceBindingBehavior extends BindingInter
     }
     $bind(flags, scope, hostScope) {
         if (this.firstArg !== null) {
-            const delay = Number(this.firstArg.evaluate(flags, scope, hostScope, this.locator));
+            const delay = Number(this.firstArg.evaluate(flags, scope, hostScope, this.locator, null));
             if (!isNaN(delay)) {
                 this.opts.delay = delay;
             }

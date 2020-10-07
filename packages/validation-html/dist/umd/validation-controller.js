@@ -129,7 +129,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                     if (toCachePropertyName) {
                         toCachePropertyName = keyExpr.$kind === 17925 /* PrimitiveLiteral */;
                     }
-                    memberName = `[${keyExpr.evaluate(flags, scope, hostScope, locator).toString()}]`;
+                    memberName = `[${keyExpr.evaluate(flags, scope, hostScope, locator, null).toString()}]`;
                     break;
                 }
                 default:
@@ -148,7 +148,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             object = expression.accessHostScope ? hostScope === null || hostScope === void 0 ? void 0 : hostScope.bindingContext : scope.bindingContext;
         }
         else {
-            object = expression.evaluate(flags, scope, hostScope, locator);
+            object = expression.evaluate(flags, scope, hostScope, locator, null);
         }
         if (object === null || object === void 0) {
             return (void 0);

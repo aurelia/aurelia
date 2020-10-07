@@ -49,7 +49,7 @@ let PropertyBinding = class PropertyBinding {
         this.sourceExpression.assign(flags, this.$scope, this.$hostScope, this.locator, value);
     }
     handleChange(newValue, _previousValue, flags) {
-        var _a, _b;
+        var _a;
         if (!this.isBound) {
             return;
         }
@@ -60,43 +60,41 @@ let PropertyBinding = class PropertyBinding {
         const $scope = this.$scope;
         const locator = this.locator;
         if ((flags & 8 /* updateTargetInstance */) > 0) {
-            // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
-            if (this.sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
-                newValue = this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator);
-            }
             // Alpha: during bind a simple strategy for bind is always flush immediately
             // todo:
             //  (1). determine whether this should be the behavior
             //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
             const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
             const oldValue = targetObserver.getValue();
+            // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
             if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
-                newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator);
+                // todo: in VC expressions, from view also requires connect
+                const shouldConnect = this.mode > oneTime;
+                if (shouldConnect) {
+                    this.version++;
+                }
+                newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, interceptor);
+                if (shouldConnect) {
+                    interceptor.unobserve(false);
+                }
             }
             // todo(fred): maybe let the obsrever decides whether it updates
             if (newValue !== oldValue) {
                 if (shouldQueueFlush) {
                     flags |= 4096 /* noTargetObserverQueue */;
                     (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
-                    (_b = targetObserver.task) === null || _b === void 0 ? void 0 : _b.cancel();
-                    targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+                    this.task = this.$scheduler.queueRenderTask(() => {
                         var _a, _b;
                         (_b = (_a = targetObserver).flushChanges) === null || _b === void 0 ? void 0 : _b.call(_a, flags);
-                        this.task = targetObserver.task = null;
+                        this.task = null;
                     }, updateTaskOpts);
                 }
                 interceptor.updateTarget(newValue, flags);
             }
-            // todo: merge this with evaluate above
-            if ((this.mode & oneTime) === 0) {
-                this.version++;
-                sourceExpression.connect(flags, $scope, this.$hostScope, this.interceptor);
-                interceptor.unobserve(false);
-            }
             return;
         }
         if ((flags & 16 /* updateSourceExpression */) > 0) {
-            if (newValue !== sourceExpression.evaluate(flags, $scope, this.$hostScope, locator)) {
+            if (newValue !== sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, null)) {
                 interceptor.updateSource(newValue, flags);
             }
             return;
@@ -141,15 +139,13 @@ let PropertyBinding = class PropertyBinding {
         // during bind, binding behavior might have changed sourceExpression
         sourceExpression = this.sourceExpression;
         const interceptor = this.interceptor;
+        const shouldConnect = ($mode & toView) > 0;
         if ($mode & toViewOrOneTime) {
-            interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator), flags);
-        }
-        if ($mode & toView) {
-            sourceExpression.connect(flags, scope, this.$hostScope, interceptor);
+            interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null), flags);
         }
         if ($mode & fromView) {
             targetObserver.subscribe(interceptor);
-            if (($mode & toView) === 0) {
+            if (!shouldConnect) {
                 interceptor.updateSource(targetObserver.getValue(), flags);
             }
             targetObserver[this.id] |= 16 /* updateSourceExpression */;

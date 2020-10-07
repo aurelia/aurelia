@@ -41,7 +41,7 @@
                 return;
             }
             let sourceExpression = this.sourceExpression;
-            if (sourceExpression.evaluate(flags, this.$scope, this.$hostScope, this.locator) === this.target) {
+            if (sourceExpression.evaluate(flags, this.$scope, this.$hostScope, this.locator, null) === this.target) {
                 sourceExpression.assign(flags, this.$scope, this.$hostScope, this.locator, null);
             }
             // source expression might have been modified durring assign, via a BB

@@ -63,7 +63,6 @@ export {
   Constructable,
   ConstructableClass,
   // Diff,
-  ICallable,
   IDisposable,
   // IFrameRequestCallback,
   IIndexable,

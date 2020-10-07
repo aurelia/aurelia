@@ -58,17 +58,17 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
         let handleChangeCallCount = 0;
         binding.handleChange = (handleChange => {
-          return function() {
+          return function (...args: unknown[]) {
             handleChangeCallCount++;
-            return handleChange.apply(this, arguments);
-          }
+            return handleChange.apply(this, args);
+          };
         })(binding.handleChange);
         binding.$bind(LifecycleFlags.none, scope, null);
 
         assert.strictEqual(target.value, 'no');
 
         Array.from({ length: 5 }).forEach(idx => {
-          let $count = handleChangeCallCount;
+          const $count = handleChangeCallCount;
           source.checked = !source.checked;
           assert.strictEqual(target.value, source.checked ? 'yes' : 'no');
           assert.strictEqual(handleChangeCallCount, $count + 1);
@@ -146,10 +146,10 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
         let handleChangeCallCount = 0;
         binding.handleChange = (handleChange => {
-          return function() {
+          return function (...args: unknown[]) {
             handleChangeCallCount++;
-            return handleChange.apply(this, arguments);
-          }
+            return handleChange.apply(this, args);
+          };
         })(binding.handleChange);
         binding.$bind(LifecycleFlags.none, scope, null);
 
@@ -157,7 +157,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         assert.strictEqual(handleChangeCallCount, 0);
 
         Array.from({ length: 5 }).forEach((_, idx) => {
-          let $count = handleChangeCallCount;
+          const $count = handleChangeCallCount;
           oc.checked = !oc.checked;
           assert.strictEqual(source.value, oc.checked ? 'yes' : 'no');
           assert.strictEqual(handleChangeCallCount, $count + 1);

@@ -56,29 +56,44 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         const scope = createScopeForTest(target, source);
         const binding = new PropertyBinding(conditionalExpr, target, 'value', BindingMode.toView, observerLocator, container);
 
+        let handleChangeCallCount = 0;
+        binding.handleChange = (handleChange => {
+          return function() {
+            handleChangeCallCount++;
+            return handleChange.apply(this, arguments);
+          }
+        })(binding.handleChange);
         binding.$bind(LifecycleFlags.none, scope, null);
 
         assert.strictEqual(target.value, 'no');
 
         Array.from({ length: 5 }).forEach(idx => {
+          let $count = handleChangeCallCount;
           source.checked = !source.checked;
           assert.strictEqual(target.value, source.checked ? 'yes' : 'no');
+          assert.strictEqual(handleChangeCallCount, $count + 1);
           if (source.checked) {
             source.yesMessage = `yes ${idx}`;
             assert.strictEqual(target.value, `yes ${idx}`);
+            assert.strictEqual(handleChangeCallCount, $count + 2);
             // assert the binding has dropped the old observers of the inactive branch in conditional
             source.noMessage = `no ${idx}`;
             assert.strictEqual(target.value, `yes ${idx}`);
+            assert.strictEqual(handleChangeCallCount, $count + 2);
             // revert it back for next assertion
             source.noMessage = 'no';
+            assert.strictEqual(handleChangeCallCount, $count + 2);
           } else {
             source.noMessage = `no ${idx}`;
             assert.strictEqual(target.value, `no ${idx}`);
+            assert.strictEqual(handleChangeCallCount, $count + 2);
             // assert the binding has dropped the old observers of the inactive branch in conditional
             source.yesMessage = `yes ${idx}`;
             assert.strictEqual(target.value, `no ${idx}`);
+            assert.strictEqual(handleChangeCallCount, $count + 2);
             // revert it back to normal for next assertion
             source.yesMessage = 'yes';
+            assert.strictEqual(handleChangeCallCount, $count + 2);
           }
         });
 
@@ -129,30 +144,45 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         const scope = createScopeForTest(source, oc);
         const binding = new LetBinding(conditionalExpr, 'value', observerLocator, container, true);
 
+        let handleChangeCallCount = 0;
+        binding.handleChange = (handleChange => {
+          return function() {
+            handleChangeCallCount++;
+            return handleChange.apply(this, arguments);
+          }
+        })(binding.handleChange);
         binding.$bind(LifecycleFlags.none, scope, null);
 
         assert.strictEqual(source.value, 'no');
+        assert.strictEqual(handleChangeCallCount, 0);
 
-        Array.from({ length: 5 }).forEach(idx => {
+        Array.from({ length: 5 }).forEach((_, idx) => {
+          let $count = handleChangeCallCount;
           oc.checked = !oc.checked;
           assert.strictEqual(source.value, oc.checked ? 'yes' : 'no');
+          assert.strictEqual(handleChangeCallCount, $count + 1);
           if (oc.checked) {
             oc.yesMessage = `yes ${idx}`;
             assert.strictEqual(source.value, `yes ${idx}`);
+            assert.strictEqual(handleChangeCallCount, $count + 2);
             // assert the binding has dropped the old observers of the inactive branch in conditional
             oc.noMessage = `no ${idx}`;
             assert.strictEqual(source.value, `yes ${idx}`);
+            assert.strictEqual(handleChangeCallCount, $count + 2);
             // revert it back for next assertion
             oc.noMessage = 'no';
+            assert.strictEqual(handleChangeCallCount, $count + 2);
           } else {
             oc.noMessage = `no ${idx}`;
             assert.strictEqual(source.value, `no ${idx}`);
+            assert.strictEqual(handleChangeCallCount, $count + 2);
             // assert the binding has dropped the old observers of the inactive branch in conditional
             oc.yesMessage = `no ${idx}`;
             assert.strictEqual(source.value, `no ${idx}`);
+            assert.strictEqual(handleChangeCallCount, $count + 2);
             // revert it back for next assertion
             oc.yesMessage = 'yes';
-
+            assert.strictEqual(handleChangeCallCount, $count + 2);
           }
         });
 

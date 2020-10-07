@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { INode } from '@aurelia/runtime';
+import { INode, IDOM } from '@aurelia/runtime';
 import { ISVGAnalyzer } from '@aurelia/runtime-html';
 
 const svgElements: Record<string, string[]> = {
@@ -202,29 +202,33 @@ const svgPresentationAttributes: Record<string, boolean> = {
 };
 
 // SVG elements/attributes are case-sensitive.  Not all browsers use the same casing for all attributes.
-function createElement(html: string): Element {
+function createElement(html: string, dom: IDOM<HTMLElement>): Element {
   // Using very HTML-specific code here since you won't install this module
   // unless you are actually running in a browser, using HTML,
   // and dealing with browser inconsistencies.
-  const div = document.createElement('div');
+  const div = dom.createElement('div');
   div.innerHTML = html;
   return div.firstElementChild as Element;
 }
 
-if ((createElement('<svg><altGlyph /></svg>').firstElementChild as Element).nodeName === 'altglyph' && svgElements.altGlyph !== undefined) {
-  // handle chrome casing inconsistencies.
-  (svgElements as {altglyph?: string[]}).altglyph = svgElements.altGlyph;
-  Reflect.deleteProperty(svgElements, 'altGlyph');
-  (svgElements as {altglyphdef?: string[]}).altglyphdef = svgElements.altGlyphDef;
-  Reflect.deleteProperty(svgElements, 'altGlyphDef');
-  (svgElements as {altglyphitem?: string[]}).altglyphitem = svgElements.altGlyphItem;
-  Reflect.deleteProperty(svgElements, 'altGlyphItem');
-  (svgElements as {glyphref?: string[]}).glyphref = svgElements.glyphRef;
-  Reflect.deleteProperty(svgElements, 'glyphRef');
-}
-
 export function register(container: IContainer): void {
   container.registerTransformer(ISVGAnalyzer, analyzer => {
+    const dom = container.get(IDOM);
+
+    if ((createElement('<svg><altGlyph /></svg>', dom as IDOM<HTMLElement>).firstElementChild!).nodeName === 'altglyph'
+      && svgElements.altGlyph !== undefined
+    ) {
+      // handle chrome casing inconsistencies.
+      (svgElements as {altglyph?: string[]}).altglyph = svgElements.altGlyph;
+      Reflect.deleteProperty(svgElements, 'altGlyph');
+      (svgElements as {altglyphdef?: string[]}).altglyphdef = svgElements.altGlyphDef;
+      Reflect.deleteProperty(svgElements, 'altGlyphDef');
+      (svgElements as {altglyphitem?: string[]}).altglyphitem = svgElements.altGlyphItem;
+      Reflect.deleteProperty(svgElements, 'altGlyphItem');
+      (svgElements as {glyphref?: string[]}).glyphref = svgElements.glyphRef;
+      Reflect.deleteProperty(svgElements, 'glyphRef');
+    }
+
     return {
       ...analyzer,
       isStandardSvgAttribute(node: INode, attributeName: string): boolean {

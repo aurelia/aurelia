@@ -1,4 +1,4 @@
-import { IIndexable, Registration, Tracer } from '@aurelia/kernel';
+import { IIndexable, Registration } from '@aurelia/kernel';
 import {
   DirtyCheckProperty,
   IDirtyChecker,
@@ -13,8 +13,6 @@ import {
   IScheduler
 } from '@aurelia/runtime';
 import {
-  disableTracing,
-  enableTracing,
   eachCartesianJoin,
   assert,
 } from '@aurelia/testing';
@@ -170,9 +168,6 @@ describe.skip('ComputedObserver', function () {
         }
       }
       // TODO: use tracer to deeply verify calls
-      if (propInitialValue) {
-        enableTracing();
-      }
       const sut = createComputedObserver(LF.none, locator, dirtyChecker, lifecycle, instance, 'prop', propDescriptor);
       sut.subscribe(subscriber1);
       sut.subscribe(subscriber2);
@@ -257,7 +252,6 @@ describe.skip('ComputedObserver', function () {
       } else {
         throw new Error('some variations are leaking through without assertions');
       }
-      disableTracing();
     });
 
   });
@@ -363,8 +357,6 @@ describe.skip('ComputedObserver', function () {
           ++callCount1;
         }
       };
-      enableTracing();
-      Tracer.enableLiveLogging();
 
       const sut = createComputedObserver(LF.none, locator, dirtyChecker, lifecycle, parent, 'getter', pd);
       sut.subscribe(subscriber1);
@@ -402,7 +394,6 @@ describe.skip('ComputedObserver', function () {
         foo.obj1['prop'] = 5;
         verifyCalled(1, ++i);
       }
-      disableTracing();
 
       for (const foo of [child1, child2, parent]) {
         foo.array2.push(i);

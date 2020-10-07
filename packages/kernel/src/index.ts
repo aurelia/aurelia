@@ -71,11 +71,7 @@ export {
 } from './logger';
 export { PLATFORM } from './platform';
 export {
-  ITraceInfo,
-  ITraceWriter,
-  ILiveLoggingOptions,
   Reporter,
-  Tracer,
   LogLevel,
 } from './reporter';
 export {

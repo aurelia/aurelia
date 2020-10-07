@@ -5,7 +5,6 @@ export {
 
 export {
   DebugConfiguration,
-  TraceConfiguration,
 
   // DebugTracer,
   // stringifyLifecycleFlags,
@@ -122,7 +121,6 @@ export {
   // ITraceWriter,
   // ILiveLoggingOptions,
   Reporter,
-  Tracer,
   LogLevel,
 
   Profiler,

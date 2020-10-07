@@ -53,7 +53,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
   public $scope?: IScope = void 0;
   public $hostScope: IScope | null = null;
 
-  public targetObserver?: AccessorOrObserver = void 0;;
+  public targetObserver?: AccessorOrObserver = void 0;
 
   public persistentFlags: LifecycleFlags = LifecycleFlags.none;
 

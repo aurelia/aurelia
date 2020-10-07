@@ -221,12 +221,11 @@ export class ValueConverterExpression {
       // so it by default satisfies ISubscriber constrain
       if (connectable != null && ('handleChange' in (connectable  as unknown as ISubscriber))) {
         const signals = converter.signals;
-        if (signals === void 0) {
-          return;
-        }
-        const signaler = locator.get(ISignaler);
-        for (let i = 0, ii = signals.length; i < ii; ++i) {
-          signaler.addSignalListener(signals[i], connectable as unknown as ISubscriber);
+        if (signals != null) {
+          const signaler = locator.get(ISignaler);
+          for (let i = 0, ii = signals.length; i < ii; ++i) {
+            signaler.addSignalListener(signals[i], connectable as unknown as ISubscriber);
+          }
         }
       }
       return (converter.toView.call as (...args: unknown[]) => void)(converter, ...result);

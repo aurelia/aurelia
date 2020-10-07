@@ -435,7 +435,6 @@ function createResolver(getter: (key: any, handler: IContainer, requestor: ICont
   };
 }
 
-
 export const inject = DI.inject;
 
 function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>):

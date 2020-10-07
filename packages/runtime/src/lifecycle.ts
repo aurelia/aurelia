@@ -9,6 +9,7 @@ import {
 } from '@aurelia/kernel';
 import {
   HooksDefinition,
+  IHydrateTemplateController,
 } from './definitions';
 import {
   INode,
@@ -576,6 +577,14 @@ export interface ICustomElementViewModel<T extends INode = INode> extends IViewM
 
 export interface ICustomAttributeViewModel<T extends INode = INode> extends IViewModel<T>, IActivationHooks<IHydratedParentController<T>, T> {
   readonly $controller?: ICustomAttributeController<T, this>;
+  link?(
+    flags: LifecycleFlags,
+    parentContext: ICompiledRenderContext,
+    controller: IRenderableController,
+    childController: ICustomAttributeController,
+    target: INode,
+    instruction: IHydrateTemplateController,
+  ): void;
 }
 
 export interface IHydratedCustomElementViewModel<T extends INode = INode> extends ICustomElementViewModel<T> {

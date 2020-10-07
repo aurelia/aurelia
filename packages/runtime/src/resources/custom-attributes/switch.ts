@@ -5,7 +5,7 @@ import {
   Writable,
 } from '@aurelia/kernel';
 import {
-  TemplateControllerLinkType,
+  IHydrateTemplateController,
 } from '../../definitions';
 import {
   INode,
@@ -20,6 +20,7 @@ import {
   ICustomAttributeViewModel,
   IHydratedController,
   IHydratedParentController,
+  IRenderableController,
   ISyntheticView,
   IViewFactory,
   MountStrategy,
@@ -37,6 +38,12 @@ import {
 import {
   templateController,
 } from '../custom-attribute';
+import {
+  Controller,
+} from '../../templating/controller';
+import {
+  ICompiledRenderContext,
+} from '../../templating/render-context';
 
 @templateController('switch')
 export class Switch<T extends INode = Node> implements ICustomAttributeViewModel<T> {
@@ -243,7 +250,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
   }
 }
 
-@templateController({ name: 'case', linkType: TemplateControllerLinkType.parent })
+@templateController('case')
 export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T> {
   public readonly id: number = nextId('au$component');
   public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
@@ -260,15 +267,22 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
     @IObserverLocator private readonly locator: IObserverLocator,
     @IRenderLocation location: IRenderLocation<T>,
   ) {
-    const view = this.view = this.factory.create();
-    view.setLocation(location, MountStrategy.insertBefore);
+    (this.view = this.factory.create()).setLocation(location, MountStrategy.insertBefore);
   }
 
-  public link(controller: IHydratedParentController<T>,) {
-    const $switch = controller?.viewModel;
+  public link(
+    flags: LifecycleFlags,
+    parentContext: ICompiledRenderContext,
+    controller: IRenderableController,
+    _childController: ICustomAttributeController,
+    _target: INode,
+    _instruction: IHydrateTemplateController,
+  ): void {
+    const switchController: IHydratedParentController<T> = (controller as Controller<T>).parent! as IHydratedParentController<T>;
+    const $switch = switchController?.viewModel;
     if ($switch instanceof Switch) {
       this.$switch = $switch;
-      this.$controller.parent = controller;
+      this.$controller.parent = switchController;
       this.linkToSwitch($switch);
     } else {
       throw new Error('The parent switch not found; only `*[switch] > *[case|default-case]` relation is supported.');
@@ -313,7 +327,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   }
 }
 
-@templateController({ name: 'default-case', linkType: TemplateControllerLinkType.parent })
+@templateController('default-case')
 export class DefaultCase<T extends INode = Node> extends Case<T>{
 
   protected linkToSwitch($switch: Switch<T>) {

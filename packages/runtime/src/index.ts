@@ -417,7 +417,6 @@ export {
   TargetedInstructionType,
   alias,
   registerAliases,
-  TemplateControllerLinkType,
 } from './definitions';
 export {
   DOM,

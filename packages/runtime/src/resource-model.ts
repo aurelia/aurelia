@@ -9,7 +9,6 @@ import {
 } from '@aurelia/kernel';
 import { AttrSyntax } from './attribute-parser';
 import { BindingCommand, BindingCommandInstance } from './binding-command';
-import { TemplateControllerLinkType } from './definitions';
 import { BindingMode } from './flags';
 import { CustomAttribute, CustomAttributeDefinition } from './resources/custom-attribute';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element';
@@ -115,11 +114,10 @@ export class AttrInfo {
     public name: string,
     public isTemplateController: boolean,
     public noMultiBindings: boolean,
-    public linkType: TemplateControllerLinkType,
   ) {}
 
   public static from(def: CustomAttributeDefinition): AttrInfo {
-    const info = new AttrInfo(def.name, def.isTemplateController, def.noMultiBindings, def.linkType);
+    const info = new AttrInfo(def.name, def.isTemplateController, def.noMultiBindings);
     const bindables = def.bindables;
     const defaultBindingMode = def.defaultBindingMode !== void 0 && def.defaultBindingMode !== BindingMode.default
       ? def.defaultBindingMode

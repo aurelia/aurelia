@@ -48,7 +48,6 @@ import {
   IScheduler,
   CustomElement,
   ICustomElementController,
-  TemplateControllerLinkType,
   parseExpression,
 } from '@aurelia/runtime';
 import { TestContext } from './html-test-context';
@@ -735,18 +734,16 @@ export const AuDOMTest = {
       def,
       'if',
       [new ToViewBindingInstruction(parseExpression(expression), 'value')],
-      TemplateControllerLinkType.none,
     );
   },
   createElseInstruction(def: PartialCustomElementDefinition): HydrateTemplateController {
-    return new HydrateTemplateController(def, 'else', [], TemplateControllerLinkType.sibling);
+    return new HydrateTemplateController(def, 'else', []);
   },
   createRepeatInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController {
     return new HydrateTemplateController(
       def,
       'repeat',
       [new IteratorBindingInstruction(parseExpression(expression, BindingType.ForCommand), 'items')],
-      TemplateControllerLinkType.none,
     );
   },
   createWithInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController {
@@ -754,7 +751,6 @@ export const AuDOMTest = {
       def,
       'with',
       [new ToViewBindingInstruction(parseExpression(expression), 'value')],
-      TemplateControllerLinkType.none,
     );
   },
   createElementInstruction(name: string, bindings: [string, string][]): HydrateElementInstruction {

@@ -17,7 +17,6 @@ import {
   ISetPropertyInstruction,
   ITargetedInstruction,
   TargetedInstructionType,
-  TemplateControllerLinkType,
 } from './definitions';
 import { BindingMode } from './flags';
 import { PartialCustomElementDefinition } from './resources/custom-element';
@@ -144,7 +143,6 @@ export class HydrateTemplateController implements IHydrateTemplateController {
     public def: PartialCustomElementDefinition,
     public res: string,
     public instructions: ITargetedInstruction[],
-    public linkType: TemplateControllerLinkType,
   ) {}
 }
 

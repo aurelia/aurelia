@@ -31,7 +31,6 @@ import {
   ISetPropertyInstruction,
   ITargetedInstruction,
   TargetedInstructionType,
-  TemplateControllerLinkType,
 } from './definitions';
 import { INode } from './dom';
 import { BindingMode, LifecycleFlags } from './flags';
@@ -399,18 +398,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
 
     Metadata.define(key, childController, renderLocation);
 
-    switch (instruction.linkType) {
-      case TemplateControllerLinkType.sibling: {
-        const children = controller.children!;
-        (component as { link(componentTail: IController): void }).link(children[children.length - 1]);
-        break;
-      }
-      case TemplateControllerLinkType.parent: {
-        const switchController = (controller as Controller).parent!;
-        (component as { link(controller: IController): void }).link(switchController);
-        break;
-      }
-    }
+    component.link?.(flags, parentContext, controller, childController, target, instruction);
 
     parentContext.renderInstructions(
       /* flags        */flags,

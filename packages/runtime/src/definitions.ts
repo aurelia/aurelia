@@ -44,12 +44,6 @@ export const enum TargetedInstructionType {
   iteratorBinding = 'rk',
 }
 
-export const enum TemplateControllerLinkType {
-  none,
-  sibling,
-  parent,
-}
-
 export type InstructionTypeName = string;
 
 export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>('ITargetedInstruction').noDefault();
@@ -142,7 +136,6 @@ export interface IHydrateTemplateController extends IHydrateInstruction {
   res: string;
   instructions: ITargetedInstruction[];
   def: PartialCustomElementDefinition;
-  linkType: TemplateControllerLinkType;
 }
 
 export interface IHydrateLetElementInstruction extends IHydrateInstruction {

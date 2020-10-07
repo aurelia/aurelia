@@ -389,6 +389,7 @@ export {
   IRendererRegistration,
   IStartTaskManagerRegistration,
   IViewLocatorRegistration,
+  IProjectionProviderRegistration,
   RuntimeConfiguration
 } from './configuration';
 export {

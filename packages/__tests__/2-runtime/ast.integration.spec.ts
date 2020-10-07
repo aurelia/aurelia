@@ -32,8 +32,8 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         assert.strictEqual(target.name, 'hello');
 
         Array.from({ length: 5 }).forEach(idx => {
-          source.name = idx + '';
-          assert.strictEqual(target.name, idx + '');
+          source.name = `${idx}`;
+          assert.strictEqual(target.name, `${idx}`);
         });
 
         binding.dispose();
@@ -105,8 +105,8 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         assert.strictEqual(source.value, 'hello');
 
         Array.from({ length: 5 }).forEach(idx => {
-          oc.name = idx + '';
-          assert.strictEqual(source.value, idx + '');
+          oc.name = `${idx}`;
+          assert.strictEqual(source.value, `${idx}`);
         });
 
         binding.dispose();

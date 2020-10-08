@@ -15,6 +15,11 @@ import {
   IScope,
   AccessorType,
   INodeAccessor,
+  IObservedArray,
+  ICollectionSubscriber,
+  IndexMap,
+  ICollectionObserver,
+  CollectionKind,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { Interpolation, IsExpression } from './ast';
@@ -67,9 +72,15 @@ export class InterpolationBinding implements IBinding {
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     const partBindings = this.partBindings;
     const staticParts = this.interpolation.parts;
-    let result: string = staticParts[0];
-    for (let i = 0, ii = partBindings.length; ii > i; ++i) {
-      result += partBindings[i].value + staticParts[i + 1];
+    let ii = partBindings.length;
+    let result = '';
+    if (ii === 1) {
+      result = staticParts[0] + partBindings[0].value + staticParts[1];
+    } else {
+      result = staticParts[0];
+      for (let i = 0; ii > i; ++i) {
+        result += partBindings[i].value + staticParts[i + 1];
+      }
     }
 
     const targetObserver = this.targetObserver;
@@ -145,7 +156,7 @@ export class InterpolationBinding implements IBinding {
 export interface ContentBinding extends IConnectableBinding {}
 
 @connectable()
-export class ContentBinding implements ContentBinding {
+export class ContentBinding implements ContentBinding, ICollectionSubscriber {
   public interceptor: this = this;
 
   // at runtime, mode may be overriden by binding behavior
@@ -155,6 +166,8 @@ export class ContentBinding implements ContentBinding {
   public isBound: boolean = false;
   public $scope?: IScope = void 0;
   public $hostScope: IScope | null = null;
+
+  private arrayObserver?: ICollectionObserver<CollectionKind.array> = void 0;
 
   public constructor(
     public readonly sourceExpression: IsExpression,
@@ -191,8 +204,16 @@ export class ContentBinding implements ContentBinding {
     }
     if (newValue != this.value) {
       this.value = newValue;
+      this.unobserveArray();
+      if (newValue instanceof Array) {
+        this.observeArray(flags, newValue);
+      }
       this.owner.updateTarget(newValue, flags);
     }
+  }
+
+  public handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void {
+    this.owner.updateTarget(void 0, flags);
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
@@ -211,13 +232,16 @@ export class ContentBinding implements ContentBinding {
       this.sourceExpression.bind(flags, scope, hostScope, this.interceptor as IIndexable & this);
     }
 
-    this.value = this.sourceExpression.evaluate(
+    const v = this.value = this.sourceExpression.evaluate(
       flags,
       scope,
       hostScope,
       this.locator,
       (this.mode & toView) > 0 ?  this.interceptor : null,
     );
+    if (v instanceof Array) {
+      this.observeArray(flags, v);
+    }
   }
 
   public $unbind(flags: LifecycleFlags): void {
@@ -233,5 +257,16 @@ export class ContentBinding implements ContentBinding {
     this.$scope = void 0;
     this.$hostScope = null;
     this.interceptor.unobserve(true);
+    this.unobserveArray();
+  }
+
+  private observeArray(flags: LifecycleFlags, arr: IObservedArray): void {
+    const newObserver = this.arrayObserver = this.observerLocator.getArrayObserver(flags, arr);
+    newObserver.addCollectionSubscriber(this.interceptor);
+  }
+
+  private unobserveArray(): void {
+    this.arrayObserver?.removeCollectionSubscriber(this.interceptor);
+    this.arrayObserver = void 0;
   }
 }

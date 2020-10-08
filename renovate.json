@@ -37,7 +37,8 @@
     "ts-jest",
     "babel-jest",
     "karma-coverage-istanbul-reporter",
-    "jsdom"
+    "jsdom",
+    "@wdio/browserstack-service"
   ],
   "packageRules": [
     {

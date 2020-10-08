@@ -70,7 +70,7 @@ export class MultiInterpolationBinding implements IBinding {
     const results: unknown[] = [];
     let len = 0;
     for (let i = 0, ii = staticParts.length; i < ii; i++) {
-      results[len++] = i % 2 === 0 ? staticParts[i] : partBindings[i].value;
+      results[len++] = i % 3 === 1 ? partBindings[i].value : staticParts[i];
     }
 
     const targetObserver = this.targetObserver;
@@ -112,9 +112,9 @@ export class MultiInterpolationBinding implements IBinding {
     this.isBound = false;
     this.$scope = void 0;
     const task = this.task;
-    const parts = this.partBindings;
-    for (let i = 0, ii = parts.length; i < ii; ++i) {
-      parts[i].interceptor.$unbind(flags);
+    const partBindings = this.partBindings;
+    for (let i = 0, ii = partBindings.length; i < ii; ++i) {
+      partBindings[i].interceptor.$unbind(flags);
     }
     if (task != null) {
       task.cancel();
@@ -123,10 +123,11 @@ export class MultiInterpolationBinding implements IBinding {
   }
 
   public dispose(): void {
-    this.interceptor = (void 0)!;
-    this.interpolation = (void 0)!;
-    this.locator = (void 0)!;
-    this.target = (void 0)!;
+    this.interceptor
+      = this.interpolation
+      = this.locator
+      = this.target
+      = (void 0)!;
   }
 }
 

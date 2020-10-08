@@ -67,14 +67,11 @@ export class MultiInterpolationBinding implements IBinding {
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     const partBindings = this.partBindings;
     const staticParts = this.interpolation.parts;
-    const results: unknown[] = [];
+    const results: unknown[] = [staticParts[0]];
     let len = 0;
-    for (let i = 0, ii = staticParts.length, exprI = 0, exprIi = partBindings.length; ii > i; ++i) {
-      results[len++] = staticParts[i];
-      if (exprIi > exprI) {
-        results[len++] = partBindings[exprI].value;
-        ++exprI;
-      }
+    for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+      results[len++] = partBindings[i].value;
+      results[len++] = staticParts[i + 1];
     }
 
     const targetObserver = this.targetObserver;

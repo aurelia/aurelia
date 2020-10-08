@@ -134,5 +134,5 @@
     "test": "grunt test"
   },
   "style": "dist/css/bootstrap.css",
-  "version": "0.7.0"
+  "version": "3.3.6"
 }

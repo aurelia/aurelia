@@ -12,7 +12,7 @@ import {
 } from '@aurelia/kernel';
 import { CallBinding } from './binding/call-binding';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
-import { InterpolationBinding, MultiInterpolationBinding } from './binding/interpolation-binding';
+import { InterpolationBinding, MultiInterpolationBinding, ContentBinding } from './binding/interpolation-binding';
 import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
@@ -52,9 +52,10 @@ import {
 import { Controller } from './templating/controller';
 import { ObserversLookup } from './observation';
 import { ICompiledRenderContext, getRenderContext } from './templating/render-context';
-import { AnyBindingExpression, BindingBehaviorExpression, IsBindingBehavior } from './binding/ast';
+import { AnyBindingExpression, BindingBehaviorExpression, IsBindingBehavior, Interpolation } from './binding/ast';
 import { BindingBehaviorFactory, BindingBehaviorInstance, IInterceptableBinding } from './resources/binding-behavior';
 import { RegisteredProjections } from './resources/custom-elements/au-slot';
+import { IScheduler } from '@aurelia/scheduler';
 
 export interface ITemplateCompiler {
   compile(partialDefinition: PartialCustomElementDefinition, context: IContainer, targetedProjections: RegisteredProjections | null): CustomElementDefinition;
@@ -506,6 +507,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IScheduler private readonly scheduler: IScheduler,
   ) {}
 
   public render(
@@ -515,20 +517,25 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
     target: IController,
     instruction: IInterpolationInstruction,
   ): void {
-    let binding: MultiInterpolationBinding | InterpolationBinding;
-    const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
-    if (expr.isMulti) {
-      binding = applyBindingBehavior(
-        new MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context),
-        expr as unknown as IsBindingBehavior,
-        context,
-      ) as MultiInterpolationBinding;
-    } else {
-      binding = applyBindingBehavior(
-        new InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, true),
-        expr as unknown as IsBindingBehavior,
-        context,
-      ) as InterpolationBinding;
+    const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation) as Interpolation;
+    const binding = new MultiInterpolationBinding(
+      this.observerLocator,
+      expr,
+      getTarget(target),
+      instruction.to,
+      BindingMode.toView,
+      context,
+      this.scheduler,
+    );
+    const partBindings = binding.partBindings;
+    let partBinding: ContentBinding;
+    for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+      partBinding = partBindings[i];
+      partBindings[i] = applyBindingBehavior(
+        partBinding,
+        partBinding.sourceExpression as unknown as IsBindingBehavior,
+        context
+      ) as ContentBinding;
     }
     controller.addBinding(binding);
   }

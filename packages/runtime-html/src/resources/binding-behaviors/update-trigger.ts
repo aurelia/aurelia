@@ -1,4 +1,4 @@
-import { Reporter, Writable } from '@aurelia/kernel';
+import { Writable } from '@aurelia/kernel';
 import { BindingMode, IDOM, IObserverLocator, IScope, LifecycleFlags, PropertyBinding, bindingBehavior } from '@aurelia/runtime';
 import { CheckedObserver } from '../../observation/checked-observer';
 import { EventSubscriber, IEventSubscriber } from '../../observation/event-manager';
@@ -27,11 +27,11 @@ export class UpdateTriggerBindingBehavior {
 
   public bind(flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, binding: UpdateTriggerableBinding, ...events: string[]): void {
     if (events.length === 0) {
-      throw Reporter.error(9);
+      throw new Error('The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:\'blur\'">');
     }
 
     if (binding.mode !== BindingMode.twoWay && binding.mode !== BindingMode.fromView) {
-      throw Reporter.error(10);
+      throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
     }
 
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
@@ -39,7 +39,7 @@ export class UpdateTriggerBindingBehavior {
     // ensure the binding's target observer has been set.
     const targetObserver = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty) as UpdateTriggerableObserver;
     if (!targetObserver.handler) {
-      throw Reporter.error(10);
+      throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
     }
 
     binding.targetObserver = targetObserver;

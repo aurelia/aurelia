@@ -1,4 +1,5 @@
-import { IIndexable, Reporter, StrictPrimitive } from '@aurelia/kernel';
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+import { IIndexable, StrictPrimitive } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IBinding, ILifecycle } from '../lifecycle';
 import {
@@ -11,12 +12,6 @@ import {
 } from '../observation';
 import { ProxyObserver } from './proxy-observer';
 import { SetterObserver } from './setter-observer';
-
-const enum RuntimeError {
-  NilScope = 250,
-  NilOverrideContext = 252,
-  NilParentScope = 253
-}
 
 const marker = Object.freeze({});
 
@@ -93,7 +88,7 @@ export class BindingContext implements IBindingContext {
 
   public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: IScope | null): IBindingContext | IOverrideContext | IBinding | undefined | null {
     if (scope == null && hostScope == null) {
-      throw Reporter.error(RuntimeError.NilScope);
+      throw new Error(`Scope is ${scope} and HostScope is ${hostScope}.`);
     }
 
     /* eslint-disable jsdoc/check-indentation */
@@ -218,14 +213,14 @@ export class Scope implements IScope {
 
   public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {
     if (oc == null) {
-      throw Reporter.error(RuntimeError.NilOverrideContext);
+      throw new Error(`OverrideContext is ${oc}`);
     }
     return new Scope(null, oc.bindingContext, oc);
   }
 
   public static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: object): Scope {
     if (ps == null) {
-      throw Reporter.error(RuntimeError.NilParentScope);
+      throw new Error(`ParentScope is ${ps}`);
     }
     return new Scope(ps, bc as IBindingContext, OverrideContext.create(flags, bc));
   }

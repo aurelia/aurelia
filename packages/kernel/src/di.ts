@@ -3,9 +3,8 @@ import { Metadata, isObject, applyMetadataPolyfill } from '@aurelia/metadata';
 applyMetadataPolyfill(Reflect);
 
 import { isArrayIndex, isNativeFunction } from './functions';
-import { Class, Constructable, IDisposable, Writable } from './interfaces';
+import { Class, Constructable, IDisposable } from './interfaces';
 import { PLATFORM } from './platform';
-import { Reporter } from './reporter';
 import { Protocol } from './resource';
 
 const { emptyArray } = PLATFORM;
@@ -311,7 +310,7 @@ export const DI = {
 
     Interface.withDefault = function (configure: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> {
       Interface.withDefault = function (): InterfaceSymbol<K> {
-        throw Reporter.error(17, Interface);
+        throw new Error(`You can only define one default implementation for an interface.`);
       };
 
       Interface.register = function (container: IContainer, key?: Key): IResolver<K> {
@@ -686,7 +685,7 @@ export class Resolver implements IDisposableResolver, IRegistration {
       case ResolverStrategy.alias:
         return handler.get(this.state);
       default:
-        throw Reporter.error(6, this.strategy);
+        throw new Error(`Invalid resolver strategy specified: ${this.strategy}.`);
     }
   }
 
@@ -774,7 +773,7 @@ const createFactory = (function () {
       lookup = staticDependencies[i];
 
       if (lookup == null) {
-        throw Reporter.error(7, `Index ${i}.`);
+        throw new Error(`Constructor Parameter with index (${i}) cannot be null or undefined. Are you trying to inject/register something that doesn't exist with DI?`);
       } else {
         args[i] = container.get(lookup);
       }
@@ -844,7 +843,7 @@ const createFactory = (function () {
 
   return function <T extends Constructable> (Type: T): Factory<T> {
     if (isNativeFunction(Type)) {
-      Reporter.write(5, Type.name);
+      throw new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
     }
     const dependencies = DI.getDependencies(Type);
     const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
@@ -1238,7 +1237,7 @@ export class Container implements IContainer {
         if (newResolver != void 0) {
           return newResolver;
         }
-        throw Reporter.error(40); // did not return a valid resolver from the static register method
+        throw new Error(`Invalid resolver returned from the static register method`);
       }
       return registrationResolver as IResolver;
     } else if (Protocol.resource.has(keyAsValue)) {
@@ -1256,7 +1255,7 @@ export class Container implements IContainer {
       if (newResolver != void 0) {
         return newResolver;
       }
-      throw Reporter.error(40); // did not return a valid resolver from the static register method
+      throw new Error(`Invalid resolver returned from the static register method`);
     } else if (keyAsValue.$isInterface) {
       throw new Error(`Attempted to jitRegister an interface: ${keyAsValue.friendlyName}`);
     } else {
@@ -1418,8 +1417,8 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
   public get $isResolver(): true {return true;}
 
   public resolve(): Resolved<K> | null {
-    if (this.instance === undefined) { // unmet precondition: call prepare
-      throw Reporter.error(50); // TODO: organize error codes
+    if (this.instance == null) {
+      throw new Error(`Cannot call resolve before calling prepare or after calling dispose.`);
     }
     return this.instance;
   }
@@ -1432,7 +1431,7 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
 /** @internal */
 export function validateKey(key: any): void {
   if (key === null || key === void 0) {
-    throw Reporter.error(5);
+    throw new Error('key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
   }
 }
 

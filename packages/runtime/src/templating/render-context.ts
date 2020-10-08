@@ -6,7 +6,6 @@ import {
   InstanceProvider,
   IResolver,
   Key,
-  Reporter,
   Resolved,
   Transformer,
 } from '@aurelia/kernel';
@@ -497,11 +496,11 @@ export class ViewFactoryProvider<T extends INode = INode> implements IResolver {
 
   public resolve(_handler: IContainer, _requestor: IContainer): IViewFactory<T> {
     const factory = this.factory;
-    if (factory === null) { // unmet precondition: call prepare
-      throw Reporter.error(50); // TODO: organize error codes
+    if (factory === null) {
+      throw new Error('Cannot resolve ViewFactory before the provider was prepared.');
     }
-    if (typeof factory.name !== 'string' || factory.name.length === 0) { // unmet invariant: factory must have a name
-      throw Reporter.error(51); // TODO: organize error codes
+    if (typeof factory.name !== 'string' || factory.name.length === 0) {
+      throw new Error('Cannot resolve ViewFactory without a (valid) name.');
     }
     return factory;
   }

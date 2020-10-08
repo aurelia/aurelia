@@ -4,7 +4,6 @@ import {
   IResolver,
   Primitive,
   Registration,
-  Reporter,
   isArrayIndex,
 } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
@@ -168,14 +167,12 @@ export class ObserverLocator implements IObserverLocator {
 
   private createObserversLookup(obj: IObservable): Record<string, IBindingTargetObserver> {
     const value: Record<string, IBindingTargetObserver> = {};
-    if (!Reflect.defineProperty(obj, '$observers', {
+    Reflect.defineProperty(obj, '$observers', {
       enumerable: false,
       configurable: false,
       writable: false,
       value: value
-    })) {
-      Reporter.write(0, obj);
-    }
+    });
     return value;
   }
 

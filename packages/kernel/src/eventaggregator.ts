@@ -1,6 +1,6 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { DI } from './di';
 import { Constructable, IDisposable } from './interfaces';
-import { Reporter } from './reporter';
 
 /**
  * Represents a handler for an EventAggregator event.
@@ -15,26 +15,6 @@ class Handler<T extends Constructable> {
     if (message instanceof this.messageType) {
       this.callback.call(null, message);
     }
-  }
-}
-
-function invokeCallback<T, C extends string>(
-  callback: (message: T, channel: C) => void,
-  message: T,
-  channel: C,
-): void {
-  try {
-    callback(message, channel);
-  } catch (e) {
-    Reporter.error(0, e); // TODO: create error code
-  }
-}
-
-function invokeHandler<T extends Constructable>(handler: Handler<T>, message: InstanceType<T>): void {
-  try {
-    handler.handle(message);
-  } catch (e) {
-    Reporter.error(0, e); // TODO: create error code
   }
 }
 
@@ -73,7 +53,7 @@ export class EventAggregator {
     message?: unknown,
   ): void {
     if (!channelOrInstance) {
-      throw Reporter.error(0); // TODO: create error code for 'Event was invalid.'
+      throw new Error(`Invalid channel name or instance: ${channelOrInstance}.`);
     }
 
     if (typeof channelOrInstance === 'string') {
@@ -83,7 +63,7 @@ export class EventAggregator {
         let i = subscribers.length;
 
         while (i-- > 0) {
-          invokeCallback(subscribers[i], message, channelOrInstance);
+          subscribers[i](message, channelOrInstance);
         }
       }
     } else {
@@ -91,7 +71,7 @@ export class EventAggregator {
       let i = subscribers.length;
 
       while (i-- > 0) {
-        invokeHandler(subscribers[i], channelOrInstance);
+        subscribers[i].handle(channelOrInstance);
       }
     }
   }
@@ -121,7 +101,7 @@ export class EventAggregator {
     callback: (...args: unknown[]) => void,
   ): IDisposable {
     if (!channelOrType) {
-      throw Reporter.error(0); // TODO: create error code for 'Event channel/type was invalid.'
+      throw new Error(`Invalid channel name or type: ${channelOrType}.`);
     }
 
     let handler: unknown;

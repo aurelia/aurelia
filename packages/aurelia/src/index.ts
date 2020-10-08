@@ -120,7 +120,6 @@ export {
   // ITraceInfo,
   // ITraceWriter,
   // ILiveLoggingOptions,
-  Reporter,
   LogLevel,
 
   Profiler,

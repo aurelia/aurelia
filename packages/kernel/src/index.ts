@@ -53,6 +53,7 @@ export {
   applyMetadataPolyfill,
 } from '@aurelia/metadata';
 export {
+  LogLevel,
   IConsoleLike,
   ColorOptions,
   ILogConfig,
@@ -70,10 +71,6 @@ export {
   sink,
 } from './logger';
 export { PLATFORM } from './platform';
-export {
-  Reporter,
-  LogLevel,
-} from './reporter';
 export {
   Profiler
 } from './profiler';

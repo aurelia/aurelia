@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
   IIndexable,
   IServiceLocator,
   PLATFORM,
-  Reporter,
   StrictPrimitive,
   isNumberOrBigInt,
   isStringOrDate,
@@ -87,16 +87,6 @@ function chooseScope(accessHostScope: boolean, scope: IScope, hostScope: IScope 
   }
   return scope;
 }
-const enum RuntimeError {
-  NoLocator = 202,
-  NoBehaviorFound = 203,
-  BehaviorAlreadyApplied = 204,
-  NoConverterFound = 205,
-  NoBinding = 206,
-  NotAFunction = 207,
-  UnknownOperator = 208,
-  NilScope = 250,
-}
 
 type BindingWithBehavior = IConnectableBinding & { [key: string]: BindingBehaviorInstance | undefined };
 
@@ -140,14 +130,14 @@ export class BindingBehaviorExpression {
 
   public bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
     if (scope == null) {
-      throw Reporter.error(RuntimeError.NilScope, this);
+      throw new Error(`Scope is ${scope}.`);
     }
     if (!binding) {
-      throw Reporter.error(RuntimeError.NoBinding, this);
+      throw new Error(`Binding is ${binding}.`);
     }
     const locator = binding.locator;
     if (!locator) {
-      throw Reporter.error(RuntimeError.NoLocator, this);
+      throw new Error(`Locator is ${locator}.`);
     }
     if (this.expression.hasBind) {
       this.expression.bind(flags, scope, hostScope, binding);
@@ -155,14 +145,14 @@ export class BindingBehaviorExpression {
     const behaviorKey = this.behaviorKey;
     const behavior = locator.get<BindingBehaviorInstance>(behaviorKey);
     if (!behavior) {
-      throw Reporter.error(RuntimeError.NoBehaviorFound, this);
+      throw new Error(`BindingBehavior named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
     }
     if (!(behavior instanceof BindingBehaviorFactory)) {
       if ((binding as BindingWithBehavior)[behaviorKey] === void 0) {
         (binding as BindingWithBehavior)[behaviorKey] = behavior;
         (behavior.bind.call as (...args: unknown[]) => void)(behavior, flags, scope, hostScope, binding, ...evalList(flags, scope, locator, this.args, hostScope));
       } else {
-        Reporter.write(RuntimeError.BehaviorAlreadyApplied, this);
+        throw new Error(`BindingBehavior named '${this.name}' already applied.`);
       }
     }
   }
@@ -201,11 +191,11 @@ export class ValueConverterExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
     if (!locator) {
-      throw Reporter.error(RuntimeError.NoLocator, this);
+      throw new Error(`Locator is ${locator}.`);
     }
     const converter = locator.get<ValueConverterExpression & ValueConverterInstance>(this.converterKey);
     if (!converter) {
-      throw Reporter.error(RuntimeError.NoConverterFound, this);
+      throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
     }
     if ('toView' in converter) {
       const args = this.args;
@@ -222,11 +212,11 @@ export class ValueConverterExpression {
 
   public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown {
     if (!locator) {
-      throw Reporter.error(RuntimeError.NoLocator, this);
+      throw new Error(`Locator is ${locator}.`);
     }
     const converter = locator.get<ValueConverterExpression & ValueConverterInstance>(this.converterKey);
     if (!converter) {
-      throw Reporter.error(RuntimeError.NoConverterFound, this);
+      throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
     }
     if ('fromView' in converter) {
       value = (converter.fromView!.call as (...args: unknown[]) => void)(converter, value, ...(evalList(flags, scope, locator, this.args, hostScope)));
@@ -236,14 +226,14 @@ export class ValueConverterExpression {
 
   public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
     if (scope == null) {
-      throw Reporter.error(RuntimeError.NilScope, this);
+      throw new Error(`Scope is ${scope}.`);
     }
     if (!binding) {
-      throw Reporter.error(RuntimeError.NoBinding, this);
+      throw new Error(`Binding is ${binding}.`);
     }
     const locator = binding.locator;
     if (!locator) {
-      throw Reporter.error(RuntimeError.NoLocator, this);
+      throw new Error(`Locator is ${locator}.`);
     }
     this.expression.connect(flags, scope, hostScope, binding);
     const args = this.args;
@@ -252,7 +242,7 @@ export class ValueConverterExpression {
     }
     const converter = locator.get(this.converterKey) as { signals?: string[] };
     if (!converter) {
-      throw Reporter.error(RuntimeError.NoConverterFound, this);
+      throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
     }
     const signals = converter.signals;
     if (signals === void 0) {
@@ -362,7 +352,7 @@ export class AccessThisExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): IBindingContext | undefined {
     if (scope == null) {
-      throw Reporter.error(RuntimeError.NilScope, this);
+      throw new Error(`Scope is ${scope}.`);
     }
     if (this === AccessThisExpression.$host) {
       scope = chooseScope(true, scope, hostScope);
@@ -402,6 +392,9 @@ export class AccessScopeExpression {
   ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): IBindingContext | IBinding | IOverrideContext {
+    if (scope == null) {
+      throw new Error(`Scope is ${scope}.`);
+    }
     const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope) as IBindingContext;
     const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (flags & LifecycleFlags.isStrictBindingStrategy) {
@@ -623,7 +616,7 @@ export class CallFunctionExpression {
     if (!(flags & LifecycleFlags.mustEvaluate) && (func == null)) {
       return void 0;
     }
-    throw Reporter.error(RuntimeError.NotAFunction, this);
+    throw new Error(`Expression is not a function.`);
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
@@ -731,7 +724,7 @@ export class BinaryExpression {
       case '>=':
         return (this.left.evaluate(f, s, hs, l) as number) >= (this.right.evaluate(f, s, hs, l) as number);
       default:
-        throw Reporter.error(RuntimeError.UnknownOperator, this);
+        throw new Error(`Unknown binary operator: '${this.operation}'`);
     }
   }
 
@@ -772,7 +765,7 @@ export class UnaryExpression {
       case '+':
         return +(this.expression.evaluate(f, s, hs, l) as number);
       default:
-        throw Reporter.error(RuntimeError.UnknownOperator, this);
+        throw new Error(`Unknown unary operator: '${this.operation}'`);
     }
   }
 
@@ -993,7 +986,7 @@ export class TaggedTemplateExpression {
     }
     const func = this.func.evaluate(flags, scope, hostScope, locator);
     if (typeof func !== 'function') {
-      throw Reporter.error(RuntimeError.NotAFunction, this);
+      throw new Error(`Left-hand side of tagged template expression is not a function.`);
     }
     return func(this.cooked, ...results);
   }
@@ -1127,7 +1120,7 @@ export class ForOfStatement {
       case '[object Number]': return result as number;
       case '[object Null]': return 0;
       case '[object Undefined]': return 0;
-      default: throw Reporter.error(0); // TODO: Set error code
+      default: throw new Error(`Cannot count ${toStringTag.call(result)}`);
     }
   }
 
@@ -1139,7 +1132,7 @@ export class ForOfStatement {
       case '[object Number]': return $number(flags, result as number, func);
       case '[object Null]': return;
       case '[object Undefined]': return;
-      default: throw Reporter.error(0); // TODO: Set error code
+      default: throw new Error(`Cannot iterate over ${toStringTag.call(result)}`);
     }
   }
 
@@ -1232,7 +1225,7 @@ function getFunction(flags: LifecycleFlags, obj: object, name: string): ((...arg
   if (!(flags & LifecycleFlags.mustEvaluate) && func == null) {
     return null;
   }
-  throw Reporter.error(RuntimeError.NotAFunction, obj, name, func);
+  throw new Error(`Expected '${name}' to be a function`);
 }
 
 const proxyAndOriginalArray = LifecycleFlags.proxyStrategy;

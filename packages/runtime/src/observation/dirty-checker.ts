@@ -1,4 +1,4 @@
-import { DI, IIndexable, Reporter } from '@aurelia/kernel';
+import { DI, IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IBindingTargetObserver, IObservable, ISubscriber, AccessorType } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
@@ -30,12 +30,6 @@ export const DirtyCheckSettings = {
    */
   disabled: false,
   /**
-   * Default: `true`
-   *
-   * Log a warning message to the console if a property is being dirty-checked.
-   */
-  warn: true,
-  /**
    * Default: `false`
    *
    * Throw an error if a property is being dirty-checked.
@@ -47,7 +41,6 @@ export const DirtyCheckSettings = {
   resetToDefault(): void {
     this.framesPerCheck = 6;
     this.disabled = false;
-    this.warn = true;
     this.throw = false;
   }
 };
@@ -65,10 +58,7 @@ export class DirtyChecker {
 
   public createProperty(obj: object, propertyName: string): DirtyCheckProperty {
     if (DirtyCheckSettings.throw) {
-      throw Reporter.error(800, propertyName); // TODO: create/organize error code
-    }
-    if (DirtyCheckSettings.warn) {
-      Reporter.write(801, propertyName);
+      throw new Error(`Property '${propertyName}' is being dirty-checked.`);
     }
     return new DirtyCheckProperty(this, obj as IIndexable, propertyName);
   }

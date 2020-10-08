@@ -21,10 +21,9 @@ import { Interpolation, IsExpression } from './ast';
 import {
   connectable,
   IConnectableBinding,
-  IPartialConnectableBinding,
 } from './connectable';
 
-const { toView, oneTime } = BindingMode;
+const { toView } = BindingMode;
 
 const queueTaskOptions: QueueTaskOptions = {
   reusable: false,

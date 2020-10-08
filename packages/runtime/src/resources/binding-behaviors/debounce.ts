@@ -35,7 +35,10 @@ export class DebounceBindingBehavior extends BindingInterceptor {
     if (this.task !== null) {
       this.task.cancel();
     }
-    this.task = this.taskQueue.queueTask(callback, this.opts);
+    this.task = this.taskQueue.queueTask(() => {
+      this.task = null;
+      return callback();
+    }, this.opts);
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
@@ -46,5 +49,11 @@ export class DebounceBindingBehavior extends BindingInterceptor {
       }
     }
     this.binding.$bind(flags, scope, hostScope);
+  }
+
+  public $unbind(flags: LifecycleFlags): void {
+    this.task?.cancel();
+    this.task = null;
+    this.binding.$unbind(flags);
   }
 }

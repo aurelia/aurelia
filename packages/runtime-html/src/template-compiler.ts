@@ -442,7 +442,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         projections[name] = CustomElementDefinition.create({ name, template, instructions, needsCompile: false });
       } else {
         // consolidate the projections to same slot
-        dom.appendChild((definition.template as HTMLTemplateElement).content, projection.template?.physicalNode!);
+        dom.appendChild((definition.template as HTMLTemplateElement).content, projection.template!.physicalNode!);
         (definition.instructions as ITargetedInstruction[][]).push(...instructions);
       }
     }

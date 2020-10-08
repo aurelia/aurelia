@@ -19,7 +19,7 @@ const $global: IWindowOrWorkerGlobalScope = (function (): IWindowOrWorkerGlobalS
   }
   try {
     // Not all environments allow eval and Function. Use only as a last resort:
-    // eslint-disable-next-line no-new-func
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval,no-new-func
     return new Function('return this')();
   } catch {
     // If all fails, give up and create an object.

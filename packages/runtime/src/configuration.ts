@@ -66,6 +66,7 @@ export const ILifecycleRegistration = Lifecycle as IRegistry;
 export const IRendererRegistration = Renderer as IRegistry;
 export const IStartTaskManagerRegistration = StartTaskManager as IRegistry;
 export const IViewLocatorRegistration = ViewLocator as IRegistry;
+export const IProjectionProviderRegistration = ProjectionProvider as IRegistry;
 
 /**
  * Default binding syntax for the following attribute name patterns:
@@ -130,7 +131,7 @@ export const DefaultComponents = [
   IStartTaskManagerRegistration,
   IViewLocatorRegistration,
   Now,
-  ProjectionProvider,
+  IProjectionProviderRegistration,
 ];
 
 export const FrequentMutationsRegistration = FrequentMutations as unknown as IRegistry;

@@ -210,7 +210,6 @@ export {
   DebounceBindingBehavior
 } from './resources/binding-behaviors/debounce';
 export {
-  SignalableBinding,
   SignalBindingBehavior
 } from './resources/binding-behaviors/signals';
 export {
@@ -389,9 +388,13 @@ export {
   TemplateControllerRendererRegistration,
 
   DefaultResources,
+  IExpressionParserRegistration,
   IObserverLocatorRegistration,
   ILifecycleRegistration,
   IRendererRegistration,
+  IStartTaskManagerRegistration,
+  IViewLocatorRegistration,
+  IProjectionProviderRegistration,
   RuntimeConfiguration
 } from './configuration';
 export {

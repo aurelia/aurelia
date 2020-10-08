@@ -4,7 +4,7 @@
     "rootDir": "src",
     "declarationDir": "dist",
     "outDir": "dist/esnext",
-    "lib": ["esnext"]
+    "lib": ["esnext", "dom"]
   },
   "include": ["src"]
 }

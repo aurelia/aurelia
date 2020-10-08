@@ -41,11 +41,15 @@ _.each(skippable, ([dir,name]) => console.log(`*** Skipping ${dir}${name}`));
 _.each([].concat(relevant, core), function ([dir,name]) {
   const fullname = dir + name;
   if(fs.statSync(fullname).isDirectory() && fs.existsSync(path.join(fullname, "package.json"))) {
-    console.log(`*** Executing npm i in ${fullname}`);
-    exec('npm i --no-package-lock', {
-      cwd: fullname,
-      stdio: 'inherit'
-    });
+    if (fullname.includes('aurelia2-local')) {
+      console.log(`*** Skipping npm i in ${fullname} because it's already bootstrapped by lerna`);
+    } else {
+      console.log(`*** Executing npm i in ${fullname}`);
+      exec('npm i --no-package-lock', {
+        cwd: fullname,
+        stdio: 'inherit'
+      });
+    }
     console.log(`*** Executing npm run build-prod in ${fullname}`);
     exec('npm run build-prod', {
       cwd: fullname,

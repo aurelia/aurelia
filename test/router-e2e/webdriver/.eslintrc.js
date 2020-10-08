@@ -11,7 +11,6 @@ module.exports = {
     'mocha'
   ],
   rules: {
-    '@typescript-eslint/class-name-casing': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/restrict-template-expressions': 'off',
     '@typescript-eslint/promise-function-async': 'off',

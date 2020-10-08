@@ -40,7 +40,7 @@ export class DebounceBindingBehavior extends BindingInterceptor {
 
   public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
     if (this.firstArg !== null) {
-      const delay = Number(this.firstArg.evaluate(flags, scope, hostScope, this.locator));
+      const delay = Number(this.firstArg.evaluate(flags, scope, hostScope, this.locator, null));
       if (!isNaN(delay)) {
         this.opts.delay = delay;
       }

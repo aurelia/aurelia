@@ -343,7 +343,7 @@ describe('interpolation', function () {
         yes2: 'yes2',
         no2: 'no2'
       };
-      
+
       // disable connect to verify evaluate works
       interpolation.connect = () => {/* empty */};
       interpolation.expressions.forEach(expr => {

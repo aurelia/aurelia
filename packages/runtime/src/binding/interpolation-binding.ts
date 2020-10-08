@@ -36,7 +36,7 @@ const queueTaskOptions: QueueTaskOptions = {
 // value converters and binding behaviors.
 // Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
 // in which case the renderer will create the TextBinding directly
-export class MultiInterpolationBinding implements IBinding {
+export class InterpolationBinding implements IBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;
@@ -44,7 +44,7 @@ export class MultiInterpolationBinding implements IBinding {
 
   public partBindings: ContentBinding[];
 
-  private targetObserver: IBindingTargetAccessor;
+  private readonly targetObserver: IBindingTargetAccessor;
   private task: ITask | null = null;
 
   public constructor(
@@ -164,7 +164,7 @@ export class ContentBinding implements ContentBinding {
     public readonly targetProperty: string,
     public readonly locator: IServiceLocator,
     public readonly observerLocator: IObserverLocator,
-    public readonly owner: MultiInterpolationBinding,
+    public readonly owner: InterpolationBinding,
   ) {
 
   }
@@ -222,7 +222,7 @@ export class ContentBinding implements ContentBinding {
     );
   }
 
-  public $unbind(flags: LifecycleFlags) : void {
+  public $unbind(flags: LifecycleFlags): void {
     if (!this.isBound) {
       return;
     }

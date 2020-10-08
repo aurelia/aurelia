@@ -11,7 +11,7 @@ import {
   Interpolation,
   IsBindingBehavior,
   LifecycleFlags,
-  MultiInterpolationBinding,
+  InterpolationBinding,
   PropertyBinding,
   applyBindingBehavior,
   ensureExpression,
@@ -52,7 +52,7 @@ export class TextBindingRenderer implements IInstructionRenderer {
       context.dom.remove(target);
     }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation) as Interpolation;
-    const binding = new MultiInterpolationBinding(
+    const binding = new InterpolationBinding(
       this.observerLocator,
       expr,
       next!,

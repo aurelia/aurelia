@@ -104,7 +104,7 @@ export {
 } from './binding/expression-parser';
 export {
   ContentBinding,
-  MultiInterpolationBinding,
+  InterpolationBinding,
 } from './binding/interpolation-binding';
 export {
   LetBinding

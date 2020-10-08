@@ -12,7 +12,7 @@ import {
 } from '@aurelia/kernel';
 import { CallBinding } from './binding/call-binding';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
-import { MultiInterpolationBinding, ContentBinding } from './binding/interpolation-binding';
+import { InterpolationBinding, ContentBinding } from './binding/interpolation-binding';
 import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
@@ -518,7 +518,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
     instruction: IInterpolationInstruction,
   ): void {
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation) as Interpolation;
-    const binding = new MultiInterpolationBinding(
+    const binding = new InterpolationBinding(
       this.observerLocator,
       expr,
       getTarget(target),

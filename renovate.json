@@ -38,7 +38,13 @@
     "babel-jest",
     "karma-coverage-istanbul-reporter",
     "jsdom",
-    "@wdio/browserstack-service"
+    "@wdio/browserstack-service",
+    "@wdio/cli",
+    "@wdio/local-runner",
+    "@wdio/mocha-framework",
+    "@wdio/selenium-standalone-service",
+    "@wdio/spec-reporter",
+    "@wdio/sync"
   ],
   "packageRules": [
     {

@@ -67,11 +67,10 @@ export class InterpolationBinding implements IBinding {
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     const partBindings = this.partBindings;
     const staticParts = this.interpolation.parts;
-    const results: unknown[] = [staticParts[0]];
-    let len = 0;
+    let result: string = staticParts[0];
     for (let i = 0, ii = partBindings.length; ii > i; ++i) {
-      results[len++] = partBindings[i].value;
-      results[len++] = staticParts[i + 1];
+      result += partBindings[i].value;
+      result += staticParts[i + 1];
     }
 
     const targetObserver = this.targetObserver;
@@ -88,7 +87,7 @@ export class InterpolationBinding implements IBinding {
         this.task = null;
       }, queueTaskOptions);
     }
-    targetObserver.setValue(results.join(''), flags);
+    targetObserver.setValue(result, flags);
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {

@@ -226,8 +226,8 @@ describe('switch', function () {
 
     if (error === null) {
       await au.stop().wait();
+      assert.html.innerEqual(host, '', 'post-detach innerHTML');
     }
-    assert.html.innerEqual(host, '', 'post-detach innerHTML');
     ctx.doc.body.removeChild(host);
   }
   const $it = createSpecFunction(testSwitch);
@@ -1337,6 +1337,143 @@ describe('switch', function () {
       }
     );
 
+    // tag: nonsense example
+    yield new TestData(
+      '*[switch][if] works',
+      {
+        initialStatus: Status.delivered,
+        template: `
+        <div if.bind="true" switch.bind="status">
+          <span case="received">Order received.</span>
+          <span case="dispatched">On the way.</span>
+          <span case="processing">Processing your order.</span>
+          <span case="delivered">Delivered.</span>
+        </div>
+        <div if.bind="false" switch.bind="status">
+          <span case="received">Order received.</span>
+          <span case="dispatched">On the way.</span>
+          <span case="processing">Processing your order.</span>
+          <span case="delivered">Delivered.</span>
+        </div>
+      `,
+      },
+      '<div> <span>Delivered.</span> </div>',
+    );
+
+    // tag: nonsense example
+    yield new TestData(
+      '*[case][if=true]',
+      {
+        initialStatus: Status.delivered,
+        template: `
+        <div switch.bind="status">
+          <span case="processing">Processing your order.</span>
+          <span case="delivered" if.bind="true">Delivered.</span>
+        </div>`,
+      },
+      '<div> <span>Delivered.</span> </div>',
+      [
+        new SwitchCallsExpectation(
+          [1, 1],
+          [0, 1],
+          [0, 0],
+        ),
+      ]
+    );
+
+    // tag: nonsense example
+    yield new TestData(
+      '*[case][if=false] leads to unexpected result',
+      {
+        initialStatus: Status.delivered,
+        template: `
+        <div switch.bind="status">
+          <span case="processing">Processing your order.</span>
+          <span if.bind="false" case="delivered">Delivered.</span>
+        </div>`,
+      },
+      '<div> </div>',
+      [
+        new SwitchCallsExpectation(
+          [1],
+          [0],
+          [0],
+        ),
+      ]
+    );
+
+    // tag: nonsense example
+    yield new TestData(
+      '*[if=false][case] leads to unexpected result',
+      {
+        initialStatus: Status.delivered,
+        template: `
+        <div switch.bind="status">
+          <span case="processing">Processing your order.</span>
+          <span case="delivered" if.bind="false">Delivered.</span>
+        </div>`,
+      },
+      '<div> </div>',
+      [
+        new SwitchCallsExpectation(
+          [1, 1],
+          [0, 1],
+          [0, 0],
+        ),
+      ]
+    );
+
+    yield new TestData(
+      '*[switch]>*[case][repeat.for] leads to unexpected result',
+      {
+        initialStatus: Status.delivered,
+        template: `
+      <template>
+        <template switch.bind="status">
+          <span case.bind="s" repeat.for="s of ['received','dispatched','processing','delivered',]">\${s}</span>
+        </template>
+        <template switch.bind="status">
+          <span case.bind="s" repeat.for="s of ['delivered','received','dispatched','processing',]">\${s}</span>
+        </template>
+      </template>`,
+      },
+      '',
+      [
+        new SwitchCallsExpectation(
+          [1],
+          [0],
+          [0],
+        ),
+        new SwitchCallsExpectation(
+          [1],
+          [0],
+          [0],
+        ),
+      ]
+    );
+
+    yield new TestData(
+      '*[switch]>*[case][repeat.for] - static case - leads to unexpected result',
+      {
+        initialStatus: Status.received,
+        template: `
+      <template>
+        <template switch.bind="status">
+          <span case="processing">Processing your order.</span>
+          <span case="received" repeat.for="i of 3">\${i}</span>
+        </template>
+      </template>`,
+      },
+      '<span>0</span><span>1</span><span>2</span>',
+      [
+        new SwitchCallsExpectation(
+          [1, 1],
+          [0, 1],
+          [0, 0],
+        ),
+      ]
+    );
+
     yield new TestData(
       'supports nested switch',
       {
@@ -1707,6 +1844,18 @@ describe('switch', function () {
     );
 
     yield new TestData(
+      '*[switch]>*[repeat.for][case]',
+      {
+        template: `
+      <template>
+        <template switch.bind="status">
+          <span repeat.for="s of ['received','dispatched','processing','delivered',]" case.bind="s">\${s}</span>
+        </template>
+      </template>`,
+      },
+    );
+
+    yield new TestData(
       '*[switch]>*[au-slot]>*[case]',
       {
         template: `
@@ -1722,6 +1871,29 @@ describe('switch', function () {
       </foo-bar>`,
       },
     );
+
+    yield new TestData(
+      '*[if=true][case]',
+      {
+        template: `
+        <div switch.bind="status">
+          <span case="processing">Processing your order.</span>
+          <span if.bind="true" case="delivered">Delivered.</span>
+        </div>`,
+      }
+    );
+
+    yield new TestData(
+      '*[else][case]',
+      {
+        initialStatus: Status.delivered,
+        template: `
+        <div switch.bind="status">
+          <span if.bind="false" case="processing">Processing your order.</span>
+          <span else case="delivered">Delivered.</span>
+        </div>`,
+      }
+    );
   }
   for (const data of getNegativeTestData()) {
     $it(`${data.name} does not work`,
@@ -1735,7 +1907,8 @@ describe('switch', function () {
     function (ctx) {
       assert.match(ctx.error.message, /Multiple 'default-case's are not allowed./);
     },
-    { template: `
+    {
+      template: `
   <template>
     <template switch.bind="status">
       <span case.bind="statuses">Processing.</span>
@@ -1743,5 +1916,23 @@ describe('switch', function () {
       <span default-case>dc1.</span>
       <span default-case>dc2.</span>
     </template>
-  </template>` });
+  </template>`
+    });
+
+  $it(`*[case][else] throws error`,
+    function (ctx) {
+      /**
+       * ATM the error is thrown from Else#link as controller.children is undefined.
+       * But probably it is not necessary to assert that exact error here.
+       */
+      assert.match(ctx.error.message, /.+/);
+    },
+    {
+      initialStatus: Status.delivered,
+      template: `
+        <div switch.bind="status">
+          <span if.bind="false" case="processing">Processing your order.</span>
+          <span case="delivered" else>Delivered.</span>
+        </div>`
+    });
 });

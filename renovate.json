@@ -14,7 +14,15 @@
     "group:all"
   ],
   "ignorePaths": [
-    "**/node_modules/**"
+    "**/node_modules/**",
+    "test/wdio",
+    "test/js-framework-benchmark",
+    "test/js-framework-benchmark/webdriver-ts",
+    "test/js-framework-benchmark/webdriver-ts-results",
+    "test/js-framework-benchmark/results-ui",
+    "test/js-framework-benchmark/frameworks-keyed/aurelia",
+    "test/js-framework-benchmark/frameworks-keyed/aurelia2-npm",
+    "test/js-framework-benchmark/frameworks-keyed/vanillajs"
   ],
   "node": {
     "supportPolicy": ["lts"]
@@ -22,7 +30,21 @@
   "ignoreDeps": [
     "i18next",
     "pixi.js",
-    "@types/pixi.js"
+    "@types/pixi.js",
+    "rxjs",
+    "@jest/transform",
+    "@jest/types",
+    "ts-jest",
+    "babel-jest",
+    "karma-coverage-istanbul-reporter",
+    "jsdom",
+    "@wdio/browserstack-service",
+    "@wdio/cli",
+    "@wdio/local-runner",
+    "@wdio/mocha-framework",
+    "@wdio/selenium-standalone-service",
+    "@wdio/spec-reporter",
+    "@wdio/sync"
   ],
   "packageRules": [
     {
@@ -40,18 +62,6 @@
     {
       "packageNames": ["chromedriver"],
       "allowedVersions": "^77.0.0"
-    },
-    {
-      "packageNames": ["karma"],
-      "allowedVersions": "~4.1.0"
-    },
-    {
-      "packageNames": ["http-server"],
-      "allowedVersions": "0.9.0"
-    },
-    {
-      "packageNames": ["mocha"],
-      "allowedVersions": "~6.1.4"
     }
   ]
 }

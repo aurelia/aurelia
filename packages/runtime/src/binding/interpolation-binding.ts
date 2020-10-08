@@ -69,8 +69,12 @@ export class MultiInterpolationBinding implements IBinding {
     const staticParts = this.interpolation.parts;
     const results: unknown[] = [];
     let len = 0;
-    for (let i = 0, ii = staticParts.length; i < ii; i++) {
-      results[len++] = i % 3 === 1 ? partBindings[i].value : staticParts[i];
+    for (let i = 0, ii = staticParts.length, exprI = 0, exprIi = partBindings.length; ii > i; ++i) {
+      results[len++] = staticParts[i];
+      if (exprIi > exprI) {
+        results[len++] = partBindings[exprI].value;
+        ++exprI;
+      }
     }
 
     const targetObserver = this.targetObserver;
@@ -80,13 +84,14 @@ export class MultiInterpolationBinding implements IBinding {
     //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
     if (shouldQueueFlush) {
+      flags |= LifecycleFlags.noTargetObserverQueue;
       this.task?.cancel();
       this.task = this.$scheduler.queueRenderTask(() => {
         (targetObserver as unknown as INodeAccessor).flushChanges?.(flags);
         this.task = null;
       }, queueTaskOptions);
     }
-    targetObserver.setValue(results.join(''), flags | LifecycleFlags.noTargetObserverQueue);
+    targetObserver.setValue(results.join(''), flags);
   }
 
   public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
@@ -155,11 +160,6 @@ export class ContentBinding implements ContentBinding {
   public isBound: boolean = false;
   public $scope?: IScope = void 0;
   public $hostScope: IScope | null = null;
-
-  // if the source expression supplies a target observer
-  // the master MultiInterpolationBinding will use this target observer to update
-  // instead of its own default targetObserver
-  public targetObserver?: IBindingTargetAccessor;
 
   public constructor(
     public readonly sourceExpression: IsExpression,

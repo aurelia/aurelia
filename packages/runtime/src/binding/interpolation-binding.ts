@@ -72,7 +72,7 @@ export class InterpolationBinding implements IBinding {
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     const partBindings = this.partBindings;
     const staticParts = this.interpolation.parts;
-    let ii = partBindings.length;
+    const ii = partBindings.length;
     let result = '';
     if (ii === 1) {
       result = staticParts[0] + partBindings[0].value + staticParts[1];
@@ -178,12 +178,6 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     public readonly owner: InterpolationBinding,
   ) {
 
-  }
-
-  // deepscan-disable-next-line
-  public updateTarget(value: unknown, flags: LifecycleFlags): void {
-    // intentionally empty
-    // used to support typing
   }
 
   public handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void {

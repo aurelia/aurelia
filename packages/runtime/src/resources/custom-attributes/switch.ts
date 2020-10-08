@@ -26,6 +26,9 @@ import {
   MountStrategy,
 } from '../../lifecycle';
 import {
+  CollectionKind,
+  ICollectionIndexObserver,
+  ICollectionObserver,
   IndexMap,
   IScope,
 } from '../../observation';
@@ -271,7 +274,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
 
   public view: ISyntheticView<T>;
   private $switch!: Switch<T>;
-  private isObserving: boolean = false;
+  private observer: ICollectionObserver<CollectionKind.array> | undefined;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,
@@ -303,10 +306,9 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   public isMatch(value: unknown, flags: LifecycleFlags): boolean {
     const $value = this.value;
     if (Array.isArray($value)) {
-      if (!this.isObserving) {
-        const observer = this.locator.getArrayObserver(flags, $value);
+      if (this.observer === void 0) {
+        const observer = this.observer = this.locator.getArrayObserver(flags, $value);
         observer.addCollectionSubscriber(this);
-        this.isObserving = true;
       }
       return $value.includes(value);
     }
@@ -331,6 +333,12 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
     const view = this.view;
     if (!view.isActive) { return; }
     return view.deactivate(view, this.$controller, flags);
+  }
+
+  public dispose(): void {
+    if (this.observer !== void 0) {
+      this.observer.removeCollectionSubscriber(this);
+    }
   }
 
   protected linkToSwitch(auSwitch: Switch<T>) {

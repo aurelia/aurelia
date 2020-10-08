@@ -69,8 +69,7 @@ export class InterpolationBinding implements IBinding {
     const staticParts = this.interpolation.parts;
     let result: string = staticParts[0];
     for (let i = 0, ii = partBindings.length; ii > i; ++i) {
-      result += partBindings[i].value;
-      result += staticParts[i + 1];
+      result += partBindings[i].value + staticParts[i + 1];
     }
 
     const targetObserver = this.targetObserver;
@@ -179,7 +178,7 @@ export class ContentBinding implements ContentBinding {
       return;
     }
     const sourceExpression = this.sourceExpression;
-    const canOptimize = sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1;
+    const canOptimize = sourceExpression.$kind === ExpressionKind.AccessScope && this.observerSlots > 1;
     if (!canOptimize) {
       const shouldConnect = (this.mode & toView) > 0;
       if (shouldConnect) {

@@ -103,6 +103,7 @@ export {
   ParserState,
 } from './binding/expression-parser';
 export {
+  ContentBinding,
   MultiInterpolationBinding,
 } from './binding/interpolation-binding';
 export {

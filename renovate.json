@@ -14,7 +14,15 @@
     "group:all"
   ],
   "ignorePaths": [
-    "**/node_modules/**"
+    "**/node_modules/**",
+    "test/wdio",
+    "test/js-framework-benchmark",
+    "test/js-framework-benchmark/webdriver-ts",
+    "test/js-framework-benchmark/webdriver-ts-results",
+    "test/js-framework-benchmark/results-ui",
+    "test/js-framework-benchmark/frameworks-keyed/aurelia",
+    "test/js-framework-benchmark/frameworks-keyed/aurelia2-npm",
+    "test/js-framework-benchmark/frameworks-keyed/vanillajs"
   ],
   "node": {
     "supportPolicy": ["lts"]

@@ -44,7 +44,7 @@ export class MultiInterpolationBinding implements IBinding {
   public isBound: boolean = false;
   public $scope?: IScope = void 0;
 
-  public partBindings: PseudoBinding[];
+  public partBindings: ContentBinding[];
 
   private targetObserver: IBindingTargetAccessor;
   private task: ITask | null = null;
@@ -62,7 +62,7 @@ export class MultiInterpolationBinding implements IBinding {
     const expressions = interpolation.expressions;
     const partBindings = this.partBindings = Array(expressions.length);
     for (let i = 0, ii = expressions.length; i < ii; ++i) {
-      partBindings[i] = new PseudoBinding(expressions[i], target, targetProperty, locator, observerLocator, this);
+      partBindings[i] = new ContentBinding(expressions[i], target, targetProperty, locator, observerLocator, this);
     }
   }
 
@@ -70,7 +70,7 @@ export class MultiInterpolationBinding implements IBinding {
     const staticParts = this.interpolation.parts;
     const results: unknown[] = [];
     let len = 0;
-    let interceptedBinding: PseudoBinding | undefined;
+    let interceptedBinding: ContentBinding | undefined;
     for (let i = 0, ii = staticParts.length; i < ii; i++) {
       if (i % 2 === 0) {
         results[len++] = staticParts[i];
@@ -147,10 +147,19 @@ export class MultiInterpolationBinding implements IBinding {
 
 // a pseudo binding, part of a larger interpolation binding
 // employed to support full expression per expression part of an interpolation
-export interface PseudoBinding extends IConnectableBinding {}
+// note: ContentBinding name is used so signal that in a future version, we may add support
+// for more than just string part in interpolation.
+// consider the following example:
+// <div>${start} to ${end}</div>
+// `start` and `end` could be more than strings
+// if `start` returns `<span>Start</span>`, `end` returns `<span>End</span>`
+// the final result:
+// <div><span>Start</span> to <span>End</span>
+// this composability is similar to how FAST is doing, and quite familiar with VDOM libs component props
+export interface ContentBinding extends IConnectableBinding {}
 
 @connectable()
-export class PseudoBinding implements PseudoBinding {
+export class ContentBinding implements ContentBinding {
   public interceptor: this = this;
 
   // at runtime, mode may be overriden by binding behavior

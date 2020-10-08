@@ -224,7 +224,7 @@ describe('interpolation', function () {
     }
   });
 
-  describe.only('volatile expressions', function () {
+  describe('volatile expressions', function () {
     it('handles single', function () {
       const container = DI.createContainer();
       const observerLocator = createObserverLocator(container);

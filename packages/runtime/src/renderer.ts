@@ -12,7 +12,7 @@ import {
 } from '@aurelia/kernel';
 import { CallBinding } from './binding/call-binding';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
-import { InterpolationBinding, MultiInterpolationBinding, ContentBinding } from './binding/interpolation-binding';
+import { MultiInterpolationBinding, ContentBinding } from './binding/interpolation-binding';
 import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';

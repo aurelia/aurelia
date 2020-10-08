@@ -15,7 +15,6 @@ import {
   IScope,
   AccessorType,
   INodeAccessor,
-  IAccessor,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { Interpolation, IsExpression } from './ast';

@@ -67,26 +67,12 @@ export class MultiInterpolationBinding implements IBinding {
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
+    const partBindings = this.partBindings;
     const staticParts = this.interpolation.parts;
     const results: unknown[] = [];
     let len = 0;
-    let interceptedBinding: ContentBinding | undefined;
     for (let i = 0, ii = staticParts.length; i < ii; i++) {
-      if (i % 2 === 0) {
-        results[len++] = staticParts[i];
-      } else {
-        const pseudoBinding = this.partBindings[i];
-        if (interceptedBinding === void 0 && pseudoBinding.interceptor !== pseudoBinding) {
-          interceptedBinding = pseudoBinding;
-        }
-        results[len++] = pseudoBinding.value;
-      }
-    }
-
-    this.task?.cancel();
-    if (interceptedBinding !== void 0 && interceptedBinding.updateTarget !== interceptedBinding.interceptor.updateTarget) {
-      interceptedBinding.interceptor.updateTarget(results.join(''), flags);
-      return;
+      results[len++] = i % 2 === 0 ? staticParts[i] : partBindings[i].value;
     }
 
     const targetObserver = this.targetObserver;
@@ -96,8 +82,9 @@ export class MultiInterpolationBinding implements IBinding {
     //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
     if (shouldQueueFlush) {
+      this.task?.cancel();
       this.task = this.$scheduler.queueRenderTask(() => {
-        (targetObserver as unknown as INodeAccessor).flushChanges(flags);
+        (targetObserver as unknown as INodeAccessor).flushChanges?.(flags);
         this.task = null;
       }, queueTaskOptions);
     }
@@ -152,9 +139,9 @@ export class MultiInterpolationBinding implements IBinding {
 // consider the following example:
 // <div>${start} to ${end}</div>
 // `start` and `end` could be more than strings
-// if `start` returns `<span>Start</span>`, `end` returns `<span>End</span>`
-// the final result:
-// <div><span>Start</span> to <span>End</span>
+// if `start` returns <span>Start</span>, `end` returns <span>End</span> (html elements)
+// then the final result:
+// <div><span>Start</span> to <span>End</span></div>
 // this composability is similar to how FAST is doing, and quite familiar with VDOM libs component props
 export interface ContentBinding extends IConnectableBinding {}
 
@@ -203,7 +190,7 @@ export class ContentBinding implements ContentBinding {
       if (shouldConnect) {
         this.version++;
       }
-      newValue = sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, this.interceptor);
+      newValue = sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
       if (shouldConnect) {
         this.interceptor.unobserve(false);
       }
@@ -272,7 +259,6 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public id!: number;
   public $scope?: IScope;
   public $hostScope: IScope | null = null;
-  public $scheduler: IScheduler;
   public task: ITask | null = null;
   public isBound: boolean = false;
 
@@ -287,11 +273,10 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     public mode: BindingMode,
     public observerLocator: IObserverLocator,
     public locator: IServiceLocator,
-    public isFirst: boolean,
+    public $scheduler: IScheduler,
   ) {
     connectable.assignIdTo(this);
 
-    this.$scheduler = locator.get(IScheduler);
     this.targetObserver = observerLocator.getAccessor(LifecycleFlags.none, target, targetProperty);
   }
 
@@ -299,7 +284,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
   }
 
-  public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
+  public handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
     if (!this.isBound) {
       return;
     }
@@ -310,9 +295,19 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
-    const newValue = this.interpolation.evaluate(flags, this.$scope!, this.$hostScope, this.locator, null);
+    const shouldConnect = (this.mode & oneTime) === 0;
     const oldValue = targetObserver.getValue();
     const interceptor = this.interceptor;
+    const canOptimize = this.sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1;
+    if (canOptimize) {
+      if (shouldConnect) {
+        this.version++;
+      }
+      newValue = this.sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, shouldConnect ? interceptor : null);
+      if (shouldConnect) {
+        interceptor.unobserve(false);
+      }
+    }
 
     // todo(fred): maybe let the observer decides whether it updates
     if (newValue !== oldValue) {
@@ -361,11 +356,8 @@ export class InterpolationBinding implements IPartialConnectableBinding {
       targetObserver.bind(flags);
     }
 
-    // since the interpolation already gets the whole value, we only need to let the first
-    // text binding do the update if there are multiple
-    if (this.isFirst) {
-      this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, hostScope, this.locator, null), flags);
-    }
+    this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, hostScope, this.locator, null), flags);
+
     if ((mode & toView) > 0) {
       sourceExpression.connect(flags, scope, hostScope, this.interceptor);
     }

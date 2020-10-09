@@ -34,16 +34,16 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "0.8.0-dev.202010080222",
-    "@aurelia/metadata": "0.8.0-dev.202010080222",
-    "@aurelia/plugin-conventions": "0.8.0-dev.202010080222",
-    "@aurelia/runtime": "0.8.0-dev.202010080222",
-    "@aurelia/scheduler": "0.8.0-dev.202010080222",
-    "ts-jest": "^25.5.0"
+    "@aurelia/kernel": "0.7.0",
+    "@aurelia/metadata": "0.7.0",
+    "@aurelia/plugin-conventions": "0.7.0",
+    "@aurelia/runtime": "0.7.0",
+    "@aurelia/scheduler": "0.7.0",
+    "ts-jest": "^26.2.0"
   },
   "devDependencies": {
-    "@jest/transform": "^26.0.1",
-    "@jest/types": "^26.0.1",
+    "@jest/transform": "^26.3.0",
+    "@jest/types": "^26.3.0",
     "@types/node": "^14.11.5",
     "typescript": "^4.0.3"
   }

@@ -108,26 +108,27 @@ describe('translation-integration', function () {
     };
     const ctx = TestContext.createHTMLTestContext();
     const host = DOM.createElement('app');
-    const au = new Aurelia(ctx.container);
+    const au = new Aurelia(ctx.container).register(
+      I18nConfiguration.customize((config) => {
+        config.initOptions = {
+          resources: { en: { translation }, de: { translation: deTranslation } },
+          skipTranslationOnMissingKey
+        };
+        config.translationAttributeAliases = aliases;
+      }));
+    const i18n = au.container.get(I18N);
     let error: Error | null = null;
     try {
-      await au.register(
-        I18nConfiguration.customize((config) => {
-          config.initOptions = {
-            resources: { en: { translation }, de: { translation: deTranslation } },
-            skipTranslationOnMissingKey
-          };
-          config.translationAttributeAliases = aliases;
-        }))
+      await au
         .register(CustomMessage, FooBar)
         .app({ host, component })
         .start()
         .wait();
+
+      await i18n.setLocale('en');
     } catch (e) {
       error = e;
     }
-    const i18n = au.container.get(I18N);
-    await i18n.setLocale('en');
 
     const testContext = new I18nIntegrationTestContext<TApp>(translation, deTranslation, ctx, au, i18n, host as HTMLElement, error);
     await testFunction(testContext);

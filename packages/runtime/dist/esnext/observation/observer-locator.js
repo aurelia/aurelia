@@ -167,7 +167,7 @@ let ObserverLocator = class ObserverLocator {
             }
             return createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
         }
-        return new SetterObserver(this.lifecycle, flags, obj, propertyName);
+        return new SetterObserver(flags, obj, propertyName);
     }
 };
 ObserverLocator = __decorate([

@@ -10,9 +10,10 @@ var RuntimeError;
 const marker = Object.freeze({});
 /** @internal */
 export class InternalObserversLookup {
+    // @ts-ignore
     getOrCreate(lifecycle, flags, obj, key) {
         if (this[key] === void 0) {
-            this[key] = new SetterObserver(lifecycle, flags, obj, key);
+            this[key] = new SetterObserver(flags, obj, key);
         }
         return this[key];
     }

@@ -13,22 +13,21 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../lifecycle", "./subscriber-collection"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./subscriber-collection"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.SetterObserver = void 0;
+    exports.SetterNotifier = exports.SetterObserver = void 0;
     const kernel_1 = require("@aurelia/kernel");
-    const lifecycle_1 = require("../lifecycle");
     const subscriber_collection_1 = require("./subscriber-collection");
+    const $is = Object.is;
     /**
      * Observer for the mutation of object property value employing getter-setter strategy.
      * This is used for observing object properties that has no decorator.
      */
     let SetterObserver = class SetterObserver {
-        constructor(lifecycle, flags, obj, propertyKey) {
-            this.lifecycle = lifecycle;
+        constructor(flags, obj, propertyKey) {
             this.obj = obj;
             this.propertyKey = propertyKey;
             this.currentValue = void 0;
@@ -67,6 +66,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         }
         subscribe(subscriber) {
             if (this.observing === false) {
+                this.start();
+            }
+            this.addSubscriber(subscriber);
+        }
+        start() {
+            if (this.observing === false) {
                 this.observing = true;
                 this.currentValue = this.obj[this.propertyKey];
                 if (!Reflect.defineProperty(this.obj, this.propertyKey, {
@@ -82,13 +87,59 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     kernel_1.Reporter.write(1, this.propertyKey, this.obj);
                 }
             }
-            this.addSubscriber(subscriber);
+            return this;
+        }
+        stop() {
+            if (this.observing) {
+                Reflect.defineProperty(this.obj, this.propertyKey, {
+                    enumerable: true,
+                    configurable: true,
+                    writable: true,
+                    value: this.currentValue,
+                });
+                this.observing = false;
+                // todo(bigopon/fred): add .removeAllSubscribers()
+            }
+            return this;
         }
     };
     SetterObserver = __decorate([
         subscriber_collection_1.subscriberCollection(),
-        __metadata("design:paramtypes", [Object, Number, Object, String])
+        __metadata("design:paramtypes", [Number, Object, String])
     ], SetterObserver);
     exports.SetterObserver = SetterObserver;
+    let SetterNotifier = class SetterNotifier {
+        // todo(bigopon): remove flag aware assignment in ast, move to the decorator itself
+        constructor(s) {
+            this.s = s;
+            // ideally, everything is an object,
+            // probably this flag is redundant, just None?
+            this.type = 4 /* Obj */;
+            /**
+             * @internal
+             */
+            this.v = void 0;
+            this.task = null;
+            this.persistentFlags = 0 /* none */;
+        }
+        getValue() {
+            return this.v;
+        }
+        setValue(value, flags) {
+            if (typeof this.s === 'function') {
+                value = this.s(value);
+            }
+            const oldValue = this.v;
+            if (!$is(value, oldValue)) {
+                this.v = value;
+                this.callSubscribers(value, oldValue, flags);
+            }
+        }
+    };
+    SetterNotifier = __decorate([
+        subscriber_collection_1.subscriberCollection(),
+        __metadata("design:paramtypes", [Function])
+    ], SetterNotifier);
+    exports.SetterNotifier = SetterNotifier;
 });
 //# sourceMappingURL=setter-observer.js.map

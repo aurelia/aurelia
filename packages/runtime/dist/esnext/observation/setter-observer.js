@@ -8,15 +8,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { Reporter } from '@aurelia/kernel';
-import { ILifecycle } from '../lifecycle';
 import { subscriberCollection } from './subscriber-collection';
+const $is = Object.is;
 /**
  * Observer for the mutation of object property value employing getter-setter strategy.
  * This is used for observing object properties that has no decorator.
  */
 let SetterObserver = class SetterObserver {
-    constructor(lifecycle, flags, obj, propertyKey) {
-        this.lifecycle = lifecycle;
+    constructor(flags, obj, propertyKey) {
         this.obj = obj;
         this.propertyKey = propertyKey;
         this.currentValue = void 0;
@@ -55,6 +54,12 @@ let SetterObserver = class SetterObserver {
     }
     subscribe(subscriber) {
         if (this.observing === false) {
+            this.start();
+        }
+        this.addSubscriber(subscriber);
+    }
+    start() {
+        if (this.observing === false) {
             this.observing = true;
             this.currentValue = this.obj[this.propertyKey];
             if (!Reflect.defineProperty(this.obj, this.propertyKey, {
@@ -70,12 +75,58 @@ let SetterObserver = class SetterObserver {
                 Reporter.write(1, this.propertyKey, this.obj);
             }
         }
-        this.addSubscriber(subscriber);
+        return this;
+    }
+    stop() {
+        if (this.observing) {
+            Reflect.defineProperty(this.obj, this.propertyKey, {
+                enumerable: true,
+                configurable: true,
+                writable: true,
+                value: this.currentValue,
+            });
+            this.observing = false;
+            // todo(bigopon/fred): add .removeAllSubscribers()
+        }
+        return this;
     }
 };
 SetterObserver = __decorate([
     subscriberCollection(),
-    __metadata("design:paramtypes", [Object, Number, Object, String])
+    __metadata("design:paramtypes", [Number, Object, String])
 ], SetterObserver);
 export { SetterObserver };
+let SetterNotifier = class SetterNotifier {
+    // todo(bigopon): remove flag aware assignment in ast, move to the decorator itself
+    constructor(s) {
+        this.s = s;
+        // ideally, everything is an object,
+        // probably this flag is redundant, just None?
+        this.type = 4 /* Obj */;
+        /**
+         * @internal
+         */
+        this.v = void 0;
+        this.task = null;
+        this.persistentFlags = 0 /* none */;
+    }
+    getValue() {
+        return this.v;
+    }
+    setValue(value, flags) {
+        if (typeof this.s === 'function') {
+            value = this.s(value);
+        }
+        const oldValue = this.v;
+        if (!$is(value, oldValue)) {
+            this.v = value;
+            this.callSubscribers(value, oldValue, flags);
+        }
+    }
+};
+SetterNotifier = __decorate([
+    subscriberCollection(),
+    __metadata("design:paramtypes", [Function])
+], SetterNotifier);
+export { SetterNotifier };
 //# sourceMappingURL=setter-observer.js.map

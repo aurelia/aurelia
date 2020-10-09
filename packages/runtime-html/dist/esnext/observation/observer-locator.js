@@ -97,7 +97,7 @@ let TargetObserverLocator = class TargetObserverLocator {
             case 'css':
                 return new StyleAttributeAccessor(scheduler, flags, obj);
             case 'model':
-                return new SetterObserver(lifecycle, flags, obj, propertyName);
+                return new SetterObserver(flags, obj, propertyName);
             case 'role':
                 return new DataAttributeAccessor(scheduler, flags, obj, propertyName);
             default:

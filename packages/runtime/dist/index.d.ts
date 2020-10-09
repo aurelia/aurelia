@@ -19,6 +19,7 @@ export { CollectionLengthObserver, } from './observation/collection-length-obser
 export { CollectionSizeObserver, } from './observation/collection-size-observer';
 export { ComputedOverrides, ComputedLookup, computed, createComputedObserver, CustomSetterObserver, GetterObserver } from './observation/computed-observer';
 export { IDirtyChecker, DirtyCheckProperty, DirtyCheckSettings } from './observation/dirty-checker';
+export { IObservableDefinition, observable, } from './observation/observable';
 export { IObjectObservationAdapter, IObserverLocator, ITargetObserverLocator, ITargetAccessorLocator, getCollectionObserver, ObserverLocator } from './observation/observer-locator';
 export { PrimitiveObserver } from './observation/primitive-observer';
 export { PropertyAccessor } from './observation/property-accessor';

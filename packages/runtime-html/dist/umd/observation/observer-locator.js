@@ -109,7 +109,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 case 'css':
                     return new style_attribute_accessor_1.StyleAttributeAccessor(scheduler, flags, obj);
                 case 'model':
-                    return new runtime_1.SetterObserver(lifecycle, flags, obj, propertyName);
+                    return new runtime_1.SetterObserver(flags, obj, propertyName);
                 case 'role':
                     return new data_attribute_accessor_1.DataAttributeAccessor(scheduler, flags, obj, propertyName);
                 default:

@@ -22,9 +22,10 @@
     const marker = Object.freeze({});
     /** @internal */
     class InternalObserversLookup {
+        // @ts-ignore
         getOrCreate(lifecycle, flags, obj, key) {
             if (this[key] === void 0) {
-                this[key] = new setter_observer_1.SetterObserver(lifecycle, flags, obj, key);
+                this[key] = new setter_observer_1.SetterObserver(flags, obj, key);
             }
             return this[key];
         }

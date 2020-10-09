@@ -179,7 +179,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 }
                 return computed_observer_1.createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
             }
-            return new setter_observer_1.SetterObserver(this.lifecycle, flags, obj, propertyName);
+            return new setter_observer_1.SetterObserver(flags, obj, propertyName);
         }
     };
     ObserverLocator = __decorate([

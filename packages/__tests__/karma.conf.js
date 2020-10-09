@@ -28,7 +28,7 @@ module.exports = function (config) {
     browsers = ['Chrome'];
   }
 
-  const setup = 'setup-browser' + (config.package ? '-' + config.package : '');
+  const setup = `setup-browser${config.package ? `-${config.package}` : ''}`;
   const options = {
     basePath,
     browserDisconnectTimeout: 10000,
@@ -50,6 +50,13 @@ module.exports = function (config) {
       // webpack-dev-middleware configuration
       // i. e.
       stats: 'errors-only',
+      watchOptions: {
+        ignored: [
+          /\.ts$/,
+          'node_modules',
+          'coverage'
+        ],
+      },
     },
     webpack: {
       mode: 'none',
@@ -94,14 +101,8 @@ module.exports = function (config) {
           },
           {
             test: /\.js$/,
-            use: [
-              {
-                loader: 'source-map-loader',
-                options: {
-                  enforce: 'pre',
-                },
-              },
-            ],
+            enforce: 'pre',
+            use: ['source-map-loader'],
           },
           {
             test: /\.html$/i,
@@ -175,4 +176,4 @@ module.exports = function (config) {
   }
 
   config.set(options);
-}
+};

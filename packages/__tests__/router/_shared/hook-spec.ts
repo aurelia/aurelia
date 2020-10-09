@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 import { TaskQueuePriority } from '@aurelia/runtime';
 import { setTimeoutWaiter, delayedTaskWaiter, asyncTaskWaiter, taskLoopWaiter } from './waiters';

@@ -1,9 +1,80 @@
-import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
-import { Aurelia } from '@aurelia/runtime';
+import {
+  IExpressionParserRegistration,
+  IObserverLocatorRegistration,
+  ILifecycleRegistration,
+  IRendererRegistration,
+  IStartTaskManagerRegistration,
+  IProjectionProviderRegistration,
+
+  DotSeparatedAttributePatternRegistration,
+
+  DefaultBindingCommandRegistration,
+  ForBindingCommandRegistration,
+
+  PropertyBindingRendererRegistration,
+  IteratorBindingRendererRegistration,
+
+  CustomElementRendererRegistration,
+  TemplateControllerRendererRegistration,
+
+  RepeatRegistration,
+  OneTimeBindingBehaviorRegistration,
+
+  Aurelia,
+} from '@aurelia/runtime';
+import {
+  ITemplateCompilerRegistration,
+  ITemplateElementFactoryRegistration,
+  IAttrSyntaxTransformerRegistation,
+  IProjectorLocatorRegistration,
+  ITargetAccessorLocatorRegistration,
+  ITargetObserverLocatorRegistration,
+
+  DelegateBindingCommandRegistration,
+
+  TextBindingRendererRegistration,
+  ListenerBindingRendererRegistration,
+} from '@aurelia/runtime-html';
+import {
+  IDOMInitializerRegistration,
+} from '@aurelia/runtime-html-browser';
+
 import { App } from './app';
 
 global['Aurelia'] = new Aurelia()
-  .register(RuntimeHtmlBrowserConfiguration)
+  .register(
+    IExpressionParserRegistration,
+    IObserverLocatorRegistration,
+    ILifecycleRegistration,
+    IRendererRegistration,
+    IStartTaskManagerRegistration,
+    IProjectionProviderRegistration,
+
+    ITemplateCompilerRegistration,
+    ITemplateElementFactoryRegistration,
+    IAttrSyntaxTransformerRegistation,
+    IProjectorLocatorRegistration,
+    ITargetAccessorLocatorRegistration,
+    ITargetObserverLocatorRegistration,
+
+    DotSeparatedAttributePatternRegistration,
+
+    RepeatRegistration,
+    OneTimeBindingBehaviorRegistration,
+
+    DefaultBindingCommandRegistration,
+    DelegateBindingCommandRegistration,
+    ForBindingCommandRegistration,
+
+    TextBindingRendererRegistration,
+    ListenerBindingRendererRegistration,
+    PropertyBindingRendererRegistration,
+    IteratorBindingRendererRegistration,
+    CustomElementRendererRegistration,
+    TemplateControllerRendererRegistration,
+
+    IDOMInitializerRegistration,
+  )
   .app({
     host: document.querySelector('app'),
     component: App

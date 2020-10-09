@@ -24,13 +24,13 @@ To put it in simple terms, direct routing is routing without route configuration
 
 ### How It Works
 
-You start off by registering the plugin in your app, you add in an `<au-viewport>` element where your routes will be displayed. Then using the `goto` attribute on your links, you can tell the router to render a specific component.
+You start off by registering the plugin in your app, you add in an `<au-viewport>` element where your routes will be displayed. Then using the `load` attribute on your links, you can tell the router to render a specific component.
 
 Components which have been globally registered inside the `register` method, or imported inside of the view can be rendered through the router.
 
 ## Direct Routing Example
 
-As you will see, the direct routing approach requires no configuration. We import our component and then reference it by name inside of the `goto` attribute.
+As you will see, the direct routing approach requires no configuration. We import our component and then reference it by name inside of the `load` attribute.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -38,7 +38,7 @@ As you will see, the direct routing approach requires no configuration. We impor
 <import from="./test-component.html"></import>
 
 <ul>
-    <li><a goto="test-component">Test Component</a></li>
+    <li><a load="test-component">Test Component</a></li>
 </ul>
 
 <au-viewport></au-viewport>
@@ -52,13 +52,13 @@ As you will see, the direct routing approach requires no configuration. We impor
 {% endtab %}
 {% endtabs %}
 
-The `goto` attribute on our link denotes that this link is to navigate to a component using the router. Inside of the `goto` attribute, we pass in the name of the component \(without any file extension\). As you can see, HTML only components are supported by the router.
+The `load` attribute on our link denotes that this link is to navigate to a component using the router. Inside of the `load` attribute, we pass in the name of the component \(without any file extension\). As you can see, HTML only components are supported by the router.
 
 ## Routes With Parameters
 
 The simple example above shows you how to render a component using the router, and now we are going to introduce support for parameters. A parameter is a dynamic value in your route which can be accessed inside of the routed component. For example, this might be a product ID or a category name.
 
-To access parameters from the route, we can get those from the router lifecycle hook called `enter` which also supports promises and can be asynchronous.
+To access parameters from the route, we can get those from the router lifecycle hook called `load` which also supports promises and can be asynchronous.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -66,7 +66,7 @@ To access parameters from the route, we can get those from the router lifecycle 
 <import from="./test-component"></import>
 
 <ul>
-    <li><a goto="test-component(hello)">Test Component</a></li>
+    <li><a load="test-component(hello)">Test Component</a></li>
 </ul>
 
 <au-viewport></au-viewport>
@@ -78,7 +78,7 @@ To access parameters from the route, we can get those from the router lifecycle 
 import { IRouteableComponent } from '@aurelia/router';
 
 export class TestComponent implements IRouteableComponent {
-    public enter(parameters) {
+    public load(parameters) {
         console.log(parameters); // Should display {0: "hello"} in the browser developer tools console
     }
 }
@@ -96,7 +96,7 @@ In this example, we are not telling the router the name of our parameters. By de
 
 ### **Inline Named Route Parameters**
 
-You can name your route parameters inline by specifying the name inside of the `goto` attribute on the component.
+You can name your route parameters inline by specifying the name inside of the `load` attribute on the component.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -104,7 +104,7 @@ You can name your route parameters inline by specifying the name inside of the `
 <import from="./test-component"></import>
 
 <ul>
-    <li><a goto="test-component(named=hello)">Test Component</a></li>
+    <li><a load="test-component(named=hello)">Test Component</a></li>
 </ul>
 
 <au-viewport></au-viewport>
@@ -116,7 +116,7 @@ You can name your route parameters inline by specifying the name inside of the `
 import { IRouteableComponent } from '@aurelia/router';
 
 export class TestComponent implements IRouteableComponent {
-    public enter(parameters) {
+    public load(parameters) {
         console.log(parameters); // Should display {named: "hello"} in the browser developer tools console
     }
 }
@@ -142,7 +142,7 @@ While you can name them inline, specifying them inside of your component makes i
 <import from="./test-component"></import>
 
 <ul>
-    <li><a goto="test-component(hello)">Test Component</a></li>
+    <li><a load="test-component(hello)">Test Component</a></li>
 </ul>
 
 <au-viewport></au-viewport>
@@ -156,7 +156,7 @@ import { IRouteableComponent } from '@aurelia/router';
 export class TestComponent implements IRouteableComponent {
     public static parameters = ['id'];
 
-    public enter(parameters) {
+    public load(parameters) {
         console.log(parameters); // Should display {id: "hello"} in the browser developer tools console
     }
 }

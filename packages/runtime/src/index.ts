@@ -383,9 +383,13 @@ export {
   TemplateControllerRendererRegistration,
 
   DefaultResources,
+  IExpressionParserRegistration,
   IObserverLocatorRegistration,
   ILifecycleRegistration,
   IRendererRegistration,
+  IStartTaskManagerRegistration,
+  IViewLocatorRegistration,
+  IProjectionProviderRegistration,
   RuntimeConfiguration
 } from './configuration';
 export {

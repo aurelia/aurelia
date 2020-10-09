@@ -7,13 +7,7 @@ import {
 import {
   RuntimeHtmlJsdomConfiguration
 } from '@aurelia/runtime-html-jsdom';
-import {
-  Reporter,
-  LogLevel,
-} from '@aurelia/kernel';
 import { JSDOM } from 'jsdom';
-
-Reporter.level = LogLevel.error;
 
 function createJSDOMTestContext(): HTMLTestContext {
   const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, { pretendToBeVisual: true });

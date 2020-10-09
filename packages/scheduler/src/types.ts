@@ -35,6 +35,14 @@ export type QueueTaskOptions = {
    * Defaults to `true`
    */
   reusable?: boolean;
+  /**
+   * If `true`, the return value of the callback will be treated as a promise. Consecutive tasks will be run only after the promise resolved.
+   *
+   * If `'auto'`, the return value of the callback will be treated as a promise only if is an instance of a promise. Use this only for callbacks that can either return `void` or `Promise` and it can't be determined upfront which of the two it is. For dealing with promises, this is less efficient than passing in `true`.
+   *
+   * Defaults to `false`
+   */
+  async?: boolean | 'auto';
 };
 
 export type QueueTaskTargetOptions = QueueTaskOptions & {
@@ -47,6 +55,7 @@ export const defaultQueueTaskOptions: Required<QueueTaskTargetOptions> = {
   priority: TaskQueuePriority.render,
   persistent: false,
   reusable: true,
+  async: false,
 };
 
 export type PResolve<T> = (value?: T | PromiseLike<T>) => void;
@@ -63,6 +72,9 @@ export type ExposedPromise<T = void> = Promise<T> & {
   reject: PReject;
 };
 
+/**
+ * Efficiently create a promise where the `resolve` and `reject` functions are stored as properties on the prommise itself.
+ */
 export function createExposedPromise<T>(): ExposedPromise<T> {
   const p = new Promise<T>(executor) as ExposedPromise<T>;
   p.resolve = $resolve;

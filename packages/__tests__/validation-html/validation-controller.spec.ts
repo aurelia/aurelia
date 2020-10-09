@@ -1,5 +1,5 @@
 /* eslint-disable mocha/no-hooks, mocha/no-sibling-hooks */
-import { newInstanceForScope } from '@aurelia/kernel';
+import { IServiceLocator, newInstanceForScope } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IScheduler, customElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
@@ -96,6 +96,8 @@ describe('validation controller factory', function () {
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
+
+    au.dispose();
   }
   const $it = createSpecFunction(runTest);
 
@@ -137,6 +139,7 @@ describe('validation-controller', function () {
     public person2rules: PropertyRule[];
 
     public constructor(
+      @IServiceLocator public locator: IServiceLocator,
       @newInstanceForScope(IValidationController) public controller: ValidationController,
       @IValidationRules public readonly validationRules: IValidationRules,
     ) {
@@ -175,7 +178,7 @@ describe('validation-controller', function () {
       this.controller.reset();
     }
 
-    public afterUnbind() {
+    public afterUnbindChildren() {
       const controller = this.controller;
       assert.equal(controller.results.length, 0, 'the result should have been removed');
       assert.equal(controller.bindings.size, 0, 'the bindings should have been removed');
@@ -219,6 +222,8 @@ describe('validation-controller', function () {
 
     await au.stop().wait();
     ctx.doc.body.removeChild(host);
+
+    au.dispose();
   }
   const $it = createSpecFunction(runTest);
 
@@ -274,7 +279,7 @@ describe('validation-controller', function () {
       text: '{ object, propertyName, rules }',
       getValidationInstruction: (app: App) => {
         const { validationRules, messageProvider, property, $rules: [[required,]] } = app.person2rules[1];
-        const rule = new PropertyRule(validationRules, messageProvider, property, [[required]]);
+        const rule = new PropertyRule(app.locator, validationRules, messageProvider, property, [[required]]);
         return new ValidateInstruction(app.person2, void 0, [rule]);
       },
       assertResult: (result: ControllerValidateResult, instruction: ValidateInstruction<Person>) => {

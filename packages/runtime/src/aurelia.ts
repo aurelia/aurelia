@@ -3,7 +3,9 @@ import {
   DI,
   IContainer,
   PLATFORM,
-  Registration
+  Registration,
+  InstanceProvider,
+  IDisposable
 } from '@aurelia/kernel';
 import { IActivator } from './activator';
 import {
@@ -12,7 +14,6 @@ import {
 } from './dom';
 import {
   BindingStrategy,
-  LifecycleFlags
 } from './flags';
 import {
   ICustomElementViewModel,
@@ -25,8 +26,9 @@ import {
   IStartTaskManager,
   LifecycleTask,
 } from './lifecycle-task';
-import { CustomElement } from './resources/custom-element';
+import { CustomElement, CustomElementDefinition } from './resources/custom-element';
 import { Controller } from './templating/controller';
+import { HooksDefinition } from './definitions';
 
 export interface ISinglePageApp<THost extends INode = INode> {
   strategy?: BindingStrategy;
@@ -37,7 +39,7 @@ export interface ISinglePageApp<THost extends INode = INode> {
 
 type Publisher = { dispatchEvent(evt: unknown, options?: unknown): void };
 
-export class CompositionRoot<T extends INode = INode> {
+export class CompositionRoot<T extends INode = INode> implements IDisposable {
   public readonly config: ISinglePageApp<T>;
   public readonly container: IContainer;
   public readonly host: T & { $aurelia?: Aurelia<T> };
@@ -51,12 +53,16 @@ export class CompositionRoot<T extends INode = INode> {
   public viewModel?: ICustomElementViewModel<T>;
 
   private createTask?: ILifecycleTask;
+  private readonly enhanceDefinition: CustomElementDefinition | undefined;
 
   public constructor(
     config: ISinglePageApp<T>,
     container: IContainer,
+    rootProvider: InstanceProvider<CompositionRoot<T>>,
+    enhance: boolean = false,
   ) {
     this.config = config;
+    rootProvider.prepare(this);
     if (config.host != void 0) {
       if (container.has(INode, false)) {
         this.container = container.createChild();
@@ -82,6 +88,15 @@ export class CompositionRoot<T extends INode = INode> {
     const taskManager = this.container.get(IStartTaskManager);
     const beforeCreateTask = taskManager.runBeforeCreate();
 
+    if (enhance) {
+      const component = config.component as Constructable | ICustomElementViewModel<T>;
+      this.enhanceDefinition = CustomElement.getDefinition(
+        CustomElement.isType(component)
+          ? CustomElement.define({ ...CustomElement.getDefinition(component), template: this.host, enhance: true }, component)
+          : CustomElement.define({ name: (void 0)!, template: this.host, enhance: true, hooks: new HooksDefinition(component) })
+      );
+    }
+
     if (beforeCreateTask.done) {
       this.task = LifecycleTask.done;
       this.create();
@@ -92,7 +107,7 @@ export class CompositionRoot<T extends INode = INode> {
 
   public activate(antecedent?: ILifecycleTask): ILifecycleTask {
     const { task, host, viewModel, container, activator, strategy } = this;
-    const flags = strategy | LifecycleFlags.fromStartTask;
+    const flags = strategy as number;
 
     if (viewModel === void 0) {
       if (this.createTask === void 0) {
@@ -121,7 +136,7 @@ export class CompositionRoot<T extends INode = INode> {
 
   public deactivate(antecedent?: ILifecycleTask): ILifecycleTask {
     const { task, viewModel, activator, strategy } = this;
-    const flags = strategy | LifecycleFlags.fromStopTask;
+    const flags = strategy as number;
 
     if (viewModel === void 0) {
       if (this.createTask === void 0) {
@@ -148,6 +163,10 @@ export class CompositionRoot<T extends INode = INode> {
     return this.task;
   }
 
+  public dispose(): void {
+    this.controller?.dispose();
+  }
+
   private create(): void {
     const config = this.config;
     const instance = this.viewModel = CustomElement.isType(config.component as Constructable)
@@ -156,11 +175,15 @@ export class CompositionRoot<T extends INode = INode> {
 
     const container = this.container;
     const lifecycle = container.get(ILifecycle);
-    this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, void 0, this.strategy as number);
+    const taskManager = container.get(IStartTaskManager);
+    taskManager.enqueueBeforeCompileChildren();
+    // This hack with delayed hydration is to make the controller instance accessible to the `beforeCompileChildren` hook via the composition root.
+    this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, null, this.strategy as number, false, this.enhanceDefinition);
+    (this.controller as unknown as Controller)['hydrateCustomElement'](container, null);
   }
 }
 
-export class Aurelia<TNode extends INode = INode> {
+export class Aurelia<TNode extends INode = INode> implements IDisposable {
   public readonly container: IContainer;
   public get isRunning(): boolean {
     return this._isRunning;
@@ -188,7 +211,12 @@ export class Aurelia<TNode extends INode = INode> {
 
   private next?: CompositionRoot<TNode>;
 
+  private readonly rootProvider: InstanceProvider<CompositionRoot<TNode>>;
+
   public constructor(container: IContainer = DI.createContainer()) {
+    if(container.has(Aurelia, true)) {
+      throw new Error('An instance of Aurelia is already registered with the container or an ancestor of it.');
+    }
     this.container = container;
     this.task = LifecycleTask.done;
 
@@ -201,6 +229,7 @@ export class Aurelia<TNode extends INode = INode> {
     this.next = (void 0)!;
 
     Registration.instance(Aurelia, this).register(container);
+    container.registerResolver(CompositionRoot, this.rootProvider = new InstanceProvider());
   }
 
   public register(...params: any[]): this {
@@ -208,14 +237,12 @@ export class Aurelia<TNode extends INode = INode> {
     return this;
   }
 
-  public app(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app'> {
-    this.next = new CompositionRoot(config, this.container);
+  public app(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app' | 'enhance'> {
+    return this.configureRoot(config);
+  }
 
-    if (this.isRunning) {
-      this.start();
-    }
-
-    return this;
+  public enhance(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app' | 'enhance'> {
+    return this.configureRoot(config, true);
   }
 
   public start(root: CompositionRoot<TNode> | undefined = this.next): ILifecycleTask {
@@ -266,9 +293,28 @@ export class Aurelia<TNode extends INode = INode> {
     return this.task.wait() as Promise<void>;
   }
 
+  public dispose(): void {
+    if (this._isRunning || this._isStopping) {
+      throw new Error(`The aurelia instance must be fully stopped before it can be disposed`);
+    }
+    this._root?.dispose();
+    this._root = void 0;
+    this.container.dispose();
+  }
+
+  private configureRoot(config: ISinglePageApp<TNode>, enhance?: boolean): Omit<this, 'register' | 'app' | 'enhance'> {
+    this.next = new CompositionRoot(config, this.container, this.rootProvider, enhance);
+
+    if (this.isRunning) {
+      this.start();
+    }
+
+    return this;
+  }
+
   private onBeforeStart(root: CompositionRoot<TNode>): void {
     Reflect.set(root.host, '$aurelia', this);
-    this._root = root;
+    this.rootProvider.prepare(this._root = root);
     this._isStarting = true;
   }
 
@@ -288,6 +334,7 @@ export class Aurelia<TNode extends INode = INode> {
   private onAfterStop(root: CompositionRoot): ILifecycleTask {
     Reflect.deleteProperty(root.host, '$aurelia');
     this._root = void 0;
+    this.rootProvider.dispose();
     this._isStopping = false;
     this.dispatchEvent(root, 'au-stopped', root.host as Publisher);
     return LifecycleTask.done;
@@ -298,7 +345,7 @@ export class Aurelia<TNode extends INode = INode> {
     target.dispatchEvent(root.dom.createCustomEvent(name, { detail: this, bubbles: true, cancelable: true }));
   }
 }
-(PLATFORM.global as typeof PLATFORM.global & {Aurelia: unknown}).Aurelia = Aurelia;
+(PLATFORM.global as typeof PLATFORM.global & { Aurelia: unknown }).Aurelia = Aurelia;
 
 export const IDOMInitializer = DI.createInterface<IDOMInitializer>('IDOMInitializer').noDefault();
 

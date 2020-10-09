@@ -16,21 +16,108 @@ describe('DI.get', function () {
     class Foo {
       public constructor(@lazy(Bar) public readonly provider: () => Bar) {}
     }
-    it('singleton', function () {
+    it('@singleton', function () {
       const bar0 = container.get(Foo).provider();
       const bar1 = container.get(Foo).provider();
 
       assert.strictEqual(bar0, bar1);
     });
 
-    it('transient', function () {
+    it('@transient', function () {
       container.register(Registration.transient(Bar, Bar));
       const bar0 = container.get(Foo).provider();
       const bar1 = container.get(Foo).provider();
 
       assert.notStrictEqual(bar0, bar1);
     });
+  });
 
+  describe('@scoped', function () {
+    describe("true", function () {
+      @singleton({ scoped: true })
+      class ScopedFoo { }
+
+      describe('Foo', function () {
+        const constructor = ScopedFoo;
+        it('children', function () {
+          const root = DI.createContainer();
+          const child1 = root.createChild();
+          const child2 = root.createChild();
+
+          const a = child1.get(constructor);
+          const b = child2.get(constructor);
+          const c = child1.get(constructor);
+
+          assert.strictEqual(a, c, 'a and c are the same');
+          assert.notStrictEqual(a, b, 'a and b are not the same');
+          assert.strictEqual(root.has(constructor, false), false, 'root has class');
+          assert.strictEqual(child1.has(constructor, false), true, 'child1 has class');
+          assert.strictEqual(child2.has(constructor, false), true, 'child2 has class');
+        });
+
+        it('root', function () {
+          const root = DI.createContainer();
+          const child1 = root.createChild();
+          const child2 = root.createChild();
+
+          const a = root.get(constructor);
+          const b = child2.get(constructor);
+          const c = child1.get(constructor);
+
+          assert.strictEqual(a, c, 'a and c are the same');
+          assert.strictEqual(a, b, 'a and b are the same');
+          assert.strictEqual(root.has(constructor, false), true, 'root has class');
+          assert.strictEqual(child1.has(constructor, false), false, 'child1 does not have class');
+          assert.strictEqual(child2.has(constructor, false), false, 'child2 does not have class');
+        });
+      });
+    });
+
+    describe('false', function () {
+      @singleton({ scoped: false })
+      class ScopedFoo { }
+
+      describe('Foo', function () {
+        const constructor = ScopedFoo;
+        it('children', function () {
+          const root = DI.createContainer();
+          const child1 = root.createChild();
+          const child2 = root.createChild();
+
+          const a = child1.get(constructor);
+          const b = child2.get(constructor);
+          const c = child1.get(constructor);
+
+          assert.strictEqual(a, c, 'a and c are the same');
+          assert.strictEqual(a, b, 'a and b are the same');
+          assert.strictEqual(root.has(constructor, false), true, 'root has class');
+          assert.strictEqual(child1.has(constructor, false), false, 'child1 has class');
+          assert.strictEqual(child2.has(constructor, false), false, 'child2 has class');
+        });
+      });
+
+      describe('default', function () {
+        @singleton
+        class DefaultFoo { }
+
+        const constructor = DefaultFoo;
+        it('children', function () {
+          const root = DI.createContainer();
+          const child1 = root.createChild();
+          const child2 = root.createChild();
+
+          const a = child1.get(constructor);
+          const b = child2.get(constructor);
+          const c = child1.get(constructor);
+
+          assert.strictEqual(a, c, 'a and c are the same');
+          assert.strictEqual(a, b, 'a and b are the same');
+          assert.strictEqual(root.has(constructor, false), true, 'root has class');
+          assert.strictEqual(child1.has(constructor, false), false, 'child1 has class');
+          assert.strictEqual(child2.has(constructor, false), false, 'child2 has class');
+        });
+      });
+    });
   });
 
   describe('@optional', function () {

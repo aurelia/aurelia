@@ -1,8 +1,0 @@
---require esm
---ui bdd
---colors
---reporter spec
---recursive
---watch-extensions js
---timeout 5000
-

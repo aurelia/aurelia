@@ -1,8 +1,8 @@
 import {
-  IForOfStatement,
-  IInterpolationExpression,
+  ForOfStatement,
+  Interpolation,
   IsBindingBehavior,
-} from './ast';
+} from './binding/ast';
 import {
   ICallBindingInstruction,
   IHydrateAttributeInstruction,
@@ -17,16 +17,16 @@ import {
   ISetPropertyInstruction,
   ITargetedInstruction,
   TargetedInstructionType,
-  PartialCustomElementDefinitionParts
 } from './definitions';
 import { BindingMode } from './flags';
 import { PartialCustomElementDefinition } from './resources/custom-element';
+import { SlotInfo } from './resources/custom-elements/au-slot';
 
 export class InterpolationInstruction implements IInterpolationInstruction {
   public type: TargetedInstructionType.interpolation = TargetedInstructionType.interpolation;
 
   public constructor(
-    public from: string | IInterpolationExpression,
+    public from: string | Interpolation,
     public to: string,
   ) {}
 }
@@ -83,7 +83,7 @@ export class IteratorBindingInstruction implements IIteratorBindingInstruction {
   public type: TargetedInstructionType.iteratorBinding = TargetedInstructionType.iteratorBinding;
 
   public constructor(
-    public from: string | IForOfStatement,
+    public from: string | ForOfStatement,
     public to: string,
   ) {}
 }
@@ -123,7 +123,7 @@ export class HydrateElementInstruction implements IHydrateElementInstruction {
   public constructor(
     public res: string,
     public instructions: ITargetedInstruction[],
-    public parts?: PartialCustomElementDefinitionParts,
+    public slotInfo: SlotInfo | null,
   ) {}
 }
 
@@ -144,7 +144,6 @@ export class HydrateTemplateController implements IHydrateTemplateController {
     public res: string,
     public instructions: ITargetedInstruction[],
     public link?: boolean,
-    public parts?: PartialCustomElementDefinitionParts,
   ) {}
 }
 
@@ -161,7 +160,7 @@ export class LetBindingInstruction implements ILetBindingInstruction {
   public type: TargetedInstructionType.letBinding = TargetedInstructionType.letBinding;
 
   public constructor(
-    public from: string | IsBindingBehavior | IInterpolationExpression,
+    public from: string | IsBindingBehavior | Interpolation,
     public to: string,
   ) {}
 }

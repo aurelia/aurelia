@@ -29,7 +29,7 @@ function log(msg) {
  * @param {string} dest
  */
 function copyFile(src, dest) {
-  if (!fs.existsSync(dest)) {
+  if (!fs.existsSync(path.dirname(dest))) {
     fs.mkdirSync(path.dirname(dest), {
       recursive: true
     });

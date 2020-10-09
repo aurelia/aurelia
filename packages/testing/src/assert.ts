@@ -56,6 +56,7 @@ import {
   Object_keys,
 } from './util';
 import { DOM } from '@aurelia/runtime-html';
+import { ensureSchedulerEmpty } from './scheduler';
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-explicit-any */
 
@@ -706,6 +707,26 @@ function isValueEqual(inputElementOrSelector: string | Node, expected: unknown, 
     });
   }
 }
+function isInnerHtmlEqual(elementOrSelector: string | Node, expected: string, message?: string, root?: Node, compact: boolean = true) {
+  const node = getNode(elementOrSelector, root) as HTMLElement;
+  let actual = node.innerHTML;
+  if (compact) {
+    actual = actual
+      .replace(/<!--au-start-->/g, '')
+      .replace(/<!--au-end-->/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  if (actual !== expected) {
+    innerFail({
+      actual,
+      expected: expected,
+      message,
+      operator: '==' as any,
+      stackStartFn: isInnerHtmlEqual
+    });
+  }
+}
 
 type styleMatch = { isMatch: true } | { isMatch: false; property: string; actual: string; expected: string };
 function matchStyle(element: Node, expectedStyles: Record<string, string>): styleMatch {
@@ -776,7 +797,8 @@ const isSchedulerEmpty = (function () {
     const persistent = task.persistent;
     const status = task._status;
 
-    return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}`;
+    return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}\n`
+      + `    task callback="${task.callback?.toString()}"`;
   }
 
   function toArray(task: any) {
@@ -808,7 +830,7 @@ const isSchedulerEmpty = (function () {
     return info;
   }
 
-  return function $isSchedulerEmpty() {
+  return function $isSchedulerEmpty(clearBeforeThrow?: any) {
     // Please don't do this anywhere else. We need to get rid of this / improve this at some point, not make it worse.
     // Also for this to work, a HTMLTestContext needs to have been created somewhere, so we can't just call this e.g. in kernel and certain runtime tests that don't use
     // the full test context.
@@ -844,6 +866,9 @@ const isSchedulerEmpty = (function () {
     }
 
     if (!isEmpty) {
+      if (clearBeforeThrow === true) {
+        ensureSchedulerEmpty(scheduler);
+      }
       innerFail({
         actual: void 0,
         expected: void 0,
@@ -895,6 +920,7 @@ const assert = Object_freeze({
   },
   html: {
     textContent: isTextContentEqual,
+    innerEqual: isInnerHtmlEqual,
     value: isValueEqual,
     computedStyle: computedStyle,
     notComputedStyle: notComputedStyle

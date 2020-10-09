@@ -11,9 +11,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@aurelia/jit-html-browser": "dev",
-    "@aurelia/jit-html": "dev",
-    "@aurelia/jit": "dev",
     "@aurelia/kernel": "dev",
     "@aurelia/metadata": "dev",
     "@aurelia/runtime-html-browser": "dev",
@@ -33,8 +30,7 @@
     "rimraf": "^3.0.0",
     "style-loader": "^1.1.1",
     "ts-loader": "^6.2.1",
-    "tslint": "^5.20.1",
-    "typescript": "^3.8.3",
+    "typescript": "^3.9.3",
     "webpack": "^4.41.4",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.10.1"
@@ -44,9 +40,8 @@
     "lint": "npm run lint:js && npm run lint:html",
     "start": "npm run build && npm run serve",
     "build": "rimraf dist && webpack",
-    "lint:js": "tslint --project tsconfig.json",
     "build-dev": "npm run build",
     "build-prod": "npm run build -- --mode=production",
-    "serve": "ws -c-1 -p 8081 -d dist"
+    "serve": "ws -p 8081 -d dist"
   }
 }

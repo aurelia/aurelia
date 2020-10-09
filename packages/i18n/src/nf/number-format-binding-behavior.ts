@@ -4,7 +4,7 @@ import { BindingWithBehavior, createIntlFormatValueConverterExpression, ValueCon
 @bindingBehavior(ValueConverters.numberFormatValueConverterName)
 export class NumberFormatBindingBehavior {
 
-  public bind(flags: LifecycleFlags, scope: IScope, binding: BindingWithBehavior) {
+  public bind(flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, binding: BindingWithBehavior) {
     createIntlFormatValueConverterExpression(ValueConverters.numberFormatValueConverterName, binding);
   }
 }

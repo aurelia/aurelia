@@ -38,6 +38,7 @@ describe.skip('ValueAttributeObserver', function () {
 
       function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
         ctx.doc.body.removeChild(el);
+        assert.isSchedulerEmpty();
       }
 
       for (const hasSubscriber of [true, false]) {
@@ -65,7 +66,7 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [expectedValueBefore, '', LF.fromSyncFlush | LF.updateTargetInstance],
+                    [expectedValueBefore, '', LF.updateTargetInstance],
                   ],
                   'subscriber.handleChange.calls',
                 );
@@ -81,8 +82,8 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [expectedValueBefore, '', LF.fromSyncFlush | LF.updateTargetInstance],
-                    [expectedValueAfter, expectedValueBefore, LF.fromSyncFlush | LF.updateTargetInstance],
+                    [expectedValueBefore, '', LF.updateTargetInstance],
+                    [expectedValueAfter, expectedValueBefore, LF.updateTargetInstance],
                   ],
                   'subscriber.handleChange.calls',
                 );
@@ -139,7 +140,7 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [expectedValueBefore, '', LF.fromDOMEvent | LF.allowPublishRoundtrip],
+                    [expectedValueBefore, '', LF.none],
                   ],
                   'subscriber.handleChange.calls',
                 );
@@ -154,8 +155,8 @@ describe.skip('ValueAttributeObserver', function () {
                 assert.deepStrictEqual(
                   subscriber.handleChange.calls,
                   [
-                    [expectedValueBefore, '', LF.fromDOMEvent | LF.allowPublishRoundtrip],
-                    [expectedValueAfter, expectedValueBefore, LF.fromDOMEvent | LF.allowPublishRoundtrip],
+                    [expectedValueBefore, '', LF.none],
+                    [expectedValueAfter, expectedValueBefore, LF.none],
                   ],
                   'subscriber.handleChange.calls',
                 );

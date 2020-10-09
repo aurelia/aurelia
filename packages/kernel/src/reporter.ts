@@ -14,7 +14,7 @@ export interface ILiveLoggingOptions {
   rendering?: boolean;
   binding?: boolean;
   observation?: boolean;
-  beforeAttach?: boolean;
+  attaching?: boolean;
   mounting?: boolean;
   di?: boolean;
   lifecycle?: boolean;

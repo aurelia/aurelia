@@ -103,7 +103,7 @@ export class AuthService {
                 email: 'user@domain.com'
             };
         } else {
-            this.router.goto('/login');
+            this.router.load('/login');
         }
     }
 
@@ -112,7 +112,7 @@ export class AuthService {
         this._user = null;
 
             if (redirect) {
-                this.router.goto(redirect);
+                this.router.load(redirect);
             }
     }
 

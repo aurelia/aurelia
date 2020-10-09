@@ -28,7 +28,7 @@ import {
 } from '@aurelia/debug';
 import {
   Char,
-} from '@aurelia/jit';
+} from '@aurelia/runtime';
 import {
   Constructable,
   isArrayIndex,
@@ -215,30 +215,18 @@ function getInspectContext(ctx: Partial<IInspectOptions>): IInspectContext {
   return obj;
 }
 
-interface IStyles {
-  special: 'cyan';
-  number: 'yellow';
-  boolean: 'yellow';
-  undefined: 'grey';
-  null: 'bold';
-  string: 'green';
-  symbol: 'green';
-  date: 'magenta';
-  regexp: 'red';
-}
-
-const styles: Readonly<IStyles> = Object_freeze(
+const styles = Object_freeze(
   {
-    special: 'cyan' as 'cyan',
-    number: 'yellow' as 'yellow',
-    boolean: 'yellow' as 'yellow',
-    undefined: 'grey' as 'grey',
-    null: 'bold' as 'bold',
-    string: 'green' as 'green',
-    symbol: 'green' as 'green',
-    date: 'magenta' as 'magenta',
-    regexp: 'red' as 'red',
-  },
+    special: 'cyan',
+    number: 'yellow',
+    boolean: 'yellow',
+    undefined: 'grey',
+    null: 'bold',
+    string: 'green',
+    symbol: 'green',
+    date: 'magenta',
+    regexp: 'red',
+  } as const,
 );
 
 interface IOperatorText {
@@ -991,14 +979,14 @@ function getMessage(self: AssertionError): string {
 }
 
 export function formatNumber(
-  fn: (value: string, styleType: keyof IStyles) => string,
+  fn: (value: string, styleType: keyof typeof styles) => string,
   value: number,
 ): string {
   return fn(Object_is(value, -0) ? '-0' : `${value}`, 'number');
 }
 
 export function formatPrimitive(
-  fn: (value: string, styleType: keyof IStyles) => string,
+  fn: (value: string, styleType: keyof typeof styles) => string,
   value: Primitive,
   ctx: IInspectContext,
 ): string {
@@ -1308,13 +1296,8 @@ const methodNamesWithFlags: PropertyKey[] = [
 
   'attachControllers',
 
-  'beforeAttach',
   'afterAttach',
-
-  'mount',
-  'mountCustomElement',
-  'mountCustomAttribute',
-  'mountSynthetic',
+  'afterAttachChildren',
 
   'detach',
   'detachCustomElement',
@@ -1324,21 +1307,16 @@ const methodNamesWithFlags: PropertyKey[] = [
   'detachControllers',
 
   'beforeDetach',
-  'afterDetach',
+  'afterDetachChildren',
 
-  'unmount',
-  'unmountCustomElement',
-  'unmountCustomAttribute',
-  'unmountSynthetic',
-
-  'release',
+  'tryReturnToCache',
 
   'cache',
   'cacheCustomElement',
   'cacheCustomAttribute',
   'cacheSynthetic',
 
-  'caching',
+  'dispose',
 
   'unbind',
   'unbindCustomElement',
@@ -1350,7 +1328,7 @@ const methodNamesWithFlags: PropertyKey[] = [
   'endUnbind',
 
   'beforeUnbind',
-  'afterUnbind',
+  'afterUnbindChildren',
 ];
 
 export function formatProperty(
@@ -1388,13 +1366,8 @@ export function formatProperty(
 
           case 'attachControllers':
 
-          case 'beforeAttach':
           case 'afterAttach':
-
-          case 'mount':
-          case 'mountCustomElement':
-          case 'mountCustomAttribute':
-          case 'mountSynthetic':
+          case 'afterAttachChildren':
 
           case 'detach':
           case 'detachCustomElement':
@@ -1404,21 +1377,16 @@ export function formatProperty(
           case 'detachControllers':
 
           case 'beforeDetach':
-          case 'afterDetach':
+          case 'afterDetachChildren':
 
-          case 'unmount':
-          case 'unmountCustomElement':
-          case 'unmountCustomAttribute':
-          case 'unmountSynthetic':
-
-          case 'release':
+          case 'tryReturnToCache':
 
           case 'cache':
           case 'cacheCustomElement':
           case 'cacheCustomAttribute':
           case 'cacheSynthetic':
 
-          case 'caching':
+          case 'dispose':
 
           case 'unbind':
           case 'unbindCustomElement':
@@ -1430,7 +1398,7 @@ export function formatProperty(
           case 'endUnbind':
 
           case 'beforeUnbind':
-          case 'afterUnbind':
+          case 'afterUnbindChildren':
             value.args[0] = stringifyLifecycleFlags(value.args[0]);
             break;
           case 'valueChanged':

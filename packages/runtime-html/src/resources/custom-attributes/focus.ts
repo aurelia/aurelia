@@ -4,7 +4,6 @@ import {
   customAttribute,
   IDOM,
   INode,
-  State,
   ICustomAttributeController,
   ICustomAttributeViewModel
 } from '@aurelia/runtime';
@@ -22,7 +21,7 @@ export class Focus implements ICustomAttributeViewModel<HTMLElement> {
   public value: unknown;
 
   /**
-   * Indicates whether `apply` should be called when `afterAttach` callback is invoked
+   * Indicates whether `apply` should be called when `afterAttachChildren` callback is invoked
    */
   private needsApply: boolean = false;
 
@@ -47,20 +46,20 @@ export class Focus implements ICustomAttributeViewModel<HTMLElement> {
     // while it's disconnected from the document
     // thus, there neesd to be a check if it's currently connected or not
     // before applying the value to the element
-    if (this.$controller.state & State.isAttached) {
+    if (this.$controller.isActive) {
       this.apply();
     } else {
       // If the element is not currently connect
       // toggle the flag to add pending work for later
-      // in afterAttach lifecycle
+      // in afterAttachChildren lifecycle
       this.needsApply = true;
     }
   }
 
   /**
-   * Invoked when the attribute is afterAttach to the DOM.
+   * Invoked when the attribute is afterAttachChildren to the DOM.
    */
-  public afterAttach(): void {
+  public afterAttachChildren(): void {
     if (this.needsApply) {
       this.needsApply = false;
       this.apply();
@@ -71,9 +70,9 @@ export class Focus implements ICustomAttributeViewModel<HTMLElement> {
   }
 
   /**
-   * Invoked when the attribute is afterDetach from the DOM.
+   * Invoked when the attribute is afterDetachChildren from the DOM.
    */
-  public afterDetach(): void {
+  public afterDetachChildren(): void {
     const el = this.element;
     el.removeEventListener('focus', this);
     el.removeEventListener('blur', this);

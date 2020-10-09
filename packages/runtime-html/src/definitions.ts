@@ -1,7 +1,7 @@
 import {
   AttributeInstruction,
   DelegationStrategy,
-  IInterpolationExpression,
+  Interpolation,
   IsBindingBehavior,
   ITargetedInstruction,
   NodeInstruction
@@ -41,7 +41,7 @@ export function isHTMLTargetedInstruction(value: unknown): value is HTMLTargeted
 
 export interface ITextBindingInstruction extends ITargetedInstruction {
   type: HTMLTargetedInstructionType.textBinding;
-  from: string | IInterpolationExpression;
+  from: string | Interpolation;
 }
 
 export interface IListenerBindingInstruction extends ITargetedInstruction {

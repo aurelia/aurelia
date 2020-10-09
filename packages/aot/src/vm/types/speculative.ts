@@ -52,7 +52,7 @@ export class $SpeculativeValue {
     this.path = `((${antecedents.map(getPath).join('+')})/${this.id})`;
   }
 
-  public is(other: $AnyNonError): other is $Empty {
+  public is(other: $AnyNonError | $SpeculativeValue): other is $Empty {
     return other instanceof $SpeculativeValue && this.id === other.id;
   }
 

@@ -1,37 +1,38 @@
 import {
-    Constructable,
-    IContainer,
-    IDisposable,
-    IFactory,
-    InstanceProvider,
-    IResolver,
-    Key,
-    Reporter,
-    Resolved,
-    Transformer,
+  Constructable,
+  IContainer,
+  IDisposable,
+  IFactory,
+  InstanceProvider,
+  IResolver,
+  Key,
+  Reporter,
+  Resolved,
+  Transformer,
 } from '@aurelia/kernel';
 import {
-    IHydrateInstruction,
-    ITargetedInstruction,
-    mergeParts,
-    PartialCustomElementDefinitionParts,
+  IHydrateInstruction,
+  ITargetedInstruction,
+  IHydrateElementInstruction,
 } from '../definitions';
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { LifecycleFlags } from '../flags';
 import {
-    IController,
-    ICustomAttributeViewModel,
-    ICustomElementViewModel,
-    ILifecycle,
-    IRenderableController,
-    IViewFactory,
+  IController,
+  ICustomAttributeViewModel,
+  ICustomElementViewModel,
+  ILifecycle,
+  IRenderableController,
+  IViewFactory,
 } from '../lifecycle';
 import { IRenderer, ITemplateCompiler } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { ViewFactory } from './view';
+import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot';
+import { IScope } from '../observation';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
-const definitionContainerPartsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<PartialCustomElementDefinitionParts, RenderContext>>>();
+const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, RenderContext>>>();
 
 const fragmentCache = new WeakMap<CustomElementDefinition, INode | null>();
 
@@ -44,7 +45,6 @@ export function isRenderContext<T extends INode = INode>(value: unknown): value 
  */
 export interface IRenderContext<T extends INode = INode> extends IContainer {
   readonly dom: IDOM<T>;
-  readonly parts: PartialCustomElementDefinitionParts | undefined;
 
   /**
    * The `CustomElementDefinition` that this `IRenderContext` was created with.
@@ -72,23 +72,21 @@ export interface IRenderContext<T extends INode = INode> extends IContainer {
    *
    * @returns The compiled `IRenderContext`.
    */
-  compile(): ICompiledRenderContext<T>;
+  compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext<T>;
 
   /**
    * Creates an (or returns the cached) `IViewFactory` that can be used to create synthetic view controllers.
    *
-   * @param name - Optional. The `name` that will be used by `replaceable` part lookups or the `| view` value converter. Defaults to the `name` property of the passed-in `CustomElementDefinition`.
-   *
    * @returns Either a new `IViewFactory` (if this is the first call), or a cached one.
    */
-  getViewFactory(name?: string): IViewFactory<T>;
+  getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: IScope | null): IViewFactory<T>;
 }
 
 /**
  * A compiled `IRenderContext` that can create instances of `INodeSequence` (based on the template of the compiled definition)
  * and begin a component operation to create new component instances.
  */
-export interface ICompiledRenderContext<T extends INode = INode> extends IRenderContext<T> {
+export interface ICompiledRenderContext<T extends INode = INode> extends IRenderContext<T>, IProjectionProvider {
   /**
    * The compiled `CustomElementDefinition`.
    *
@@ -132,7 +130,6 @@ export interface ICompiledRenderContext<T extends INode = INode> extends IRender
     targets: ArrayLike<INode>,
     templateDefinition: CustomElementDefinition,
     host: INode | null | undefined,
-    parts: PartialCustomElementDefinitionParts | undefined,
   ): void;
 
   renderInstructions(
@@ -140,7 +137,6 @@ export interface ICompiledRenderContext<T extends INode = INode> extends IRender
     instructions: readonly ITargetedInstruction[],
     controller: IController,
     target: unknown,
-    parts: PartialCustomElementDefinitionParts | undefined,
   ): void;
 }
 
@@ -181,19 +177,16 @@ export interface IComponentFactory<T extends INode = INode> extends ICompiledRen
 export function getRenderContext<T extends INode = INode>(
   partialDefinition: PartialCustomElementDefinition,
   parentContainer: IContainer,
-  parts: PartialCustomElementDefinitionParts | undefined,
+  projections?: Record<string, CustomElementDefinition> | null,
 ): IRenderContext<T> {
   const definition = CustomElementDefinition.getOrCreate(partialDefinition);
-  if (isRenderContext(parentContainer)) {
-    parts = mergeParts(parentContainer.parts, parts);
-  }
 
   // injectable completely prevents caching, ensuring that each instance gets a new render context
   if (definition.injectable !== null) {
-    return new RenderContext<T>(definition, parentContainer, parts);
+    return new RenderContext<T>(definition, parentContainer);
   }
 
-  if (parts === void 0) {
+  if (projections == null) {
     let containerLookup = definitionContainerLookup.get(definition);
     if (containerLookup === void 0) {
       definitionContainerLookup.set(
@@ -206,34 +199,34 @@ export function getRenderContext<T extends INode = INode>(
     if (context === void 0) {
       containerLookup.set(
         parentContainer,
-        context = new RenderContext<T>(definition, parentContainer, parts),
+        context = new RenderContext<T>(definition, parentContainer),
       );
     }
 
     return context as unknown as IRenderContext<T>;
   }
 
-  let containerPartsLookup = definitionContainerPartsLookup.get(definition);
-  if (containerPartsLookup === void 0) {
-    definitionContainerPartsLookup.set(
+  let containerProjectionsLookup = definitionContainerProjectionsLookup.get(definition);
+  if (containerProjectionsLookup === void 0) {
+    definitionContainerProjectionsLookup.set(
       definition,
-      containerPartsLookup = new WeakMap(),
+      containerProjectionsLookup = new WeakMap(),
     );
   }
 
-  let partsLookup = containerPartsLookup.get(parentContainer);
-  if (partsLookup === void 0) {
-    containerPartsLookup.set(
+  let projectionsLookup = containerProjectionsLookup.get(parentContainer);
+  if (projectionsLookup === void 0) {
+    containerProjectionsLookup.set(
       parentContainer,
-      partsLookup = new WeakMap(),
+      projectionsLookup = new WeakMap(),
     );
   }
 
-  let context = partsLookup.get(parts);
+  let context = projectionsLookup.get(projections);
   if (context === void 0) {
-    partsLookup.set(
-      parts,
-      context = new RenderContext<T>(definition, parentContainer, parts),
+    projectionsLookup.set(
+      projections,
+      context = new RenderContext<T>(definition, parentContainer),
     );
   }
 
@@ -254,6 +247,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   private factory: IViewFactory<T> | undefined = void 0;
   private isCompiled: boolean = false;
 
+  private readonly projectionProvider: IProjectionProvider;
   public readonly renderer: IRenderer;
   public readonly dom: IDOM<T>;
 
@@ -262,10 +256,10 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   public constructor(
     public readonly definition: CustomElementDefinition,
     public readonly parentContainer: IContainer,
-    public readonly parts: PartialCustomElementDefinitionParts | undefined,
   ) {
     const container = this.container = parentContainer.createChild();
     this.renderer = container.get(IRenderer);
+    this.projectionProvider = container.get(IProjectionProvider);
 
     container.registerResolver(
       IViewFactory,
@@ -318,6 +312,10 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     return this.container.registerResolver(key, resolver);
   }
 
+  // public deregisterResolverFor<K extends Key, T = K>(key: K): void {
+  //   this.container.deregisterResolverFor(key);
+  // }
+
   public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
     return this.container.registerTransformer(key, transformer);
   }
@@ -344,7 +342,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   // #endregion
 
   // #region IRenderContext api
-  public compile(): ICompiledRenderContext<T> {
+  public compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext<T> {
     let compiledDefinition: CustomElementDefinition;
     if (this.isCompiled) {
       return this;
@@ -356,7 +354,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
       const container = this.container;
       const compiler = container.get(ITemplateCompiler);
 
-      compiledDefinition = this.compiledDefinition = compiler.compile(definition, container);
+      compiledDefinition = this.compiledDefinition = compiler.compile(definition, container, targetedProjections);
     } else {
       compiledDefinition = this.compiledDefinition = definition;
     }
@@ -381,14 +379,14 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     return this;
   }
 
-  public getViewFactory(name?: string): IViewFactory<T> {
+  public getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: IScope | null): IViewFactory<T> {
     let factory = this.factory;
     if (factory === void 0) {
       if (name === void 0) {
         name = this.definition.name;
       }
       const lifecycle = this.parentContainer.get(ILifecycle);
-      factory = this.factory = new ViewFactory<T>(name, this, lifecycle, this.parts);
+      factory = this.factory = new ViewFactory<T>(name, this, lifecycle, contentType, projectionScope);
     }
     return factory;
   }
@@ -443,7 +441,6 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
 
     return this;
   }
-
   // #endregion
 
   // #region IComponentFactory api
@@ -458,9 +455,8 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     targets: ArrayLike<INode>,
     templateDefinition: CustomElementDefinition,
     host: INode | null | undefined,
-    parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
-    this.renderer.render(flags, this, controller, targets, templateDefinition, host, parts);
+    this.renderer.render(flags, this, controller, targets, templateDefinition, host);
   }
 
   public renderInstructions(
@@ -468,15 +464,24 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     instructions: readonly ITargetedInstruction[],
     controller: IRenderableController,
     target: unknown,
-    parts: PartialCustomElementDefinitionParts | undefined,
   ): void {
-    this.renderer.renderInstructions(flags, this, instructions, controller, target, parts);
+    this.renderer.renderInstructions(flags, this, instructions, controller, target);
   }
 
   public dispose(): void {
     this.elementProvider.dispose();
     this.container.disposeResolvers();
 
+  }
+  // #endregion
+
+  // #region IProjectionProvider api
+  public registerProjections(projections: Map<ITargetedInstruction, Record<string, CustomElementDefinition>>, scope: IScope): void {
+    this.projectionProvider.registerProjections(projections, scope);
+  }
+
+  public getProjectionFor(instruction: IHydrateElementInstruction): RegisteredProjections | null {
+    return this.projectionProvider.getProjectionFor(instruction);
   }
   // #endregion
 }
@@ -488,9 +493,9 @@ export class ViewFactoryProvider<T extends INode = INode> implements IResolver {
   public prepare(factory: IViewFactory<T>): void {
     this.factory = factory;
   }
-  public get $isResolver(): true {return true; }
+  public get $isResolver(): true { return true; }
 
-  public resolve(handler: IContainer, requestor: IContainer): IViewFactory<T> {
+  public resolve(_handler: IContainer, _requestor: IContainer): IViewFactory<T> {
     const factory = this.factory;
     if (factory === null) { // unmet precondition: call prepare
       throw Reporter.error(50); // TODO: organize error codes
@@ -498,7 +503,7 @@ export class ViewFactoryProvider<T extends INode = INode> implements IResolver {
     if (typeof factory.name !== 'string' || factory.name.length === 0) { // unmet invariant: factory must have a name
       throw Reporter.error(51); // TODO: organize error codes
     }
-    return factory.resolve(requestor);
+    return factory;
   }
 
   public dispose(): void {

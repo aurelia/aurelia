@@ -16,7 +16,7 @@ import {
   TestContext,
 } from '@aurelia/testing';
 
-describe('templating-compiler.ref.spec.ts', function () {
+describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
   interface IRefIntegrationTestCase {
     title: string;
     template: string | HTMLElement;

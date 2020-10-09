@@ -1423,6 +1423,7 @@ describe('switch', function () {
       ]
     );
 
+    // tag: nonsense example
     yield new TestData(
       '*[switch]>*[case][repeat.for] leads to unexpected result',
       {
@@ -1452,6 +1453,7 @@ describe('switch', function () {
       ]
     );
 
+    // tag: nonsense example
     yield new TestData(
       '*[switch]>*[case][repeat.for] - static case - leads to unexpected result',
       {

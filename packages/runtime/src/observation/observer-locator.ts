@@ -34,8 +34,6 @@ import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
 import { IScheduler } from '@aurelia/scheduler';
 
-const toStringTag = Object.prototype.toString;
-
 export interface IObjectObservationAdapter {
   getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
 }
@@ -201,25 +199,22 @@ export class ObserverLocator implements IObserverLocator {
       isNode = true;
     }
 
-    const tag = toStringTag.call(obj);
-    switch (tag) {
-      case '[object Array]':
-        if (propertyName === 'length') {
+    switch (propertyName) {
+      case 'length':
+        if (obj instanceof Array) {
           return this.getArrayObserver(flags, obj as IObservedArray).getLengthObserver();
         }
-        // is numer only returns true for integer
-        if (isArrayIndex(propertyName)) {
-          return this.getArrayObserver(flags, obj as IObservedArray).getIndexObserver(Number(propertyName));
-        }
         break;
-      case '[object Map]':
-        if (propertyName === 'size') {
+      case 'size':
+        if (obj instanceof Map) {
           return this.getMapObserver(flags, obj as IObservedMap).getLengthObserver();
+        } else if (obj instanceof Set) {
+          return this.getSetObserver(flags, obj as IObservedSet).getLengthObserver();
         }
         break;
-      case '[object Set]':
-        if (propertyName === 'size') {
-          return this.getSetObserver(flags, obj as IObservedSet).getLengthObserver();
+      default:
+        if (obj instanceof Array && isArrayIndex(propertyName)) {
+          return this.getArrayObserver(flags, obj as IObservedArray).getIndexObserver(Number(propertyName));
         }
         break;
     }
@@ -255,13 +250,12 @@ export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecyc
   // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want
   // when we ask for getCollectionObserver
   const rawCollection = collection instanceof Object ? ProxyObserver.getRawIfProxy(collection) : collection;
-  switch (toStringTag.call(collection)) {
-    case '[object Array]':
-      return getArrayObserver(flags, lifecycle, rawCollection as IObservedArray);
-    case '[object Map]':
-      return getMapObserver(flags, lifecycle, rawCollection as IObservedMap);
-    case '[object Set]':
-      return getSetObserver(flags, lifecycle, rawCollection as IObservedSet);
+  if (collection instanceof Array) {
+    return getArrayObserver(flags, lifecycle, rawCollection as IObservedArray);
+  } else if (collection instanceof Map) {
+    return getMapObserver(flags, lifecycle, rawCollection as IObservedMap);
+  } else if (collection instanceof Set) {
+    return getSetObserver(flags, lifecycle, rawCollection as IObservedSet);
   }
   return void 0;
 }

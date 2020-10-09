@@ -241,7 +241,7 @@ describe('ObserverLocator', function () {
                         computed({ volatile: isVolatile })(proto, 'foo');
                       }
                       Reflect.defineProperty(obj, 'foo', descriptor);
-                      if (hasSetter && configurable && !hasGetter && !(hasAdapterObserver && adapterIsDefined)) {
+                      if (hasSetter && !hasGetter && !(hasAdapterObserver && adapterIsDefined)) {
                         assert.throws(() => sut.getObserver(LF.none, obj, 'foo'), /You cannot observe a setter only property/, `() => sut.getObserver(LF.none, obj, 'foo')`);
                       } else {
                         const actual = sut.getObserver(LF.none, obj, 'foo');

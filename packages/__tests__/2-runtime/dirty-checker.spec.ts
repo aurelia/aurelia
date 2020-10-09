@@ -20,7 +20,7 @@ describe('DirtyChecker', function () {
 
     return { dirtyChecker, taskQueue };
   }
-  const expectedFlags = LifecycleFlags.fromTick;
+  const expectedFlags = LifecycleFlags.none;
 
   const specs = [
     {
@@ -238,6 +238,7 @@ describe('DirtyChecker', function () {
                             observer1.unsubscribe(subscriber2);
                             observer2.unsubscribe(subscriber3);
                             observer2.unsubscribe(subscriber4);
+
                             done();
                           });
                         });
@@ -286,6 +287,7 @@ describe('DirtyChecker', function () {
             taskQueue.queueTask(() => {
               assert.strictEqual(callCount, 0, `callCount`);
               observer.unsubscribe(subscriber);
+
               done();
             });
           });

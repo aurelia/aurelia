@@ -3,10 +3,12 @@ import { Metadata, isObject, applyMetadataPolyfill } from '@aurelia/metadata';
 applyMetadataPolyfill(Reflect);
 
 import { isArrayIndex, isNativeFunction } from './functions';
-import { Class, Constructable } from './interfaces';
+import { Class, Constructable, IDisposable, Writable } from './interfaces';
 import { PLATFORM } from './platform';
 import { Reporter } from './reporter';
 import { Protocol } from './resource';
+
+const { emptyArray } = PLATFORM;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -49,16 +51,16 @@ export interface IServiceLocator {
   get<K extends Key>(key: K): Resolved<K>;
   get<K extends Key>(key: Key): Resolved<K>;
   get<K extends Key>(key: K | Key): Resolved<K>;
-  getAll<K extends Key>(key: K): readonly Resolved<K>[];
-  getAll<K extends Key>(key: Key): readonly Resolved<K>[];
-  getAll<K extends Key>(key: K | Key): readonly Resolved<K>[];
+  getAll<K extends Key>(key: K, searchAncestors?: boolean): readonly Resolved<K>[];
+  getAll<K extends Key>(key: Key, searchAncestors?: boolean): readonly Resolved<K>[];
+  getAll<K extends Key>(key: K | Key, searchAncestors?: boolean): readonly Resolved<K>[];
 }
 
 export interface IRegistry {
   register(container: IContainer, ...params: unknown[]): void | IResolver | IContainer;
 }
 
-export interface IContainer extends IServiceLocator {
+export interface IContainer extends IServiceLocator, IDisposable {
   register(...params: any[]): IContainer;
   registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
@@ -108,7 +110,7 @@ export class ResolverBuilder<K> {
 
 export type RegisterSelf<T extends Constructable> = {
   register(container: IContainer): IResolver<InstanceType<T>>;
-  registerInRequester: boolean;
+  registerInRequestor: boolean;
 };
 
 export type Key = PropertyKey | object | InterfaceSymbol | Constructable | IResolver;
@@ -301,7 +303,7 @@ export const DI = {
       return target;
     };
     Interface.$isInterface = true;
-    Interface.friendlyName = friendlyName == null ? 'Interface' : friendlyName;
+    Interface.friendlyName = friendlyName == null ? '(anonymous)' : friendlyName;
 
     Interface.noDefault = function (): InterfaceSymbol<K> {
       return Interface;
@@ -317,6 +319,10 @@ export const DI = {
       };
 
       return Interface;
+    };
+
+    Interface.toString = function toString(): string {
+      return `InterfaceSymbol<${Interface.friendlyName}>`;
     };
 
     return Interface;
@@ -380,7 +386,7 @@ export const DI = {
       const registration = Registration.transient(target as T, target as T);
       return registration.register(container, target);
     };
-    target.registerInRequester = false;
+    target.registerInRequestor = false;
     return target as T & RegisterSelf<T>;
   },
   /**
@@ -406,7 +412,7 @@ export const DI = {
       const registration = Registration.singleton(target, target);
       return registration.register(container, target);
     };
-    target.registerInRequester = options.scoped;
+    target.registerInRequestor = options.scoped;
     return target as T & RegisterSelf<T>;
   },
 };
@@ -499,7 +505,38 @@ export function singleton<T extends Constructable>(targetOrOptions?: (T & Partia
   };
 }
 
-export const all = createResolver((key: Key, handler: IContainer, requestor: IContainer) => requestor.getAll(key));
+function createAllResolver(
+  getter: (key: any, handler: IContainer, requestor: IContainer, searchAncestors: boolean) => readonly any[]
+): (key: any, searchAncestors?: boolean) => ReturnType<typeof DI.inject> {
+  return function (key: any, searchAncestors?: boolean): ReturnType<typeof DI.inject> {
+    searchAncestors = !!searchAncestors;
+    const resolver: ReturnType<typeof DI.inject>
+      & Required<Pick<IResolver, 'resolve'>>
+      & { $isResolver: true}
+      = function (
+          target: Injectable,
+          property?: string | number,
+          descriptor?: PropertyDescriptor | number
+        ): void {
+          DI.inject(resolver)(target, property, descriptor);
+        };
+
+    resolver.$isResolver = true;
+    resolver.resolve = function (handler: IContainer, requestor: IContainer): any {
+      return getter(key, handler, requestor, searchAncestors!);
+    };
+
+    return resolver;
+  };
+}
+
+export const all = createAllResolver(
+  (key: any,
+    handler: IContainer,
+    requestor: IContainer,
+    searchAncestors: boolean
+  ) => requestor.getAll(key, searchAncestors)
+);
 
 /**
  * Lazily inject a dependency depending on whether the [[`Key`]] is present at the time of function call.
@@ -601,7 +638,7 @@ export const enum ResolverStrategy {
 }
 
 /** @internal */
-export class Resolver implements IResolver, IRegistration {
+export class Resolver implements IDisposableResolver, IRegistration {
   public constructor(
     public key: Key,
     public strategy: ResolverStrategy,
@@ -668,6 +705,10 @@ export class Resolver implements IResolver, IRegistration {
       default:
         return null;
     }
+  }
+
+  public dispose(): void {
+    this.key = this.state = null!;
   }
 }
 
@@ -823,11 +864,11 @@ function isRegistry(obj: IRegistry | Record<string, IRegistry>): obj is IRegistr
 }
 
 function isSelfRegistry<T extends Constructable>(obj: RegisterSelf<T>): obj is RegisterSelf<T> {
-  return isRegistry(obj) && typeof obj.registerInRequester === 'boolean';
+  return isRegistry(obj) && typeof obj.registerInRequestor === 'boolean';
 }
 
 function isRegisterInRequester<T extends Constructable>(obj: RegisterSelf<T>): obj is RegisterSelf<T> {
-  return isSelfRegistry(obj) && obj.registerInRequester;
+  return isSelfRegistry(obj) && obj.registerInRequestor;
 }
 
 function isClass<T extends { prototype?: any }>(obj: T): obj is Class<any, T> {
@@ -879,17 +920,17 @@ const factoryAnnotationKey = Protocol.annotation.keyFor(factoryKey);
 export class Container implements IContainer {
   private registerDepth: number = 0;
 
-  private readonly root: Container;
+  private root: Container;
 
-  private readonly resolvers: Map<Key, IResolver>;
+  private resolvers: Map<Key, IResolver | IDisposableResolver>;
 
-  private readonly resourceResolvers: Record<string, IResolver | undefined>;
+  private resourceResolvers: Record<string, IResolver | IDisposableResolver | undefined>;
 
-  private readonly disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
+  private disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
 
   public constructor(
-    private readonly parent: Container | null,
-    private readonly config: IContainerConfiguration = DefaultContainerConfiguration,
+    private parent: Container | null,
+    private config: IContainerConfiguration = DefaultContainerConfiguration,
   ) {
     if (parent === null) {
       this.root = this;
@@ -987,6 +1028,39 @@ export class Container implements IContainer {
     return resolver;
   }
 
+  // public deregisterResolverFor<K extends Key, T = K>(key: K): void {
+  //   // const console =  (globalThis as any).console;
+  //   // console.group("deregisterResolverFor");
+  //   validateKey(key);
+
+  //   let current: Container = this;
+  //   let resolver: IResolver | undefined;
+
+  //   while (current != null) {
+  //     resolver = current.resolvers.get(key);
+
+  //     if (resolver != null) { break; }
+  //     if (current.parent == null) { return; }
+  //     current = current.parent;
+  //   }
+
+  //   if (resolver === void 0) { return; }
+  //   if (resolver instanceof Resolver && resolver.strategy === ResolverStrategy.array) {
+  //     throw new Error('Cannot deregister a resolver with array strategy');
+  //   }
+  //   if (this.disposableResolvers.has(resolver as IDisposableResolver<T>)) {
+  //     (resolver as IDisposableResolver<T>).dispose();
+  //   }
+  //   if (isResourceKey(key)) {
+  //     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+  //     delete this.resourceResolvers[key];
+  //   }
+  //   // console.log(`BEFORE delete ${Array.from(current.resolvers.keys()).map((k) => k.toString())}`);
+  //   current.resolvers.delete(key);
+  //   // console.log(`AFTER delete ${Array.from(current.resolvers.keys()).map((k) => k.toString())}`);
+  //   // console.groupEnd();
+  // }
+
   public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
     const resolver = this.getResolver(key);
 
@@ -1076,27 +1150,40 @@ export class Container implements IContainer {
     throw new Error(`Unable to resolve key: ${key}`);
   }
 
-  public getAll<K extends Key>(key: K): readonly Resolved<K>[] {
+  public getAll<K extends Key>(key: K, searchAncestors: boolean = false): readonly Resolved<K>[] {
     validateKey(key);
 
-    let current: Container | null = this;
+    const requestor = this;
+    let current: Container | null = requestor;
     let resolver: IResolver | undefined;
 
-    while (current != null) {
-      resolver = current.resolvers.get(key);
-
-      if (resolver == null) {
-        if (this.parent == null) {
-          return PLATFORM.emptyArray;
+    if (searchAncestors) {
+      let resolutions: any[] = emptyArray;
+      while (current != null) {
+        resolver = current.resolvers.get(key);
+        if (resolver != null) {
+          resolutions = resolutions.concat(buildAllResponse(resolver, current, requestor));
         }
-
         current = current.parent;
-      } else {
-        return buildAllResponse(resolver, current, this);
+      }
+      return resolutions;
+    } else {
+      while (current != null) {
+        resolver = current.resolvers.get(key);
+
+        if (resolver == null) {
+          current = current.parent;
+
+          if (current == null) {
+            return emptyArray;
+          }
+        } else {
+          return buildAllResponse(resolver, current, requestor);
+        }
       }
     }
 
-    return PLATFORM.emptyArray;
+    return emptyArray;
   }
 
   public getFactory<K extends Constructable>(Type: K): IFactory<K> | null {
@@ -1122,6 +1209,18 @@ export class Container implements IContainer {
     while (disposables.length > 0) {
       disposables.pop()?.dispose();
     }
+  }
+
+  public dispose(): void {
+    this.disposeResolvers();
+    for (const key in this.resourceResolvers) {
+      (this.resourceResolvers[key] as Partial<IDisposableResolver>).dispose?.();
+    }
+    for (const key of this.resolvers.keys()) {
+      (this.resolvers.get(key) as Partial<IDisposableResolver>).dispose?.();
+    }
+    this.resolvers.clear();
+    this.root = this.parent = this.config = this.resolvers = this.resourceResolvers = this.disposableResolvers = null!;
   }
 
   private jitRegister(keyAsValue: any, handler: Container): IResolver {

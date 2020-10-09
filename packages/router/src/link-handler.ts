@@ -2,6 +2,7 @@ import { IDOM, CustomAttribute } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { Key } from '@aurelia/kernel';
 import { GotoCustomAttribute } from './resources/goto';
+import { LoadCustomAttribute } from './resources/load';
 
 /**
  * Provides information about how to handle an anchor event.
@@ -11,7 +12,7 @@ import { GotoCustomAttribute } from './resources/goto';
 export interface ILinkHandlerOptions {
   /**
    * Attribute href should be used for instruction if present and
-   * attribute goto is not present
+   * attribute load is not present
    */
   useHref?: boolean;
   /**
@@ -91,14 +92,16 @@ export class LinkHandler {
     }
 
     const gotoAttr = CustomAttribute.for(target, 'goto');
-    const goto: string | null = gotoAttr !== void 0 ? (gotoAttr.viewModel as GotoCustomAttribute).value as string : null;
-    const href: string | null = options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
-    if ((goto === null || goto.length === 0) && (href === null || href.length === 0)) {
+    const goto = gotoAttr !== void 0 ? (gotoAttr.viewModel as GotoCustomAttribute).value as string : null;
+    const loadAttr = CustomAttribute.for(target, 'load');
+    const load = loadAttr !== void 0 ? (loadAttr.viewModel as LoadCustomAttribute).value as string : null;
+    const href = options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
+    if ((goto === null || goto.length === 0) && (load === null || load.length === 0) && (href === null || href.length === 0)) {
       return info;
     }
 
     info.anchor = target;
-    info.instruction = goto || href;
+    info.instruction = load ?? goto ?? href;
 
     const leftButtonClicked: boolean = event.button === 0;
 
@@ -137,12 +140,12 @@ export class LinkHandler {
   }
 
   /**
-   * Activate the instance.
+   * Start the instance.
    *
    */
-  public activate(options: ILinkHandlerOptions): void {
+  public start(options: ILinkHandlerOptions): void {
     if (this.isActive) {
-      throw new Error('Link handler has already been activated');
+      throw new Error('Link handler has already been started');
     }
 
     this.isActive = true;
@@ -150,11 +153,11 @@ export class LinkHandler {
   }
 
   /**
-   * Deactivate the instance. Event handlers and other resources should be cleaned up here.
+   * Stop the instance. Event handlers and other resources should be cleaned up here.
    */
-  public deactivate(): void {
+  public stop(): void {
     if (!this.isActive) {
-      throw new Error('Link handler has not been activated');
+      throw new Error('Link handler has not been started');
     }
     this.isActive = false;
   }

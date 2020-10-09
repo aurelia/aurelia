@@ -58,10 +58,10 @@ Now, let's use direct routing to create a component and add in a link to route t
 ```markup
 <import from="./my-component.html"></import>
 
-<p><a goto="my-component">My component</a></p>
+<p><a load="my-component">My component</a></p>
 
 <au-viewport></au-viewport>
 ```
 
-Running this code will give you a working application that allows you to route to a HTML only component and you should see the text, `This is a component rendered by the router, hello`. You might have noticed we created a link and then added an attribute called `goto` this simply tells the router this is a link that will go to a route.
+Running this code will give you a working application that allows you to route to a HTML only component and you should see the text, `This is a component rendered by the router, hello`. You might have noticed we created a link and then added an attribute called `load` this simply tells the router this is a link that will go to a route.
 

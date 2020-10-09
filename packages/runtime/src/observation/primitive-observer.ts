@@ -1,9 +1,8 @@
 import { PLATFORM, Primitive } from '@aurelia/kernel';
-import { IAccessor, ISubscribable } from '../observation';
+import { IAccessor, ISubscribable, AccessorType } from '../observation';
+import { ITask } from '@aurelia/scheduler';
 
 const slice = Array.prototype.slice;
-
-const noop = PLATFORM.noop;
 
 // note: string.length is the only property of any primitive that is not a function,
 // so we can hardwire it to that and simply return undefined for anything else
@@ -20,6 +19,8 @@ export class PrimitiveObserver implements IAccessor, ISubscribable {
 
   public doNotCache: boolean = true;
   public obj: Primitive;
+  public type: AccessorType = AccessorType.None;
+  public task: ITask | null = null;
 
   public constructor(obj: Primitive, propertyKey: PropertyKey) {
     // we don't need to store propertyName because only 'length' can return a useful value
@@ -39,7 +40,10 @@ export class PrimitiveObserver implements IAccessor, ISubscribable {
     return undefined;
   }
 }
-PrimitiveObserver.prototype.setValue = noop;
-PrimitiveObserver.prototype.subscribe = noop;
-PrimitiveObserver.prototype.unsubscribe = noop;
-PrimitiveObserver.prototype.dispose = noop;
+
+((proto, noop) => {
+  proto.setValue = noop;
+  proto.subscribe = noop;
+  proto.unsubscribe = noop;
+  proto.dispose = noop;
+})(PrimitiveObserver.prototype, PLATFORM.noop);

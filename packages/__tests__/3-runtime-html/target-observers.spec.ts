@@ -56,53 +56,24 @@ describe('AttributeNSAccessor', function () {
         sut.bind(LifecycleFlags.none);
         actual = sut.getValue();
         assert.strictEqual(actual, value, `actual`);
-
-        sut.unbind(LifecycleFlags.none);
       });
     }
   });
 
-  describe('setValue() with flags.none', function () {
-    for (const { name, value } of tests) {
-      it(`sets xlink:${name} only after flushing RAF`, function () {
-        const ctx = TestContext.createHTMLTestContext();
-        el = createSvgUseElement(ctx, name, value) as HTMLElement;
-        const { scheduler: $scheduler } = createFixture();
-        scheduler = $scheduler;
-        sut = new AttributeNSAccessor(scheduler, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
+  for (const { name, value } of tests) {
+    it(`sets xlink:${name} only after flushing RAF`, function () {
+      const ctx = TestContext.createHTMLTestContext();
+      el = createSvgUseElement(ctx, name, value) as HTMLElement;
+      const { scheduler: $scheduler } = createFixture();
+      scheduler = $scheduler;
+      sut = new AttributeNSAccessor(scheduler, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
 
-        sut.bind(LifecycleFlags.none);
-        sut.setValue('foo', LifecycleFlags.none);
-        assert.strictEqual(sut.getValue(), 'foo', `sut.getValue()`);
-        assert.strictEqual(el.getAttributeNS(sut.namespace, sut.propertyKey), value, `el.getAttributeNS(sut.namespace, sut.propertyKey) before flush`);
+      sut.bind(LifecycleFlags.none);
+      sut.setValue('foo', LifecycleFlags.none);
 
-        scheduler.getRenderTaskQueue().flush();
-        assert.strictEqual(el.getAttributeNS(sut.namespace, sut.propertyKey), 'foo', `el.getAttributeNS(sut.namespace, sut.propertyKey) after flush`);
-
-        sut.unbind(LifecycleFlags.none);
-      });
-    }
-  });
-
-  describe('setValue() with flags.fromBind', function () {
-    for (const { name, value } of tests) {
-      it(`sets xlink:${name} immediately`, function () {
-        const ctx = TestContext.createHTMLTestContext();
-        el = createSvgUseElement(ctx, name, value) as HTMLElement;
-        const { scheduler: $scheduler } = createFixture();
-        scheduler = $scheduler;
-        sut = new AttributeNSAccessor(scheduler, LifecycleFlags.none, el, name, 'http://www.w3.org/1999/xlink');
-
-        sut.bind(LifecycleFlags.none);
-        sut.setValue('foo', LifecycleFlags.fromBind);
-        assert.strictEqual(sut.getValue(), 'foo', `sut.getValue()`);
-        assert.strictEqual(el.getAttributeNS(sut.namespace, sut.propertyKey), 'foo', `el.getAttributeNS(sut.namespace, sut.propertyKey) before flush`);
-
-        sut.unbind(LifecycleFlags.none);
-      });
-    }
-  });
-
+      assert.strictEqual(el.getAttributeNS(sut.namespace, sut.propertyKey), 'foo', `el.getAttributeNS(sut.namespace, sut.propertyKey) after flush`);
+    });
+  }
 });
 
 describe('DataAttributeAccessor', function () {
@@ -127,59 +98,28 @@ describe('DataAttributeAccessor', function () {
           sut.bind(LifecycleFlags.none);
           actual = sut.getValue();
           assert.strictEqual(actual, value, `actual`);
-
-          sut.unbind(LifecycleFlags.none);
         });
       }
     }
   });
 
-  describe('setValue() with flags.none', function () {
-    for (const name of globalAttributeNames) {
-      for (const value of valueArr) {
-        it(`sets attribute "${name}" to "${value}" only after flushing RAF`, function () {
-          const ctx = TestContext.createHTMLTestContext();
-          el = ctx.createElementFromMarkup(`<div></div>`);
-          const { scheduler: $scheduler } = createFixture();
-          scheduler = $scheduler;
-          const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
-          sut = new DataAttributeAccessor(scheduler, LifecycleFlags.none, el, name);
+  for (const name of globalAttributeNames) {
+    for (const value of valueArr) {
+      it(`sets attribute "${name}" to "${value}" only after flushing RAF`, function () {
+        const ctx = TestContext.createHTMLTestContext();
+        el = ctx.createElementFromMarkup(`<div></div>`);
+        const { scheduler: $scheduler } = createFixture();
+        scheduler = $scheduler;
+        const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
+        sut = new DataAttributeAccessor(scheduler, LifecycleFlags.none, el, name);
 
-          sut.bind(LifecycleFlags.none);
-          sut.setValue(value, LifecycleFlags.none);
-          assert.strictEqual(sut.getValue(), value, `sut.getValue()`);
-          assert.strictEqual(el.outerHTML, '<div></div>', `el.outerHTML before flush`);
+        sut.bind(LifecycleFlags.none);
+        sut.setValue(value, LifecycleFlags.none);
 
-          scheduler.getRenderTaskQueue().flush();
-          assert.strictEqual(el.outerHTML, expected, `el.outerHTML after flush`);
-
-          sut.unbind(LifecycleFlags.none);
-        });
-      }
+        assert.strictEqual(el.outerHTML, expected, `el.outerHTML after flush`);
+      });
     }
-  });
-
-  describe('setValue() with flags.fromBind', function () {
-    for (const name of globalAttributeNames) {
-      for (const value of valueArr) {
-        it(`sets attribute "${name}" to "${value}" immediately`, function () {
-          const ctx = TestContext.createHTMLTestContext();
-          el = ctx.createElementFromMarkup(`<div></div>`);
-          const { scheduler: $scheduler } = createFixture();
-          scheduler = $scheduler;
-          const expected = value != null ? `<div ${name}="${value}"></div>` : '<div></div>';
-          sut = new DataAttributeAccessor(scheduler, LifecycleFlags.none, el, name);
-
-          sut.bind(LifecycleFlags.none);
-          sut.setValue(value, LifecycleFlags.fromBind);
-          assert.strictEqual(sut.getValue(), value, `sut.getValue()`);
-          assert.strictEqual(el.outerHTML, expected, `el.outerHTML before flush`);
-
-          sut.unbind(LifecycleFlags.none);
-        });
-      }
-    }
-  });
+  }
 });
 
 interface IStyleSpec {
@@ -210,14 +150,13 @@ describe('StyleAccessor', function () {
       const setPropertySpy = createSpy(sut, 'setProperty', true);
 
       sut.bind(LifecycleFlags.none);
-      sut.setValue(rule, LifecycleFlags.none);
       assert.deepStrictEqual(
         setPropertySpy.calls,
         [],
         `setPropertySpy.calls`,
       );
 
-      scheduler.getRenderTaskQueue().flush();
+      sut.setValue(rule, LifecycleFlags.none);
       assert.deepStrictEqual(
         setPropertySpy.calls,
         [
@@ -225,8 +164,6 @@ describe('StyleAccessor', function () {
         ],
         `setPropertySpy.calls`,
       );
-
-      sut.unbind(LifecycleFlags.none);
     });
   }
 
@@ -234,7 +171,7 @@ describe('StyleAccessor', function () {
     const values = CSS_PROPERTIES[propName]['values'];
     const value = values[0];
     const rule = `${propName}:${value}`;
-    it(`setValue - style="${rule}" flags.fromBind`, function () {
+    it(`setValue - style="${rule}" flags.none`, function () {
       const ctx = TestContext.createHTMLTestContext();
       el = ctx.createElementFromMarkup('<div></div>');
       const { scheduler: $scheduler } = createFixture();
@@ -242,8 +179,7 @@ describe('StyleAccessor', function () {
       sut = new StyleAttributeAccessor(scheduler, LifecycleFlags.none, el);
       const setPropertySpy = createSpy(sut, 'setProperty', true);
 
-      sut.bind(LifecycleFlags.none);
-      sut.setValue(rule, LifecycleFlags.fromBind);
+      sut.setValue(rule, LifecycleFlags.none);
       assert.deepStrictEqual(
         setPropertySpy.calls,
         [
@@ -251,8 +187,6 @@ describe('StyleAccessor', function () {
         ],
         `setPropertySpy.calls`,
       );
-
-      sut.unbind(LifecycleFlags.none);
     });
   }
 
@@ -380,7 +314,7 @@ describe('StyleAccessor', function () {
       const ctx = TestContext.createHTMLTestContext();
       const el = ctx.createElementFromMarkup(`<div style="${staticStyle}"></div>`);
       const sut = new StyleAttributeAccessor(ctx.scheduler, LifecycleFlags.none, el);
-      sut.setValue(input, LifecycleFlags.fromBind);
+      sut.setValue(input, LifecycleFlags.none);
 
       const actual = sut.getValue();
       assert.strictEqual(actual, expected);
@@ -389,7 +323,6 @@ describe('StyleAccessor', function () {
 });
 
 describe('ClassAccessor', function () {
-
   const assertClassChanges = (initialClassList: string, classList: string, secondClassList: string | object, secondUpdatedClassList: string) => {
     const initialClasses = initialClassList.split(' ').filter(x => x);
 
@@ -447,92 +380,52 @@ describe('ClassAccessor', function () {
         const initialClassList = el.classList.toString();
         const { scheduler } = ctx;
         const sut = new ClassAttributeAccessor(scheduler, LifecycleFlags.none, el);
-        sut.bind(LifecycleFlags.none);
 
         function tearDown() {
           scheduler.getRenderTaskQueue().flush();
-          sut.unbind(LifecycleFlags.none);
         }
 
         return { sut, el, initialClassList, scheduler, tearDown };
       }
 
-      describe('with flags.none', function () {
+      it(`setValue("${classList}") updates ${markup} flags.none`, function () {
+        const {
+          sut,
+          el,
+          initialClassList,
+          tearDown,
+        } = createFixture();
 
-        it(`setValue("${classList}") updates ${markup} flags.none`, function () {
-          const { sut, el, initialClassList, scheduler, tearDown } = createFixture();
+        sut.setValue(classList, LifecycleFlags.none);
+
+        const updatedClassList = el.classList.toString();
+        for (const cls of initialClassList.split(' ').filter(x => x)) {
+          assert.includes(updatedClassList, cls, `updatedClassList includes class from initialClassList "${initialClassList}"`);
+        }
+        for (const cls of classList.split(' ').filter(x => x)) {
+          assert.includes(updatedClassList, cls, `updatedClassList includes class from classList "${classList}"`);
+        }
+
+        tearDown();
+      });
+
+      for (const secondClassList of secondClassListArr) {
+        it(`setValue("${secondClassList}") updates already-updated ${markup} flags.none`, function () {
+          const {
+            sut,
+            el,
+            initialClassList,
+            tearDown,
+          } = createFixture();
 
           sut.setValue(classList, LifecycleFlags.none);
-
-          assert.strictEqual(el.classList.toString(), initialClassList, `el.classList.toString() === initialClassList`);
-
-          scheduler.getRenderTaskQueue().flush();
+          sut.setValue(secondClassList, LifecycleFlags.none);
 
           const updatedClassList = el.classList.toString();
-          for (const cls of initialClassList.split(' ').filter(x => x)) {
-            assert.includes(updatedClassList, cls, `updatedClassList includes class from initialClassList "${initialClassList}"`);
-          }
-          for (const cls of classList.split(' ').filter(x => x)) {
-            assert.includes(updatedClassList, cls, `updatedClassList includes class from classList "${classList}"`);
-          }
-
+          assertClassChanges(initialClassList, classList, secondClassList, updatedClassList);
           tearDown();
         });
-
-        for (const secondClassList of secondClassListArr) {
-          it(`setValue("${secondClassList}") updates already-updated ${markup} flags.none`, function () {
-            const { sut, el, initialClassList, scheduler, tearDown } = createFixture();
-
-            sut.setValue(classList, LifecycleFlags.none);
-
-            scheduler.getRenderTaskQueue().flush();
-
-            const updatedClassList = el.classList.toString();
-
-            sut.setValue(secondClassList, LifecycleFlags.none);
-            assert.strictEqual(el.classList.toString(), updatedClassList, `el.classList.toString()`);
-
-            scheduler.getRenderTaskQueue().flush();
-
-            const secondUpdatedClassList = el.classList.toString();
-            assertClassChanges(initialClassList, classList, secondClassList, secondUpdatedClassList);
-            tearDown();
-          });
-        }
-      });
-
-      describe('with flags.fromBind', function () {
-        it(`setValue("${classList}") updates ${markup} flags.fromBind`, function () {
-          const { sut, el, initialClassList, tearDown } = createFixture();
-
-          sut.setValue(classList, LifecycleFlags.fromBind);
-
-          const updatedClassList = el.classList.toString();
-          for (const cls of initialClassList.split(' ').filter(x => x)) {
-            assert.includes(updatedClassList, cls, `updatedClassList includes class from initialClassList "${initialClassList}"`);
-          }
-          for (const cls of classList.split(' ').filter(x => x)) {
-            assert.includes(updatedClassList, cls, `updatedClassList includes class from classList "${classList}"`);
-          }
-
-          tearDown();
-        });
-
-        for (const secondClassList of secondClassListArr) {
-          it(`setValue("${secondClassList}") updates already-updated ${markup} flags.fromBind`, function () {
-            const { sut, el, initialClassList, tearDown } = createFixture();
-
-            sut.setValue(classList, LifecycleFlags.fromBind);
-
-            sut.setValue(secondClassList, LifecycleFlags.fromBind);
-
-            const secondUpdatedClassList = el.classList.toString();
-
-            assertClassChanges(initialClassList, classList, secondClassList, secondUpdatedClassList);
-            tearDown();
-          });
-        }
-      });
+      }
     }
   }
 });

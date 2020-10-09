@@ -1,4 +1,4 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, Key } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime';
 import { ComponentAppellation, ComponentParameters, IRouteableComponent, RouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
@@ -7,6 +7,8 @@ import { Viewport } from './viewport';
 import { IComponentParameter, InstructionResolver } from './instruction-resolver';
 import { Scope, IScopeOwner } from './scope';
 import { ViewportScope } from './viewport-scope';
+import { FoundRoute } from './found-route';
+import { RouterOptions } from './router-options';
 
 /**
  * @internal - Shouldn't be used directly
@@ -18,44 +20,72 @@ export const enum ParametersType {
   object = 'object',
 }
 
+export type Params = {
+  [key: string]: unknown;
+};
+
 /**
  * Public API - The viewport instructions are the core of the router's navigations
  */
 export class ViewportInstruction {
+  public static readonly inject: readonly Key[] = [RouterOptions];
+
   public componentName: string | null = null;
   public componentType: RouteableComponentType | null = null;
   public componentInstance: IRouteableComponent | null = null;
   public viewportName: string | null = null;
   public viewport: Viewport | null = null;
   public parametersString: string | null = null;
-  public parametersRecord: Record<string, unknown> | null = null;
+  public parametersRecord: Params | null = null;
   public parametersList: unknown[] | null = null;
   public parametersType: ParametersType = ParametersType.none;
+
+  public ownsScope: boolean = true;
+  public nextScopeInstructions: ViewportInstruction[] | null = null;
 
   public scope: Scope | null = null;
   public context: string = '';
   public viewportScope: ViewportScope | null = null;
   public needsViewportDescribed: boolean = false;
-  public route: string | null = null;
+  public route: FoundRoute | string | null = null;
 
   public default: boolean = false;
+  public topInstruction: boolean = false;
 
   private instructionResolver: InstructionResolver | null = null;
 
-  public constructor(
-    component: ComponentAppellation,
-    viewport?: ViewportHandle,
-    parameters?: ComponentParameters,
-    public ownsScope: boolean = true,
-    public nextScopeInstructions: ViewportInstruction[] | null = null,
-  ) {
-    this.setComponent(component);
-    this.setViewport(viewport);
-    this.setParameters(parameters);
+  // public constructor(
+  //   component: ComponentAppellation,
+  //   viewport?: ViewportHandle,
+  //   parameters?: ComponentParameters,
+  //   public ownsScope: boolean = true,
+  //   public nextScopeInstructions: ViewportInstruction[] | null = null,
+  // ) {
+  //   this.setComponent(component);
+  //   this.setViewport(viewport);
+  //   this.setParameters(parameters);
+  // }
+
+  public static create(instructionResolver: InstructionResolver | null, component: ComponentAppellation | Promise<ComponentAppellation>, viewport?: ViewportHandle, parameters?: ComponentParameters, ownsScope: boolean = true, nextScopeInstructions: ViewportInstruction[] | null = null): ViewportInstruction {
+    // if (component instanceof Promise) {
+    //   return component.then((resolvedComponent) => {
+    //     return ViewportInstruction.create(instructionResolver, resolvedComponent, viewport, parameters, ownsScope, nextScopeInstructions);
+    //   });
+    // }
+
+    const instruction: ViewportInstruction = new ViewportInstruction();
+    instruction.setComponent(component);
+    instruction.setViewport(viewport);
+    instruction.setParameters(parameters);
+    instruction.ownsScope = ownsScope;
+    instruction.nextScopeInstructions = nextScopeInstructions;
+    instruction.setInstructionResolver(instructionResolver);
+
+    return instruction;
   }
 
   public get owner(): IScopeOwner | null {
-    return this.viewport || this.viewportScope || null;
+    return this.viewport ?? this.viewportScope ?? null;
   }
 
   public get typedParameters(): ComponentParameters | null {
@@ -90,11 +120,11 @@ export class ViewportInstruction {
       this.componentType = null;
       this.componentInstance = null;
     } else if (ComponentAppellationResolver.isType(component)) {
-      this.componentName = ComponentAppellationResolver.getName(component);
+      this.componentName = this.getNewName(component);
       this.componentType = ComponentAppellationResolver.getType(component);
       this.componentInstance = null;
     } else if (ComponentAppellationResolver.isInstance(component)) {
-      this.componentName = ComponentAppellationResolver.getName(component);
+      this.componentName = this.getNewName(ComponentAppellationResolver.getType(component)!);
       this.componentType = ComponentAppellationResolver.getType(component);
       this.componentInstance = ComponentAppellationResolver.getInstance(component);
     }
@@ -132,7 +162,7 @@ export class ViewportInstruction {
   }
 
   // This only works with objects added to objects!
-  public addParameters(parameters: Record<string, unknown>): void {
+  public addParameters(parameters: Params): void {
     if (this.parametersType === ParametersType.none) {
       return this.setParameters(parameters);
     }
@@ -141,7 +171,7 @@ export class ViewportInstruction {
     }
     this.setParameters({ ...this.parametersRecord, ...parameters });
   }
-  public setInstructionResolver(instructionResolver: InstructionResolver): void {
+  public setInstructionResolver(instructionResolver: InstructionResolver | null): void {
     this.instructionResolver = instructionResolver;
   }
 
@@ -182,11 +212,15 @@ export class ViewportInstruction {
       return this.componentInstance;
     }
     if (container !== void 0 && container !== null) {
-      if (this.isComponentType()) {
-        return container.get<IRouteableComponent>(this.componentType!);
-      } else {
-        return container.get<IRouteableComponent>(CustomElement.keyFrom(this.componentName!));
+      const instance = this.isComponentType()
+        ? container.get<IRouteableComponent>(this.componentType!)
+        : container.get<IRouteableComponent>(CustomElement.keyFrom(this.componentName!));
+      if (this.isComponentType() &&
+        !(instance instanceof this.componentType!)
+      ) {
+        console.warn('Failed to instantiate', this.componentType, instance);
       }
+      return instance ?? null;
     }
     return null;
   }
@@ -205,7 +239,7 @@ export class ViewportInstruction {
     const specified: Record<string, unknown> = {};
     for (const spec of specifications) {
       // First get named if it exists
-      let index: number = parameters.findIndex(param => param.key === spec);
+      let index = parameters.findIndex(param => param.key === spec);
       if (index >= 0) {
         const [parameter] = parameters.splice(index, 1);
         specified[spec] = parameter.value;
@@ -222,7 +256,7 @@ export class ViewportInstruction {
     for (const parameter of parameters.filter(param => param.key !== void 0)) {
       specified[parameter.key!] = parameter.value;
     }
-    let index: number = specifications.length;
+    let index = specifications.length;
     // Add all remaining unnamed...
     for (const parameter of parameters.filter(param => param.key === void 0)) {
       // ..with an index
@@ -238,7 +272,7 @@ export class ViewportInstruction {
     const sorted: IComponentParameter[] = [];
     for (const spec of specifications) {
       // First get named if it exists
-      let index: number = parameters.findIndex(param => param.key === spec);
+      let index = parameters.findIndex(param => param.key === spec);
       if (index >= 0) {
         const parameter = { ...parameters.splice(index, 1)[0] };
         parameter.key = void 0;
@@ -291,5 +325,14 @@ export class ViewportInstruction {
     }
     return this.scope === other.scope &&
       (this.viewport ? this.viewport.name : this.viewportName) === (other.viewport ? other.viewport.name : other.viewportName);
+  }
+
+  private getNewName(type: RouteableComponentType): string {
+    if (this.componentName === null
+      // || !type.aliases?.includes(this.componentName)
+    ) {
+      return ComponentAppellationResolver.getName(type);
+    }
+    return this.componentName;
   }
 }

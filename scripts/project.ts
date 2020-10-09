@@ -1,10 +1,10 @@
-import { join, resolve } from 'path';
+import { join } from 'path';
 import * as lernaJson from '../lerna.json';
 import * as packageJson from '../package.json';
 
 // TODO: generate this file automatically
 
-const rootPath = resolve(__dirname, '..');
+const rootPath = process.cwd();
 
 const testApps = [
   'jit-webpack-conventions-ts',

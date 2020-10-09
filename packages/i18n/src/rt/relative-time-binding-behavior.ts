@@ -4,7 +4,7 @@ import { BindingWithBehavior, createIntlFormatValueConverterExpression, ValueCon
 @bindingBehavior(ValueConverters.relativeTimeValueConverterName)
 export class RelativeTimeBindingBehavior {
 
-  public bind(flags: LifecycleFlags, scope: IScope, binding: BindingWithBehavior) {
+  public bind(flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, binding: BindingWithBehavior) {
     createIntlFormatValueConverterExpression(ValueConverters.relativeTimeValueConverterName, binding);
   }
 }

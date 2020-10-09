@@ -9,7 +9,7 @@ import {
   Container
 } from 'pixi.js';
 
-@customElement({ name: 'pixi-app', template: '<template><div replaceable="children"></div></template>' })
+@customElement({ name: 'pixi-app', template: '<template><au-slot name="children"></au-slot></template>' })
 export class PixiApp {
   public static readonly inject: readonly Key[] = [Element];
 
@@ -88,14 +88,14 @@ export class PixiApp {
     }
   }
 
-  public afterDetach(): void {
+  public beforeUnbind(): void {
     if (this._app !== null) {
       this.element.removeChild(this._app.view);
       this._app.ticker.remove(this.callTick);
     }
   }
 
-  public afterUnbind(): void {
+  public afterUnbindChildren(): void {
     if (this.app !== null) {
       this.app.destroy();
     }

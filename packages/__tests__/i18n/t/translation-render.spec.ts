@@ -12,15 +12,6 @@ import {
   TranslationBindInstructionType,
   TranslationInstructionType,
 } from '@aurelia/i18n';
-import {
-  AttributePattern,
-  AttributePatternDefinition,
-  AttrSyntax,
-  BindingCommand,
-  IAttributePattern,
-  PlainAttributeSymbol,
-} from '@aurelia/jit';
-import { AttrBindingCommand } from '@aurelia/jit-html';
 import { Constructable, DI } from '@aurelia/kernel';
 import {
   AnyBindingExpression,
@@ -34,8 +25,14 @@ import {
   IRenderableController,
   LifecycleFlags,
   RuntimeConfiguration,
+  AttributePattern,
+  AttributePatternDefinition,
+  AttrSyntax,
+  BindingCommand,
+  IAttributePattern,
+  PlainAttributeSymbol,
 } from '@aurelia/runtime';
-import { DOM } from '@aurelia/runtime-html';
+import { AttrBindingCommand, DOM } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
 describe('TranslationAttributePattern', function () {
@@ -150,7 +147,6 @@ describe('TranslationBindingRenderer', function () {
       controller,
       DOM.createElement('span'),
       callBindingInstruction,
-      void 0,
     );
 
     assert.instanceOf(controller.bindings[0], TranslationBinding);
@@ -172,7 +168,6 @@ describe('TranslationBindingRenderer', function () {
       controller,
       targetElement,
       callBindingInstruction,
-      void 0,
     );
 
     assert.equal(binding.expr, from);
@@ -297,7 +292,6 @@ describe('TranslationBindBindingRenderer', function () {
       controller,
       DOM.createElement('span'),
       callBindingInstruction,
-      void 0,
     );
 
     assert.instanceOf(controller.bindings[0], TranslationBinding);
@@ -317,7 +311,6 @@ describe('TranslationBindBindingRenderer', function () {
       controller,
       DOM.createElement('span'),
       callBindingInstruction,
-      void 0,
     );
 
     assert.instanceOf(controller.bindings[0], TranslationBinding);
@@ -339,7 +332,6 @@ describe('TranslationBindBindingRenderer', function () {
       controller,
       targetElement,
       callBindingInstruction,
-      void 0,
     );
 
     assert.equal(binding.expr, from);

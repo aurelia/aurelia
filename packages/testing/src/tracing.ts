@@ -8,7 +8,7 @@ import {
   PlainAttributeSymbol,
   AnySymbol,
   AttrSyntax,
-} from '@aurelia/jit';
+} from '@aurelia/runtime';
 import {
   Class,
   IContainer,

@@ -1,22 +1,21 @@
 import {
   nextId,
+  onResolve,
 } from '@aurelia/kernel';
 import {
   bindable,
-  ContinuationTask,
   MountStrategy,
   IDOM,
-  ILifecycleTask,
   IRenderLocation,
   IViewFactory,
   LifecycleFlags,
-  LifecycleTask,
-  State,
   templateController,
-  TerminalTask,
   ISyntheticView,
   ICustomAttributeController,
   ICustomAttributeViewModel,
+  IHydratedController,
+  IHydratedParentController,
+  ControllerVisitor,
 } from '@aurelia/runtime';
 import {
   HTMLDOM,
@@ -25,19 +24,7 @@ import {
 export type PortalTarget<T extends ParentNode = ParentNode> = string | T | null | undefined;
 type ResolvedTarget<T extends ParentNode = ParentNode> = T | null;
 
-export type PortalLifecycleCallback<T extends ParentNode = ParentNode> = (target: PortalTarget<T>, view: ISyntheticView<T>) => void | Promise<void> | ILifecycleTask;
-
-function toTask(maybePromiseOrTask: void | Promise<void> | ILifecycleTask): ILifecycleTask {
-  if (maybePromiseOrTask == null) {
-    return LifecycleTask.done;
-  }
-
-  if (typeof (maybePromiseOrTask as Promise<void>).then === 'function') {
-    return new TerminalTask(maybePromiseOrTask);
-  }
-
-  return maybePromiseOrTask as ILifecycleTask;
-}
+export type PortalLifecycleCallback<T extends ParentNode = ParentNode> = (target: PortalTarget<T>, view: ISyntheticView<T>) => void | Promise<void>;
 
 @templateController('portal')
 export class Portal<T extends ParentNode = ParentNode> implements ICustomAttributeViewModel<T> {
@@ -70,9 +57,7 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
   @bindable()
   public callbackContext: unknown;
 
-  public readonly view: ISyntheticView<T>;
-
-  private task: ILifecycleTask = LifecycleTask.done;
+  public view: ISyntheticView<T>;
 
   private currentTarget?: PortalTarget;
 
@@ -87,40 +72,36 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
 
     this.view = this.factory.create();
     dom.setEffectiveParentNode(this.view.nodes!, originalLoc as unknown as Node);
-    this.view.hold(originalLoc, MountStrategy.insertBefore);
   }
 
-  public beforeBind(flags: LifecycleFlags): ILifecycleTask {
+  public afterAttach(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
     if (this.callbackContext == null) {
-      this.callbackContext = this.$controller.scope!.bindingContext;
+      this.callbackContext = this.$controller.scope.bindingContext;
     }
+    const newTarget = this.currentTarget = this.resolveTarget();
+    this.view.setLocation(newTarget, MountStrategy.append);
 
-    return this.view.bind(flags, this.$controller.scope);
+    return this.$activating(initiator, newTarget, flags);
   }
 
-  public afterAttach(flags: LifecycleFlags): void {
-    this.targetChanged();
-  }
-
-  public beforeDetach(flags: LifecycleFlags): void {
-    this.task = this.deactivate(flags);
-  }
-
-  public beforeUnbind(flags: LifecycleFlags): ILifecycleTask {
-    this.callbackContext = null;
-    return this.view.unbind(flags);
+  public afterUnbind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
+    return this.$deactivating(initiator, this.currentTarget as T, flags);
   }
 
   public targetChanged(): void {
-    const $controller = this.$controller;
-    if (($controller.state & State.isBound) === 0) {
+    const { $controller } = this;
+    if (!$controller.isActive) {
       return;
     }
 
-    this.project($controller.flags);
-  }
-
-  private project(flags: LifecycleFlags): void {
     const oldTarget = this.currentTarget;
     const newTarget = this.currentTarget = this.resolveTarget();
 
@@ -128,85 +109,106 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
       return;
     }
 
-    this.task = this.deactivate(flags);
-    this.task = this.activate(newTarget, flags);
+    this.view.setLocation(newTarget, MountStrategy.append);
+    // TODO(fkleuver): fix and test possible race condition
+    const ret = onResolve(
+      this.$deactivating(null, newTarget, $controller.flags),
+      () => {
+        return this.$activating(null, newTarget, $controller.flags);
+      },
+    );
+    if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
   }
 
-  private activate(target: T, flags: LifecycleFlags): ILifecycleTask {
-    const {
-      activating,
-      activated,
-      callbackContext,
-      view
-    } = this;
-    let task = this.task;
+  private $activating(
+    initiator: IHydratedController<T> | null,
+    target: T,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
+    const { activating, callbackContext, view } = this;
 
-    view.hold(target, MountStrategy.append);
+    view.setLocation(target, MountStrategy.append);
 
-    if ((this.$controller.state & State.isAttachedOrAttaching) === 0) {
-      return task;
-    }
-
-    if (typeof activating === 'function') {
-      if (task.done) {
-        task = toTask(activating.call(callbackContext, target, view));
-      } else {
-        task = new ContinuationTask(task, activating, callbackContext, target, view);
-      }
-    }
-
-    if (task.done) {
-      view.attach(flags);
-    } else {
-      task = new ContinuationTask(task, view.attach, view, flags);
-    }
-
-    if (typeof activated === 'function') {
-      if (task.done) {
-        // TODO: chain this up with RAF queue mount callback so activated is called only when
-        // node is actually mounted (is this needed as per the spec of this resource?)
-        task = toTask(activated.call(callbackContext, target, view));
-      } else {
-        task = new ContinuationTask(task, activated, callbackContext, target, view);
-      }
-    }
-
-    return task;
+    return onResolve(
+      activating?.call(callbackContext, target, view),
+      () => {
+        return this.activate(initiator, target, flags);
+      },
+    );
   }
 
-  private deactivate(flags: LifecycleFlags): ILifecycleTask {
-    const {
-      deactivating,
-      deactivated,
-      callbackContext,
-      view,
-      target: target
-    } = this;
-    let task = this.task;
+  private activate(
+    initiator: IHydratedController<T> | null,
+    target: T,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
+    const { $controller, view } = this;
 
-    if (typeof deactivating === 'function') {
-      if (task.done) {
-        task = toTask(deactivating.call(callbackContext, target, view));
-      } else {
-        task = new ContinuationTask(task, deactivating, callbackContext, target, view);
-      }
-    }
-
-    if (task.done) {
-      view.detach(flags);
+    if (initiator === null) {
+      view.nodes.appendTo(target);
     } else {
-      task = new ContinuationTask(task, view.detach, view, flags);
+      // TODO(fkleuver): fix and test possible race condition
+      return onResolve(
+        view.activate(initiator ?? view, $controller, flags, $controller.scope),
+        () => {
+          return this.$activated(target);
+        },
+      );
     }
 
-    if (typeof deactivated === 'function') {
-      if (task.done) {
-        task = toTask(deactivated.call(callbackContext, target, view));
-      } else {
-        task = new ContinuationTask(task, deactivated, callbackContext, target, view);
-      }
+    return this.$activated(target);
+  }
+
+  private $activated(
+    target: T,
+  ): void | Promise<void> {
+    const { activated, callbackContext, view } = this;
+
+    return activated?.call(callbackContext, target, view);
+  }
+
+  private $deactivating(
+    initiator: IHydratedController<T> | null,
+    target: T,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
+    const { deactivating, callbackContext, view } = this;
+
+    return onResolve(
+      deactivating?.call(callbackContext, target, view),
+      () => {
+        return this.deactivate(initiator, target, flags);
+      },
+    );
+  }
+
+  private deactivate(
+    initiator: IHydratedController<T> | null,
+    target: T,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
+    const { $controller, view } = this;
+
+    if (initiator === null) {
+      view.nodes.remove();
+    } else {
+      return onResolve(
+        view.deactivate(initiator, $controller, flags),
+        () => {
+          return this.$deactivated(target);
+        },
+      );
     }
 
-    return task;
+    return this.$deactivated(target);
+  }
+
+  private $deactivated(
+    target: T,
+  ): void | Promise<void> {
+    const { deactivated, callbackContext, view } = this;
+
+    return deactivated?.call(callbackContext, target, view);
   }
 
   private resolveTarget(): T {
@@ -240,5 +242,25 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
     }
 
     return target!;
+  }
+
+  public onCancel(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void {
+    this.view?.cancel(initiator, this.$controller, flags);
+  }
+
+  public dispose(): void {
+    this.view.dispose();
+    this.view = (void 0)!;
+    this.callbackContext = null;
+  }
+
+  public accept(visitor: ControllerVisitor<T>): void | true {
+    if (this.view?.accept(visitor) === true) {
+      return true;
+    }
   }
 }

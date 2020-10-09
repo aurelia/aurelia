@@ -8,7 +8,6 @@ import {
   IfRegistration,
   ElseRegistration,
   RepeatRegistration,
-  ReplaceableRegistration,
   OneTimeBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
   CustomElementRendererRegistration,
@@ -18,21 +17,6 @@ import {
   SetPropertyRendererRegistration,
   TemplateControllerRendererRegistration,
   ValueConverter,
-} from '@aurelia/runtime';
-import {
-  IProjectorLocatorRegistration,
-  ITargetAccessorLocatorRegistration,
-  ITemplateFactoryRegistration,
-  ComposeRegistration,
-  ListenerBindingRendererRegistration,
-  SetAttributeRendererRegistration,
-  TextBindingRendererRegistration,
-  ITargetObserverLocatorRegistration
-} from '@aurelia/runtime-html';
-import {
-  IDOMInitializerRegistration
-} from '@aurelia/runtime-html-browser';
-import {
   AtPrefixedTriggerAttributePatternRegistration,
   ColonPrefixedBindAttributePatternRegistration,
   DotSeparatedAttributePatternRegistration,
@@ -40,13 +24,23 @@ import {
   ForBindingCommandRegistration,
   IExpressionParserRegistration,
   OneTimeBindingCommandRegistration,
-  TwoWayBindingCommandRegistration
-} from '@aurelia/jit';
+  TwoWayBindingCommandRegistration,
+} from '@aurelia/runtime';
 import {
+  IProjectorLocatorRegistration,
+  ITargetAccessorLocatorRegistration,
+  ComposeRegistration,
+  ListenerBindingRendererRegistration,
+  SetAttributeRendererRegistration,
+  TextBindingRendererRegistration,
+  ITargetObserverLocatorRegistration,
   ITemplateCompilerRegistration,
   ITemplateElementFactoryRegistration,
-  TriggerBindingCommandRegistration
-} from '@aurelia/jit-html';
+  TriggerBindingCommandRegistration,
+} from '@aurelia/runtime-html';
+import {
+  IDOMInitializerRegistration
+} from '@aurelia/runtime-html-browser';
 import {
   ViewportCustomElement,
   Router
@@ -65,7 +59,7 @@ Tracer.enableLiveLogging({
   rendering: false,
   lifecycle: true,
   binding: true,
-  beforeAttach: true,
+  attaching: true,
   mounting: true,
   observation: true
 });
@@ -82,7 +76,6 @@ const container = DI.createContainer().register(
   IfRegistration,
   ElseRegistration,
   RepeatRegistration,
-  ReplaceableRegistration,
 
   OneTimeBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
@@ -99,7 +92,6 @@ const container = DI.createContainer().register(
   IProjectorLocatorRegistration,
   ITargetObserverLocatorRegistration,
   ITargetAccessorLocatorRegistration,
-  ITemplateFactoryRegistration,
 
   // runtime-html resources
   ComposeRegistration,

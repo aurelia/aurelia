@@ -13,11 +13,11 @@ module.exports = {
     'mocha'
   ],
   rules: {
-    '@typescript-eslint/class-name-casing': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     'compat/compat': 'off',
     'import/no-nodejs-modules': 'off',
     'jsdoc/require-jsdoc': 'off',
+    'mocha/no-exports': 'off',
     'mocha/no-async-describe': 'error',
     'mocha/no-exclusive-tests': 'warn',
     'mocha/no-hooks': 'error',
@@ -37,7 +37,7 @@ module.exports = {
     'mocha/no-synchronous-tests': 'off'
   },
   overrides: [{ // Specific overrides for JS files as some TS rules don't make sense there.
-    files: ['5-jit-html/generated/**'],
+    files: ['3-runtime-html/generated/**'],
     rules: {
       '@typescript-eslint/quotes': 'off',
       '@typescript-eslint/explicit-member-accessibility': 'off',

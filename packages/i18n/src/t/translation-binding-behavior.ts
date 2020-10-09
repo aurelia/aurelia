@@ -5,7 +5,7 @@ import { Writable } from '@aurelia/kernel';
 @bindingBehavior(ValueConverters.translationValueConverterName)
 export class TranslationBindingBehavior {
 
-  public bind(flags: LifecycleFlags, scope: IScope, binding: BindingWithBehavior) {
+  public bind(flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, binding: BindingWithBehavior) {
     const expression = binding.sourceExpression.expression;
 
     if (!(expression instanceof ValueConverterExpression)) {

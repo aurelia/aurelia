@@ -107,6 +107,11 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     return this.promise;
   }
 
+  public dispose() {
+    this.view?.dispose();
+    this.view = (void 0)!;
+  }
+
   public valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags): void {
     if (!this.$controller.isActive) { return; }
     this.queue(() => this.swap(flags, this.value));
@@ -307,15 +312,20 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
     const $value = this.value;
     if (Array.isArray($value)) {
       if (this.observer === void 0) {
-        const observer = this.observer = this.locator.getArrayObserver(flags, $value);
-        observer.addCollectionSubscriber(this);
+        this.observer = this.observeCollection(flags, $value);
       }
       return $value.includes(value);
     }
     return $value === value;
   }
 
-  public valueChanged(_newValue: boolean, _oldValue: boolean, flags: LifecycleFlags) {
+  public valueChanged(newValue: boolean, _oldValue: boolean, flags: LifecycleFlags) {
+    if (Array.isArray(newValue)) {
+      this.observer?.removeCollectionSubscriber(this);
+      this.observer = this.observeCollection(flags, newValue);
+    } else if (this.observer !== void 0) {
+      this.observer.removeCollectionSubscriber(this);
+    }
     this.$switch.caseChanged(this, flags);
   }
 
@@ -336,13 +346,19 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   }
 
   public dispose(): void {
-    if (this.observer !== void 0) {
-      this.observer.removeCollectionSubscriber(this);
-    }
+    this.observer?.removeCollectionSubscriber(this);
+    this.view?.dispose();
+    this.view = (void 0)!;
   }
 
   protected linkToSwitch(auSwitch: Switch<T>) {
     auSwitch.cases.push(this);
+  }
+
+  private observeCollection(flags: LifecycleFlags, $value: any[]) {
+    const observer = this.locator.getArrayObserver(flags, $value);
+    observer.addCollectionSubscriber(this);
+    return observer;
   }
 }
 

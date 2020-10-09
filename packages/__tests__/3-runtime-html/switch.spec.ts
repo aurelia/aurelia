@@ -1778,6 +1778,136 @@ describe('switch', function () {
         )
       ]
     );
+
+    yield new TestData(
+      'works with case binding changed to array and back',
+      {
+        initialStatus: Status.received,
+        template: `
+      <template>
+        <let s.bind="'received'"></let>
+        <template switch.bind="status">
+          <span case.bind="s">Order received.</span>
+          <span case="dispatched">On the way.</span>
+          <span case="processing">Processing your order.</span>
+          <span case="delivered">Delivered.</span>
+        </template>
+      </template>`,
+      },
+      '<span>Order received.</span>',
+      [
+        new SwitchCallsExpectation(
+          [1, 0, 0, 0],
+          [1, 0, 0, 0],
+          [0, 0, 0, 0],
+        )
+      ],
+      async (ctx) => {
+        const $switch = ctx.getSwitchTestDoubles()[0];
+
+        $switch.clearCalls();
+        ctx.app.status = Status.delivered;
+        await $switch.wait();
+        assert.html.innerEqual(ctx.host, '<span>Delivered.</span>', 'change innerHTML1');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [1, 1, 1, 1],
+            [0, 0, 0, 1],
+            [1, 0, 0, 0],
+          ),
+          'change1'
+        );
+
+        const arr = [Status.received, Status.delivered];
+        const observer = ctx.container.get(IObserverLocator).getArrayObserver(LifecycleFlags.none, arr);
+        const addSpy = createSpy(observer, "addCollectionSubscriber", true);
+        const removeSpy = createSpy(observer, "removeCollectionSubscriber", true);
+
+        $switch.clearCalls();
+        ctx.controller.scope.overrideContext.s = arr;
+        await $switch.wait();
+        assert.html.innerEqual(ctx.host, '<span>Order received.</span>', 'change innerHTML1');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [1, 0, 0, 0],
+            [1, 0, 0, 0],
+            [0, 0, 0, 1],
+          ),
+          'change2'
+        );
+        assert.strictEqual(addSpy.calls.length, 1, 'addCollectionSubscriber count');
+        assert.strictEqual(addSpy.calls[0][0], $switch['cases'][0], 'addCollectionSubscriber arg');
+
+        $switch.clearCalls();
+        ctx.app.status = Status.dispatched;
+        await $switch.wait();
+        assert.html.innerEqual(ctx.host, '<span>On the way.</span>', 'change innerHTML1');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [1, 1, 0, 0],
+            [0, 1, 0, 0],
+            [1, 0, 0, 0],
+          ),
+          'change3'
+        );
+
+        const arr2 = [Status.received, Status.dispatched];
+        const observer2 = ctx.container.get(IObserverLocator).getArrayObserver(LifecycleFlags.none, arr2);
+        const addSpy2 = createSpy(observer2, "addCollectionSubscriber", true);
+        const removeSpy2 = createSpy(observer2, "removeCollectionSubscriber", true);
+
+        $switch.clearCalls();
+        ctx.controller.scope.overrideContext.s = arr2;
+        await $switch.wait();
+        assert.html.innerEqual(ctx.host, '<span>Order received.</span>', 'change innerHTML1');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [1, 0, 0, 0],
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+          ),
+          'change4'
+        );
+        assert.strictEqual(removeSpy.calls.length, 1, 'addCollectionSubscriber count');
+        assert.strictEqual(removeSpy.calls[0][0], $switch['cases'][0], 'addCollectionSubscriber arg');
+        assert.strictEqual(addSpy2.calls.length, 1, 'addCollectionSubscriber count #2');
+        assert.strictEqual(addSpy2.calls[0][0], $switch['cases'][0], 'addCollectionSubscriber arg #2');
+
+        $switch.clearCalls();
+        ctx.app.status = Status.delivered;
+        await $switch.wait();
+        assert.html.innerEqual(ctx.host, '<span>Delivered.</span>', 'change innerHTML1');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [1, 1, 1, 1],
+            [0, 0, 0, 1],
+            [1, 0, 0, 0],
+          ),
+          'change5'
+        );
+
+        $switch.clearCalls();
+        ctx.controller.scope.overrideContext.s = Status.delivered;
+        await $switch.wait();
+        assert.html.innerEqual(ctx.host, '<span>Order received.</span>', 'change innerHTML1');
+        ctx.assertCalls(
+          $switch,
+          new SwitchCallsExpectation(
+            [1, 0, 0, 0],
+            [1, 0, 0, 0],
+            [0, 0, 0, 1],
+          ),
+          'change6'
+        );
+        assert.strictEqual(removeSpy2.calls.length, 1, 'addCollectionSubscriber count #2');
+        assert.strictEqual(removeSpy2.calls[0][0], $switch['cases'][0], 'addCollectionSubscriber arg #2');
+      }
+    );
   }
 
   for (const data of getTestData()) {

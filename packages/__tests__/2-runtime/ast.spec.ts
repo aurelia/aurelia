@@ -31,7 +31,7 @@ import {
   IConnectableBinding,
   IsBinary,
   IsBindingBehavior,
-  IScope,
+  Scope,
   ISignaler,
   IsLeftHandSide,
   IsPrimary,
@@ -40,7 +40,6 @@ import {
   ObjectLiteralExpression,
   OverrideContext,
   PrimitiveLiteralExpression,
-  Scope,
   TaggedTemplateExpression,
   TemplateExpression,
   UnaryExpression,
@@ -955,7 +954,7 @@ describe('AccessScopeExpression', function () {
   for(const isHostScoped of [true, false]) {
     it(`evaluates undefined bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const scope = Scope.create(LF.none, undefined, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = Scope.create(LF.none, undefined, null);
         makeHostScoped(foo, true);
@@ -965,7 +964,7 @@ describe('AccessScopeExpression', function () {
 
     it(`evaluates undefined bindingContext STRICT${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const scope = Scope.create(LF.none, undefined, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = Scope.create(LF.none, undefined, null);
         makeHostScoped(foo, true);
@@ -975,7 +974,7 @@ describe('AccessScopeExpression', function () {
 
     it(`assigns undefined bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const scope = Scope.create(LF.none, undefined, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = Scope.create(LF.none, undefined, null);
         makeHostScoped(foo, true);
@@ -986,7 +985,7 @@ describe('AccessScopeExpression', function () {
 
     it(`connects undefined bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const scope = Scope.create(LF.none, undefined, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = Scope.create(LF.none, undefined, null);
         makeHostScoped(foo, true);
@@ -999,7 +998,7 @@ describe('AccessScopeExpression', function () {
 
     it(`evaluates null bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const scope = Scope.create(LF.none, null, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = Scope.create(LF.none, undefined, null);
         makeHostScoped(foo, true);
@@ -1009,7 +1008,7 @@ describe('AccessScopeExpression', function () {
 
     it(`evaluates null bindingContext STRICT${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const scope = Scope.create(LF.none, null, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = Scope.create(LF.none, null, null);
         makeHostScoped(foo, true);
@@ -1019,7 +1018,7 @@ describe('AccessScopeExpression', function () {
 
     it(`assigns null bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const scope = Scope.create(LF.none, null, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = Scope.create(LF.none, null, null);
         makeHostScoped(foo, true);
@@ -1030,7 +1029,7 @@ describe('AccessScopeExpression', function () {
 
     it(`connects null bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const scope = Scope.create(LF.none, null, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = Scope.create(LF.none, null, null);
         makeHostScoped(foo, true);
@@ -1042,8 +1041,8 @@ describe('AccessScopeExpression', function () {
     });
 
     it(`evaluates defined property on bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
-      let scope: IScope = createScopeForTest({ foo: 'bar' });
-      let hs: IScope | null = null;
+      let scope: Scope = createScopeForTest({ foo: 'bar' });
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1055,7 +1054,7 @@ describe('AccessScopeExpression', function () {
     it(`evaluates defined property on overrideContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' });
       scope.overrideContext.foo = 'bar';
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1066,7 +1065,7 @@ describe('AccessScopeExpression', function () {
 
     it(`assigns defined property on bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ foo: 'bar' });
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1078,7 +1077,7 @@ describe('AccessScopeExpression', function () {
 
     it(`assigns undefined property to bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' });
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1091,7 +1090,7 @@ describe('AccessScopeExpression', function () {
     it(`assigns defined property on overrideContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' });
       scope.overrideContext.foo = 'bar';
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1103,7 +1102,7 @@ describe('AccessScopeExpression', function () {
 
     it(`connects defined property on bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ foo: 'bar' });
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1118,7 +1117,7 @@ describe('AccessScopeExpression', function () {
     it(`connects defined property on overrideContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' });
       scope.overrideContext.foo = 'bar';
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1132,7 +1131,7 @@ describe('AccessScopeExpression', function () {
 
     it(`connects undefined property on bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' });
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1146,7 +1145,7 @@ describe('AccessScopeExpression', function () {
 
     it(`evaluates defined property on first ancestor bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' }, { foo: 'bar' });
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1165,7 +1164,7 @@ describe('AccessScopeExpression', function () {
 
     it(`assigns defined property on first ancestor bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' }, { foo: 'bar' });
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1180,7 +1179,7 @@ describe('AccessScopeExpression', function () {
     it(`assigns defined property on first ancestor overrideContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
       scope.parentScope.overrideContext.foo = 'bar';
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1194,7 +1193,7 @@ describe('AccessScopeExpression', function () {
 
     it(`connects defined property on first ancestor bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' }, { foo: 'bar' });
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1213,7 +1212,7 @@ describe('AccessScopeExpression', function () {
     it(`connects defined property on first ancestor overrideContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
       scope.parentScope.overrideContext.foo = 'bar';
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1231,8 +1230,8 @@ describe('AccessScopeExpression', function () {
 
     it(`connects undefined property on first ancestor bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' }, {});
-      (scope.parentScope as Writable<IScope>).parentScope = Scope.create(LF.none, undefined, OverrideContext.create(LF.none, { foo: 'bar' }));
-      let hs: IScope | null = null;
+      (scope.parentScope as Writable<Scope>).parentScope = Scope.create(LF.none, undefined, OverrideContext.create(LF.none, { foo: 'bar' }));
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1507,8 +1506,8 @@ describe('BinaryExpression', function () {
     public constructor(
       public expr: BinaryExpression,
       public expected: boolean,
-      public scope: IScope = createScopeForTest(),
-      public hs: IScope | null = null,
+      public scope: Scope = createScopeForTest(),
+      public hs: Scope | null = null,
     ) { }
 
     public toString() { return `${Unparser.unparse(this.expr)}${this.hs !== null ? ' - hostScoped' : ''}`; }
@@ -1637,7 +1636,7 @@ describe('CallMemberExpression', function () {
         }
       };
       let scope = createScopeForTest(bindingContext);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest({});
@@ -1648,12 +1647,12 @@ describe('CallMemberExpression', function () {
 
     it(`evaluate handles null/undefined member${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const expression = new CallMemberExpression(new AccessScopeExpression('foo', 0, isHostScoped), 'bar', []);
-      let s1: IScope = createScopeForTest({ foo: {} });
-      let s2: IScope = createScopeForTest({ foo: { bar: undefined } });
-      let s3: IScope = createScopeForTest({ foo: { bar: null } });
-      let hs1: IScope | null = null;
-      let hs2: IScope | null = null;
-      let hs3: IScope | null = null;
+      let s1: Scope = createScopeForTest({ foo: {} });
+      let s2: Scope = createScopeForTest({ foo: { bar: undefined } });
+      let s3: Scope = createScopeForTest({ foo: { bar: null } });
+      let hs1: Scope | null = null;
+      let hs2: Scope | null = null;
+      let hs3: Scope | null = null;
       if(isHostScoped) {
         hs1 = s1;
         s1 = createScopeForTest();
@@ -1674,10 +1673,10 @@ describe('CallMemberExpression', function () {
       let s2 = createScopeForTest({ foo: {} });
       let s3 = createScopeForTest({ foo: { bar: undefined } });
       let s4 = createScopeForTest({ foo: { bar: null } });
-      let hs1: IScope | null = null;
-      let hs2: IScope | null = null;
-      let hs3: IScope | null = null;
-      let hs4: IScope | null = null;
+      let hs1: Scope | null = null;
+      let hs2: Scope | null = null;
+      let hs3: Scope | null = null;
+      let hs4: Scope | null = null;
       if(isHostScoped) {
         hs1 = s1;
         s1 = createScopeForTest();
@@ -1707,9 +1706,9 @@ describe('CallScopeExpression', function () {
     makeHostScoped(hello.args[0] as AccessScopeExpression, false);
   });
 
-  function getScopes(initialScope: IScope, isHostScoped: boolean) {
+  function getScopes(initialScope: Scope, isHostScoped: boolean) {
     let scope = initialScope;
-    let hs: IScope | null = null;
+    let hs: Scope | null = null;
     if(isHostScoped) {
       hs = scope;
       scope = createScopeForTest();
@@ -2131,7 +2130,7 @@ describe('UnaryExpression', function () {
       { expr: new UnaryExpression('typeof', $parent), expected: 'undefined' },
       { expr: new UnaryExpression('typeof', new AccessScopeExpression('foo', 0)), expected: 'undefined' }
     ];
-    const scope: IScope = createScopeForTest({});
+    const scope: Scope = createScopeForTest({});
 
     for (const { expr, expected } of tests) {
       it(expr.toString(), function () {
@@ -2154,7 +2153,7 @@ describe('UnaryExpression', function () {
       { expr: new UnaryExpression('void', $parent) },
       { expr: new UnaryExpression('void', new AccessScopeExpression('foo', 0)) }
     ];
-    let scope: IScope = createScopeForTest({});
+    let scope: Scope = createScopeForTest({});
 
     for (const { expr } of tests) {
       it(expr.toString(), function () {
@@ -2176,7 +2175,7 @@ describe('UnaryExpression', function () {
 describe('BindingBehaviorExpression', function () {
   type $1 = [/* title */string, /* flags */LF];
   type $2 = [/* title */string, /* $kind */ExpressionKind];
-  type $3 = [/* title */string, /* scope */IScope, /* hostScope */IScope | null, /* sut */BindingBehaviorExpression, /* mock */MockBindingBehavior, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[]];
+  type $3 = [/* title */string, /* scope */Scope, /* hostScope */Scope | null, /* sut */BindingBehaviorExpression, /* mock */MockBindingBehavior, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[]];
 
   const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LF],
   [
@@ -2192,7 +2191,7 @@ describe('BindingBehaviorExpression', function () {
     () => [`hasBind|hasUnbind`, ExpressionKind.HasBind | ExpressionKind.HasUnbind]
   ];
 
-  const inputVariations: (($1: $1, $2: $2) => $3)[] = // [/*title*/string, /*scope*/IScope, /*hostScope*/IScope|null, /*sut*/BindingBehaviorExpression, /*mock*/MockBindingBehavior, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[]],
+  const inputVariations: (($1: $1, $2: $2) => $3)[] = // [/*title*/string, /*scope*/Scope, /*hostScope*/Scope|null, /*sut*/BindingBehaviorExpression, /*mock*/MockBindingBehavior, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[]],
   [true, false].flatMap((isHostScoped) =>  [
     // test without arguments
     (_$1: $1, [_t2, $kind]: $2) => {
@@ -2210,7 +2209,7 @@ describe('BindingBehaviorExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -2234,7 +2233,7 @@ describe('BindingBehaviorExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value, a: arg1 }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -2264,7 +2263,7 @@ describe('BindingBehaviorExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value, a: arg1, b: arg2, c: arg3 }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -2472,7 +2471,7 @@ describe('BindingBehaviorExpression', function () {
 describe('ValueConverterExpression', function () {
   type $1 = [/* title */string, /* flags */LF];
   type $2 = [/* title */string, /* signals */string[], /* signaler */MockSignaler];
-  type $3 = [/* title */string, /* scope */IScope, /* hostScope */IScope | null, /* sut */ValueConverterExpression, /* mock */MockValueConverter, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[], /* methods */string[]];
+  type $3 = [/* title */string, /* scope */Scope, /* hostScope */Scope | null, /* sut */ValueConverterExpression, /* mock */MockValueConverter, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[], /* methods */string[]];
 
   const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LF],
   [
@@ -2504,7 +2503,7 @@ describe('ValueConverterExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -2526,7 +2525,7 @@ describe('ValueConverterExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -2548,7 +2547,7 @@ describe('ValueConverterExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -2570,7 +2569,7 @@ describe('ValueConverterExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -2593,7 +2592,7 @@ describe('ValueConverterExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value, a: arg1 }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -2622,7 +2621,7 @@ describe('ValueConverterExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value, a: arg1, b: arg2, c: arg3 }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();

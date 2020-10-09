@@ -519,7 +519,6 @@ export {
   IOverrideContext,
   IPropertyChangeTracker,
   IPropertyObserver,
-  IScope,
   ISubscribable,
   ISubscriberCollection,
   ObservedCollection,

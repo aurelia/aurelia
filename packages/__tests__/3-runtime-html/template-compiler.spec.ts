@@ -41,7 +41,6 @@ import {
   RegisteredProjections,
   TargetedInstructionType,
   AuSlotContentType,
-  IScope,
   Scope,
   parseExpression,
   ResourceModel,
@@ -1635,7 +1634,7 @@ describe('TemplateCompiler - au-slot', function () {
       public readonly slotName: string,
       public readonly contentType: AuSlotContentType,
       public readonly content: string,
-      public readonly scope: IScope | null = null,
+      public readonly scope: Scope | null = null,
     ) { }
   }
   class TestData {

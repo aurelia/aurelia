@@ -7,20 +7,19 @@ import {
 } from '../flags';
 import { IBinding } from '../lifecycle';
 import {
-  IScope,
-} from '../observation';
-import {
   IsBindingBehavior,
 } from './ast';
 import { IConnectableBinding } from './connectable';
+
+import type { Scope } from '../observation/binding-context';
 
 export interface RefBinding extends IConnectableBinding {}
 export class RefBinding implements IBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;
-  public $scope?: IScope = void 0;
-  public $hostScope: IScope | null = null;
+  public $scope?: Scope = void 0;
+  public $hostScope: Scope | null = null;
 
   public constructor(
     public sourceExpression: IsBindingBehavior,
@@ -28,7 +27,7 @@ export class RefBinding implements IBinding {
     public locator: IServiceLocator,
   ) {}
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;

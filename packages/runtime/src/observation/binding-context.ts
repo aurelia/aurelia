@@ -5,7 +5,6 @@ import { IBinding, ILifecycle } from '../lifecycle';
 import {
   IBindingContext,
   IOverrideContext,
-  IScope,
   ObservedCollection,
   ObserversLookup,
   PropertyObserver
@@ -86,7 +85,7 @@ export class BindingContext implements IBindingContext {
     return bc;
   }
 
-  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: IScope | null): IBindingContext | IOverrideContext | IBinding | undefined | null {
+  public static get(scope: Scope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: Scope | null): IBindingContext | IOverrideContext | IBinding | undefined | null {
     if (scope == null && hostScope == null) {
       throw new Error(`Scope is ${scope} and HostScope is ${hostScope}.`);
     }
@@ -127,9 +126,9 @@ export class BindingContext implements IBindingContext {
   }
 }
 
-function chooseContext(scope: IScope, name: string, ancestor: number) {
+function chooseContext(scope: Scope, name: string, ancestor: number) {
   let overrideContext: IOverrideContext | null = scope.overrideContext;
-  let currentScope: IScope | null = scope;
+  let currentScope: Scope | null = scope;
 
   if (ancestor > 0) {
     // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
@@ -159,13 +158,13 @@ function chooseContext(scope: IScope, name: string, ancestor: number) {
   return null;
 }
 
-export class Scope implements IScope {
-  public parentScope: IScope | null;
+export class Scope {
+  public parentScope: Scope | null;
   public bindingContext: IBindingContext;
   public overrideContext: IOverrideContext;
 
   private constructor(
-    parentScope: IScope | null,
+    parentScope: Scope | null,
     bindingContext: IBindingContext,
     overrideContext: IOverrideContext,
   ) {
@@ -218,7 +217,7 @@ export class Scope implements IScope {
     return new Scope(null, oc.bindingContext, oc);
   }
 
-  public static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: object): Scope {
+  public static fromParent(flags: LifecycleFlags, ps: Scope | null, bc: object): Scope {
     if (ps == null) {
       throw new Error(`ParentScope is ${ps}`);
     }

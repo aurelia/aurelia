@@ -5,10 +5,9 @@ import {
   Else,
   If,
   ILifecycle,
-  IScope,
+  Scope,
   LifecycleFlags,
   ProxyObserver,
-  Scope,
   ViewFactory,
   Controller,
   CustomElementDefinition,
@@ -24,7 +23,7 @@ import {
 import { Writable } from '@aurelia/kernel';
 
 describe(`If/Else`, function () {
-  function runActivateLifecycle(sut: If<AuNode>, flags: LifecycleFlags, scope: IScope): void {
+  function runActivateLifecycle(sut: If<AuNode>, flags: LifecycleFlags, scope: Scope): void {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     sut.$controller.activate(sut.$controller, null, flags, scope);
   }

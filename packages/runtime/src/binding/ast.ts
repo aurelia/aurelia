@@ -17,7 +17,6 @@ import {
   Collection,
   IBindingContext,
   IOverrideContext,
-  IScope,
   ObservedCollection,
 } from '../observation';
 import { BindingContext } from '../observation/binding-context';
@@ -31,6 +30,7 @@ import {
 } from '../resources/value-converter';
 import { IConnectableBinding } from './connectable';
 import { CustomElementDefinition } from '../resources/custom-element';
+import type { Scope } from '../observation/binding-context';
 
 export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
 
@@ -81,7 +81,7 @@ export interface IVisitor<T = unknown> {
   visitValueConverter(expr: ValueConverterExpression): T;
 }
 
-function chooseScope(accessHostScope: boolean, s: IScope, hs: IScope | null){
+function chooseScope(accessHostScope: boolean, s: Scope, hs: Scope | null){
   if (accessHostScope) {
     if (hs === null || hs === void 0) { throw new Error('Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?'); }
     return hs;
@@ -96,7 +96,7 @@ export class CustomExpression {
     public readonly value: string,
   ) {}
 
-  public evaluate(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator): string {
+  public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator): string {
     return this.value;
   }
 }
@@ -117,19 +117,19 @@ export class BindingBehaviorExpression {
     this.behaviorKey = BindingBehavior.keyFrom(name);
   }
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): unknown {
     return this.expression.evaluate(f, s, hs, l);
   }
 
-  public assign(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator, val: unknown): unknown {
+  public assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown {
     return this.expression.assign(f, s, hs, l, val);
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     this.expression.connect(f, s, hs, b);
   }
 
-  public bind(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public bind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     if (this.expression.hasBind) {
       this.expression.bind(f, s, hs, b);
     }
@@ -147,7 +147,7 @@ export class BindingBehaviorExpression {
     }
   }
 
-  public unbind(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public unbind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     if ((b as BindingWithBehavior)[this.behaviorKey] !== void 0) {
       if (typeof (b as BindingWithBehavior)[this.behaviorKey]!.unbind === 'function') {
         (b as BindingWithBehavior)[this.behaviorKey]!.unbind(f, s, hs, b);
@@ -178,7 +178,7 @@ export class ValueConverterExpression {
     this.converterKey = ValueConverter.keyFrom(name);
   }
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): unknown {
     const vc = l.get<ValueConverterExpression & ValueConverterInstance>(this.converterKey);
     if (vc == null) {
       throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
@@ -189,7 +189,7 @@ export class ValueConverterExpression {
     return this.expression.evaluate(f, s, hs, l);
   }
 
-  public assign(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator, val: unknown): unknown {
+  public assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown {
     const vc = l.get<ValueConverterExpression & ValueConverterInstance>(this.converterKey);
     if (vc == null) {
       throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
@@ -200,7 +200,7 @@ export class ValueConverterExpression {
     return this.expression.assign(f, s, hs, l, val);
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     this.expression.connect(f, s, hs, b);
     for (let i = 0; i < this.args.length; ++i) {
       this.args[i].connect(f, s, hs, b);
@@ -218,7 +218,7 @@ export class ValueConverterExpression {
     }
   }
 
-  public unbind(_f: LF, _s: IScope, _hs: IScope | null, b: IConnectableBinding): void {
+  public unbind(_f: LF, _s: Scope, _hs: Scope | null, b: IConnectableBinding): void {
     const vc = b.locator.get(this.converterKey) as { signals?: string[] };
     if (vc.signals === void 0) {
       return;
@@ -244,15 +244,15 @@ export class AssignExpression {
     public readonly value: IsAssign,
   ) {}
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): unknown {
     return this.target.assign(f, s, hs, l, this.value.evaluate(f, s, hs, l));
   }
 
-  public connect(_f: LF, _s: IScope, _hs: IScope | null, _b: IConnectableBinding): void {
+  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
     return;
   }
 
-  public assign(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator, val: unknown): unknown {
+  public assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown {
     this.value.assign(f, s, hs, l, val);
     return this.target.assign(f, s, hs, l, val);
   }
@@ -273,15 +273,15 @@ export class ConditionalExpression {
     public readonly no: IsAssign,
   ) {}
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): unknown {
     return this.condition.evaluate(f, s, hs, l) ? this.yes.evaluate(f, s, hs, l) : this.no.evaluate(f, s, hs, l);
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     if (this.condition.evaluate(f, s, hs, b.locator)) {
       this.condition.connect(f, s, hs, b);
       this.yes.connect(f, s, hs, b);
@@ -309,12 +309,12 @@ export class AccessThisExpression {
     public readonly ancestor: number = 0,
   ) {}
 
-  public evaluate(_f: LF, s: IScope, hs: IScope | null, _l: IServiceLocator): IBindingContext | undefined {
+  public evaluate(_f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator): IBindingContext | undefined {
     if (this === AccessThisExpression.$host) {
       s = chooseScope(true, s, hs);
     }
     let oc: IOverrideContext | null = s.overrideContext;
-    let currentScope: IScope | null = s;
+    let currentScope: Scope | null = s;
     let i = this.ancestor;
     while (i-- && oc) {
       currentScope = currentScope!.parentScope;
@@ -323,11 +323,11 @@ export class AccessThisExpression {
     return i < 1 && oc ? oc.bindingContext : void 0;
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(_f: LF, _s: IScope, _hs: IScope | null, _b: IConnectableBinding): void {
+  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
     return;
   }
 
@@ -347,7 +347,7 @@ export class AccessScopeExpression {
     public readonly accessHostScope: boolean = false,
   ) {}
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, _l: IServiceLocator): IBindingContext | IBinding | IOverrideContext {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator): IBindingContext | IBinding | IOverrideContext {
     const obj = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs) as IBindingContext;
     const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (f & LF.isStrictBindingStrategy) {
@@ -356,7 +356,7 @@ export class AccessScopeExpression {
     return evaluatedValue == null ? '' as unknown as ReturnType<AccessScopeExpression['evaluate']> : evaluatedValue;
   }
 
-  public assign(f: LF, s: IScope, hs: IScope | null, _l: IServiceLocator, val: unknown): unknown {
+  public assign(f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator, val: unknown): unknown {
     const obj = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs) as IBindingContext;
     if (obj instanceof Object) {
       if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
@@ -369,7 +369,7 @@ export class AccessScopeExpression {
     return void 0;
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     const context = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs)!;
     b.observeProperty(f, context, this.name);
   }
@@ -389,7 +389,7 @@ export class AccessMemberExpression {
     public readonly name: string,
   ) {}
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): unknown {
     const instance = this.object.evaluate(f, s, hs, l) as IIndexable;
     if (f & LF.isStrictBindingStrategy) {
       return instance == null ? instance : instance[this.name];
@@ -397,7 +397,7 @@ export class AccessMemberExpression {
     return instance ? instance[this.name] : '';
   }
 
-  public assign(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator, val: unknown): unknown {
+  public assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown {
     const obj = this.object.evaluate(f, s, hs, l) as IBindingContext;
     if (obj instanceof Object) {
       if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
@@ -411,7 +411,7 @@ export class AccessMemberExpression {
     return val;
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     const obj = this.object.evaluate(f, s, hs, b.locator) as IIndexable;
     if ((f & LF.observeLeafPropertiesOnly) === 0) {
       this.object.connect(f, s, hs, b);
@@ -436,7 +436,7 @@ export class AccessKeyedExpression {
     public readonly key: IsAssign,
   ) {}
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): unknown {
     const instance = this.object.evaluate(f, s, hs, l) as IIndexable;
     if (instance instanceof Object) {
       const key = this.key.evaluate(f, s, hs, l) as string;
@@ -445,13 +445,13 @@ export class AccessKeyedExpression {
     return void 0;
   }
 
-  public assign(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator, val: unknown): unknown {
+  public assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown {
     const instance = this.object.evaluate(f, s, hs, l) as IIndexable;
     const key = this.key.evaluate(f, s, hs, l) as string;
     return instance[key] = val;
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     const obj = this.object.evaluate(f, s, hs, b.locator);
     if ((f & LF.observeLeafPropertiesOnly) === 0) {
       this.object.connect(f, s, hs, b);
@@ -481,7 +481,7 @@ export class CallScopeExpression {
     public readonly accessHostScope: boolean = false,
   ) {}
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): unknown {
     s = chooseScope(this.accessHostScope, s, hs);
 
     const args = this.args.map(a => a.evaluate(f, s, hs, l));
@@ -493,11 +493,11 @@ export class CallScopeExpression {
     return void 0;
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     for (let i = 0; i < this.args.length; ++i) {
       this.args[i].connect(f, s, hs, b);
     }
@@ -519,7 +519,7 @@ export class CallMemberExpression {
     public readonly args: readonly IsAssign[],
   ) {}
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): unknown {
     const instance = this.object.evaluate(f, s, hs, l) as IIndexable;
 
     const args = this.args.map(a => a.evaluate(f, s, hs, l));
@@ -530,11 +530,11 @@ export class CallMemberExpression {
     return void 0;
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     const obj = this.object.evaluate(f, s, hs, b.locator) as IIndexable;
     if ((f & LF.observeLeafPropertiesOnly) === 0) {
       this.object.connect(f, s, hs, b);
@@ -561,7 +561,7 @@ export class CallFunctionExpression {
     public readonly args: readonly IsAssign[],
   ) {}
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): unknown {
     const func = this.func.evaluate(f, s, hs, l);
     if (typeof func === 'function') {
       return func(...this.args.map(a => a.evaluate(f, s, hs, l)));
@@ -572,11 +572,11 @@ export class CallFunctionExpression {
     throw new Error(`Expression is not a function.`);
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     const func = this.func.evaluate(f, s, hs, b.locator);
     this.func.connect(f, s, hs, b);
     if (typeof func === 'function') {
@@ -602,7 +602,7 @@ export class BinaryExpression {
     public readonly right: IsBinary,
   ) {}
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): unknown {
     switch (this.operation) {
       case '&&':
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
@@ -678,11 +678,11 @@ export class BinaryExpression {
     }
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     this.left.connect(f, s, hs, b);
     this.right.connect(f, s, hs, b);
   }
@@ -702,7 +702,7 @@ export class UnaryExpression {
     public readonly expression: IsLeftHandSide,
   ) {}
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): unknown {
     switch (this.operation) {
       case 'void':
         return void this.expression.evaluate(f, s, hs, l);
@@ -719,11 +719,11 @@ export class UnaryExpression {
     }
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     this.expression.connect(f, s, hs, b);
   }
 
@@ -745,15 +745,15 @@ export class PrimitiveLiteralExpression<TValue extends StrictPrimitive = StrictP
     public readonly value: TValue,
   ) {}
 
-  public evaluate(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator): TValue {
+  public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator): TValue {
     return this.value;
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(_f: LF, _s: IScope, _hs: IScope | null, _b: IConnectableBinding): void {
+  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
     return;
   }
 
@@ -771,7 +771,7 @@ export class HtmlLiteralExpression {
     public readonly parts: readonly HtmlLiteralExpression[],
   ) {}
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): string {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): string {
     let result = '';
     for (let i = 0; i < this.parts.length; ++i) {
       const v = this.parts[i].evaluate(f, s, hs, l);
@@ -783,11 +783,11 @@ export class HtmlLiteralExpression {
     return result;
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown, _projection?: CustomElementDefinition): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown, _projection?: CustomElementDefinition): unknown {
     return void 0;
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     for (let i = 0; i < this.parts.length; ++i) {
       this.parts[i].connect(f, s, hs, b);
     }
@@ -808,15 +808,15 @@ export class ArrayLiteralExpression {
     public readonly elements: readonly IsAssign[],
   ) {}
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): readonly unknown[] {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): readonly unknown[] {
     return this.elements.map(e => e.evaluate(f, s, hs, l));
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     for (let i = 0; i < this.elements.length; ++i) {
       this.elements[i].connect(f, s, hs, b);
     }
@@ -838,7 +838,7 @@ export class ObjectLiteralExpression {
     public readonly values: readonly IsAssign[],
   ) {}
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): Record<string, unknown> {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): Record<string, unknown> {
     const instance: Record<string, unknown> = {};
     for (let i = 0; i < this.keys.length; ++i) {
       instance[this.keys[i]] = this.values[i].evaluate(f, s, hs, l);
@@ -846,11 +846,11 @@ export class ObjectLiteralExpression {
     return instance;
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     for (let i = 0; i < this.keys.length; ++i) {
       this.values[i].connect(f, s, hs, b);
     }
@@ -872,7 +872,7 @@ export class TemplateExpression {
     public readonly expressions: readonly IsAssign[] = PLATFORM.emptyArray,
   ) {}
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): string {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): string {
     let result = this.cooked[0];
     for (let i = 0; i < this.expressions.length; ++i) {
       result += String(this.expressions[i].evaluate(f, s, hs, l));
@@ -881,11 +881,11 @@ export class TemplateExpression {
     return result;
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     for (let i = 0; i < this.expressions.length; ++i) {
       this.expressions[i].connect(f, s, hs, b);
       i++;
@@ -911,7 +911,7 @@ export class TaggedTemplateExpression {
     cooked.raw = raw;
   }
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): string {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): string {
     const results = this.expressions.map(e => e.evaluate(f, s, hs, l));
     const func = this.func.evaluate(f, s, hs, l);
     if (typeof func !== 'function') {
@@ -920,11 +920,11 @@ export class TaggedTemplateExpression {
     return func(this.cooked, ...results);
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     for (let i = 0; i < this.expressions.length; ++i) {
       this.expressions[i].connect(f, s, hs, b);
     }
@@ -946,17 +946,17 @@ export class ArrayBindingPattern {
     public readonly elements: readonly IsAssign[],
   ) {}
 
-  public evaluate(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator): unknown {
+  public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator): unknown {
     // TODO
     return void 0;
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     // TODO
     return void 0;
   }
 
-  public connect(_f: LF, _s: IScope, _hs: IScope | null, _b: IConnectableBinding): void {
+  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
     return;
   }
 
@@ -976,17 +976,17 @@ export class ObjectBindingPattern {
     public readonly values: readonly IsAssign[],
   ) {}
 
-  public evaluate(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator): unknown {
+  public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator): unknown {
     // TODO
     return void 0;
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     // TODO
     return void 0;
   }
 
-  public connect(_f: LF, _s: IScope, _hs: IScope | null, _b: IConnectableBinding): void {
+  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
     return;
   }
 
@@ -1004,10 +1004,10 @@ export class BindingIdentifier {
     public readonly name: string,
   ) {}
 
-  public evaluate(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator | null): string {
+  public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator | null): string {
     return this.name;
   }
-  public connect(_f: LF, _s: IScope, _hs: IScope | null, _b: IConnectableBinding): void {
+  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
     return;
   }
 
@@ -1032,11 +1032,11 @@ export class ForOfStatement {
     public readonly iterable: IsBindingBehavior,
   ) {}
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): unknown {
     return this.iterable.evaluate(f, s, hs, l);
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
@@ -1064,18 +1064,18 @@ export class ForOfStatement {
     }
   }
 
-  public connect(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     this.declaration.connect(f, s, hs, b);
     this.iterable.connect(f, s, hs, b);
   }
 
-  public bind(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public bind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     if (this.iterable.hasBind) {
       this.iterable.bind(f, s, hs, b);
     }
   }
 
-  public unbind(f: LF, s: IScope, hs: IScope | null, b: IConnectableBinding): void {
+  public unbind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     if (this.iterable.hasUnbind) {
       this.iterable.unbind(f, s, hs, b);
     }
@@ -1106,7 +1106,7 @@ export class Interpolation {
     this.firstExpression = expressions[0];
   }
 
-  public evaluate(f: LF, s: IScope, hs: IScope | null, l: IServiceLocator): string {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator): string {
     if (this.isMulti) {
       let result = this.parts[0];
       for (let i = 0; i < this.expressions.length; ++i) {
@@ -1119,11 +1119,11 @@ export class Interpolation {
     }
   }
 
-  public assign(_f: LF, _s: IScope, _hs: IScope | null, _l: IServiceLocator, _obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(_f: LF, _s: IScope, _hs: IScope | null, _b: IConnectableBinding): void {
+  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
     return;
   }
 

@@ -134,7 +134,7 @@ describe.skip(`ViewFactory`, function () {
 //   addBinding(renderable, new PropertyBinding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
 // }
 // describe.skip('View', function () {
-//   function runBindLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF, scope: IScope): void {
+//   function runBindLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF, scope: Scope): void {
 //     lifecycle.afterBind.begin();
 //     view.bind(flags, scope);
 //     lifecycle.afterBind.end(flags);

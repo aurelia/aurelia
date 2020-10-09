@@ -8,7 +8,6 @@ import {
   IBindingTargetObserver,
   ILifecycle,
   ISubscriber,
-  IScope,
   LifecycleFlags as LF,
   ObjectLiteralExpression,
   PrimitiveLiteralExpression,
@@ -154,7 +153,7 @@ describe('PropertyBinding', function () {
       () => [LF.updateTargetInstance,                                `updateTarget           `],
     ];
 
-    const scopeVariations: (() => [IScope, string])[] = [
+    const scopeVariations: (() => [Scope, string])[] = [
       () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
       () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
       () => [createScopeForTest({foo: {bar: undefined}}), `{foo:{bar:undefined}}`],
@@ -226,7 +225,7 @@ describe('PropertyBinding', function () {
       () => [LF.updateTargetInstance,                                `updateTarget           `],
     ];
 
-    const scopeVariations: (() => [IScope, string])[] = [
+    const scopeVariations: (() => [Scope, string])[] = [
       () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
       () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
       () => [createScopeForTest({foo: {bar: undefined}}), `{foo:{bar:undefined}}`],
@@ -455,7 +454,7 @@ describe('PropertyBinding', function () {
       () => [LF.updateTargetInstance,                                `updateTarget           `],
     ];
 
-    const scopeVariations: (() => [IScope, string])[] = [
+    const scopeVariations: (() => [Scope, string])[] = [
       () => [createScopeForTest({foo: {}}), `{foo:{}} `]
     ];
 
@@ -571,7 +570,7 @@ describe('PropertyBinding', function () {
       () => [LF.updateTargetInstance, `updateTarget `]
     ];
 
-    const scopeVariations: (() => [IScope, string])[] = [
+    const scopeVariations: (() => [Scope, string])[] = [
       () => [createScopeForTest({foo: {}}),              `{foo:{}} `],
       () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
       () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],

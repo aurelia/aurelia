@@ -13,7 +13,6 @@ import {
   IObserverLocator,
   IPartialConnectableBinding,
   IsBindingBehavior,
-  IScope,
   LifecycleFlags,
   IScheduler,
   INode,
@@ -26,6 +25,8 @@ import {
   AttributeObserver,
   IHtmlElement,
 } from '../observation/element-attribute-observer';
+
+import type { Scope } from '@aurelia/runtime';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -50,8 +51,8 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public id!: number;
   public isBound: boolean = false;
   public $scheduler: IScheduler;
-  public $scope: IScope = null!;
-  public $hostScope: IScope | null = null;
+  public $scope: Scope = null!;
+  public $hostScope: Scope | null = null;
   public projection?: CustomElementDefinition;
   public task: ITask | null = null;
 
@@ -158,7 +159,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     throw new Error('Unexpected handleChange context in AttributeBinding');
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, projection?: CustomElementDefinition): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, projection?: CustomElementDefinition): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;

@@ -377,12 +377,6 @@ export interface IOverrideContext {
   getObservers(flags: LifecycleFlags): ObserversLookup;
 }
 
-export interface IScope {
-  readonly parentScope: IScope | null;
-  readonly bindingContext: IBindingContext;
-  readonly overrideContext: IOverrideContext;
-}
-
 export type ObserversLookup = IIndexable<{
   getOrCreate(
     lifecycle: ILifecycle,

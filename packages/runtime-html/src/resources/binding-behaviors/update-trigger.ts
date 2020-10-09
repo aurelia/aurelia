@@ -1,9 +1,11 @@
 import { Writable } from '@aurelia/kernel';
-import { BindingMode, IDOM, IObserverLocator, IScope, LifecycleFlags, PropertyBinding, bindingBehavior } from '@aurelia/runtime';
+import { BindingMode, IDOM, IObserverLocator, LifecycleFlags, PropertyBinding, bindingBehavior } from '@aurelia/runtime';
 import { CheckedObserver } from '../../observation/checked-observer';
 import { EventSubscriber, IEventSubscriber } from '../../observation/event-manager';
 import { SelectValueObserver } from '../../observation/select-value-observer';
 import { ValueAttributeObserver } from '../../observation/value-attribute-observer';
+
+import type { Scope } from '@aurelia/runtime';
 
 export type UpdateTriggerableObserver = (
   (ValueAttributeObserver & Required<ValueAttributeObserver>) |
@@ -25,7 +27,7 @@ export class UpdateTriggerBindingBehavior {
     @IObserverLocator private readonly observerLocator: IObserverLocator
   ) {}
 
-  public bind(flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, binding: UpdateTriggerableBinding, ...events: string[]): void {
+  public bind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: UpdateTriggerableBinding, ...events: string[]): void {
     if (events.length === 0) {
       throw new Error('The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:\'blur\'">');
     }
@@ -51,7 +53,7 @@ export class UpdateTriggerBindingBehavior {
     (targetObserver as Writable<typeof targetObserver>).handler = new EventSubscriber(binding.locator.get(IDOM), events);
   }
 
-  public unbind(flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, binding: UpdateTriggerableBinding): void {
+  public unbind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: UpdateTriggerableBinding): void {
     // restore the state of the binding.
     binding.targetObserver.handler.dispose();
     (binding.targetObserver as Writable<typeof binding.targetObserver>).handler = binding.targetObserver.originalHandler!;

@@ -15,7 +15,6 @@ import { ILifecycle } from '../lifecycle';
 import {
   AccessorOrObserver,
   IBindingTargetObserver,
-  IScope,
   AccessorType,
   INodeAccessor,
 } from '../observation';
@@ -29,6 +28,8 @@ import {
   IConnectableBinding,
   IPartialConnectableBinding,
 } from './connectable';
+
+import type { Scope } from '../observation/binding-context';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -50,8 +51,8 @@ export class PropertyBinding implements IPartialConnectableBinding {
   public id!: number;
   public isBound: boolean = false;
   public $lifecycle: ILifecycle;
-  public $scope?: IScope = void 0;
-  public $hostScope: IScope | null = null;
+  public $scope?: Scope = void 0;
+  public $hostScope: Scope | null = null;
 
   public targetObserver?: AccessorOrObserver = void 0;
 
@@ -147,7 +148,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     throw new Error('Unexpected handleChange context in PropertyBinding');
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;

@@ -5,10 +5,11 @@ import {
   IConnectableBinding,
   IDOM,
   IsBindingBehavior,
-  IScope,
   LifecycleFlags,
 } from '@aurelia/runtime';
 import { IEventManager } from '../observation/event-manager';
+
+import type { Scope } from '@aurelia/runtime';
 
 export interface Listener extends IConnectableBinding {}
 /**
@@ -18,8 +19,8 @@ export class Listener implements IBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;
-  public $scope!: IScope;
-  public $hostScope: IScope | null = null;
+  public $scope!: Scope;
+  public $hostScope: Scope | null = null;
 
   private handler!: IDisposable;
 
@@ -53,7 +54,7 @@ export class Listener implements IBinding {
     this.interceptor.callSource(event);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;

@@ -367,7 +367,6 @@ export {
   // disableSetObservation,
 
   // BindingContext,
-  // Scope,
   // OverrideContext,
 
   // CollectionLengthObserver,
@@ -634,7 +633,7 @@ export {
   // IOverrideContext,
   // IPropertyChangeTracker,
   // IPropertyObserver,
-  // IScope,
+  // Scope,
   // ISubscribable,
   // ISubscriberCollection,
   // ObservedCollection,

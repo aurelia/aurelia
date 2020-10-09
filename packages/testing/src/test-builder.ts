@@ -10,12 +10,11 @@ import {
   ILifecycleRegistration,
   IObserverLocator,
   IObserverLocatorRegistration,
-  IScope,
+  Scope,
   ITargetAccessorLocator,
   ITargetObserverLocator,
   LifecycleFlags as LF,
   OverrideContext,
-  Scope,
   IScheduler,
 } from '@aurelia/runtime';
 // import {
@@ -480,7 +479,7 @@ export function createObserverLocator(containerOrLifecycle?: IContainer | ILifec
   return container.get(IObserverLocator);
 }
 
-export function createScopeForTest(bindingContext: any = {}, parentBindingContext?: any): IScope {
+export function createScopeForTest(bindingContext: any = {}, parentBindingContext?: any): Scope {
   return parentBindingContext
     ? Scope.fromParent(LF.none, Scope.create(LF.none, parentBindingContext), bindingContext)
     : Scope.create(LF.none, bindingContext, OverrideContext.create(LF.none, bindingContext));

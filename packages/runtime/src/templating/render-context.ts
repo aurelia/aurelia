@@ -28,7 +28,8 @@ import { IRenderer, ITemplateCompiler } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { ViewFactory } from './view';
 import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot';
-import { IScope } from '../observation';
+
+import type { Scope } from '../observation/binding-context';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, RenderContext>>>();
@@ -78,7 +79,7 @@ export interface IRenderContext<T extends INode = INode> extends IContainer {
    *
    * @returns Either a new `IViewFactory` (if this is the first call), or a cached one.
    */
-  getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: IScope | null): IViewFactory<T>;
+  getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: Scope | null): IViewFactory<T>;
 }
 
 /**
@@ -378,7 +379,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     return this;
   }
 
-  public getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: IScope | null): IViewFactory<T> {
+  public getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: Scope | null): IViewFactory<T> {
     let factory = this.factory;
     if (factory === void 0) {
       if (name === void 0) {
@@ -475,7 +476,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   // #endregion
 
   // #region IProjectionProvider api
-  public registerProjections(projections: Map<ITargetedInstruction, Record<string, CustomElementDefinition>>, scope: IScope): void {
+  public registerProjections(projections: Map<ITargetedInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
     this.projectionProvider.registerProjections(projections, scope);
   }
 

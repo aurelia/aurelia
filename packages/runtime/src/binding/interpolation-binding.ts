@@ -11,7 +11,6 @@ import {
 import { IBinding } from '../lifecycle';
 import {
   IBindingTargetAccessor,
-  IScope,
   AccessorType,
   INodeAccessor,
 } from '../observation';
@@ -22,6 +21,8 @@ import {
   IConnectableBinding,
   IPartialConnectableBinding,
 } from './connectable';
+
+import type { Scope } from '../observation/binding-context';
 
 const { toView, oneTime } = BindingMode;
 
@@ -34,7 +35,7 @@ export class MultiInterpolationBinding implements IBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;
-  public $scope?: IScope = void 0;
+  public $scope?: Scope = void 0;
 
   public parts: InterpolationBinding[];
 
@@ -57,7 +58,7 @@ export class MultiInterpolationBinding implements IBinding {
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -100,8 +101,8 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
 
   public id!: number;
-  public $scope?: IScope;
-  public $hostScope: IScope | null = null;
+  public $scope?: Scope;
+  public $hostScope: Scope | null = null;
   public $scheduler: IScheduler;
   public task: ITask | null = null;
   public isBound: boolean = false;
@@ -167,7 +168,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;

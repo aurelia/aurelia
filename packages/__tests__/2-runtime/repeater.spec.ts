@@ -7,11 +7,10 @@ import {
   ForOfStatement,
   ILifecycle,
   IObservedArray,
-  IScope,
+  Scope,
   LifecycleFlags,
   ProxyObserver,
   Repeat,
-  Scope,
   ViewFactory,
   Controller,
   IScheduler,
@@ -29,7 +28,7 @@ import {
 import { Writable } from '@aurelia/kernel';
 
 describe(`Repeat`, function () {
-  function runActivateLifecycle(sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags, scope: IScope): void {
+  function runActivateLifecycle(sut: Repeat<IObservedArray, AuNode>, flags: LifecycleFlags, scope: Scope): void {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     sut.$controller.activate(sut.$controller, null, flags, scope);
   }

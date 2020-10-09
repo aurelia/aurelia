@@ -1,6 +1,8 @@
-import { IScope, LifecycleFlags, bindingBehavior } from '@aurelia/runtime';
+import { LifecycleFlags, bindingBehavior } from '@aurelia/runtime';
 import { Listener } from '../../binding/listener';
 import { findOriginalEventTarget } from '../../observation/event-manager';
+
+import type { Scope } from '@aurelia/runtime';
 
 /** @internal */
 export function handleSelfEvent(this: SelfableBinding, event: Event): ReturnType<Listener['callSource']> {
@@ -19,7 +21,7 @@ export type SelfableBinding = Listener & {
 
 @bindingBehavior('self')
 export class SelfBindingBehavior {
-  public bind(flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, binding: SelfableBinding): void {
+  public bind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: SelfableBinding): void {
     if (!binding.callSource || !binding.targetEvent) {
       throw new Error('Self binding behavior only supports events.');
     }
@@ -28,7 +30,7 @@ export class SelfBindingBehavior {
     binding.callSource = handleSelfEvent;
   }
 
-  public unbind(flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, binding: SelfableBinding): void {
+  public unbind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: SelfableBinding): void {
     binding.callSource = binding.selfEventCallSource;
     binding.selfEventCallSource = null!;
   }

@@ -16,11 +16,12 @@ import {
   TerminalTask,
   LifecycleTask,
 } from './lifecycle-task';
-import { IScope } from './observation';
 import { Controller } from './templating/controller';
 
+import type { Scope } from './observation/binding-context';
+
 export interface IActivator {
-  activate(host: INode, component: IViewModel, container: IContainer, flags?: LifecycleFlags, parentScope?: IScope): ILifecycleTask;
+  activate(host: INode, component: IViewModel, container: IContainer, flags?: LifecycleFlags, parentScope?: Scope): ILifecycleTask;
   deactivate(component: IViewModel, flags?: LifecycleFlags): ILifecycleTask;
 }
 
@@ -43,7 +44,7 @@ export class Activator implements IActivator {
     component: ICustomElementViewModel,
     container: IContainer,
     flags: LifecycleFlags = LifecycleFlags.none,
-    parentScope?: IScope
+    parentScope?: Scope
   ): ILifecycleTask {
     flags = flags === void 0 ? LifecycleFlags.none : flags;
     const mgr = this.taskManager;
@@ -117,7 +118,7 @@ export class Activator implements IActivator {
   private activateController(
     component: ICustomElementViewModel,
     flags: LifecycleFlags,
-    parentScope?: IScope,
+    parentScope?: Scope,
   ): ILifecycleTask {
     const controller = Controller.getCachedOrThrow(component);
     const ret = controller.activate(controller, null, flags | LifecycleFlags.fromBind, parentScope);

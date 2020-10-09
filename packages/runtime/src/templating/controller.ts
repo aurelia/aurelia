@@ -51,7 +51,6 @@ import {
 } from '../lifecycle';
 import {
   IBindingTargetAccessor,
-  IScope,
 } from '../observation';
 import {
   Scope,
@@ -113,8 +112,8 @@ export class Controller<
 
   public isStrictBinding: boolean = false;
 
-  public scope: IScope | undefined = void 0;
-  public hostScope: IScope | null = null;
+  public scope: Scope | undefined = void 0;
+  public hostScope: Scope | null = null;
   public projector: IElementProjector | undefined = void 0;
 
   public nodes: INodeSequence<T> | undefined = void 0;
@@ -455,8 +454,8 @@ export class Controller<
     initiator: Controller<T>,
     parent: Controller<T> | null,
     flags: LifecycleFlags,
-    scope?: IScope,
-    hostScope?: IScope | null,
+    scope?: Scope,
+    hostScope?: Scope | null,
   ): void | Promise<void> {
     this.canceling = false;
     switch (this.state) {
@@ -514,7 +513,7 @@ export class Controller<
     switch (this.vmKind) {
       case ViewModelKind.customElement:
         // Custom element scope is created and assigned during hydration
-        (this.scope as Writable<IScope>).parentScope = scope === void 0 ? null : scope;
+        (this.scope as Writable<Scope>).parentScope = scope === void 0 ? null : scope;
         break;
       case ViewModelKind.customAttribute:
         this.scope = scope;
@@ -1039,7 +1038,7 @@ export class Controller<
             }
             break;
           case ViewModelKind.customElement:
-            (this.scope as Writable<IScope>).parentScope = null;
+            (this.scope as Writable<Scope>).parentScope = null;
             break;
         }
 
@@ -1122,7 +1121,7 @@ export class Controller<
     }
   }
 
-  public lockScope(scope: Writable<IScope>): void {
+  public lockScope(scope: Writable<Scope>): void {
     this.scope = scope;
     this.hasLockedScope = true;
   }

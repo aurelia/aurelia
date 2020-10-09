@@ -52,7 +52,7 @@
 * [Configured Routing](routing/configured-routing.md)
 * [Configuring The Viewport](routing/configuring-the-viewport.md)
 * [Navigation Menus](routing/navigation-menus.md)
-* [Navigating With Goto](routing/navigating-with-goto.md)
+* [Navigating With Load](routing/navigating-with-load.md)
 * [Lifecycle Hooks](routing/lifecycle-hooks.md)
 * [Router Hooks](routing/router-hooks.md)
 * [Differences From V1](routing/differences-from-v1.md)

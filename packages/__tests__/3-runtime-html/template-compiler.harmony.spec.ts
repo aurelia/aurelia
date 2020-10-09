@@ -343,14 +343,10 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
 
         au.dispose();
       } finally {
-        assert.isSchedulerEmpty();
-
         host?.remove();
         await new Promise(r => ctx.dom.window.requestAnimationFrame(r));
         await new Promise(r => ctx.dom.window.requestAnimationFrame(r));
         body?.focus();
-
-        assert.isSchedulerEmpty();
       }
     });
   });

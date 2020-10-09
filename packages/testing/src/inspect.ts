@@ -215,30 +215,18 @@ function getInspectContext(ctx: Partial<IInspectOptions>): IInspectContext {
   return obj;
 }
 
-interface IStyles {
-  special: 'cyan';
-  number: 'yellow';
-  boolean: 'yellow';
-  undefined: 'grey';
-  null: 'bold';
-  string: 'green';
-  symbol: 'green';
-  date: 'magenta';
-  regexp: 'red';
-}
-
-const styles: Readonly<IStyles> = Object_freeze(
+const styles = Object_freeze(
   {
-    special: 'cyan' as 'cyan',
-    number: 'yellow' as 'yellow',
-    boolean: 'yellow' as 'yellow',
-    undefined: 'grey' as 'grey',
-    null: 'bold' as 'bold',
-    string: 'green' as 'green',
-    symbol: 'green' as 'green',
-    date: 'magenta' as 'magenta',
-    regexp: 'red' as 'red',
-  },
+    special: 'cyan',
+    number: 'yellow',
+    boolean: 'yellow',
+    undefined: 'grey',
+    null: 'bold',
+    string: 'green',
+    symbol: 'green',
+    date: 'magenta',
+    regexp: 'red',
+  } as const,
 );
 
 interface IOperatorText {
@@ -991,14 +979,14 @@ function getMessage(self: AssertionError): string {
 }
 
 export function formatNumber(
-  fn: (value: string, styleType: keyof IStyles) => string,
+  fn: (value: string, styleType: keyof typeof styles) => string,
   value: number,
 ): string {
   return fn(Object_is(value, -0) ? '-0' : `${value}`, 'number');
 }
 
 export function formatPrimitive(
-  fn: (value: string, styleType: keyof IStyles) => string,
+  fn: (value: string, styleType: keyof typeof styles) => string,
   value: Primitive,
   ctx: IInspectContext,
 ): string {

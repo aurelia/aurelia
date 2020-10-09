@@ -190,6 +190,5 @@ describe('local dependency inheritance', function () {
     await verifyHostText(au, host, `147258369`);
 
     au.dispose();
-    assert.isSchedulerEmpty();
   });
 });

@@ -57,6 +57,5 @@ describe('styles', function () {
     await au.stop().wait();
 
     au.dispose();
-    assert.isSchedulerEmpty();
   });
 });

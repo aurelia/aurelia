@@ -21,10 +21,12 @@ export const LifecycleTask = {
 
 export const enum TaskSlot {
   beforeCreate          = 0,
-  beforeRender          = 1,
+  beforeCompile         = 1,
   beforeCompileChildren = 2,
-  beforeBind            = 3,
-  afterAttach           = 4,
+  beforeActivate        = 3,
+  afterActivate         = 4,
+  beforeDeactivate      = 5,
+  afterDeactivate       = 6,
 }
 
 export const IStartTask = DI.createInterface<IStartTask>('IStartTask').noDefault();
@@ -37,19 +39,23 @@ export interface IStartTask {
 
 export interface ISlotChooser {
   beforeCreate(): IStartTask;
-  beforeRender(): IStartTask;
+  beforeCompile(): IStartTask;
   beforeCompileChildren(): IStartTask;
-  beforeBind(): IStartTask;
-  afterAttach(): IStartTask;
+  beforeActivate(): IStartTask;
+  afterActivate(): IStartTask;
+  beforeDeactivate(): IStartTask;
+  afterDeactivate(): IStartTask;
   at(slot: TaskSlot): IStartTask;
 }
 
 export interface ICallbackSlotChooser<K extends Key> {
   beforeCreate(): ICallbackChooser<K>;
-  beforeRender(): ICallbackChooser<K>;
+  beforeCompile(): ICallbackChooser<K>;
   beforeCompileChildren(): ICallbackChooser<K>;
-  beforeBind(): ICallbackChooser<K>;
-  afterAttach(): ICallbackChooser<K>;
+  beforeActivate(): ICallbackChooser<K>;
+  afterActivate(): ICallbackChooser<K>;
+  beforeDeactivate(): ICallbackChooser<K>;
+  afterDeactivate(): ICallbackChooser<K>;
   at(slot: TaskSlot): ICallbackChooser<K>;
 }
 
@@ -62,40 +68,40 @@ const enum TaskType {
   from,
 }
 
-export const StartTask = class $StartTask implements IStartTask {
+export const AppTask = class $AppTask implements IStartTask {
   public get slot(): TaskSlot {
     if (this._slot === void 0) {
-      throw new Error('StartTask.slot is not set');
+      throw new Error('AppTask.slot is not set');
     }
     return this._slot;
   }
   public get promiseOrTask(): PromiseOrTask {
     if (this._promiseOrTask === void 0) {
-      throw new Error('StartTask.promiseOrTask is not set');
+      throw new Error('AppTask.promiseOrTask is not set');
     }
     return this._promiseOrTask;
   }
   public get container(): IContainer {
     if (this._container === void 0) {
-      throw new Error('StartTask.container is not set');
+      throw new Error('AppTask.container is not set');
     }
     return this._container;
   }
   public get key(): Key {
     if (this._key === void 0) {
-      throw new Error('StartTask.key is not set');
+      throw new Error('AppTask.key is not set');
     }
     return this._key;
   }
   public get callback(): (instance: unknown) => PromiseOrTask {
     if (this._callback === void 0) {
-      throw new Error('StartTask.callback is not set');
+      throw new Error('AppTask.callback is not set');
     }
     return this._callback;
   }
   public get task(): ILifecycleTask {
     if (this._task === void 0) {
-      throw new Error('StartTask.task is not set');
+      throw new Error('AppTask.task is not set');
     }
     return this._task;
   }
@@ -112,7 +118,7 @@ export const StartTask = class $StartTask implements IStartTask {
   ) {}
 
   public static with<K extends Key>(key: K): ICallbackSlotChooser<K> {
-    const task = new $StartTask(TaskType.with);
+    const task = new $AppTask(TaskType.with);
     task._key = key;
     return task as ICallbackSlotChooser<K>;
   }
@@ -121,37 +127,45 @@ export const StartTask = class $StartTask implements IStartTask {
   public static from(promise: Promise<unknown>): ISlotChooser;
   public static from(promiseOrTask: PromiseOrTask): ISlotChooser;
   public static from(promiseOrTask: PromiseOrTask): ISlotChooser {
-    const task = new $StartTask(TaskType.from);
+    const task = new $AppTask(TaskType.from);
     task._promiseOrTask = promiseOrTask;
     return task;
   }
 
-  public beforeCreate(): $StartTask {
+  public beforeCreate(): $AppTask {
     return this.at(TaskSlot.beforeCreate);
   }
 
-  public beforeRender(): $StartTask {
-    return this.at(TaskSlot.beforeRender);
+  public beforeCompile(): $AppTask {
+    return this.at(TaskSlot.beforeCompile);
   }
 
-  public beforeCompileChildren(): $StartTask {
+  public beforeCompileChildren(): $AppTask {
     return this.at(TaskSlot.beforeCompileChildren);
   }
 
-  public beforeBind(): $StartTask {
-    return this.at(TaskSlot.beforeBind);
+  public beforeActivate(): $AppTask {
+    return this.at(TaskSlot.beforeActivate);
   }
 
-  public afterAttach(): $StartTask {
-    return this.at(TaskSlot.afterAttach);
+  public afterActivate(): $AppTask {
+    return this.at(TaskSlot.afterActivate);
   }
 
-  public at(slot: TaskSlot): $StartTask {
+  public beforeDeactivate(): $AppTask {
+    return this.at(TaskSlot.beforeDeactivate);
+  }
+
+  public afterDeactivate(): $AppTask {
+    return this.at(TaskSlot.afterDeactivate);
+  }
+
+  public at(slot: TaskSlot): $AppTask {
     this._slot = slot;
     return this;
   }
 
-  public call(fn: (instance: unknown) => PromiseOrTask): $StartTask {
+  public call(fn: (instance: unknown) => PromiseOrTask): $AppTask {
     this._callback = fn;
     return this;
   }
@@ -188,10 +202,12 @@ export interface IStartTaskManager {
    */
   enqueueBeforeCompileChildren(): void;
   runBeforeCreate(container?: IContainer): ILifecycleTask;
-  runBeforeRender(container?: IContainer): ILifecycleTask;
+  runBeforeCompile(container?: IContainer): ILifecycleTask;
   runBeforeCompileChildren(container?: IContainer): ILifecycleTask;
-  runBeforeBind(container?: IContainer): ILifecycleTask;
-  runAfterAttach(container?: IContainer): ILifecycleTask;
+  runBeforeActivate(container?: IContainer): ILifecycleTask;
+  runAfterActivate(container?: IContainer): ILifecycleTask;
+  runBeforeDeactivate(container?: IContainer): ILifecycleTask;
+  runAfterDeactivate(container?: IContainer): ILifecycleTask;
   run(slot: TaskSlot, container?: IContainer): ILifecycleTask;
 }
 
@@ -217,8 +233,8 @@ export class StartTaskManager implements IStartTaskManager {
     return this.run(TaskSlot.beforeCreate, locator);
   }
 
-  public runBeforeRender(locator: IServiceLocator = this.locator): ILifecycleTask {
-    return this.run(TaskSlot.beforeRender, locator);
+  public runBeforeCompile(locator: IServiceLocator = this.locator): ILifecycleTask {
+    return this.run(TaskSlot.beforeCompile, locator);
   }
 
   public runBeforeCompileChildren(locator: IServiceLocator = this.locator): ILifecycleTask {
@@ -229,12 +245,20 @@ export class StartTaskManager implements IStartTaskManager {
     return LifecycleTask.done;
   }
 
-  public runBeforeBind(locator: IServiceLocator = this.locator): ILifecycleTask {
-    return this.run(TaskSlot.beforeBind, locator);
+  public runBeforeActivate(locator: IServiceLocator = this.locator): ILifecycleTask {
+    return this.run(TaskSlot.beforeActivate, locator);
   }
 
-  public runAfterAttach(locator: IServiceLocator = this.locator): ILifecycleTask {
-    return this.run(TaskSlot.afterAttach, locator);
+  public runAfterActivate(locator: IServiceLocator = this.locator): ILifecycleTask {
+    return this.run(TaskSlot.afterActivate, locator);
+  }
+
+  public runBeforeDeactivate(locator: IServiceLocator = this.locator): ILifecycleTask {
+    return this.run(TaskSlot.beforeDeactivate, locator);
+  }
+
+  public runAfterDeactivate(locator: IServiceLocator = this.locator): ILifecycleTask {
+    return this.run(TaskSlot.afterDeactivate, locator);
   }
 
   public run(slot: TaskSlot, locator: IServiceLocator = this.locator): ILifecycleTask {

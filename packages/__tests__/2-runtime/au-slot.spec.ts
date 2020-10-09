@@ -982,8 +982,6 @@ describe('au-slot', function () {
         if (additionalAssertion != null) {
           await additionalAssertion(ctx);
         }
-
-        assert.isSchedulerEmpty();
       },
       { template, registrations });
   }

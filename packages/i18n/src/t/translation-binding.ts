@@ -16,7 +16,6 @@ import {
   IScope,
   IsExpression,
   LifecycleFlags,
-  State,
   INode,
   IRenderableController,
 } from '@aurelia/runtime';
@@ -44,13 +43,15 @@ interface ContentValue {
 
 const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
 
-export interface TranslationBinding extends IConnectableBinding {}
+export interface TranslationBinding extends IConnectableBinding { }
+
+const forOpts = { optional: true } as const;
 
 @connectable()
 export class TranslationBinding implements IPartialConnectableBinding {
   public interceptor: this = this;
   public id!: number;
-  public $state: State;
+  public isBound: boolean = false;
   public expr!: IsExpression;
   public parametersExpr?: IsExpression;
   private readonly i18n: I18N;
@@ -58,10 +59,11 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private keyExpression: string | undefined | null;
   private translationParameters!: i18next.TOptions;
   private scope!: IScope;
+  private hostScope: IScope | null = null;
   private isInterpolatedSourceExpr!: boolean;
   private readonly targetObservers: Set<IBindingTargetAccessor>;
 
-  public readonly target: HTMLElement;
+  public target: HTMLElement;
 
   public constructor(
     target: INode,
@@ -69,7 +71,6 @@ export class TranslationBinding implements IPartialConnectableBinding {
     public locator: IServiceLocator,
   ) {
     this.target = target as HTMLElement;
-    this.$state = State.none;
     this.i18n = this.locator.get(I18N);
     const ea: IEventAggregator = this.locator.get(IEventAggregator);
     ea.subscribe(Signals.I18N_EA_CHANNEL, this.handleLocaleChange.bind(this));
@@ -108,41 +109,41 @@ export class TranslationBinding implements IPartialConnectableBinding {
     return binding;
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string | undefined): void {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
     if (!this.expr) { throw new Error('key expression is missing'); } // TODO replace with error code
     this.scope = scope;
+    this.hostScope = hostScope;
     this.isInterpolatedSourceExpr = this.expr instanceof Interpolation;
 
-    this.keyExpression = this.expr.evaluate(flags, scope, this.locator, part) as string;
+    this.keyExpression = this.expr.evaluate(flags, scope, hostScope, this.locator, null) as string;
     this.ensureKeyExpression();
     if (this.parametersExpr) {
       const parametersFlags = flags | LifecycleFlags.secondaryExpression;
-      this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, this.locator, part) as i18next.TOptions;
-      this.parametersExpr.connect(parametersFlags, scope, this as any, part);
+      this.translationParameters = this.parametersExpr.evaluate(parametersFlags, scope, hostScope, this.locator, null) as i18next.TOptions;
+      this.parametersExpr.connect(parametersFlags, scope, hostScope, this as any);
     }
 
     const expressions = !(this.expr instanceof CustomExpression) ? this.isInterpolatedSourceExpr ? (this.expr as Interpolation).expressions : [this.expr] : [];
 
     for (const expr of expressions) {
-      expr.connect(flags, scope, this as any, part);
+      expr.connect(flags, scope, hostScope, this as any);
     }
 
     this.updateTranslations(flags);
-    this.$state = State.isBound;
+    this.isBound = true;
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
-    this.$state |= State.isUnbinding;
 
-    if (this.expr.unbind) {
-      this.expr.unbind(flags, this.scope, this as any);
+    if (this.expr.hasUnbind) {
+      this.expr.unbind(flags, this.scope, this.hostScope, this as any);
     }
 
-    if (this.parametersExpr && this.parametersExpr.unbind) {
-      this.parametersExpr.unbind(flags | LifecycleFlags.secondaryExpression, this.scope, this as any);
+    if (this.parametersExpr?.hasUnbind) {
+      this.parametersExpr.unbind(flags | LifecycleFlags.secondaryExpression, this.scope, this.hostScope, this as any);
     }
     this.unobserveTargets(flags);
 
@@ -152,11 +153,10 @@ export class TranslationBinding implements IPartialConnectableBinding {
 
   public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void {
     if (flags & LifecycleFlags.secondaryExpression) {
-      // @ToDo, @Fixme: where do we get "part" from (last argument for evaluate)?
-      this.translationParameters = this.parametersExpr!.evaluate(flags, this.scope, this.locator) as i18next.TOptions;
+      this.translationParameters = this.parametersExpr!.evaluate(flags,  this.scope,  this.hostScope,  this.locator, null) as i18next.TOptions;
     } else {
       this.keyExpression = this.isInterpolatedSourceExpr
-        ? this.expr.evaluate(flags, this.scope, this.locator, '') as string
+        ? this.expr.evaluate(flags,  this.scope,  this.hostScope,  this.locator, null) as string
         : newValue as string;
       this.ensureKeyExpression();
     }
@@ -189,7 +189,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   private updateAttribute(attribute: string, value: string, flags: LifecycleFlags) {
-    const controller = CustomElement.for(this.target);
+    const controller = CustomElement.for(this.target, forOpts);
     const observer = controller && controller.viewModel
       ? this.observerLocator.getAccessor(LifecycleFlags.none, controller.viewModel, attribute)
       : this.observerLocator.getAccessor(LifecycleFlags.none, this.target, attribute);
@@ -283,5 +283,11 @@ export class TranslationBinding implements IPartialConnectableBinding {
     if (exprType !== 'string') {
       throw new Error(`Expected the i18n key to be a string, but got ${expr} of type ${exprType}`); // TODO use reporter/logger
     }
+  }
+
+  public dispose(): void {
+    this.interceptor = (void 0)!;
+    this.locator = (void 0)!;
+    this.target = (void 0)!;
   }
 }

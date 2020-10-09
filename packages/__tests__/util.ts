@@ -10,13 +10,19 @@ export interface TestExecutionContext<TApp extends any> {
   scheduler: IScheduler;
 }
 
+export type $TestSetupContext = Record<string, any> & { timeout?: number };
 export type TestFunction<TTestContext extends TestExecutionContext<any>> = (ctx: TTestContext) => void | Promise<void>;
-export type WrapperFunction<TTestContext extends TestExecutionContext<any>, TSetupContext> = (testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) => void | Promise<void>;
+export type WrapperFunction<TTestContext extends TestExecutionContext<any>, TSetupContext extends $TestSetupContext = $TestSetupContext> = (testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) => void | Promise<void>;
 
-export function createSpecFunction<TTestContext extends TestExecutionContext<any>, TSetupContext = Record<string, any>>(wrap: WrapperFunction<TTestContext, TSetupContext>) {
+export function createSpecFunction<TTestContext extends TestExecutionContext<any>, TSetupContext extends $TestSetupContext = $TestSetupContext>(wrap: WrapperFunction<TTestContext, TSetupContext>) {
 
   function $it(title: string, testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) {
-    it(title, async function () { await wrap(testFunction, setupContext); });
+    it(title, async function () {
+      if (setupContext?.timeout !== void 0) {
+        this.timeout(setupContext.timeout);
+      }
+      await wrap(testFunction, setupContext);
+    });
   }
 
   $it.only = function (title: string, testFunction: TestFunction<TTestContext>, setupContext?: TSetupContext) {

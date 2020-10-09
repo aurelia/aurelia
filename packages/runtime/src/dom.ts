@@ -48,7 +48,7 @@ export interface INodeSequence<T extends INode = INode> extends INode {
   /**
    * Append this sequence as a child to parent
    */
-  appendTo(parent: T): void;
+  appendTo(parent: T, enhance?: boolean): void;
 
   /**
    * Remove this sequence from the DOM.
@@ -70,7 +70,7 @@ export interface IDOM<T extends INode = INode> {
   cloneNode<TClone extends T>(node: TClone, deep?: boolean): TClone;
   convertToRenderLocation(node: T): IRenderLocation<T>;
   createDocumentFragment(markupOrNode?: string | T): T;
-  createNodeSequence(fragment: T | null): INodeSequence<T>;
+  createNodeSequence(fragment: T | null, cloneNode?: boolean): INodeSequence<T>;
   createElement(name: string): T;
   createCustomEvent(eventType: string, options?: unknown): unknown;
   dispatchEvent(evt: unknown): void;

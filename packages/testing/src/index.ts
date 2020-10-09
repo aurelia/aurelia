@@ -26,6 +26,7 @@ export {
   eachCartesianJoinFactory,
   eachCartesianJoin,
   eachCartesianJoinAsync,
+  generateCartesianProduct,
 } from './each-cartesian-join';
 export {
   h,
@@ -64,6 +65,9 @@ export {
   JsonValueConverter,
   TestConfiguration,
 } from './resources';
+export {
+  ensureSchedulerEmpty,
+} from './scheduler';
 export {
   // verifyASTEqual,
   verifyBindingInstructionsEqual,

@@ -1,9 +1,24 @@
 import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingInstruction, TranslationParametersBindingRenderer, TranslationParametersInstructionType } from '@aurelia/i18n';
-import { AttrSyntax, BindingCommand, BindingCommandInstance, IAttributePattern, PlainAttributeSymbol } from '@aurelia/jit';
-import { AttrBindingCommand } from '@aurelia/jit-html';
 import { DI } from '@aurelia/kernel';
-import { AnyBindingExpression, BindingType, ICallBindingInstruction, IExpressionParser, IInstructionRenderer, IObserverLocator, LifecycleFlags, RuntimeConfiguration, ICompiledRenderContext, IRenderableController, IBinding } from '@aurelia/runtime';
-import { DOM } from '@aurelia/runtime-html';
+import {
+  AnyBindingExpression,
+  BindingType,
+  ICallBindingInstruction,
+  IExpressionParser,
+  IInstructionRenderer,
+  IObserverLocator,
+  LifecycleFlags,
+  RuntimeConfiguration,
+  ICompiledRenderContext,
+  IRenderableController,
+  IBinding,
+  AttrSyntax,
+  BindingCommand,
+  BindingCommandInstance,
+  IAttributePattern,
+  PlainAttributeSymbol,
+} from '@aurelia/runtime';
+import { AttrBindingCommand, DOM } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('TranslationParametersAttributePattern', function () {
@@ -81,7 +96,6 @@ describe('TranslationParametersBindingRenderer', function () {
       controller,
       DOM.createElement('span'),
       callBindingInstruction,
-      void 0,
     );
 
     assert.instanceOf(controller.bindings[0], TranslationBinding);
@@ -103,7 +117,6 @@ describe('TranslationParametersBindingRenderer', function () {
       renderable,
       targetElement,
       callBindingInstruction,
-      void 0,
     );
 
     assert.equal(binding.parametersExpr, paramExpr);

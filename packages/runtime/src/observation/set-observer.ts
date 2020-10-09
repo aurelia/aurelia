@@ -1,8 +1,9 @@
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
-import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver } from '../observation';
+import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver, AccessorType } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
+import { ITask } from '@aurelia/scheduler';
 
 const observerLookup = new WeakMap<Set<unknown>, SetObserver>();
 
@@ -137,6 +138,8 @@ export interface SetObserver extends ICollectionObserver<CollectionKind.set> {}
 @collectionSubscriberCollection()
 export class SetObserver {
   public inBatch: boolean;
+  public type: AccessorType = AccessorType.Set;
+  public task: ITask | null = null;
 
   public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, observedSet: IObservedSet) {
 
@@ -171,7 +174,7 @@ export class SetObserver {
     if (this.lengthObserver === void 0) {
       this.lengthObserver = new CollectionSizeObserver(this.collection);
     }
-    return this.lengthObserver;
+    return this.lengthObserver as CollectionSizeObserver;
   }
 
   public getIndexObserver(index: number): ICollectionIndexObserver {
@@ -179,9 +182,10 @@ export class SetObserver {
   }
 
   public flushBatch(flags: LifecycleFlags): void {
+    const indexMap = this.indexMap;
+    const size = this.collection.size;
+
     this.inBatch = false;
-    const { indexMap, collection } = this;
-    const { size } = collection;
     this.indexMap = createIndexMap(size);
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
     if (this.lengthObserver !== void 0) {

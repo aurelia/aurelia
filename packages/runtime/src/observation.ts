@@ -1,6 +1,12 @@
-import { IIndexable } from '@aurelia/kernel';
+import { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { LifecycleFlags } from './flags';
 import { ILifecycle } from './lifecycle';
+import { ITask } from '@aurelia/scheduler';
+
+export interface IConnectable {
+  readonly locator: IServiceLocator;
+  observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void;
+}
 
 /** @internal */
 export const enum SubscriberFlags {
@@ -106,6 +112,7 @@ export interface IPropertyObserver<TObj extends object, TProp extends keyof TObj
   IPropertyChangeTracker<TObj, TProp>,
   ISubscriberCollection,
   IBatchable {
+  type: AccessorType;
   inBatch: boolean;
   observing: boolean;
   persistentFlags: LifecycleFlags;
@@ -185,12 +192,44 @@ export type IProxy<TObj extends {} = {}> = TObj & {
   $raw: TObj;
 };
 
+export const enum AccessorType {
+  None          = 0b0_0000_0000,
+  Observer      = 0b0_0000_0001,
+
+  Node          = 0b0_0000_0010,
+  Obj           = 0b0_0000_0100,
+
+  Array         = 0b0_0000_1010,
+  Set           = 0b0_0001_0010,
+  Map           = 0b0_0010_0010,
+
+  // misc characteristic of observer when update
+  //
+  // by default, everything is synchronous
+  // except changes that are supposed to cause reflow/heavy computation
+  // an observer can use this flag to signal binding that don't carelessly tell it to update
+  // queue it instead
+  // todo: https://gist.github.com/paulirish/5d52fb081b3570c81e3a
+  // todo: https://csstriggers.com/
+  Layout        = 0b0_0100_0000,
+
+  // there needs to be a flag to signal that accessor real value
+  // may get out of sync with binding value
+  // so that binding can ask for a force read instead of cache read
+}
+
 /**
  * Basic interface to normalize getting/setting a value of any property on any object
  */
 export interface IAccessor<TValue = unknown> {
+  task: ITask | null;
+  type: AccessorType;
   getValue(): TValue;
   setValue(newValue: TValue, flags: LifecycleFlags): void;
+}
+
+export interface INodeAccessor<TValue = unknown> extends IAccessor<TValue> {
+  flushChanges(flags: LifecycleFlags): void;
 }
 
 /**
@@ -309,6 +348,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends
   ICollectionChangeTracker<CollectionKindToType<T>>,
   ICollectionSubscriberCollection,
   IBatchable {
+  type: AccessorType;
   inBatch: boolean;
   lifecycle: ILifecycle;
   persistentFlags: LifecycleFlags;
@@ -334,13 +374,11 @@ export interface IOverrideContext {
   readonly $synthetic?: true;
   readonly $observers?: ObserversLookup;
   readonly bindingContext: IBindingContext;
-  readonly parentOverrideContext: IOverrideContext | null;
   getObservers(flags: LifecycleFlags): ObserversLookup;
 }
 
 export interface IScope {
   readonly parentScope: IScope | null;
-  readonly scopeParts: readonly string[];
   readonly bindingContext: IBindingContext;
   readonly overrideContext: IOverrideContext;
 }

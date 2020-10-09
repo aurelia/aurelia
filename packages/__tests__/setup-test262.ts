@@ -259,7 +259,7 @@ function toString(x: { toString(): string }): string {
   return x.toString();
 }
 
-const utf8Encoding = { encoding: 'utf8' };
+const utf8Encoding = { encoding: 'utf8' } as const;
 
 export class BufferedFileSink {
   private readonly buffer: ILogEvent[] = [];

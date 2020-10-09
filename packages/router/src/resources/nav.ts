@@ -1,5 +1,4 @@
-import { inject } from '@aurelia/kernel';
-import { bindable, customElement, INode } from '@aurelia/runtime';
+import { bindable, customElement } from '@aurelia/runtime';
 import { NavRoute } from '../nav-route';
 import { IRouter } from '../router';
 
@@ -15,7 +14,6 @@ export interface INavClasses {
   aActive?: string;
 }
 
-@inject(IRouter, INode)
 @customElement({
   name: 'au-nav', template:
     `<template>
@@ -24,7 +22,7 @@ export interface INavClasses {
   </nav>
   <ul if.bind="routes" class="nav-level-\${level} \${classes.ul}">
     <li repeat.for="route of routes" if.bind="route.visible" class="\${route.active ? classes.liActive : ''} \${route.hasChildren} \${classes.li}">
-      <a if.bind="route.link && route.link.length" goto="\${route.link}" class="\${route.active ? classes.aActive : ''} \${classes.a}" innerhtml.bind="route.title"></a>
+      <a if.bind="route.link && route.link.length" load="\${route.link}" class="\${route.active ? classes.aActive : ''} \${classes.a}" innerhtml.bind="route.title"></a>
       <a if.bind="route.execute" click.trigger="route.executeAction($event)" href="" class="\${route.active ? classes.aActive : ''} \${classes.a}" innerhtml.bind="route.title"></a>
       <span if.bind="(!route.link || !route.link.length) && !route.execute && !route.children" class="\${route.active ? classes.aActive : ''} \${classes.span} nav-separator" innerhtml.bind="route.title"></span>
       <a if.bind="(!route.link || !route.link.length) && !route.execute && route.children" click.delegate="route.toggleActive()" href="" class="\${route.active ? classes.aActive : ''} \${classes.a}" innerhtml.bind="route.title"></a>
@@ -38,7 +36,7 @@ export class NavCustomElement {
   @bindable public level: number = 0;
   @bindable public classes: INavClasses = {};
 
-  public constructor(private readonly router: IRouter) { }
+  public constructor(@IRouter private readonly router: IRouter) { }
 
   public get navRoutes(): NavRoute[] {
     const nav = this.router.navs[this.name as string];

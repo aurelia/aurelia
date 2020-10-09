@@ -1,6 +1,32 @@
 import { DI, IContainer, inject, InterfaceSymbol, Registration, singleton } from '@aurelia/kernel';
 import { assert, createSpy, ISpy } from '@aurelia/testing';
 
+describe('DI.singleton', function () {
+  describe('registerInRequester', function () {
+    class Foo {
+    }
+    const fooSelfRegister = DI.singleton(Foo, { scoped: true });
+
+    it('root', function () {
+      const root = DI.createContainer();
+      const foo1 = root.get(fooSelfRegister);
+      const foo2 = root.get(fooSelfRegister);
+
+      assert.strictEqual(foo1, foo2);
+    });
+
+    it('children', function () {
+      const root = DI.createContainer();
+      const child1 = root.createChild();
+      const child2 = root.createChild();
+      const foo1 = child1.get(fooSelfRegister);
+      const foo2 = child2.get(fooSelfRegister);
+
+      assert.notStrictEqual(foo1, foo2);
+    });
+  });
+});
+
 describe('DI.getDependencies', function () {
   it('string param', function () {
     @singleton

@@ -1,18 +1,41 @@
 export {
+  AttrSyntax,
+  IAttributeParser,
+} from './attribute-parser';
+export {
+  attributePattern,
+  AttributePatternDefinition,
+  IAttributePattern,
+  AttributePattern,
+  Interpretation,
+  ISyntaxInterpreter,
+} from './attribute-pattern';
+export {
+  AtPrefixedTriggerAttributePattern,
+  ColonPrefixedBindAttributePattern,
+  DotSeparatedAttributePattern,
+  RefAttributePattern,
+} from './attribute-patterns';
+export {
+  bindingCommand,
+  BindingCommand ,
+  BindingCommandInstance,
+  BindingCommandDefinition,
+  BindingCommandKind,
+  BindingCommandType,
+  getTarget,
+} from './binding-command';
+export {
+  CallBindingCommand,
+  DefaultBindingCommand,
+  ForBindingCommand,
+  FromViewBindingCommand,
+  OneTimeBindingCommand,
+  ToViewBindingCommand,
+  TwoWayBindingCommand
+} from './binding-commands';
+export {
   CallFunctionExpression,
-  connects,
-  observes,
-  callsFunction,
-  hasAncestor,
-  isAssignable,
-  isLeftHandSide,
-  isPrimary,
-  isResource,
-  hasBind,
-  hasUnbind,
-  isLiteral,
-  arePureLiterals,
-  isPureLiteral,
   CustomExpression,
   BindingBehaviorExpression,
   ValueConverterExpression,
@@ -36,9 +59,7 @@ export {
   ObjectBindingPattern,
   BindingIdentifier,
   ForOfStatement,
-  Interpolation
-} from './binding/ast';
-export {
+  Interpolation,
   AnyBindingExpression,
   IsPrimary,
   IsLiteral,
@@ -52,43 +73,12 @@ export {
   IsAssignable,
   IsExpression,
   IsExpressionOrStatement,
-  Connects,
-  Observes,
-  CallsFunction,
-  IsResource,
-  HasBind,
-  HasUnbind,
-  HasAncestor,
   IVisitor,
-  IExpression,
-  IAccessKeyedExpression,
-  IAccessMemberExpression,
-  IAccessScopeExpression,
-  IAccessThisExpression,
-  IArrayBindingPattern,
-  IArrayLiteralExpression,
-  IAssignExpression,
-  IBinaryExpression,
-  IBindingBehaviorExpression,
-  IBindingIdentifier,
-  ICallFunctionExpression,
-  ICallMemberExpression,
-  ICallScopeExpression,
-  IConditionalExpression,
-  IForOfStatement,
-  IHtmlLiteralExpression,
-  IInterpolationExpression,
-  IObjectBindingPattern,
-  IObjectLiteralExpression,
-  IPrimitiveLiteralExpression,
-  ITaggedTemplateExpression,
-  ITemplateExpression,
-  IUnaryExpression,
-  IValueConverterExpression,
   BinaryOperator,
   BindingIdentifierOrPattern,
-  UnaryOperator
-} from './ast';
+  UnaryOperator,
+  IHydrator,
+} from './binding/ast';
 export {
   PropertyBinding
 } from './binding/property-binding';
@@ -104,7 +94,13 @@ export {
 } from './binding/connectable';
 export {
   IExpressionParser,
-  BindingType
+  BindingType,
+  parseExpression,
+  Char,
+  Access,
+  Precedence,
+  parse,
+  ParserState,
 } from './binding/expression-parser';
 export {
   MultiInterpolationBinding,
@@ -160,6 +156,10 @@ export {
   DirtyCheckSettings
 } from './observation/dirty-checker';
 export {
+  IObservableDefinition,
+  observable,
+} from './observation/observable';
+export {
   IObjectObservationAdapter,
   IObserverLocator,
   ITargetObserverLocator,
@@ -214,7 +214,6 @@ export {
   DebounceBindingBehavior
 } from './resources/binding-behaviors/debounce';
 export {
-  SignalableBinding,
   SignalBindingBehavior
 } from './resources/binding-behaviors/signals';
 export {
@@ -244,11 +243,18 @@ export {
   Repeat
 } from './resources/custom-attributes/repeat';
 export {
-  Replaceable
-} from './resources/custom-attributes/replaceable';
-export {
   With
 } from './resources/custom-attributes/with';
+
+export {
+  AuSlot,
+  IProjections,
+  SlotInfo,
+  AuSlotContentType,
+  RegisteredProjections,
+  IProjectionProvider,
+  ProjectionContext,
+} from './resources/custom-elements/au-slot';
 
 export {
   containerless,
@@ -316,6 +322,8 @@ export {
 // These exports are temporary until we have a proper way to unit test them
 export {
   Controller,
+  isCustomElementController,
+  isCustomElementViewModel,
 } from './templating/controller';
 export {
   ViewFactory,
@@ -332,10 +340,29 @@ export {
   CompositionRoot,
 } from './aurelia';
 export {
+  RefAttributePatternRegistration,
+  DotSeparatedAttributePatternRegistration,
+
+  DefaultBindingSyntax,
+
+  AtPrefixedTriggerAttributePatternRegistration,
+  ColonPrefixedBindAttributePatternRegistration,
+
+  ShortHandBindingSyntax,
+
+  CallBindingCommandRegistration,
+  DefaultBindingCommandRegistration,
+  ForBindingCommandRegistration,
+  FromViewBindingCommandRegistration,
+  OneTimeBindingCommandRegistration,
+  ToViewBindingCommandRegistration,
+  TwoWayBindingCommandRegistration,
+
+  DefaultBindingLanguage,
+
   IfRegistration,
   ElseRegistration,
   RepeatRegistration,
-  ReplaceableRegistration,
   WithRegistration,
 
   SanitizeValueConverterRegistration,
@@ -360,9 +387,13 @@ export {
   TemplateControllerRendererRegistration,
 
   DefaultResources,
+  IExpressionParserRegistration,
   IObserverLocatorRegistration,
   ILifecycleRegistration,
   IRendererRegistration,
+  IStartTaskManagerRegistration,
+  IViewLocatorRegistration,
+  IProjectionProviderRegistration,
   RuntimeConfiguration
 } from './configuration';
 export {
@@ -386,7 +417,6 @@ export {
   NodeInstruction,
   TargetedInstruction,
   TargetedInstructionType,
-  PartialCustomElementDefinitionParts,
   alias,
   registerAliases
 } from './definitions';
@@ -404,7 +434,6 @@ export {
   BindingStrategy,
   ExpressionKind,
   LifecycleFlags,
-  State
 } from './flags';
 export {
   CallBindingInstruction,
@@ -424,6 +453,7 @@ export {
 } from './instructions';
 export {
   ViewModelKind,
+  ControllerVisitor,
   IBinding,
   ILifecycle,
   IViewModel,
@@ -435,7 +465,7 @@ export {
   ICustomAttributeController,
   IHydratedController,
   IHydratedComponentController,
-  IHydratedRenderableController,
+  IHydratedParentController,
   ICompiledCustomElementController,
   ICustomElementController,
   IViewCache,
@@ -465,17 +495,19 @@ export {
   LifecycleTask,
   PromiseTask,
   TaskSlot,
-  StartTask,
+  AppTask,
   IStartTask,
   IStartTaskManager,
   ProviderTask,
 } from './lifecycle-task';
 export {
   AccessorOrObserver,
+  AccessorType,
   Collection,
   CollectionKind,
   DelegationStrategy,
   IAccessor,
+  INodeAccessor,
   IBindingContext,
   IBindingTargetAccessor,
   IBindingTargetObserver,
@@ -520,3 +552,29 @@ export {
   instructionRenderer,
   ensureExpression,
 } from './renderer';
+export {
+  ResourceModel,
+  BindableInfo,
+  ElementInfo,
+  AttrInfo
+} from './resource-model';
+export {
+  AnySymbol,
+  BindingSymbol,
+  CustomAttributeSymbol,
+  CustomElementSymbol,
+  ElementSymbol,
+  LetElementSymbol,
+  NodeSymbol,
+  ParentNodeSymbol,
+  PlainAttributeSymbol,
+  PlainElementSymbol,
+  ResourceAttributeSymbol,
+  SymbolFlags,
+  SymbolWithBindings,
+  SymbolWithMarker,
+  SymbolWithTemplate,
+  TemplateControllerSymbol,
+  TextSymbol,
+  ProjectionSymbol,
+} from './semantic-model';

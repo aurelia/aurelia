@@ -18,7 +18,7 @@ describe('AttrBindingBehavior', function () {
     sut = new AttrBindingBehavior();
     container = ctx.container;
     binding = new PropertyBinding(undefined, target, targetProperty, undefined, undefined, container);
-    sut.bind(undefined, undefined, binding);
+    sut.bind(undefined, undefined, null, binding);
   });
 
   it('bind()   should put a DataAttributeObserver on the binding', function () {

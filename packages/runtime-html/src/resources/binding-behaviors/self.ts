@@ -20,7 +20,7 @@ export type SelfableBinding = Listener & {
 
 @bindingBehavior('self')
 export class SelfBindingBehavior {
-  public bind(flags: LifecycleFlags, scope: IScope, binding: SelfableBinding): void {
+  public bind(flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, binding: SelfableBinding): void {
     if (!binding.callSource || !binding.targetEvent) {
       throw Reporter.error(8);
     }
@@ -29,7 +29,7 @@ export class SelfBindingBehavior {
     binding.callSource = handleSelfEvent;
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, binding: SelfableBinding): void {
+  public unbind(flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, binding: SelfableBinding): void {
     binding.callSource = binding.selfEventCallSource;
     binding.selfEventCallSource = null!;
   }

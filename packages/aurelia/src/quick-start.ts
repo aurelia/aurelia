@@ -1,13 +1,13 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
+import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
 import { DI, IContainer } from '@aurelia/kernel';
-import { Aurelia as $Aurelia, CompositionRoot, CustomElementType, ILifecycleTask, ISinglePageApp, CustomElement } from '@aurelia/runtime';
+import { Aurelia as $Aurelia, CompositionRoot, CustomElementType, ISinglePageApp, CustomElement, ILifecycleTask } from '@aurelia/runtime';
 
 // TODO: SSR?? abstract HTMLElement and document.
 
 function createAurelia(): Aurelia {
   const au = new Aurelia();
-  au.register(JitHtmlBrowserConfiguration);
+  au.register(RuntimeHtmlBrowserConfiguration);
 
   // eslint-disable-next-line sonarjs/no-collapsible-if
   if (typeof process !== 'undefined' && typeof process.env === 'object') {
@@ -31,15 +31,19 @@ export class Aurelia extends $Aurelia<HTMLElement> {
     return createAurelia().start(root);
   }
 
-  public static app(config: ISinglePageApp<HTMLElement> | unknown): Omit<Aurelia, 'register' | 'app'> {
+  public static app(config: ISinglePageApp<HTMLElement> | unknown): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
     return createAurelia().app(config);
+  }
+
+  public static enhance(config: ISinglePageApp<HTMLElement>): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
+    return createAurelia().enhance(config) as Omit<Aurelia, 'register' | 'app' | 'enhance'>;
   }
 
   public static register(...params: readonly unknown[]): Aurelia {
     return createAurelia().register(...params);
   }
 
-  public app(config: ISinglePageApp<HTMLElement> | unknown): Omit<this, 'register' | 'app'> {
+  public app(config: ISinglePageApp<HTMLElement> | unknown): Omit<this, 'register' | 'app' | 'enhance'> {
     if (CustomElement.isType(config as CustomElementType)) {
       // Default to custom element element name
       const definition = CustomElement.getDefinition(config as CustomElementType);

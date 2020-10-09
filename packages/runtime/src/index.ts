@@ -522,7 +522,6 @@ export {
   ISubscribable,
   ISubscriberCollection,
   ObservedCollection,
-  ObserversLookup,
   PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,

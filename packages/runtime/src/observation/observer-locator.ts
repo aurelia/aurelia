@@ -5,7 +5,6 @@ import {
   Primitive,
   Registration,
   isArrayIndex,
-  ILogger,
 } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';

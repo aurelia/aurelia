@@ -6,7 +6,6 @@ import {
   IResolver,
   Registration,
   Metadata,
-  IIndexable,
   DI,
   IServiceLocator,
 } from '@aurelia/kernel';
@@ -50,7 +49,7 @@ import {
   CustomElement, CustomElementDefinition, PartialCustomElementDefinition,
 } from './resources/custom-element';
 import { Controller } from './templating/controller';
-import { ObserversLookup } from './observation';
+import { IObservable } from './observation';
 import { ICompiledRenderContext, getRenderContext } from './templating/render-context';
 import { AnyBindingExpression, BindingBehaviorExpression, IsBindingBehavior } from './binding/ast';
 import { BindingBehaviorFactory, BindingBehaviorInstance, IInterceptableBinding } from './resources/binding-behavior';
@@ -254,7 +253,7 @@ export class SetPropertyRenderer implements IInstructionRenderer {
     target: IController,
     instruction: ISetPropertyInstruction,
   ): void {
-    const obj = getTarget(target) as IIndexable & { $observers: ObserversLookup };
+    const obj = getTarget(target) as IObservable;
     if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
       obj.$observers[instruction.to].setValue(instruction.value, LifecycleFlags.fromBind);
     } else {

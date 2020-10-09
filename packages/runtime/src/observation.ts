@@ -364,33 +364,14 @@ export type CollectionObserver = ICollectionObserver<CollectionKind>;
 
 export interface IBindingContext {
   [key: string]: any;
-
-  readonly $synthetic?: true;
-  readonly $observers?: ObserversLookup;
-  getObservers?(flags: LifecycleFlags): ObserversLookup;
 }
 
 export interface IOverrideContext {
   [key: string]: unknown;
 
-  readonly $synthetic?: true;
-  readonly $observers?: ObserversLookup;
   readonly bindingContext: IBindingContext;
-  getObservers(flags: LifecycleFlags): ObserversLookup;
 }
 
-export type ObserversLookup = IIndexable<{
-  getOrCreate(
-    lifecycle: ILifecycle,
-    flags: LifecycleFlags,
-    obj: IBindingContext | IOverrideContext,
-    key: string,
-  ): PropertyObserver;
-}, PropertyObserver>;
-
-export type InlineObserversLookup<T> = IIndexable<{}, T>;
-
-export type IObservable<T = {}> = {
-  readonly $synthetic?: false;
-  $observers?: ObserversLookup | InlineObserversLookup<T>;
+export type IObservable<T = IIndexable> = T & {
+  $observers?: IIndexable<{}, AccessorOrObserver>;
 };

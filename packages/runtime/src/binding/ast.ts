@@ -16,6 +16,7 @@ import { IBinding } from '../lifecycle';
 import {
   Collection,
   IBindingContext,
+  IObservable,
   IOverrideContext,
   ObservedCollection,
 } from '../observation';
@@ -357,7 +358,7 @@ export class AccessScopeExpression {
   }
 
   public assign(f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator, val: unknown): unknown {
-    const obj = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs) as IBindingContext;
+    const obj = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs) as IObservable;
     if (obj instanceof Object) {
       if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
         obj.$observers[this.name].setValue(val, f);
@@ -398,7 +399,7 @@ export class AccessMemberExpression {
   }
 
   public assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown {
-    const obj = this.object.evaluate(f, s, hs, l) as IBindingContext;
+    const obj = this.object.evaluate(f, s, hs, l) as IObservable;
     if (obj instanceof Object) {
       if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
         obj.$observers[this.name].setValue(val, f);

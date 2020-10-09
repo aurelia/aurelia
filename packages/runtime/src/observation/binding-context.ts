@@ -1,47 +1,16 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { IIndexable, StrictPrimitive } from '@aurelia/kernel';
+import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IBinding, ILifecycle } from '../lifecycle';
-import {
-  IBindingContext,
-  IOverrideContext,
-  ObservedCollection,
-  ObserversLookup,
-  PropertyObserver
-} from '../observation';
+import { IBinding } from '../lifecycle';
+import { IBindingContext, IOverrideContext } from '../observation';
 import { ProxyObserver } from './proxy-observer';
-import { SetterObserver } from './setter-observer';
 
 const marker = Object.freeze({});
-
-/** @internal */
-export class InternalObserversLookup {
-  public getOrCreate(
-    this: { [key: string]: PropertyObserver },
-    lifecycle: ILifecycle,
-    flags: LifecycleFlags,
-    obj: IBindingContext | IOverrideContext,
-    key: string,
-  ): PropertyObserver {
-    if (this[key] === void 0) {
-      this[key] = new SetterObserver(lifecycle, flags, obj, key);
-    }
-    return this[key];
-  }
-}
-
-export type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
 
 export class BindingContext implements IBindingContext {
   [key: string]: unknown;
 
-  public readonly $synthetic: true;
-
-  public $observers?: ObserversLookup;
-
   private constructor(keyOrObj?: string | IIndexable, value?: unknown) {
-    this.$synthetic = true;
-
     if (keyOrObj !== void 0) {
       if (value !== void 0) {
         // if value is defined then it's just a property and a value to initialize with
@@ -49,7 +18,7 @@ export class BindingContext implements IBindingContext {
       } else {
         // can either be some random object or another bindingContext to clone from
         for (const prop in keyOrObj as IIndexable) {
-          if (Object.prototype.hasOwnProperty.call(keyOrObj, prop)) {
+          if (Object.prototype.hasOwnProperty.call(keyOrObj, prop)as boolean) {
             this[prop] = (keyOrObj as IIndexable)[prop];
           }
         }
@@ -117,13 +86,6 @@ export class BindingContext implements IBindingContext {
     }
     return scope.bindingContext || scope.overrideContext;
   }
-
-  public getObservers(flags: LifecycleFlags): ObserversLookup {
-    if (this.$observers == null) {
-      this.$observers = new InternalObserversLookup() as ObserversLookup;
-    }
-    return this.$observers;
-  }
 }
 
 function chooseContext(scope: Scope, name: string, ancestor: number) {
@@ -159,19 +121,11 @@ function chooseContext(scope: Scope, name: string, ancestor: number) {
 }
 
 export class Scope {
-  public parentScope: Scope | null;
-  public bindingContext: IBindingContext;
-  public overrideContext: IOverrideContext;
-
   private constructor(
-    parentScope: Scope | null,
-    bindingContext: IBindingContext,
-    overrideContext: IOverrideContext,
-  ) {
-    this.parentScope = parentScope;
-    this.bindingContext = bindingContext;
-    this.overrideContext = overrideContext;
-  }
+    public parentScope: Scope | null,
+    public bindingContext: IBindingContext,
+    public overrideContext: IOverrideContext,
+  ) {}
 
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and a new standalone `OverrideContext`.
@@ -228,23 +182,13 @@ export class Scope {
 export class OverrideContext implements IOverrideContext {
   [key: string]: unknown;
 
-  public readonly $synthetic: true;
-  public $observers?: ObserversLookup;
   public bindingContext: IBindingContext;
 
   private constructor(bindingContext: IBindingContext) {
-    this.$synthetic = true;
     this.bindingContext = bindingContext;
   }
 
   public static create(flags: LifecycleFlags, bc: object): OverrideContext {
     return new OverrideContext(bc as IBindingContext);
-  }
-
-  public getObservers(): ObserversLookup {
-    if (this.$observers === void 0) {
-      this.$observers = new InternalObserversLookup() as ObserversLookup;
-    }
-    return this.$observers;
   }
 }

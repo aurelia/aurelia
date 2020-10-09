@@ -1,4 +1,3 @@
-import { Reporter } from '@aurelia/kernel';
 import {
   CollectionLengthObserver,
   CustomSetterObserver,
@@ -243,7 +242,7 @@ describe('ObserverLocator', function () {
                       }
                       Reflect.defineProperty(obj, 'foo', descriptor);
                       if (hasSetter && configurable && !hasGetter && !(hasAdapterObserver && adapterIsDefined)) {
-                        assert.throws(() => sut.getObserver(LF.none, obj, 'foo'), /18/, `() => sut.getObserver(LF.none, obj, 'foo')`);
+                        assert.throws(() => sut.getObserver(LF.none, obj, 'foo'), /You cannot observe a setter only property/, `() => sut.getObserver(LF.none, obj, 'foo')`);
                       } else {
                         const actual = sut.getObserver(LF.none, obj, 'foo');
                         if ((hasGetter || hasSetter) && !hasGetObserver && hasAdapterObserver && adapterIsDefined) {
@@ -329,23 +328,6 @@ describe('ObserverLocator', function () {
       }
     }
   }
-
-  it(_`getObserver() - throws if $observers is undefined`, function () {
-    const { sut } = createFixture();
-    const obj = {};
-    const writeSpy = createSpy(Reporter, 'write');
-    Reflect.defineProperty(obj, '$observers', { value: undefined });
-    sut.getObserver(LF.none, obj, 'foo');
-
-    writeSpy.restore();
-    assert.deepStrictEqual(
-      writeSpy.calls,
-      [
-        [0, {}],
-      ],
-      `writeSpy.calls`,
-    );
-  });
 
   it(_`getObserver() - Array.foo - returns ArrayObserver`, function () {
     const { sut } = createFixture();

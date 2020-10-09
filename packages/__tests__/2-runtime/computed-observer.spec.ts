@@ -460,6 +460,6 @@ describe.skip('ComputedObserver', function () {
       err = e;
     }
 
-    assert.match(err.message, /18/);
+    assert.match(err.message, /You cannot observe a setter only property/);
   });
 });

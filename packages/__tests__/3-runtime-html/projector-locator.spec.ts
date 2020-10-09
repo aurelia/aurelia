@@ -154,7 +154,7 @@ describe.skip(`determineProjector`, function () {
     const component = new Foo();
     const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0, null);
 
-    assert.throws(() => locator.getElementProjector(dom, controller, host, definition), /21/, `() => locator.getElementProjector(dom, component, host, definition)`);
+    assert.throws(() => locator.getElementProjector(dom, controller, host, definition), /You cannot combine the containerless custom element option with Shadow DOM./, `() => locator.getElementProjector(dom, component, host, definition)`);
   });
 
   it(`@containerless + hasSlots throws`, function () {
@@ -171,6 +171,6 @@ describe.skip(`determineProjector`, function () {
     const component = new Foo();
     const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0, null);
 
-    assert.throws(() => locator.getElementProjector(dom, controller, host, definition), /21/, `() => locator.getElementProjector(dom, component, host, definition)`);
+    assert.throws(() => locator.getElementProjector(dom, controller, host, definition), /You cannot combine the containerless custom element option with Shadow DOM./, `() => locator.getElementProjector(dom, component, host, definition)`);
   });
 });

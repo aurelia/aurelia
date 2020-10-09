@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import * as de from '../../src/locales/de/translation.json';
 import * as en from '../../src/locales/en/translation.json';
 

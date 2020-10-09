@@ -1,0 +1,15 @@
+sequenceDiagram
+  Validator->>RulesRegistry: Get rules for object
+  RulesRegistry->>Validator: rules[]
+  loop property rule
+    Validator->>PropertyRule: validate() (async)
+    loop rule in $rules
+      PropertyRule->>PropertyRule: execute rule (async)
+      opt invalid
+        PropertyRule->>MessageProvider: get validation message
+        MessageProvider->>PropertyRule: validation message
+      end
+    end
+    PropertyRule->>Validator: ValidationResults[]
+  end
+  Validator->>Validator: flatten results and return

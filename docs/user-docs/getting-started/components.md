@@ -22,27 +22,27 @@ Components in Aurelia follow the Model-View-ViewModel design pattern \(a descend
 
 To define a component, you only need to create your JavaScript or TypeScript file with the same name as your HTML file. By convention, Aurelia will recognize these as the view-model and view of a component, and will assemble them for you. Here's an example of a simple "hello world" component:
 
-{% code-tabs %}
-{% code-tabs-item title="say-hello.ts" %}
+{% tabs %}
+{% tab title="say-hello.ts" %}
 ```typescript
 export class SayHello {
 
 }
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="say-hello.html" %}
+{% tab title="say-hello.html" %}
 ```markup
 <h2>Hello World!</h2>
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="my-app.html" %}
+{% tab title="my-app.html" %}
 ```markup
 <say-hello></say-hello>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endtab %}
+{% endtabs %}
 
 {% hint style="warning" %}
 **Naming Components**
@@ -52,8 +52,8 @@ The component name, derived from the file name, **must** contain a hyphen when w
 
 The `say-hello` custom element we've created isn't very interesting yet, so lets spice it up by allowing the user to providing a "to" property so that we can personalize the message. To create "bindable" properties for your HTML element, you declare them using the `@bindable` decorator as shown in the next example.
 
-{% code-tabs %}
-{% code-tabs-item title="say-hello.ts" %}
+{% tabs %}
+{% tab title="say-hello.ts" %}
 ```typescript
 import { bindable } from 'aurelia';
 
@@ -61,20 +61,20 @@ export class SayHello {
   @bindable to = 'World';
 }
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="say-hello.html" %}
+{% tab title="say-hello.html" %}
 ```markup
 <h2>Hello ${to}!</h2>
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="my-app.html" %}
+{% tab title="my-app.html" %}
 ```markup
 <say-hello to="John"></say-hello>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endtab %}
+{% endtabs %}
 
 By declaring a _bindable_, not only can your template access the property via string interpolation, but those who use the custom element in HTML can set that property directly through an HTML attribute or even bind the `to` attribute to their own model.
 
@@ -86,8 +86,8 @@ Want to define component-specific CSS? Simply name your CSS file the same as you
 
 Now, what if we want our component to do something in response to user interaction? Let's see how we can set up DOM events to trigger methods on our component.
 
-{% code-tabs %}
-{% code-tabs-item title="say-hello.ts" %}
+{% tabs %}
+{% tab title="say-hello.ts" %}
 ```typescript
 import { bindable } from 'aurelia';
 
@@ -100,21 +100,21 @@ export class SayHello {
   }
 }
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="say-hello.html" %}
+{% tab title="say-hello.html" %}
 ```markup
 <h2>${message} ${to}!</h2>
 <button click.trigger="leave()">Leave</button>
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="my-app.html" %}
+{% tab title="my-app.html" %}
 ```markup
 <say-hello to="John"></say-hello>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endtab %}
+{% endtabs %}
 
 Now, when the user clicks the button, the `leave` method will get called. It then updates the message property, which causes the DOM to respond by updating as well.
 
@@ -128,17 +128,17 @@ Interested to learn more about how you can display data with Aurelia's templatin
 
 By default, components you create aren't global. What that means is that you can't use a component within another component, unless that component has been imported. Let's imagine that our "say-hello" component wants to use a "name-tag" component internally. To do that, we need to add an import in our view. Here's how that works:
 
-{% code-tabs %}
-{% code-tabs-item title="say-hello.html" %}
+{% tabs %}
+{% tab title="say-hello.html" %}
 ```markup
 <import from="./name-tag">
 
 <h2>${message} <name-tag name.bind="to"></name-tag>!</h2>
 <button click.trigger="leave()">Leave</button>
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="say-hello.ts" %}
+{% tab title="say-hello.ts" %}
 ```typescript
 import { bindable } from 'aurelia';
 
@@ -151,19 +151,18 @@ export class SayHello {
   }
 }
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="app.html" %}
+{% tab title="app.html" %}
 ```markup
 <say-hello to="John"></say-hello>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endtab %}
+{% endtabs %}
 
 In practice, most people want to side-step this feature and make most of their general-purpose components global, so they can remove the majority of their imports. To make a component global, simply register it with the application's root dependency injection container at startup:
 
-{% code-tabs %}
-{% code-tabs-item title="mail.ts" %}
+{% code title="mail.ts" %}
 ```typescript
 import Aurelia from 'aurelia';
 import { App } from './app';
@@ -176,20 +175,19 @@ Aurelia
   .app(App)
   .start();
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 As a best practice, we recommend an alternate approach to registering each component individually in this way. Instead, create a folder where you keep all your shared components. In that folder, create a `registry.ts` module where you re-export your components. Then, import that registry module and pass it to the application's `register` method at startup.
 
-{% code-tabs %}
-{% code-tabs-item title="components/registry.ts" %}
+{% tabs %}
+{% tab title="components/registry.ts" %}
 ```typescript
 export * from './say-hello';
 export * from './name-tag';
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="main.ts" %}
+{% tab title="main.ts" %}
 ```typescript
 import Aurelia from 'aurelia';
 import { App } from './app';
@@ -202,21 +200,21 @@ Aurelia
   .app(App)
   .start();
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endtab %}
+{% endtabs %}
 
 {% hint style="info" %}
 **Aurelia Architecture**
 
-Did you notice how the default Aurelia startup code involves importing and registering `JitHtmlBrowserConfiguration`? The `JitHtmlBrowserConfiguration` export is a type of `registry,` just like the one we described above. Since all of Aurelia's internals are pluggable and extensible, we provide this convenience registry to setup the standard options you would want in a typical application.
+Did you notice how the default Aurelia startup code involves importing and registering `RuntimeHtmlBrowserConfiguration`? The `RuntimeHtmlBrowserConfiguration` export is a type of `registry,` just like the one we described above. Since all of Aurelia's internals are pluggable and extensible, we provide this convenience registry to setup the standard options you would want in a typical application.
 {% endhint %}
 
 ### Working without Conventions
 
 So far, we've described how components are created by simply naming your JavaScript and HTML files with the same name, and that the component name is automatically derived from the file name. However, if you don't want to leverage conventions, or need to override the default behavior for an individual component, you can always explicitly provide the configuration yourself. To do this, use the `@customElement` decorator. Here's how we would define the previous component, without using conventions.
 
-{% code-tabs %}
-{% code-tabs-item title="say-hello.ts" %}
+{% tabs %}
+{% tab title="say-hello.ts" %}
 ```typescript
 import { customElement, bindable } from 'aurelia';
 import template from './say-hello.html';
@@ -234,21 +232,21 @@ export class SayHello {
   }
 }
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="say-hello.html" %}
+{% tab title="say-hello.html" %}
 ```markup
 <h2>${message} ${to}!</h2>
 <button click.trigger="leave()">Leave</button>
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="my-app.html" %}
+{% tab title="my-app.html" %}
 ```markup
 <say-hello to="John"></say-hello>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endtab %}
+{% endtabs %}
 
 {% hint style="warning" %}
 **Don't Skip the Conventions**
@@ -266,26 +264,28 @@ We highly recommend that you leverage conventions where possible. A few benefits
 
 Every component instance has a lifecycle that you can tap into. This makes it easy for you to perform various actions at particular times. For example, you may want to execute some code as soon as your component properties are bound, but before the component is first rendered. Or, you may want to run some code to manipulate the DOM as soon as possible after your element is attached to the document.
 
-Every lifecycle callback is optional. Implement whatever makes sense for your component, but don't feel obligated to implement any of them if they aren't needed for your scenario. Some of the lifecycle callbacks make sense to implement in pairs \(`binding/unbinding`, `bound/unbound`, `attaching/detaching`, `attached/detached`\) in order to clean up any resources you have allocated. If you register a listener or subscriber in one callback, remember to remove it in the opposite callback.
+Every lifecycle callback is optional. Implement whatever makes sense for your component, but don't feel obligated to implement any of them if they aren't needed for your scenario. Some of the lifecycle callbacks make sense to implement in pairs \(`beforeBind/beforeUnbind`, `afterBind/afterUnbind`, `beforeAttach/beforeDetach`, `afterAttach/afterDetach`\) in order to clean up any resources you have allocated. If you register a listener or subscriber in one callback, remember to remove it in the opposite callback.
 
 | Lifecycle Callback | Description |
 | :--- | :--- |
 | `constructor` | When the framework instantiates a component, it calls your class's constructor, just like any JavaScript class. This is the best place to put basic initialization code that is not dependent on bindable properties. |
-| `created` | The "created" hook runs just after the constructor and can be treated very similarly. The only difference is that the component's `Controller` has been instantiated and is accessible through the `$controller` property, for advanced scenarios. |
-| `binding` | If your component has a method named "binding", then the framework will invoke it when it has begun binding values to your bindable properties. In terms of the component hierarchy, the binding hooks execute top-down, from parent to child, so your bindables will have their values set by the owning components, but the bindings in your view are not yet set. This is a good place to perform any work or make changes to anything that your view would depend on because data still flows down synchronously. This is the best time to do anything that might affect children as well. We prefer using this hook over `bound`, unless you specifically need `bound` for a situation when `binding` is too early. You can optionally return a `Promise` or `ILifecycleTask`. If you do so, it will be awaited before the children start binding. This is useful for fetch/save of data before render. |
-| `bound` | If your component has a method named "bound", then the framework will invoke it when it has fully bound your component, including its children. In terms of the component hierarchy, the bound hooks execute bottom-up, from child to parent. The bindings in the child views are bound, but the parent is not yet bound. This is the best place to do anything that requires children to be fully initialized and/or needs to propagate back up to the parent. |
-| `attaching` | If your component has a method named "attaching", then the framework will invoke it when it has begun attaching your HTML element to the document. In terms of the component hierarchy, the attaching hooks execute top-down. However, nothing is mounted to the DOM just yet. This is the last chance to attach specific behaviors or mutate the DOM nodes in your view before they are mounted. You can queue animations or initialize certain 3rd party libraries that don't depend on the nodes being connected to the document. |
-| `attached` | If your component has a method named "attached", then the framework will invoke it when it has fully attached your HTML element to the document, along with its children. In terms of the component hierarchy, the attached hooks execute bottom-up. This is the best time to invoke code that requires measuring of elements or integrating a 3rd party JavaScript library that requires being mounted to the DOM. |
-| `detaching` | If your component has a method named "detaching", then the framework will invoke it when it is about to remove your HTML element from the document. In terms of the component hierarchy, the detaching hooks execute top-down. However, nothing is unmounted from the DOM just yet. |
+| `create` | The "create" hook is the go-to hook for contextual dynamic composition. It runs just after the constructor and can be treated like a late interceptor for the `@customElement` decorator / `CustomElement.define` api: it allows you to change the `CustomElementDefinition` created by the framework before it is compiled, as well as make certain changes to the controller \(for example, wrapping or overriding the `scope`\). You'll have the compiled definition of the parent \(owning\) element available, as well as any `replace` parts. The returned definition is the cache key for the compiled definition in the context of the parent definition. To make a change only the first time the hook is invoked for an instance underneath a particular parent definition \(affecting all instances of the type underneath that parent definition\), mutate and return the existing definition; to make a contextual change \(that needs to be re-compiled per instance\), clone the definition before mutating and returning it. |
+| `beforeCompile` | The "beforeCompile" hook allows you to add contextual DI registrations \(to `controller.context`\) to influence which resources are resolved when the template is compiled. It runs synchronously right after the `create` hook and can still be considered part of "construction". From a caching perspective it has a direct 1-1 parity with the `create` hook: the context is cached per unique definition that is returned from `create` \(or per parent definition, if no new definition is returned from `create`\). Therefore, if you need true per-instance contextual registrations \(should be rare\), make sure to bust the cache per instance by returning a clone from the `create` hook. |
+| `afterCompile` | The "afterCompile" hook is a good place to contextually influence the way child components are constructed and rendered. It runs synchronously after the definition is compiled \(which happens synchronously after `beforeCompile`\) and, like `beforeCompile`, can still be considered part of "construction" and also has a direct 1-1 parity with the `create` hook from a caching perspective. This is the last opportunity to add DI registrations specifically for child components in this context, or in any other way affect what is rendered and how it is rendered. |
+| `afterCompileChildren` | The "afterCompileChildren" hook is the last hook that can be considered part of "construction". It is called \(synchronously\) after this component is hydrated, which includes resolving, compiling and hydrating child components. In terms of the component hierarchy, the afterCompileChildren hooks execute bottom-up, from child to parent \(whereas `create`, `beforeCompile` and `afterCompile` are all top-down\). This is also the last hook that runs only once per instance. Here you can perform any last-minute work that requires having all child components hydrated and that might affect the `bind` and `attach` lifecycles. |
+| `beforeBind` | If your component has a method named "beforeBind", then the framework will invoke it when it has begun binding values to your bindable properties. In terms of the component hierarchy, the beforeBind hooks execute top-down, from parent to child, so your bindables will have their values set by the owning components, but the bindings in your view are not yet set. This is a good place to perform any work or make changes to anything that your view would depend on because data still flows down synchronously. This is the best time to do anything that might affect children as well. We prefer using this hook over `afterBind`, unless you specifically need `afterBind` for a situation when `beforeBind` is too early. You can optionally return a `Promise` or `ILifecycleTask`. If you do so, it will be awaited before the children start binding. This is useful for fetch/save of data before render. |
+| `afterBind` | If your component has a method named "afterBind", then the framework will invoke it when it has fully bound your component, including its children. In terms of the component hierarchy, the afterBind hooks execute bottom-up, from child to parent. The bindings in the child views are bound, but the parent is not yet bound. This is the best place to do anything that requires children to be fully initialized and/or needs to propagate back up to the parent. |
+| `beforeAttach` | If your component has a method named "beforeAttach", then the framework will invoke it when it is about to attach your HTML element to the document. In terms of the component hierarchy, the beforeAttach hooks execute top-down. However, nothing is mounted to the DOM just yet. This is the last chance to attach specific behaviors or mutate the DOM nodes in your view before they are mounted. You can queue animations or initialize certain 3rd party libraries that don't depend on the nodes being connected to the document. |
+| `afterAttach` | If your component has a method named "afterAttach", then the framework will invoke it when it has fully attached your HTML element to the document, along with its children. In terms of the component hierarchy, the afterAttach hooks execute bottom-up. This is the best time to invoke code that requires measuring of elements or integrating a 3rd party JavaScript library that requires being mounted to the DOM. |
+| `beforeDetach` | If your component has a method named "beforeDetach", then the framework will invoke it when it is about to remove your HTML element from the document. In terms of the component hierarchy, the beforeDetach hooks execute top-down. However, nothing is unmounted from the DOM just yet. |
 | `caching` | If your component has a method named "caching", then the framework will invoke it immediately after the DOM nodes are unmounted. This is an advanced hook mostly useful for clean up of resources and references to views you own before they are put into the cache by the framework. |
-| `detached` | If your component has a method named "detached", then the framework will invoke it when it has fully removed your HTML element from the document. In terms of the component hierarchy, the detached hooks execute bottom-up. |
-| `unbinding` | If your component has a method named "unbinding", then the framework will invoke it when it has begun disconnecting bindings from your component. In terms of the component hierarchy, the unbinding hooks execute top-down. You can optionally return a `Promise` or `ILifecycleTask`. If you do so, it will be awaited before the children start unbinding. This is useful for fetch/save of data before final data disconnect. |
-| `unbound` | If your component has a method named "unbound", then the framework will invoke it when it has fully disconnected bindings from your component. In terms of the component hierarchy, the unbound hooks execute bottom-up. |
+| `afterDetach` | If your component has a method named "afterDetach", then the framework will invoke it when it has fully removed your HTML element from the document. In terms of the component hierarchy, the afterDetach hooks execute bottom-up. |
+| `beforeUnbind` | If your component has a method named "beforeUnbind", then the framework will invoke it when it has begun disconnecting bindings from your component. In terms of the component hierarchy, the beforeUnbind hooks execute top-down. You can optionally return a `Promise` or `ILifecycleTask`. If you do so, it will be awaited before the children start unbinding. This is useful for fetch/save of data before final data disconnect. |
+| `afterUnbind` | If your component has a method named "afterUnbind", then the framework will invoke it when it has fully disconnected bindings from your component. In terms of the component hierarchy, the afterUnbind hooks execute bottom-up. |
 
 To tap into any of these hooks, simply implement the method on your class:
 
-{% code-tabs %}
-{% code-tabs-item title="say-hello.ts" %}
+{% code title="say-hello.ts" %}
 ```typescript
 import { bindable } from 'aurelia';
 
@@ -297,27 +297,24 @@ export class SayHello {
     this.message = 'Goodbye';
   }
 
-  attaching() {
+  beforeAttach() {
     // your special lifecycle-dependent code goes here...
   }
 }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 ### Component Constructors
 
 All components are instantiated by the framework's dependency injection system. As a result, you can share common services across components and get access to component-specific services by declaring that you want the framework to "inject" them into your constructor. The most common component-specific thing you may want to inject into your component is the `HTMLElement` that serves as the host element for your component. In the examples above, this is the `say-hello` element itself \(rather than an element within its template\). Should you need access to the host for any component, you can declare that like this:
 
-{% code-tabs %}
-{% code-tabs-item title="say-hello.ts" %}
+{% code title="say-hello.ts" %}
 ```typescript
 export class SayHello {
   constructor(private element: HTMLElement) {}
 }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 {% hint style="info" %}
 **Dependency Injection**
@@ -333,5 +330,5 @@ If you need access to a DOM element from within your view, rather than the host,
 
 ## So Much More...
 
-So far, we've only scratched the surface of what Aurelia's component system can do. If you'd like to continue on to additional component scenarios, including component composition, Shadow DOM and slots, HTML-only components, and more, you can pick up from here in our App Basics article [Components Revisited](../app-basics/more-components.md).
+So far, we've only scratched the surface of what Aurelia's component system can do. If you'd like to continue on to additional component scenarios, including component composition, Shadow DOM and slots, HTML-only components, and more, you can pick up from here in our App Basics article [Components Revisited](../app-basics/components-revisited.md).
 

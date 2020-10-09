@@ -15,6 +15,8 @@ import {
   pascalCase,
   fromAnnotationOrTypeOrDefault,
   fromAnnotationOrDefinitionOrTypeOrDefault,
+  Injectable,
+  IResolver,
 } from '@aurelia/kernel';
 import {
   registerAliases,
@@ -25,21 +27,25 @@ import {
   IDOM,
   INode,
   INodeSequence,
-  IRenderLocation
+  IRenderLocation,
+  DOM
 } from '../dom';
 import {
-  IController,
-  IViewModel,
+  ICustomElementViewModel,
+  ICustomElementController,
 } from '../lifecycle';
 import { BindingStrategy } from '../flags';
 import { Bindable, PartialBindableDefinition, BindableDefinition } from '../templating/bindable';
 import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children';
+import { IProjections } from './custom-elements/au-slot';
+import { Controller } from '../templating/controller';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
   readonly template?: unknown;
   readonly instructions?: readonly (readonly ITargetedInstruction[])[];
   readonly dependencies?: readonly Key[];
+  readonly injectable?: InjectableToken | null;
   readonly needsCompile?: boolean;
   readonly surrogates?: readonly ITargetedInstruction[];
   readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
@@ -50,21 +56,72 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly hasSlots?: boolean;
   readonly strategy?: BindingStrategy;
   readonly hooks?: Readonly<HooksDefinition>;
-  readonly scopeParts?: readonly string[];
+  readonly enhance?: boolean;
+  readonly projectionsMap?: Map<ITargetedInstruction, IProjections>;
 }>;
 
-export type CustomElementType<T extends Constructable = Constructable> = ResourceType<T, IViewModel & (T extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
+export type CustomElementType<
+  C extends Constructable = Constructable,
+  T extends INode = INode,
+> = ResourceType<C, ICustomElementViewModel<T> & (C extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
 export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
-  behaviorFor<T extends INode = INode>(node: T): IController<T> | undefined;
-  isType<T>(value: T): value is (T extends Constructable ? CustomElementType<T> : never);
-  define<T extends Constructable>(name: string, Type: T): CustomElementType<T>;
-  define<T extends Constructable>(def: PartialCustomElementDefinition, Type: T): CustomElementType<T>;
-  define<T extends Constructable = Constructable>(def: PartialCustomElementDefinition, Type?: null): CustomElementType<T>;
-  define<T extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type: T): CustomElementType<T>;
-  getDefinition<T extends Constructable>(Type: T): CustomElementDefinition<T>;
+  /**
+   * Returns the closest controller that is associated with either this node (if it is a custom element) or the first
+   * parent node (including containerless) that is a custom element.
+   *
+   * As long as the provided node was directly or indirectly created by Aurelia, this method is guaranteed to return a controller.
+   *
+   * @param node - The node relative to which to get the closest controller.
+   * @param searchParents - Also search the parent nodes (including containerless).
+   * @returns The closest controller relative to the provided node.
+   * @throws - If neither the node or any of its effective parent nodes host a custom element, an error will be thrown.
+   */
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, opts: { searchParents: true }): ICustomElementController<T, C>;
+  /**
+   * Returns the controller that is associated with this node, if it is a custom element with the provided name.
+   *
+   * @param node - The node to retrieve the controller for, if it is a custom element with the provided name.
+   * @returns The controller associated with the provided node, if it is a custom element with the provided name, or otherwise `undefined`.
+   * @throws - If the node does not host a custom element, an error will be thrown.
+   */
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, opts: { name: string }): ICustomElementController<T, C> | undefined;
+  /**
+   * Returns the closest controller that is associated with either this node (if it is a custom element) or the first
+   * parent node (including containerless) that is a custom element with the provided name.
+   *
+   * @param node - The node relative to which to get the closest controller of a custom element with the provided name.
+   * @param searchParents - Also search the parent nodes (including containerless).
+   * @returns The closest controller of a custom element with the provided name, relative to the provided node, if one can be found, or otherwise `undefined`.
+   * @throws - If neither the node or any of its effective parent nodes host a custom element, an error will be thrown.
+   */
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, opts: { name: string; searchParents: true }): ICustomElementController<T, C> | undefined;
+  /**
+   * Returns the controller that is associated with this node, if it is a custom element.
+   *
+   * @param node - The node to retrieve the controller for, if it is a custom element.
+   * @param optional - If `true`, do not throw if the provided node is not a custom element.
+   * @returns The controller associated with the provided node, if it is a custom element
+   * @throws - If the node does not host a custom element, an error will be thrown.
+   */
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T): ICustomElementController<T, C>;
+  /**
+   * Returns the controller that is associated with this node, if it is a custom element.
+   *
+   * @param node - The node to retrieve the controller for, if it is a custom element.
+   * @param optional - If `true`, do not throw if the provided node is not a custom element.
+   * @returns The controller associated with the provided node, if it is a custom element, otherwise `null`
+   */
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, opts: { optional: true }): ICustomElementController<T, C> | null;
+  isType<T extends INode, C>(value: C): value is (C extends Constructable ? CustomElementType<C, T> : never);
+  define<T extends INode, C extends Constructable >(name: string, Type: C): CustomElementType<C, T>;
+  define<T extends INode, C extends Constructable >(def: PartialCustomElementDefinition, Type: C): CustomElementType<C, T>;
+  define<T extends INode, C extends Constructable >(def: PartialCustomElementDefinition, Type?: null): CustomElementType<C, T>;
+  define<T extends INode, C extends Constructable >(nameOrDef: string | PartialCustomElementDefinition, Type: C): CustomElementType<C, T>;
+  getDefinition<T extends INode, C extends Constructable>(Type: C): CustomElementDefinition<C, T>;
   annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void;
   getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K];
   generateName(): string;
+  createInjectable<T extends Key = Key>(): InjectableToken<T>;
   generateType<P extends {} = {}>(
     name: string,
     proto?: P,
@@ -147,9 +204,14 @@ export function strict(target?: Constructable): void | ((target: Constructable) 
   CustomElement.annotate(target, 'isStrictBinding', true);
 }
 
-export class CustomElementDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, IViewModel, PartialCustomElementDefinition> {
+const definitionLookup = new WeakMap<PartialCustomElementDefinition, CustomElementDefinition>();
+
+export class CustomElementDefinition<
+  C extends Constructable = Constructable,
+  T extends INode = INode
+> implements ResourceDefinition<C, ICustomElementViewModel<T>, PartialCustomElementDefinition> {
   private constructor(
-    public readonly Type: CustomElementType<T>,
+    public readonly Type: CustomElementType<C, T>,
     public readonly name: string,
     public readonly aliases: string[],
     public readonly key: string,
@@ -157,6 +219,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
     public readonly template: unknown,
     public readonly instructions: readonly (readonly ITargetedInstruction[])[],
     public readonly dependencies: readonly Key[],
+    public readonly injectable: InjectableToken<C> | null,
     public readonly needsCompile: boolean,
     public readonly surrogates: readonly ITargetedInstruction[],
     public readonly bindables: Record<string, BindableDefinition>,
@@ -167,16 +230,17 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
     public readonly hasSlots: boolean,
     public readonly strategy: BindingStrategy,
     public readonly hooks: Readonly<HooksDefinition>,
-    public readonly scopeParts: string[],
+    public readonly enhance: boolean,
+    public readonly projectionsMap: Map<ITargetedInstruction, IProjections>,
   ) {}
 
   public static create<T extends Constructable = Constructable>(
-    name: string,
-    Type: CustomElementType<T>,
-  ): CustomElementDefinition<T>;
-  public static create<T extends Constructable = Constructable>(
     def: PartialCustomElementDefinition,
     Type?: null,
+  ): CustomElementDefinition<T>;
+  public static create<T extends Constructable = Constructable>(
+    name: string,
+    Type: CustomElementType<T>,
   ): CustomElementDefinition<T>;
   public static create<T extends Constructable = Constructable>(
     nameOrDef: string | PartialCustomElementDefinition,
@@ -213,6 +277,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         fromDefinitionOrDefault('template', def, () => null),
         mergeArrays(def.instructions),
         mergeArrays(def.dependencies),
+        fromDefinitionOrDefault('injectable', def, () => null),
         fromDefinitionOrDefault('needsCompile', def, () => true),
         mergeArrays(def.surrogates),
         Bindable.from(def.bindables),
@@ -223,7 +288,8 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         fromDefinitionOrDefault('hasSlots', def, () => false),
         fromDefinitionOrDefault('strategy', def, () => BindingStrategy.getterSetter),
         fromDefinitionOrDefault('hooks', def, () => HooksDefinition.none),
-        mergeArrays(def.scopeParts),
+        fromDefinitionOrDefault('enhance', def, () => false),
+        fromDefinitionOrDefault('projectionsMap', def as CustomElementDefinition, () => new Map<ITargetedInstruction, IProjections>()),
       );
     }
 
@@ -240,6 +306,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('template', Type, () => null),
         mergeArrays(CustomElement.getAnnotation(Type, 'instructions'), Type.instructions),
         mergeArrays(CustomElement.getAnnotation(Type, 'dependencies'), Type.dependencies),
+        fromAnnotationOrTypeOrDefault('injectable', Type, () => null),
         fromAnnotationOrTypeOrDefault('needsCompile', Type, () => true),
         mergeArrays(CustomElement.getAnnotation(Type, 'surrogates'), Type.surrogates),
         Bindable.from(
@@ -259,7 +326,8 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('strategy', Type, () => BindingStrategy.getterSetter),
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
-        mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), Type.scopeParts),
+        fromAnnotationOrTypeOrDefault('enhance', Type, () => false),
+        fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => new Map<ITargetedInstruction, IProjections>()),
       );
     }
 
@@ -279,6 +347,7 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, () => null),
       mergeArrays(CustomElement.getAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions),
       mergeArrays(CustomElement.getAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies),
+      fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, () => null),
       fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, () => true),
       mergeArrays(CustomElement.getAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates),
       Bindable.from(
@@ -300,39 +369,127 @@ export class CustomElementDefinition<T extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('strategy', nameOrDef, Type, () => BindingStrategy.getterSetter),
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
-      mergeArrays(CustomElement.getAnnotation(Type, 'scopeParts'), nameOrDef.scopeParts, Type.scopeParts),
+      fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false),
+      fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => new Map<ITargetedInstruction, IProjections>()),
     );
+  }
+
+  public static getOrCreate(partialDefinition: PartialCustomElementDefinition): CustomElementDefinition {
+    if (partialDefinition instanceof CustomElementDefinition) {
+      return partialDefinition;
+    }
+
+    if (definitionLookup.has(partialDefinition)) {
+      return definitionLookup.get(partialDefinition)!;
+    }
+
+    const definition = CustomElementDefinition.create(partialDefinition);
+    definitionLookup.set(partialDefinition, definition);
+    // Make sure the full definition can be retrieved from dynamically created classes as well
+    Metadata.define(CustomElement.name, definition, definition.Type);
+    return definition;
   }
 
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
     Registration.transient(key, Type).register(container);
-    Registration.alias(key, Type).register(container);
+    Registration.aliasTo(key, Type).register(container);
     registerAliases(aliases, CustomElement, key, container);
   }
 }
+
+export type InjectableToken<K = any> = (target: Injectable<K>, property: string, index: number) => void;
+type InternalInjectableToken<K = any> = InjectableToken<K> & {
+  register?(container: IContainer): IResolver<K>;
+};
+
+type ForOpts = {
+  name?: string;
+  searchParents?: boolean;
+  optional?: boolean;
+};
+const defaultForOpts: ForOpts = {
+  name: undefined,
+  searchParents: false,
+  optional: false,
+};
 
 export const CustomElement: CustomElementKind = {
   name: Protocol.resource.keyFor('custom-element'),
   keyFrom(name: string): string {
     return `${CustomElement.name}:${name}`;
   },
-  isType<T>(value: T): value is (T extends Constructable ? CustomElementType<T> : never) {
+  isType<T extends INode, C>(value: C): value is (C extends Constructable ? CustomElementType<C, T> : never) {
     return typeof value === 'function' && Metadata.hasOwn(CustomElement.name, value);
   },
-  behaviorFor<T extends INode = INode>(node: T): IController<T> | undefined {
-    return (node as CustomElementHost<T>).$controller;
+  for<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(node: T, opts: ForOpts = defaultForOpts): ICustomElementController<T, C> {
+    if (opts.name === void 0 && opts.searchParents !== true) {
+      const controller = Metadata.getOwn(CustomElement.name, node) as Controller<T, C> | undefined;
+      if (controller === void 0) {
+        if (opts.optional === true) {
+          return null!;
+        }
+        throw new Error(`The provided node is not a custom element or containerless host.`);
+      }
+      return controller as unknown as ICustomElementController<T, C>;
+    }
+    if (opts.name !== void 0) {
+      if (opts.searchParents !== true) {
+        const controller = Metadata.getOwn(CustomElement.name, node) as Controller<T, C> | undefined;
+        if (controller === void 0) {
+          throw new Error(`The provided node is not a custom element or containerless host.`);
+        }
+
+        if (controller.is(opts.name)) {
+          return controller as unknown as ICustomElementController<T, C>;
+        }
+
+        return (void 0)!;
+      }
+
+      let cur = node as INode | null;
+      let foundAController = false;
+      while (cur !== null) {
+        const controller = Metadata.getOwn(CustomElement.name, cur) as Controller<T, C> | undefined;
+        if (controller !== void 0) {
+          foundAController = true;
+          if (controller.is(opts.name)) {
+            return controller as unknown as ICustomElementController<T, C>;
+          }
+        }
+
+        cur = DOM.getEffectiveParentNode(cur);
+      }
+
+      if (foundAController) {
+        return (void 0)!;
+      }
+
+      throw new Error(`The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
+    }
+
+    let cur = node as INode | null;
+    while (cur !== null) {
+      const controller = Metadata.getOwn(CustomElement.name, cur);
+      if (controller !== void 0) {
+        return controller;
+      }
+
+      cur = DOM.getEffectiveParentNode(cur);
+    }
+
+    throw new Error(`The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
   },
-  define<T extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: T | null): CustomElementType<T> {
+  define<T extends INode, C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: C | null): CustomElementType<C, T> {
     const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
     Metadata.define(CustomElement.name, definition, definition.Type);
     Metadata.define(CustomElement.name, definition, definition);
     Protocol.resource.appendTo(definition.Type, CustomElement.name);
 
-    return definition.Type as CustomElementType<T>;
+    return definition.Type as CustomElementType<C, T>;
   },
-  getDefinition<T extends Constructable>(Type: T): CustomElementDefinition<T> {
-    const def = Metadata.getOwn(CustomElement.name, Type) as CustomElementDefinition<T>;
+  getDefinition<T extends INode, C extends Constructable>(Type: C): CustomElementDefinition<C, T> {
+    const def = Metadata.getOwn(CustomElement.name, Type) as CustomElementDefinition<C, T>;
     if (def === void 0) {
       throw new Error(`No definition found for type ${Type.name}`);
     }
@@ -352,6 +509,28 @@ export const CustomElement: CustomElementKind = {
       return `unnamed-${++id}`;
     };
   })(),
+  createInjectable<K extends Key = Key>(): InjectableToken<K> {
+    const $injectable: InternalInjectableToken<K> = function (target, property, index): any {
+      const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+      annotationParamtypes[index] = $injectable;
+      return target;
+    };
+
+    $injectable.register = function (container) {
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      return {
+        resolve(container, requestor) {
+          if (requestor.has($injectable, true)) {
+            return requestor.get($injectable);
+          } else {
+            return null;
+          }
+        },
+      } as IResolver;
+    };
+
+    return $injectable;
+  },
   generateType: (function () {
     const nameDescriptor: PropertyDescriptor = {
       value: '',
@@ -363,7 +542,7 @@ export const CustomElement: CustomElementKind = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const defaultProto = {} as any;
 
-    return function <P extends {} = {}>(
+    return function <P extends {} = {}> (
       name: string,
       proto: P = defaultProto,
     ): CustomElementType<Constructable<P>> {
@@ -387,7 +566,7 @@ export const CustomElement: CustomElementKind = {
 };
 
 export type CustomElementHost<T extends INode = INode> = IRenderLocation<T> & T & {
-  $controller?: IController<T>;
+  $controller?: ICustomElementController<T>;
 };
 
 export interface IElementProjector<T extends INode = INode> {
@@ -404,5 +583,5 @@ export interface IElementProjector<T extends INode = INode> {
 export const IProjectorLocator = DI.createInterface<IProjectorLocator>('IProjectorLocator').noDefault();
 
 export interface IProjectorLocator<T extends INode = INode> {
-  getElementProjector(dom: IDOM<T>, $component: IController<T>, host: CustomElementHost<T>, def: CustomElementDefinition): IElementProjector<T>;
+  getElementProjector(dom: IDOM<T>, $component: ICustomElementController<T>, host: CustomElementHost<T>, def: CustomElementDefinition): IElementProjector<T>;
 }

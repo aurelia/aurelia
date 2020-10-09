@@ -5,6 +5,10 @@ import {
   ILogger,
   LogLevel,
   ColorOptions,
+  ISink,
+  ILogEvent,
+  sink,
+  DefaultLogger,
 } from '@aurelia/kernel';
 import { assert, eachCartesianJoin } from '@aurelia/testing';
 
@@ -29,6 +33,14 @@ class ConsoleMock implements IConsoleLike {
   public error(...args: unknown[]): void {
     this.calls.push(['error', args]);
     console.error(...args);
+  }
+}
+
+@sink({ handles: [LogLevel.error] })
+class EventLog implements ISink {
+  public readonly log: ILogEvent[] = [];
+  public handleEvent(event: ILogEvent): void {
+    this.log.push(event);
   }
 }
 
@@ -78,10 +90,10 @@ const levels = [
 ] as const;
 
 describe('Logger', function () {
-  function setup(level: LogLevel, colorOpts: ColorOptions, scopeTo: string[]) {
+  function createFixture(level: LogLevel, colorOpts: ColorOptions, scopeTo: string[], deactivateConsoleLog = false) {
     const container = DI.createContainer();
     const mock = new ConsoleMock();
-    container.register(LoggerConfiguration.create(mock, level, colorOpts));
+    container.register(LoggerConfiguration.create({ $console: deactivateConsoleLog ? void 0 : mock, level, colorOptions: colorOpts, sinks: [EventLog] }));
 
     let sut = container.get(ILogger);
     for (let i = 0; i < scopeTo.length; ++i) {
@@ -139,7 +151,7 @@ describe('Logger', function () {
       describe(`with configured level=${configName}, colors=${colorOpts}, msgOrGetMsg=${msgOrGetMsg}, optionalParams=${optionalParams}, scopeTo=${scopeTo}`, function () {
         if (methodLevel >= configLevel) {
           it(`logs ${loggerMethodName}`, function () {
-            const { sut, mock } = setup(configLevel, colorOpts, scopeTo);
+            const { sut, mock } = createFixture(configLevel, colorOpts, scopeTo);
 
             sut[loggerMethodName](msgOrGetMsg, ...optionalParams);
 
@@ -155,7 +167,7 @@ describe('Logger', function () {
           });
         } else {
           it(`does NOT log ${loggerMethodName}`, function () {
-            const { sut, mock } = setup(configLevel, colorOpts, scopeTo);
+            const { sut, mock } = createFixture(configLevel, colorOpts, scopeTo);
 
             sut[loggerMethodName](msgOrGetMsg, ...optionalParams);
 
@@ -163,7 +175,7 @@ describe('Logger', function () {
           });
 
           it(`can change the level after instantiation`, function () {
-            const { sut, mock } = setup(configLevel, colorOpts, scopeTo);
+            const { sut, mock } = createFixture(configLevel, colorOpts, scopeTo);
 
             sut.config.level = methodLevel;
 
@@ -183,4 +195,53 @@ describe('Logger', function () {
       });
     }
   );
+
+  it('additional sink registration works', function () {
+    const { sut } = createFixture(LogLevel.error, ColorOptions.noColors, []);
+
+    const sinks = (sut as DefaultLogger)['errorSinks'] as ISink[];
+    const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
+    assert.strictEqual(eventLog !== void 0, true);
+
+    sut.error('foo');
+
+    assert.strictEqual(eventLog.log.length, 1, `eventLog.log.length`);
+    const event = eventLog.log[0];
+    assert.strictEqual(event.severity, LogLevel.error);
+    assert.includes(event.toString(), "foo");
+  });
+
+  it('respects the handling capabilities of sinks', function () {
+    const { sut } = createFixture(LogLevel.trace, ColorOptions.noColors, []);
+
+    const sinks = (sut as DefaultLogger)['errorSinks'] as ISink[];
+    const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
+    assert.strictEqual(eventLog !== void 0, true);
+
+    sut.info('foo');
+    assert.strictEqual(eventLog.log.length, 0, `eventLog.log.length1`);
+
+    sut.error('foo');
+
+    assert.strictEqual(eventLog.log.length, 1, `eventLog.log.length2`);
+    const event = eventLog.log[0];
+    assert.strictEqual(event.severity, LogLevel.error);
+    assert.includes(event.toString(), "foo");
+  });
+
+  it('console logging can be deactivated', function () {
+    const { sut, mock } = createFixture(LogLevel.trace, ColorOptions.noColors, [], true);
+
+    const sinks = (sut as DefaultLogger)['errorSinks'] as ISink[];
+    const eventLog = sinks.find((s) => s instanceof EventLog) as EventLog;
+
+    sut.error('foo');
+
+    assert.strictEqual(eventLog.log.length, 1, `eventLog.log.length`);
+    const event = eventLog.log[0];
+    assert.strictEqual(event.severity, LogLevel.error);
+    assert.includes(event.toString(), "foo");
+
+    assert.strictEqual(mock.calls.length, 0, `mock.calls.length`);
+  });
 });

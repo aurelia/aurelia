@@ -1,43 +1,5 @@
 # Internationalization
 
-* [Internationalization](internationalization.md#internationalization)
-  * [Introduction](internationalization.md#introduction)
-  * [Getting Started](internationalization.md#getting-started)
-  * [Registering the plugin](internationalization.md#registering-the-plugin)
-    * [Configuring translation attribute aliases](internationalization.md#configuring-translation-attribute-aliases)
-    * [Managing translation resources](internationalization.md#managing-translation-resources)
-      * [Bundling the resource files](internationalization.md#bundling-the-resource-files)
-      * [i18next Backend plugin](internationalization.md#i18next-backend-plugin)
-  * [Using the plugin](internationalization.md#using-the-plugin)
-    * [Active locale](internationalization.md#active-locale)
-    * [Translation](internationalization.md#translation)
-      * [Translation in view](internationalization.md#translation-in-view)
-        * [Syntax](internationalization.md#syntax)
-        * [Replace `textContent`](internationalization.md#replace-textcontent)
-        * [Replace `[src]` of `<img>`](internationalization.md#replace-src-of-img)
-        * [Replace `innerHTML`](internationalization.md#replace-innerhtml)
-        * [`[append]` or `[prepend]` translations](internationalization.md#append-or-prepend-translations)
-        * [Attribute translation](internationalization.md#attribute-translation)
-        * [Manipulate translations with `t-params` attribute](internationalization.md#manipulate-translations-with-t-params-attribute)
-          * [Interpolation](internationalization.md#interpolation)
-          * [Contextual translation](internationalization.md#contextual-translation)
-          * [Pluralization](internationalization.md#pluralization)
-          * [Interval specific translation](internationalization.md#interval-specific-translation)
-        * [ValueConverter and BindingBehavior](internationalization.md#valueconverter-and-bindingbehavior)
-      * [Translation via code](internationalization.md#translation-via-code)
-      * [Handling missing keys](internationalization.md#handling-missing-keys)
-    * [Formatting numbers](internationalization.md#formatting-numbers)
-      * [Format number in view using ValueConverter and/or BindingBehavior](internationalization.md#format-number-in-view-using-valueconverter-andor-bindingbehavior)
-      * [Format number via code](internationalization.md#format-number-via-code)
-    * [Unformat number via code](internationalization.md#unformat-number-via-code)
-    * [Formatting dates](internationalization.md#formatting-dates)
-      * [Format date in view using ValueConverter and/or BindingBehavior](internationalization.md#format-date-in-view-using-valueconverter-andor-bindingbehavior)
-      * [Format date via code](internationalization.md#format-date-via-code)
-    * [Relative time formatting](internationalization.md#relative-time-formatting)
-      * [Relative time format in view using ValueConverter and/or BindingBehavior](internationalization.md#relative-time-format-in-view-using-valueconverter-andor-bindingbehavior)
-      * [Relative time format via code](internationalization.md#relative-time-format-via-code)
-  * [Migration Guide & Breaking Changes](internationalization.md#migration-guide--breaking-changes)
-
 ## Introduction
 
 This documentation explains how to get up and running with Aurelia-I18N in order to provide localization \(l10n\) and internationalization \(i18n\) features for your app.
@@ -521,6 +483,16 @@ This results in the following.
 <span>a lot of items</span>
 ```
 
+**Default value**
+
+If the key expression is evaluated to `null`, or `undefined`, a default value can be provided as follows.
+
+```markup
+<span t.bind="exprEvaluatedToNullOrUnd" t-params.bind="{defaultValue: 'foo-bar'}">ignored</span>
+```
+
+The example above produces `<span>foo-bar</span>`, considering `exprEvaluatedToNullOrUnd` is evaluated to `null`, or `undefined`. Note that in the absence of `defaultValue` the outcome will be `<span></span>`, that is the old content of the target element will be cleaned up \(no additional empty text node is created\).
+
 **ValueConverter and BindingBehavior**
 
 In order to do translations in a more declarative way from within your HTML markup you can use the `t` ValueConverter and BindingBehavior.
@@ -806,7 +778,7 @@ If the date being formatted is a future date, then there lies an edge case, whic
 
 ## Migration Guide & Breaking Changes
 
-This section outline the breaking changes introduced by `@aurelia/i18n` as compared to the predecessor `aurelia-i18n`. We can happily say that there is next to no breaking changes on how the plugin is used in view, for translation or date and number formatting. However, there are couple of breaking changes in the API which are elaborated later. We hope that this documentation also serves as a migration guide for the well-known use cases.
+This section outlines the breaking changes introduced by `@aurelia/i18n` as compared to the predecessor `aurelia-i18n`. We can happily say that there is next to no breaking changes on how the plugin is used in view, for translation or date and number formatting. However, there are couple of breaking changes in the API which are elaborated later. We hope that this documentation also serves as a migration guide for the well-known use cases.
 
 * `aurelia-i18n` used `i18next@14.x.x`, whereas `@aurelia/i18n` uses `i18next@17.x.x`. Therefore all/any of the breaking changes from `i18next` also applies here \(however we have not experienced any friction from `i18next` when we ported the plugin\).
 * The formatting methods such as `nf`, and `df` returns formatted number and date string in the new version of plugin. Earlier, it returned instance of `Intl.NumberFormat`, and `Intl.DateFormat` respectively, which then can be used to format the number or date. However in the new plugin that has became an one step process. We hope that this is a happy change. In case you miss the old methods, those are still available under the names `createNumberFormat`, and `createDateTimeFormat` respectively. For least friction in migration process, these new methods can be used. For more details see the section on [number](internationalization.md#formatting-numbers), and [date](internationalization.md#formatting-dates) formatting.

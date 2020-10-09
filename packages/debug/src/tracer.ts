@@ -250,7 +250,7 @@ const RenderingArgsProcessor = {
     return flagsText(info);
   },
   render(info: ITraceInfo): string {
-    return `${flagsText(info)},IDOM,IRenderContext,${ctorName(info, 3)}`;
+    return `${flagsText(info)},IDOM,IContainer,${ctorName(info, 3)}`;
   },
   addBinding(info: ITraceInfo): string {
     return `${ctorName(info)},${ctorName(info, 1)}`;
@@ -278,7 +278,7 @@ const BindingArgsProcessor = {
       case 'SetObserver':
         return flagsText(info);
       case 'SetterObserver':
-      case 'SelfObserver':
+      case 'BindableObserver':
         return `${flagsText(info)},${ctorName(info, 1)},${primitive(info, 2)}`;
       case 'ProxyObserver':
         return ctorName(info);
@@ -398,21 +398,12 @@ const AttachingArgsProcessor = {
   $cache(info: ITraceInfo): string {
     return flagsText(info);
   },
-  hold(info: ITraceInfo): string {
+  setLocation(info: ITraceInfo): string {
     return `Node{'${((info.params as readonly { textContent: string }[])[0]).textContent}'}`;
   },
-  release(info: ITraceInfo): string {
-    return flagsText(info);
-  }
 };
 
 const MountingArgsProcessor = {
-  $mount(info: ITraceInfo): string {
-    return flagsText(info);
-  },
-  $unmount(info: ITraceInfo): string {
-    return flagsText(info);
-  },
   project(info: ITraceInfo): string {
     return ctorName(info);
   },
@@ -537,21 +528,10 @@ export function stringifyLifecycleFlags(flags: LifecycleFlags): string {
   const flagNames: string[] = [];
 
   if (flags & LifecycleFlags.mustEvaluate) { flagNames.push('mustEvaluate'); }
-  if (flags & LifecycleFlags.isCollectionMutation) { flagNames.push('isCollectionMutation'); }
   if (flags & LifecycleFlags.updateTargetInstance) { flagNames.push('updateTargetInstance'); }
   if (flags & LifecycleFlags.updateSourceExpression) { flagNames.push('updateSourceExpression'); }
-  if (flags & LifecycleFlags.fromAsyncFlush) { flagNames.push('fromAsyncFlush'); }
-  if (flags & LifecycleFlags.fromSyncFlush) { flagNames.push('fromSyncFlush'); }
-  if (flags & LifecycleFlags.fromTick) { flagNames.push('fromTick'); }
-  if (flags & LifecycleFlags.fromStartTask) { flagNames.push('fromStartTask'); }
-  if (flags & LifecycleFlags.fromStopTask) { flagNames.push('fromStopTask'); }
   if (flags & LifecycleFlags.fromBind) { flagNames.push('fromBind'); }
   if (flags & LifecycleFlags.fromUnbind) { flagNames.push('fromUnbind'); }
-  if (flags & LifecycleFlags.fromAttach) { flagNames.push('fromAttach'); }
-  if (flags & LifecycleFlags.fromDetach) { flagNames.push('fromDetach'); }
-  if (flags & LifecycleFlags.fromCache) { flagNames.push('fromCache'); }
-  if (flags & LifecycleFlags.fromDOMEvent) { flagNames.push('fromDOMEvent'); }
-  if (flags & LifecycleFlags.fromLifecycleTask) { flagNames.push('fromLifecycleTask'); }
   if (flags & LifecycleFlags.isTraversingParentScope) { flagNames.push('isTraversingParentScope'); }
   if (flags & LifecycleFlags.allowParentScopeTraversal) { flagNames.push('allowParentScopeTraversal'); }
   if (flags & LifecycleFlags.getterSetterStrategy) { flagNames.push('getterSetterStrategy'); }

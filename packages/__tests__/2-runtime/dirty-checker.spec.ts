@@ -13,14 +13,14 @@ describe('DirtyChecker', function () {
     DirtyCheckSettings.resetToDefault();
   });
 
-  function setup() {
+  function createFixture() {
     const ctx = TestContext.createHTMLTestContext();
     const dirtyChecker = ctx.container.get(IDirtyChecker);
     const taskQueue = ctx.container.get(IScheduler).getRenderTaskQueue();
 
     return { dirtyChecker, taskQueue };
   }
-  const expectedFlags = LifecycleFlags.fromTick;
+  const expectedFlags = LifecycleFlags.none;
 
   const specs = [
     {
@@ -94,10 +94,10 @@ describe('DirtyChecker', function () {
   ];
 
   for (const spec of specs) {
-    it(`updates after ${spec.framesPerCheck} RAF call`, function(done) {
+    it(`updates after ${spec.framesPerCheck} RAF call`, function (done) {
       const { framesPerCheck, frameChecks } = spec;
       DirtyCheckSettings.framesPerCheck = framesPerCheck;
-      const { dirtyChecker, taskQueue } = setup();
+      const { dirtyChecker, taskQueue } = createFixture();
 
       const obj1 = { foo: '0' };
       const obj2 = { foo: '0' };
@@ -238,6 +238,7 @@ describe('DirtyChecker', function () {
                             observer1.unsubscribe(subscriber2);
                             observer2.unsubscribe(subscriber3);
                             observer2.unsubscribe(subscriber4);
+
                             done();
                           });
                         });
@@ -253,11 +254,11 @@ describe('DirtyChecker', function () {
     });
   }
 
-  it('does nothing if disabled', function(done) {
+  it('does nothing if disabled', function (done) {
     const framesPerCheck: number = 1;
     DirtyCheckSettings.framesPerCheck = framesPerCheck;
     DirtyCheckSettings.disabled = true;
-    const { dirtyChecker, taskQueue } = setup();
+    const { dirtyChecker, taskQueue } = createFixture();
 
     const obj = { foo: '0' };
     const observer = dirtyChecker.createProperty(obj, 'foo');
@@ -286,6 +287,7 @@ describe('DirtyChecker', function () {
             taskQueue.queueTask(() => {
               assert.strictEqual(callCount, 0, `callCount`);
               observer.unsubscribe(subscriber);
+
               done();
             });
           });
@@ -296,7 +298,7 @@ describe('DirtyChecker', function () {
 
   it('throws on property creation if configured', function () {
     DirtyCheckSettings.throw = true;
-    const { dirtyChecker } = setup();
+    const { dirtyChecker } = createFixture();
 
     const obj = { foo: '0' };
     let err;
@@ -312,12 +314,12 @@ describe('DirtyChecker', function () {
   it.skip('warns by default', function () {
     let warnCalled = false;
     const writeBackup = Reporter.write;
-    Reporter.write = function(code) {
+    Reporter.write = function (code) {
       if (code === 801) {
         warnCalled = true;
       }
     };
-    const { dirtyChecker } = setup();
+    const { dirtyChecker } = createFixture();
 
     const obj = { foo: '0' };
     dirtyChecker.createProperty(obj, 'foo');
@@ -329,12 +331,12 @@ describe('DirtyChecker', function () {
     let warnCalled = false;
     DirtyCheckSettings.warn = false;
     const writeBackup = Reporter.write;
-    Reporter.write = function(code) {
+    Reporter.write = function (code) {
       if (code === 801) {
         warnCalled = true;
       }
     };
-    const { dirtyChecker } = setup();
+    const { dirtyChecker } = createFixture();
 
     const obj = { foo: '0' };
     dirtyChecker.createProperty(obj, 'foo');

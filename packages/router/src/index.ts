@@ -1,6 +1,4 @@
-export {
-  BrowserNavigator,
-} from './browser-navigator';
+import { HookManager } from './hook-manager';
 
 export {
   ILinkHandlerOptions,
@@ -10,35 +8,29 @@ export {
 } from './link-handler';
 
 export {
-  Guard,
-} from './guard';
-
-export {
-  GuardTypes,
-  GuardIdentity,
-  IGuardOptions,
-  Guardian,
-} from './guardian';
-
-export {
   InstructionResolver,
 } from './instruction-resolver';
 
 export {
-  GuardFunction,
-  GuardTarget,
-  INavigatorInstruction,
+  // Navigation,
   IRouteableComponent,
   RouteableComponentType,
   IViewportInstruction,
   NavigationInstruction,
   ReentryBehavior,
+  IRoute,
 } from './interfaces';
 
 export {
   lifecycleLogger,
   LifecycleClass,
 } from './lifecycle-logger';
+
+export {
+  HookManager,
+  HookTypes,
+  IHookDefinition,
+} from './hook-manager';
 
 export {
   INavRoute,
@@ -50,10 +42,18 @@ export {
 } from './nav-route';
 
 export {
+  Navigation,
+} from './navigation';
+
+export {
+  NavigationState,
+} from './navigation-coordinator';
+
+export {
   IStoredNavigatorEntry,
   INavigatorEntry,
   INavigatorOptions,
-  INavigatorFlags,
+  INavigationFlags,
   INavigatorState,
   INavigatorStore,
   INavigatorViewer,
@@ -62,35 +62,36 @@ export {
 } from './navigator';
 
 export {
+  Runner,
+} from './runner';
+
+export {
   QueueItem,
   IQueueOptions,
   Queue,
 } from './queue';
 
 export {
-  RouteHandler,
-  ConfigurableRoute,
-  HandlerEntry,
-  RouteGenerator,
-  TypesRecord,
-  RecognizeResult,
-  RecognizeResults,
-  CharSpec,
-  State,
-  StaticSegment,
-  DynamicSegment,
-  StarSegment,
-  EpsilonSegment,
-  Segment,
   RouteRecognizer,
+  IConfigurableRoute,
+  ConfigurableRoute,
+  RecognizedRoute,
+  Endpoint,
 } from './route-recognizer';
 
 export {
-  IRouteTransformer,
-  IRouterOptions,
+  // IRouterActivateOptions,
+  // IRouterOptions,
+  // IRouterTitle,
   IRouter,
   Router,
 } from './router';
+
+export {
+  IRouterActivateOptions,
+  IRouterTitle,
+  RouterOptions,
+} from './router-options';
 
 export {
   IViewportOptions,
@@ -103,6 +104,7 @@ export {
 } from './viewport-content';
 
 export {
+  Params,
   ViewportInstruction,
 } from './viewport-instruction';
 
@@ -117,4 +119,8 @@ export {
   NavCustomElementRegistration,
   GotoCustomAttribute,
   GotoCustomAttributeRegistration,
+  LoadCustomAttribute,
+  LoadCustomAttributeRegistration,
+  HrefCustomAttribute,
+  HrefCustomAttributeRegistration,
 } from './configuration';

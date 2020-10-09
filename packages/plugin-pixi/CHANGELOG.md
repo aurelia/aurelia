@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.7.0"></a>
+# 0.7.0 (2020-05-08)
+
+**Note:** Version bump only for package @aurelia/plugin-pixi
+
+<a name="0.6.0"></a>
+# 0.6.0 (2019-12-18)
+
+### Refactorings:
+
+* **runtime:** rename 'detached' to 'afterDetach' ([d1e2b0c](https://github.com/aurelia/aurelia/commit/d1e2b0c))
+* **runtime:** rename 'attached' to 'afterAttach' ([6ae7be1](https://github.com/aurelia/aurelia/commit/6ae7be1))
+* **runtime:** rename 'unbound' to 'afterUnbind' ([35e203c](https://github.com/aurelia/aurelia/commit/35e203c))
+* **runtime:** rename 'bound' to 'afterBind' ([4060bbe](https://github.com/aurelia/aurelia/commit/4060bbe))
+
+<a name="0.5.0"></a>
+# 0.5.0 (2019-11-15)
+
+**Note:** Version bump only for package @aurelia/plugin-pixi
+
 <a name="0.4.0"></a>
 # 0.4.0 (2019-10-26)
 

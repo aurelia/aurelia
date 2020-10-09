@@ -1,0 +1,17 @@
+<template>
+  <section class="au-animate">
+    <h3>${heading}</h3>
+    <div style="display: flex; align-items: stretch;">
+      <div style="flex-grow: 1;">
+        <div class="card shadow-none">
+          <div class="card-body bg-light shadow-none">
+            <au-nav name="child-menu"></au-nav>
+          </div>
+        </div>
+      </div>
+      <div style="flex-grow: 8;">
+        <au-viewport name="child-viewport" default="welcome"></au-viewport>
+      </div>
+    </div>
+  </section>
+</template>

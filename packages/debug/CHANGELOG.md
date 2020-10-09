@@ -3,6 +3,50 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.7.0"></a>
+# 0.7.0 (2020-05-08)
+
+### Features:
+
+* **validation:** started deserialization support ([4296f9d](https://github.com/aurelia/aurelia/commit/4296f9d))
+* **validation:** serialization support ([a14fb0a](https://github.com/aurelia/aurelia/commit/a14fb0a))
+* ***:** AST hydration ([92125d6](https://github.com/aurelia/aurelia/commit/92125d6))
+
+
+### Bug Fixes:
+
+* **debug:** skipped escaping ' for serialization ([dc7437a](https://github.com/aurelia/aurelia/commit/dc7437a))
+
+
+### Refactorings:
+
+* ***:** moved ast hydration to debug package ([691a63f](https://github.com/aurelia/aurelia/commit/691a63f))
+
+<a name="0.6.0"></a>
+# 0.6.0 (2019-12-18)
+
+### Features:
+
+* **controller:** add create/beforeCompile/afterCompile/afterCompileChildren hooks ([3a8c215](https://github.com/aurelia/aurelia/commit/3a8c215))
+
+
+### Refactorings:
+
+* **runtime:** rename 'attaching' to 'beforeAttach' ([4685bb1](https://github.com/aurelia/aurelia/commit/4685bb1))
+* **bindable-observer:** rename self-observer -> bindable-observer ([bc0647c](https://github.com/aurelia/aurelia/commit/bc0647c))
+
+<a name="0.5.0"></a>
+# 0.5.0 (2019-11-15)
+
+### Performance Improvements:
+
+* **all:** remove unnecessary Object.freezes ([16b0484](https://github.com/aurelia/aurelia/commit/16b0484))
+
+
+### Refactorings:
+
+* **reporter:** improve and document log levels ([aa78655](https://github.com/aurelia/aurelia/commit/aa78655))
+
 <a name="0.4.0"></a>
 # 0.4.0 (2019-10-26)
 

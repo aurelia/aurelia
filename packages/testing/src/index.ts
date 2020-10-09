@@ -14,7 +14,6 @@ export {
   AuObserverLocator,
   AuProjector,
   AuProjectorLocator,
-  AuTemplateFactory,
   AuTextInstruction,
   AuTextRenderer,
 } from './au-dom';
@@ -27,13 +26,14 @@ export {
   eachCartesianJoinFactory,
   eachCartesianJoin,
   eachCartesianJoinAsync,
+  generateCartesianProduct,
 } from './each-cartesian-join';
 export {
   h,
   hJsx,
 } from './h';
 export {
-  setup
+  createFixture
 } from './startup';
 export {
   HTMLTestContext,
@@ -66,7 +66,10 @@ export {
   TestConfiguration,
 } from './resources';
 export {
-  verifyASTEqual,
+  ensureSchedulerEmpty,
+} from './scheduler';
+export {
+  // verifyASTEqual,
   verifyBindingInstructionsEqual,
   verifyEqual,
   getVisibleText,

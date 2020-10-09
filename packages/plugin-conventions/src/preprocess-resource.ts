@@ -21,16 +21,21 @@ interface IFoundResource {
   needDecorator?: [number, string];
   implicitStatement?: IPos;
   runtimeImportName?: string;
-  jitImportName?: string;
+  customName?: IPos;
+}
+
+interface IFoundDecorator {
+  type: ResourceType;
+  expression: ts.CallExpression;
 }
 
 interface IModifyResourceOptions {
   expectedResourceName: string;
   runtimeImport: ICapturedImport;
-  jitImport: ICapturedImport;
   implicitElement?: IPos;
   localDeps: string[];
   conventionalDecorators: [number, string][];
+  customElementName?: IPos;
 }
 
 export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
@@ -40,9 +45,9 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
 
   let auImport: ICapturedImport = { names: [], start: 0, end: 0 };
   let runtimeImport: ICapturedImport = { names: [], start: 0, end: 0 };
-  let jitImport: ICapturedImport = { names: [], start: 0, end: 0 };
 
   let implicitElement: IPos | undefined;
+  let customElementName: IPos | undefined; // for @customName('custom-name')
 
   // When there are multiple exported classes (e.g. local value converters),
   // they might be deps for rendering the main implicit custom element.
@@ -66,14 +71,6 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
       return;
     }
 
-    // Find existing import {bindingCommand} from '@aurelia/jit';
-    const jit = captureImport(s, '@aurelia/jit', unit.contents);
-    if (jit) {
-      // Assumes only one import statement for @aurelia/jit
-      jitImport = jit;
-      return;
-    }
-
     // Only care about export class Foo {...}.
     // Note this convention simply doesn't work for
     //   class Foo {}
@@ -85,7 +82,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
       needDecorator,
       implicitStatement,
       runtimeImportName,
-      jitImportName
+      customName
     } = resource;
 
     if (localDep) localDeps.push(localDep);
@@ -94,18 +91,16 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     if (runtimeImportName && !auImport.names.includes(runtimeImportName)) {
       ensureTypeIsExported(runtimeImport.names, runtimeImportName);
     }
-    if (jitImportName && !auImport.names.includes(jitImportName)) {
-      ensureTypeIsExported(jitImport.names, jitImportName);
-    }
+    if (customName) customElementName = customName;
   });
 
   return modifyResource(unit, {
     expectedResourceName,
     runtimeImport,
-    jitImport,
     implicitElement,
     localDeps,
-    conventionalDecorators
+    conventionalDecorators,
+    customElementName
   });
 }
 
@@ -113,10 +108,10 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
   const {
     expectedResourceName,
     runtimeImport,
-    jitImport,
     implicitElement,
     localDeps,
-    conventionalDecorators
+    conventionalDecorators,
+    customElementName
   } = options;
 
   const m = modifyCode(unit.contents, unit.path);
@@ -133,9 +128,22 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
       // in order to avoid TS2449: Class '...' used before its declaration.
       const elementStatement = unit.contents.slice(implicitElement.pos, implicitElement.end);
       m.replace(implicitElement.pos, implicitElement.end, '');
-      m.append(`\n@${dec}({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}\n`);
+
+      if (customElementName) {
+        const name = unit.contents.slice(customElementName.pos, customElementName.end);
+        // Overwrite element name
+        m.append(`\n${elementStatement.substring(0, customElementName.pos - implicitElement.pos)}{ ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] }${elementStatement.substring(customElementName.end - implicitElement.pos)}\n`);
+      } else {
+        m.append(`\n@${dec}({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}\n`);
+      }
     } else {
-      conventionalDecorators.push([implicitElement.pos, `@${dec}(${viewDef})\n`]);
+      if (customElementName) {
+        // Overwrite element name
+        const name = unit.contents.slice(customElementName.pos, customElementName.end);
+        m.replace(customElementName.pos, customElementName.end,`{ ...${viewDef}, name: ${name} }`);
+      } else {
+        conventionalDecorators.push([implicitElement.pos, `@${dec}(${viewDef})\n`]);
+      }
     }
   }
 
@@ -144,12 +152,6 @@ function modifyResource(unit: IFileUnit, options: IModifyResourceOptions) {
       let runtimeImportStatement = `import { ${runtimeImport.names.join(', ')} } from '@aurelia/runtime';`;
       if (runtimeImport.end === runtimeImport.start) runtimeImportStatement += '\n';
       m.replace(runtimeImport.start, runtimeImport.end, runtimeImportStatement);
-    }
-
-    if (jitImport.names.length) {
-      let jitImportStatement = `import { ${jitImport.names.join(', ')} } from '@aurelia/jit';`;
-      if (jitImport.end === jitImport.start) jitImportStatement += '\n';
-      m.replace(jitImport.start, jitImport.end, jitImportStatement);
     }
 
     conventionalDecorators.forEach(([pos, str]) => m.insert(pos, str));
@@ -197,7 +199,7 @@ function isExported(node: ts.Node): boolean {
 
 const KNOWN_DECORATORS = ['view', 'customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand', 'templateController'];
 
-function findDecoratedResourceType(node: ts.Node): ResourceType | void {
+function findDecoratedResourceType(node: ts.Node): IFoundDecorator | void {
   if (!node.decorators) return;
   for (const d of node.decorators) {
     if (!ts.isCallExpression(d.expression)) return;
@@ -205,7 +207,10 @@ function findDecoratedResourceType(node: ts.Node): ResourceType | void {
     if (ts.isIdentifier(exp)) {
       const name = exp.text;
       if (KNOWN_DECORATORS.includes(name)) {
-        return name as ResourceType;
+        return {
+          type: name as ResourceType,
+          expression: d.expression
+        };
       }
     }
   }
@@ -224,12 +229,30 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
   const className = node.name.text;
   const {name, type} = nameConvention(className);
   const isImplicitResource = isKindOfSame(name, expectedResourceName);
-  const decoratedType = findDecoratedResourceType(node);
+  const foundType = findDecoratedResourceType(node);
 
-  if (decoratedType) {
+  if (foundType) {
     // Explicitly decorated resource
-    if (!isImplicitResource && decoratedType !== 'customElement' && decoratedType !== 'view') {
+    if (
+      !isImplicitResource &&
+      foundType.type !== 'customElement' &&
+      foundType.type !== 'view'
+    ) {
       return { localDep: className };
+    }
+
+    if (
+      isImplicitResource &&
+      foundType.type === 'customElement' &&
+      foundType.expression.arguments.length === 1 &&
+      ts.isStringLiteral(foundType.expression.arguments[0])
+    ) {
+      // @customElement('custom-name')
+      const customName = foundType.expression.arguments[0] as ts.StringLiteral;
+      return {
+        implicitStatement: { pos: pos, end: node.end },
+        customName: { pos: ensureTokenStart(customName.pos, code), end: customName.end }
+      };
     }
   } else {
     if (type === 'customElement') {
@@ -246,11 +269,7 @@ function findResource(node: ts.Node, expectedResourceName: string, filePair: str
         localDep: className,
       };
 
-      if (type === 'bindingCommand') {
-        result.jitImportName = type;
-      } else {
-        result.runtimeImportName = type;
-      }
+      result.runtimeImportName = type;
 
       return result;
     }

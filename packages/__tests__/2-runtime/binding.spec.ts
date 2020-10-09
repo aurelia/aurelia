@@ -6,7 +6,6 @@ import {
   BindingMode,
   ExpressionKind,
   IBindingTargetObserver,
-  IExpression,
   ILifecycle,
   ISubscriber,
   IScope,
@@ -17,7 +16,7 @@ import {
   RuntimeConfiguration,
   Scope,
   SetterObserver,
-  State
+  IsBindingBehavior,
 } from '@aurelia/runtime';
 import {
   createObserverLocator,
@@ -31,8 +30,8 @@ import {
 /**
  * pad a string with spaces on the right-hand side until it's the specified length
  */
-export function padRight(str: any, len: number): string {
-  str = `${str}`;
+export function padRight(input: unknown, len: number): string {
+  const str = `${input}`;
   const strLen = str.length;
   if (strLen >= len) {
     return str;
@@ -44,12 +43,12 @@ const $nil: any = undefined;
 const getName = (o: any) => Object.prototype.toString.call(o).slice(8, -1);
 
 describe('PropertyBinding', function () {
-  let dummySourceExpression: IExpression;
+  let dummySourceExpression: IsBindingBehavior;
   let dummyTarget: Record<string, unknown>;
   let dummyTargetProperty: string;
   let dummyMode: BindingMode;
 
-  function setup(sourceExpression: any = dummySourceExpression, target: any = dummyTarget, targetProperty: string = dummyTargetProperty, mode: BindingMode = dummyMode) {
+  function createFixture(sourceExpression: any = dummySourceExpression, target: any = dummyTarget, targetProperty: string = dummyTargetProperty, mode: BindingMode = dummyMode) {
     const container = RuntimeConfiguration.createContainer();
     const observerLocator = createObserverLocator(container);
     const lifecycle = container.get(ILifecycle);
@@ -110,7 +109,7 @@ describe('PropertyBinding', function () {
     const sut = new PropertyBinding(expr as any, target, 'val', BindingMode.toView, observerLocator, container);
     const scope = Scope.create(LF.none, ctx, null);
 
-    sut.$bind(LF.fromBind, scope);
+    sut.$bind(LF.fromBind, scope, null);
 
     assert.strictEqual(target.val, count, `target.val`);
 
@@ -126,7 +125,7 @@ describe('PropertyBinding', function () {
     }
     const scope2 = Scope.create(LF.none, ctx2, null);
 
-    sut.$bind(LF.fromBind, scope2);
+    sut.$bind(LF.fromBind, scope2, null);
 
     assert.strictEqual(target.val, count * 3, `target.val`);
   }).timeout(20000);
@@ -142,7 +141,7 @@ describe('PropertyBinding', function () {
       () => ['barz', `'bar' `]
     ];
 
-    const exprVariations: (() => [IExpression, string])[] = [
+    const exprVariations: (() => [IsBindingBehavior, string])[] = [
       () => [new ObjectLiteralExpression(['foo'], [new PrimitiveLiteralExpression(null)]), `{foo:null} `],
       () => [new AccessScopeExpression('foo'),                                   `foo        `],
       () => [new AccessMemberExpression(new AccessScopeExpression('foo'), 'bar'),          `foo.bar    `],
@@ -153,7 +152,6 @@ describe('PropertyBinding', function () {
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
       () => [LF.updateTargetInstance,                                `updateTarget           `],
-      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -170,8 +168,8 @@ describe('PropertyBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [flags, $4], [scope, $5]) => {
       it(`$bind() [one-time]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
         // - Arrange -
-        const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.oneTime);
-        const srcVal = expr.evaluate(LF.none, scope, container);
+        const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.oneTime);
+        const srcVal = expr.evaluate(LF.none, scope, null, container, null);
         const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
         // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
         // $stub.withArgs(LF.none, target, prop);
@@ -183,7 +181,7 @@ describe('PropertyBinding', function () {
         // ensureNotCalled(expr, 'assign', 'connect');
 
         // - Act -
-        sut.$bind(flags, scope);
+        sut.$bind(flags, scope, null);
 
         // - Assert -
         // double check we have the correct target observer
@@ -215,7 +213,7 @@ describe('PropertyBinding', function () {
       () => ['barz', `'barz' `]
     ];
 
-    const exprVariations: (() => [IExpression, string])[] = [
+    const exprVariations: (() => [IsBindingBehavior, string])[] = [
       () => [new ObjectLiteralExpression(['foo'], [new PrimitiveLiteralExpression(null)]), `{foo:null} `],
       () => [new AccessScopeExpression('foo'),                                   `foo        `],
       () => [new AccessMemberExpression(new AccessScopeExpression('foo'), 'bar'),          `foo.bar    `],
@@ -226,7 +224,6 @@ describe('PropertyBinding', function () {
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
       () => [LF.updateTargetInstance,                                `updateTarget           `],
-      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -243,8 +240,8 @@ describe('PropertyBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [expr, $3], [flags, $4], [scope, $5]) => {
       it(`$bind() [to-view]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
         // - Arrange - Part 1
-        const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.toView);
-        const srcVal = expr.evaluate(LF.none, scope, container);
+        const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.toView);
+        const srcVal = expr.evaluate(LF.none, scope, null, container, null);
         const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
 
         // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
@@ -257,7 +254,7 @@ describe('PropertyBinding', function () {
         // ensureNotCalled(sut, 'handleChange');
 
         // - Act - Part 1
-        sut.$bind(flags, scope);
+        sut.$bind(flags, scope, null);
 
         // - Assert - Part 1
         // verify the behavior inside $bind
@@ -334,7 +331,7 @@ describe('PropertyBinding', function () {
         const newValue = {};
 
         // - Act - Part 2
-        expr.assign(flags, scope, container, newValue);
+        expr.assign(flags, scope, null, container, newValue);
 
         // - Assert - Part 2
         // verify that no observers were added/removed/changed (redundant)
@@ -449,14 +446,13 @@ describe('PropertyBinding', function () {
       () => [42,        `42        `]
     ];
 
-    const exprVariations: (() => [IExpression, string])[] = [
+    const exprVariations: (() => [IsBindingBehavior, string])[] = [
       () => [new AccessScopeExpression('foo'), `foo `]
     ];
 
     const flagsVariations: (() => [LF, string])[] = [
       () => [LF.fromBind,                                            `fromBind               `],
       () => [LF.updateTargetInstance,                                `updateTarget           `],
-      () => [LF.updateTargetInstance | LF.fromFlush, `updateTarget|fromFlush `]
     ];
 
     const scopeVariations: (() => [IScope, string])[] = [
@@ -469,7 +465,7 @@ describe('PropertyBinding', function () {
     eachCartesianJoinFactory(inputs, ([target, $1], [prop, $2], [newValue, $3], [expr, $4], [flags, $5], [scope, $6]) => {
       it(`$bind() [from-view]  target=${$1} prop=${$2} newValue=${$3} expr=${$4} flags=${$5} scope=${$6}`, function () {
         // - Arrange - Part 1
-        const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.fromView);
+        const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.fromView);
         const targetObserver = observerLocator.getObserver(LF.none, target, prop) as IBindingTargetObserver;
         // massSpy(targetObserver, 'subscribe');
 
@@ -480,7 +476,7 @@ describe('PropertyBinding', function () {
         const initialVal = target[prop];
 
         // - Act - Part 1
-        sut.$bind(flags, scope);
+        sut.$bind(flags, scope, null);
 
         // - Assert - Part 1
         // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount`);
@@ -562,7 +558,7 @@ describe('PropertyBinding', function () {
       () => [[41, 43],      `41, 43 `]
     ];
 
-    const exprVariations: (() => [IExpression, string])[] = [
+    const exprVariations: (() => [IsBindingBehavior, string])[] = [
       () => [new ObjectLiteralExpression(['foo'], [new PrimitiveLiteralExpression(null)]), `{foo:null} `],
       () => [new AccessScopeExpression('foo'),                                   `foo        `],
       () => [new AccessMemberExpression(new AccessScopeExpression('foo'), 'bar'),          `foo.bar    `],
@@ -591,8 +587,8 @@ describe('PropertyBinding', function () {
       it(`$bind() [two-way]  target=${$1} prop=${$2} newValue1,newValue2=${$3} expr=${$4} flags=${$5} scope=${$6}`, function () {
         const originalScope = JSON.parse(JSON.stringify(scope));
         // - Arrange - Part 1
-        const { sut, lifecycle, container, observerLocator } = setup(expr, target, prop, BindingMode.twoWay);
-        const srcVal = expr.evaluate(LF.none, scope, container);
+        const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.twoWay);
+        const srcVal = expr.evaluate(LF.none, scope, null, container, null);
         const targetObserver = observerLocator.getObserver(LF.none, target, prop) as IBindingTargetObserver;
 
         // massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers', 'subscribe');
@@ -600,7 +596,7 @@ describe('PropertyBinding', function () {
         // massSpy(sut, 'addObserver', 'observeProperty', 'handleChange', 'unobserve');
 
         // - Act - Part 1
-        sut.$bind(flags, scope);
+        sut.$bind(flags, scope, null);
 
         // - Assert - Part 1
         // verify the behavior inside $bind
@@ -697,7 +693,7 @@ describe('PropertyBinding', function () {
         }
 
         // - Act - Part 2
-        expr.assign(flags, scope, container, newValue1);
+        expr.assign(flags, scope, null, container, newValue1);
 
         // - Assert - Part 2
         // assert.strictEqual(lifecycle.flushCount, 0, `lifecycle.flushCount #37`);
@@ -847,7 +843,7 @@ describe('PropertyBinding', function () {
         // massRestore(targetObserver);
         // massRestore(sut, 'unobserve');
         // massRestore(expr);
-        sut.$bind(flags, originalScope);
+        sut.$bind(flags, originalScope, null);
 
         verifyEqual(target[prop], srcVal);
         verifyEqual(targetObserver.currentValue, srcVal);
@@ -858,7 +854,7 @@ describe('PropertyBinding', function () {
 
   describe('$unbind()', function () {
     it('should not unbind if it is not already bound', function () {
-      const { sut } = setup();
+      const { sut } = createFixture();
       const scope: any = {};
       sut['$scope'] = scope;
       sut.$unbind(LF.fromUnbind);
@@ -866,17 +862,17 @@ describe('PropertyBinding', function () {
     });
 
     xit('should unbind if it is bound', function () {
-      const { sut } = setup();
+      const { sut } = createFixture();
       const scope: any = {};
       sut['$scope'] = scope;
-      sut.$state = State.isBound;
+      sut.isBound = true;
       sut['targetObserver'] = {} as any;
       const unobserveSpy = createSpy(sut, 'unobserve');
-      const unbindSpy = dummySourceExpression.unbind = createSpy();
+      const unbindSpy = (dummySourceExpression as any).unbind = createSpy();
       (dummySourceExpression as any).$kind |= ExpressionKind.HasUnbind;
       sut.$unbind(LF.fromUnbind);
       assert.strictEqual(sut['$scope'], undefined, `sut['$scope']`);
-      assert.strictEqual(sut['$state'] & State.isBound, 0, `sut['$state'] & State.isBound`);
+      assert.strictEqual(sut.isBound, false, `sut.isBound`);
       // expect(unobserveSpy, `unobserveSpy`).to.have.been.calledWith(true);
       // expect(unbindSpy, `unbindSpy`).to.have.been.calledWith(LF.fromUnbind, scope, sut);
     });
@@ -887,7 +883,7 @@ describe('PropertyBinding', function () {
 
     for (const count of countArr) {
       it(`adds ${count} observers`, function () {
-        const { sut } = setup();
+        const { sut } = createFixture();
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
@@ -899,7 +895,7 @@ describe('PropertyBinding', function () {
       });
 
       it(`calls subscribe() on ${count} observers`, function () {
-        const { sut } = setup();
+        const { sut } = createFixture();
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
@@ -916,7 +912,7 @@ describe('PropertyBinding', function () {
       });
 
       it(`does nothing when ${count} observers already exist`, function () {
-        const { sut } = setup();
+        const { sut } = createFixture();
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
@@ -934,7 +930,7 @@ describe('PropertyBinding', function () {
       });
 
       it(`updates the version for ${count} observers`, function () {
-        const { sut } = setup();
+        const { sut } = createFixture();
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
@@ -952,7 +948,7 @@ describe('PropertyBinding', function () {
       });
 
       it(`only updates the version for for added observers`, function () {
-        const { sut } = setup();
+        const { sut } = createFixture();
         let i = 0;
         while (i < count) {
           const observer = new MockObserver();
@@ -985,7 +981,7 @@ describe('PropertyBinding', function () {
   });
 
   // TODO: create proper unparser
-  function unparse(expr: IExpression): string {
+  function unparse(expr: IsBindingBehavior): string {
     return expr instanceof AccessScopeExpression
       ? `AccessScopeExpression{${expr.name} | ${expr.ancestor}}`
       : expr instanceof AccessMemberExpression

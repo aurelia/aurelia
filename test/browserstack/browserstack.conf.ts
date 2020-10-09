@@ -6,7 +6,6 @@ declare const browser: any;
 
 const build = `e2e_${Date.now()}`;
 
-/* eslint-disable @typescript-eslint/camelcase */
 function combine(browsers, oses) {
   const capabilities = [];
   for (const { versions: browser_versions, name: browserName } of browsers) {
@@ -43,7 +42,6 @@ function combine(browsers, oses) {
   }
   return capabilities;
 }
-/* eslint-enable @typescript-eslint/camelcase */
 
 exports.config = {
   user: CIEnv.BS_USER,
@@ -108,10 +106,9 @@ exports.config = {
    */
   onPrepare: function (config, capabilities) {
     console.log('Connecting local');
-    return new Promise(function(resolve, reject){
-      // eslint-disable-next-line @typescript-eslint/camelcase
+    return new Promise(function (resolve, reject){
       exports.bs_local = new browserstack.Local();
-      exports.bs_local.start({'key': exports.config.key }, function(error) {
+      exports.bs_local.start({'key': exports.config.key }, function (error) {
         if (error) return reject(error);
         console.log('Connected. Now testing...');
 
@@ -192,7 +189,8 @@ exports.config = {
       const { state, status } = result;
       if (state === 'failure' || status === 'failure' || state === 1 || status === 1) {
         console.log(`Error - marking session ${browser.sessionId} as failed - ${error}`);
-        CIEnv.browserstackPut(`sessions/${browser.sessionId}.json`, { status: 'failed', reason: error });
+        CIEnv.browserstackPut(`sessions/${browser.sessionId}.json`, { status: 'failed', reason: error })
+          .catch((error: Error) => { throw error; });
       }
     }
   },
@@ -223,7 +221,8 @@ exports.config = {
   after: function (result, capabilities, specs) {
     if (result > 0) {
       console.log(`Error - marking session ${browser.sessionId} as failed - code ${result}`);
-      CIEnv.browserstackPut(`sessions/${browser.sessionId}.json`, { status: 'failed', reason: `code ${result}` });
+      CIEnv.browserstackPut(`sessions/${browser.sessionId}.json`, { status: 'failed', reason: `code ${result}` })
+        .catch((error: Error) => { throw error; });
     }
   },
   /**
@@ -251,8 +250,9 @@ exports.config = {
    * Gets executed when an error happens, good place to take a screenshot
    * @ {String} error message
    */
-  onError: function(message) {
+  onError: function (message) {
     console.log(`Error - marking session ${browser.sessionId} as failed - ${message}`);
-    CIEnv.browserstackPut(`sessions/${browser.sessionId}.json`, { status: 'failed', reason: message });
+    CIEnv.browserstackPut(`sessions/${browser.sessionId}.json`, { status: 'failed', reason: message })
+      .catch((error: Error) => { throw error; });
   }
 };

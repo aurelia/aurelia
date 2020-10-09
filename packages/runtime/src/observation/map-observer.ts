@@ -4,10 +4,15 @@ import {
   CollectionKind,
   createIndexMap,
   ICollectionObserver,
-  IObservedMap
+  IObservedMap,
+  ICollectionIndexObserver,
+  AccessorType,
 } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
+import { ITask } from '@aurelia/scheduler';
+
+const observerLookup = new WeakMap<Map<unknown, unknown>, MapObserver>();
 
 const proto = Map.prototype as { [K in keyof Map<any, any>]: Map<any, any>[K] & { observing?: boolean } };
 
@@ -23,12 +28,12 @@ const methods: ['set', 'clear', 'delete'] = ['set', 'clear', 'delete'];
 
 const observe = {
   // https://tc39.github.io/ecma262/#sec-map.prototype.map
-  set: function(this: IObservedMap, key: unknown, value: unknown): ReturnType<typeof $set> {
+  set: function (this: IObservedMap, key: unknown, value: unknown): ReturnType<typeof $set> {
     let $this = this;
     if ($this.$raw !== undefined) {
       $this = $this.$raw;
     }
-    const o = $this.$observer;
+    const o = observerLookup.get($this);
     if (o === undefined) {
       $set.call($this, key, value);
       return this;
@@ -57,12 +62,12 @@ const observe = {
     return this;
   },
   // https://tc39.github.io/ecma262/#sec-map.prototype.clear
-  clear: function(this: IObservedMap): ReturnType<typeof $clear>  {
+  clear: function (this: IObservedMap): ReturnType<typeof $clear>  {
     let $this = this;
     if ($this.$raw !== undefined) {
       $this = $this.$raw;
     }
-    const o = $this.$observer;
+    const o = observerLookup.get($this);
     if (o === undefined) {
       return $clear.call($this);
     }
@@ -83,12 +88,12 @@ const observe = {
     return undefined;
   },
   // https://tc39.github.io/ecma262/#sec-map.prototype.delete
-  delete: function(this: IObservedMap, value: unknown): ReturnType<typeof $delete> {
+  delete: function (this: IObservedMap, value: unknown): ReturnType<typeof $delete> {
     let $this = this;
     if ($this.$raw !== undefined) {
       $this = $this.$raw;
     }
-    const o = $this.$observer;
+    const o = observerLookup.get($this);
     if (o === undefined) {
       return $delete.call($this, value);
     }
@@ -153,6 +158,8 @@ export interface MapObserver extends ICollectionObserver<CollectionKind.map> {}
 @collectionSubscriberCollection()
 export class MapObserver {
   public inBatch: boolean;
+  public type: AccessorType = AccessorType.Map;
+  public task: ITask | null = null;
 
   public constructor(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap) {
 
@@ -169,8 +176,7 @@ export class MapObserver {
     this.lifecycle = lifecycle;
     this.lengthObserver = (void 0)!;
 
-    map.$observer = this;
-
+    observerLookup.set(map, this);
   }
 
   public notify(): void {
@@ -188,13 +194,18 @@ export class MapObserver {
     if (this.lengthObserver === void 0) {
       this.lengthObserver = new CollectionSizeObserver(this.collection);
     }
-    return this.lengthObserver;
+    return this.lengthObserver as CollectionSizeObserver;
+  }
+
+  public getIndexObserver(index: number): ICollectionIndexObserver {
+    throw new Error('Map index observation not supported');
   }
 
   public flushBatch(flags: LifecycleFlags): void {
+    const indexMap = this.indexMap;
+    const size = this.collection.size;
+
     this.inBatch = false;
-    const { indexMap, collection } = this;
-    const { size } = collection;
     this.indexMap = createIndexMap(size);
     this.callCollectionSubscribers(indexMap, LifecycleFlags.updateTargetInstance | this.persistentFlags);
     if (this.lengthObserver !== void 0) {
@@ -204,8 +215,9 @@ export class MapObserver {
 }
 
 export function getMapObserver(flags: LifecycleFlags, lifecycle: ILifecycle, map: IObservedMap): MapObserver {
-  if (map.$observer === void 0) {
-    map.$observer = new MapObserver(flags, lifecycle, map);
+  const observer = observerLookup.get(map);
+  if (observer === void 0) {
+    return new MapObserver(flags, lifecycle, map);
   }
-  return map.$observer;
+  return observer;
 }

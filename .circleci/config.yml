@@ -175,10 +175,21 @@ jobs:
         default: "test"
       e:
         type: executor
+      submodules:
+        type: boolean
+        default: false
     executor: << parameters.e >>
     steps:
       - checkout_install_bootstrap
       - run: npm run build
+      - when:
+          condition: << parameters.submodules >>
+          steps:
+            - run:
+                name: "Pull Submodules"
+                command: |
+                  git submodule init
+                  git submodule update --remote
       - run:
           name: "Run unit tests"
           command: |
@@ -319,7 +330,6 @@ jobs:
           name: "Install e2e tests"
           command: |
             cd test/browserstack
-            npm i
             npm run build
       - run:
           name: "Serve e2e app in the background"
@@ -341,24 +351,23 @@ jobs:
       - run:
           name: "Install cypress"
           command: |
-            cd packages/__tests__/router/e2e/doc-example
+            cd test/doc-example
             npm i
       - run:
           name: "Install and build test app"
           command: |
-            cd packages/__tests__/router/e2e/doc-example/app
-            npm i
+            cd test/doc-example/app
             npm run build
       - run:
           name: "Serve test app in the background"
           background: true
           command: |
-            cd packages/__tests__/router/e2e/doc-example/app
+            cd test/doc-example/app
             npm run serve
       - run:
           name: "Run e2e tests"
           command: |
-            cd packages/__tests__/router/e2e/doc-example
+            cd test/doc-example
             npm run test
 
   e2e_cypress:
@@ -482,6 +491,13 @@ workflows:
          e: docker-circleci
          npm_command: "test-node"
          coverage: false
+      #- unit_test:
+      #   <<: *filter_ignore_develop_release
+      #   name: test_test262
+      #   e: docker-circleci
+      #   npm_command: "test-262"
+      #   coverage: false
+      #   submodules: true
       - lint_packages:
           <<: *filter_ignore_develop_release
       - e2e_browserstack:
@@ -492,36 +508,18 @@ workflows:
          <<: *filter_ignore_develop_release
       #- e2e_cypress_doc_example:
       #    <<: *filter_ignore_develop_release
-      #- e2e_wdio:
-      #    <<: *filter_ignore_develop_release
-      #    name: jit-fuse-box-ts
-      #    path: "examples/jit-fuse-box-ts"
-      #    requires:
-      #      - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
-          name: jit-webpack-ts
-          path: "examples/jit-webpack-ts"
+          name: jit-webpack-conventions-ts
+          path: "examples/jit-webpack-conventions-ts"
           requires:
             - lint_packages # not a real requirement but forces long-running jobs to go first
       - e2e_wdio:
           <<: *filter_ignore_develop_release
-          name: jit-parcel-ts
-          path: "examples/jit-parcel-ts"
+          name: jit-webpack-vanilla-ts
+          path: "examples/jit-webpack-vanilla-ts"
           requires:
             - lint_packages # not a real requirement but forces long-running jobs to go first
-      # - e2e_wdio:
-      #     <<: *filter_ignore_develop_release
-      #     name: jit-browserify-ts
-      #     path: "examples/jit-browserify-ts"
-      #     requires:
-      #       - lint_packages # not a real requirement but forces long-running jobs to go first
-      #- e2e_wdio:
-      #    <<: *filter_ignore_develop_release
-      #    name: jit-iife-inline
-      #    path: "examples/jit-iife-inline"
-      #    requires:
-      #      - lint_packages # not a real requirement but forces long-running jobs to go first
       - merge_and_dist:
           <<: *filter_only_master
           name: merge_and_dist_master
@@ -529,15 +527,13 @@ workflows:
             - unit_test_chrome
             - unit_test_firefox
             - unit_test_node
+            #- test_test262
             - lint_packages
             - e2e_browserstack
             - e2e_cypress
             #- e2e_cypress_doc_example
-            #- jit-fuse-box-ts
-            - jit-webpack-ts
-            #- jit-parcel-ts
-            #- jit-browserify-ts
-            #- jit-iife-inline
+            - jit-webpack-conventions-ts
+            - jit-webpack-vanilla-ts
           from: master
           to: develop
           channel: dev
@@ -554,11 +550,8 @@ workflows:
             - e2e_browserstack
             - e2e_cypress
             #- e2e_cypress_doc_example
-            #- jit-fuse-box-ts
-            - jit-webpack-ts
-            #- jit-parcel-ts
-            # -jit-browserify-ts
-            #- jit-iife-inline
+            - jit-webpack-conventions-ts
+            - jit-webpack-vanilla-ts
           from: master
           to: develop
           channel: dev
@@ -578,19 +571,26 @@ workflows:
           <<: *filter_only_tag
           name: unit_test_chrome
           e: docker-circleci
-          npm_command: "test-chrome"
+          npm_command: "test-chrome:verbose"
       - unit_test:
          <<: *filter_only_tag
          name: unit_test_firefox
          e: docker-circleci
-         npm_command: "test-firefox"
+         npm_command: "test-firefox:verbose"
          coverage: false
       - unit_test:
          <<: *filter_only_tag
          name: unit_test_node
          e: docker-circleci
-         npm_command: "test-node"
+         npm_command: "test-node:verbose"
          coverage: false
+      #- unit_test:
+      #   <<: *filter_only_tag
+      #   name: test_test262
+      #   e: docker-circleci
+      #   npm_command: "test-262"
+      #   coverage: false
+      #   submodules: true
       - lint_packages:
           <<: *filter_only_tag
       - e2e_browserstack:
@@ -605,6 +605,7 @@ workflows:
             - unit_test_chrome
             - unit_test_firefox
             - unit_test_node
+            #- test_test262
             - lint_packages
             - e2e_browserstack
             - e2e_cypress

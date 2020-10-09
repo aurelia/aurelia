@@ -3,10 +3,7 @@ import {
   TestContext,
 } from '@aurelia/testing';
 import {
-  JitHtmlBrowserConfiguration
-} from '@aurelia/jit-html-browser';
-import {
-  BrowserScheduler
+  RuntimeHtmlBrowserConfiguration
 } from '@aurelia/runtime-html-browser';
 import {
   Reporter,
@@ -17,9 +14,8 @@ Reporter.level = LogLevel.error;
 
 function createBrowserTestContext(): HTMLTestContext {
   return HTMLTestContext.create(
-    JitHtmlBrowserConfiguration,
+    RuntimeHtmlBrowserConfiguration,
     window,
-    BrowserScheduler,
     UIEvent,
     Event,
     CustomEvent,
@@ -43,5 +39,5 @@ function initializeBrowserTestContext(): void {
 
 initializeBrowserTestContext();
 
-const testContext = require.context('.', true, /router.*?\.spec\.js$/i);
+const testContext = require.context('.', true, /router\/[^_][^_].*?\.spec\.js$/i);
 testContext.keys().forEach(testContext);

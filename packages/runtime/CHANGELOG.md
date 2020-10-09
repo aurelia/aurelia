@@ -3,6 +3,141 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.7.0"></a>
+# 0.7.0 (2020-05-08)
+
+### Features:
+
+* **validation:** started deserialization support ([4296f9d](https://github.com/aurelia/aurelia/commit/4296f9d))
+* ***:** AST hydration ([92125d6](https://github.com/aurelia/aurelia/commit/92125d6))
+* **custom-attr:** add no multi bindings cfg ([4daa950](https://github.com/aurelia/aurelia/commit/4daa950))
+* **runtime:** binding mediator ([3f37cb8](https://github.com/aurelia/aurelia/commit/3f37cb8))
+* **observation:** observe array index ([a51edc2](https://github.com/aurelia/aurelia/commit/a51edc2))
+* **validation:** used new BindingInterceptor ([bb8dff2](https://github.com/aurelia/aurelia/commit/bb8dff2))
+* **runtime+html:** binding middleware ([3dc8143](https://github.com/aurelia/aurelia/commit/3dc8143))
+
+
+### Bug Fixes:
+
+* ***:** don't jitRegister intrinsic types. resolves #840 ([4f5d7e8](https://github.com/aurelia/aurelia/commit/4f5d7e8))
+* ***:** validation controller factory fix ([e2e5da4](https://github.com/aurelia/aurelia/commit/e2e5da4))
+* ***:** misc issues + cleanup ([c318d91](https://github.com/aurelia/aurelia/commit/c318d91))
+* **binding:** fromView update source initial value ([5e23f6c](https://github.com/aurelia/aurelia/commit/5e23f6c))
+* ***:** use void 0 instead of undefined ([49322cd](https://github.com/aurelia/aurelia/commit/49322cd))
+* **bindable-observer:** ensure initial value is valid ([6255b03](https://github.com/aurelia/aurelia/commit/6255b03))
+* **bindable-observer:** reverse set interceptor ([0c98007](https://github.com/aurelia/aurelia/commit/0c98007))
+* **array-index-observer:** dont update current value during set value ([6eefd78](https://github.com/aurelia/aurelia/commit/6eefd78))
+* **lint:** fix deep scan issues ([601bbfc](https://github.com/aurelia/aurelia/commit/601bbfc))
+* **index-observation:** simplify keyed access connect ([57e9607](https://github.com/aurelia/aurelia/commit/57e9607))
+* **computed:** always to string ([359706b](https://github.com/aurelia/aurelia/commit/359706b))
+* **observer-locator:** compare against null ([7fc39a2](https://github.com/aurelia/aurelia/commit/7fc39a2))
+* **computed:** observer collection correctly ([7b2db01](https://github.com/aurelia/aurelia/commit/7b2db01))
+* **observer-locator:** use SetterObserver instead of dirty check ([1dc1983](https://github.com/aurelia/aurelia/commit/1dc1983))
+* **computed:** flatter stack ([cadb819](https://github.com/aurelia/aurelia/commit/cadb819))
+* **controller:** correct the timing of beforeBind hook ([d2e4f59](https://github.com/aurelia/aurelia/commit/d2e4f59))
+* **injectable:** prevent renderContext caching ([625348a](https://github.com/aurelia/aurelia/commit/625348a))
+* **computed:** dont bind unnecessarily ([b7dbb46](https://github.com/aurelia/aurelia/commit/b7dbb46))
+* **observation:** don't eagerly dirty check array prop ([fdfb353](https://github.com/aurelia/aurelia/commit/fdfb353))
+* **computed-observer:** better efficiency & works in basic array scenarios ([ad12769](https://github.com/aurelia/aurelia/commit/ad12769))
+
+
+### Refactorings:
+
+* ***:** rename alias to aliasto for readability and consistency ([f3904fe](https://github.com/aurelia/aurelia/commit/f3904fe))
+* **scheduler:** move scheduler to separate package and simplify a few things ([cf33b1a](https://github.com/aurelia/aurelia/commit/cf33b1a))
+* ***:** moved ast hydration to debug package ([691a63f](https://github.com/aurelia/aurelia/commit/691a63f))
+* **validation:** normalized binding host ([732234b](https://github.com/aurelia/aurelia/commit/732234b))
+* **array-index-observer:** behave like native when setting value ([e8fb47e](https://github.com/aurelia/aurelia/commit/e8fb47e))
+* ***:** rename isNumeric to isArrayIndex ([2fab646](https://github.com/aurelia/aurelia/commit/2fab646))
+* **computed-observer:** compare with 0 using > instead of === ([331aed7](https://github.com/aurelia/aurelia/commit/331aed7))
+* **computed:** dont wrap value if function ([e60a2b9](https://github.com/aurelia/aurelia/commit/e60a2b9))
+* **runtime:** add controllers, bindings to custom attribute interface ([5378dbc](https://github.com/aurelia/aurelia/commit/5378dbc))
+
+<a name="0.6.0"></a>
+# 0.6.0 (2019-12-18)
+
+### Features:
+
+* **controller:** add create/beforeCompile/afterCompile/afterCompileChildren hooks ([3a8c215](https://github.com/aurelia/aurelia/commit/3a8c215))
+* **runtime:** add CustomElement.createInjectable api ([c2ea5fc](https://github.com/aurelia/aurelia/commit/c2ea5fc))
+* **bindable:** basic working state for set/get ([ae1d87a](https://github.com/aurelia/aurelia/commit/ae1d87a))
+* **bindable-observer:** add getter/setter interceptors ([6c22b91](https://github.com/aurelia/aurelia/commit/6c22b91))
+* **bindable-observer:** invoke propertyChanged ([1af2ab0](https://github.com/aurelia/aurelia/commit/1af2ab0))
+
+
+### Bug Fixes:
+
+* **render-context:** do not dispose viewModelProvider due to if.bind etc ([e28f5b2](https://github.com/aurelia/aurelia/commit/e28f5b2))
+* **controller:** merge parts ([2e184fd](https://github.com/aurelia/aurelia/commit/2e184fd))
+* **repeat:** initialize module-scoped index eagerly to fix reference error ([c8a571f](https://github.com/aurelia/aurelia/commit/c8a571f))
+* **customelement.for:** correctly traverse up ([abb6dac](https://github.com/aurelia/aurelia/commit/abb6dac))
+* **bindable:** ensure value is intercepted correctly in first delayed subscription ([37c818c](https://github.com/aurelia/aurelia/commit/37c818c))
+
+
+### Refactorings:
+
+* **all:** refine+document controller interfaces and fix types/tests ([0a77fbd](https://github.com/aurelia/aurelia/commit/0a77fbd))
+* **controller:** split up IController into several specialized interfaces + various small bugfixes ([05d8a8d](https://github.com/aurelia/aurelia/commit/05d8a8d))
+* **controller:** fixup/improve controller partial interfaces ([571ac18](https://github.com/aurelia/aurelia/commit/571ac18))
+* **dom:** add null-object NodeSequence back in ([c9244ad](https://github.com/aurelia/aurelia/commit/c9244ad))
+* **runtime:** fix types / api calls ([7bb863a](https://github.com/aurelia/aurelia/commit/7bb863a))
+* **renderer:** cleanup/simplify the rendering process and part propagation ([0018838](https://github.com/aurelia/aurelia/commit/0018838))
+* **kernel:** remove 'id' and 'path' properties from container ([26120ad](https://github.com/aurelia/aurelia/commit/26120ad))
+* **binding-behavior:** integrate interceptors with renderer ([580b76e](https://github.com/aurelia/aurelia/commit/580b76e))
+* **throttle:** change to new interceptor api ([f955498](https://github.com/aurelia/aurelia/commit/f955498))
+* **debounce:** change to new interceptor api ([e2effc5](https://github.com/aurelia/aurelia/commit/e2effc5))
+* **runtime:** make binding behaviors transient and formalize interceptor api ([facbe47](https://github.com/aurelia/aurelia/commit/facbe47))
+* **runtime:** rename CustomElementBoilerplate back to RenderContext ([a844ccc](https://github.com/aurelia/aurelia/commit/a844ccc))
+* **runtime:** factor out rendering engine + context + compiled template, introduce ce boilerplate, fix create-element etc ([a3cc2ad](https://github.com/aurelia/aurelia/commit/a3cc2ad))
+* **runtime:** simplify render process / prepare for removing CompiledTemplate layer ([6f47ee8](https://github.com/aurelia/aurelia/commit/6f47ee8))
+* **runtime:** rename 'detached' to 'afterDetach' ([d1e2b0c](https://github.com/aurelia/aurelia/commit/d1e2b0c))
+* **runtime:** rename 'attached' to 'afterAttach' ([6ae7be1](https://github.com/aurelia/aurelia/commit/6ae7be1))
+* **runtime:** rename 'unbound' to 'afterUnbind' ([35e203c](https://github.com/aurelia/aurelia/commit/35e203c))
+* **runtime:** rename 'detaching' to 'beforeDetach' ([9f8b858](https://github.com/aurelia/aurelia/commit/9f8b858))
+* **runtime:** rename 'unbinding' to 'beforeUnbind' ([79cd5fa](https://github.com/aurelia/aurelia/commit/79cd5fa))
+* **runtime:** rename 'attaching' to 'beforeAttach' ([4685bb1](https://github.com/aurelia/aurelia/commit/4685bb1))
+* **runtime:** rename 'bound' to 'afterBind' ([4060bbe](https://github.com/aurelia/aurelia/commit/4060bbe))
+* **runtime:** rename 'binding' to 'beforeBind' ([45b2e91](https://github.com/aurelia/aurelia/commit/45b2e91))
+* **bindable:** remove getter interceptor ([269d6ff](https://github.com/aurelia/aurelia/commit/269d6ff))
+* **bindable-observer:** tweak interfaces ([00bd459](https://github.com/aurelia/aurelia/commit/00bd459))
+* **bindable-observer:** use similar mechansm to callback for propertyChanged callback ([a6f3762](https://github.com/aurelia/aurelia/commit/a6f3762))
+* **bindable-observer:** rename self-observer -> bindable-observer ([bc0647c](https://github.com/aurelia/aurelia/commit/bc0647c))
+
+<a name="0.5.0"></a>
+# 0.5.0 (2019-11-15)
+
+### Features:
+
+* **dom:** add setEffectiveParentNode for portal-like components ([5f40cd5](https://github.com/aurelia/aurelia/commit/5f40cd5))
+* **custom-element:** add 'name' and 'searchParents' parameters to CustomElement.for api ([46da0dc](https://github.com/aurelia/aurelia/commit/46da0dc))
+* **controller:** add 'is' api for checking if the resource name matches ([47b61a6](https://github.com/aurelia/aurelia/commit/47b61a6))
+* **dom:** add getEffectiveParentNode api for containerless support ([77a04e0](https://github.com/aurelia/aurelia/commit/77a04e0))
+* **custom-attribute:** add behaviorFor api ([31145e1](https://github.com/aurelia/aurelia/commit/31145e1))
+
+
+### Bug Fixes:
+
+* **repeat:** unsubscribe from array observer when unbinding ([ebf237d](https://github.com/aurelia/aurelia/commit/ebf237d))
+* **runtime:** remove stray semicolon triggering Terser error ([0fabdee](https://github.com/aurelia/aurelia/commit/0fabdee))
+* **renderer:** revert to observer.setValue again ([9038263](https://github.com/aurelia/aurelia/commit/9038263))
+* **renderer:** set default value instead ([f9d5960](https://github.com/aurelia/aurelia/commit/f9d5960))
+* **renderer:** add fromBinding to setPropertyBinding ([ac1c8ac](https://github.com/aurelia/aurelia/commit/ac1c8ac))
+
+
+### Performance Improvements:
+
+* **collection-observation:** store observers in weakmaps ([c6e0a70](https://github.com/aurelia/aurelia/commit/c6e0a70))
+* **collection-observation:** store observers in weakmaps ([26114ea](https://github.com/aurelia/aurelia/commit/26114ea))
+* **all:** remove unnecessary Object.freezes ([16b0484](https://github.com/aurelia/aurelia/commit/16b0484))
+
+
+### Refactorings:
+
+* **ref:** check element name again ([2625040](https://github.com/aurelia/aurelia/commit/2625040))
+* **all:** rename behaviorFor to for ([0823dfe](https://github.com/aurelia/aurelia/commit/0823dfe))
+* **runtime:** use metadata api to associate resources with nodes ([f46dacc](https://github.com/aurelia/aurelia/commit/f46dacc))
+* **custom-element:** retrieve controller from metadata ([2c715f5](https://github.com/aurelia/aurelia/commit/2c715f5))
+
 <a name="0.4.0"></a>
 # 0.4.0 (2019-10-26)
 

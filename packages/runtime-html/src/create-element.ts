@@ -7,24 +7,21 @@ import {
 import {
   CustomElement,
   HydrateElementInstruction,
-  BindableDefinition,
-  IController,
   CustomElementType,
   IDOM,
   INode,
-  IRenderContext,
-  IRenderingEngine,
-  ITemplate,
   IViewFactory,
-  LifecycleFlags,
   TargetedInstructionType,
-  CustomElementDefinition
+  CustomElementDefinition,
+  IRenderContext,
+  getRenderContext,
 } from '@aurelia/runtime';
 import {
   HTMLTargetedInstruction,
   isHTMLTargetedInstruction
 } from './definitions';
 import { SetAttributeInstruction } from './instructions';
+import { ISyntheticView } from '@aurelia/runtime/dist/lifecycle';
 
 export function createElement<T extends INode = Node, C extends Constructable = Constructable>(
   dom: IDOM<T>,
@@ -67,16 +64,16 @@ export class RenderPlan<T extends INode = Node> {
     return this.lazyDefinition;
   }
 
-  public getElementTemplate(engine: IRenderingEngine, Type?: CustomElementType): ITemplate<T>|undefined {
-    return engine.getElementTemplate(this.dom, this.definition, void 0, Type);
+  public getContext(parentContainer: IContainer): IRenderContext<T> {
+    return getRenderContext(this.definition, parentContainer);
   }
 
-  public createView(flags: LifecycleFlags, engine: IRenderingEngine, parentContext?: IRenderContext<T> | IContainer): IController {
-    return this.getViewFactory(engine, parentContext).create();
+  public createView(parentContainer: IContainer): ISyntheticView<T> {
+    return this.getViewFactory(parentContainer).create();
   }
 
-  public getViewFactory(engine: IRenderingEngine, parentContext?: IRenderContext<T> | IContainer): IViewFactory {
-    return engine.getViewFactory(this.dom, this.definition, parentContext);
+  public getViewFactory(parentContainer: IContainer): IViewFactory<T> {
+    return this.getContext(parentContainer).getViewFactory();
   }
 
   /** @internal */
@@ -141,7 +138,7 @@ function createElementForType<T extends INode>(
     dependencies.push(Type);
   }
 
-  instructions.push(new HydrateElementInstruction(tagName, childInstructions));
+  instructions.push(new HydrateElementInstruction(tagName, childInstructions, null));
 
   if (props) {
     Object.keys(props)

@@ -3,6 +3,82 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.7.0"></a>
+# 0.7.0 (2020-05-08)
+
+### Features:
+
+* **di:** allow configuration of Container ([a3e5319](https://github.com/aurelia/aurelia/commit/a3e5319))
+* **@lazy:** stop lazy caching, let container control lifecycle ([bfb7391](https://github.com/aurelia/aurelia/commit/bfb7391))
+* ***:** add caching for callbacks ([b5086ad](https://github.com/aurelia/aurelia/commit/b5086ad))
+* **validation:** started deserialization support ([4296f9d](https://github.com/aurelia/aurelia/commit/4296f9d))
+* **kernel:** export format ([aca18ae](https://github.com/aurelia/aurelia/commit/aca18ae))
+
+
+### Bug Fixes:
+
+* **di:** should have a return type ([61266da](https://github.com/aurelia/aurelia/commit/61266da))
+* **di:** improve error checking for DI.createInterface() ([2c73033](https://github.com/aurelia/aurelia/commit/2c73033))
+* ***:** don't jitRegister intrinsic types. resolves #840 ([4f5d7e8](https://github.com/aurelia/aurelia/commit/4f5d7e8))
+* ***:** validation controller factory fix ([e2e5da4](https://github.com/aurelia/aurelia/commit/e2e5da4))
+* **is-arry-index:** properly check for 0 vs 0xx ([400ff0d](https://github.com/aurelia/aurelia/commit/400ff0d))
+
+
+### Performance Improvements:
+
+* **logger:** cache scoped loggers with the same name ([110b30e](https://github.com/aurelia/aurelia/commit/110b30e))
+
+
+### Refactorings:
+
+* **metadata:** make the polyfill application more foolproof and dedupe helper fns ([9c94ae1](https://github.com/aurelia/aurelia/commit/9c94ae1))
+* ***:** rename alias to aliasto for readability and consistency ([f3904fe](https://github.com/aurelia/aurelia/commit/f3904fe))
+* **kernel:** move metadata to separate package ([471b77d](https://github.com/aurelia/aurelia/commit/471b77d))
+* **di:** make ResolverBuilder into a class ([0854f38](https://github.com/aurelia/aurelia/commit/0854f38))
+* ***:** rename isNumeric to isArrayIndex ([2fab646](https://github.com/aurelia/aurelia/commit/2fab646))
+
+<a name="0.6.0"></a>
+# 0.6.0 (2019-12-18)
+
+### Bug Fixes:
+
+* **container:** ignore primitive values in register ([b5eb137](https://github.com/aurelia/aurelia/commit/b5eb137))
+
+
+### Refactorings:
+
+* **template-compiler:** merge RuntimeCompilationResources into ResourceModel ([43f09d3](https://github.com/aurelia/aurelia/commit/43f09d3))
+* **kernel:** remove 'id' and 'path' properties from container ([26120ad](https://github.com/aurelia/aurelia/commit/26120ad))
+* **runtime:** rename 'attached' to 'afterAttach' ([6ae7be1](https://github.com/aurelia/aurelia/commit/6ae7be1))
+* **runtime:** rename 'attaching' to 'beforeAttach' ([4685bb1](https://github.com/aurelia/aurelia/commit/4685bb1))
+
+<a name="0.5.0"></a>
+# 0.5.0 (2019-11-15)
+
+### Features:
+
+* **kernel:** add isNativeFunction helper ([6e2fdda](https://github.com/aurelia/aurelia/commit/6e2fdda))
+* **kernel:** add isNullOrUndefined function ([a783f07](https://github.com/aurelia/aurelia/commit/a783f07))
+* **kernel:** add isObject function ([c158a22](https://github.com/aurelia/aurelia/commit/c158a22))
+* **kernel:** initial logger implementation ([7f77340](https://github.com/aurelia/aurelia/commit/7f77340))
+
+
+### Bug Fixes:
+
+* **kernel:** use WeakMap for isNativeFunction for mem leaks ([61f29a6](https://github.com/aurelia/aurelia/commit/61f29a6))
+* **di:** warn instead of throwing on native function dependencies ([7d56668](https://github.com/aurelia/aurelia/commit/7d56668))
+
+
+### Performance Improvements:
+
+* **all:** remove unnecessary Object.freezes ([16b0484](https://github.com/aurelia/aurelia/commit/16b0484))
+
+
+### Refactorings:
+
+* **metadata:** improve error detection and reporting ([8c17492](https://github.com/aurelia/aurelia/commit/8c17492))
+* **reporter:** improve and document log levels ([aa78655](https://github.com/aurelia/aurelia/commit/aa78655))
+
 <a name="0.4.0"></a>
 # 0.4.0 (2019-10-26)
 

@@ -436,6 +436,24 @@ describe(`The DI object`, function () {
   });
 
   describe(`createInterface()`, function () {
+    it(`returns a function that stringifies its default friendly name`, function () {
+      const sut = DI.createInterface();
+      const expected = 'InterfaceSymbol<(anonymous)>';
+      assert.strictEqual(sut.toString(), expected, `sut.toString() === '${expected}'`);
+      assert.strictEqual(String(sut), expected, `String(sut) === '${expected}'`);
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      assert.strictEqual(`${sut}`, expected, `\`\${sut}\` === '${expected}'`);
+    });
+
+    it(`returns a function that stringifies its configured friendly name`, function () {
+      const sut = DI.createInterface('IFoo');
+      const expected = 'InterfaceSymbol<IFoo>';
+      assert.strictEqual(sut.toString(), expected, `sut.toString() === '${expected}'`);
+      assert.strictEqual(String(sut), expected, `String(sut) === '${expected}'`);
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      assert.strictEqual(`${sut}`, expected, `\`\${sut}\` === '${expected}'`);
+    });
+
     it(`returns a function that has withDefault and noDefault functions`, function () {
       const sut = DI.createInterface();
       assert.strictEqual(typeof sut, 'function', `typeof sut`);
@@ -837,7 +855,7 @@ describe(`The singleton decorator`, function () {
 // });
 
 describe(`The Container class`, function () {
-  function setup() {
+  function createFixture() {
     const sut = DI.createContainer();
     const register = createSpy();
 
@@ -846,7 +864,7 @@ describe(`The Container class`, function () {
 
   describe(`register()`, function () {
     it(_`calls register() on {register}`, function () {
-      const { sut, register } = setup();
+      const { sut, register } = createFixture();
       sut.register({register});
 
       assert.deepStrictEqual(
@@ -859,7 +877,7 @@ describe(`The Container class`, function () {
     });
 
     it(_`calls register() on {register},{register}`, function () {
-      const { sut, register } = setup();
+      const { sut, register } = createFixture();
       sut.register({register}, {register});
 
       assert.deepStrictEqual(
@@ -873,7 +891,7 @@ describe(`The Container class`, function () {
     });
 
     it(_`calls register() on [{register},{register}]`, function () {
-      const { sut, register } = setup();
+      const { sut, register } = createFixture();
       sut.register([{register}, {register}] as any);
 
       assert.deepStrictEqual(
@@ -887,7 +905,7 @@ describe(`The Container class`, function () {
     });
 
     it(_`calls register() on {foo:{register}}`, function () {
-      const { sut, register } = setup();
+      const { sut, register } = createFixture();
       sut.register({foo: {register}});
 
       assert.deepStrictEqual(
@@ -900,7 +918,7 @@ describe(`The Container class`, function () {
     });
 
     it(_`calls register() on {foo:{register}},{foo:{register}}`, function () {
-      const { sut, register } = setup();
+      const { sut, register } = createFixture();
       sut.register({foo: {register}}, {foo: {register}});
 
       assert.deepStrictEqual(
@@ -914,7 +932,7 @@ describe(`The Container class`, function () {
     });
 
     it(_`calls register() on [{foo:{register}},{foo:{register}}]`, function () {
-      const { sut, register } = setup();
+      const { sut, register } = createFixture();
       sut.register([{foo: {register}}, {foo: {register}}] as any);
 
       assert.deepStrictEqual(
@@ -928,7 +946,7 @@ describe(`The Container class`, function () {
     });
 
     it(_`calls register() on {register},{foo:{register}}`, function () {
-      const { sut, register } = setup();
+      const { sut, register } = createFixture();
       sut.register({register}, {foo: {register}});
 
       assert.deepStrictEqual(
@@ -942,7 +960,7 @@ describe(`The Container class`, function () {
     });
 
     it(_`calls register() on [{register},{foo:{register}}]`, function () {
-      const { sut, register } = setup();
+      const { sut, register } = createFixture();
       sut.register([{register}, {foo: {register}}] as any);
 
       assert.deepStrictEqual(
@@ -956,7 +974,7 @@ describe(`The Container class`, function () {
     });
 
     it(_`calls register() on [{register},{}]`, function () {
-      const { sut, register } = setup();
+      const { sut, register } = createFixture();
       sut.register([{register}, {}] as any);
 
       assert.deepStrictEqual(
@@ -969,7 +987,7 @@ describe(`The Container class`, function () {
     });
 
     it(_`calls register() on [{},{register}]`, function () {
-      const { sut, register } = setup();
+      const { sut, register } = createFixture();
       sut.register([{}, {register}] as any);
 
       assert.deepStrictEqual(
@@ -982,7 +1000,7 @@ describe(`The Container class`, function () {
     });
 
     it(_`calls register() on [{foo:{register}},{foo:{}}]`, function () {
-      const { sut, register } = setup();
+      const { sut, register } = createFixture();
       sut.register([{foo: {register}}, {foo: {}}] as any);
 
       assert.deepStrictEqual(
@@ -995,7 +1013,7 @@ describe(`The Container class`, function () {
     });
 
     it(_`calls register() on [{foo:{}},{foo:{register}}]`, function () {
-      const { sut, register } = setup();
+      const { sut, register } = createFixture();
       sut.register([{foo: {}}, {foo: {register}}] as any);
 
       assert.deepStrictEqual(
@@ -1005,6 +1023,43 @@ describe(`The Container class`, function () {
         ],
         `register.calls`,
       );
+    });
+
+    describe(`does NOT throw when attempting to register primitive values`, function () {
+      for (const value of [
+        void 0,
+        null,
+        true,
+        false,
+        '',
+        'asdf',
+        NaN,
+        Infinity,
+        0,
+        42,
+        Symbol(),
+        Symbol('a'),
+      ]) {
+        it(`{foo:${String(value)}}`, function () {
+          const { sut } = createFixture();
+          sut.register({foo:value});
+        });
+
+        it(`{foo:{bar:${String(value)}}}`, function () {
+          const { sut } = createFixture();
+          sut.register({foo:{bar:value}});
+        });
+
+        it(`[${String(value)}]`, function () {
+          const { sut } = createFixture();
+          sut.register([value]);
+        });
+
+        it(`${String(value)}`, function () {
+          const { sut } = createFixture();
+          sut.register(value);
+        });
+      }
     });
   });
 
@@ -1059,7 +1114,7 @@ describe(`The Container class`, function () {
   describe(`registerTransformer()`, function () {
     for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
-        const { sut } = setup();
+        const { sut } = createFixture();
         assert.throws(() => sut.registerTransformer(key, null as any), /5/, `() => sut.registerTransformer(key, null as any)`);
       });
     }
@@ -1076,7 +1131,7 @@ describe(`The Container class`, function () {
   describe(`getResolver()`, function () {
     for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
-        const { sut } = setup();
+        const { sut } = createFixture();
         assert.throws(() => sut.getResolver(key, null as any), /5/, `() => sut.getResolver(key, null as any)`);
       });
     }
@@ -1099,7 +1154,7 @@ describe(`The Container class`, function () {
   describe(`get()`, function () {
     for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
-        const { sut } = setup();
+        const { sut } = createFixture();
         assert.throws(() => sut.get(key), /5/, `() => sut.get(key)`);
       });
     }
@@ -1109,7 +1164,7 @@ describe(`The Container class`, function () {
   describe(`getAll()`, function () {
     for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
-        const { sut } = setup();
+        const { sut } = createFixture();
         assert.throws(() => sut.getAll(key), /5/, `() => sut.getAll(key)`);
       });
     }
@@ -1498,7 +1553,7 @@ describe(`The Container class`, function () {
 //   });
 
 //   it(`alias() returns the correct resolver`, function () {
-//     const actual = Registration.alias('key', 'key2');
+//     const actual = Registration.aliasTo('key', 'key2');
 //     assert.strictEqual(actual['key'], 'key2', `actual['key']`);
 //     assert.strictEqual(actual['strategy'], ResolverStrategy.alias, `actual['strategy']`);
 //     assert.strictEqual(actual['state'], 'key', `actual['state']`);

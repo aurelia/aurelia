@@ -1,6 +1,7 @@
-import { IContainer, IResolver } from './di';
+import { Metadata } from '@aurelia/metadata';
+
+import { IContainer } from './di';
 import { Constructable } from './interfaces';
-import { Metadata } from './metadata';
 import { PLATFORM } from './platform';
 
 export type ResourceType<
@@ -36,57 +37,6 @@ export type PartialResourceDefinition<TDef extends {} = {}> = {
 export interface IResourceKind<TType extends ResourceType, TDef extends ResourceDefinition> {
   readonly name: string;
   keyFrom(name: string): string;
-}
-
-export interface IResourceDescriptions {
-  find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null;
-  create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null;
-}
-
-export class RuntimeCompilationResources implements IResourceDescriptions {
-  public constructor(
-    private readonly context: IContainer,
-  ) {}
-
-  public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
-    const key = kind.keyFrom(name);
-    let resourceResolvers = (this.context as unknown as { resourceResolvers: Record<string, IResolver | undefined | null> }).resourceResolvers;
-    let resolver = resourceResolvers[key];
-    if (resolver === void 0) {
-      resourceResolvers = (this.context as unknown as { root: { resourceResolvers: Record<string, IResolver | undefined | null> }}).root.resourceResolvers;
-      resolver = resourceResolvers[key];
-    }
-
-    if (resolver != null && resolver.getFactory) {
-      const factory = resolver.getFactory(this.context);
-
-      if (factory != null) {
-        // TODO: we may want to log a warning here, or even throw. This would happen if a dependency is registered with a resource-like key
-        // but does not actually have a definition associated via the type's metadata. That *should* generally not happen.
-        const definition = Metadata.getOwn(kind.name, factory.Type);
-        return definition === void 0 ? null : definition;
-      }
-    }
-
-    return null;
-  }
-
-  public create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
-    const key = kind.keyFrom(name);
-    let resourceResolvers = (this.context as unknown as { resourceResolvers: Record<string, IResolver | undefined | null> }).resourceResolvers;
-    let resolver = resourceResolvers[key];
-    if (resolver === undefined) {
-      resourceResolvers = (this.context as unknown as { root: { resourceResolvers: Record<string, IResolver | undefined | null> }}).root.resourceResolvers;
-      resolver = resourceResolvers[key];
-    }
-
-    if (resolver != null) {
-      const instance = resolver.resolve(this.context, this.context);
-      return instance === undefined ? null : instance;
-    }
-
-    return null;
-  }
 }
 
 const annotation = {

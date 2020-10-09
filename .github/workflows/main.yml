@@ -1,0 +1,73 @@
+name: Github Actions
+on: [push]
+jobs:
+
+  # lint:
+  #   timeout-minutes: 10
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-node@v1
+  #       with:
+  #         node-version: 12
+  #     - run: npm ci
+  #     - run: npm run lint:packages -- -- -- --quite
+
+  node:
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        suite: [
+          "aot",
+          "babel-jest",
+          "i18n",
+          "kernel",
+          "plugin-conventions",
+          "plugin-gulp",
+          "router",
+          "route-recognizer",
+          "runtime",
+          "runtime-html",
+          "scheduler",
+          "ts-jest",
+          "validation",
+          "webpack-loader",
+        ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test-node:${{matrix.suite}}
+        working-directory: packages/__tests__
+
+  browsers:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    container:
+      image: "cypress/browsers:node12.13.0-chrome80-ff74"
+      options: --user 1001
+    strategy:
+      matrix:
+        browser: ["chrome", "firefox"]
+    steps:
+      - uses: actions/checkout@v2
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test-${{matrix.browser}}:verbose
+        working-directory: packages/__tests__
+
+  cypress:
+    runs-on: ubuntu-latest
+    container:
+      image: "cypress/browsers:node12.13.0-chrome80-ff74"
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@v2
+      - run: npm ci
+      - run: npm run build
+      - run: npm run e2e
+        working-directory: packages/__e2e__

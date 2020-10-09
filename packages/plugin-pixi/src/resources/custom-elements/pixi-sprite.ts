@@ -1,8 +1,7 @@
 import {
   bindable,
   customElement,
-  IController,
-  State
+  ICustomElementController,
 } from '@aurelia/runtime';
 import {
   Circle,
@@ -139,7 +138,7 @@ export class PixiSprite {
   @bindable public texture?: Texture;
   @bindable public tint?: number;
 
-  public $controller!: IController<Element, this>;
+  public $controller!: ICustomElementController<Element, this>;
 
   private _sprite: Sprite & { [key: string]: unknown } | null;
 
@@ -147,7 +146,7 @@ export class PixiSprite {
     this._sprite = null;
   }
 
-  public attached(): void {
+  public afterAttach(): void {
     if (this.container) {
       const $this = this as this & { [key: string]: unknown };
       this._sprite = new Sprite(loader.resources[this.src as string].texture) as Sprite & { [key: string]: unknown };
@@ -169,7 +168,7 @@ export class PixiSprite {
     }
   }
 
-  public detached(): void {
+  public beforeUnbind(): void {
     if (this.container && this._sprite) {
       this.container.removeChild(this._sprite);
       this._sprite.destroy();
@@ -179,20 +178,20 @@ export class PixiSprite {
 }
 
 for (const prop of directProps) {
-  (PixiSprite.prototype as PixiSprite & { [key: string]: unknown })[`${prop}Changed`] = function(this: PixiSprite, newValue: unknown): void {
-    if ((this.$controller.state & State.isBound) > 0 && this.sprite != null) {
+  (PixiSprite.prototype as PixiSprite & { [key: string]: unknown })[`${prop}Changed`] = function (this: PixiSprite, newValue: unknown): void {
+    if (this.$controller.isActive && this.sprite != null) {
       this.sprite[prop] = newValue;
     }
   };
 }
 for (const prop of pointProps) {
-  (PixiSprite.prototype as PixiSprite & { [key: string]: unknown })[`${prop}XChanged`] = function(this: PixiSprite, newValue: unknown): void {
-    if ((this.$controller.state & State.isBound) > 0 && this.sprite != null) {
+  (PixiSprite.prototype as PixiSprite & { [key: string]: unknown })[`${prop}XChanged`] = function (this: PixiSprite, newValue: unknown): void {
+    if (this.$controller.isActive && this.sprite != null) {
       (this.sprite[prop] as { x: unknown }).x = newValue;
     }
   };
-  (PixiSprite.prototype as PixiSprite & { [key: string]: unknown })[`${prop}YChanged`] = function(this: PixiSprite, newValue: unknown): void {
-    if ((this.$controller.state & State.isBound) > 0 && this.sprite != null) {
+  (PixiSprite.prototype as PixiSprite & { [key: string]: unknown })[`${prop}YChanged`] = function (this: PixiSprite, newValue: unknown): void {
+    if (this.$controller.isActive && this.sprite != null) {
       (this.sprite[prop] as { y: unknown }).y = newValue;
     }
   };

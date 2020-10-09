@@ -11,6 +11,7 @@ import {
   subscriberCollection,
   IScheduler,
   ITask,
+  AccessorType,
 } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 import { bound } from '@aurelia/kernel';
@@ -37,7 +38,7 @@ export interface SelectValueObserver extends
   ISubscriberCollection {}
 
 @subscriberCollection()
-export class SelectValueObserver implements IAccessor<unknown> {
+export class SelectValueObserver implements IAccessor {
   public currentValue: unknown = void 0;
   public oldValue: unknown = void 0;
 
@@ -45,6 +46,9 @@ export class SelectValueObserver implements IAccessor<unknown> {
 
   public hasChanges: boolean = false;
   public task: ITask | null = null;
+  // ObserverType.Layout is not always true
+  // but for simplicity, always treat as such
+  public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
   public arrayObserver?: ICollectionObserver<CollectionKind.array> = void 0;
   public nodeObserver?: MutationObserver = void 0;
@@ -61,29 +65,26 @@ export class SelectValueObserver implements IAccessor<unknown> {
   }
 
   public getValue(): unknown {
+    // is it safe to assume the observer has the latest value?
+    // todo: ability to turn on/off cache based on type
     return this.currentValue;
   }
 
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+    if ((flags & LifecycleFlags.noTargetObserverQueue) === 0) {
       this.flushChanges(flags);
-    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
-        this.flushChanges(flags);
-        this.task = null;
-      });
     }
   }
 
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const { currentValue } = this;
+      const currentValue = this.currentValue;
+      const isArray = Array.isArray(currentValue);
       this.oldValue = currentValue;
 
-      const isArray = Array.isArray(currentValue);
       if (!isArray && currentValue != void 0 && this.obj.multiple) {
         throw new Error('Only null or Array instances can be bound to a multi-select.');
       }
@@ -146,7 +147,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
     // "from-view" changes are always synchronous now, so immediately sync the value and notify subscribers
     const shouldNotify = this.synchronizeValue();
     if (shouldNotify) {
-      this.callSubscribers(this.currentValue, this.oldValue, LifecycleFlags.fromDOMEvent | LifecycleFlags.allowPublishRoundtrip);
+      this.callSubscribers(this.currentValue, this.oldValue, LifecycleFlags.none);
     }
   }
 
@@ -259,23 +260,11 @@ export class SelectValueObserver implements IAccessor<unknown> {
 
   public bind(flags: LifecycleFlags): void {
     this.nodeObserver = this.dom.createNodeObserver!(this.obj, this.handleNodeChange, childObserverOptions) as MutationObserver;
-
-    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      if (this.task !== null) {
-        this.task.cancel();
-      }
-      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-    }
   }
 
   public unbind(flags: LifecycleFlags): void {
     this.nodeObserver!.disconnect();
     this.nodeObserver = null!;
-
-    if (this.task !== null) {
-      this.task.cancel();
-      this.task = null;
-    }
 
     if (this.arrayObserver) {
       this.arrayObserver.unsubscribeFromCollection(this);
@@ -288,7 +277,7 @@ export class SelectValueObserver implements IAccessor<unknown> {
     this.synchronizeOptions();
     const shouldNotify = this.synchronizeValue();
     if (shouldNotify) {
-      this.notify(LifecycleFlags.fromDOMEvent);
+      this.notify(LifecycleFlags.none);
     }
   }
 

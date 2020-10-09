@@ -4,8 +4,8 @@ import { join } from 'path';
 const { readFile, writeFile, unlink } = promises;
 
 const readdirOpts = {
-  withFileTypes: true as true,
-};
+  withFileTypes: true,
+} as const;
 
 export async function getFiles(
   dir: string,
@@ -152,7 +152,7 @@ export class File {
         }
       }
 
-      stream.on('open', onStreamOpen);
+      stream.on('open', onStreamOpen as (descriptor: number) => void);
     }
 
     return new Promise(streamCompare);

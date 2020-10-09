@@ -21,9 +21,11 @@ import {
   BindingStrategy,
 } from '../flags';
 import {
-  IViewModel,
+  ICustomAttributeViewModel,
+  ICustomAttributeController,
 } from '../lifecycle';
 import { Bindable, BindableDefinition, PartialBindableDefinition } from '../templating/bindable';
+import { INode } from '../dom';
 
 export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;
@@ -31,10 +33,25 @@ export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
   readonly strategy?: BindingStrategy;
   readonly hooks?: HooksDefinition;
+  /**
+   * A config that can be used by template compliler to change attr value parsing mode
+   * `true` to always parse as a single value, mostly will be string in URL scenario
+   * Example:
+   * ```html
+   * <div goto="http://bla.bla.com">
+   * ```
+   * With `noMultiBinding: true`, user does not need to escape the `:` with `\`
+   * or use binding command to escape it.
+   *
+   * With `noMultiBinding: false (default)`, the above will be parsed as it's binding
+   * to a property name `http`, with value equal to literal string `//bla.bla.com`
+   */
+  readonly noMultiBindings?: boolean;
 }>;
 
-export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, IViewModel, PartialCustomAttributeDefinition>;
+export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition>;
 export type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttributeDefinition> & {
+  for<T extends INode = INode, C extends ICustomAttributeViewModel<T> = ICustomAttributeViewModel<T>>(node: T, name: string): ICustomAttributeController<T, C> | undefined;
   isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never);
   define<T extends Constructable>(name: string, Type: T): CustomAttributeType<T>;
   define<T extends Constructable>(def: PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
@@ -77,7 +94,7 @@ export function templateController(nameOrDef: string | Omit<PartialCustomAttribu
   };
 }
 
-export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, IViewModel, PartialCustomAttributeDefinition> {
+export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition> {
   private constructor(
     public readonly Type: CustomAttributeType<T>,
     public readonly name: string,
@@ -88,6 +105,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     public readonly bindables: Record<string, BindableDefinition>,
     public readonly strategy: BindingStrategy,
     public readonly hooks: HooksDefinition,
+    public readonly noMultiBindings: boolean,
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -115,13 +133,14 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       Bindable.from(...Bindable.getAll(Type), CustomAttribute.getAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
       firstDefined(CustomAttribute.getAnnotation(Type, 'strategy'), def.strategy, Type.strategy, BindingStrategy.getterSetter),
       firstDefined(CustomAttribute.getAnnotation(Type, 'hooks'), def.hooks, Type.hooks, new HooksDefinition(Type.prototype)),
+      firstDefined(CustomAttribute.getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
     );
   }
 
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
     Registration.transient(key, Type).register(container);
-    Registration.alias(key, Type).register(container);
+    Registration.aliasTo(key, Type).register(container);
     registerAliases(aliases, CustomAttribute, key, container);
   }
 }
@@ -133,6 +152,9 @@ export const CustomAttribute: CustomAttributeKind = {
   },
   isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never) {
     return typeof value === 'function' && Metadata.hasOwn(CustomAttribute.name, value);
+  },
+  for<T extends INode = INode, C extends ICustomAttributeViewModel<T> = ICustomAttributeViewModel<T>>(node: T, name: string): ICustomAttributeController<T, C> | undefined {
+    return Metadata.getOwn(CustomAttribute.keyFrom(name), node);
   },
   define<T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> {
     const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable);

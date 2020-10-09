@@ -17,15 +17,20 @@ export class Editor {
     private readonly router: IRouter,
   ) {}
 
-  public created() { return; }
-  public binding() { return; }
-  public bound() { return; }
-  public attaching() { return; }
-  public attached() { return; }
-  public detaching() { return; }
-  public detached() { return; }
-  public unbinding() { return; }
-  public unbound() { return; }
+  public create() { return; }
+  public beforeCompile() { return; }
+  public afterCompile() { return; }
+  public afterCompileChildren() { return; }
+
+  public beforeBind() { return; }
+  public afterBind() { return; }
+  public afterAttach() { return; }
+  public afterAttachChildren() { return; }
+
+  public beforeDetach() { return; }
+  public beforeUnbind() { return; }
+  public afterUnbind() { return; }
+  public afterUnbindChildren() { return; }
 
   public enter(params: { slug: any }) {
     this.slug = params.slug;
@@ -70,7 +75,8 @@ export class Editor {
     this.articleService.save(this.article)
       .then((article) => {
         this.slug = article.slug;
-        this.router.goto({ component: 'article', parameters: { slug: this.slug } });
+        this.router.goto({ component: 'article', parameters: { slug: this.slug } })
+          .catch((error: Error) => { throw error; });
       });
   }
 }

@@ -32,13 +32,13 @@ module.exports = {
   reportUnusedDisableDirectives: true,
   rules: {
     // Opinionated overrides of the default recommended rules:
-    '@typescript-eslint/ban-ts-ignore': 'warn',
-    '@typescript-eslint/indent': ['error', 2],
+    '@typescript-eslint/indent': 'off', // Disabled until typescript-eslint properly fixes indentation (see https://github.com/typescript-eslint/typescript-eslint/issues/1232) - there are recurring issues and breaking changes, and this rule usually isn't violated due to autoformatting anyway.
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
     '@typescript-eslint/no-inferrable-types': 'off', // Turn no-inferrable-types off in order to make the code consistent in its use of type decorations.
     '@typescript-eslint/no-non-null-assertion': 'off',
+    '@typescript-eslint/no-use-before-define': 'off',
     'security/detect-object-injection': 'off',
     'sonarjs/cognitive-complexity': 'off',
     'sonarjs/no-identical-functions': 'off',
@@ -46,14 +46,15 @@ module.exports = {
     'no-dupe-class-members': 'off',
 
     // Opinionated non default rules:
-    '@typescript-eslint/camelcase': 'error',
+    '@typescript-eslint/ban-ts-comment': 'warn',
     '@typescript-eslint/explicit-member-accessibility': 'error',
     '@typescript-eslint/await-thenable': 'error',
     '@typescript-eslint/adjacent-overload-signatures': 'error',
     '@typescript-eslint/array-type': 'error',
     '@typescript-eslint/ban-types': ['error', {
+      'extendDefaults': false,
       'types': {
-        '{}': 'Avoid using the `{}` type. Prefer a specific lookup type, like `Record<string, unknown>`, or use `object` (lowercase) when referring simply to non-primitives.',
+        // '{}': 'Avoid using the `{}` type. Prefer a specific lookup type, like `Record<string, unknown>`, or use `object` (lowercase) when referring simply to non-primitives.',
         Function: 'Avoid using the `Function` type. Prefer a specific function type, like `() => void`, or use `Constructable` / `Class<TProto, TStatic>` when referring to a constructor function.',
         Boolean: { message: 'Use boolean instead', fixWith: 'boolean' },
         Number: { message: 'Use number instead', fixWith: 'number' },
@@ -62,24 +63,40 @@ module.exports = {
         Symbol: { message: 'Use symbol instead', fixWith: 'symbol' }
       }
     }],
-    '@typescript-eslint/class-name-casing': 'error',
+    '@typescript-eslint/brace-style': ['error', '1tbs', { allowSingleLine: true }],
     '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'as', objectLiteralTypeAssertions: 'never' }],
+    '@typescript-eslint/func-call-spacing': ['error', 'never'],
     '@typescript-eslint/member-delimiter-style': 'error',
-    '@typescript-eslint/member-ordering': ['error', { default: ['field'] }],
-    '@typescript-eslint/no-empty-function': 'error',
+    '@typescript-eslint/member-ordering': ['error', { default: ['signature', 'field'] }],
+    '@typescript-eslint/no-dynamic-delete': 'error',
+    '@typescript-eslint/no-empty-function': ['error', { 'allow': ['protected-constructors', 'private-constructors'] }],
+    '@typescript-eslint/no-extra-non-null-assertion': 'error',
+    '@typescript-eslint/no-extraneous-class': 'off',
+    '@typescript-eslint/no-floating-promises': 'error',
     '@typescript-eslint/no-for-in-array': 'error',
     '@typescript-eslint/no-misused-new': 'error',
+    '@typescript-eslint/no-misused-promises': 'error',
     '@typescript-eslint/no-namespace': 'error',
     '@typescript-eslint/no-parameter-properties': 'off',
     '@typescript-eslint/no-require-imports': 'error',
     '@typescript-eslint/no-unnecessary-qualifier': 'error',
+    '@typescript-eslint/no-unnecessary-type-arguments': 'error',
+    '@typescript-eslint/no-unused-expressions': 'error',
+    '@typescript-eslint/no-useless-constructor': 'error',
+    '@typescript-eslint/prefer-for-of': 'off',
     '@typescript-eslint/prefer-function-type': 'error',
     '@typescript-eslint/prefer-includes': 'error',
     '@typescript-eslint/prefer-readonly': 'error',
     '@typescript-eslint/prefer-regexp-exec': 'error',
     '@typescript-eslint/prefer-string-starts-ends-with': 'error',
     '@typescript-eslint/require-await': 'error',
+    '@typescript-eslint/return-await': 'error',
     '@typescript-eslint/semi': 'error',
+    '@typescript-eslint/space-before-function-paren': ['error', {
+      anonymous: 'always',
+      named: 'never',
+      asyncArrow: 'always'
+    }],
     '@typescript-eslint/triple-slash-reference': ['error', { path: 'never', types: 'always', lib: 'never' }],
     '@typescript-eslint/type-annotation-spacing': 'error',
     'compat/compat': 'warn',
@@ -104,31 +121,32 @@ module.exports = {
     'import/no-unassigned-import': 'error',
     'import/no-useless-path-segments': ['error'],
     'import/order': ['error', { 'groups': [], 'newlines-between': 'ignore' }],
-    'import/no-deprecated': 'error',
+    'import/no-deprecated': 'off', // this rule is extremely slow (takes 95% of the time of the full lint operation) so we disable it for that reason only
     'jsdoc/check-alignment': 'error',
     'jsdoc/check-indentation': 'error',
     'jsdoc/check-tag-names': ['error', {
       definedTags: [
         'chainable',
-        'internal',
-        // JSDoc gets confused about decorators, so add them as exclusions here
-        // for now. Adding parenthesis to differentiate them from JSDoc tags.
-        // https://github.com/gajus/eslint-plugin-jsdoc/issues/395
-        'transient()',
-        'singleton()'
+        'internal'
       ]
     }],
     'jsdoc/check-syntax': 'error',
     'jsdoc/newline-after-description': 'error',
     'jsdoc/require-hyphen-before-param-description': ['error', 'always'],
+    'sonarjs/no-small-switch': 'off',
     'sonarjs/no-useless-catch': 'error',
+    'sonarjs/prefer-immediate-return': 'error',
+    'array-callback-return': 'error',
     'eol-last': ['error', 'always'],
+    'func-call-spacing': 'off', // See @typescript-eslint/func-call-spacing
     'function-call-argument-newline': ['error', 'consistent'],
+    'grouped-accessor-pairs': ['error', 'getBeforeSet'],
     'max-lines-per-function': ['error', 200],
     'new-parens': ['error', 'always'],
     'no-caller': 'error',
     'no-case-declarations': 'error',
     'no-constant-condition': 'error',
+    'no-dupe-else-if': 'error',
     'no-eval': 'error',
     'no-extra-bind': 'error',
     'no-extra-semi': 'error',
@@ -149,15 +167,17 @@ module.exports = {
     ],
     'no-return-await': 'error',
     'no-sequences': 'error',
+    'no-setter-return': 'error',
     'no-template-curly-in-string': 'error',
     'no-throw-literal': 'error',
     'no-undef-init': 'error',
-    'no-unused-expressions': 'error',
+    'no-unused-expressions': 'off', // See @typescript-eslint/no-unused-expressions
     'no-useless-catch': 'error',
     'no-useless-escape': 'error',
     'no-trailing-spaces': 'error',
     'no-var': 'error',
     'prefer-const': 'error',
+    'prefer-exponentiation-operator': 'error',
     'prefer-object-spread': 'error',
     'prefer-regex-literals': 'error',
     'prefer-rest-params': 'error',
@@ -166,6 +186,8 @@ module.exports = {
     'quote-props': ['error', 'consistent'],
     'quotes': ['off'],
     'radix': 'error',
+    'sort-keys': ['off'],
+    'space-before-function-paren': 'off', // See @typescript-eslint/space-before-function-paren
     'space-in-parens': 'error',
     'spaced-comment': ['error', 'always', {
       line: { markers: ['/'], exceptions: ['-', '+'] },
@@ -173,15 +195,23 @@ module.exports = {
     }],
 
     // Things we maybe need to fix some day, so are marked as warnings for now:
+    '@typescript-eslint/no-unsafe-assignment': 'warn',
+    '@typescript-eslint/no-unsafe-member-access': 'warn',
+    '@typescript-eslint/no-unsafe-call': 'warn',
+    '@typescript-eslint/no-unsafe-return': 'warn',
     '@typescript-eslint/no-explicit-any': 'warn',
-    '@typescript-eslint/no-floating-promises': 'warn',
-    '@typescript-eslint/no-misused-promises': 'warn',
     '@typescript-eslint/no-this-alias': 'warn',
     '@typescript-eslint/no-unnecessary-condition': 'off', // Only false positives seen so far
     '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
-    '@typescript-eslint/no-unused-vars': 'warn',
-    '@typescript-eslint/no-use-before-define': 'off',
+    '@typescript-eslint/no-unused-vars': ['warn', { 'argsIgnorePattern': '^_' }],
+    '@typescript-eslint/no-unused-vars-experimental': 'off', // Off for now, crashes eslint
+    '@typescript-eslint/prefer-nullish-coalescing': ['warn', { 'forceSuggestionFixer': true }],
+    '@typescript-eslint/prefer-optional-chain': 'warn',
+    '@typescript-eslint/promise-function-async': 'warn',
     // '@typescript-eslint/quotes': ['warn', 'backtick', { avoidEscape: true }],
+    '@typescript-eslint/require-array-sort-compare': 'warn',
+    '@typescript-eslint/restrict-plus-operands': ['warn', { 'checkCompoundAssignments': true }],
+    '@typescript-eslint/restrict-template-expressions': ['warn', { 'allowNumber': true, 'allowBoolean': true, 'allowNullable': false }],
     '@typescript-eslint/strict-boolean-expressions': 'warn',
     '@typescript-eslint/typedef': ['warn', { arrowParameter: false, parameter: false, variableDeclaration: false }],
     '@typescript-eslint/unbound-method': 'off', // Only false positives seen so far
@@ -200,18 +230,17 @@ module.exports = {
     'sonarjs/no-duplicated-branches': 'warn',
     'sonarjs/no-extra-arguments': 'warn',
     'sonarjs/no-inverted-boolean-check': 'warn',
-    'sonarjs/no-small-switch': 'off',
-    'sort-keys': ['off'],
-    'sonarjs/prefer-immediate-return': 'warn',
     'default-param-last': ['warn'],
     'eqeqeq': 'warn',
     'no-await-in-loop': 'warn',
     'no-cond-assign': 'warn',
     'no-console': 'warn',
+    'no-constructor-return':'warn',
     'no-extra-boolean-cast': 'warn',
     'no-fallthrough': 'warn',
     'no-inner-declarations': 'warn',
     'no-shadow': 'warn',
+    'no-useless-computed-key': ['warn', { 'enforceForClassMembers': true }],
     'no-undef': 'warn',
     'require-atomic-updates': 'warn',
 
@@ -219,11 +248,12 @@ module.exports = {
     '@typescript-eslint/quotes': ['off']
   },
   overrides: [{ // Specific overrides for JS files as some TS rules don't make sense there.
-    files: ['**/*.js', 'examples/jit-parcel-ts/**'],
+    files: ['**/*.js'],
     rules: {
       '@typescript-eslint/explicit-member-accessibility': 'off',
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-var-requires': 'off',
+      '@typescript-eslint/restrict-plus-operands': 'off',
       '@typescript-eslint/typedef': 'off',
       'compat/compat': 'off'
     }
@@ -233,7 +263,8 @@ module.exports = {
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-var-requires': 'off',
       'compat/compat': 'off',
-      'import/no-nodejs-modules': 'off'
+      'import/no-nodejs-modules': 'off',
+      '@typescript-eslint/require-await': 'off'
     }
   }],
   settings: {

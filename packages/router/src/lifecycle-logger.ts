@@ -1,12 +1,15 @@
+/**
+ * @internal - Will be removed
+ */
 export function lifecycleLogger(name: string) {
   const lifecycles = [
-    'canLeave', 'leave',
-    'canEnter', 'enter',
+    'canUnload', 'unload',
+    'canLoad', 'load',
     'created',
-    'binding', 'bound',
-    'attaching', 'attached',
-    'detaching', 'detached',
-    'unbinding', 'unbound',
+    'beforeBind', 'afterBind',
+    'beforeAttach', 'afterAttach',
+    'beforeDetach', 'afterDetach',
+    'beforeUnbind', 'afterUnbind',
   ];
 
   return function (target: any) {
@@ -30,17 +33,17 @@ export function lifecycleLogger(name: string) {
 }
 
 export class LifecycleClass {
-  public canEnter() { console.log(`name canEnter`); return true; }
-  public enter(params: any) { console.log(`name enter`); }
+  public canLoad() { console.log(`name canLoad`); return true; }
+  public load(params: any) { console.log(`name load`); }
   public created() { console.log(`name created`); }
-  public binding() { console.log(`name binding`); }
-  public bound() { console.log(`name bound`); }
-  public attaching() { console.log(`name attaching`); }
-  public attached() { console.log(`name attached`); }
-  public canLeave() { console.log(`name canLeave`); return true; }
-  public leave() { console.log(`name leave`); }
-  public detaching() { console.log(`name detaching`); }
-  public detached() { console.log(`name detached`); }
-  public unbinding() { console.log(`name unbinding`); }
-  public unbound() { console.log(`name unbound`); }
+  public beforeBind() { console.log(`name binding`); }
+  public afterBind() { console.log(`name bound`); }
+  public beforeAttach() { console.log(`name beforeAttach`); }
+  public afterAttach() { console.log(`name afterAttach`); }
+  public canUnload() { console.log(`name canUnload`); return true; }
+  public unload() { console.log(`name unload`); }
+  public beforeDetach() { console.log(`name beforeDetach`); }
+  public afterDetach() { console.log(`name afterDetach`); }
+  public beforeUnbind() { console.log(`name beforeUnbind`); }
+  public afterUnbind() { console.log(`name unbound`); }
 }

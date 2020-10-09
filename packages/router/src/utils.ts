@@ -1,16 +1,6 @@
-import { CustomElementHost } from '@aurelia/runtime';
-
-export function closestCustomElement(element: CustomElementHost<Element>): CustomElementHost | null {
-  let el: CustomElementHost<Element> | null = element;
-  while (el) {
-    if (el.$controller) {
-      break;
-    }
-    el = el.parentElement;
-  }
-  return el;
-}
-
+/**
+ * @internal - Shouldn't be used directly
+ */
 export function arrayRemove<T>(arr: T[], func: (value: T, index?: number, obj?: T[]) => boolean): T[] {
   const removed: T[] = [];
   let arrIndex = arr.findIndex(func);
@@ -19,4 +9,24 @@ export function arrayRemove<T>(arr: T[], func: (value: T, index?: number, obj?: 
     arrIndex = arr.findIndex(func);
   }
   return removed;
+}
+
+export function resolvePossiblePromise<T = unknown>(value: T | Promise<T>, callback?: (value: T) => T): T | Promise<T> {
+  // If we've got a Promise, wait for it's resolve
+  if (value instanceof Promise) {
+    return value.then((resolvedValue) => {
+      if (callback !== void 0) {
+        callback(resolvedValue);
+      }
+      return resolvedValue;
+    });
+  }
+  if (callback !== void 0) {
+    callback(value);
+  }
+  return value;
+}
+
+export function deprecationWarning(oldFeature: string, newFeature: string) {
+  console.warn(`[Deprecated] The ${oldFeature} has been deprecated. Please use the ${newFeature} instead.`);
 }

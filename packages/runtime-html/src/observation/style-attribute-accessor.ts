@@ -4,10 +4,11 @@ import {
   IScheduler,
   ITask,
   INode,
+  AccessorType,
 } from '@aurelia/runtime';
 import { PLATFORM, kebabCase } from '@aurelia/kernel';
 
-export class StyleAttributeAccessor implements IAccessor<unknown> {
+export class StyleAttributeAccessor implements IAccessor {
   public readonly obj: HTMLElement;
   public currentValue: unknown = '';
   public oldValue: unknown = '';
@@ -19,6 +20,7 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
 
   public hasChanges: boolean = false;
   public task: ITask | null = null;
+  public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
   public constructor(
     public readonly scheduler: IScheduler,
@@ -36,13 +38,8 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
   public setValue(newValue: unknown, flags: LifecycleFlags): void {
     this.currentValue = newValue;
     this.hasChanges = newValue !== this.oldValue;
-    if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
+    if ((flags & LifecycleFlags.noTargetObserverQueue) === 0) {
       this.flushChanges(flags);
-    } else if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
-        this.flushChanges(flags);
-        this.task = null;
-      });
     }
   }
 
@@ -111,13 +108,14 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
   public flushChanges(flags: LifecycleFlags): void {
     if (this.hasChanges) {
       this.hasChanges = false;
-      const { currentValue } = this;
-      this.oldValue = currentValue;
+      const currentValue = this.currentValue;
       const styles = this.styles;
+      const styleTuples = this.getStyleTuples(currentValue);
+
       let style: string;
       let version = this.version;
 
-      const styleTuples = this.getStyleTuples(currentValue);
+      this.oldValue = currentValue;
 
       let tuple: [string, string];
       let name: string;
@@ -159,19 +157,6 @@ export class StyleAttributeAccessor implements IAccessor<unknown> {
   }
 
   public bind(flags: LifecycleFlags): void {
-    if (this.persistentFlags === LifecycleFlags.persistentTargetObserverQueue) {
-      if (this.task !== null) {
-        this.task.cancel();
-      }
-      this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags), { persistent: true });
-    }
-    this.oldValue = this.currentValue = this.obj.style.cssText;
-  }
-
-  public unbind(flags: LifecycleFlags): void {
-    if (this.task !== null) {
-      this.task.cancel();
-      this.task = null;
-    }
+    this.currentValue = this.oldValue = this.obj.style.cssText;
   }
 }

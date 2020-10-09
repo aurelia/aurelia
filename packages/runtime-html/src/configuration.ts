@@ -1,6 +1,17 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
 import { RuntimeConfiguration } from '@aurelia/runtime';
-import { HTMLTemplateFactory } from './dom';
+import {
+  AttrBindingCommand,
+  CaptureBindingCommand,
+  ClassBindingCommand,
+  DelegateBindingCommand,
+  RefBindingCommand,
+  StyleBindingCommand,
+  TriggerBindingCommand
+} from './binding-commands';
+import { HtmlAttrSyntaxTransformer } from './html-attribute-syntax-transformer';
+import { TemplateCompiler } from './template-compiler';
+import { HTMLTemplateElementFactory } from './template-element-factory';
 import {
   AttributeBindingRenderer,
   ListenerBindingRenderer,
@@ -20,23 +31,51 @@ import { Focus } from './resources/custom-attributes/focus';
 import { Portal } from './resources/custom-attributes/portal';
 import { Compose } from './resources/custom-elements/compose';
 
+export const ITemplateCompilerRegistration = TemplateCompiler as IRegistry;
+export const ITemplateElementFactoryRegistration = HTMLTemplateElementFactory as IRegistry;
+export const IAttrSyntaxTransformerRegistation = HtmlAttrSyntaxTransformer as IRegistry;
 export const IProjectorLocatorRegistration = HTMLProjectorLocator as IRegistry;
 export const ITargetAccessorLocatorRegistration = TargetAccessorLocator as IRegistry;
 export const ITargetObserverLocatorRegistration = TargetObserverLocator as IRegistry;
-export const ITemplateFactoryRegistration = HTMLTemplateFactory as IRegistry;
 
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
+ * - `ITemplateCompiler`
+ * - `ITemplateElementFactory`
  * - `IProjectorLocator`
  * - `ITargetAccessorLocator`
  * - `ITargetObserverLocator`
  * - `ITemplateFactory`
  */
 export const DefaultComponents = [
+  ITemplateCompilerRegistration,
+  ITemplateElementFactoryRegistration,
+  IAttrSyntaxTransformerRegistation,
   IProjectorLocatorRegistration,
   ITargetAccessorLocatorRegistration,
   ITargetObserverLocatorRegistration,
-  ITemplateFactoryRegistration
+];
+
+export const RefBindingCommandRegistration = RefBindingCommand as unknown as IRegistry;
+export const TriggerBindingCommandRegistration = TriggerBindingCommand as unknown as IRegistry;
+export const DelegateBindingCommandRegistration = DelegateBindingCommand as unknown as IRegistry;
+export const CaptureBindingCommandRegistration = CaptureBindingCommand as unknown as IRegistry;
+export const AttrBindingCommandRegistration = AttrBindingCommand as unknown as IRegistry;
+export const ClassBindingCommandRegistration = ClassBindingCommand as unknown as IRegistry;
+export const StyleBindingCommandRegistration = StyleBindingCommand as unknown as IRegistry;
+
+/**
+ * Default HTML-specific (but environment-agnostic) binding commands:
+ * - Event listeners: `.trigger`, `.delegate`, `.capture`
+ */
+export const DefaultBindingLanguage = [
+  RefBindingCommandRegistration,
+  TriggerBindingCommandRegistration,
+  DelegateBindingCommandRegistration,
+  CaptureBindingCommandRegistration,
+  ClassBindingCommandRegistration,
+  StyleBindingCommandRegistration,
+  AttrBindingCommandRegistration
 ];
 
 export const AttrBindingBehaviorRegistration = AttrBindingBehavior as unknown as IRegistry;
@@ -105,7 +144,8 @@ export const RuntimeHtmlConfiguration = {
       .register(
         ...DefaultComponents,
         ...DefaultResources,
-        ...DefaultRenderers
+        ...DefaultBindingLanguage,
+        ...DefaultRenderers,
       );
   },
   /**

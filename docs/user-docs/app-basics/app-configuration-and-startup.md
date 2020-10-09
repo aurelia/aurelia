@@ -14,7 +14,6 @@ Aurelia.app(MyRootComponent).start();
 // Or load additional aurelia features
 Aurelia
   .register(
-    StyleConfiguration.shadowDOM(),
     RouterConfiguration.customize({ useUrlFragmentHash: false })
   )
   .app(MyRootComponent)
@@ -23,7 +22,6 @@ Aurelia
 // Or host to <my-start-tag>
 Aurelia
   .register(
-    StyleConfiguration.shadowDOM(),
     RouterConfiguration.customize({ useUrlFragmentHash: false })
   )
   .app({
@@ -38,11 +36,11 @@ Aurelia
 To start an Aurelia application, create a `new Aurelia()` object with a target `host` and a root `component` and call `start()`.
 
 ```typescript
-import Aurelia, { DebugConfiguration, JitHtmlBrowserConfiguration } from 'aurelia';
+import Aurelia, { DebugConfiguration, RuntimeHtmlBrowserConfiguration } from 'aurelia';
 import { ShellComponent } from './shell';
 
 new Aurelia()
-  .register(JitHtmlBrowserConfiguration, DebugConfiguration)
+  .register(RuntimeHtmlBrowserConfiguration, DebugConfiguration)
   .app({ host: document.querySelector('body'), component: ShellComponent })
   .start();
 ```
@@ -75,10 +73,16 @@ new Aurelia()
 
 If you have a package that exports all your custom elements, you can pass the entire package to the `.register()` method on your Aurelia app.
 
-\`\`\`TypeScript src/components/index.ts export { CardCustomElement } from './card'; export { CollapseCustomElement } from './collapse';
+src/components/index.ts:
 
-```text
-```TypeScript src/main.ts
+```typescript
+export { CardCustomElement } from './card';
+export { CollapseCustomElement } from './collapse';
+```
+
+src/main.ts:
+
+```typescript
 import * as globalComponents from './components';
 
 // When using quick startup

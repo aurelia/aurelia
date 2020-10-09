@@ -1,27 +1,23 @@
-import { join, resolve } from 'path';
+import { join } from 'path';
 import * as lernaJson from '../lerna.json';
 import * as packageJson from '../package.json';
-import { camelCase } from '../packages/kernel/src/index';
 
 // TODO: generate this file automatically
 
-const rootPath = resolve(__dirname, '..');
+const rootPath = process.cwd();
 
 const testApps = [
-  'jit-aurelia-cli-ts',
-  'jit-browserify-ts',
-  'jit-fuse-box-ts',
-  'jit-iife-inline',
-  'jit-parcel-ts',
-  'jit-webpack-ts'
+  'jit-webpack-conventions-ts',
+  'jit-webpack-vanilla-ts'
 ] as [
-  'jit-aurelia-cli-ts',
-  'jit-browserify-ts',
-  'jit-fuse-box-ts',
-  'jit-iife-inline',
-  'jit-parcel-ts',
-  'jit-webpack-ts'
+  'jit-webpack-conventions-ts',
+  'jit-webpack-vanilla-ts'
 ];
+
+function camelCase(input: string): string {
+  const parts = input.split('-');
+  return `${parts[0]}${parts.slice(1).map(x => `${x[0].toUpperCase()}${x.slice(1)}`).join('')}`;
+}
 
 export default {
   'path': rootPath,

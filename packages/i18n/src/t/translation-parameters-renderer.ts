@@ -1,25 +1,22 @@
+import { IContainer } from '@aurelia/kernel';
 import {
+  BindingMode,
+  BindingType,
+  ICallBindingInstruction,
+  IRenderableController,
+  IExpressionParser,
+  IInstructionRenderer,
+  instructionRenderer,
+  IObserverLocator,
+  IsBindingBehavior,
+  LifecycleFlags,
   attributePattern,
   AttrSyntax,
   bindingCommand,
   BindingSymbol,
   getTarget,
   BindingCommandInstance,
-  PlainAttributeSymbol
-} from '@aurelia/jit';
-import {
-  BindingMode,
-  BindingType,
-  ICallBindingInstruction,
-  IController,
-  IDOM,
-  IExpressionParser,
-  IInstructionRenderer,
-  instructionRenderer,
-  IObserverLocator,
-  IRenderContext,
-  IsBindingBehavior,
-  LifecycleFlags
+  PlainAttributeSymbol,
 } from '@aurelia/runtime';
 import { TranslationBinding } from './translation-binding';
 
@@ -60,7 +57,13 @@ export class TranslationParametersBindingRenderer implements IInstructionRendere
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) { }
 
-  public render(flags: LifecycleFlags, dom: IDOM, context: IRenderContext, renderable: IController, target: HTMLElement, instruction: ICallBindingInstruction): void {
-    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, renderable, target, instruction, isParameterContext: true });
+  public render(
+    flags: LifecycleFlags,
+    context: IContainer,
+    controller: IRenderableController,
+    target: HTMLElement,
+    instruction: ICallBindingInstruction,
+  ): void {
+    TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true });
   }
 }

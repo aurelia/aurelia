@@ -1,29 +1,11 @@
 import {
-  Writable, DI
+  DI,
 } from '@aurelia/kernel';
 import {
-  AccessScopeExpression,
-  addBinding,
-  addComponent,
-  PropertyBinding,
-  BindingContext,
-  BindingMode,
-  IDOM,
   ILifecycle,
-  IObserverLocator,
-  IRenderLocation,
-  IScope,
-  ITemplate,
-  IController,
-  LifecycleFlags as LF,
-  Scope,
-  ViewFactory
+  ViewFactory,
 } from '@aurelia/runtime';
 import {
-  AuDOM,
-  AuDOMConfiguration,
-  AuNode,
-  AuNodeSequence,
   eachCartesianJoin,
   assert,
 } from '@aurelia/testing';
@@ -35,10 +17,18 @@ class StubView {
   }
 }
 
-class StubTemplate {
-  public constructor(public nodes = {}) {}
-  public render(renderable: Partial<IController>) {
-    (renderable as Writable<IController>).nodes = this.nodes as any;
+class StubContext {
+  public constructor(
+    public nodes = { findTargets() { return []; } },
+    public compiledDefinition = { instructions: [] },
+  ) {}
+
+  public compile(): this {
+    return this;
+  }
+
+  public createNodes(): any {
+    return this.nodes;
   }
 }
 
@@ -83,8 +73,8 @@ describe.skip(`ViewFactory`, function () {
 
     eachCartesianJoin(inputs, ([text1, doNotOverride1], [text2, size2, isPositive2], [text3, doNotOverride3], [text4, size4, isPositive4]) => {
       it(`setCacheSize(${text2},${text1}) -> tryReturnToCache -> create x2 -> setCacheSize(${text4},${text3}) -> tryReturnToCache -> create x2`, function () {
-        const template = new StubTemplate();
-        const sut = new ViewFactory(null, template as any, DI.createContainer().get(ILifecycle));
+        const context = new StubContext();
+        const sut = new ViewFactory(null, context as any, DI.createContainer().get(ILifecycle), void 0, null);
         const view1 = new StubView();
         const view2 = new StubView();
 
@@ -97,7 +87,7 @@ describe.skip(`ViewFactory`, function () {
           const cached = sut.create();
           assert.strictEqual(cached, view1, 'cached');
           const created = sut.create();
-          assert.strictEqual(created.nodes, template.nodes, 'created.nodes');
+          assert.strictEqual(created.nodes, context.nodes, 'created.nodes');
           assert.strictEqual(sut.tryReturnToCache(view1 as any), true, 'sut.tryReturnToCache(<any>view1)');
 
           if (size2 !== '*') {
@@ -105,7 +95,7 @@ describe.skip(`ViewFactory`, function () {
           }
         } else {
           const created = sut.create();
-          assert.strictEqual(created.nodes, template.nodes, 'created.nodes');
+          assert.strictEqual(created.nodes, context.nodes, 'created.nodes');
         }
 
         // note: the difference in behavior between 0 (number) and '0' (string),
@@ -122,7 +112,7 @@ describe.skip(`ViewFactory`, function () {
           const cached = sut.create();
           assert.strictEqual(cached, view2, 'cached');
           const created = sut.create();
-          assert.strictEqual(created.nodes, template.nodes, 'created.nodes');
+          assert.strictEqual(created.nodes, context.nodes, 'created.nodes');
           assert.strictEqual(sut.tryReturnToCache(view2 as any), true, 'sut.tryReturnToCache(<any>view2)');
 
           if (size2 !== '*' && size4 !== '*') {
@@ -130,7 +120,7 @@ describe.skip(`ViewFactory`, function () {
           }
         } else {
           const created = sut.create();
-          assert.strictEqual(created.nodes, template.nodes, 'created.nodes');
+          assert.strictEqual(created.nodes, context.nodes, 'created.nodes');
         }
 
       });
@@ -145,24 +135,24 @@ describe.skip(`ViewFactory`, function () {
 // }
 // describe.skip('View', function () {
 //   function runBindLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF, scope: IScope): void {
-//     lifecycle.bound.begin();
+//     lifecycle.afterBind.begin();
 //     view.bind(flags, scope);
-//     lifecycle.bound.end(flags);
+//     lifecycle.afterBind.end(flags);
 //   }
 //   function runUnbindLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF): void {
-//     lifecycle.unbound.begin();
+//     lifecycle.afterUnbindChildren.begin();
 //     view.unbind(flags);
-//     lifecycle.unbound.end(flags);
+//     lifecycle.afterUnbindChildren.end(flags);
 //   }
 //   function runAttachLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF): void {
-//     lifecycle.attached.begin();
+//     lifecycle.afterAttachChildren.begin();
 //     view.attach(flags);
-//     lifecycle.attached.end(flags);
+//     lifecycle.afterAttachChildren.end(flags);
 //   }
 //   function runDetachLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF): void {
-//     lifecycle.detached.begin();
+//     lifecycle.afterDetachChildren.begin();
 //     view.detach(flags);
-//     lifecycle.detached.end(flags);
+//     lifecycle.afterDetachChildren.end(flags);
 //   }
 
 //   interface Spec {
@@ -191,11 +181,11 @@ describe.skip(`ViewFactory`, function () {
 //   interface ReleaseSpec extends Spec {
 //     relBeforeDetach1: boolean;
 //     relBeforeEndDetach1: boolean;
-//     relAfterDetach1: boolean;
+//     relAfterDetachChildren1: boolean;
 
 //     relBeforeDetach2: boolean;
 //     relBeforeEndDetach2: boolean;
-//     relAfterDetach2: boolean;
+//     relAfterDetachChildren2: boolean;
 //   }
 //   interface FlagsSpec extends Spec {
 //     bindFlags1: LF;
@@ -235,22 +225,22 @@ describe.skip(`ViewFactory`, function () {
 //   ];
 
 //   const relSpecs: ReleaseSpec[] = [
-//     { t: ' 1', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetach2: false },
-//     { t: ' 2', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetach2: true  },
-//     { t: ' 3', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetach2: false },
-//     { t: ' 4', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetach2: false },
-//     { t: ' 5', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetach1: true,  relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetach2: false },
-//     { t: ' 6', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetach1: true,  relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetach2: true  },
-//     { t: ' 7', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetach1: true,  relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetach2: false },
-//     { t: ' 8', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetach1: true,  relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetach2: false },
-//     { t: ' 9', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetach2: false },
-//     { t: '10', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetach2: true  },
-//     { t: '11', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetach2: false },
-//     { t: '12', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetach1: false, relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetach2: false },
-//     { t: '13', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetach2: false },
-//     { t: '14', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetach2: true  },
-//     { t: '15', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetach2: false },
-//     { t: '16', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetach1: false, relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetach2: false },
+//     { t: ' 1', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: ' 2', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: true  },
+//     { t: ' 3', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetachChildren2: false },
+//     { t: ' 4', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: ' 5', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: true,  relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: ' 6', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: true,  relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: true  },
+//     { t: ' 7', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: true,  relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetachChildren2: false },
+//     { t: ' 8', relBeforeDetach1: false, relBeforeEndDetach1: false, relAfterDetachChildren1: true,  relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: ' 9', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: '10', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: true  },
+//     { t: '11', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetachChildren2: false },
+//     { t: '12', relBeforeDetach1: false, relBeforeEndDetach1: true,  relAfterDetachChildren1: false, relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: '13', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: false },
+//     { t: '14', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: false, relAfterDetachChildren2: true  },
+//     { t: '15', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: false, relBeforeEndDetach2: true,  relAfterDetachChildren2: false },
+//     { t: '16', relBeforeDetach1: true,  relBeforeEndDetach1: false, relAfterDetachChildren1: false, relBeforeDetach2: true,  relBeforeEndDetach2: false, relAfterDetachChildren2: false },
 //   ];
 
 //   const none = LF.none;
@@ -283,7 +273,7 @@ describe.skip(`ViewFactory`, function () {
 //       const { childCount, cacheSize } = cacheSpec;
 //       const { bindTwice, duplicateBindValue, attachTwice, detachTwice, unbindTwice } = duplicateOpSpec;
 //       const { propName, propValue1, lockScope1, newScopeForSecondBind, propValue2, lockScope2 } = bindSpec;
-//       const { relBeforeDetach1, relBeforeEndDetach1, relAfterDetach1, relBeforeDetach2, relBeforeEndDetach2, relAfterDetach2 } = relSpec;
+//       const { relBeforeDetach1, relBeforeEndDetach1, relAfterDetachChildren1, relBeforeDetach2, relBeforeEndDetach2, relAfterDetachChildren2 } = relSpec;
 //       const { bindFlags1, attachFlags1, detachFlags1, unbindFlags1, bindFlags2, attachFlags2, detachFlags2, unbindFlags2 } = flagsSpec;
 
 //       let firstBindInitialValue: string;
@@ -430,7 +420,7 @@ describe.skip(`ViewFactory`, function () {
 
 //           for (let i = 0; i < childCount; ++i) {
 //             const child = childSuts[i] = childFactory.create();
-//             child.hold(childLocs[i]);
+//             child.setLocation(childLocs[i]);
 //             addComponent(renderable, child);
 //           }
 //         }
@@ -446,7 +436,7 @@ describe.skip(`ViewFactory`, function () {
 //       if (lockScope1) {
 //         sut.lockScope(scope1);
 //       }
-//       sut.hold(location);
+//       sut.setLocation(location);
 
 //       runBindLifecycle(lifecycle, sut, bindFlags1, scope1);
 
@@ -476,7 +466,7 @@ describe.skip(`ViewFactory`, function () {
 
 //       // - Round 1 - detach
 
-//       lifecycle.detached.begin();
+//       lifecycle.afterDetachChildren.begin();
 //       if (relBeforeDetach1) {
 //         sut.release(detachFlags1);
 //         assert.strictEqual(host.textContent, firstBindFinalValue.repeat(1 + childCount), 'host.textContent #2');
@@ -486,8 +476,8 @@ describe.skip(`ViewFactory`, function () {
 //         sut.release(detachFlags1);
 //         assert.strictEqual(host.textContent, '', 'host.textContent #3');
 //       }
-//       lifecycle.detached.end(detachFlags1);
-//       if (relAfterDetach1) {
+//       lifecycle.afterDetachChildren.end(detachFlags1);
+//       if (relAfterDetachChildren1) {
 //         sut.release(detachFlags1);
 //       }
 //       if (cacheSize > 0) {
@@ -499,7 +489,7 @@ describe.skip(`ViewFactory`, function () {
 //         }
 //       }
 //       if (detachTwice) {
-//         lifecycle.detached.begin();
+//         lifecycle.afterDetachChildren.begin();
 //         if (relBeforeDetach1) {
 //           sut.release(detachFlags1);
 //         }
@@ -507,8 +497,8 @@ describe.skip(`ViewFactory`, function () {
 //         if (relBeforeEndDetach1) {
 //           sut.release(detachFlags1);
 //         }
-//         lifecycle.detached.end(detachFlags1);
-//         if (relAfterDetach1) {
+//         lifecycle.afterDetachChildren.end(detachFlags1);
+//         if (relAfterDetachChildren1) {
 //           sut.release(detachFlags1);
 //         }
 //       }
@@ -534,7 +524,7 @@ describe.skip(`ViewFactory`, function () {
 //       if (lockScope2) {
 //         sut.lockScope(scope2);
 //       }
-//       sut.hold(location);
+//       sut.setLocation(location);
 
 //       runBindLifecycle(lifecycle, sut, bindFlags2, scope2);
 
@@ -564,7 +554,7 @@ describe.skip(`ViewFactory`, function () {
 
 //       // Round 2 - detach
 
-//       lifecycle.detached.begin();
+//       lifecycle.afterDetachChildren.begin();
 //       if (relBeforeDetach2) {
 //         sut.release(detachFlags2);
 //         assert.strictEqual(host.textContent, secondBindFinalValue.repeat(1 + childCount), 'host.textContent #6');
@@ -574,8 +564,8 @@ describe.skip(`ViewFactory`, function () {
 //         sut.release(detachFlags2);
 //         assert.strictEqual(host.textContent, '', 'host.textContent #7');
 //       }
-//       lifecycle.detached.end(detachFlags2);
-//       if (relAfterDetach2) {
+//       lifecycle.afterDetachChildren.end(detachFlags2);
+//       if (relAfterDetachChildren2) {
 //         sut.release(detachFlags2);
 //       }
 //       if (cacheSize > 0) {
@@ -587,7 +577,7 @@ describe.skip(`ViewFactory`, function () {
 //         }
 //       }
 //       if (detachTwice) {
-//         lifecycle.detached.begin();
+//         lifecycle.afterDetachChildren.begin();
 //         if (relBeforeDetach2) {
 //           sut.release(detachFlags2);
 //         }
@@ -595,8 +585,8 @@ describe.skip(`ViewFactory`, function () {
 //         if (relBeforeEndDetach2) {
 //           sut.release(detachFlags2);
 //         }
-//         lifecycle.detached.end(detachFlags2);
-//         if (relAfterDetach2) {
+//         lifecycle.afterDetachChildren.end(detachFlags2);
+//         if (relAfterDetachChildren2) {
 //           sut.release(detachFlags2);
 //         }
 //       }

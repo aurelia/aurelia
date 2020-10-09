@@ -1,6 +1,7 @@
-import { CustomElement, Controller } from '@aurelia/runtime';
+import { CustomElement, Controller, ILifecycle } from '@aurelia/runtime';
 import { ContainerlessProjector, HostProjector, HTMLProjectorLocator, ShadowDOMProjector } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
+import { Constructable } from '@aurelia/kernel';
 
 describe.skip(`determineProjector`, function () {
   const ctx = TestContext.createHTMLTestContext();
@@ -9,22 +10,23 @@ describe.skip(`determineProjector`, function () {
 
   it(`@useShadowDOM yields ShadowDOMProjector`, function () {
     const host = ctx.createElement('div');
-    const Foo = CustomElement.define(
+
+    const Foo = CustomElement.define<HTMLElement, Constructable>(
       {
         name: 'foo',
         shadowOptions: { mode: 'open' }
       },
-      class {}
+      class {},
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0, null);
     const projector = locator.getElementProjector(dom, controller, host, definition);
 
     assert.instanceOf(projector, ShadowDOMProjector, `projector`);
     assert.instanceOf(projector['shadowRoot'], ctx.Node, `projector['shadowRoot']`);
-    assert.strictEqual(projector['shadowRoot'].$controller, component, `projector['shadowRoot'].$controller`);
-    assert.strictEqual(host['$controller'], component, `host['$controller']`);
+    assert.strictEqual(CustomElement.for(projector['shadowRoot']), component, `CustomElement.for(projector['shadowRoot'])`);
+    assert.strictEqual(CustomElement.for(host), component, `CustomElement.for(host)`);
     assert.strictEqual(projector.children.length, projector['shadowRoot']['childNodes'].length, `projector.children.length`);
     if (projector.children.length > 0) {
       assert.deepStrictEqual(projector.children, projector['shadowRoot']['childNodes'], `projector.children`);
@@ -34,7 +36,7 @@ describe.skip(`determineProjector`, function () {
 
   it(`hasSlots=true yields ShadowDOMProjector`, function () {
     const host = ctx.createElement('div');
-    const Foo = CustomElement.define(
+    const Foo = CustomElement.define<HTMLElement, Constructable>(
       {
         name: 'foo',
         hasSlots: true
@@ -43,13 +45,13 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0, null);
     const projector = locator.getElementProjector(dom, controller, host, definition);
 
     assert.instanceOf(projector, ShadowDOMProjector, `projector`);
     assert.instanceOf(projector['shadowRoot'], ctx.Node, `projector['shadowRoot']`);
-    assert.strictEqual(projector['shadowRoot'].$controller, component, `projector['shadowRoot'].$controller`);
-    assert.strictEqual(host['$controller'], component, `host['$controller']`);
+    assert.strictEqual(CustomElement.for(projector['shadowRoot']), component, `CustomElement.for(projector['shadowRoot'])`);
+    assert.strictEqual(CustomElement.for(host), component, `CustomElement.for(host)`);
     assert.strictEqual(projector.children.length, projector['shadowRoot']['childNodes'].length, `projector.children.length`);
     if (projector.children.length > 0) {
       assert.deepStrictEqual(projector.children, projector['shadowRoot']['childNodes'], `projector.children`);
@@ -61,7 +63,7 @@ describe.skip(`determineProjector`, function () {
     const host = ctx.createElement('div');
     const parent = ctx.createElement('div');
     parent.appendChild(host);
-    const Foo = CustomElement.define(
+    const Foo = CustomElement.define<HTMLElement, Constructable>(
       {
         name: 'foo',
         containerless: true
@@ -70,7 +72,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0, null);
     const projector = locator.getElementProjector(dom, controller, host, definition);
 
     assert.instanceOf(projector, ContainerlessProjector, `projector`);
@@ -95,7 +97,7 @@ describe.skip(`determineProjector`, function () {
     const child = ctx.createElement('div');
     parent.appendChild(host);
     host.appendChild(child);
-    const Foo = CustomElement.define(
+    const Foo = CustomElement.define<HTMLElement, Constructable>(
       {
         name: 'foo',
         containerless: true
@@ -104,7 +106,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0, null);
     const projector = locator.getElementProjector(dom, controller, host, definition);
 
     assert.instanceOf(projector, ContainerlessProjector, `projector`);
@@ -121,7 +123,7 @@ describe.skip(`determineProjector`, function () {
 
   it(`no shadowDOM, slots or containerless yields HostProjector`, function () {
     const host = ctx.createElement('div');
-    const Foo = CustomElement.define(
+    const Foo = CustomElement.define<HTMLElement, Constructable>(
       {
         name: 'foo'
       },
@@ -129,10 +131,10 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0, null);
     const projector = locator.getElementProjector(dom, controller, host, definition);
 
-    assert.strictEqual(host['$controller'], component, `host['$controller']`);
+    assert.strictEqual(CustomElement.for(host), component, `CustomElement.for(host)`);
     assert.instanceOf(projector, HostProjector, `projector`);
     assert.strictEqual(projector.children, projector.host.childNodes, `projector.children`);
     assert.strictEqual(projector.provideEncapsulationSource(), host, `projector.provideEncapsulationSource()`);
@@ -140,7 +142,7 @@ describe.skip(`determineProjector`, function () {
 
   it(`@containerless + @useShadowDOM throws`, function () {
     const host = ctx.createElement('div');
-    const Foo = CustomElement.define(
+    const Foo = CustomElement.define<HTMLElement, Constructable>(
       {
         name: 'foo',
         containerless: true,
@@ -150,14 +152,14 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0, null);
 
     assert.throws(() => locator.getElementProjector(dom, controller, host, definition), /21/, `() => locator.getElementProjector(dom, component, host, definition)`);
   });
 
   it(`@containerless + hasSlots throws`, function () {
     const host = ctx.createElement('div');
-    const Foo = CustomElement.define(
+    const Foo = CustomElement.define<HTMLElement, Constructable>(
       {
         name: 'foo',
         containerless: true,
@@ -167,7 +169,7 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(component, ctx.container, host);
+    const controller = Controller.forCustomElement(component, ctx.container.get(ILifecycle), host, ctx.container, void 0, null);
 
     assert.throws(() => locator.getElementProjector(dom, controller, host, definition), /21/, `() => locator.getElementProjector(dom, component, host, definition)`);
   });

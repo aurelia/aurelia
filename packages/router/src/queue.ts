@@ -1,12 +1,18 @@
 import { IScheduler, ITask } from '@aurelia/runtime';
 import { bound } from '@aurelia/kernel';
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface QueueItem<T> {
   resolve?: ((value: void | PromiseLike<void>) => void);
   reject?: ((value: void | PromiseLike<void>) => void);
   cost?: number;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface IQueueOptions {
   scheduler: IScheduler;
   allowedExecutionCostWithinTick: number;
@@ -18,8 +24,10 @@ export interface IQueueOptions {
  * one at a time to a specified callback function. The callback function
  * should resolve or reject the queued item when processing is done.
  * Enqueued items can be awaited. Enqueued items can specify an (arbitrary)
- * execution cost and the queue can be set up (activated) to only process
+ * execution cost and the queue can be set up (started) to only process
  * a specific amount of execution cost per RAF/tick.
+ *
+ * @internal - Shouldn't be used directly.
  */
 export class Queue<T> {
   public get isActive(): boolean {
@@ -40,17 +48,17 @@ export class Queue<T> {
     return this.pending.length;
   }
 
-  public activate(options: IQueueOptions): void {
+  public start(options: IQueueOptions): void {
     if (this.isActive) {
-      throw new Error('Queue has already been activated');
+      throw new Error('Queue has already been started');
     }
     this.scheduler = options.scheduler;
     this.allowedExecutionCostWithinTick = options.allowedExecutionCostWithinTick;
     this.task = this.scheduler.queueRenderTask(this.dequeue, { persistent: true });
   }
-  public deactivate(): void {
+  public stop(): void {
     if (!this.isActive) {
-      throw new Error('Queue has not been activated');
+      throw new Error('Queue has not been started');
     }
     this.task!.cancel();
     this.task = null;

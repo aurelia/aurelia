@@ -11,22 +11,21 @@ import {
   IConnectableBinding,
   IndexMap,
   IObserverLocator,
-  IRenderContext,
   IScope,
   ISignaler,
   ISubscribable,
   LifecycleFlags,
-  State
 } from '@aurelia/runtime';
 
 export class MockBinding implements IConnectableBinding {
+  public interceptor: this = this;
   public id!: number;
   public observerSlots!: number;
   public version!: number;
   public observerLocator!: IObserverLocator;
   public locator!: IServiceLocator;
   public $scope?: IScope | undefined;
-  public $state!: State;
+  public isBound!: boolean;
 
   public calls: [keyof MockBinding, ...any[]][] = [];
 
@@ -64,6 +63,10 @@ export class MockBinding implements IConnectableBinding {
 
   public trace(fnName: keyof MockBinding, ...args: any[]): void {
     this.calls.push([fnName, ...args]);
+  }
+
+  public dispose(): void {
+    this.trace('dispose');
   }
 }
 
@@ -205,7 +208,7 @@ export class MockValueConverter {
 export class MockContext {
   public log: any[] = [];
 }
-export type ExposedContext = IRenderContext & IDisposable & IContainer;
+export type ExposedContext = IContainer & IDisposable & IContainer;
 
 export class MockBrowserHistoryLocation {
   public changeCallback?: (ev: PopStateEvent) => Promise<void>;
@@ -328,8 +331,7 @@ export class MockBrowserHistoryLocation {
 
   private notifyChange() {
     if (this.changeCallback) {
-      console.log('MOCK: notifyChange', this.path, this.state);
-      this.changeCallback(null as any);
+      this.changeCallback(null as any).catch((error: Error) => { throw error; });
     }
   }
 }

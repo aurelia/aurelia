@@ -1,11 +1,52 @@
-import {
-  DI,
-  IContainer,
-  inject,
-  InterfaceSymbol,
-  Registration,
-} from '@aurelia/kernel';
+import { DI, IContainer, inject, InterfaceSymbol, Registration, singleton } from '@aurelia/kernel';
 import { assert, createSpy, ISpy } from '@aurelia/testing';
+
+describe('DI.singleton', function () {
+  describe('registerInRequester', function () {
+    class Foo {
+    }
+    const fooSelfRegister = DI.singleton(Foo, { scoped: true });
+
+    it('root', function () {
+      const root = DI.createContainer();
+      const foo1 = root.get(fooSelfRegister);
+      const foo2 = root.get(fooSelfRegister);
+
+      assert.strictEqual(foo1, foo2);
+    });
+
+    it('children', function () {
+      const root = DI.createContainer();
+      const child1 = root.createChild();
+      const child2 = root.createChild();
+      const foo1 = child1.get(fooSelfRegister);
+      const foo2 = child2.get(fooSelfRegister);
+
+      assert.notStrictEqual(foo1, foo2);
+    });
+  });
+});
+
+describe('DI.getDependencies', function () {
+  it('string param', function () {
+    @singleton
+    class Foo {
+      public constructor(public readonly test: string) {}
+    }
+    const actual = DI.getDependencies(Foo);
+    assert.deepStrictEqual(actual, [String]);
+  });
+
+  it('class param', function () {
+    class Bar {}
+    @singleton
+    class Foo {
+      public constructor(public readonly test: Bar) {}
+    }
+    const actual = DI.getDependencies(Foo);
+    assert.deepStrictEqual(actual, [Bar]);
+  });
+});
 
 describe('DI.createInterface() -> container.get()', function () {
   let container: IContainer;
@@ -27,11 +68,22 @@ describe('DI.createInterface() -> container.get()', function () {
   class Callback implements ICallback {}
   let ICallback: InterfaceSymbol<ICallback>;
 
+  interface ICachedCallback {}
+  class CachedCallback implements ICachedCallback {}
+  let ICachedCallback: InterfaceSymbol<ICachedCallback>;
+  const cachedCallback = 'cachedCallBack';
+  let callbackCount = 0;
+  function callbackToCache() {
+    ++callbackCount;
+    return new CachedCallback();
+  }
+
   let callback: ISpy<() => ICallback>;
   let get: ISpy<IContainer['get']>;
 
   // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
+    callbackCount = 0;
     container = DI.createContainer();
     ITransient = DI.createInterface<ITransient>('ITransient').withDefault(x => x.transient(Transient));
     ISingleton = DI.createInterface<ISingleton>('ISingleton').withDefault(x => x.singleton(Singleton));
@@ -39,6 +91,8 @@ describe('DI.createInterface() -> container.get()', function () {
     IInstance = DI.createInterface<IInstance>('IInstance').withDefault(x => x.instance(instance));
     callback = createSpy(() => new Callback());
     ICallback = DI.createInterface<ICallback>('ICallback').withDefault(x => x.callback(callback));
+    ICachedCallback = DI.createInterface<ICachedCallback>('ICachedCallback')
+      .withDefault(builder => builder.cachedCallback(callbackToCache));
     get = createSpy(container, 'get', true);
   });
 
@@ -132,6 +186,85 @@ describe('DI.createInterface() -> container.get()', function () {
         ],
         `get.calls`,
       );
+    });
+
+    it(`cachedCallback registration is invoked once`, function () {
+
+      container.register(Registration.cachedCallback(cachedCallback, callbackToCache));
+      const child = container.createChild();
+      child.register(Registration.cachedCallback(cachedCallback, callbackToCache));
+      const actual1 = container.get(cachedCallback);
+      const actual2 = container.get(cachedCallback);
+
+      assert.strictEqual(callbackCount, 1, `only called once`);
+      assert.strictEqual(actual2, actual1, `getting from the same container`);
+
+      const actual3 = child.get(cachedCallback);
+      assert.notStrictEqual(actual3, actual1, `get from child that has new resolver`);
+    });
+
+    it(`cacheCallback multiple root containers`, function () {
+      const container0 = DI.createContainer();
+      const container1 = DI.createContainer();
+      container0.register(Registration.cachedCallback(cachedCallback, callbackToCache));
+      container1.register(Registration.cachedCallback(cachedCallback, callbackToCache));
+
+      const actual11 = container0.get(cachedCallback);
+      const actual12 = container0.get(cachedCallback);
+
+      assert.strictEqual(callbackCount, 1, 'one callback');
+      assert.strictEqual(actual11, actual12);
+
+      const actual21 = container1.get(cachedCallback);
+      const actual22 = container1.get(cachedCallback);
+
+      assert.strictEqual(callbackCount, 2);
+      assert.strictEqual(actual21, actual22);
+    });
+
+    it(`cacheCallback shared registration`, function () {
+      const reg = Registration.cachedCallback(cachedCallback, callbackToCache);
+      const container0 = DI.createContainer();
+      const container1 = DI.createContainer();
+      container0.register(reg);
+      container1.register(reg);
+
+      const actual11 = container0.get(cachedCallback);
+      const actual12 = container0.get(cachedCallback);
+
+      assert.strictEqual(callbackCount, 1);
+      assert.strictEqual(actual11, actual12);
+
+      const actual21 = container1.get(cachedCallback);
+      const actual22 = container1.get(cachedCallback);
+
+      assert.strictEqual(callbackCount, 1);
+      assert.strictEqual(actual21, actual22);
+      assert.strictEqual(actual11, actual21);
+    });
+
+    it(`cachedCallback registration on interface is invoked once`, function () {
+      const actual1 = container.get(ICachedCallback);
+      const actual2 = container.get(ICachedCallback);
+
+      assert.strictEqual(callbackCount, 1, `only called once`);
+      assert.strictEqual(actual2, actual1, `getting from the same container`);
+    });
+
+    it(`cacheCallback interface multiple root containers`, function () {
+      const container0 = DI.createContainer();
+      const container1 = DI.createContainer();
+      const actual11 = container0.get(ICachedCallback);
+      const actual12 = container0.get(ICachedCallback);
+
+      assert.strictEqual(callbackCount, 1);
+      assert.strictEqual(actual11, actual12);
+
+      const actual21 = container1.get(ICachedCallback);
+      const actual22 = container1.get(ICachedCallback);
+
+      assert.strictEqual(callbackCount, 2);
+      assert.strictEqual(actual21, actual22);
     });
 
     it(`InterfaceSymbol alias to transient registration returns a new instance each time`, function () {
@@ -242,7 +375,7 @@ describe('DI.createInterface() -> container.get()', function () {
     });
 
     it(`string alias to transient registration returns a new instance each time`, function () {
-      container.register(Registration.alias(ITransient, 'alias'));
+      container.register(Registration.aliasTo(ITransient, 'alias'));
 
       const actual1 = container.get('alias');
       assert.instanceOf(actual1, Transient, `actual1`);
@@ -265,7 +398,7 @@ describe('DI.createInterface() -> container.get()', function () {
     });
 
     it(`string alias to singleton registration returns the same instance each time`, function () {
-      container.register(Registration.alias(ISingleton, 'alias'));
+      container.register(Registration.aliasTo(ISingleton, 'alias'));
 
       const actual1 = container.get('alias');
       assert.instanceOf(actual1, Singleton, `actual1`);
@@ -288,7 +421,7 @@ describe('DI.createInterface() -> container.get()', function () {
     });
 
     it(`string alias to instance registration returns the same instance each time`, function () {
-      container.register(Registration.alias(IInstance, 'alias'));
+      container.register(Registration.aliasTo(IInstance, 'alias'));
 
       const actual1 = container.get('alias');
       assert.instanceOf(actual1, Instance, `actual1`);
@@ -312,7 +445,7 @@ describe('DI.createInterface() -> container.get()', function () {
     });
 
     it(`string alias to callback registration is invoked each time`, function () {
-      container.register(Registration.alias(ICallback, 'alias'));
+      container.register(Registration.aliasTo(ICallback, 'alias'));
 
       const actual1 = container.get('alias');
       assert.instanceOf(actual1, Callback, `actual1`);
@@ -775,7 +908,7 @@ describe('DI.createInterface() -> container.get()', function () {
   });
 });
 
-describe('defer registration', function() {
+describe('defer registration', function () {
   class FakeCSSService {
     public constructor(public data: any) {}
   }
@@ -791,7 +924,7 @@ describe('defer registration', function() {
     }
   }
 
-  it(`enables the handler class to provide registrations for data`, function() {
+  it(`enables the handler class to provide registrations for data`, function () {
     const container = DI.createContainer();
     const data = {};
 
@@ -808,7 +941,7 @@ describe('defer registration', function() {
     assert.strictEqual(service.data, data);
   });
 
-  it(`passes the params to the container's register method if no handler is found`, function() {
+  it(`passes the params to the container's register method if no handler is found`, function () {
     const container = DI.createContainer();
     const data = {
       wasCalled: false,
@@ -838,7 +971,7 @@ describe('defer registration', function() {
       value: 42
     }
   ].forEach(x => {
-    it (`does not pass ${x.name} params to the container's register when no handler is found`, function() {
+    it(`does not pass ${x.name} params to the container's register when no handler is found`, function () {
       const container = DI.createContainer();
       container.register(
         Registration.defer('.css', x.value)

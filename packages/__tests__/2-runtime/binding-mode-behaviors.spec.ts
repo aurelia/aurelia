@@ -1,6 +1,9 @@
 import {
   DI,
-  IContainer
+  IContainer,
+  ILogger,
+  LoggerConfiguration,
+  Registration,
 } from '@aurelia/kernel';
 import {
   PropertyBinding,
@@ -8,7 +11,8 @@ import {
   FromViewBindingBehavior,
   OneTimeBindingBehavior,
   ToViewBindingBehavior,
-  TwoWayBindingBehavior
+  TwoWayBindingBehavior,
+  IScheduler,
 } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
@@ -19,10 +23,12 @@ const tests = [
   { Behavior: TwoWayBindingBehavior, mode: BindingMode.twoWay }
 ];
 
-describe('BindingModeBehavior', function () {
+describe('2-runtime/binding-mode-behavior.spec.ts', function () {
   const container: IContainer = DI.createContainer();
   let sut: OneTimeBindingBehavior;
   let binding: PropertyBinding;
+
+  Registration.instance(IScheduler, {}).register(container);
 
   for (const { Behavior, mode } of tests) {
     const initModeArr = [BindingMode.oneTime, BindingMode.toView, BindingMode.fromView, BindingMode.twoWay, BindingMode.default];
@@ -33,7 +39,7 @@ describe('BindingModeBehavior', function () {
         beforeEach(function () {
           sut = new Behavior();
           binding = new PropertyBinding(undefined, undefined, undefined, initMode, undefined, container as any);
-          sut.bind(undefined, undefined, binding);
+          sut.bind(undefined, undefined, undefined, binding);
         });
 
         it(`bind()   should apply  bindingMode ${mode}`, function () {
@@ -41,7 +47,7 @@ describe('BindingModeBehavior', function () {
         });
 
         it(`unbind() should revert bindingMode ${initMode}`, function () {
-          sut.unbind(undefined, undefined, binding);
+          sut.unbind(undefined, undefined, undefined, binding);
           assert.strictEqual(binding.mode, initMode, `binding.mode`);
         });
       });

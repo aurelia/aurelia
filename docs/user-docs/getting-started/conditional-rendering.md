@@ -18,8 +18,7 @@ Have you ever needed to hide or show part of a UI based on some condition? Well,
 
 Aurelia has two major tools for conditional display: `if` and `show`. Let's look at `if` first. Here's a basic "Hello World" that asks the user if they want to greet the world:
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% code title="my-app.html" %}
 ```markup
 <label for="greet">Would you like me to greet the world?</label>
 <input type="checkbox" id="greet" checked.bind="greet">
@@ -27,15 +26,14 @@ Aurelia has two major tools for conditional display: `if` and `show`. Let's look
   Hello, World!
 </div>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 If the value of `greet` is `true`, then the `div` with the message "Hello, World!" will be inserted into the DOM. If it's `false`, the `div` will be removed \(or never added in the first place\).
 
 Conditionals can also be `one-time` bound, so that parts of the template are fixed once they're instantiated:
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% tabs %}
+{% tab title="my-app.html" %}
 ```markup
 <div if.one-time="greet">
   Hello, World!
@@ -44,23 +42,22 @@ Conditionals can also be `one-time` bound, so that parts of the template are fix
   Some other time.
 </div>
 ```
-{% endcode-tabs-item %}
+{% endtab %}
 
-{% code-tabs-item title="my-app.js" %}
+{% tab title="my-app.js" %}
 ```javascript
 export class MyApp {
   greet = (Math.random() > 0.5);
 }
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endtab %}
+{% endtabs %}
 
 There's a 50-50 chance that we'll greet the world, or put it off until later. Once the page loads, this is fixed, because the data is `one-time` bound.
 
 Complementing `if`, there is `else`. Used in conjunction with `if`, `else` will render its content when `if` does not evaluate to `true`.
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% code title="my-app.html" %}
 ```markup
 <div if.bind="showMessage">
   <span>${message}</span>
@@ -69,8 +66,7 @@ Complementing `if`, there is `else`. Used in conjunction with `if`, `else` will 
   <span>Nothing to see here</span>
 </div>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 Elements using the `else` template modifier must follow an `if` bound element to make contextual sense and function properly.
 
@@ -84,15 +80,13 @@ By default, `if` caches the underlying view instance. Although the element is be
 
 You can opt-out this default behavior by setting the `cache` binding of the `if` attribute explicitly. This is especially useful when using `if` on custom elements where initializing them on every appearance is crucial.
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% code title="my-app.html" %}
 ```markup
 <div if="condition.bind: showMessage; cache: false">
   <span>${message}</span>
 </div>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 ## show/hide
 
@@ -106,8 +100,7 @@ This difference is subtle but important in terms of speed and usability. When th
 
 If we just want to hide the element from view instead of removing it from the DOM completely, we should use `show` instead of `if`. Let's look at the same basic "Hello World" from above that asks the user if they want to greet the world, this time with `show` instead of `if`.
 
-{% code-tabs %}
-{% code-tabs-item title="my-app.html" %}
+{% code title="my-app.html" %}
 ```markup
 <label for="greet">Would you like me to greet the world?</label>
 <input type="checkbox" id="greet" checked.bind="greet">
@@ -115,8 +108,7 @@ If we just want to hide the element from view instead of removing it from the DO
   Hello, World!
 </div>
 ```
-{% endcode-tabs-item %}
-{% endcode-tabs %}
+{% endcode %}
 
 When unchecked, our "Hello World" div will have the `aurelia-hide` class, which sets `display: none` if you're using Aurelia's default CSS. However, if you don't want to do that, you can also define your own CSS rules that treat `aurelia-hide` differently, like setting `visibility: none` or `height: 0px`.
 

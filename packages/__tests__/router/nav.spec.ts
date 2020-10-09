@@ -4,7 +4,7 @@ import { Aurelia, CustomElement } from '@aurelia/runtime';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('Nav', function () {
-  async function setup(component) {
+  async function createFixture(component) {
     const ctx = TestContext.createHTMLTestContext();
     const container = ctx.container;
 
@@ -12,18 +12,18 @@ describe('Nav', function () {
     const Foo = CustomElement.define({ name: 'foo', template: '<template>Nav: foo <au-nav name="main-nav"></au-nav></template>' }, class {
       public static inject = [IRouter];
       public constructor(private readonly r: IRouter) { }
-      public enter() { this.r.setNav('main-nav', [{ title: 'Bar', route: 'bar' }]); }
+      public load() { this.r.setNav('main-nav', [{ title: 'Bar', route: 'bar' }]); }
     });
     const Bar = CustomElement.define({ name: 'bar', template: '<template>Nav: bar <au-nav name="main-nav"></au-nav><au-viewport name="main-viewport" default="baz"></au-viewport></template>' }, class {
       public static inject = [IRouter];
       public constructor(private readonly r: IRouter) { }
-      public enter() { this.r.setNav('main-nav', [{ title: 'Baz', route: 'baz' }]); }
+      public load() { this.r.setNav('main-nav', [{ title: 'Baz', route: 'baz' }]); }
     });
     const Baz = CustomElement.define({ name: 'baz', template: '<template>Baz</template>' }, class { });
     const Qux = CustomElement.define({ name: 'qux', template: '<template>Nav: qux <au-nav name="main-nav"></au-nav><au-viewport name="main-viewport" default="baz"></au-viewport></template>' }, class {
       public static inject = [IRouter];
       public constructor(private readonly r: IRouter) { }
-      public enter() {
+      public load() {
         this.r.addNav('main-nav', [{ title: 'Baz', route: Baz, children: [{ title: 'Bar', route: ['bar', Baz] }] }, { title: 'Foo', route: { component: Foo, viewport: 'main-viewport' } }]);
       }
     });
@@ -46,9 +46,10 @@ describe('Nav', function () {
     await au.start().wait();
 
     async function tearDown() {
-      router.deactivate();
       await au.stop().wait();
       ctx.doc.body.removeChild(host);
+
+      au.dispose();
     }
 
     const scheduler = ctx.scheduler;
@@ -58,7 +59,7 @@ describe('Nav', function () {
 
   it('generates nav with a link', async function () {
     this.timeout(5000);
-    const { host, router, tearDown, scheduler } = await setup('foo');
+    const { host, router, tearDown, scheduler } = await createFixture('foo');
 
     await scheduler.yieldAll();
 
@@ -71,8 +72,8 @@ describe('Nav', function () {
 
   it('generates nav with an active link', async function () {
     this.timeout(5000);
-    const { host, router, tearDown, scheduler } = await setup('bar');
-    router.activeComponents = [new ViewportInstruction('baz', 'main-viewport')];
+    const { host, router, tearDown, scheduler } = await createFixture('bar');
+    router.activeComponents = [router.createViewportInstruction('baz', 'main-viewport')];
 
     await scheduler.yieldAll();
 
@@ -83,8 +84,8 @@ describe('Nav', function () {
 
   it('generates nav with child links', async function () {
     this.timeout(5000);
-    const { host, router, tearDown, scheduler } = await setup('qux');
-    router.activeComponents =[new ViewportInstruction('baz', 'main-viewport')];
+    const { host, router, tearDown, scheduler } = await createFixture('qux');
+    router.activeComponents =[router.createViewportInstruction('baz', 'main-viewport')];
 
     await scheduler.yieldAll();
 

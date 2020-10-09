@@ -1,32 +1,34 @@
-import {
-  Serializer,
-  Unparser,
-} from '@aurelia/debug';
-import { IController, IElementProjector, If, Repeat, Replaceable, TargetedInstructionType, With } from '@aurelia/runtime';
+// import {
+//   Serializer,
+//   Unparser,
+// } from '@aurelia/debug';
+import { IElementProjector, If, Repeat, TargetedInstructionType, With, ICustomElementController, ViewModelKind, ISyntheticView } from '@aurelia/runtime';
 import { Compose, HTMLTargetedInstructionType } from '@aurelia/runtime-html';
 import { assert } from './assert';
 
-export function verifyASTEqual(actual: any, expected: any, errors?: string[], path?: string): any {
-  if (expected == null) {
-    if (actual != null) {
-      assert.strictEqual(actual, null, `actual`);
-    }
-  } else if (actual == null) {
-    const expectedSerialized = Serializer.serialize(expected);
-    assert.strictEqual(actual, expectedSerialized, `actual`);
-  } else {
-    const expectedSerialized = Serializer.serialize(expected);
-    const expectedUnparsed = Unparser.unparse(expected);
-    const actualSerialized = Serializer.serialize(actual);
-    const actualUnparsed = Unparser.unparse(actual);
-    if (actualSerialized !== expectedSerialized) {
-      assert.strictEqual(actualSerialized, expectedSerialized, `actualSerialized`);
-    }
-    if (actualUnparsed !== expectedUnparsed) {
-      assert.strictEqual(actualUnparsed, expectedUnparsed, `actualUnparsed`);
-    }
-  }
-}
+// Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
+
+// export function verifyASTEqual(actual: any, expected: any, errors?: string[], path?: string): any {
+//   if (expected == null) {
+//     if (actual != null) {
+//       assert.strictEqual(actual, null, `actual`);
+//     }
+//   } else if (actual == null) {
+//     const expectedSerialized = Serializer.serialize(expected);
+//     assert.strictEqual(actual, expectedSerialized, `actual`);
+//   } else {
+//     const expectedSerialized = Serializer.serialize(expected);
+//     const expectedUnparsed = Unparser.unparse(expected);
+//     const actualSerialized = Serializer.serialize(actual);
+//     const actualUnparsed = Unparser.unparse(actual);
+//     if (actualSerialized !== expectedSerialized) {
+//       assert.strictEqual(actualSerialized, expectedSerialized, `actualSerialized`);
+//     }
+//     if (actualUnparsed !== expectedUnparsed) {
+//       assert.strictEqual(actualUnparsed, expectedUnparsed, `actualUnparsed`);
+//     }
+//   }
+// }
 
 export function verifyEqual(actual: any, expected: any, depth?: number, property?: string, index?: number): any {
   if (depth === undefined) {
@@ -62,7 +64,7 @@ export function verifyEqual(actual: any, expected: any, depth?: number, property
   }
 }
 
-export function getVisibleText(root: IController, host: Node, removeWhiteSpace?: boolean): string | null {
+export function getVisibleText(root: ICustomElementController, host: Node, removeWhiteSpace?: boolean): string | null {
   const context = { text: host.textContent };
   $getVisibleText(root, context);
   const text = context.text;
@@ -73,34 +75,39 @@ function isShadowDOMProjector(projector: IElementProjector | undefined): project
   return projector != void 0 && 'shadowRoot' in projector;
 }
 
-function $getVisibleText(root: IController, context: { text: string | null}): void {
+function $getVisibleText(root: ICustomElementController | ISyntheticView, context: { text: string | null}): void {
   if (root == void 0) {
     return;
   }
 
-  const { controllers } = root;
-  if (controllers == void 0) {
+  const { children } = root;
+  if (children == void 0) {
     return;
   }
-  const { length } = controllers;
+  const { length } = children;
   let controller;
   for (let i = 0; i < length; ++i) {
-    controller = controllers[i];
-    if (isShadowDOMProjector(controller.projector)) {
-      context.text += controller.projector.shadowRoot.textContent!;
-      $getVisibleText(controller, context);
-    } else if (controller.viewModel instanceof Replaceable) {
-      $getVisibleText((controller.viewModel as Replaceable).view, context);
-    } else if (controller.viewModel instanceof With) {
-      $getVisibleText((controller.viewModel as With).view, context);
-    } else if (controller.viewModel instanceof If) {
-      $getVisibleText((controller.viewModel as If).view!, context);
-    } else if (controller.viewModel instanceof Compose) {
-      $getVisibleText((controller.viewModel as Compose).view!, context);
-    } else if (controller.viewModel instanceof Repeat) {
-      for (const view of (controller.viewModel as Repeat).views) {
-        $getVisibleText(view, context);
-      }
+    controller = children[i];
+    switch (controller.vmKind) {
+      case ViewModelKind.customElement:
+        if (isShadowDOMProjector(controller.projector)) {
+          context.text += controller.projector.shadowRoot.textContent!;
+          $getVisibleText(controller, context);
+        } else if (controller.viewModel instanceof Compose) {
+          $getVisibleText((controller.viewModel as Compose).view!, context);
+        }
+        break;
+      case ViewModelKind.customAttribute:
+        if (controller.viewModel instanceof With) {
+          $getVisibleText((controller.viewModel as With).view, context);
+        } else if (controller.viewModel instanceof If) {
+          $getVisibleText((controller.viewModel as If).view!, context);
+        } else if (controller.viewModel instanceof Repeat) {
+          for (const view of (controller.viewModel as Repeat).views) {
+            $getVisibleText(view, context);
+          }
+        }
+        break;
     }
   }
 }

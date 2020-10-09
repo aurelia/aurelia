@@ -1,15 +1,20 @@
-import { compareNumber, nextId } from '@aurelia/kernel';
+import { compareNumber, nextId, IDisposable, onResolve } from '@aurelia/kernel';
 import { ForOfStatement } from '../../binding/ast';
 import { PropertyBinding } from '../../binding/property-binding';
 import { INode, IRenderLocation } from '../../dom';
-import { LifecycleFlags as LF, State } from '../../flags';
-import { IController, IViewFactory, MountStrategy } from '../../lifecycle';
+import { LifecycleFlags as LF, LifecycleFlags } from '../../flags';
 import {
-  AggregateContinuationTask,
-  ContinuationTask,
-  ILifecycleTask,
-  LifecycleTask,
-} from '../../lifecycle-task';
+  ISyntheticView,
+  IViewFactory,
+  MountStrategy,
+  ICustomAttributeController,
+  IRenderableController,
+  IController,
+  ICustomAttributeViewModel,
+  IHydratedController,
+  IHydratedParentController,
+  ControllerVisitor,
+} from '../../lifecycle';
 import {
   CollectionObserver,
   IndexMap,
@@ -26,23 +31,23 @@ import { templateController } from '../custom-attribute';
 
 type Items<C extends ObservedCollection = IObservedArray> = C | undefined;
 
-const isMountedOrAttached = State.isMounted | State.isAttached;
+function dispose(disposable: IDisposable): void {
+  disposable.dispose();
+}
 
 @templateController('repeat')
-export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> {
+export class Repeat<C extends ObservedCollection = IObservedArray, T extends INode = INode> implements ICustomAttributeViewModel<T> {
   public readonly id: number = nextId('au$component');
 
   public hasPendingInstanceMutation: boolean = false;
   public observer?: CollectionObserver = void 0;
-  public views: IController<T>[] = [];
+  public views: ISyntheticView<T>[] = [];
   public key?: string = void 0;
 
   public forOf!: ForOfStatement;
   public local!: string;
 
-  public $controller!: IController<T>; // This is set by the controller after this instance is constructed
-
-  private task: ILifecycleTask = LifecycleTask.done;
+  public readonly $controller!: ICustomAttributeController<T, this>; // This is set by the controller after this instance is constructed
 
   @bindable public items: Items<C>;
 
@@ -50,130 +55,110 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   public constructor(
     @IRenderLocation public location: IRenderLocation<T>,
-    @IController public renderable: IController<T>,
+    @IController public renderable: IRenderableController<T>,
     @IViewFactory public factory: IViewFactory<T>
   ) {}
 
-  public binding(flags: LF): ILifecycleTask {
+  public beforeBind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
     this.checkCollectionObserver(flags);
     const bindings = this.renderable.bindings as PropertyBinding[];
-    const { length } = bindings;
-    let binding: PropertyBinding;
-    for (let i = 0; i < length; ++i) {
+    let binding: PropertyBinding = (void 0)!;
+    for (let i = 0, ii = bindings.length; i < ii; ++i) {
       binding = bindings[i];
-      if (binding.target === this && binding.targetProperty === 'items') {
+      if ((binding.target as { id?: number }).id === this.id && binding.targetProperty === 'items') {
         this.forOf = binding.sourceExpression as ForOfStatement;
         break;
       }
     }
-    this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope!, null) as string;
+
+    this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, binding.locator, null) as string;
+  }
+
+  public afterAttach(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
     this.normalizeToArray(flags);
-    this.processViewsKeyed(void 0, flags);
-    return this.task;
+
+    return this.activateAllViews(initiator, flags);
   }
 
-  public attaching(flags: LF): void {
-    if (this.task.done) {
-      this.attachViews(void 0, flags);
-    } else {
-      this.task = new ContinuationTask(this.task, this.attachViews, this, void 0, flags);
-    }
-  }
-
-  public detaching(flags: LF): void {
-    if (this.task.done) {
-      this.detachViewsByRange(0, this.views.length, flags);
-    } else {
-      this.task = new ContinuationTask(this.task, this.detachViewsByRange, this, 0, this.views.length, flags);
-    }
-  }
-
-  public unbinding(flags: LF): ILifecycleTask {
+  public afterUnbind(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void | Promise<void> {
     this.checkCollectionObserver(flags);
 
-    if (this.task.done) {
-      this.task = this.unbindAndRemoveViewsByRange(0, this.views.length, flags, false);
-    } else {
-      this.task = new ContinuationTask(this.task, this.unbindAndRemoveViewsByRange, this, 0, this.views.length, flags, false);
-    }
-    return this.task;
+    return this.deactivateAllViews(initiator, flags);
   }
 
   // called by SetterObserver
   public itemsChanged(flags: LF): void {
-    flags |= this.$controller.flags;
+    const { $controller } = this;
+    if (!$controller.isActive) {
+      return;
+    }
+    flags |= $controller.flags;
     this.checkCollectionObserver(flags);
     flags |= LF.updateTargetInstance;
     this.normalizeToArray(flags);
-    this.processViewsKeyed(void 0, flags);
+
+    const ret = onResolve(
+      this.deactivateAllViews(null, flags),
+      () => {
+        // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
+        return this.activateAllViews(null, flags);
+      },
+    );
+    if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
   }
 
   // called by a CollectionObserver
-  public handleCollectionChange(indexMap: IndexMap | undefined, flags: LF): void {
-    flags |= this.$controller.flags;
-    flags |= (LF.fromFlush | LF.updateTargetInstance);
+  public handleCollectionChange(
+    indexMap: IndexMap | undefined,
+    flags: LF,
+  ): void {
+    const { $controller } = this;
+    if (!$controller.isActive) {
+      return;
+    }
+    flags |= $controller.flags;
+    flags |= LF.updateTargetInstance;
     this.normalizeToArray(flags);
-    this.processViewsKeyed(indexMap, flags);
-  }
 
-  private processViewsKeyed(indexMap: IndexMap | undefined, flags: LF): void {
-    const oldLength = this.views.length;
     if (indexMap === void 0) {
-      if ((this.$controller.state & State.isBoundOrBinding) > 0) {
-        this.detachViewsByRange(0, oldLength, flags);
-        if (this.task.done) {
-          this.task = this.unbindAndRemoveViewsByRange(0, oldLength, flags, false);
-        } else {
-          this.task = new ContinuationTask(this.task, this.unbindAndRemoveViewsByRange, this, 0, oldLength, flags, false);
-        }
-
-        if (this.task.done) {
-          this.task = this.createAndBindAllViews(flags);
-        } else {
-          this.task = new ContinuationTask(this.task, this.createAndBindAllViews, this, flags);
-        }
-      }
-
-      if ((this.$controller.state & State.isAttachedOrAttaching) > 0) {
-        if (this.task.done) {
-          this.attachViewsKeyed(flags);
-        } else {
-          this.task = new ContinuationTask(this.task, this.attachViewsKeyed, this, flags);
-        }
-      }
+      const ret = onResolve(
+        this.deactivateAllViews(null, flags),
+        () => {
+          // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
+          return this.activateAllViews(null, flags);
+        },
+      );
+      if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
     } else {
+      const oldLength = this.views.length;
       applyMutationsToIndices(indexMap);
-      if ((this.$controller.state & State.isBoundOrBinding) > 0) {
-        // first detach+unbind+(remove from array) the deleted view indices
-        if (indexMap.deletedItems.length > 0) {
-          indexMap.deletedItems.sort(compareNumber);
-          if (this.task.done) {
-            this.detachViewsByKey(indexMap, flags);
-          } else {
-            this.task = new ContinuationTask(this.task, this.detachViewsByKey, this, indexMap, flags);
-          }
-
-          if (this.task.done) {
-            this.task = this.unbindAndRemoveViewsByKey(indexMap, flags);
-          } else {
-            this.task = new ContinuationTask(this.task, this.unbindAndRemoveViewsByKey, this, indexMap, flags);
-          }
-        }
-
-        // then insert new views at the "added" indices to bring the views array in aligment with indexMap size
-        if (this.task.done) {
-          this.task = this.createAndBindNewViewsByKey(indexMap, flags);
-        } else {
-          this.task = new ContinuationTask(this.task, this.createAndBindNewViewsByKey, this, indexMap, flags);
-        }
-      }
-
-      if ((this.$controller.state & State.isAttachedOrAttaching) > 0) {
-        if (this.task.done) {
-          this.sortViewsByKey(oldLength, indexMap, flags);
-        } else {
-          this.task = new ContinuationTask(this.task, this.sortViewsByKey, this, oldLength, indexMap, flags);
-        }
+      // first detach+unbind+(remove from array) the deleted view indices
+      if (indexMap.deletedItems.length > 0) {
+        indexMap.deletedItems.sort(compareNumber);
+        const ret = onResolve(
+          this.deactivateAndRemoveViewsByKey(indexMap, flags),
+          () => {
+            // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
+            return this.createAndActivateAndSortViewsByKey(oldLength, indexMap, flags);
+          },
+        );
+        if (ret instanceof Promise) { ret.catch(err => { throw err; }); }
+      } else {
+        // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this.createAndActivateAndSortViewsByKey(oldLength, indexMap, flags);
       }
     }
   }
@@ -181,17 +166,17 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
   // todo: subscribe to collection from inner expression
   private checkCollectionObserver(flags: LF): void {
     const oldObserver = this.observer;
-    if ((this.$controller.state & State.isBoundOrBinding) > 0) {
+    if ((flags & LifecycleFlags.fromUnbind)) {
+      if (oldObserver !== void 0) {
+        oldObserver.unsubscribeFromCollection(this);
+      }
+    } else if (this.$controller.isActive) {
       const newObserver = this.observer = getCollectionObserver(flags, this.$controller.lifecycle, this.items);
       if (oldObserver !== newObserver && oldObserver) {
         oldObserver.unsubscribeFromCollection(this);
       }
       if (newObserver) {
         newObserver.subscribeToCollection(this);
-      }
-    } else {
-      if (oldObserver !== void 0) {
-        oldObserver.unsubscribeFromCollection(this);
       }
     }
   }
@@ -213,85 +198,87 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     this.normalizedItems = normalizedItems;
   }
 
-  private detachViewsByRange(iStart: number, iEnd: number, flags: LF): void {
-    const views = this.views;
-    this.$controller.lifecycle.detached.begin();
-    let view: IController<T>;
-    for (let i = iStart; i < iEnd; ++i) {
-      view = views[i];
-      view.release(flags);
-      view.detach(flags);
+  private activateAllViews(
+    initiator: IHydratedController<T> | null,
+    flags: LF,
+  ): void | Promise<void> {
+    let promises: Promise<void>[] | undefined = void 0;
+    let ret: void | Promise<void>;
+    let view: ISyntheticView<T>;
+    let viewScope: IScope;
+
+    const { $controller, factory, local, location, items } = this;
+    const parentScope = $controller.scope;
+    const hostScope = $controller.hostScope;
+    const newLen = this.forOf.count(flags, items);
+    const views = this.views = Array(newLen);
+
+    this.forOf.iterate(flags, items, (arr, i, item) => {
+      view = views[i] = factory.create(flags);
+      view.setLocation(location, MountStrategy.insertBefore);
+      view.nodes!.unlink();
+      viewScope = Scope.fromParent(flags, parentScope, BindingContext.create(flags, local, item));
+
+      setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
+
+      ret = view.activate(initiator ?? view, $controller, flags, viewScope, hostScope);
+      if (ret instanceof Promise) {
+        (promises ?? (promises = [])).push(ret);
+      }
+    });
+
+    if (promises !== void 0) {
+      return (promises as Promise<void>[]).length === 1
+        ? promises[0]
+        : Promise.all(promises) as unknown as Promise<void>;
     }
-    this.$controller.lifecycle.detached.end(flags);
   }
 
-  private unbindAndRemoveViewsByRange(iStart: number, iEnd: number, flags: LF, adjustLength: boolean): ILifecycleTask {
-    const views = this.views;
-    let tasks: ILifecycleTask[] | undefined = void 0;
-    let task: ILifecycleTask;
-    this.$controller.lifecycle.unbound.begin();
-    let view: IController<T>;
-    for (let i = iStart; i < iEnd; ++i) {
+  private deactivateAllViews(
+    initiator: IHydratedController<T> | null,
+    flags: LF,
+  ): void | Promise<void> {
+    let promises: Promise<void>[] | undefined = void 0;
+    let ret: void | Promise<void>;
+    let view: ISyntheticView<T>;
+
+    const { views, $controller } = this;
+
+    for (let i = 0, ii = views.length; i < ii; ++i) {
       view = views[i];
-      task = view.unbind(flags);
-      view.parent = void 0;
-      if (!task.done) {
-        if (tasks === undefined) {
-          tasks = [];
-        }
-        tasks.push(task);
+      view.release();
+      ret = view.deactivate(initiator ?? view, $controller, flags);
+      if (ret instanceof Promise) {
+        (promises ?? (promises = [])).push(ret);
       }
     }
 
-    if (adjustLength) {
-      this.views.length = iStart;
+    if (promises !== void 0) {
+      return promises.length === 1
+        ? promises[0]
+        : Promise.all(promises) as unknown as Promise<void>;
     }
-
-    if (tasks === undefined) {
-      this.$controller.lifecycle.unbound.end(flags);
-      return LifecycleTask.done;
-    }
-
-    return new AggregateContinuationTask(
-      tasks,
-      this.$controller.lifecycle.unbound.end,
-      this.$controller.lifecycle.unbound,
-      flags,
-    );
   }
 
-  private detachViewsByKey(indexMap: IndexMap, flags: LF): void {
-    const views = this.views;
-    this.$controller.lifecycle.detached.begin();
-    const deleted = indexMap.deletedItems;
-    const deletedLen = deleted.length;
-    let view: IController<T>;
-    for (let i = 0; i < deletedLen; ++i) {
-      view = views[deleted[i]];
-      view.release(flags);
-      view.detach(flags);
-    }
-    this.$controller.lifecycle.detached.end(flags);
-  }
+  private deactivateAndRemoveViewsByKey(
+    indexMap: IndexMap,
+    flags: LF,
+  ): void | Promise<void> {
+    let promises: Promise<void>[] | undefined = void 0;
+    let ret: void | Promise<void>;
+    let view: ISyntheticView<T>;
 
-  private unbindAndRemoveViewsByKey(indexMap: IndexMap, flags: LF): ILifecycleTask {
-    const views = this.views;
-    let tasks: ILifecycleTask[] | undefined = void 0;
-    let task: ILifecycleTask;
-    this.$controller.lifecycle.unbound.begin();
+    const { $controller, views } = this;
+
     const deleted = indexMap.deletedItems;
     const deletedLen = deleted.length;
-    let view: IController<T>;
     let i = 0;
     for (; i < deletedLen; ++i) {
       view = views[deleted[i]];
-      task = view.unbind(flags);
-      view.parent = void 0;
-      if (!task.done) {
-        if (tasks === undefined) {
-          tasks = [];
-        }
-        tasks.push(task);
+      view.release();
+      ret = view.deactivate(view, $controller, flags);
+      if (ret instanceof Promise) {
+        (promises ?? (promises = [])).push(ret);
       }
     }
 
@@ -299,125 +286,33 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let j = 0;
     for (; i < deletedLen; ++i) {
       j = deleted[i] - i;
-      this.views.splice(j, 1);
+      views.splice(j, 1);
     }
 
-    if (tasks === undefined) {
-      this.$controller.lifecycle.unbound.end(flags);
-      return LifecycleTask.done;
+    if (promises !== void 0) {
+      return promises.length === 1
+        ? promises[0]
+        : Promise.all(promises) as unknown as Promise<void>;
     }
-
-    return new AggregateContinuationTask(
-      tasks,
-      this.$controller.lifecycle.unbound.end,
-      this.$controller.lifecycle.unbound,
-      flags,
-    );
   }
 
-  private createAndBindAllViews(flags: LF): ILifecycleTask {
-    let tasks: ILifecycleTask[] | undefined = void 0;
-    let task: ILifecycleTask;
-    let view: IController<T>;
+  private createAndActivateAndSortViewsByKey(
+    oldLength: number,
+    indexMap: IndexMap,
+    flags: LF,
+  ): void | Promise<void> {
+    let promises: Promise<void>[] | undefined = void 0;
+    let ret: void | Promise<void>;
+    let view: ISyntheticView<T>;
     let viewScope: IScope;
 
-    const $controller = this.$controller;
-    const lifecycle = $controller.lifecycle;
-    const parentScope = $controller.scope!;
-
-    lifecycle.bound.begin();
-
-    const part = $controller.part;
-    const factory = this.factory;
-    const local = this.local;
-    const items = this.items;
-    const newLen = this.forOf.count(flags, items);
-    const views = this.views = Array(newLen);
-
-    this.forOf.iterate(flags, items, (arr, i, item) => {
-      view = views[i] = factory.create(flags);
-      view.parent = $controller;
-      viewScope = Scope.fromParent(
-        flags,
-        parentScope,
-        BindingContext.create(flags, local, item),
-      );
-
-      setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
-
-      task = view.bind(
-        flags,
-        viewScope,
-        part,
-      );
-
-      if (!task.done) {
-        if (tasks === undefined) {
-          tasks = [];
-        }
-        tasks.push(task);
-      }
-    });
-
-    if (tasks === undefined) {
-      lifecycle.bound.end(flags);
-      return LifecycleTask.done;
-    }
-
-    return new AggregateContinuationTask(
-      tasks,
-      lifecycle.bound.end,
-      lifecycle.bound,
-      flags,
-    );
-  }
-
-  private createAndBindNewViewsByKey(indexMap: IndexMap, flags: LF): ILifecycleTask {
-    let tasks: ILifecycleTask[] | undefined = void 0;
-    let task: ILifecycleTask;
-    let view: IController<T>;
-    let viewScope: IScope;
-
-    const factory = this.factory;
-    const views = this.views;
-    const local = this.local;
-    const normalizedItems = this.normalizedItems!;
-
-    const $controller = this.$controller;
-    const lifecycle = $controller.lifecycle;
-    const parentScope = $controller.scope!;
-
-    lifecycle.bound.begin();
-
-    const part = $controller.part;
+    const { $controller, factory, local, normalizedItems, location, views } = this;
     const mapLen = indexMap.length;
 
     for (let i = 0; i < mapLen; ++i) {
       if (indexMap[i] === -2) {
         view = factory.create(flags);
-        // TODO: test with map/set/undefined/null, make sure we can use strong typing here as well, etc
-        view.parent = $controller;
-        viewScope = Scope.fromParent(
-          flags,
-          parentScope,
-          BindingContext.create(flags, local, normalizedItems[i]),
-        );
-
-        setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, mapLen);
-        // update all the rest oc
-        task = view.bind(
-          flags,
-          viewScope,
-          part,
-        );
         views.splice(i, 0, view);
-
-        if (!task.done) {
-          if (tasks === undefined) {
-            tasks = [];
-          }
-          tasks.push(task);
-        }
       }
     }
 
@@ -426,66 +321,8 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       throw new Error(`viewsLen=${views.length}, mapLen=${mapLen}`);
     }
 
-    if (tasks === undefined) {
-      lifecycle.bound.end(flags);
-      return LifecycleTask.done;
-    }
-
-    return new AggregateContinuationTask(
-      tasks,
-      lifecycle.bound.end,
-      lifecycle.bound,
-      flags,
-    );
-  }
-
-  private attachViews(indexMap: IndexMap | undefined, flags: LF): void {
-    let view: IController<T>;
-
-    const views = this.views;
-    const location = this.location;
-    const lifecycle = this.$controller.lifecycle;
-
-    lifecycle.attached.begin();
-
-    if (indexMap === void 0) {
-      for (let i = 0, ii = views.length; i < ii; ++i) {
-        view = views[i];
-        view.hold(location, MountStrategy.insertBefore);
-        view.nodes!.unlink();
-        view.attach(flags);
-      }
-    } else {
-      for (let i = 0, ii = views.length; i < ii; ++i) {
-        if (indexMap[i] !== i) {
-          view = views[i];
-          view.hold(location, MountStrategy.insertBefore);
-          view.nodes!.unlink();
-          view.attach(flags);
-        }
-      }
-    }
-
-    lifecycle.attached.end(flags);
-  }
-
-  private attachViewsKeyed(flags: LF): void {
-    let view: IController<T>;
-    const { views, location } = this;
-    this.$controller.lifecycle.attached.begin();
-    for (let i = 0, ii = views.length; i < ii; ++i) {
-      view = views[i];
-      view.hold(location, MountStrategy.insertBefore);
-      view.nodes!.unlink();
-      view.attach(flags);
-    }
-    this.$controller.lifecycle.attached.end(flags);
-  }
-
-  private sortViewsByKey(oldLength: number, indexMap: IndexMap, flags: LF): void {
-    // TODO: integrate with tasks
-    const location = this.location;
-    const views = this.views;
+    const parentScope = $controller.scope;
+    const hostScope = $controller.hostScope;
     const newLen = indexMap.length;
     synchronizeIndices(views, indexMap);
 
@@ -493,45 +330,74 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     // the items on those indices are not moved; this minimizes the number of DOM operations that need to be performed
     const seq = longestIncreasingSubsequence(indexMap);
     const seqLen = seq.length;
-    this.$controller.lifecycle.attached.begin();
 
-    flags |= LF.reorderNodes;
-
-    let next: IController;
+    let next: ISyntheticView;
     let j = seqLen - 1;
     let i = newLen - 1;
-    let view: IController;
     for (; i >= 0; --i) {
       view = views[i];
+      next = views[i + 1];
+
+      view.nodes!.link(next?.nodes ?? location);
+
       if (indexMap[i] === -2) {
-        setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
-        view.hold(location, MountStrategy.insertBefore);
-        view.attach(flags);
+        viewScope = Scope.fromParent(flags, parentScope, BindingContext.create(flags, local, normalizedItems![i]));
+        setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
+        view.setLocation(location, MountStrategy.insertBefore);
+
+        ret = view.activate(view, $controller, flags, viewScope, hostScope);
+        if (ret instanceof Promise) {
+          (promises ?? (promises = [])).push(ret);
+        }
       } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
         setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
-        view.attach(flags);
+        view.nodes.insertBefore(view.location!);
       } else {
         if (oldLength !== newLen) {
           setContextualProperties(view.scope!.overrideContext as IRepeatOverrideContext, i, newLen);
         }
         --j;
       }
-
-      next = views[i + 1];
-      if (next !== void 0) {
-        view.nodes!.link(next.nodes);
-      } else {
-        view.nodes!.link(location);
-      }
     }
 
-    this.$controller.lifecycle.attached.end(flags);
+    if (promises !== void 0) {
+      return promises.length === 1
+        ? promises[0]
+        : Promise.all(promises) as unknown as Promise<void>;
+    }
+  }
+
+  public onCancel(
+    initiator: IHydratedController<T>,
+    parent: IHydratedParentController<T>,
+    flags: LifecycleFlags,
+  ): void {
+    this.views.forEach(view => {
+      view.cancel(initiator, this.$controller, flags);
+    });
+  }
+
+  public dispose(): void {
+    this.views.forEach(dispose);
+    this.views = (void 0)!;
+  }
+
+  public accept(visitor: ControllerVisitor<T>): void | true {
+    const { views } = this;
+
+    if (views !== void 0) {
+      for (let i = 0, ii = views.length; i < ii; ++i) {
+        if (views[i].accept(visitor) === true) {
+          return true;
+        }
+      }
+    }
   }
 }
 
-let prevIndices: Int32Array;
-let tailIndices: Int32Array;
-let maxLen = 0;
+let maxLen = 16;
+let prevIndices = new Int32Array(maxLen);
+let tailIndices = new Int32Array(maxLen);
 
 // Based on inferno's lis_algorithm @ https://github.com/infernojs/inferno/blob/master/packages/inferno/src/DOM/patching.ts#L732
 // with some tweaks to make it just a bit faster + account for IndexMap (and some names changes for readability)

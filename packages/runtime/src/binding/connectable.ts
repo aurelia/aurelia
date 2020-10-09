@@ -1,16 +1,20 @@
 import {
-  Class
+  Class,
+  IServiceLocator
 } from '@aurelia/kernel';
-import { IConnectable } from '../ast';
 import { LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
 import {
+  IConnectable,
   IBindingTargetObserver,
   IProxySubscribable,
   ISubscribable,
-  ISubscriber
+  ISubscriber,
+  IScope
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
+import { BindingBehaviorInstance } from '../resources/binding-behavior';
+import { CustomElementDefinition } from '../resources/custom-element';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
 
@@ -45,7 +49,7 @@ export interface IConnectableBinding extends IPartialConnectableBinding, IConnec
 
 /** @internal */
 export function addObserver(
-  this: IConnectableBinding & { [key: string]: ISubscribable & { [id: string]: number } | number },
+  this: IConnectableBinding & { [key: string]: ISubscribable & { [id: number]: number } | number },
   observer: ISubscribable & { [id: number]: number }
 ): void {
   // find the observer.
@@ -142,3 +146,34 @@ let value = 0;
 connectable.assignIdTo = (instance: IConnectableBinding): void => {
   instance.id = ++value;
 };
+
+export type MediatedBinding<K extends string> = {
+  [key in K]: (newValue: unknown, previousValue: unknown, flags: LifecycleFlags) => void;
+};
+
+export interface BindingMediator<K extends string> extends IConnectableBinding { }
+// @connectable
+export class BindingMediator<K extends string> implements IConnectableBinding {
+  public constructor(
+    public readonly key: K,
+    public readonly binding: MediatedBinding<K>,
+    public observerLocator: IObserverLocator,
+    public locator: IServiceLocator,
+  ) {
+    connectable.assignIdTo(this);
+  }
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, projection?: CustomElementDefinition): void {
+    throw new Error('Method not implemented.');
+  }
+  public $unbind(flags: LifecycleFlags): void {
+    throw new Error('Method not implemented.');
+  }
+
+  public observeProperty: typeof observeProperty = observeProperty;
+  public unobserve: typeof unobserve = unobserve;
+  public addObserver: typeof addObserver = addObserver;
+
+  public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
+    this.binding[this.key](newValue, previousValue, flags);
+  }
+}

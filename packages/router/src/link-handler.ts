@@ -1,14 +1,18 @@
-import { IDOM } from '@aurelia/runtime';
+import { IDOM, CustomAttribute } from '@aurelia/runtime';
 import { HTMLDOM } from '@aurelia/runtime-html';
 import { Key } from '@aurelia/kernel';
+import { GotoCustomAttribute } from './resources/goto';
+import { LoadCustomAttribute } from './resources/load';
 
 /**
  * Provides information about how to handle an anchor event.
+ *
+ * @internal - Shouldn't be used directly.
  */
 export interface ILinkHandlerOptions {
   /**
    * Attribute href should be used for instruction if present and
-   * attribute goto is not present
+   * attribute load is not present
    */
   useHref?: boolean;
   /**
@@ -19,6 +23,8 @@ export interface ILinkHandlerOptions {
 
 /**
  * Provides information about how to handle an anchor event.
+ *
+ * @internal - Shouldn't be used directly.
  */
 export interface AnchorEventInfo {
   /**
@@ -37,6 +43,8 @@ export interface AnchorEventInfo {
 
 /**
  * Class responsible for handling interactions that should trigger navigation.
+ *
+ * @internal - Shouldn't be used directly.
  */
 export class LinkHandler {
   public static readonly inject: readonly Key[] = [IDOM];
@@ -44,14 +52,11 @@ export class LinkHandler {
   public window: Window;
   public document: Document;
 
-  // tslint:disable-next-line:no-empty
   private options: ILinkHandlerOptions = {
     useHref: true,
-    callback: () => { }
+    callback: () => { return; }
   };
   private isActive: boolean = false;
-
-  // private handler: EventListener;
 
   public constructor(
     dom: HTMLDOM
@@ -71,7 +76,9 @@ export class LinkHandler {
       anchor: null
     };
 
-    const target = info.anchor = LinkHandler.closestAnchor(event.target as Element);
+    const target = info.anchor = event.currentTarget as Element;
+    // Switch to this for delegation:
+    // const target = info.anchor = LinkHandler.closestAnchor(event.target as Element);
     if (!target || !LinkHandler.targetIsThisWindow(target, win)) {
       return info;
     }
@@ -84,14 +91,17 @@ export class LinkHandler {
       return info;
     }
 
-    const goto: string | null = (target as any).$au !== void 0 && (target as any).$au['goto'] !== void 0 ? (target as any).$au['goto'].viewModel.value : null;
-    const href: string | null = options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
-    if ((goto === null || goto.length === 0) && (href === null || href.length === 0)) {
+    const gotoAttr = CustomAttribute.for(target, 'goto');
+    const goto = gotoAttr !== void 0 ? (gotoAttr.viewModel as GotoCustomAttribute).value as string : null;
+    const loadAttr = CustomAttribute.for(target, 'load');
+    const load = loadAttr !== void 0 ? (loadAttr.viewModel as LoadCustomAttribute).value as string : null;
+    const href = options.useHref && target.hasAttribute('href') ? target.getAttribute('href') : null;
+    if ((goto === null || goto.length === 0) && (load === null || load.length === 0) && (href === null || href.length === 0)) {
       return info;
     }
 
     info.anchor = target;
-    info.instruction = goto || href;
+    info.instruction = load ?? goto ?? href;
 
     const leftButtonClicked: boolean = event.button === 0;
 
@@ -105,15 +115,15 @@ export class LinkHandler {
    * @param el - The element to search upward from.
    * @returns The link element that is the closest ancestor.
    */
-  private static closestAnchor(el: Element): Element | null {
-    while (el !== null && el !== void 0) {
-      if (el.tagName === 'A') {
-        return el;
-      }
-      el = el.parentNode as Element;
-    }
-    return null;
-  }
+  // private static closestAnchor(el: Element): Element | null {
+  //   while (el !== null && el !== void 0) {
+  //     if (el.tagName === 'A') {
+  //       return el;
+  //     }
+  //     el = el.parentNode as Element;
+  //   }
+  //   return null;
+  // }
 
   /**
    * Gets a value indicating whether or not an anchor targets the current window.
@@ -130,32 +140,29 @@ export class LinkHandler {
   }
 
   /**
-   * Activate the instance.
+   * Start the instance.
    *
    */
-  public activate(options: ILinkHandlerOptions): void {
+  public start(options: ILinkHandlerOptions): void {
     if (this.isActive) {
-      throw new Error('Link handler has already been activated');
+      throw new Error('Link handler has already been started');
     }
 
     this.isActive = true;
     this.options = { ...options };
-
-    this.document.addEventListener('click', this.handler, true);
   }
 
   /**
-   * Deactivate the instance. Event handlers and other resources should be cleaned up here.
+   * Stop the instance. Event handlers and other resources should be cleaned up here.
    */
-  public deactivate(): void {
+  public stop(): void {
     if (!this.isActive) {
-      throw new Error('Link handler has not been activated');
+      throw new Error('Link handler has not been started');
     }
-    this.document.removeEventListener('click', this.handler, true);
     this.isActive = false;
   }
 
-  private readonly handler: EventListener = (e: Event) => {
+  public readonly handler: EventListener = (e: Event) => {
     const info = LinkHandler.getEventInfo(e as MouseEvent, this.window, this.options);
 
     if (info.shouldHandleEvent) {

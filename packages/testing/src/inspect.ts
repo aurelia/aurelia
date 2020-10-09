@@ -28,10 +28,10 @@ import {
 } from '@aurelia/debug';
 import {
   Char,
-} from '@aurelia/jit';
+} from '@aurelia/runtime';
 import {
   Constructable,
-  isNumeric,
+  isArrayIndex,
   Primitive,
 } from '@aurelia/kernel';
 import {
@@ -215,30 +215,18 @@ function getInspectContext(ctx: Partial<IInspectOptions>): IInspectContext {
   return obj;
 }
 
-interface IStyles {
-  special: 'cyan';
-  number: 'yellow';
-  boolean: 'yellow';
-  undefined: 'grey';
-  null: 'bold';
-  string: 'green';
-  symbol: 'green';
-  date: 'magenta';
-  regexp: 'red';
-}
-
-const styles: Readonly<IStyles> = Object_freeze(
+const styles = Object_freeze(
   {
-    special: 'cyan' as 'cyan',
-    number: 'yellow' as 'yellow',
-    boolean: 'yellow' as 'yellow',
-    undefined: 'grey' as 'grey',
-    null: 'bold' as 'bold',
-    string: 'green' as 'green',
-    symbol: 'green' as 'green',
-    date: 'magenta' as 'magenta',
-    regexp: 'red' as 'red',
-  },
+    special: 'cyan',
+    number: 'yellow',
+    boolean: 'yellow',
+    undefined: 'grey',
+    null: 'bold',
+    string: 'green',
+    symbol: 'green',
+    date: 'magenta',
+    regexp: 'red',
+  } as const,
 );
 
 interface IOperatorText {
@@ -390,10 +378,10 @@ export class AssertionError extends Error {
     this.operator = operator;
     if (typeof Error.captureStackTrace === 'function') {
       Error.captureStackTrace(this, stackStartFn);
-      // eslint-disable-next-line no-unused-expressions
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       this.stack;
     } else {
-      // eslint-disable-next-line no-unused-expressions
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       Error().stack;
     }
     this.name = 'AssertionError';
@@ -691,7 +679,7 @@ function groupArrayElements(ctx: IInspectContext, output: string[]): string[] {
     // Calculate the maximum length of all entries that are visible in the first
     // column of the group.
     const tmp = [];
-    let firstLineMaxLength = dataLen[0];
+    let firstLineMaxLength: number = dataLen[0];
     for (i = columns; i < dataLen.length; i += columns) {
       if (dataLen[i] > firstLineMaxLength) {
         firstLineMaxLength = dataLen[i];
@@ -991,14 +979,14 @@ function getMessage(self: AssertionError): string {
 }
 
 export function formatNumber(
-  fn: (value: string, styleType: keyof IStyles) => string,
+  fn: (value: string, styleType: keyof typeof styles) => string,
   value: number,
 ): string {
   return fn(Object_is(value, -0) ? '-0' : `${value}`, 'number');
 }
 
 export function formatPrimitive(
-  fn: (value: string, styleType: keyof IStyles) => string,
+  fn: (value: string, styleType: keyof typeof styles) => string,
   value: Primitive,
   ctx: IInspectContext,
 ): string {
@@ -1066,7 +1054,7 @@ export function formatSpecialArray(
       break;
     }
     if (`${index}` !== key) {
-      if (!isNumeric(key)) {
+      if (!isArrayIndex(key)) {
         break;
       }
       const emptyItems = tmp - index;
@@ -1298,8 +1286,8 @@ const methodNamesWithFlags: PropertyKey[] = [
   'bindControllers',
   'endBind',
 
-  'binding',
-  'bound',
+  'beforeBind',
+  'afterBind',
 
   'attach',
   'attachCustomElement',
@@ -1308,13 +1296,8 @@ const methodNamesWithFlags: PropertyKey[] = [
 
   'attachControllers',
 
-  'attaching',
-  'attached',
-
-  'mount',
-  'mountCustomElement',
-  'mountCustomAttribute',
-  'mountSynthetic',
+  'afterAttach',
+  'afterAttachChildren',
 
   'detach',
   'detachCustomElement',
@@ -1323,22 +1306,17 @@ const methodNamesWithFlags: PropertyKey[] = [
 
   'detachControllers',
 
-  'detaching',
-  'detached',
+  'beforeDetach',
+  'afterDetachChildren',
 
-  'unmount',
-  'unmountCustomElement',
-  'unmountCustomAttribute',
-  'unmountSynthetic',
-
-  'release',
+  'tryReturnToCache',
 
   'cache',
   'cacheCustomElement',
   'cacheCustomAttribute',
   'cacheSynthetic',
 
-  'caching',
+  'dispose',
 
   'unbind',
   'unbindCustomElement',
@@ -1349,8 +1327,8 @@ const methodNamesWithFlags: PropertyKey[] = [
   'unbindControllers',
   'endUnbind',
 
-  'unbinding',
-  'unbound',
+  'beforeUnbind',
+  'afterUnbindChildren',
 ];
 
 export function formatProperty(
@@ -1378,8 +1356,8 @@ export function formatProperty(
           case 'bindControllers':
           case 'endBind':
 
-          case 'binding':
-          case 'bound':
+          case 'beforeBind':
+          case 'afterBind':
 
           case 'attach':
           case 'attachCustomElement':
@@ -1388,13 +1366,8 @@ export function formatProperty(
 
           case 'attachControllers':
 
-          case 'attaching':
-          case 'attached':
-
-          case 'mount':
-          case 'mountCustomElement':
-          case 'mountCustomAttribute':
-          case 'mountSynthetic':
+          case 'afterAttach':
+          case 'afterAttachChildren':
 
           case 'detach':
           case 'detachCustomElement':
@@ -1403,22 +1376,17 @@ export function formatProperty(
 
           case 'detachControllers':
 
-          case 'detaching':
-          case 'detached':
+          case 'beforeDetach':
+          case 'afterDetachChildren':
 
-          case 'unmount':
-          case 'unmountCustomElement':
-          case 'unmountCustomAttribute':
-          case 'unmountSynthetic':
-
-          case 'release':
+          case 'tryReturnToCache':
 
           case 'cache':
           case 'cacheCustomElement':
           case 'cacheCustomAttribute':
           case 'cacheSynthetic':
 
-          case 'caching':
+          case 'dispose':
 
           case 'unbind':
           case 'unbindCustomElement':
@@ -1429,8 +1397,8 @@ export function formatProperty(
           case 'unbindControllers':
           case 'endUnbind':
 
-          case 'unbinding':
-          case 'unbound':
+          case 'beforeUnbind':
+          case 'afterUnbindChildren':
             value.args[0] = stringifyLifecycleFlags(value.args[0]);
             break;
           case 'valueChanged':

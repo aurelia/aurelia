@@ -57,14 +57,14 @@ export function register(container) {
   it('transforms html file with shadowOptions', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime';
+import { shadowCSS } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
-import { Registration } from '@aurelia/kernel';
 import d2 from "!!raw-loader!./foo-bar.scss";
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
-export const dependencies = [ d0, d1, Registration.defer('.css', d2) ];
+export const dependencies = [ d0, d1, shadowCSS(d2) ];
 export const shadowOptions = { mode: 'open' };
 let _e;
 export function register(container) {
@@ -150,8 +150,7 @@ export class FooBar {}
 
   it('injects various decorators when there is implicit custom element', function () {
     const js = `import {Foo} from './foo';
-import { valueConverter } from '@aurelia/runtime';
-import { other } from '@aurelia/jit';
+import { valueConverter, other } from '@aurelia/runtime';
 
 export class LeaveMeAlone {}
 
@@ -184,8 +183,7 @@ export class AbcBindingCommand {
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
 import {Foo} from './foo';
-import { valueConverter, customElement, customAttribute, bindingBehavior } from '@aurelia/runtime';
-import { other, bindingCommand } from '@aurelia/jit';
+import { valueConverter, other, customElement, customAttribute, bindingBehavior, bindingCommand } from '@aurelia/runtime';
 
 export class LeaveMeAlone {}
 
@@ -237,8 +235,7 @@ export class FooBar {}
 
   it('injects various decorators when there is implicit custom element, for alternative template', function () {
     const js = `import {Foo} from './foo';
-import { valueConverter } from '@aurelia/runtime';
-import { other } from '@aurelia/jit';
+import { valueConverter, other } from '@aurelia/runtime';
 
 export class LeaveMeAlone {}
 
@@ -271,8 +268,7 @@ export class AbcBindingCommand {
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.haml';
 import {Foo} from './foo';
-import { valueConverter, customElement, customAttribute, bindingBehavior } from '@aurelia/runtime';
-import { other, bindingCommand } from '@aurelia/jit';
+import { valueConverter, other, customElement, customAttribute, bindingBehavior, bindingCommand } from '@aurelia/runtime';
 
 export class LeaveMeAlone {}
 

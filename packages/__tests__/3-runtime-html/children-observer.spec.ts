@@ -2,18 +2,20 @@ import { children, Aurelia, CustomElement, PartialChildrenDefinition } from '@au
 import { TestContext, assert } from '@aurelia/testing';
 import { IContainer, PLATFORM } from '@aurelia/kernel';
 
-describe('ChildrenObserver', function() {
-  describe('populates', function() {
-    it('children array with child view models', function() {
+describe('ChildrenObserver', function () {
+  describe('populates', function () {
+    it('children array with child view models', function () {
       const { au, viewModel, ChildOne, ChildTwo } = createAppAndStart();
       assert.equal(viewModel.children.length, 2);
       assert.instanceOf(viewModel.children[0], ChildOne);
       assert.instanceOf(viewModel.children[1], ChildTwo);
 
       au.stop();
+
+      au.dispose();
     });
 
-    it('children array with by custom query', function() {
+    it('children array with by custom query', function () {
       const { au, viewModel, ChildOne } = createAppAndStart({
         query: p => (p.host as HTMLElement).querySelectorAll('.child-one')
       });
@@ -22,9 +24,10 @@ describe('ChildrenObserver', function() {
       assert.instanceOf(viewModel.children[0], ChildOne);
 
       au.stop();
+      au.dispose();
     });
 
-    it('children array with by custom query, filter, and map', function() {
+    it('children array with by custom query, filter, and map', function () {
       const { au, viewModel, ChildOne } = createAppAndStart({
         query: p => (p.host as HTMLElement).querySelectorAll('.child-one'),
         filter: (node) => !!node,
@@ -35,15 +38,16 @@ describe('ChildrenObserver', function() {
       assert.equal(viewModel.children[0].tagName, CustomElement.getDefinition(ChildOne).name.toUpperCase());
 
       au.stop();
+      au.dispose();
     });
   });
 
-  describe('updates', function() {
+  describe('updates', function () {
     if (!PLATFORM.isBrowserLike) {
       return;
     }
 
-    it('children array with child view models', function(done) {
+    it('children array with child view models', function (done) {
       const { au, viewModel, ChildOne, ChildTwo, hostViewModel } = createAppAndStart();
 
       assert.equal(viewModel.children.length, 2);
@@ -60,11 +64,13 @@ describe('ChildrenObserver', function() {
         assert.instanceOf(viewModel.children[2], ChildTwo);
         assert.instanceOf(viewModel.children[3], ChildTwo);
         au.stop();
+
+        au.dispose();
         done();
       });
     });
 
-    it('children array with by custom query', function(done) {
+    it('children array with by custom query', function (done) {
       const { au, viewModel, ChildTwo, hostViewModel } = createAppAndStart({
         query: p => (p.host as HTMLElement).querySelectorAll('.child-two')
       });
@@ -82,11 +88,13 @@ describe('ChildrenObserver', function() {
         assert.instanceOf(viewModel.children[0], ChildTwo);
         assert.instanceOf(viewModel.children[1], ChildTwo);
         au.stop();
+
+        au.dispose();
         done();
       });
     });
 
-    it('children array with by custom query, filter, and map', function(done) {
+    it('children array with by custom query, filter, and map', function (done) {
       const { au, viewModel, ChildTwo, hostViewModel } = createAppAndStart({
         query: p => (p.host as HTMLElement).querySelectorAll('.child-two'),
         filter: (node) => !!node,
@@ -108,13 +116,15 @@ describe('ChildrenObserver', function() {
         assert.equal(viewModel.children[0].tagName, tagName);
         assert.equal(viewModel.children[1].tagName, tagName);
         au.stop();
+
+        au.dispose();
         done();
       });
     });
   });
 
   function waitForUpdate(callback: () => void) {
-    Promise.resolve().then(() => callback());
+    Promise.resolve().then(() => callback()).catch((error: Error) => { throw error; });
   }
 
   function createAppAndStart(childrenOptions?: PartialChildrenDefinition) {
@@ -140,8 +150,14 @@ describe('ChildrenObserver', function() {
     au.app({ host, component });
     au.start();
 
-    const hostViewModel = (host as any).$controller.viewModel;
-    const viewModel = (host.children[0] as any).$controller.viewModel;
+    const hostViewModel = CustomElement.for(host).viewModel as {
+      oneCount: number;
+      twoCount: number;
+    };
+    const viewModel = CustomElement.for(host.children[0]).viewModel as {
+      children: any[];
+      childrenChangedCallCount: number;
+    };
 
     return {
       au,

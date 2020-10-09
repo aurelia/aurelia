@@ -2,11 +2,11 @@ import { nameConvention } from '@aurelia/plugin-conventions';
 import { assert } from '@aurelia/testing';
 
 describe('nameConvention', function () {
-  it('complains about empty input', function() {
+  it('complains about empty input', function () {
     assert.throws(() => nameConvention(''));
   });
 
-  it('gets custom element like resource', function() {
+  it('gets custom element like resource', function () {
     assert.deepEqual(nameConvention('FooBar'), {
       name: 'foo-bar',
       type: 'customElement'
@@ -23,7 +23,7 @@ describe('nameConvention', function () {
     });
   });
 
-  it('gets custom attribute like resource', function() {
+  it('gets custom attribute like resource', function () {
     assert.deepEqual(nameConvention('FooBarCustomAttribute'), {
       name: 'foo-bar',
       type: 'customAttribute'
@@ -35,7 +35,7 @@ describe('nameConvention', function () {
     });
   });
 
-  it('gets value converter like resource', function() {
+  it('gets value converter like resource', function () {
     assert.deepEqual(nameConvention('FooBarValueConverter'), {
       name: 'fooBar',
       type: 'valueConverter'
@@ -47,21 +47,21 @@ describe('nameConvention', function () {
     });
   });
 
-  it('gets binding behavior like resource', function() {
+  it('gets binding behavior like resource', function () {
     assert.deepEqual(nameConvention('FooBarBindingBehavior'), {
       name: 'fooBar',
       type: 'bindingBehavior'
     });
   });
 
-  it('gets binding command like resource', function() {
+  it('gets binding command like resource', function () {
     assert.deepEqual(nameConvention('FooBarBindingCommand'), {
       name: 'foo-bar',
       type: 'bindingCommand'
     });
   });
 
-  it('gets template controller like resource', function() {
+  it('gets template controller like resource', function () {
     assert.deepEqual(nameConvention('FooBarTemplateController'), {
       name: 'foo-bar',
       type: 'templateController'

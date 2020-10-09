@@ -25,7 +25,6 @@ Aurelia.app(MyRootComponent).start();
 // Or load additional aurelia features
 Aurelia
   .register(
-    StyleConfiguration.shadowDOM(),
     RouterConfiguration.customize({ useUrlFragmentHash: false })
   )
   .app(MyRootComponent)
@@ -34,7 +33,6 @@ Aurelia
 // Or host to <my-start-tag>
 Aurelia
   .register(
-    StyleConfiguration.shadowDOM(),
     RouterConfiguration.customize({ useUrlFragmentHash: false })
   )
   .app({
@@ -52,7 +50,7 @@ Aurelia
 To start an Aurelia application, create a `new Aurelia()` object with a target `host`, a root `component`, and an optional list of `plugins`, and call `start()`.
 
 ```ts
-import Aurelia, { JitHtmlBrowserConfiguration } from 'aurelia';
+import Aurelia, { RuntimeHtmlBrowserConfiguration } from 'aurelia';
 import { ThirdPartyPlugin } from 'third-party-plugin';
 
 // Object API.
@@ -60,7 +58,7 @@ const app = new Aurelia({
   host: 'my-host-element',
   component: MyRootComponent
   plugins: [
-    JitHtmlBrowserConfiguration,
+    RuntimeHtmlBrowserConfiguration,
     ThirdPartyPlugin
   ]
 }).start();
@@ -70,7 +68,7 @@ const app = new Aurelia()
   .host('my-host-element')
   .component(MyRootComponent)
   .plugins([
-    JitHtmlBrowserConfiguration,
+    RuntimeHtmlBrowserConfiguration,
     ThirdPartyPlugin
   ])
   .start();

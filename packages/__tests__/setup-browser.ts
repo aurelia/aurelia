@@ -1,12 +1,11 @@
 import {
   HTMLTestContext,
   TestContext,
+  assert,
+  ensureSchedulerEmpty,
 } from '@aurelia/testing';
 import {
-  JitHtmlBrowserConfiguration
-} from '@aurelia/jit-html-browser';
-import {
-  BrowserScheduler
+  RuntimeHtmlBrowserConfiguration
 } from '@aurelia/runtime-html-browser';
 import {
   Reporter,
@@ -17,9 +16,8 @@ Reporter.level = LogLevel.error;
 
 function createBrowserTestContext(): HTMLTestContext {
   return HTMLTestContext.create(
-    JitHtmlBrowserConfiguration,
+    RuntimeHtmlBrowserConfiguration,
     window,
-    BrowserScheduler,
     UIEvent,
     Event,
     CustomEvent,
@@ -38,12 +36,24 @@ function createBrowserTestContext(): HTMLTestContext {
 function initializeBrowserTestContext(): void {
   TestContext.createHTMLTestContext = createBrowserTestContext;
   // Just trigger the HTMLDOM to be resolved once so it sets the DOM globals
-  TestContext.createHTMLTestContext().dom.createElement('div');
+  const ctx = TestContext.createHTMLTestContext();
+  ctx.dom.createElement('div');
+  ctx.scheduler.getIdleTaskQueue();
+
+  // eslint-disable-next-line
+  afterEach(function() {
+    try {
+      assert.isSchedulerEmpty();
+    } catch (ex) {
+      ensureSchedulerEmpty();
+      throw ex;
+    }
+  });
 }
 
 initializeBrowserTestContext();
 
-function importAll (r) {
+function importAll(r) {
   r.keys().forEach(r);
 }
 
@@ -51,10 +61,12 @@ function importAll (r) {
 importAll(require.context('./1-kernel/', true, /\.spec\.js$/));
 importAll(require.context('./2-runtime/', true, /\.spec\.js$/));
 importAll(require.context('./3-runtime-html/', true, /\.spec\.js$/));
-importAll(require.context('./4-jit/', true, /\.spec\.js$/));
-importAll(require.context('./5-jit-html/', true, /\.spec\.js$/));
 
+importAll(require.context('./web-components/', true, /\.spec\.js$/));
 importAll(require.context('./fetch-client/', true, /\.spec\.js$/));
 importAll(require.context('./i18n/', true, /\.spec\.js$/));
 importAll(require.context('./integration/', true, /\.spec\.js$/));
 importAll(require.context('./router/', true, /\.spec\.js$/));
+importAll(require.context('./validation/', true, /\.spec\.js$/));
+importAll(require.context('./validation-html/', true, /\.spec\.js$/));
+importAll(require.context('./validation-i18n/', true, /\.spec\.js$/));

@@ -3,6 +3,84 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.7.0"></a>
+# 0.7.0 (2020-05-08)
+
+### Features:
+
+* ***:** support binding for Set/Map for CheckedObserver ([7b0dc48](https://github.com/aurelia/aurelia/commit/7b0dc48))
+* **array-index-observer:** add select/checkbox tests ([4237825](https://github.com/aurelia/aurelia/commit/4237825))
+
+
+### Bug Fixes:
+
+* **listener:** fix listener binding to work with interceptors (e.g. debounce) ([4dedf7e](https://github.com/aurelia/aurelia/commit/4dedf7e))
+* ***:** create local RepeatableCollection type ([c462a6d](https://github.com/aurelia/aurelia/commit/c462a6d))
+* ***:** remove down level iteration config in tsconfig ([c9e5fce](https://github.com/aurelia/aurelia/commit/c9e5fce))
+* **shadow-dom-registry:** improve monomorphism by caching via weakmap ([1634cdd](https://github.com/aurelia/aurelia/commit/1634cdd))
+* **shadow-dom-registry:** change find to some for efficient any check ([dff6280](https://github.com/aurelia/aurelia/commit/dff6280))
+
+
+### Refactorings:
+
+* ***:** rename alias to aliasto for readability and consistency ([f3904fe](https://github.com/aurelia/aurelia/commit/f3904fe))
+* ***:** use to string to check for array/set/map for checkedobserver ([f246c0f](https://github.com/aurelia/aurelia/commit/f246c0f))
+* ***:** use lifecycle instead of observer locator for collection observation in CheckedObserver ([147bec2](https://github.com/aurelia/aurelia/commit/147bec2))
+* **shadow-dom-registry:** make explicit factory classes ([a9771ad](https://github.com/aurelia/aurelia/commit/a9771ad))
+* **styles:** a more explicit api for shadow styles and css modules ([3b1f978](https://github.com/aurelia/aurelia/commit/3b1f978))
+
+<a name="0.6.0"></a>
+# 0.6.0 (2019-12-18)
+
+### Bug Fixes:
+
+* **compose:** use $controller instead of injected controller ([d8c2878](https://github.com/aurelia/aurelia/commit/d8c2878))
+* **dom:** clone fragment before creating nodes ([bf595b1](https://github.com/aurelia/aurelia/commit/bf595b1))
+
+
+### Refactorings:
+
+* **all:** refine+document controller interfaces and fix types/tests ([0a77fbd](https://github.com/aurelia/aurelia/commit/0a77fbd))
+* **controller:** split up IController into several specialized interfaces + various small bugfixes ([05d8a8d](https://github.com/aurelia/aurelia/commit/05d8a8d))
+* **dom:** add null-object NodeSequence back in ([c9244ad](https://github.com/aurelia/aurelia/commit/c9244ad))
+* **runtime-html:** fix types / api calls ([3d42dc2](https://github.com/aurelia/aurelia/commit/3d42dc2))
+* **html-renderer:** synchronize with renderer refactor ([4219e02](https://github.com/aurelia/aurelia/commit/4219e02))
+* **binding-behavior:** integrate interceptors with renderer ([580b76e](https://github.com/aurelia/aurelia/commit/580b76e))
+* **runtime:** make binding behaviors transient and formalize interceptor api ([facbe47](https://github.com/aurelia/aurelia/commit/facbe47))
+* **runtime:** rename CustomElementBoilerplate back to RenderContext ([a844ccc](https://github.com/aurelia/aurelia/commit/a844ccc))
+* **runtime:** factor out rendering engine + context + compiled template, introduce ce boilerplate, fix create-element etc ([a3cc2ad](https://github.com/aurelia/aurelia/commit/a3cc2ad))
+* **runtime:** simplify render process / prepare for removing CompiledTemplate layer ([6f47ee8](https://github.com/aurelia/aurelia/commit/6f47ee8))
+* **runtime:** rename 'detached' to 'afterDetach' ([d1e2b0c](https://github.com/aurelia/aurelia/commit/d1e2b0c))
+* **runtime:** rename 'attached' to 'afterAttach' ([6ae7be1](https://github.com/aurelia/aurelia/commit/6ae7be1))
+* **runtime:** rename 'detaching' to 'beforeDetach' ([9f8b858](https://github.com/aurelia/aurelia/commit/9f8b858))
+* **runtime:** rename 'unbinding' to 'beforeUnbind' ([79cd5fa](https://github.com/aurelia/aurelia/commit/79cd5fa))
+* **runtime:** rename 'attaching' to 'beforeAttach' ([4685bb1](https://github.com/aurelia/aurelia/commit/4685bb1))
+* **runtime:** rename 'binding' to 'beforeBind' ([45b2e91](https://github.com/aurelia/aurelia/commit/45b2e91))
+
+<a name="0.5.0"></a>
+# 0.5.0 (2019-11-15)
+
+### Features:
+
+* **dom:** add setEffectiveParentNode for portal-like components ([5f40cd5](https://github.com/aurelia/aurelia/commit/5f40cd5))
+* **dom:** let the getEffectiveParentNode api also traverse out of shadow roots ([325601b](https://github.com/aurelia/aurelia/commit/325601b))
+* **dom:** add getEffectiveParentNode api for containerless support ([77a04e0](https://github.com/aurelia/aurelia/commit/77a04e0))
+
+
+### Bug Fixes:
+
+* **getEffectiveParentNode:** skip over sibling containerless elements above the node ([6a6dd76](https://github.com/aurelia/aurelia/commit/6a6dd76))
+* **runtime-html:** do not use DOM types in constructor args ([4505abd](https://github.com/aurelia/aurelia/commit/4505abd))
+* **attribute:** do not use DOM type in constructor param ([bc383c1](https://github.com/aurelia/aurelia/commit/bc383c1))
+* **runtime-html:** style-attribute-accessor issue ([40db3dc](https://github.com/aurelia/aurelia/commit/40db3dc))
+* **runtime-html:** uniform syntax for class CA ([feede3a](https://github.com/aurelia/aurelia/commit/feede3a))
+* **renderer:** add fromBinding to setPropertyBinding ([ac1c8ac](https://github.com/aurelia/aurelia/commit/ac1c8ac))
+
+
+### Refactorings:
+
+* **runtime:** use metadata api to associate resources with nodes ([f46dacc](https://github.com/aurelia/aurelia/commit/f46dacc))
+
 <a name="0.4.0"></a>
 # 0.4.0 (2019-10-26)
 

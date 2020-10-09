@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.7.0"></a>
+# 0.7.0 (2020-05-08)
+
+**Note:** Version bump only for package @aurelia/fetch-client
+
+<a name="0.6.0"></a>
+# 0.6.0 (2019-12-18)
+
+### Bug Fixes:
+
+* **fetch-client:** use correct prototype checks ([405a8dd](https://github.com/aurelia/aurelia/commit/405a8dd))
+
+<a name="0.5.0"></a>
+# 0.5.0 (2019-11-15)
+
+**Note:** Version bump only for package @aurelia/fetch-client
+
 <a name="0.4.0"></a>
 # 0.4.0 (2019-10-26)
 

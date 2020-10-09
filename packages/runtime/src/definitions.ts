@@ -9,17 +9,17 @@ import {
   Protocol,
 } from '@aurelia/kernel';
 import {
-  IForOfStatement,
-  IInterpolationExpression,
-  IsBindingBehavior
-} from './ast';
+  ForOfStatement,
+  Interpolation,
+  IsBindingBehavior,
+} from './binding/ast';
 import {
   BindingMode,
 } from './flags';
 import {
   PartialCustomElementDefinition,
-  CustomElementDefinition,
 } from './resources/custom-element';
+import { SlotInfo } from './resources/custom-elements/au-slot';
 
 /**
  * TargetedInstructionType enum values become the property names for the associated renderers when they are injected
@@ -44,14 +44,15 @@ export const enum TargetedInstructionType {
   iteratorBinding = 'rk',
 }
 
-export type PartialCustomElementDefinitionParts = Record<string, PartialCustomElementDefinition>;
-export type CustomElementDefinitionParts = Record<string, CustomElementDefinition>;
-
 export type InstructionTypeName = string;
 
 export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>('ITargetedInstruction').noDefault();
 export interface ITargetedInstruction {
   type: InstructionTypeName;
+}
+
+export interface IHydrateInstruction extends ITargetedInstruction {
+  readonly instructions: readonly ITargetedInstruction[];
 }
 
 export type NodeInstruction =
@@ -81,7 +82,7 @@ export function isTargetedInstruction(value: unknown): value is TargetedInstruct
 
 export interface IInterpolationInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.interpolation;
-  from: string | IInterpolationExpression;
+  from: string | Interpolation;
   to: string;
 }
 
@@ -95,7 +96,7 @@ export interface IPropertyBindingInstruction extends ITargetedInstruction {
 
 export interface IIteratorBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.iteratorBinding;
-  from: string | IForOfStatement;
+  from: string | ForOfStatement;
   to: string;
 }
 
@@ -117,29 +118,28 @@ export interface ISetPropertyInstruction extends ITargetedInstruction {
   to: string;
 }
 
-export interface IHydrateElementInstruction extends ITargetedInstruction {
+export interface IHydrateElementInstruction extends IHydrateInstruction {
   type: TargetedInstructionType.hydrateElement;
   res: string;
   instructions: ITargetedInstruction[];
-  parts?: Record<string, PartialCustomElementDefinition>;
+  slotInfo: SlotInfo | null;
 }
 
-export interface IHydrateAttributeInstruction extends ITargetedInstruction {
+export interface IHydrateAttributeInstruction extends IHydrateInstruction {
   type: TargetedInstructionType.hydrateAttribute;
   res: string;
   instructions: ITargetedInstruction[];
 }
 
-export interface IHydrateTemplateController extends ITargetedInstruction {
+export interface IHydrateTemplateController extends IHydrateInstruction {
   type: TargetedInstructionType.hydrateTemplateController;
   res: string;
   instructions: ITargetedInstruction[];
   def: PartialCustomElementDefinition;
   link?: boolean;
-  parts?: Record<string, PartialCustomElementDefinition>;
 }
 
-export interface IHydrateLetElementInstruction extends ITargetedInstruction {
+export interface IHydrateLetElementInstruction extends IHydrateInstruction {
   type: TargetedInstructionType.hydrateLetElement;
   instructions: ILetBindingInstruction[];
   toBindingContext: boolean;
@@ -147,41 +147,51 @@ export interface IHydrateLetElementInstruction extends ITargetedInstruction {
 
 export interface ILetBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.letBinding;
-  from: string | IsBindingBehavior | IInterpolationExpression;
+  from: string | IsBindingBehavior | Interpolation;
   to: string;
 }
 
 export class HooksDefinition {
   public static readonly none: Readonly<HooksDefinition> = new HooksDefinition({});
 
-  public readonly hasRender: boolean;
-  public readonly hasCreated: boolean;
+  public readonly hasCreate: boolean;
 
-  public readonly hasBinding: boolean;
-  public readonly hasBound: boolean;
+  public readonly hasBeforeCompile: boolean;
+  public readonly hasAfterCompile: boolean;
+  public readonly hasAfterCompileChildren: boolean;
 
-  public readonly hasUnbinding: boolean;
-  public readonly hasUnbound: boolean;
+  public readonly hasBeforeBind: boolean;
+  public readonly hasAfterBind: boolean;
+  public readonly hasAfterAttach: boolean;
+  public readonly hasAfterAttachChildren: boolean;
 
-  public readonly hasAttaching: boolean;
-  public readonly hasAttached: boolean;
+  public readonly hasBeforeDetach: boolean;
+  public readonly hasBeforeUnbind: boolean;
+  public readonly hasAfterUnbind: boolean;
+  public readonly hasAfterUnbindChildren: boolean;
 
-  public readonly hasDetaching: boolean;
-  public readonly hasDetached: boolean;
-  public readonly hasCaching: boolean;
+  public readonly hasDispose: boolean;
+  public readonly hasAccept: boolean;
 
   public constructor(target: object) {
-    this.hasRender = 'render' in target;
-    this.hasCreated = 'created' in target;
-    this.hasBinding = 'binding' in target;
-    this.hasBound = 'bound' in target;
-    this.hasUnbinding = 'unbinding' in target;
-    this.hasUnbound = 'unbound' in target;
-    this.hasAttaching = 'attaching' in target;
-    this.hasAttached = 'attached' in target;
-    this.hasDetaching = 'detaching' in target;
-    this.hasDetached = 'detached' in target;
-    this.hasCaching = 'caching' in target;
+    this.hasCreate = 'create' in target;
+
+    this.hasBeforeCompile = 'beforeCompile' in target;
+    this.hasAfterCompile = 'afterCompile' in target;
+    this.hasAfterCompileChildren = 'afterCompileChildren' in target;
+
+    this.hasBeforeBind = 'beforeBind' in target;
+    this.hasAfterBind = 'afterBind' in target;
+    this.hasAfterAttach = 'afterAttach' in target;
+    this.hasAfterAttachChildren = 'afterAttachChildren' in target;
+
+    this.hasBeforeDetach = 'beforeDetach' in target;
+    this.hasBeforeUnbind = 'beforeUnbind' in target;
+    this.hasAfterUnbind = 'afterUnbind' in target;
+    this.hasAfterUnbindChildren = 'afterUnbindChildren' in target;
+
+    this.hasDispose = 'dispose' in target;
+    this.hasAccept = 'accept' in target;
   }
 }
 
@@ -199,6 +209,6 @@ export function alias(...aliases: readonly string[]) {
 
 export function registerAliases(aliases: readonly string[], resource: IResourceKind<Constructable, ResourceDefinition>, key: string, container: IContainer) {
   for (let i = 0, ii = aliases.length; i < ii; ++i) {
-    Registration.alias(key, resource.keyFrom(aliases[i])).register(container);
+    Registration.aliasTo(key, resource.keyFrom(aliases[i])).register(container);
   }
 }

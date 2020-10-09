@@ -1,26 +1,43 @@
 import { Reporter } from '@aurelia/kernel';
-import { INavigatorInstruction } from './interfaces';
+import { IRoute, IRouteableComponent } from './interfaces';
 import { Queue, QueueItem } from './queue';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
+import { Scope } from './scope';
+import { ICustomElementViewModel } from '@aurelia/runtime';
+import { Navigation, IStoredNavigation } from './navigation';
+import { Runner } from './runner';
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface INavigatorStore {
-  length: number;
-  state: Record<string, unknown>;
+  readonly length: number;
+  readonly state: Record<string, unknown> | null;
   go(delta?: number, suppressPopstate?: boolean): Promise<void>;
-  pushNavigatorState(state: INavigatorState): Promise<void>;
-  replaceNavigatorState(state: INavigatorState): Promise<void>;
+  pushNavigatorState(state: IStoredNavigatorState): Promise<void>;
+  replaceNavigatorState(state: IStoredNavigatorState): Promise<void>;
   popNavigatorState(): Promise<void>;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface INavigatorViewer {
-  activate(options: INavigatorViewerOptions): void;
-  deactivate(): void;
+  start(options: INavigatorViewerOptions): void;
+  stop(): void;
+  setTitle(title: string): void;
 }
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface INavigatorViewerOptions {
   callback(ev: INavigatorViewerEvent): void;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface INavigatorViewerState {
   path: string;
   query: string;
@@ -28,6 +45,9 @@ export interface INavigatorViewerState {
   instruction: string;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface INavigatorViewerEvent extends INavigatorViewerState {
   event: PopStateEvent;
   state?: INavigatorState;
@@ -36,18 +56,20 @@ export interface INavigatorViewerEvent extends INavigatorViewerState {
 export interface IStoredNavigatorEntry {
   instruction: string | ViewportInstruction[];
   fullStateInstruction: string | ViewportInstruction[];
+  scope?: Scope | null;
   index?: number;
   firstEntry?: boolean; // Index might change to not require first === 0, firstEntry should be reliable
+  route?: IRoute;
   path?: string;
   title?: string;
   query?: string;
-  parameters?: Record<string, string>;
-  parameterList?: string[];
+  parameters?: Record<string, unknown>;
   data?: Record<string, unknown>;
 }
 
 export interface INavigatorEntry extends IStoredNavigatorEntry {
   fromBrowser?: boolean;
+  origin?: ICustomElementViewModel | Element;
   replacing?: boolean;
   refreshing?: boolean;
   repeating?: boolean;
@@ -61,55 +83,73 @@ export interface INavigatorOptions {
   viewer?: INavigatorViewer;
   store?: INavigatorStore;
   statefulHistoryLength?: number;
-  callback?(instruction: INavigatorInstruction): void;
-  serializeCallback?(entry: IStoredNavigatorEntry, entries: IStoredNavigatorEntry[]): Promise<IStoredNavigatorEntry>;
+  callback?(instruction: Navigation): void;
+  serializeCallback?(entry: Navigation, entries: Navigation[]): Promise<IStoredNavigatorEntry>;
 }
 
-export interface INavigatorFlags {
-  first?: boolean;
-  new?: boolean;
-  refresh?: boolean;
-  forward?: boolean;
-  back?: boolean;
-  replace?: boolean;
+/**
+ * Public API - part of INavigationInstruction
+ */
+export interface INavigationFlags {
+  first: boolean;
+  new: boolean;
+  refresh: boolean;
+  forward: boolean;
+  back: boolean;
+  replace: boolean;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
+export interface IStoredNavigatorState {
+  state?: Record<string, unknown>;
+  entries: IStoredNavigation[];
+  currentEntry: IStoredNavigation;
+}
+
+/**
+ * @internal - Shouldn't be used directly
+ */
 export interface INavigatorState {
   state?: Record<string, unknown>;
-  entries: IStoredNavigatorEntry[];
-  currentEntry: IStoredNavigatorEntry;
+  entries: Navigation[];
+  currentEntry: Navigation;
 }
 
+/**
+ * @internal - Shouldn't be used directly
+ */
 export class Navigator {
-  public currentEntry: INavigatorInstruction;
-  public entries: IStoredNavigatorEntry[] = [];
+  public currentEntry: Navigation;
+  public entries: Navigation[] = [];
 
-  private readonly pendingNavigations: Queue<INavigatorInstruction>;
+  private readonly pendingNavigations: Queue<Navigation>;
 
   private options: INavigatorOptions = {
     statefulHistoryLength: 0,
   };
   private isActive: boolean = false;
   private router!: IRouter;
-  private readonly uninitializedEntry: INavigatorInstruction;
+  private readonly uninitializedEntry: Navigation;
 
   public constructor() {
-    this.uninitializedEntry = {
+    this.uninitializedEntry = new Navigation({
       instruction: 'NAVIGATOR UNINITIALIZED',
       fullStateInstruction: '',
-    };
+    });
     this.currentEntry = this.uninitializedEntry;
 
-    this.pendingNavigations = new Queue<INavigatorInstruction>(this.processNavigations);
+    this.pendingNavigations = new Queue<Navigation>(this.processNavigations);
   }
 
   public get queued(): number {
     return this.pendingNavigations.length;
   }
 
-  public activate(router: IRouter, options?: INavigatorOptions): void {
+  public start(router: IRouter, options?: INavigatorOptions): void {
     if (this.isActive) {
-      throw new Error('Navigator has already been activated');
+      throw new Error('Navigator has already been started');
     }
 
     this.isActive = true;
@@ -117,21 +157,28 @@ export class Navigator {
     this.options = { ...options };
   }
 
-  public deactivate(): void {
+  public stop(): void {
     if (!this.isActive) {
-      throw new Error('Navigator has not been activated');
+      throw new Error('Navigator has not been started');
     }
     this.pendingNavigations.clear();
     this.isActive = false;
   }
 
-  public navigate(entry: INavigatorEntry): Promise<void> {
+  public async navigate(entry: Navigation): Promise<void> {
     return this.pendingNavigations.enqueue(entry);
   }
 
-  public processNavigations = (qEntry: QueueItem<INavigatorInstruction>): void => {
-    const entry = qEntry as INavigatorInstruction;
-    const navigationFlags: INavigatorFlags = {};
+  public processNavigations: (qEntry: QueueItem<Navigation>) => void = (qEntry: QueueItem<Navigation>): void => {
+    const entry = qEntry as Navigation;
+    const navigationFlags: INavigationFlags = {
+      first: false,
+      new: false,
+      refresh: false,
+      forward: false,
+      back: false,
+      replace: false,
+    };
 
     if (this.currentEntry === this.uninitializedEntry) { // Refresh or first entry
       this.loadState();
@@ -141,13 +188,13 @@ export class Navigator {
         navigationFlags.first = true;
         navigationFlags.new = true;
         // TODO: Should this really be created here? Shouldn't it be in the viewer?
-        this.currentEntry = {
+        this.currentEntry = new Navigation({
           index: 0,
           instruction: '',
           fullStateInstruction: '',
           // path: this.options.viewer.getPath(true),
           // fromBrowser: null,
-        };
+        });
         this.entries = [];
       }
     }
@@ -173,7 +220,7 @@ export class Navigator {
     this.invokeCallback(entry, navigationFlags, this.currentEntry);
   };
 
-  public refresh(): Promise<void> {
+  public async refresh(): Promise<void> {
     const entry = this.currentEntry;
     if (entry === this.uninitializedEntry) {
       return Promise.reject();
@@ -183,7 +230,7 @@ export class Navigator {
     return this.navigate(entry);
   }
 
-  public go(movement: number): Promise<void> {
+  public async go(movement: number): Promise<void> {
     const newIndex = (this.currentEntry.index !== undefined ? this.currentEntry.index : 0) + movement;
     if (newIndex >= this.entries.length) {
       return Promise.reject();
@@ -192,45 +239,51 @@ export class Navigator {
     return this.navigate(entry);
   }
 
-  public setEntryTitle(title: string): Promise<void> {
+  public async setEntryTitle(title: string): Promise<void> {
     this.currentEntry.title = title;
     return this.saveState();
   }
 
   public get titles(): string[] {
-    if (this.currentEntry == this.uninitializedEntry) {
+    if (this.currentEntry === this.uninitializedEntry) {
       return [];
     }
     const index = this.currentEntry.index !== void 0 ? this.currentEntry.index : 0;
     return this.entries.slice(0, index + 1).filter((value) => !!value.title).map((value) => value.title ? value.title : '');
   }
 
-  public getState(): INavigatorState {
+  // Get the stored navigator state (json okay)
+  public getState(): IStoredNavigatorState {
     const state = this.options.store ? { ...this.options.store.state } : {};
-    const entries = (state.entries || []) as IStoredNavigatorEntry[];
-    const currentEntry = (state.currentEntry || this.uninitializedEntry) as IStoredNavigatorEntry;
+    const entries = (state.entries ?? []) as IStoredNavigation[];
+    const currentEntry = (state.currentEntry ?? null) as IStoredNavigation;
     return { state, entries, currentEntry };
   }
 
+  // Load a stored state into Navigation entries
   public loadState(): void {
     const state = this.getState();
-    this.entries = state.entries;
-    this.currentEntry = state.currentEntry;
+    this.entries = state.entries.map(entry => new Navigation(entry));
+    this.currentEntry = state.currentEntry !== null
+      ? new Navigation(state.currentEntry)
+      : this.uninitializedEntry;
   }
 
+  // Save storeable versions of Navigation entries
   public async saveState(push: boolean = false): Promise<void> {
     if (this.currentEntry === this.uninitializedEntry) {
       return Promise.resolve();
     }
-    const storedEntry = this.toStoredEntry(this.currentEntry);
-    this.entries[storedEntry.index !== undefined ? storedEntry.index : 0] = storedEntry;
+    const storedEntry = this.currentEntry.toStored();
+    this.entries[storedEntry.index !== void 0 ? storedEntry.index : 0] = new Navigation(storedEntry);
 
-    if (this.options.serializeCallback !== void 0 && this.options.statefulHistoryLength! > 0) {
+    // If preserving history, serialize entries that aren't preserved
+    if (this.options.statefulHistoryLength! > 0) {
       const index = this.entries.length - this.options.statefulHistoryLength!;
       for (let i = 0; i < index; i++) {
         const entry = this.entries[i];
         if (typeof entry.instruction !== 'string' || typeof entry.fullStateInstruction !== 'string') {
-          this.entries[i] = await this.options.serializeCallback(entry, this.entries.slice(index));
+          await this.serializeEntry(entry, this.entries.slice(index));
         }
       }
     }
@@ -238,12 +291,17 @@ export class Navigator {
     if (!this.options.store) {
       return Promise.resolve();
     }
-    const state: INavigatorState = {
-      entries: [],
-      currentEntry: { ...this.toStoreableEntry(storedEntry) },
+    const state: IStoredNavigatorState = {
+      entries: (this.entries ?? []).map((entry: Navigation) => this.toStoreableEntry(entry)),
+      currentEntry: this.toStoreableEntry(storedEntry),
     };
-    for (const entry of this.entries) {
-      state.entries.push(this.toStoreableEntry(entry));
+
+    // for (const entry of this.entries) {
+    //   state.entries.push(this.toStoreableEntry(entry));
+    // }
+
+    if (state.currentEntry.title !== void 0) {
+      (this.options!.store! as any).setTitle(state.currentEntry.title);
     }
 
     if (push) {
@@ -253,15 +311,17 @@ export class Navigator {
     }
   }
 
-  public toStoredEntry(entry: INavigatorInstruction): IStoredNavigatorEntry {
+  public toStoredEntry(entry: Navigation): IStoredNavigatorEntry {
     const {
       previous,
       fromBrowser,
+      origin,
       replacing,
       refreshing,
       untracked,
       historyMovement,
       navigation,
+      scope,
 
       resolve,
       reject,
@@ -270,7 +330,7 @@ export class Navigator {
     return storableEntry;
   }
 
-  public async finalize(instruction: INavigatorInstruction): Promise<void> {
+  public async finalize(instruction: Navigation): Promise<void> {
     this.currentEntry = instruction;
     let index = this.currentEntry.index !== undefined ? this.currentEntry.index : 0;
     if (this.currentEntry.untracked) {
@@ -279,10 +339,10 @@ export class Navigator {
       }
       index--;
       this.currentEntry.index = index;
-      this.entries[index] = this.toStoredEntry(this.currentEntry);
+      this.entries[index] = this.currentEntry;
       await this.saveState();
     } else if (this.currentEntry.replacing) {
-      this.entries[index] = this.toStoredEntry(this.currentEntry);
+      this.entries[index] = this.currentEntry;
       await this.saveState();
     } else { // New entry (add and discard later entries)
       if (this.options.serializeCallback !== void 0 && this.options.statefulHistoryLength! > 0) {
@@ -295,7 +355,7 @@ export class Navigator {
         }
       }
       this.entries = this.entries.slice(0, index);
-      this.entries.push(this.toStoredEntry(this.currentEntry));
+      this.entries.push(this.currentEntry);
       await this.saveState(true);
     }
     if (this.currentEntry.resolve) {
@@ -303,7 +363,7 @@ export class Navigator {
     }
   }
 
-  public async cancel(instruction: INavigatorInstruction): Promise<void> {
+  public async cancel(instruction: Navigation): Promise<void> {
     if (instruction.fromBrowser && this.options.store) {
       if (instruction.navigation && instruction.navigation.new) {
         await this.options.store.popNavigatorState();
@@ -316,24 +376,92 @@ export class Navigator {
     }
   }
 
-  private invokeCallback(entry: INavigatorEntry, navigationFlags: INavigatorFlags, previousEntry: INavigatorEntry): void {
-    const instruction: INavigatorInstruction = { ...entry };
+  private invokeCallback(entry: Navigation, navigationFlags: INavigationFlags, previousEntry: Navigation): void {
+    const instruction: Navigation = new Navigation({ ...entry });
     instruction.navigation = navigationFlags;
-    instruction.previous = this.toStoredEntry(previousEntry);
+    instruction.previous = previousEntry;
     Reporter.write(10000, 'callback', instruction, instruction.previous, this.entries);
     if (this.options.callback) {
       this.options.callback(instruction);
     }
   }
 
-  private toStoreableEntry(entry: IStoredNavigatorEntry): IStoredNavigatorEntry {
-    const storeable: IStoredNavigatorEntry = { ...entry };
-    if (storeable.instruction && typeof storeable.instruction !== 'string') {
-      storeable.instruction = this.router.instructionResolver.stringifyViewportInstructions(storeable.instruction);
-    }
-    if (storeable.fullStateInstruction && typeof storeable.fullStateInstruction !== 'string') {
-      storeable.fullStateInstruction = this.router.instructionResolver.stringifyViewportInstructions(storeable.fullStateInstruction);
+  private toStoreableEntry(entry: Navigation | IStoredNavigation): IStoredNavigation {
+    const storeable = entry instanceof Navigation ? entry.toStored() : entry;
+    storeable.instruction = this.router.instructionResolver.stringifyViewportInstructions(storeable.instruction);
+    storeable.fullStateInstruction = this.router.instructionResolver.stringifyViewportInstructions(storeable.fullStateInstruction);
+    if (typeof storeable.scope !== 'string') {
+      storeable.scope = null;
     }
     return storeable;
+  }
+
+  private async serializeEntry(entry: Navigation, preservedEntries: Navigation[]): Promise<void> {
+    const instructionResolver = this.router.instructionResolver;
+    let excludeComponents = [];
+    // Components in preserved entries should not be serialized/freed
+    for (const preservedEntry of preservedEntries) {
+      if (typeof preservedEntry.instruction !== 'string') {
+        excludeComponents.push(...instructionResolver.flattenViewportInstructions(preservedEntry.instruction)
+          .filter(instruction => instruction.viewport !== null)
+          .map(instruction => instruction.componentInstance));
+      }
+      if (typeof preservedEntry.fullStateInstruction !== 'string') {
+        excludeComponents.push(...instructionResolver.flattenViewportInstructions(preservedEntry.fullStateInstruction)
+          .filter(instruction => instruction.viewport !== null)
+          .map(instruction => instruction.componentInstance));
+      }
+    }
+    // Make unique
+    excludeComponents = excludeComponents.filter(
+      (component, i, arr) => component !== null && arr.indexOf(component) === i
+    ) as IRouteableComponent[];
+
+    let instructions = [];
+    // The instructions, one or two, with possible components to free
+    if (typeof entry.fullStateInstruction !== 'string') {
+      instructions.push(...entry.fullStateInstruction);
+      entry.fullStateInstruction = instructionResolver.stringifyViewportInstructions(entry.fullStateInstruction);
+    }
+    if (typeof entry.instruction !== 'string') {
+      instructions.push(...entry.instruction);
+      entry.instruction = instructionResolver.stringifyViewportInstructions(entry.instruction);
+    }
+    // Process only those with instances and make unique
+    instructions = instructions.filter(
+      (instruction, i, arr) =>
+        instruction !== null
+        && instruction.componentInstance !== null
+        && arr.indexOf(instruction) === i
+    );
+
+    // Already freed components (updated when component is freed)
+    const alreadyDone: IRouteableComponent[] = [];
+    for (const instruction of instructions) {
+      await this.freeInstructionComponents(instruction, excludeComponents, alreadyDone);
+    }
+  }
+
+  private freeInstructionComponents(instruction: ViewportInstruction, excludeComponents: IRouteableComponent[], alreadyDone: IRouteableComponent[]): void | Promise<void> {
+    const component = instruction.componentInstance;
+    const viewport = instruction.viewport;
+    if (component === null || viewport === null || alreadyDone.some(done => done === component)) {
+      return;
+    }
+    if (!excludeComponents.some(exclude => exclude === component)) {
+      return Runner.run(
+        () => viewport.freeContent(component),
+        () => {
+          alreadyDone.push(component);
+        },
+      );
+    }
+    if (instruction.nextScopeInstructions !== null) {
+      for (const nextInstruction of instruction.nextScopeInstructions) {
+        return Runner.run(
+          () => this.freeInstructionComponents(nextInstruction, excludeComponents, alreadyDone)
+        );
+      }
+    }
   }
 }

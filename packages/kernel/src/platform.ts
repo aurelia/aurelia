@@ -19,7 +19,7 @@ const $global: IWindowOrWorkerGlobalScope = (function (): IWindowOrWorkerGlobalS
   }
   try {
     // Not all environments allow eval and Function. Use only as a last resort:
-    // eslint-disable-next-line no-new-func
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval,no-new-func
     return new Function('return this')();
   } catch {
     // If all fails, give up and create an object.
@@ -53,12 +53,12 @@ const $now = (function (): () => number {
   let nodeLoadTime: number;
   let upTime: number;
 
-  if ($global.performance != null && $global.performance.now != null) {
+  if ($global.performance?.now != null) {
     const $performance = $global.performance;
     return function (): number {
       return $performance.now();
     };
-  } else if ($global.process != null && $global.process.hrtime != null) {
+  } else if ($global.process?.hrtime != null) {
     const now = function (): number {
       return (getNanoSeconds() - nodeLoadTime) / 1e6;
     };

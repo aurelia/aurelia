@@ -2,10 +2,10 @@ import {
   bindable,
   BindingMode,
   customAttribute,
-  IController,
   IDOM,
   INode,
-  State
+  ICustomAttributeController,
+  ICustomAttributeViewModel
 } from '@aurelia/runtime';
 import { HTMLDOM } from '../../dom';
 
@@ -13,29 +13,25 @@ import { HTMLDOM } from '../../dom';
  * Focus attribute for element focus binding
  */
 @customAttribute('focus')
-export class Focus {
+export class Focus implements ICustomAttributeViewModel<HTMLElement> {
+
+  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
 
   @bindable({ mode: BindingMode.twoWay })
   public value: unknown;
 
   /**
-   * Indicates whether `apply` should be called when `attached` callback is invoked
+   * Indicates whether `apply` should be called when `afterAttachChildren` callback is invoked
    */
   private needsApply: boolean = false;
 
-  // This is set by the controller after this instance is constructed
-  private readonly $controller!: IController;
-
   private readonly element: HTMLElement;
 
-  public constructor(
-    @INode element: INode,
-    @IDOM private readonly dom: HTMLDOM
-  ) {
+  public constructor(@INode element: INode, @IDOM private readonly dom: HTMLDOM) {
     this.element = element as HTMLElement;
   }
 
-  public binding(): void {
+  public beforeBind(): void {
     this.valueChanged();
   }
 
@@ -50,21 +46,20 @@ export class Focus {
     // while it's disconnected from the document
     // thus, there neesd to be a check if it's currently connected or not
     // before applying the value to the element
-    if (this.$controller.state & State.isAttached) {
+    if (this.$controller.isActive) {
       this.apply();
-    }
-    // If the element is not currently connect
-    // toggle the flag to add pending work for later
-    // in attached lifecycle
-    else {
+    } else {
+      // If the element is not currently connect
+      // toggle the flag to add pending work for later
+      // in afterAttachChildren lifecycle
       this.needsApply = true;
     }
   }
 
   /**
-   * Invoked when the attribute is attached to the DOM.
+   * Invoked when the attribute is afterAttachChildren to the DOM.
    */
-  public attached(): void {
+  public afterAttachChildren(): void {
     if (this.needsApply) {
       this.needsApply = false;
       this.apply();
@@ -75,9 +70,9 @@ export class Focus {
   }
 
   /**
-   * Invoked when the attribute is detached from the DOM.
+   * Invoked when the attribute is afterDetachChildren from the DOM.
    */
-  public detached(): void {
+  public afterDetachChildren(): void {
     const el = this.element;
     el.removeEventListener('focus', this);
     el.removeEventListener('blur', this);
@@ -92,15 +87,14 @@ export class Focus {
     // only need to switch the value to true
     if (e.type === 'focus') {
       this.value = true;
-    }
-    // else, it's blur event
-    // when a blur event happens, there are two situations
-    // 1. the element itself lost the focus
-    // 2. window lost the focus
-    // To handle both (1) and (2), only need to check if
-    // current active element is still the same element of this focus custom attribute
-    // If it's not, it's a blur event happened on Window because the browser tab lost focus
-    else if (this.dom.document.activeElement !== this.element) {
+    } else if (this.dom.document.activeElement !== this.element) {
+      // else, it's blur event
+      // when a blur event happens, there are two situations
+      // 1. the element itself lost the focus
+      // 2. window lost the focus
+      // To handle both (1) and (2), only need to check if
+      // current active element is still the same element of this focus custom attribute
+      // If it's not, it's a blur event happened on Window because the browser tab lost focus
       this.value = false;
     }
   }

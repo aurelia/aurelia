@@ -1,8 +1,9 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElement, Aurelia } from '@aurelia/runtime';
+import { assert } from './assert';
 import { HTMLTestContext, TestContext } from './html-test-context';
 
-export function setup<T>(template: string | Node,
+export function createFixture<T>(template: string | Node,
   $class?: Constructable<T>,
   registrations: any[] = [],
   autoStart: boolean = true,
@@ -40,6 +41,7 @@ export function setup<T>(template: string | Node,
     tearDown: async () => {
       await au.stop().wait();
       root.remove();
+      au.dispose();
     }
   };
 }

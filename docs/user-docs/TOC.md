@@ -22,7 +22,7 @@
 * [Building a Contact Manager App](app-basics/building-a-contact-manager-app.md)
 * [Working with Form Elements](app-basics/working-with-form-elements.md)
 * [Dependency Injection](app-basics/dependency-injection.md)
-* [Components Revisited](app-basics/more-components.md)
+* [Components Revisited](app-basics/components-revisited.md)
 * [Styling Components](app-basics/styling-components.md)
 * [Routing](app-basics/routing.md)
 * [Tooling](app-basics/tooling.md)
@@ -43,6 +43,19 @@
 * [Adding Animation](app-basics/adding-animation.md)
 * [Overlays, Modals, and Toast](app-basics/overlays-modals-toast.md)
 * [Testing Apps and Components](app-basics/testing-apps-and-components.md)
+
+## Routing
+
+* [Configuration & Setup](routing/configuration-and-setup.md)
+* [Direct Routing](routing/direct-routing.md)
+* [Component Configured Routing](routing/component-configured-routing.md)
+* [Configured Routing](routing/configured-routing.md)
+* [Configuring The Viewport](routing/configuring-the-viewport.md)
+* [Navigation Menus](routing/navigation-menus.md)
+* [Navigating With Load](routing/navigating-with-load.md)
+* [Lifecycle Hooks](routing/lifecycle-hooks.md)
+* [Router Hooks](routing/router-hooks.md)
+* [Differences From V1](routing/differences-from-v1.md)
 
 ## Advanced Scenarios
 

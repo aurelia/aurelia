@@ -1,10 +1,8 @@
 import {
   IServiceLocator,
 } from '@aurelia/kernel';
-import { IsBindingBehavior } from '../ast';
 import {
   LifecycleFlags,
-  State,
 } from '../flags';
 import {
   IAccessor,
@@ -12,16 +10,17 @@ import {
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import {
-  hasBind,
-  hasUnbind,
+  IsBindingBehavior,
 } from './ast';
 import { IConnectableBinding } from './connectable';
 
 export interface CallBinding extends IConnectableBinding {}
 export class CallBinding {
-  public $state: State = State.none;
+  public interceptor: this = this;
+
+  public isBound: boolean = false;
   public $scope?: IScope;
-  public part?: string;
+  public $hostScope: IScope | null = null;
 
   public targetObserver: IAccessor;
 
@@ -38,7 +37,7 @@ export class CallBinding {
   public callSource(args: object): unknown {
     const overrideContext = this.$scope!.overrideContext;
     Object.assign(overrideContext, args);
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope!, this.locator, this.part);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope!, this.$hostScope, this.locator, null);
 
     for (const prop in args) {
       Reflect.deleteProperty(overrideContext, prop);
@@ -47,47 +46,41 @@ export class CallBinding {
     return result;
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, part?: string): void {
-    if (this.$state & State.isBound) {
+  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+    if (this.isBound) {
       if (this.$scope === scope) {
         return;
       }
 
-      this.$unbind(flags | LifecycleFlags.fromBind);
+      this.interceptor.$unbind(flags | LifecycleFlags.fromBind);
     }
-    // add isBinding flag
-    this.$state |= State.isBinding;
 
     this.$scope = scope;
-    this.part = part;
+    this.$hostScope = hostScope;
 
-    if (hasBind(this.sourceExpression)) {
-      this.sourceExpression.bind(flags, scope, this);
+    if (this.sourceExpression.hasBind) {
+      this.sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
-    this.targetObserver.setValue(($args: object) => this.callSource($args), flags);
+    this.targetObserver.setValue(($args: object) => this.interceptor.callSource($args), flags);
 
     // add isBound flag and remove isBinding flag
-    this.$state |= State.isBound;
-    this.$state &= ~State.isBinding;
+    this.isBound = true;
   }
 
   public $unbind(flags: LifecycleFlags): void {
-    if (!(this.$state & State.isBound)) {
+    if (!this.isBound) {
       return;
     }
-    // add isUnbinding flag
-    this.$state |= State.isUnbinding;
 
-    if (hasUnbind(this.sourceExpression)) {
-      this.sourceExpression.unbind(flags, this.$scope!, this);
+    if (this.sourceExpression.hasUnbind) {
+      this.sourceExpression.unbind(flags, this.$scope!, this.$hostScope, this.interceptor);
     }
 
     this.$scope = void 0;
     this.targetObserver.setValue(null, flags);
 
-    // remove isBound and isUnbinding flags
-    this.$state &= ~(State.isBound | State.isUnbinding);
+    this.isBound = false;
   }
 
   public observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void {
@@ -96,5 +89,12 @@ export class CallBinding {
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     return;
+  }
+
+  public dispose(): void {
+    this.interceptor = (void 0)!;
+    this.sourceExpression = (void 0)!;
+    this.locator = (void 0)!;
+    this.targetObserver = (void 0)!;
   }
 }

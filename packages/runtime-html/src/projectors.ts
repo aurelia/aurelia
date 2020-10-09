@@ -4,31 +4,31 @@ import {
   PLATFORM,
   Registration,
   Reporter,
-  toArray
+  toArray,
+  Metadata
 } from '@aurelia/kernel';
 import {
   CustomElementHost,
-  IController,
   IDOM,
   IElementProjector,
   INodeSequence,
   IProjectorLocator,
-  CustomElementDefinition
+  CustomElementDefinition,
+  CustomElement,
+  ICustomElementController,
 } from '@aurelia/runtime';
 import { IShadowDOMStyles, IShadowDOMGlobalStyles } from './styles/shadow-dom-styles';
-
-const slice = Array.prototype.slice;
 
 const defaultShadowOptions = {
   mode: 'open' as 'open' | 'closed'
 };
 
 export class HTMLProjectorLocator implements IProjectorLocator<Node> {
-  public static register(container: IContainer): IResolver<IProjectorLocator> {
+  public static register(container: IContainer): IResolver<IProjectorLocator<Node>> {
     return Registration.singleton(IProjectorLocator, this).register(container);
   }
 
-  public getElementProjector(dom: IDOM<Node>, $component: IController<Node>, host: CustomElementHost<HTMLElement>, def: CustomElementDefinition): IElementProjector<Node> {
+  public getElementProjector(dom: IDOM<Node>, $component: ICustomElementController<Node>, host: CustomElementHost<HTMLElement>, def: CustomElementDefinition): IElementProjector<Node> {
     if (def.shadowOptions || def.hasSlots) {
       if (def.containerless) {
         throw Reporter.error(21);
@@ -41,7 +41,7 @@ export class HTMLProjectorLocator implements IProjectorLocator<Node> {
       return new ContainerlessProjector(dom, $component, host);
     }
 
-    return new HostProjector($component, host);
+    return new HostProjector($component, host, def.enhance);
   }
 }
 
@@ -54,7 +54,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   public constructor(
     public dom: IDOM<Node>,
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private $controller: IController<Node>,
+    private $controller: ICustomElementController<Node>,
     public host: CustomElementHost<HTMLElement>,
     definition: CustomElementDefinition,
   ) {
@@ -68,8 +68,8 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
       shadowOptions = defaultShadowOptions;
     }
     this.shadowRoot = host.attachShadow(shadowOptions);
-    this.host.$controller = $controller as IController<HTMLElement>;
-    this.shadowRoot.$controller = $controller as IController<ShadowRoot>;
+    Metadata.define(CustomElement.name, $controller, this.host);
+    Metadata.define(CustomElement.name, $controller, this.shadowRoot);
   }
 
   public get children(): ArrayLike<CustomElementHost<Node>> {
@@ -109,7 +109,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
 
   public constructor(
     dom: IDOM<Node>,
-    $controller: IController<Node>,
+    $controller: ICustomElementController<Node>,
     host: Node,
   ) {
     if (host.childNodes.length) {
@@ -119,7 +119,7 @@ export class ContainerlessProjector implements IElementProjector<Node> {
     }
 
     this.host = dom.convertToRenderLocation(host) as CustomElementHost<Node>;
-    this.host.$controller = $controller;
+    Metadata.define(CustomElement.name, $controller, this.host);
   }
 
   public get children(): ArrayLike<CustomElementHost<Node>> {
@@ -148,10 +148,11 @@ export class ContainerlessProjector implements IElementProjector<Node> {
 /** @internal */
 export class HostProjector implements IElementProjector<Node> {
   public constructor(
-    $controller: IController<Node>,
+    $controller: ICustomElementController<Node>,
     public host: CustomElementHost<Node>,
+    private readonly enhance: boolean,
   ) {
-    host.$controller = $controller;
+    Metadata.define(CustomElement.name, $controller, host);
   }
 
   public get children(): ArrayLike<CustomElementHost<Node>> {
@@ -167,7 +168,7 @@ export class HostProjector implements IElementProjector<Node> {
   }
 
   public project(nodes: INodeSequence<Node>): void {
-    nodes.appendTo(this.host);
+    nodes.appendTo(this.host, this.enhance);
   }
 
   public take(nodes: INodeSequence<Node>): void {

@@ -3,6 +3,46 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.7.0"></a>
+# 0.7.0 (2020-05-08)
+
+### Features:
+
+* ***:** AST hydration ([92125d6](https://github.com/aurelia/aurelia/commit/92125d6))
+
+
+### Bug Fixes:
+
+* **i18n:** i18next plugin type correction ([af078d2](https://github.com/aurelia/aurelia/commit/af078d2))
+* **i18n:** support for null/undefined key exprs ([3375563](https://github.com/aurelia/aurelia/commit/3375563))
+* **i18n:** convert undefined and null to empty string ([43c4b80](https://github.com/aurelia/aurelia/commit/43c4b80))
+* **i18n:** bypassed tests for february ([9e1c2ae](https://github.com/aurelia/aurelia/commit/9e1c2ae))
+
+<a name="0.6.0"></a>
+# 0.6.0 (2019-12-18)
+
+### Features:
+
+* **controller:** add create/beforeCompile/afterCompile/afterCompileChildren hooks ([3a8c215](https://github.com/aurelia/aurelia/commit/3a8c215))
+
+
+### Refactorings:
+
+* **controller:** split up IController into several specialized interfaces + various small bugfixes ([05d8a8d](https://github.com/aurelia/aurelia/commit/05d8a8d))
+* **i18n:** fix types / api calls ([ac4da3c](https://github.com/aurelia/aurelia/commit/ac4da3c))
+
+<a name="0.5.0"></a>
+# 0.5.0 (2019-11-15)
+
+### Bug Fixes:
+
+* **i18n:** do not use DOM types in constructor args ([bef63b3](https://github.com/aurelia/aurelia/commit/bef63b3))
+
+
+### Refactorings:
+
+* **all:** rename behaviorFor to for ([0823dfe](https://github.com/aurelia/aurelia/commit/0823dfe))
+
 <a name="0.4.0"></a>
 # 0.4.0 (2019-10-26)
 

@@ -94,7 +94,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
     observerLocator: IObserverLocator,
     obj: Node,
     propertyName: string,
-  ): IBindingTargetObserver | IBindingTargetAccessor {
+  ): IBindingTargetObserver | IBindingTargetAccessor | null {
     switch (propertyName) {
       case 'checked':
         return new CheckedObserver(scheduler, flags, lifecycle, new EventSubscriber(this.dom, inputEvents), obj as IInputElement);

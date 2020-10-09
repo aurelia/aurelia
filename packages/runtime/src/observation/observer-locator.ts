@@ -35,7 +35,7 @@ import { SetterObserver } from './setter-observer';
 import { IScheduler } from '@aurelia/scheduler';
 
 export interface IObjectObservationAdapter {
-  getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
+  getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null;
 }
 
 export interface IObserverLocator {
@@ -75,17 +75,11 @@ export interface ITargetAccessorLocator {
 }
 export const ITargetAccessorLocator = DI.createInterface<ITargetAccessorLocator>('ITargetAccessorLocator').noDefault();
 
-function getPropertyDescriptor(subject: object, name: string): PropertyDescriptor {
-  let pd = Object.getOwnPropertyDescriptor(subject, name);
-  let proto = Object.getPrototypeOf(subject);
-
-  while (pd == null && proto != null) {
-    pd = Object.getOwnPropertyDescriptor(proto, name);
-    proto = Object.getPrototypeOf(proto);
-  }
-
-  return pd!;
-}
+type ExtendedPropertyDescriptor = PropertyDescriptor & {
+  get: PropertyDescriptor['get'] & {
+    getObserver(obj: IObservable): IBindingTargetObserver;
+  };
+};
 
 /** @internal */
 export class ObserverLocator implements IObserverLocator {
@@ -174,17 +168,6 @@ export class ObserverLocator implements IObserverLocator {
     return value;
   }
 
-  private getAdapterObserver(flags: LifecycleFlags, obj: IObservable, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null {
-    for (let i = 0, ii = this.adapters.length; i < ii; i++) {
-      const adapter = this.adapters[i];
-      const observer = adapter.getObserver(flags, obj, propertyName, descriptor);
-      if (observer != null) {
-        return observer;
-      }
-    }
-    return null;
-  }
-
   private createPropertyObserver(flags: LifecycleFlags, obj: IObservable, propertyName: string): AccessorOrObserver {
     if (!(obj instanceof Object)) {
       return new PrimitiveObserver(obj as unknown as Primitive, propertyName) as IBindingTargetAccessor;
@@ -219,28 +202,55 @@ export class ObserverLocator implements IObserverLocator {
         break;
     }
 
-    const descriptor = getPropertyDescriptor(obj, propertyName) as PropertyDescriptor & {
-      get: PropertyDescriptor['get'] & { getObserver(obj: IObservable): IBindingTargetObserver };
-    };
+    let pd = Object.getOwnPropertyDescriptor(obj, propertyName);
+    if (pd === void 0) {
+      let proto = Object.getPrototypeOf(obj) as object | null;
+      while (proto !== null) {
+        pd = Object.getOwnPropertyDescriptor(proto, propertyName);
+        if (pd === void 0) {
+          proto = Object.getPrototypeOf(proto) as object | null;
+        } else {
+          break;
+        }
+      }
+    }
 
-    if (descriptor != null && (descriptor.get != null || descriptor.set != null)) {
-      if (descriptor.get != null && descriptor.get.getObserver != null) {
-        return descriptor.get.getObserver(obj);
+    if (pd !== void 0 && !(Object.prototype.hasOwnProperty.call(pd, 'value') as boolean)) {
+      if (pd.get === void 0) {
+        const obs = this.getAdapterObserver(flags, obj, propertyName, pd);
+        if (obs !== null) {
+          return obs;
+        }
+        throw new Error(`You cannot observe a setter only property: '${propertyName}'`);
+      }
+      if ((pd as ExtendedPropertyDescriptor).get.getObserver !== void 0) {
+        return (pd as ExtendedPropertyDescriptor).get.getObserver(obj);
+      }
+      const obs = this.getAdapterObserver(flags, obj, propertyName, pd);
+      if (obs !== null) {
+        return obs;
       }
 
-      // attempt to use an adapter before resorting to dirty checking.
-      const adapterObserver = this.getAdapterObserver(flags, obj, propertyName, descriptor);
-      if (adapterObserver != null) {
-        return adapterObserver;
-      }
       if (isNode) {
         // TODO: use MutationObserver
         return this.dirtyChecker.createProperty(obj, propertyName);
       }
 
-      return createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
+      return createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, propertyName, pd);
     }
     return new SetterObserver(this.lifecycle, flags, obj, propertyName);
+  }
+
+  private getAdapterObserver(flags: LifecycleFlags, obj: IObservable, propertyName: string, pd: PropertyDescriptor): IBindingTargetObserver | null {
+    if (this.adapters.length > 0) {
+      for (const adapter of this.adapters) {
+        const observer = adapter.getObserver(flags, obj, propertyName, pd);
+        if (observer != null) {
+          return observer;
+        }
+      }
+    }
+    return null;
   }
 }
 

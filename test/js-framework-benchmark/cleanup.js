@@ -14,7 +14,10 @@ function rmIfExists(base, name) {
 }
 
 for (let keyedType of ['keyed', 'non-keyed']) {
-    let dir = path.resolve('frameworks', keyedType);
+	let dir = path.resolve('frameworks', keyedType);
+	if (!fs.existsSync(dir)) {
+		continue;
+	}
     let directories = fs.readdirSync(dir);
 
     for (let name of directories) {

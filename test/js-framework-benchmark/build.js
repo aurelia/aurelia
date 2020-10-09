@@ -34,7 +34,10 @@ var restartWithFramework = args.restartWith || '';
 
 var frameworks = [].concat(
   fs.readdirSync('./frameworks/keyed').map(f => ['keyed', f]),
-  fs.readdirSync('./frameworks/non-keyed').map(f => ['non-keyed', f]));
+  fs.existsSync('./frameworks/non-keyed')
+    ? fs.readdirSync('./frameworks/non-keyed').map(f => ['non-keyed', f])
+    : []
+);
 
 var notRestarter = ([dir, name]) => {
   if (!restartWithFramework) return false;

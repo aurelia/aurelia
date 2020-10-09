@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
   IIndexable,
   IServiceLocator,
@@ -129,28 +128,24 @@ export class BindingBehaviorExpression {
   }
 
   public bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    if (scope == null) {
-      throw new Error(`Scope is ${scope}.`);
-    }
-    if (!binding) {
-      throw new Error(`Binding is ${binding}.`);
-    }
-    const locator = binding.locator;
-    if (!locator) {
-      throw new Error(`Locator is ${locator}.`);
-    }
     if (this.expression.hasBind) {
       this.expression.bind(flags, scope, hostScope, binding);
     }
-    const behaviorKey = this.behaviorKey;
-    const behavior = locator.get<BindingBehaviorInstance>(behaviorKey);
-    if (!behavior) {
+    const behavior = binding.locator.get<BindingBehaviorInstance>(this.behaviorKey);
+    if (behavior == null) {
       throw new Error(`BindingBehavior named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
     }
     if (!(behavior instanceof BindingBehaviorFactory)) {
-      if ((binding as BindingWithBehavior)[behaviorKey] === void 0) {
-        (binding as BindingWithBehavior)[behaviorKey] = behavior;
-        (behavior.bind.call as (...args: unknown[]) => void)(behavior, flags, scope, hostScope, binding, ...evalList(flags, scope, locator, this.args, hostScope));
+      if ((binding as BindingWithBehavior)[this.behaviorKey] === void 0) {
+        (binding as BindingWithBehavior)[this.behaviorKey] = behavior;
+        (behavior.bind.call as (...args: unknown[]) => void)(
+          behavior,
+          flags,
+          scope,
+          hostScope,
+          binding,
+          ...this.args.map(a => a.evaluate(flags, scope, hostScope, binding.locator))
+        );
       } else {
         throw new Error(`BindingBehavior named '${this.name}' already applied.`);
       }
@@ -158,12 +153,11 @@ export class BindingBehaviorExpression {
   }
 
   public unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const behaviorKey = this.behaviorKey;
-    if ((binding as BindingWithBehavior)[behaviorKey] !== void 0) {
-      if (typeof (binding as BindingWithBehavior)[behaviorKey]!.unbind === 'function') {
-        (binding as BindingWithBehavior)[behaviorKey]!.unbind(flags, scope, hostScope, binding);
+    if ((binding as BindingWithBehavior)[this.behaviorKey] !== void 0) {
+      if (typeof (binding as BindingWithBehavior)[this.behaviorKey]!.unbind === 'function') {
+        (binding as BindingWithBehavior)[this.behaviorKey]!.unbind(flags, scope, hostScope, binding);
       }
-      (binding as BindingWithBehavior)[behaviorKey] = void 0;
+      (binding as BindingWithBehavior)[this.behaviorKey] = void 0;
     }
     if (this.expression.hasUnbind) {
       this.expression.unbind(flags, scope, hostScope, binding);
@@ -190,80 +184,61 @@ export class ValueConverterExpression {
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
-    if (!locator) {
-      throw new Error(`Locator is ${locator}.`);
-    }
     const converter = locator.get<ValueConverterExpression & ValueConverterInstance>(this.converterKey);
-    if (!converter) {
+    if (converter == null) {
       throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
     }
     if ('toView' in converter) {
-      const args = this.args;
-      const len = args.length;
-      const result = Array(len + 1);
-      result[0] = this.expression.evaluate(flags, scope, hostScope, locator);
-      for (let i = 0; i < len; ++i) {
-        result[i + 1] = args[i].evaluate(flags, scope, hostScope, locator);
-      }
-      return (converter.toView.call as (...args: unknown[]) => void)(converter, ...result);
+      return (converter.toView.call as (...args: unknown[]) => void)(
+        converter,
+        this.expression.evaluate(flags, scope, hostScope, locator),
+        ...this.args.map(a => a.evaluate(flags, scope, hostScope, locator))
+      );
     }
     return this.expression.evaluate(flags, scope, hostScope, locator);
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown {
-    if (!locator) {
-      throw new Error(`Locator is ${locator}.`);
-    }
     const converter = locator.get<ValueConverterExpression & ValueConverterInstance>(this.converterKey);
-    if (!converter) {
+    if (converter == null) {
       throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
     }
     if ('fromView' in converter) {
-      value = (converter.fromView!.call as (...args: unknown[]) => void)(converter, value, ...(evalList(flags, scope, locator, this.args, hostScope)));
+      value = (converter.fromView!.call as (...args: unknown[]) => void)(
+        converter,
+        value,
+        ...this.args.map(a => a.evaluate(flags, scope, hostScope, locator))
+      );
     }
     return this.expression.assign(flags, scope, hostScope, locator, value);
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    if (scope == null) {
-      throw new Error(`Scope is ${scope}.`);
-    }
-    if (!binding) {
-      throw new Error(`Binding is ${binding}.`);
-    }
-    const locator = binding.locator;
-    if (!locator) {
-      throw new Error(`Locator is ${locator}.`);
-    }
     this.expression.connect(flags, scope, hostScope, binding);
-    const args = this.args;
-    for (let i = 0, ii = args.length; i < ii; ++i) {
-      args[i].connect(flags, scope, hostScope, binding);
+    for (let i = 0; i < this.args.length; ++i) {
+      this.args[i].connect(flags, scope, hostScope, binding);
     }
-    const converter = locator.get(this.converterKey) as { signals?: string[] };
-    if (!converter) {
+    const converter = binding.locator.get(this.converterKey) as { signals?: string[] };
+    if (converter == null) {
       throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
     }
-    const signals = converter.signals;
-    if (signals === void 0) {
+    if (converter.signals === void 0) {
       return;
     }
-    const signaler = locator.get(ISignaler);
-    for (let i = 0, ii = signals.length; i < ii; ++i) {
-      signaler.addSignalListener(signals[i], binding);
+    const signaler = binding.locator.get(ISignaler);
+    for (let i = 0; i < converter.signals.length; ++i) {
+      signaler.addSignalListener(converter.signals[i], binding);
     }
   }
 
   public unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const locator = binding.locator;
-    const converter = locator.get(this.converterKey) as { signals?: string[] };
-    const signals = converter.signals;
-    if (signals === void 0) {
+    const converter = binding.locator.get(this.converterKey) as { signals?: string[] };
+    if (converter.signals === void 0) {
       return;
     }
-    const signaler = locator.get(ISignaler);
-    for (let i = 0, ii = signals.length; i < ii; ++i) {
-      signaler.removeSignalListener(signals[i], binding);
+    const signaler = binding.locator.get(ISignaler);
+    for (let i = 0; i < converter.signals.length; ++i) {
+      signaler.removeSignalListener(converter.signals[i], binding);
     }
   }
 
@@ -322,8 +297,7 @@ export class ConditionalExpression {
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const condition = this.condition;
-    if (condition.evaluate(flags, scope, hostScope, binding.locator)) {
+    if (this.condition.evaluate(flags, scope, hostScope, binding.locator)) {
       this.condition.connect(flags, scope, hostScope, binding);
       this.yes.connect(flags, scope, hostScope, binding);
     } else {
@@ -351,9 +325,6 @@ export class AccessThisExpression {
   ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): IBindingContext | undefined {
-    if (scope == null) {
-      throw new Error(`Scope is ${scope}.`);
-    }
     if (this === AccessThisExpression.$host) {
       scope = chooseScope(true, scope, hostScope);
     }
@@ -392,9 +363,6 @@ export class AccessScopeExpression {
   ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): IBindingContext | IBinding | IOverrideContext {
-    if (scope == null) {
-      throw new Error(`Scope is ${scope}.`);
-    }
     const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope) as IBindingContext;
     const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (flags & LifecycleFlags.isStrictBindingStrategy) {
@@ -530,7 +498,8 @@ export class CallScopeExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
     scope = chooseScope(this.accessHostScope, scope, hostScope);
-    const args = evalList(flags, scope, locator, this.args, hostScope);
+
+    const args = this.args.map(a => a.evaluate(flags, scope, hostScope, locator));
     const context = BindingContext.get(scope, this.name, this.ancestor, flags, hostScope)!;
     const func = getFunction(flags, context, this.name);
     if (func) {
@@ -544,9 +513,8 @@ export class CallScopeExpression {
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const args = this.args;
-    for (let i = 0, ii = args.length; i < ii; ++i) {
-      args[i].connect(flags, scope, hostScope, binding);
+    for (let i = 0; i < this.args.length; ++i) {
+      this.args[i].connect(flags, scope, hostScope, binding);
     }
   }
 
@@ -568,7 +536,8 @@ export class CallMemberExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
     const instance = this.object.evaluate(flags, scope, hostScope, locator) as IIndexable;
-    const args = evalList(flags, scope, locator, this.args, hostScope);
+
+    const args = this.args.map(a => a.evaluate(flags, scope, hostScope, locator));
     const func = getFunction(flags, instance, this.name);
     if (func) {
       return func.apply(instance, args as unknown[]);
@@ -586,9 +555,8 @@ export class CallMemberExpression {
       this.object.connect(flags, scope, hostScope, binding);
     }
     if (getFunction(flags & ~LifecycleFlags.mustEvaluate, obj, this.name)) {
-      const args = this.args;
-      for (let i = 0, ii = args.length; i < ii; ++i) {
-        args[i].connect(flags, scope, hostScope, binding);
+      for (let i = 0; i < this.args.length; ++i) {
+        this.args[i].connect(flags, scope, hostScope, binding);
       }
     }
   }
@@ -611,7 +579,7 @@ export class CallFunctionExpression {
   public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
     const func = this.func.evaluate(flags, scope, hostScope, locator);
     if (typeof func === 'function') {
-      return func(...evalList(flags, scope, locator, this.args, hostScope));
+      return func(...this.args.map(a => a.evaluate(flags, scope, hostScope, locator)));
     }
     if (!(flags & LifecycleFlags.mustEvaluate) && (func == null)) {
       return void 0;
@@ -627,9 +595,8 @@ export class CallFunctionExpression {
     const func = this.func.evaluate(flags, scope, hostScope, binding.locator);
     this.func.connect(flags, scope, hostScope, binding);
     if (typeof func === 'function') {
-      const args = this.args;
-      for (let i = 0, ii = args.length; i < ii; ++i) {
-        args[i].connect(flags, scope, hostScope, binding);
+      for (let i = 0; i < this.args.length; ++i) {
+        this.args[i].connect(flags, scope, hostScope, binding);
       }
     }
   }
@@ -822,11 +789,9 @@ export class HtmlLiteralExpression {
   ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): string {
-    const elements = this.parts;
     let result = '';
-    let value;
-    for (let i = 0, ii = elements.length; i < ii; ++i) {
-      value = elements[i].evaluate(flags, scope, hostScope, locator);
+    for (let i = 0; i < this.parts.length; ++i) {
+      const value = this.parts[i].evaluate(flags, scope, hostScope, locator);
       if (value == null) {
         continue;
       }
@@ -840,7 +805,7 @@ export class HtmlLiteralExpression {
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    for (let i = 0, ii = this.parts.length; i < ii; ++i) {
+    for (let i = 0; i < this.parts.length; ++i) {
       this.parts[i].connect(flags, scope, hostScope, binding);
     }
   }
@@ -861,13 +826,7 @@ export class ArrayLiteralExpression {
   ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): readonly unknown[] {
-    const elements = this.elements;
-    const length = elements.length;
-    const result = Array(length);
-    for (let i = 0; i < length; ++i) {
-      result[i] = elements[i].evaluate(flags, scope, hostScope, locator);
-    }
-    return result;
+    return this.elements.map(e => e.evaluate(flags, scope, hostScope, locator));
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
@@ -875,9 +834,8 @@ export class ArrayLiteralExpression {
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const elements = this.elements;
-    for (let i = 0, ii = elements.length; i < ii; ++i) {
-      elements[i].connect(flags, scope, hostScope, binding);
+    for (let i = 0; i < this.elements.length; ++i) {
+      this.elements[i].connect(flags, scope, hostScope, binding);
     }
   }
 
@@ -899,10 +857,8 @@ export class ObjectLiteralExpression {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): Record<string, unknown> {
     const instance: Record<string, unknown> = {};
-    const keys = this.keys;
-    const values = this.values;
-    for (let i = 0, ii = keys.length; i < ii; ++i) {
-      instance[keys[i]] = values[i].evaluate(flags, scope, hostScope, locator);
+    for (let i = 0; i < this.keys.length; ++i) {
+      instance[this.keys[i]] = this.values[i].evaluate(flags, scope, hostScope, locator);
     }
     return instance;
   }
@@ -912,10 +868,8 @@ export class ObjectLiteralExpression {
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const keys = this.keys;
-    const values = this.values;
-    for (let i = 0, ii = keys.length; i < ii; ++i) {
-      values[i].connect(flags, scope, hostScope, binding);
+    for (let i = 0; i < this.keys.length; ++i) {
+      this.values[i].connect(flags, scope, hostScope, binding);
     }
   }
 
@@ -936,12 +890,10 @@ export class TemplateExpression {
   ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): string {
-    const expressions = this.expressions;
-    const cooked = this.cooked;
-    let result = cooked[0];
-    for (let i = 0, ii = expressions.length; i < ii; ++i) {
-      result += expressions[i].evaluate(flags, scope, hostScope, locator);
-      result += cooked[i + 1];
+    let result = this.cooked[0];
+    for (let i = 0; i < this.expressions.length; ++i) {
+      result += this.expressions[i].evaluate(flags, scope, hostScope, locator);
+      result += this.cooked[i + 1];
     }
     return result;
   }
@@ -951,9 +903,8 @@ export class TemplateExpression {
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const expressions = this.expressions;
-    for (let i = 0, ii = expressions.length; i < ii; ++i) {
-      expressions[i].connect(flags, scope, hostScope, binding);
+    for (let i = 0; i < this.expressions.length; ++i) {
+      this.expressions[i].connect(flags, scope, hostScope, binding);
       i++;
     }
   }
@@ -978,12 +929,7 @@ export class TaggedTemplateExpression {
   }
 
   public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): string {
-    const expressions = this.expressions;
-    const len = expressions.length;
-    const results = Array(len);
-    for (let i = 0, ii = len; i < ii; ++i) {
-      results[i] = expressions[i].evaluate(flags, scope, hostScope, locator);
-    }
+    const results = this.expressions.map(e => e.evaluate(flags, scope, hostScope, locator));
     const func = this.func.evaluate(flags, scope, hostScope, locator);
     if (typeof func !== 'function') {
       throw new Error(`Left-hand side of tagged template expression is not a function.`);
@@ -996,9 +942,8 @@ export class TaggedTemplateExpression {
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const expressions = this.expressions;
-    for (let i = 0, ii = expressions.length; i < ii; ++i) {
-      expressions[i].connect(flags, scope, hostScope, binding);
+    for (let i = 0; i < this.expressions.length; ++i) {
+      this.expressions[i].connect(flags, scope, hostScope, binding);
     }
     this.func.connect(flags, scope, hostScope, binding);
   }
@@ -1180,17 +1125,14 @@ export class Interpolation {
 
   public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): string {
     if (this.isMulti) {
-      const expressions = this.expressions;
-      const parts = this.parts;
-      let result = parts[0];
-      for (let i = 0, ii = expressions.length; i < ii; ++i) {
-        result += expressions[i].evaluate(flags, scope, hostScope, locator);
-        result += parts[i + 1];
+      let result = this.parts[0];
+      for (let i = 0; i < this.expressions.length; ++i) {
+        result += this.expressions[i].evaluate(flags, scope, hostScope, locator);
+        result += this.parts[i + 1];
       }
       return result;
     } else {
-      const parts = this.parts;
-      return `${parts[0]}${this.firstExpression.evaluate(flags, scope, hostScope, locator)}${parts[1]}`;
+      return `${this.parts[0]}${this.firstExpression.evaluate(flags, scope, hostScope, locator)}${this.parts[1]}`;
     }
   }
 
@@ -1205,16 +1147,6 @@ export class Interpolation {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitInterpolation(this);
   }
-}
-
-/// Evaluate the [list] in context of the [scope].
-function evalList(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, list: readonly IsExpression[], hostScope: IScope | null): readonly unknown[] {
-  const len = list.length;
-  const result = Array(len);
-  for (let i = 0; i < len; ++i) {
-    result[i] = list[i].evaluate(flags, scope, hostScope, locator);
-  }
-  return result;
 }
 
 function getFunction(flags: LifecycleFlags, obj: object, name: string): ((...args: unknown[]) => unknown) | null {

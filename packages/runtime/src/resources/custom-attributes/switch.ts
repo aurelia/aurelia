@@ -74,7 +74,10 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
   public beforeBind(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void | Promise<void> {
     const view = this.view = this.factory.create(flags, this.$controller);
     view.setLocation(this.location, MountStrategy.insertBefore);
+  }
 
+  public afterAttach(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void | Promise<void> {
+    const view = this.view;
     const $controller = this.$controller;
 
     this.queue(() => onResolve(
@@ -84,21 +87,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     return this.promise;
   }
 
-  public afterBind(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void | Promise<void> {
-    this.queue(() => this.activateCases(flags));
-    return this.promise;
-  }
-
-  public beforeDetach(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void | Promise<void> {
-    const cases = this.activeCases;
-
-    const length = cases.length;
-    if (length === 0) { return this.promise; }
-
-    this.queue(length === 1
-      ? () => cases[0].deactivate(flags)
-      : () => resolveAll(...cases.map(($case) => $case.deactivate(flags)))
-    );
+  public afterUnbind(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void | Promise<void> {
     this.queue(() => {
       const view = this.view;
       return view.deactivate(view, this.$controller, flags);
@@ -305,6 +294,10 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
     } else {
       throw new Error('The parent switch not found; only `*[switch] > *[case|default-case]` relation is supported.');
     }
+  }
+
+  public afterUnbind(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void | Promise<void> {
+    return this.deactivate(flags);
   }
 
   public isMatch(value: unknown, flags: LifecycleFlags): boolean {

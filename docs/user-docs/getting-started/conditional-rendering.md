@@ -398,7 +398,7 @@ This section includes some more interesting examples that you might encounter in
     </template>
   </foo-bar>
 
-  <!-- The following example does produce some sort of output; but such usage is not recommended. -->
+  <!-- The following example does produce some sort of output; but such usage is not supported. -->
   <template as-custom-element="foo-bar">
     foo bar
   </template>

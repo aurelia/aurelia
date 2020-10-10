@@ -14,7 +14,6 @@ import {
 } from './dom';
 import {
   BindingStrategy,
-  LifecycleFlags
 } from './flags';
 import {
   ICustomElementViewModel,
@@ -106,59 +105,41 @@ export class CompositionRoot<T extends INode = INode> implements IDisposable {
     }
   }
 
-  public activate(antecedent?: ILifecycleTask): ILifecycleTask {
+  public activate(): ILifecycleTask {
     const { task, host, viewModel, container, activator, strategy } = this;
     const flags = strategy as number;
 
     if (viewModel === void 0) {
       if (this.createTask === void 0) {
-        this.createTask = new ContinuationTask(task, this.activate, this, antecedent);
+        this.createTask = new ContinuationTask(task, this.activate, this);
       }
       return this.createTask;
     }
 
     if (task.done) {
-      if (antecedent == void 0 || antecedent.done) {
-        this.task = activator.activate(host, viewModel, container, flags, void 0);
-      } else {
-        this.task = new ContinuationTask(antecedent, activator.activate, activator, host, viewModel, container, flags, void 0);
-      }
+      this.task = activator.activate(host, viewModel, container, flags, void 0);
     } else {
-      if (antecedent == void 0 || antecedent.done) {
-        this.task = new ContinuationTask(task, activator.activate, activator, host, viewModel, container, flags, void 0);
-      } else {
-        const combinedAntecedent = new ContinuationTask(task, antecedent.wait, antecedent);
-        this.task = new ContinuationTask(combinedAntecedent, activator.activate, activator, host, viewModel, container, flags, void 0);
-      }
+      this.task = new ContinuationTask(task, activator.activate, activator, host, viewModel, container, flags, void 0);
     }
 
     return this.task;
   }
 
-  public deactivate(antecedent?: ILifecycleTask): ILifecycleTask {
+  public deactivate(): ILifecycleTask {
     const { task, viewModel, activator, strategy } = this;
     const flags = strategy as number;
 
     if (viewModel === void 0) {
       if (this.createTask === void 0) {
-        this.createTask = new ContinuationTask(task, this.deactivate, this, antecedent);
+        this.createTask = new ContinuationTask(task, this.deactivate, this);
       }
       return this.createTask;
     }
 
     if (task.done) {
-      if (antecedent == void 0 || antecedent.done) {
-        this.task = activator.deactivate(viewModel, flags);
-      } else {
-        this.task = new ContinuationTask(antecedent, activator.deactivate, activator, viewModel, flags);
-      }
+      this.task = activator.deactivate(viewModel, flags);
     } else {
-      if (antecedent == void 0 || antecedent.done) {
-        this.task = new ContinuationTask(task, activator.deactivate, activator, viewModel, flags);
-      } else {
-        const combinedAntecedent = new ContinuationTask(task, antecedent.wait, antecedent);
-        this.task = new ContinuationTask(combinedAntecedent, activator.deactivate, activator, viewModel, flags);
-      }
+      this.task = new ContinuationTask(task, activator.deactivate, activator, viewModel, flags);
     }
 
     return this.task;
@@ -259,7 +240,11 @@ export class Aurelia<TNode extends INode = INode> implements IDisposable {
       this.task = new ContinuationTask(this.task, this.onBeforeStart, this, root);
     }
 
-    this.task = this.root.activate(this.task);
+    if (this.task.done) {
+      this.task = this.root.activate();
+    } else {
+      this.task = new ContinuationTask(this.task, this.root.activate, this.root);
+    }
 
     if (this.task.done) {
       this.task = this.onAfterStart(root);
@@ -278,7 +263,11 @@ export class Aurelia<TNode extends INode = INode> implements IDisposable {
         this.task = new ContinuationTask(this.task, this.onBeforeStop, this, root);
       }
 
-      this.task = root.deactivate(this.task);
+      if (this.task.done) {
+        this.task = this.root.deactivate();
+      } else {
+        this.task = new ContinuationTask(this.task, this.root.deactivate, this.root);
+      }
 
       if (this.task.done) {
         this.task = this.onAfterStop(root);

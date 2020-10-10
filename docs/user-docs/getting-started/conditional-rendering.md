@@ -276,11 +276,12 @@ This section includes some more interesting examples that you might encounter in
   {% code title="my-app.html" %}
   ```markup
   <template>
-    <let num.bind="9"></let>
-    <template switch.bind="true">
-      <span case.bind="num % 3 === 0 && num % 5 === 0">FizzBuzz</span>
-      <span case.bind="num % 3 === 0">Fizz</span>
-      <span case.bind="num % 5 === 0">Buzz</span>
+    <template repeat.for="num of 100">
+      <template switch.bind="true">
+        <span case.bind="num % 3 === 0 && num % 5 === 0">FizzBuzz</span>
+        <span case.bind="num % 3 === 0">Fizz</span>
+        <span case.bind="num % 5 === 0">Buzz</span>
+      </template>
     </template>
   </template>
   ```

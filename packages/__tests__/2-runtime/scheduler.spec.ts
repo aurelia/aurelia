@@ -100,10 +100,6 @@ describe('Scheduler', function () {
       name: 'postRender',
     },
     {
-      priority: TaskQueuePriority.idle,
-      name: 'idle',
-    },
-    {
       priority: TaskQueuePriority.microTask,
       name: 'microTask',
     },

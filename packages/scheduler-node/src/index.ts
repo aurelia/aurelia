@@ -184,7 +184,6 @@ export function createNodeScheduler(container: IContainer, g: NodeJS.Global): IS
       createRequestAnimationFrameFlushRequestor(g),
       createSetTimeoutFlushRequestorFactory(g),
       createPostRequestAnimationFrameFlushRequestor(g),
-      createRequestIdleCallbackFlushRequestor(g),
     ));
   }
   return scheduler;

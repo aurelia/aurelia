@@ -3,7 +3,6 @@ export const enum TaskQueuePriority {
   render     = 1,
   macroTask  = 2,
   postRender = 3,
-  idle       = 4,
 }
 
 export type QueueTaskOptions = {

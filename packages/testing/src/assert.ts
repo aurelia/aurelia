@@ -777,8 +777,6 @@ const isSchedulerEmpty = (function () {
         return 'macroTask';
       case TaskQueuePriority.postRender:
         return 'postRender';
-      case TaskQueuePriority.idle:
-        return 'idle';
       default:
         return 'unknown';
     }
@@ -840,7 +838,6 @@ const isSchedulerEmpty = (function () {
     const renderTaskQueue = scheduler.getRenderTaskQueue() as any;
     const macroTaskQueue = scheduler.getMacroTaskQueue() as any;
     const postRenderTaskQueue = scheduler.getPostRenderTaskQueue() as any;
-    const idleTaskQueue = scheduler.getIdleTaskQueue() as any;
 
     let isEmpty = true;
     let message = '';
@@ -858,10 +855,6 @@ const isSchedulerEmpty = (function () {
     }
     if (!postRenderTaskQueue.isEmpty) {
       message += `\n${reportTaskQueue(postRenderTaskQueue)}\n\n`;
-      isEmpty = false;
-    }
-    if (!idleTaskQueue.isEmpty) {
-      message += `\n${reportTaskQueue(idleTaskQueue)}\n\n`;
       isEmpty = false;
     }
 

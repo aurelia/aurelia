@@ -106,7 +106,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
   }
 
   public caseChanged($case: Case<T>, flags: LifecycleFlags): void {
-    this.queue(async () => this.handleCaseChange($case, flags));
+    this.queue(() => this.handleCaseChange($case, flags));
   }
 
   private async handleCaseChange($case: Case<T>, flags: LifecycleFlags): Promise<void> {

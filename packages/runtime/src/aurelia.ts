@@ -7,13 +7,13 @@ import {
   InstanceProvider,
   IDisposable
 } from '@aurelia/kernel';
-import { IActivator } from './activator';
 import {
   IDOM,
   INode
 } from './dom';
 import {
   BindingStrategy,
+  LifecycleFlags,
 } from './flags';
 import {
   ICustomElementViewModel,
@@ -25,6 +25,7 @@ import {
   ILifecycleTask,
   IStartTaskManager,
   LifecycleTask,
+  TerminalTask,
 } from './lifecycle-task';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element';
 import { Controller } from './templating/controller';
@@ -46,13 +47,11 @@ export class CompositionRoot<T extends INode = INode> implements IDisposable {
   public readonly dom: IDOM<T>;
   public readonly strategy: BindingStrategy;
   public readonly lifecycle: ILifecycle;
-  public readonly activator: IActivator;
-  public task: ILifecycleTask;
+  public readonly taskManager: IStartTaskManager;
 
-  public controller?: ICustomElementController<T>;
-  public viewModel?: ICustomElementViewModel<T>;
+  public controller: ICustomElementController<T>;
+  public viewModel: ICustomElementViewModel<T>;
 
-  private createTask?: ILifecycleTask;
   private readonly enhanceDefinition: CustomElementDefinition | undefined;
 
   public constructor(
@@ -83,10 +82,7 @@ export class CompositionRoot<T extends INode = INode> implements IDisposable {
     this.dom = initializer.initialize(config) as IDOM<T>;
 
     this.lifecycle = this.container.get(ILifecycle);
-    this.activator = this.container.get(IActivator);
-
-    const taskManager = this.container.get(IStartTaskManager);
-    const beforeCreateTask = taskManager.runBeforeCreate();
+    this.taskManager = this.container.get(IStartTaskManager);
 
     if (enhance) {
       const component = config.component as Constructable | ICustomElementViewModel<T>;
@@ -97,71 +93,69 @@ export class CompositionRoot<T extends INode = INode> implements IDisposable {
       );
     }
 
-    if (beforeCreateTask.done) {
-      this.task = LifecycleTask.done;
-      this.create();
-    } else {
-      this.task = new ContinuationTask(beforeCreateTask, this.create, this);
-    }
-  }
+    this.taskManager.runBeforeCreate();
 
-  public activate(): ILifecycleTask {
-    const { task, host, viewModel, container, activator, strategy } = this;
-    const flags = strategy as number;
-
-    if (viewModel === void 0) {
-      if (this.createTask === void 0) {
-        this.createTask = new ContinuationTask(task, this.activate, this);
-      }
-      return this.createTask;
-    }
-
-    if (task.done) {
-      this.task = activator.activate(host, viewModel, container, flags, void 0);
-    } else {
-      this.task = new ContinuationTask(task, activator.activate, activator, host, viewModel, container, flags, void 0);
-    }
-
-    return this.task;
-  }
-
-  public deactivate(): ILifecycleTask {
-    const { task, viewModel, activator, strategy } = this;
-    const flags = strategy as number;
-
-    if (viewModel === void 0) {
-      if (this.createTask === void 0) {
-        this.createTask = new ContinuationTask(task, this.deactivate, this);
-      }
-      return this.createTask;
-    }
-
-    if (task.done) {
-      this.task = activator.deactivate(viewModel, flags);
-    } else {
-      this.task = new ContinuationTask(task, activator.deactivate, activator, viewModel, flags);
-    }
-
-    return this.task;
-  }
-
-  public dispose(): void {
-    this.controller?.dispose();
-  }
-
-  private create(): void {
-    const config = this.config;
     const instance = this.viewModel = CustomElement.isType(config.component as Constructable)
       ? this.container.get(config.component as Constructable | {}) as ICustomElementViewModel<T>
       : config.component as ICustomElementViewModel<T>;
 
-    const container = this.container;
-    const lifecycle = container.get(ILifecycle);
-    const taskManager = container.get(IStartTaskManager);
-    taskManager.enqueueBeforeCompileChildren();
-    // This hack with delayed hydration is to make the controller instance accessible to the `beforeCompileChildren` hook via the composition root.
-    this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, null, this.strategy as number, false, this.enhanceDefinition);
+    this.taskManager.enqueueBeforeCompileChildren();
+    this.taskManager.enqueueBeforeCompile();
+    // This "hack" with delayed hydration is to make the controller instance accessible to the `beforeCompile` and `beforeCompileChildren` hooks via the composition root.
+    this.controller = Controller.forCustomElement(instance, this.lifecycle, this.host, container, null, this.strategy as number, false, this.enhanceDefinition);
     (this.controller as unknown as Controller)['hydrateCustomElement'](container, null);
+  }
+
+  public activate(): ILifecycleTask {
+    const mgr = this.taskManager;
+    const flags = this.strategy as number;
+    const controller = this.controller;
+
+    let task = mgr.runBeforeActivate();
+    if (task.done) {
+      const ret = controller.activate(controller, null, flags | LifecycleFlags.fromBind, void 0);
+      if (ret instanceof Promise) {
+        task = new TerminalTask(ret);
+      }
+    } else {
+      task = new ContinuationTask(task, controller.activate, controller, controller, null, flags | LifecycleFlags.fromBind, void 0);
+    }
+
+    if (task.done) {
+      task = mgr.runAfterActivate();
+    } else {
+      task = new ContinuationTask(task, mgr.runAfterActivate, mgr);
+    }
+
+    return task;
+  }
+
+  public deactivate(): ILifecycleTask {
+    const mgr = this.taskManager;
+    const flags = this.strategy as number;
+    const controller = this.controller;
+
+    let task = mgr.runBeforeDeactivate();
+    if (task.done) {
+      const ret = controller.deactivate(controller, null, flags);
+      if (ret instanceof Promise) {
+        task = new TerminalTask(ret);
+      }
+    } else {
+      task = new ContinuationTask(task, controller.deactivate, controller, controller, null, flags);
+    }
+
+    if (task.done) {
+      task = mgr.runAfterDeactivate();
+    } else {
+      task = new ContinuationTask(task, mgr.runAfterDeactivate, mgr);
+    }
+
+    return task;
+  }
+
+  public dispose(): void {
+    this.controller?.dispose();
   }
 }
 

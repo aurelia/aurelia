@@ -201,6 +201,10 @@ export interface IStartTaskManager {
    * This is internal API and will be moved to an inaccessible place in the near future.
    */
   enqueueBeforeCompileChildren(): void;
+  /**
+   * This is internal API and will be moved to an inaccessible place in the near future.
+   */
+  enqueueBeforeCompile(): void;
   runBeforeCreate(container?: IContainer): ILifecycleTask;
   runBeforeCompile(container?: IContainer): ILifecycleTask;
   runBeforeCompileChildren(container?: IContainer): ILifecycleTask;
@@ -213,6 +217,7 @@ export interface IStartTaskManager {
 
 export class StartTaskManager implements IStartTaskManager {
   private beforeCompileChildrenQueued: boolean = false;
+  private beforeCompileQueued: boolean = false;
 
   public constructor(
     @IServiceLocator private readonly locator: IServiceLocator,
@@ -229,12 +234,23 @@ export class StartTaskManager implements IStartTaskManager {
     this.beforeCompileChildrenQueued = true;
   }
 
+  public enqueueBeforeCompile(): void {
+    if (this.beforeCompileQueued) {
+      throw new Error(`BeforeCompile already queued`);
+    }
+    this.beforeCompileQueued = true;
+  }
+
   public runBeforeCreate(locator: IServiceLocator = this.locator): ILifecycleTask {
     return this.run(TaskSlot.beforeCreate, locator);
   }
 
   public runBeforeCompile(locator: IServiceLocator = this.locator): ILifecycleTask {
-    return this.run(TaskSlot.beforeCompile, locator);
+    if (this.beforeCompileQueued) {
+      this.beforeCompileQueued = false;
+      return this.run(TaskSlot.beforeCompile, locator);
+    }
+    return LifecycleTask.done;
   }
 
   public runBeforeCompileChildren(locator: IServiceLocator = this.locator): ILifecycleTask {

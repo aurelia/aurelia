@@ -332,6 +332,8 @@ export class Controller<
       context.beginChildComponentOperation(instance as ICustomElementViewModel);
     }
 
+    const taskmgr = parentContainer.get(IStartTaskManager);
+    taskmgr.runBeforeCompile(context);
     if (hooks.hasBeforeCompile) {
       if (this.debug) {
         this.logger.trace(`invoking hasBeforeCompile() hook`);
@@ -366,8 +368,7 @@ export class Controller<
       instance.afterCompile(this as unknown as ICompiledCustomElementController<T, typeof instance>);
     }
 
-    const taskmgr = parentContainer.get(IStartTaskManager);
-    taskmgr.runBeforeCompileChildren(parentContainer);
+    taskmgr.runBeforeCompileChildren(context);
 
     const targets = nodes.findTargets();
     compiledContext.render(

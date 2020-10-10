@@ -27,7 +27,6 @@ import {
 } from '../../lifecycle';
 import {
   CollectionKind,
-  ICollectionIndexObserver,
   ICollectionObserver,
   IndexMap,
   IScope,
@@ -107,7 +106,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     return this.promise;
   }
 
-  public dispose() {
+  public dispose(): void {
     this.view?.dispose();
     this.view = (void 0)!;
   }
@@ -319,7 +318,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
     return $value === value;
   }
 
-  public valueChanged(newValue: boolean, _oldValue: boolean, flags: LifecycleFlags) {
+  public valueChanged(newValue: unknown, _oldValue: unknown, flags: LifecycleFlags): void {
     if (Array.isArray(newValue)) {
       this.observer?.removeCollectionSubscriber(this);
       this.observer = this.observeCollection(flags, newValue);
@@ -329,7 +328,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
     this.$switch.caseChanged(this, flags);
   }
 
-  public handleCollectionChange(_indexMap: IndexMap, flags: LifecycleFlags) {
+  public handleCollectionChange(_indexMap: IndexMap, flags: LifecycleFlags): void {
     this.$switch.caseChanged(this, flags);
   }
 
@@ -351,11 +350,11 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
     this.view = (void 0)!;
   }
 
-  protected linkToSwitch(auSwitch: Switch<T>) {
+  protected linkToSwitch(auSwitch: Switch<T>): void {
     auSwitch.cases.push(this);
   }
 
-  private observeCollection(flags: LifecycleFlags, $value: any[]) {
+  private observeCollection(flags: LifecycleFlags, $value: unknown[]) {
     const observer = this.locator.getArrayObserver(flags, $value);
     observer.addCollectionSubscriber(this);
     return observer;
@@ -365,7 +364,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
 @templateController('default-case')
 export class DefaultCase<T extends INode = Node> extends Case<T>{
 
-  protected linkToSwitch($switch: Switch<T>) {
+  protected linkToSwitch($switch: Switch<T>): void {
     if ($switch.defaultCase !== void 0) {
       throw new Error('Multiple \'default-case\'s are not allowed.');
     }

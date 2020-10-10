@@ -35,13 +35,11 @@ export type QueueTaskOptions = {
    */
   reusable?: boolean;
   /**
-   * If `true`, the return value of the callback will be treated as a promise. Consecutive tasks will be run only after the promise resolved.
+   * If `true`, and the task callback returns a promise, that promise will be awaited before consecutive tasks are run.
    *
-   * If `'auto'`, the return value of the callback will be treated as a promise only if is an instance of a promise. Use this only for callbacks that can either return `void` or `Promise` and it can't be determined upfront which of the two it is. For dealing with promises, this is less efficient than passing in `true`.
-   *
-   * Defaults to `false`
+   * Defaults to `false`.
    */
-  async?: boolean | 'auto';
+  suspend?: boolean;
 };
 
 export type QueueTaskTargetOptions = QueueTaskOptions & {
@@ -54,7 +52,7 @@ export const defaultQueueTaskOptions: Required<QueueTaskTargetOptions> = {
   priority: TaskQueuePriority.render,
   persistent: false,
   reusable: true,
-  async: false,
+  suspend: false,
 };
 
 export type PResolve<T> = (value?: T | PromiseLike<T>) => void;

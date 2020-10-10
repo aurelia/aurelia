@@ -103,8 +103,8 @@ export class Scheduler implements IScheduler {
   }
 
   public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskTargetOptions): Task<T> {
-    const { delay, preempt, priority, persistent, reusable, async } = { ...defaultQueueTaskOptions, ...opts };
-    return this.taskQueues[priority].queueTask(callback, { delay, preempt, persistent, reusable, async });
+    const { delay, preempt, priority, persistent, reusable, suspend } = { ...defaultQueueTaskOptions, ...opts };
+    return this.taskQueues[priority].queueTask(callback, { delay, preempt, persistent, reusable, suspend });
   }
 
   public getMicroTaskQueue(): ITaskQueue {

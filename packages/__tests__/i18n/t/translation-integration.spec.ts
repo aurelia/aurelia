@@ -1239,10 +1239,11 @@ describe('translation-integration', function () {
 
     it('updates formatted value if rt_signal', async function () {
       this.timeout(10000);
+      const offset = 2000; // reduce the amount of time the test takes to run
 
       @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
       class App {
-        public dt: Date = new Date();
+        public dt: Date = new Date(Date.now() - offset);
       }
 
       await runTest(
@@ -1250,8 +1251,8 @@ describe('translation-integration', function () {
           await scheduler.queueMacroTask(delta => {
             container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
             scheduler.getRenderTaskQueue().flush();
-            assertTextContent(host, 'span', `${Math.round(delta / 1000)} seconds ago`);
-          }, { delay: 3000 }).result;
+            assertTextContent(host, 'span', `${Math.round((delta + offset) / 1000)} seconds ago`);
+          }, { delay: 1000 }).result;
         },
         { component: App });
     });
@@ -1352,10 +1353,11 @@ describe('translation-integration', function () {
 
     it('updates formatted value if rt_signal', async function () {
       this.timeout(10000);
+      const offset = 2000; // reduce the amount of time the test takes to run
 
       @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
       class App {
-        public dt: Date = new Date();
+        public dt: Date = new Date(Date.now() - offset);
       }
 
       await runTest(
@@ -1363,8 +1365,8 @@ describe('translation-integration', function () {
           await scheduler.queueMacroTask(delta => {
             container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
             scheduler.getRenderTaskQueue().flush();
-            assertTextContent(host, 'span', `${Math.round(delta / 1000)} seconds ago`);
-          }, { delay: 3000 }).result;
+            assertTextContent(host, 'span', `${Math.round((delta + offset) / 1000)} seconds ago`);
+          }, { delay: 1000 }).result;
         },
         { component: App });
     });

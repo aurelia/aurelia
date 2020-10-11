@@ -1,6 +1,5 @@
 import { IIndexable, isArrayIndex } from '@aurelia/kernel';
-import { collecting, currentSub as currentSub, IWatcher } from './subscriber-switcher';
-import { CollectionObserver, ICollectionObserver, CollectionKind } from '../observation';
+import { collecting, currentSub } from './subscriber-switcher';
 import { LifecycleFlags } from '../flags';
 import { isMap, isSet, isObject, isArray } from './utilities-objects';
 
@@ -23,7 +22,10 @@ export function getRaw<T extends object>(obj: T): T {
 
 export function doNotCollect(obj: object, key: PropertyKey): boolean {
   return key === 'constructor'
-    || key === '__proto__';
+    || key === '__proto__'
+    // probably should revert to v1 naming style for consistency with builtin?
+    // __o__ is shorters & less chance of conflict with other libs as well
+    || key === 'observers';
 }
 
 function createProxy<T extends object>(obj: T): T {
@@ -74,17 +76,13 @@ export const arrayHandler: ProxyHandler<unknown[]> = {
     }
 
     if (key === 'length') {
-      getArrayObserver(target, connectable)
-        .getLengthObserver()
-        .subscribe(connectable);
+      connectable.observeCollectionSize(target);
       return target.length;
     } else if (key in Array.prototype) {
       // assume that all method in the prototype requires subscription to the array itself
-      subscribeToArray(target, connectable);
+      connectable.observeCollection(target);
     } else if (isArrayIndex(key)) {
-      getArrayObserver(target, connectable)
-        .getIndexObserver(key as number)
-        .subscribe(connectable);
+      connectable.observeArrayIndex(target, key as number);
     }
 
     return getProxyOrSelf(R$get(target, key, receiver));
@@ -106,7 +104,7 @@ export const collectionHandler: ProxyHandler<$MapOrSet> = {
 
     switch (key) {
       case 'size':
-        subscribeCollectionSize(target, connectable);
+        connectable.observeCollectionSize(target);
         return R$get(target, key, receiver);
       case 'clear':
         return wrappedClear;
@@ -140,36 +138,9 @@ export const collectionHandler: ProxyHandler<$MapOrSet> = {
 type $MapOrSet = Map<unknown, unknown> | Set<unknown>;
 type CollectionMethod = (this: unknown, ...args: unknown[]) => unknown;
 
-// todo: static
-function getArrayObserver(arr: unknown[], connectable: IWatcher): ICollectionObserver<CollectionKind.array> {
-  return connectable.observerLocator.getArrayObserver(LifecycleFlags.none, arr);
-}
-function subscribeToArray(arr: unknown[], connectable: IWatcher): void {
-  return getArrayObserver(arr, connectable).subscribeToCollection(connectable);
-}
-// todo: static
-function getCollectionObserver(collection: $MapOrSet, connectable: IWatcher): CollectionObserver {
-  if (collection instanceof Set) {
-    return connectable.observerLocator.getSetObserver(LifecycleFlags.none, collection);
-  } else {
-    return connectable.observerLocator.getMapObserver(LifecycleFlags.none, collection);
-  }
-}
-// todo: static
-function subscribeCollection(collection: $MapOrSet, connectable: IWatcher): void {
-  getCollectionObserver(collection, connectable).subscribeToCollection(connectable);
-}
-// todo: static
-function subscribeCollectionSize(collection: $MapOrSet, connectable: IWatcher): void {
-  getCollectionObserver(collection, connectable).getLengthObserver().subscribe(connectable);
-}
-
 function wrappedForEach(this: $MapOrSet, cb: CollectionMethod, thisArg?: unknown): void {
   const raw = getRaw(this);
-  const connectable = currentSub();
-  if (connectable != null) {
-    subscribeCollection(raw, connectable);
-  }
+  currentSub()?.observeCollection(raw);
   return raw.forEach((v: unknown, key: unknown) => {
     cb.call(/* should wrap or not?? */thisArg, getProxyOrSelf(v), getProxyOrSelf(key), this);
   });
@@ -177,28 +148,19 @@ function wrappedForEach(this: $MapOrSet, cb: CollectionMethod, thisArg?: unknown
 
 function wrappedHas(this: $MapOrSet, v: unknown): boolean {
   const raw = getRaw(this);
-  const connectable = currentSub();
-  if (connectable != null) {
-    subscribeCollection(raw, connectable);
-  }
+  currentSub()?.observeCollection(raw);
   return raw.has(v);
 }
 
 function wrappedSet(this: Map<unknown, unknown>, k: unknown, v: unknown): Map<unknown, unknown> {
   const raw = getRaw(this);
-  const connectable = currentSub();
-  if (connectable != null) {
-    subscribeCollection(raw, connectable);
-  }
+  currentSub()?.observeCollection(raw);
   return raw.set(k, v);
 }
 
 function wrappedAdd(this: Set<unknown>, v: unknown): Set<unknown> {
   const raw = getRaw(this);
-  const connectable = currentSub();
-  if (connectable != null) {
-    subscribeCollection(raw, connectable);
-  }
+  currentSub()?.observeCollection(raw);
   return getProxyOrSelf(raw.add(v));
 }
 
@@ -208,10 +170,7 @@ function wrappedClear(this: $MapOrSet): void {
 
 function wrappedKeys(this: $MapOrSet): IterableIterator<unknown> {
   const raw = getRaw(this);
-  const connectable = currentSub();
-  if (connectable != null) {
-    subscribeCollection(raw, connectable);
-  }
+  currentSub()?.observeCollection(raw);
   const iterator = raw.keys();
 
   return {
@@ -232,10 +191,7 @@ function wrappedKeys(this: $MapOrSet): IterableIterator<unknown> {
 
 function wrappedValues(this: $MapOrSet): IterableIterator<unknown> {
   const raw = getRaw(this);
-  const connectable = currentSub();
-  if (connectable != null) {
-    subscribeCollection(raw, connectable);
-  }
+  currentSub()?.observeCollection(raw);
   const iterator = raw.values();
 
   return {
@@ -256,10 +212,7 @@ function wrappedValues(this: $MapOrSet): IterableIterator<unknown> {
 
 function wrappedEntries(this: $MapOrSet): IterableIterator<unknown> {
   const raw = getRaw(this);
-  const connectable = currentSub();
-  if (connectable != null) {
-    subscribeCollection(raw, connectable);
-  }
+  currentSub()?.observeCollection(raw);
   const iterator = raw.entries();
 
   // return a wrapped iterator which returns observed versions of the

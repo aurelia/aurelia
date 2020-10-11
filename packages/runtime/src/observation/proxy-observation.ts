@@ -110,6 +110,8 @@ export const collectionHandler: ProxyHandler<$MapOrSet> = {
         return R$get(target, key, receiver);
       case 'clear':
         return wrappedClear;
+      case 'delete':
+        return wrappedDelete;
       case 'forEach':
         return wrappedForEach;
       case 'add':
@@ -168,6 +170,12 @@ function wrappedAdd(this: Set<unknown>, v: unknown): Set<unknown> {
 
 function wrappedClear(this: $MapOrSet): void {
   return getProxyOrSelf(getRaw(this).clear());
+}
+
+function wrappedDelete(this: $MapOrSet, k: unknown): boolean {
+  const raw = getRaw(this);
+  currentSub()?.observeCollection(raw);
+  return getProxyOrSelf(raw.delete(k));
 }
 
 function wrappedKeys(this: $MapOrSet): IterableIterator<unknown> {

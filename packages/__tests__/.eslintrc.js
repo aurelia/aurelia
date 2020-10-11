@@ -6,11 +6,10 @@ module.exports = {
   ],
   env: {
     browser: true,
-    node: true,
-    mocha: true
+    mocha: true,
   },
   plugins: [
-    'mocha'
+    'mocha',
   ],
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',

@@ -3,7 +3,4 @@ module.exports = {
   parserOptions: {
     tsconfigRootDir: '.',
   },
-  env: {
-    browser: true,
-  },
 };

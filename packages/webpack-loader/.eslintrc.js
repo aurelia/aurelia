@@ -4,6 +4,6 @@ module.exports = {
     tsconfigRootDir: '.',
   },
   env: {
-    browser: true,
+    node: true,
   },
 };

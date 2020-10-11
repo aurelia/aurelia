@@ -20,15 +20,15 @@ export const LifecycleTask = {
   }
 };
 
-export const enum TaskSlot {
-  beforeCreate          = 0,
-  beforeCompile         = 1,
-  beforeCompileChildren = 2,
-  beforeActivate        = 3,
-  afterActivate         = 4,
-  beforeDeactivate      = 5,
-  afterDeactivate       = 6,
-}
+export type TaskSlot = (
+  'beforeCreate' |
+  'beforeCompile' |
+  'beforeCompileChildren' |
+  'beforeActivate' |
+  'afterActivate' |
+  'beforeDeactivate' |
+  'afterDeactivate'
+);
 
 export const IAppTask = DI.createInterface<IAppTask>('IAppTask').noDefault();
 export interface IAppTask extends Pick<
@@ -69,31 +69,31 @@ class $AppTask<K extends Key = Key> {
   }
 
   public beforeCreate(): ICallbackChooser<K> {
-    return this.at(TaskSlot.beforeCreate);
+    return this.at('beforeCreate');
   }
 
   public beforeCompile(): ICallbackChooser<K> {
-    return this.at(TaskSlot.beforeCompile);
+    return this.at('beforeCompile');
   }
 
   public beforeCompileChildren(): ICallbackChooser<K> {
-    return this.at(TaskSlot.beforeCompileChildren);
+    return this.at('beforeCompileChildren');
   }
 
   public beforeActivate(): ICallbackChooser<K> {
-    return this.at(TaskSlot.beforeActivate);
+    return this.at('beforeActivate');
   }
 
   public afterActivate(): ICallbackChooser<K> {
-    return this.at(TaskSlot.afterActivate);
+    return this.at('afterActivate');
   }
 
   public beforeDeactivate(): ICallbackChooser<K> {
-    return this.at(TaskSlot.beforeDeactivate);
+    return this.at('beforeDeactivate');
   }
 
   public afterDeactivate(): ICallbackChooser<K> {
-    return this.at(TaskSlot.afterDeactivate);
+    return this.at('afterDeactivate');
   }
 
   public at(slot: TaskSlot): ICallbackChooser<K> {
@@ -151,37 +151,37 @@ export class AppTaskManager {
   }
 
   public runBeforeCreate(locator: IServiceLocator = this.locator): void | Promise<void> {
-    return this.run(TaskSlot.beforeCreate, locator);
+    return this.run('beforeCreate', locator);
   }
 
   public runBeforeCompile(locator: IServiceLocator = this.locator): void | Promise<void> {
     if (this.beforeCompileQueued) {
       this.beforeCompileQueued = false;
-      return this.run(TaskSlot.beforeCompile, locator);
+      return this.run('beforeCompile', locator);
     }
   }
 
   public runBeforeCompileChildren(locator: IServiceLocator = this.locator): void | Promise<void> {
     if (this.beforeCompileChildrenQueued) {
       this.beforeCompileChildrenQueued = false;
-      return this.run(TaskSlot.beforeCompileChildren, locator);
+      return this.run('beforeCompileChildren', locator);
     }
   }
 
   public runBeforeActivate(locator: IServiceLocator = this.locator): void | Promise<void> {
-    return this.run(TaskSlot.beforeActivate, locator);
+    return this.run('beforeActivate', locator);
   }
 
   public runAfterActivate(locator: IServiceLocator = this.locator): void | Promise<void> {
-    return this.run(TaskSlot.afterActivate, locator);
+    return this.run('afterActivate', locator);
   }
 
   public runBeforeDeactivate(locator: IServiceLocator = this.locator): void | Promise<void> {
-    return this.run(TaskSlot.beforeDeactivate, locator);
+    return this.run('beforeDeactivate', locator);
   }
 
   public runAfterDeactivate(locator: IServiceLocator = this.locator): void | Promise<void> {
-    return this.run(TaskSlot.afterDeactivate, locator);
+    return this.run('afterDeactivate', locator);
   }
 
   public run(slot: TaskSlot, locator: IServiceLocator = this.locator): void | Promise<void> {

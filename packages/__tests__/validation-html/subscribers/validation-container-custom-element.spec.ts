@@ -79,13 +79,12 @@ describe('validation-container-custom-element', function () {
         host,
         component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
       })
-      .start()
-      .wait();
+      .start();
 
     const app: App = au.root.viewModel as App;
     await testFunction({ app, host, container, scheduler: app.scheduler, ctx });
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
     assert.equal(app.controllerRemoveSubscriberSpy.calls.length, template.match(/validation-container/g).length / 2 + template.match(/validate/g).length);
 
@@ -298,8 +297,7 @@ describe('validation-container-custom-element', function () {
 
     await au
       .app({ host, component: App1 })
-      .start()
-      .wait();
+      .start();
 
     const app: App1 = au.root.viewModel as App1;
     const scheduler = container.get(IScheduler);
@@ -321,7 +319,7 @@ describe('validation-container-custom-element', function () {
 
     assert.deepStrictEqual(errors1, ['Name is required.']);
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
 
     au.dispose();

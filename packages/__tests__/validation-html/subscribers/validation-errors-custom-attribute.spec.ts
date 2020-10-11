@@ -79,13 +79,12 @@ describe('validation-errors-custom-attribute', function () {
         host,
         component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
       })
-      .start()
-      .wait();
+      .start();
 
     const app = au.root.viewModel as App;
     await testFunction({ app, host, container, scheduler: app.scheduler, ctx });
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
     if (removeSubscriberSpies !== void 0) {
       for (const [spy, count] of Object.entries(removeSubscriberSpies)) {
@@ -391,8 +390,7 @@ describe('validation-errors-custom-attribute', function () {
 
     await au
       .app({ host, component: App1 })
-      .start()
-      .wait();
+      .start();
 
     const app: App1 = au.root.viewModel as App1;
     const scheduler = container.get(IScheduler);
@@ -430,7 +428,7 @@ describe('validation-errors-custom-attribute', function () {
     assert.equal(errors1.length, 0);
     assert.equal(div1.querySelectorAll('span.error').length, 0);
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
     au.dispose();
   });

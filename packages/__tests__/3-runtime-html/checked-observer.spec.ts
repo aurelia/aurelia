@@ -323,7 +323,7 @@ describe('checked-observer.spec.ts', function () {
     const component = new App();
 
     au.app({ host: appHost, component, strategy: bindingStrategy });
-    await au.start().wait();
+    await au.start();
 
     return {
       ctx,
@@ -336,7 +336,7 @@ describe('checked-observer.spec.ts', function () {
       component: ProxyObserver.getProxyOrSelf(component) as T,
       observerLocator,
       tearDown: async () => {
-        await au.stop().wait();
+        await au.stop();
         testHost.remove();
       }
     };

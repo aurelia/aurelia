@@ -118,7 +118,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
       // Alpha: during bind a simple strategy for bind is always flush immediately
       // todo:
       //  (1). determine whether this should be the behavior
-      //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
+      //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start()
       const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
       const oldValue = targetObserver.getValue();
 

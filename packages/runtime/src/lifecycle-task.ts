@@ -6,6 +6,7 @@ import {
   IServiceLocator,
   Key,
   Registration,
+  resolveAll,
   Resolved,
 } from '@aurelia/kernel';
 
@@ -33,7 +34,7 @@ export const IAppTask = DI.createInterface<IAppTask>('IAppTask').noDefault();
 export interface IAppTask extends Pick<
   $AppTask,
   'slot' |
-  'resolveTask' |
+  'run' |
   'register'
 > {}
 
@@ -55,7 +56,7 @@ export interface ICallbackChooser<K extends Key> extends Pick<
 
 class $AppTask<K extends Key = Key> {
   public slot: TaskSlot = (void 0)!;
-  public callback: (instance: unknown) => MaybePromiseOrTask = (void 0)!;
+  public callback: (instance: unknown) => void | Promise<void> = (void 0)!;
   public task: ILifecycleTask = (void 0)!;
   public container: IContainer = (void 0)!;
 
@@ -100,8 +101,8 @@ class $AppTask<K extends Key = Key> {
     return this;
   }
 
-  public call<K1 extends Key = K>(fn: (instance: Resolved<K1>) => MaybePromiseOrTask): IAppTask {
-    this.callback = fn as (instance: unknown) => MaybePromiseOrTask;
+  public call<K1 extends Key = K>(fn: (instance: Resolved<K1>) => void | Promise<void>): IAppTask {
+    this.callback = fn as (instance: unknown) => void | Promise<void>;
     return this;
   }
 
@@ -109,11 +110,10 @@ class $AppTask<K extends Key = Key> {
     return this.container = container.register(Registration.instance(IAppTask, this));
   }
 
-  public resolveTask(): ILifecycleTask {
-    if (this.task === void 0) {
-      this.task = new ProviderTask(this.container, this.key, this.callback);
-    }
-    return this.task;
+  public run(): void | Promise<void> {
+    const callback = this.callback;
+    const instance = this.container.get(this.key);
+    return callback(instance);
   }
 }
 export const AppTask = $AppTask as {
@@ -150,53 +150,47 @@ export class AppTaskManager {
     this.beforeCompileQueued = true;
   }
 
-  public runBeforeCreate(locator: IServiceLocator = this.locator): ILifecycleTask {
+  public runBeforeCreate(locator: IServiceLocator = this.locator): void | Promise<void> {
     return this.run(TaskSlot.beforeCreate, locator);
   }
 
-  public runBeforeCompile(locator: IServiceLocator = this.locator): ILifecycleTask {
+  public runBeforeCompile(locator: IServiceLocator = this.locator): void | Promise<void> {
     if (this.beforeCompileQueued) {
       this.beforeCompileQueued = false;
       return this.run(TaskSlot.beforeCompile, locator);
     }
-    return LifecycleTask.done;
   }
 
-  public runBeforeCompileChildren(locator: IServiceLocator = this.locator): ILifecycleTask {
+  public runBeforeCompileChildren(locator: IServiceLocator = this.locator): void | Promise<void> {
     if (this.beforeCompileChildrenQueued) {
       this.beforeCompileChildrenQueued = false;
       return this.run(TaskSlot.beforeCompileChildren, locator);
     }
-    return LifecycleTask.done;
   }
 
-  public runBeforeActivate(locator: IServiceLocator = this.locator): ILifecycleTask {
+  public runBeforeActivate(locator: IServiceLocator = this.locator): void | Promise<void> {
     return this.run(TaskSlot.beforeActivate, locator);
   }
 
-  public runAfterActivate(locator: IServiceLocator = this.locator): ILifecycleTask {
+  public runAfterActivate(locator: IServiceLocator = this.locator): void | Promise<void> {
     return this.run(TaskSlot.afterActivate, locator);
   }
 
-  public runBeforeDeactivate(locator: IServiceLocator = this.locator): ILifecycleTask {
+  public runBeforeDeactivate(locator: IServiceLocator = this.locator): void | Promise<void> {
     return this.run(TaskSlot.beforeDeactivate, locator);
   }
 
-  public runAfterDeactivate(locator: IServiceLocator = this.locator): ILifecycleTask {
+  public runAfterDeactivate(locator: IServiceLocator = this.locator): void | Promise<void> {
     return this.run(TaskSlot.afterDeactivate, locator);
   }
 
-  public run(slot: TaskSlot, locator: IServiceLocator = this.locator): ILifecycleTask {
-    const tasks = locator.getAll(IAppTask)
-      .filter(appTask => appTask.slot === slot)
-      .map(appTask => appTask.resolveTask())
-      .filter(task => !task.done);
-
-    if (tasks.length === 0) {
-      return LifecycleTask.done;
-    }
-
-    return new AggregateTerminalTask(tasks);
+  public run(slot: TaskSlot, locator: IServiceLocator = this.locator): void | Promise<void> {
+    return resolveAll(...locator.getAll(IAppTask).reduce((results, task) => {
+      if (task.slot === slot) {
+        results.push(task.run());
+      }
+      return results;
+    }, [] as (void | Promise<void>)[]));
   }
 }
 
@@ -234,39 +228,6 @@ export class PromiseTask<TArgs extends unknown[], T = void> implements ILifecycl
   }
 
   public wait(): Promise<unknown> {
-    return this.promise;
-  }
-}
-
-export class ProviderTask implements ILifecycleTask {
-  public done: boolean = false;
-
-  private promise?: Promise<unknown>;
-
-  public constructor(
-    private container: IContainer,
-    private key: Key,
-    private callback: (instance: unknown) => MaybePromiseOrTask,
-  ) {}
-
-  public wait(): Promise<unknown> {
-    if (this.promise === void 0) {
-      const instance = this.container.get(this.key);
-      const maybePromiseOrTask = this.callback.call(void 0, instance);
-
-      this.promise = maybePromiseOrTask === void 0
-        ? Promise.resolve()
-        : (maybePromiseOrTask as Promise<unknown>).then instanceof Function
-          ? maybePromiseOrTask as Promise<unknown>
-          : (maybePromiseOrTask as ILifecycleTask).wait();
-
-      this.promise = this.promise.then(() => {
-        this.done = true;
-        this.container = (void 0)!;
-        this.key = (void 0)!;
-        this.callback = (void 0)!;
-      }).catch(e => { throw e; });
-    }
     return this.promise;
   }
 }

@@ -140,12 +140,12 @@ describe(spec, function () {
       const task = au.app({ host, component }).start();
       if (subject instanceof Promise) {
         assert.strictEqual(trimFull(host.textContent), '', `host.textContent #1`);
-        await task.wait();
+        await task;
         assert.strictEqual(trimFull(host.textContent), expectedText, `host.textContent #2`);
       } else {
         assert.strictEqual(trimFull(host.textContent), expectedText, `host.textContent #3`);
       }
-      await au.stop().wait();
+      await au.stop();
     });
   });
 
@@ -164,11 +164,11 @@ describe(spec, function () {
       }
 
       au.app({ host, component: App });
-      await au.start().wait();
+      await au.start();
 
       assert.visibleTextEqual(au.root, 'Hello world!');
 
-      await au.stop().wait();
+      await au.stop();
 
       au.dispose();
     });

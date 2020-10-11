@@ -389,7 +389,7 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
           let component: Root;
           try {
             au.app({ host, component: App });
-            await au.start().wait();
+            await au.start();
             component = au.root.viewModel as unknown as Root;
             assert.strictEqual(host.textContent, expectation(component.items, component), `#before mutation`);
           } catch (ex) {
@@ -397,7 +397,7 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
               // dont try to assert anything on throw
               // just bails
               try {
-                await au.stop().wait();
+                await au.stop();
               } catch {/* and ignore all errors trying to stop */}
               return;
             }
@@ -414,11 +414,11 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
 
             assert.strictEqual(host.textContent, expectation(component.items, component), `#after mutation`);
 
-            await au.stop().wait();
+            await au.stop();
           } catch (ex) {
             if (!mutationWillThrow) {
               try {
-                await au.stop().wait();
+                await au.stop();
               } catch {
                 /* and ignore all errors trying to stop */
               } finally {

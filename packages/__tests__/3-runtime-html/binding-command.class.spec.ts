@@ -150,7 +150,7 @@ describe('template-compiler.binding-commands.class', function () {
           )
         );
         au.app({ host, component });
-        await au.start().wait();
+        await au.start();
         try {
           const els = typeof testCase.selector === 'string'
             ? host.querySelectorAll(testCase.selector)
@@ -199,7 +199,7 @@ describe('template-compiler.binding-commands.class', function () {
           const em = ctx.container.get(IEventManager);
           em.dispose();
           tearDown();
-          await au.stop().wait();
+          await au.stop();
 
           au.dispose();
         }

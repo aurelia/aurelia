@@ -21,7 +21,7 @@ describe('Styles', function () {
     class App { }
     const component = CustomElement.define({ name: 'app', template: ' ' }, App);
     au.app({ host, component });
-    await au.start().wait();
+    await au.start();
     return { au, ctx, host, container: au.container };
   }
 
@@ -113,7 +113,7 @@ describe('Styles', function () {
       assert.instanceOf(s, Object);
       assert.equal(typeof s.applyTo, 'function');
 
-      await au.stop().wait();
+      await au.stop();
       au.dispose();
     });
 
@@ -136,7 +136,7 @@ describe('Styles', function () {
         assert.equal(s['localStyles'].length, 1);
       }
 
-      await au.stop().wait();
+      await au.stop();
       au.dispose();
     });
 

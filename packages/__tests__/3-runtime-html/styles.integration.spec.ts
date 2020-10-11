@@ -40,7 +40,7 @@ describe('styles', function () {
       }
     );
 
-    await au.app({ host, component }).start().wait();
+    await au.app({ host, component }).start();
 
     const withStyles = (au.root.viewModel as any).withStyles;
     const withStylesRoot = CustomElement.for(withStyles).projector.provideEncapsulationSource() as ShadowRoot;
@@ -54,7 +54,7 @@ describe('styles', function () {
 
     assert.equal(true, withoutStylesDiv.classList.contains('test'));
 
-    await au.stop().wait();
+    await au.stop();
 
     au.dispose();
   });

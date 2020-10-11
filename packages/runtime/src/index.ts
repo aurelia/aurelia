@@ -494,7 +494,6 @@ export {
   AppTask,
   IAppTask,
   IAppTaskManager,
-  ProviderTask,
 } from './lifecycle-task';
 export {
   AccessorOrObserver,

@@ -309,13 +309,12 @@ describe('validate-binding-behavior', function () {
         host,
         component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
       })
-      .start()
-      .wait();
+      .start();
 
     const app = au.root.viewModel as App;
     await testFunction({ app, host, container, scheduler: app.scheduler, ctx });
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
 
     au.dispose();
@@ -700,12 +699,11 @@ describe('validate-binding-behavior', function () {
             host,
             component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
           })
-          .start()
-          .wait();
+          .start();
       } catch (e) {
         assert.equal(e.message.endsWith(expectedError), true);
       }
-      await au.stop().wait();
+      await au.stop();
       ctx.doc.body.removeChild(host);
 
       // TODO: there's a binding somewhere without a dispose() method, causing this to fail
@@ -1365,12 +1363,11 @@ describe('validate-binding-behavior', function () {
             host,
             component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
           })
-          .start()
-          .wait();
+          .start();
       } catch (e) {
         assert.equal(e.message, 'Unable to set property binding');
       }
-      await au.stop().wait();
+      await au.stop();
       ctx.doc.body.removeChild(host);
 
       au.dispose();
@@ -1422,8 +1419,7 @@ describe('validate-binding-behavior', function () {
 
     await au
       .app({ host, component: App1 })
-      .start()
-      .wait();
+      .start();
 
     const app: App1 = au.root.viewModel as App1;
     const controller = app.controller;
@@ -1441,7 +1437,7 @@ describe('validate-binding-behavior', function () {
     await assertEventHandler(target, 'focusout', 1, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
     assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error3');
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
 
     au.dispose();

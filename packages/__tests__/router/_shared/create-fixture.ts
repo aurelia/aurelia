@@ -87,7 +87,7 @@ export async function createFixture<T extends Constructable>(
 
   hia.setPhase('start');
 
-  await au.start().wait();
+  await au.start();
 
   return {
     ctx,
@@ -108,7 +108,7 @@ export async function createFixture<T extends Constructable>(
     async tearDown() {
       hia.setPhase('stop');
 
-      await au.stop().wait();
+      await au.stop();
 
       au.dispose();
     },

@@ -47,5 +47,5 @@ Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
     );
   au.app({ host, component });
 
-  await au.start().wait();
+  await au.start();
 })().catch(console.error);

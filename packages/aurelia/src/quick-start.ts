@@ -27,7 +27,7 @@ export class Aurelia extends $Aurelia<HTMLElement> {
     super(container);
   }
 
-  public static start(root: CompositionRoot<HTMLElement> | undefined): ILifecycleTask {
+  public static start(root: CompositionRoot<HTMLElement> | undefined): void | Promise<void> {
     return createAurelia().start(root);
   }
 

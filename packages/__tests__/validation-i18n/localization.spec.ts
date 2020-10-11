@@ -162,12 +162,11 @@ describe('validation-i18n', function () {
           return new ca(container);
         })()
       })
-      .start()
-      .wait();
+      .start();
 
     await testFunction({ app, container, host, scheduler: container.get(IScheduler), ctx });
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
 
     au.dispose();

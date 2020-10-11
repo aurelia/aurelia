@@ -347,10 +347,10 @@ describe('focus.spec.ts', function () {
     const App = CustomElement.define({ name: 'app', template }, $class);
     const component = new App();
 
-    let startPromise: Promise<unknown>;
+    let startPromise: Promise<void> | void;
     if (autoStart) {
       au.app({ host: appHost, component });
-      startPromise = au.start().wait();
+      startPromise = au.start();
     }
 
     return {
@@ -365,10 +365,10 @@ describe('focus.spec.ts', function () {
       observerLocator,
       start: async () => {
         au.app({ host: appHost, component });
-        await au.start().wait();
+        await au.start();
       },
       dispose: async () => {
-        await au.stop().wait();
+        await au.stop();
         testHost.remove();
 
         au.dispose();

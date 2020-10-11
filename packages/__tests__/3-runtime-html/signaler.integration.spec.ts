@@ -41,7 +41,7 @@ describe('signaler.integration', function () {
     const component = au.container.get(App);
     au.app({ host, component });
 
-    await au.start().wait();
+    await au.start();
 
     assert.visibleTextEqual(au.root, '1', 'assert #1');
     assert.isSchedulerEmpty();
@@ -71,7 +71,7 @@ describe('signaler.integration', function () {
     tq.flush();
     assert.visibleTextEqual(au.root, '22', 'assert #11');
 
-    await au.stop().wait();
+    await au.stop();
   });
 
   describe('array index assignment with repeater', function () {
@@ -109,7 +109,7 @@ describe('signaler.integration', function () {
         const component = au.container.get(App);
         au.app({ host, component });
 
-        await au.start().wait();
+        await au.start();
 
         assert.visibleTextEqual(au.root, '012', 'assert #1');
         assert.isSchedulerEmpty();
@@ -151,7 +151,7 @@ describe('signaler.integration', function () {
         tq.flush();
         assert.visibleTextEqual(au.root, '563', 'assert #11');
 
-        await au.stop().wait();
+        await au.stop();
       });
     }
   });

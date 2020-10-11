@@ -24,12 +24,12 @@ describe('LinkHandler', function () {
       .register(GotoCustomAttribute as unknown as IRegistry, HrefCustomAttribute as unknown as IRegistry)
       .app({ host, component: App });
 
-    await au.start().wait();
+    await au.start();
 
     const sut = container.get(LinkHandler);
 
     async function tearDown() {
-      await au.stop().wait();
+      await au.stop();
       doc.body.removeChild(host);
 
       au.dispose();

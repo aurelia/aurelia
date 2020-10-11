@@ -45,7 +45,7 @@ describe('translation-integration', function () {
 
     public async teardown() {
       if (this.error === null) {
-        await this.au.stop().wait();
+        await this.au.stop();
       }
     }
   }
@@ -122,8 +122,7 @@ describe('translation-integration', function () {
       await au
         .register(CustomMessage, FooBar)
         .app({ host, component })
-        .start()
-        .wait();
+        .start();
 
       await i18n.setLocale('en');
     } catch (e) {

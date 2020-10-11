@@ -971,7 +971,7 @@ describe('controller short-circuit', function () {
               describe(repeatHide ? 'hide->show->hide' : 'hide', function () {
                 it('beforeBind', async function () {
                   const { au, calls, component, config } = createAuFixture(A1Toggle, createConfig);
-                  await au.start().wait();
+                  await au.start();
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `0`);
 
@@ -1004,7 +1004,7 @@ describe('controller short-circuit', function () {
                   assert.deepStrictEqual(calls.history.splice(0), [
                     'a-1.afterUnbind',
                   ], `2.2`);
-                  await au.stop().wait();
+                  await au.stop();
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `2.1`);
 
@@ -1013,7 +1013,7 @@ describe('controller short-circuit', function () {
 
                 it('afterBind', async function () {
                   const { au, calls, component, config } = createAuFixture(A1Toggle, createConfig);
-                  await au.start().wait();
+                  await au.start();
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `0`);
 
@@ -1054,7 +1054,7 @@ describe('controller short-circuit', function () {
                   assert.deepStrictEqual(calls.history.splice(0), [
                     'a-1.afterUnbind',
                   ], `2.2`);
-                  await au.stop().wait();
+                  await au.stop();
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `2.1`);
 
@@ -1063,7 +1063,7 @@ describe('controller short-circuit', function () {
 
                 it('afterAttach', async function () {
                   const { au, calls, component, config } = createAuFixture(A1Toggle, createConfig);
-                  await au.start().wait();
+                  await au.start();
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `0`);
 
@@ -1112,7 +1112,7 @@ describe('controller short-circuit', function () {
                   assert.deepStrictEqual(calls.history.splice(0), [
                     'a-1.afterUnbind',
                   ], `2.2`);
-                  await au.stop().wait();
+                  await au.stop();
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `2.1`);
 
@@ -1121,7 +1121,7 @@ describe('controller short-circuit', function () {
 
                 it('afterAttachChildren', async function () {
                   const { au, calls, component, config } = createAuFixture(A1Toggle, createConfig);
-                  await au.start().wait();
+                  await au.start();
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `0`);
 
@@ -1178,7 +1178,7 @@ describe('controller short-circuit', function () {
                   assert.deepStrictEqual(calls.history.splice(0), [
                     'a-1.afterUnbindChildren',
                   ], `2.2`);
-                  await au.stop().wait();
+                  await au.stop();
                   assert.deepStrictEqual(calls.history.splice(0), [
                   ], `2.1`);
 

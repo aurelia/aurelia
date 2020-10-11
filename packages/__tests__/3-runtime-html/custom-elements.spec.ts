@@ -992,8 +992,8 @@
 //       au.app({ component: App, host });
 
 //       // Act
-//       await au.start().wait();
-//       await au.stop().wait();
+//       await au.start();
+//       await au.stop();
 
 //       // Assert
 //       assert.deepStrictEqual(actualCalls, expectedCalls);
@@ -1096,8 +1096,8 @@
 //       au.app({ component: App, host });
 
 //       // Act
-//       await au.start().wait();
-//       await au.stop().wait();
+//       await au.start();
+//       await au.stop();
 
 //       // Assert
 //       assert.deepStrictEqual(actualCalls, expectedCalls);

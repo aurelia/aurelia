@@ -40,8 +40,7 @@ describe('au-slot', function () {
           host,
           component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
         })
-        .start()
-        .wait();
+        .start();
       app = au.root.viewModel as App;
     } catch (e) {
       error = e;
@@ -50,7 +49,7 @@ describe('au-slot', function () {
     await testFunction(new AuSlotTestExecutionContext(ctx, container, host, app, error));
 
     if (error === null) {
-      await au.stop().wait();
+      await au.stop();
     }
     ctx.doc.body.removeChild(host);
   }

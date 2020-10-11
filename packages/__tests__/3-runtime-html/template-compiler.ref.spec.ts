@@ -477,14 +477,14 @@ describe('templating-compiler.ref.spec.ts', function () {
         let component: any;
         try {
           au.app({ host, component: App });
-          await au.start().wait();
+          await au.start();
           component = au.root.viewModel;
         } catch (ex) {
           if (testWillThrow) {
             // dont try to assert anything on throw
             // just bails
             try {
-              await au.stop().wait();
+              await au.stop();
             } catch {/* and ignore all errors trying to stop */}
             return;
           }
@@ -497,7 +497,7 @@ describe('templating-compiler.ref.spec.ts', function () {
 
         await assertFn(ctx, host, component);
 
-        await au.stop().wait();
+        await au.stop();
         await assertFnAfterDestroy(ctx, host, component);
         au.dispose();
       } finally {

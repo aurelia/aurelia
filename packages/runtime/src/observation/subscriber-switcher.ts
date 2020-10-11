@@ -1,9 +1,10 @@
 import { IConnectableBinding } from '../binding/connectable';
-import { IndexMap } from '../observation';
-import { LifecycleFlags } from '../flags';
+import { Collection, ICollectionSubscriber } from '../observation';
 
-export interface IWatcher extends IConnectableBinding {
-  handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
+export interface IWatcher extends IConnectableBinding, ICollectionSubscriber {
+  observeCollection(collection: Collection): void;
+  observeCollectionSize(collection: Collection): void;
+  observeArrayIndex(arr: unknown[], index: number): void;
 }
 
 /**

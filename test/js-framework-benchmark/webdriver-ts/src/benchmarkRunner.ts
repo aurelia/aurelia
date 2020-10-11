@@ -120,8 +120,8 @@ async function runBench(runFrameworks: FrameworkData[], benchmarkNames: string[]
         for (let j = 0; j < runBenchmarks.length; j++) {
             try {
                 let result = await runBenchmakLoop(runFrameworks, runFrameworks[i].name, runFrameworks[i].keyed, runBenchmarks[j].id, benchmarkOptions);
-                errors = errors.concat(result.errors);
-                warnings = warnings.concat(result.warnings);
+                errors = errors.concat(result && result.errors || []);
+                warnings = warnings.concat(result && result.warnings || []);
             } catch (e) {
                 console.log("UNHANDELED ERROR", e);
                 errors.push(e);

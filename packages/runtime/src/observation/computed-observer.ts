@@ -320,15 +320,23 @@ export interface ComputedWatcher extends IConnectableBinding {}
 @collectionSubscriberCollection()
 export class ComputedWatcher implements IWatcher {
 
-  private readonly observers: Set<ICollectionObserver<CollectionKind>> = new Set();
   private isCollecting: boolean = false;
+  private readonly observers: Set<ICollectionObserver<CollectionKind>> = new Set();
+  private readonly callback: IWatcherCallback<object>;
 
   public constructor(
     public readonly obj: IObservable,
     public readonly observerLocator: IObserverLocator,
-    public readonly computed: (obj: unknown) => unknown,
-    public readonly callback: IWatcherCallback<object>,
-  ) {}
+    public readonly computed: (obj: object) => unknown,
+    callback: PropertyKey | IWatcherCallback<object>,
+  ) {
+    callback = this.callback = typeof callback !== 'function'
+      ? Reflect.get(obj, callback)
+      : callback;
+    if (typeof callback !== 'function') {
+      throw new Error(`Invalid callback for @watch: ${String(callback)}`);
+    }
+  }
 
   public handleChange(_newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
     if (this.isCollecting) {
@@ -413,15 +421,15 @@ export class ExpressionWatcher implements ExpressionWatcher {
   public callback: IWatcherCallback<object>;
 
   public constructor(
-    public sourceExpression: IsBindingBehavior,
     public scope: IScope,
-    callback: string | IWatcherCallback<object>,
     public locator: IServiceLocator,
     public observerLocator: IObserverLocator,
+    public sourceExpression: IsBindingBehavior,
+    callback: PropertyKey | IWatcherCallback<object>,
   ) {
     const obj = this.obj = scope.bindingContext;
     callback = this.callback = typeof callback !== 'function'
-      ? obj[callback]
+      ? Reflect.get(obj, callback)
       : callback;
     if (typeof callback !== 'function') {
       throw new Error(`Invalid callback for @watch: ${String(callback)}`);

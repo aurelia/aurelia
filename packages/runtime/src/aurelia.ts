@@ -35,6 +35,9 @@ export interface ISinglePageApp<THost extends INode = INode> {
 
 type Publisher = { dispatchEvent(evt: unknown, options?: unknown): void };
 
+export interface ICompositionRoot<T extends INode = INode> extends CompositionRoot<T> {}
+export const ICompositionRoot = DI.createInterface<ICompositionRoot>('ICompositionRoot').noDefault();
+
 export class CompositionRoot<T extends INode = INode> implements IDisposable {
   public readonly config: ISinglePageApp<T>;
   public readonly container: IContainer;
@@ -52,7 +55,7 @@ export class CompositionRoot<T extends INode = INode> implements IDisposable {
   public constructor(
     config: ISinglePageApp<T>,
     container: IContainer,
-    rootProvider: InstanceProvider<CompositionRoot<T>>,
+    rootProvider: InstanceProvider<ICompositionRoot<T>>,
     enhance: boolean = false,
   ) {
     this.config = config;
@@ -99,7 +102,7 @@ export class CompositionRoot<T extends INode = INode> implements IDisposable {
     this.taskManager.enqueueBeforeCompileChildren();
     this.taskManager.enqueueBeforeCompile();
     // This "hack" with delayed hydration is to make the controller instance accessible to the `beforeCompile` and `beforeCompileChildren` hooks via the composition root.
-    this.controller = Controller.forCustomElement(instance, this.lifecycle, this.host, container, null, this.strategy as number, false, this.enhanceDefinition);
+    this.controller = Controller.forCustomElement(this, container, instance, this.lifecycle, this.host, null, this.strategy as number, false, this.enhanceDefinition);
     (this.controller as unknown as Controller)['hydrateCustomElement'](container, null);
   }
 
@@ -124,6 +127,9 @@ export class CompositionRoot<T extends INode = INode> implements IDisposable {
   }
 }
 
+export interface IAurelia<T extends INode = INode> extends Aurelia<T> {}
+export const IAurelia = DI.createInterface<IAurelia>('IAurelia').noDefault();
+
 export class Aurelia<TNode extends INode = INode> implements IDisposable {
   private _isRunning: boolean = false;
   public get isRunning(): boolean { return this._isRunning; }
@@ -132,8 +138,8 @@ export class Aurelia<TNode extends INode = INode> implements IDisposable {
   private _isStopping: boolean = false;
   public get isStopping(): boolean { return this._isStopping; }
 
-  private _root: CompositionRoot<TNode> | undefined = void 0;
-  public get root(): CompositionRoot<TNode> {
+  private _root: ICompositionRoot<TNode> | undefined = void 0;
+  public get root(): ICompositionRoot<TNode> {
     if (this._root == void 0) {
       if (this.next == void 0) {
         throw new Error(`root is not defined`); // TODO: create error code
@@ -143,19 +149,19 @@ export class Aurelia<TNode extends INode = INode> implements IDisposable {
     return this._root;
   }
 
-  private next: CompositionRoot<TNode> | undefined = void 0;
+  private next: ICompositionRoot<TNode> | undefined = void 0;
 
-  private readonly rootProvider: InstanceProvider<CompositionRoot<TNode>>;
+  private readonly rootProvider: InstanceProvider<ICompositionRoot<TNode>>;
 
   public constructor(
     public readonly container: IContainer = DI.createContainer(),
   ) {
-    if (container.has(Aurelia, true)) {
+    if (container.has(IAurelia, true)) {
       throw new Error('An instance of Aurelia is already registered with the container or an ancestor of it.');
     }
 
-    container.register(Registration.instance(Aurelia, this));
-    container.registerResolver(CompositionRoot, this.rootProvider = new InstanceProvider());
+    container.register(Registration.instance(IAurelia, this));
+    container.registerResolver(ICompositionRoot, this.rootProvider = new InstanceProvider());
   }
 
   public register(...params: any[]): this {
@@ -174,7 +180,7 @@ export class Aurelia<TNode extends INode = INode> implements IDisposable {
   }
 
   private startPromise: Promise<void> | void = void 0;
-  public start(root: CompositionRoot<TNode> | undefined = this.next): void | Promise<void> {
+  public start(root: ICompositionRoot<TNode> | undefined = this.next): void | Promise<void> {
     if (root == void 0) {
       throw new Error(`There is no composition root`);
     }
@@ -228,7 +234,7 @@ export class Aurelia<TNode extends INode = INode> implements IDisposable {
     this.container.dispose();
   }
 
-  private dispatchEvent(root: CompositionRoot, name: string, target: IDOM<TNode> | (TNode & Partial<Publisher>)): void {
+  private dispatchEvent(root: ICompositionRoot, name: string, target: IDOM<TNode> | (TNode & Partial<Publisher>)): void {
     const $target = ('dispatchEvent' in target ? target : root.dom) as Publisher;
     $target.dispatchEvent(root.dom.createCustomEvent(name, { detail: this, bubbles: true, cancelable: true }));
   }

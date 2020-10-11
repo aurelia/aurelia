@@ -30,7 +30,7 @@ import {
   Scheduler,
 } from '@aurelia/scheduler';
 import {
-  CompositionRoot, CustomElement, CustomAttribute, IScheduler, ITaskQueue, TaskQueue, TaskQueuePriority, ITask,
+  ICompositionRoot, CustomElement, CustomAttribute, IScheduler, ITaskQueue, TaskQueue, TaskQueuePriority, ITask,
 } from '@aurelia/runtime';
 import {
   isDeepEqual,
@@ -383,7 +383,7 @@ export function fail(message: string | Error = 'Failed'): never {
   throw err;
 }
 
-export function visibleTextEqual(root: CompositionRoot, expectedText: string, message?: string): void {
+export function visibleTextEqual(root: ICompositionRoot, expectedText: string, message?: string): void {
   const actualText = getVisibleText(root.controller!, root.host as Node);
   if (actualText !== expectedText) {
     innerFail({

@@ -294,10 +294,11 @@ export class CustomElementRenderer implements IInstructionRenderer {
 
     const lifecycle = context.get(ILifecycle);
     const childController = Controller.forCustomElement(
+      /* root                */controller.root,
+      /* container           */context,
       /* viewModel           */component,
       /* lifecycle           */lifecycle,
       /* host                */target,
-      /* parentContainer     */context,
       /* targetedProjections */context.getProjectionFor(instruction),
       /* flags               */flags,
     );
@@ -341,6 +342,8 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 
     const lifecycle = context.get(ILifecycle);
     const childController = Controller.forCustomAttribute(
+      /* root      */controller.root,
+      /* container */context,
       /* viewModel */component,
       /* lifecycle */lifecycle,
       /* host      */target,
@@ -367,16 +370,16 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 export class TemplateControllerRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
-    parentContext: ICompiledRenderContext,
+    context: ICompiledRenderContext,
     controller: IRenderableController,
     target: INode,
     instruction: IHydrateTemplateController,
   ): void {
 
-    const viewFactory = getRenderContext(instruction.def, parentContext).getViewFactory();
-    const renderLocation = parentContext.dom.convertToRenderLocation(target);
+    const viewFactory = getRenderContext(instruction.def, context).getViewFactory();
+    const renderLocation = context.dom.convertToRenderLocation(target);
 
-    const componentFactory = parentContext.getComponentFactory(
+    const componentFactory = context.getComponentFactory(
       /* parentController */controller,
       /* host             */target,
       /* instruction      */instruction,
@@ -387,8 +390,10 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     const key = CustomAttribute.keyFrom(instruction.res);
     const component = componentFactory.createComponent<ICustomAttributeViewModel>(key);
 
-    const lifecycle = parentContext.get(ILifecycle);
+    const lifecycle = context.get(ILifecycle);
     const childController = Controller.forCustomAttribute(
+      /* root      */controller.root,
+      /* container */context,
       /* viewModel */component,
       /* lifecycle */lifecycle,
       /* host      */target,
@@ -402,7 +407,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
       (component as { link(componentTail: IController): void}).link(children[children.length - 1]);
     }
 
-    parentContext.renderInstructions(
+    context.renderInstructions(
       /* flags        */flags,
       /* instructions */instruction.instructions,
       /* controller   */controller,

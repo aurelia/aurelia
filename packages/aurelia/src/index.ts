@@ -245,6 +245,7 @@ export {
 } from '@aurelia/router';
 
 export {
+  IAurelia,
   // CallFunctionExpression,
   // connects,
   // observes,
@@ -515,7 +516,7 @@ export {
   // Aurelia, // Replaced by quick-start wrapper
   // IDOMInitializer,
   // ISinglePageApp,
-  CompositionRoot,
+  ICompositionRoot,
 
   // IfRegistration,
   // ElseRegistration,

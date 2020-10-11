@@ -331,9 +331,11 @@ export {
 
 export {
   Aurelia,
+  IAurelia,
   IDOMInitializer,
   ISinglePageApp,
   CompositionRoot,
+  ICompositionRoot,
 } from './aurelia';
 export {
   RefAttributePatternRegistration,

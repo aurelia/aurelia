@@ -205,10 +205,11 @@ describe('Styles', function () {
 
       const component = new FooBar();
       const controller = Controller.forCustomElement(
+        null,
+        ctx.container,
         component as ICustomElementViewModel<HTMLElement>,
         ctx.lifecycle,
         host,
-        ctx.container,
         void 0,
         null,
       );

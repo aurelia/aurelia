@@ -79,7 +79,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
       return controller;
     }
 
-    controller = Controller.forSyntheticView(this, this.lifecycle, this.context, flags);
+    controller = Controller.forSyntheticView(null, this.context, this, this.lifecycle, flags);
     return controller;
   }
 }

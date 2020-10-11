@@ -76,10 +76,11 @@ function createController<T extends Constructable>(
 
   const host = ctx.createElement('div');
   return Controller.forCustomElement(
+    null,
+    container,
     component,
     lifecycle,
     host,
-    container,
     void 0,
   );
 }

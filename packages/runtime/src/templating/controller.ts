@@ -82,6 +82,7 @@ import {
 import { ChildrenObserver } from './children';
 import { RegisteredProjections } from '../resources/custom-elements/au-slot';
 import { IAppTaskManager } from '../lifecycle-task';
+import { ICompositionRoot } from '../aurelia';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -147,6 +148,8 @@ export class Controller<
   private fullyNamed: boolean = false;
 
   public constructor(
+    public root: ICompositionRoot<T> | null,
+    public container: IContainer,
     public readonly vmKind: ViewModelKind,
     public flags: LifecycleFlags,
     public readonly lifecycle: ILifecycle,
@@ -168,7 +171,11 @@ export class Controller<
      * The physical host dom node. Only present for custom elements.
      */
     public host: T | undefined,
-  ) {}
+  ) {
+    if (root === null && container.has(ICompositionRoot, true)) {
+      this.root = container.get<ICompositionRoot<T>>(ICompositionRoot);
+    }
+  }
 
   public static getCached<
     T extends INode = INode,
@@ -192,10 +199,11 @@ export class Controller<
     T extends INode = INode,
     C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>,
   >(
+    root: ICompositionRoot<T> | null,
+    container: IContainer,
     viewModel: C,
     lifecycle: ILifecycle,
     host: T,
-    parentContainer: IContainer,
     // projections *targeted* for this custom element. these are not the projections *provided* by this custom element.
     targetedProjections: RegisteredProjections | null,
     flags: LifecycleFlags = LifecycleFlags.none,
@@ -211,6 +219,8 @@ export class Controller<
     flags |= definition.strategy;
 
     const controller = new Controller<T, C>(
+      /* root           */root,
+      /* container      */container,
       /* vmKind         */ViewModelKind.customElement,
       /* flags          */flags,
       /* lifecycle      */lifecycle,
@@ -225,7 +235,7 @@ export class Controller<
     controllerLookup.set(viewModel, controller as Controller);
 
     if (hydrate) {
-      controller.hydrateCustomElement(parentContainer, targetedProjections);
+      controller.hydrateCustomElement(container, targetedProjections);
     }
 
     return controller as unknown as ICustomElementController<T, C>;
@@ -235,6 +245,8 @@ export class Controller<
     T extends INode = INode,
     C extends ICustomAttributeViewModel<T> = ICustomAttributeViewModel<T>,
   >(
+    root: ICompositionRoot<T> | null,
+    container: IContainer,
     viewModel: C,
     lifecycle: ILifecycle,
     host: T,
@@ -248,6 +260,8 @@ export class Controller<
     flags |= definition.strategy;
 
     const controller = new Controller<T, C>(
+      /* root           */root,
+      /* container      */container,
       /* vmKind         */ViewModelKind.customAttribute,
       /* flags          */flags,
       /* lifecycle      */lifecycle,
@@ -269,12 +283,15 @@ export class Controller<
   public static forSyntheticView<
     T extends INode = INode,
   >(
+    root: ICompositionRoot<T> | null,
+    context: IRenderContext<T>,
     viewFactory: IViewFactory<T>,
     lifecycle: ILifecycle,
-    context: IRenderContext<T>,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): ISyntheticView<T> {
     const controller = new Controller<T>(
+      /* root           */root,
+      /* container      */context,
       /* vmKind         */ViewModelKind.synthetic,
       /* flags          */flags,
       /* lifecycle      */lifecycle,
@@ -1174,6 +1191,7 @@ export class Controller<
     }
     this.bindingContext = void 0;
     this.host = void 0;
+    this.root = null;
   }
 
   public accept(visitor: ControllerVisitor<T>): void | true {

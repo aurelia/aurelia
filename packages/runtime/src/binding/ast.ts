@@ -409,17 +409,20 @@ export class AccessScopeExpression {
   public get hasUnbind(): false { return false; }
 
   public constructor(
-    public readonly name: string,
+    // property key instead of string
+    // so that it can support manual ast construction
+    public readonly name: PropertyKey,
     public readonly ancestor: number = 0,
     public readonly accessHostScope: boolean = false,
   ) {}
 
   public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, connectable: IConnectable | null): unknown {
-    const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope) as IBindingContext;
+    const name = this.name as string;
+    const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), name, this.ancestor, flags, hostScope) as IBindingContext;
     if (connectable != null) {
-      connectable.observeProperty(flags, obj, this.name);
+      connectable.observeProperty(flags, obj, name);
     }
-    const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
+    const evaluatedValue = obj[name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (flags & LifecycleFlags.isStrictBindingStrategy) {
       return evaluatedValue;
     }
@@ -427,21 +430,23 @@ export class AccessScopeExpression {
   }
 
   public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown {
-    const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope) as IBindingContext;
+    const name = this.name as string;
+    const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), name, this.ancestor, flags, hostScope) as IBindingContext;
     if (obj instanceof Object) {
-      if (obj.$observers?.[this.name] != null) {
-        obj.$observers[this.name].setValue(value, flags);
+      if (obj.$observers?.[name] != null) {
+        obj.$observers[name].setValue(value, flags);
         return value;
       } else {
-        return obj[this.name] = value;
+        return obj[name] = value;
       }
     }
     return void 0;
   }
 
   public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const context = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope)!;
-    binding.observeProperty(flags, context, this.name);
+    const name = this.name as string;
+    const context = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), name, this.ancestor, flags, hostScope)!;
+    binding.observeProperty(flags, context, name);
   }
 
   public accept<T>(visitor: IVisitor<T>): T {

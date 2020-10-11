@@ -4,9 +4,10 @@ import {
   IIndexable,
   PLATFORM,
   Reporter,
-  isArrayIndex
+  isArrayIndex,
+  IServiceLocator,
 } from '@aurelia/kernel';
-import { LifecycleFlags } from '../flags';
+import { LifecycleFlags, ExpressionKind } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import {
   IBindingContext,
@@ -14,11 +15,20 @@ import {
   ICollectionSubscribable,
   IObservable,
   ISubscribable,
-  ISubscriber
+  ISubscriber,
+  Collection,
+  ICollectionObserver,
+  CollectionKind,
+  IndexMap,
+  IScope
 } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
 import { IObserverLocator } from './observer-locator';
-import { subscriberCollection } from './subscriber-collection';
+import { subscriberCollection, collectionSubscriberCollection } from './subscriber-collection';
+import { IWatcher, enterWatcher, exitWatcher } from './subscriber-switcher';
+import { connectable, IConnectableBinding } from '../binding/connectable';
+import { IWatcherCallback } from '../templating/watch';
+import { IsBindingBehavior } from '../binding/ast';
 
 export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
@@ -289,19 +299,6 @@ function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLoca
   };
 }
 
-@subscriberCollection()
-export class ComputedObserver {
-
-  public constructor(
-    flags: LifecycleFlags,
-    public readonly obj: IObservable,
-    public readonly propertyKey: PropertyKey,
-    private readonly descriptor: PropertyDescriptor,
-    public readonly observerLocator: IObserverLocator,
-    public readonly computed: () => unknown,
-  ) {}
-}
-
 /**
  * _@param observer The owning observer of current evaluation, will subscribe to all observers created via proxy
  */
@@ -312,3 +309,146 @@ function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, o
   }
   return new Proxy(value, createGetterTraps(flags, observerLocator, observer));
 }
+
+export interface ComputedWatcher extends IConnectableBinding {}
+@connectable()
+@subscriberCollection()
+@collectionSubscriberCollection()
+export class ComputedWatcher implements IWatcher {
+
+  private readonly observers: Set<ICollectionObserver<CollectionKind>> = new Set();
+  private isCollecting: boolean = false;
+
+  public constructor(
+    public readonly obj: IObservable,
+    public readonly observerLocator: IObserverLocator,
+    public readonly computed: (obj: unknown) => unknown,
+    public readonly callback: IWatcherCallback<object>,
+  ) {}
+
+  public handleChange(_newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
+    if (this.isCollecting) {
+      throw new Error('Circular dependencies detected');
+    }
+    this.isCollecting = true;
+    enterWatcher(this);
+    // should queue for batch synchronous
+    this.computed(this.obj);
+    exitWatcher(this);
+    this.isCollecting = false;
+  }
+
+  public handleCollectionChange(_indexMap: IndexMap, _flags: LifecycleFlags): void {
+    if (this.isCollecting) {
+      throw new Error('Circular dependencies detected');
+    }
+    this.isCollecting = true;
+    enterWatcher(this);
+    this.computed(this.obj);
+    exitWatcher(this);
+    this.isCollecting = false;
+  }
+
+  public $bind(): void {
+    // empty
+  }
+
+  public $unbind(): void {
+    this.observers.forEach(observer => observer.unsubscribeFromCollection(this));
+    this.observers.clear();
+  }
+
+  public observeCollection(collection: Collection): void {
+    this.getCollectionObserver(collection).subscribeToCollection(this);
+  }
+
+  public observeCollectionSize(collection: Collection): void {
+    this.getCollectionObserver(collection).getLengthObserver().subscribe(this);
+  }
+
+  public observeArrayIndex(arr: unknown[], index: number): void {
+    this.getCollectionObserver(arr).getIndexObserver(index).subscribe(this);
+  }
+
+  private getCollectionObserver(collection: Collection): ICollectionObserver<CollectionKind> {
+    const obsLocator = this.observerLocator;
+    let observer: ICollectionObserver<CollectionKind>;
+    if (collection instanceof Array) {
+      observer = obsLocator.getArrayObserver(LifecycleFlags.none, collection);
+    } else if (collection instanceof Set) {
+      observer = obsLocator.getSetObserver(LifecycleFlags.none, collection);
+    } else {
+      observer = obsLocator.getMapObserver(LifecycleFlags.none, collection);
+    }
+    this.observers.add(observer);
+    return observer;
+  }
+}
+
+/**
+ * @internal The interface describes methods added by `connectable` & `subscriberCollection` decorators
+ */
+export interface ExpressionWatcher extends IConnectableBinding {
+  scope: IScope;
+  callback: IWatcherCallback<object>;
+  start(): void;
+  stop(): void;
+}
+
+@connectable()
+export class ExpressionWatcher implements ExpressionWatcher {
+  /**
+   * @internal
+   */
+  private oV: any;
+  /**
+   * @internal
+   */
+  private obj: object;
+
+  public callback: IWatcherCallback<object>;
+
+  public constructor(
+    public sourceExpression: IsBindingBehavior,
+    public scope: IScope,
+    callback: string | IWatcherCallback<object>,
+    public locator: IServiceLocator,
+    public observerLocator: IObserverLocator,
+  ) {
+    const obj = this.obj = scope.bindingContext;
+    callback = this.callback = typeof callback !== 'function'
+      ? obj[callback]
+      : callback;
+    if (typeof callback !== 'function') {
+      throw new Error('Invalid callback');
+    }
+  }
+
+  public handleChange(value: unknown): void {
+    const expression = this.sourceExpression;
+    const canOptimize = expression.$kind === ExpressionKind.AccessScope;
+    const oldValue = this.oV;
+    const obj = this.obj;
+    if (!canOptimize) {
+      this.version++;
+      value = expression.evaluate(0, this.scope, null, this.locator, this);
+      this.unobserve(false);
+    }
+    if (!Object.is(value, oldValue)) {
+      this.oV = value;
+      this.callback.call(obj, value, oldValue, obj);
+    }
+  }
+
+  public start(): void {
+    this.version++;
+    this.oV = this.sourceExpression.evaluate(0, this.scope, null, this.locator, this);
+    this.unobserve(false);
+  }
+
+  public stop(): void {
+    this.unobserve(true);
+    this.oV = void 0;
+  }
+}
+

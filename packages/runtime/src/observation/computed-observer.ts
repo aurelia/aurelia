@@ -320,10 +320,12 @@ export interface ComputedWatcher extends IConnectableBinding {}
 @subscriberCollection()
 @collectionSubscriberCollection()
 export class ComputedWatcher implements IWatcher {
+  
+  private readonly observers: Map<ICollectionObserver<CollectionKind>, number> = new Map();
+  private readonly callback: IWatcherCallback<object>;
 
   private isCollecting: boolean = false;
-  private readonly observers: Set<ICollectionObserver<CollectionKind>> = new Set();
-  private readonly callback: IWatcherCallback<object>;
+  private oV: unknown = void 0;
 
   public constructor(
     public readonly obj: IObservable,
@@ -343,32 +345,54 @@ export class ComputedWatcher implements IWatcher {
     if (this.isCollecting) {
       throw new Error('Circular dependencies detected');
     }
+    const oldValue = this.oV;
+    const obj = this.obj;
     this.isCollecting = true;
+    this.version++;
     enterWatcher(this);
-    // should queue for batch synchronous
-    this.computed(getProxyOrSelf(this.obj));
+    const newValue = this.computed(getProxyOrSelf(obj));
     exitWatcher(this);
+    this.unobserve(false);
+    this.unobserveCollection(false);
     this.isCollecting = false;
+    
+    if (!Object.is(newValue, oldValue)) {
+      this.oV = newValue;
+      // should optionally queue for batched synchronous
+      this.callback.call(obj, newValue, oldValue, obj);
+    }
   }
 
   public handleCollectionChange(_indexMap: IndexMap, _flags: LifecycleFlags): void {
     if (this.isCollecting) {
       throw new Error('Circular dependencies detected');
     }
+    const oldValue = this.oV;
+    const obj = this.obj;
     this.isCollecting = true;
+    this.version++;
     enterWatcher(this);
-    this.computed(getProxyOrSelf(this.obj));
+    const newValue = this.computed(getProxyOrSelf(obj));
     exitWatcher(this);
+    this.unobserve(false);
+    this.unobserveCollection(false);
     this.isCollecting = false;
+
+    if (!Object.is(newValue, oldValue)) {
+      this.oV = newValue;
+      // should optionally queue
+      this.callback.call(obj, newValue, oldValue, obj);
+    }
   }
 
   public $bind(): void {
-    // empty
+    enterWatcher(this);
+    this.oV = this.computed(getProxyOrSelf(this.obj));
+    exitWatcher(this);
   }
 
   public $unbind(): void {
-    this.observers.forEach(observer => observer.unsubscribeFromCollection(this));
-    this.observers.clear();
+    this.unobserveCollection(true);
   }
 
   public observeCollection(collection: Collection): void {
@@ -393,8 +417,19 @@ export class ComputedWatcher implements IWatcher {
     } else {
       observer = obsLocator.getMapObserver(LifecycleFlags.none, collection);
     }
-    this.observers.add(observer);
+    this.observers.set(observer, this.version);
     return observer;
+  }
+
+  private unobserveCollection(all: boolean): void {
+    const version = this.version;
+    const observers = this.observers;
+    observers.forEach((v, o) => {
+      if (all || v !== version) {
+        o.unsubscribeFromCollection(this);
+        observers.delete(o);
+      }
+    });
   }
 }
 
@@ -444,6 +479,7 @@ export class ExpressionWatcher implements ExpressionWatcher {
     }
     if (!Object.is(value, oldValue)) {
       this.oV = value;
+      // should optionally queue for batch synchronous
       this.callback.call(obj, value, oldValue, obj);
     }
   }

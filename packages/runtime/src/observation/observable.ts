@@ -68,12 +68,12 @@ export function observable(
     //    @observable('prop')
     //    class {}
     //
-    //    @observable({ name: 'prop', changeHandler: ... })
+    //    @observable({ name: 'prop', callback: ... })
     //    class {}
     //
     //    class {
     //      @observable() prop
-    //      @observable({ changeHandler: ... }) prop2
+    //      @observable({ callback: ... }) prop2
     //    }
     return ((t: Constructable, k: PropertyKey, d: PropertyDescriptor) => deco(t, k, d, targetOrConfig)) as ClassDecorator;
   }

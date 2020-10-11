@@ -305,12 +305,12 @@ export class Controller<
     let definition = this.definition as CustomElementDefinition;
     const flags = this.flags |= definition.strategy;
     const instance = this.viewModel as BindingContext<T, C>;
+    const scope = this.scope = Scope.create(flags, this.bindingContext!, null);
+    const hooks = this.hooks;
+
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this as Controller, definition, flags, instance);
 
-    const scope = this.scope = Scope.create(flags, this.bindingContext!, null);
-
-    const hooks = this.hooks;
     if (hooks.hasCreate) {
       if (this.debug) {
         this.logger.trace(`invoking create() hook`);
@@ -1320,6 +1320,15 @@ function createChildrenObservers(
       }
     }
   }
+}
+
+function createWatchers(
+  controller: Controller,
+  definition: CustomElementDefinition | CustomAttributeDefinition,
+  flags: LifecycleFlags,
+  instance: object,
+) {
+
 }
 
 function clearLinks<T extends INode>(initiator: Controller<T>): void {

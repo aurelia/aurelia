@@ -89,6 +89,8 @@ export const arrayHandler: ProxyHandler<unknown[]> = {
   },
 }
 
+// the below logic takes inspiration from Vue, Mobx
+// much thanks to them for working out this
 export const collectionHandler: ProxyHandler<$MapOrSet> = {
   get(target: $MapOrSet, key: PropertyKey, receiver?): unknown {
     // maybe use symbol?

@@ -1,6 +1,11 @@
 import { IConnectableBinding } from '../binding/connectable';
 import { Collection, ICollectionSubscriber } from '../observation';
 
+// todo:
+// merge collection subscription to property subscription
+// and make IWatcher simpler, so observers in static observation won't have to implement many methods
+// An alternative way is to make collection observation manual & user controllable
+// so it works even without proxy
 export interface IWatcher extends IConnectableBinding, ICollectionSubscriber {
   observeCollection(collection: Collection): void;
   observeCollectionSize(collection: Collection): void;

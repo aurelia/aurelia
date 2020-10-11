@@ -29,6 +29,7 @@ import { IWatcher, enterWatcher, exitWatcher } from './subscriber-switcher';
 import { connectable, IConnectableBinding } from '../binding/connectable';
 import { IWatcherCallback } from '../templating/watch';
 import { IsBindingBehavior } from '../binding/ast';
+import { getProxyOrSelf } from './proxy-observation';
 
 export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
@@ -310,6 +311,9 @@ function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, o
   return new Proxy(value, createGetterTraps(flags, observerLocator, observer));
 }
 
+// watchers (Computed & Expression) are basically binding,
+// they are treated as special and setup before all other bindings
+
 export interface ComputedWatcher extends IConnectableBinding {}
 @connectable()
 @subscriberCollection()
@@ -333,7 +337,7 @@ export class ComputedWatcher implements IWatcher {
     this.isCollecting = true;
     enterWatcher(this);
     // should queue for batch synchronous
-    this.computed(this.obj);
+    this.computed(getProxyOrSelf(this.obj));
     exitWatcher(this);
     this.isCollecting = false;
   }
@@ -344,7 +348,7 @@ export class ComputedWatcher implements IWatcher {
     }
     this.isCollecting = true;
     enterWatcher(this);
-    this.computed(this.obj);
+    this.computed(getProxyOrSelf(this.obj));
     exitWatcher(this);
     this.isCollecting = false;
   }
@@ -420,7 +424,7 @@ export class ExpressionWatcher implements ExpressionWatcher {
       ? obj[callback]
       : callback;
     if (typeof callback !== 'function') {
-      throw new Error('Invalid callback');
+      throw new Error(`Invalid callback for @watch: ${String(callback)}`);
     }
   }
 
@@ -438,6 +442,14 @@ export class ExpressionWatcher implements ExpressionWatcher {
       this.oV = value;
       this.callback.call(obj, value, oldValue, obj);
     }
+  }
+
+  public $bind(): void {
+    this.start();
+  }
+
+  public $unbind(): void {
+    this.stop();
   }
 
   public start(): void {

@@ -289,6 +289,19 @@ function createGetterTraps(flags: LifecycleFlags, observerLocator: IObserverLoca
   };
 }
 
+@subscriberCollection()
+export class ComputedObserver {
+
+  public constructor(
+    flags: LifecycleFlags,
+    public readonly obj: IObservable,
+    public readonly propertyKey: PropertyKey,
+    private readonly descriptor: PropertyDescriptor,
+    public readonly observerLocator: IObserverLocator,
+    public readonly computed: () => unknown,
+  ) {}
+}
+
 /**
  * _@param observer The owning observer of current evaluation, will subscribe to all observers created via proxy
  */

@@ -9,6 +9,7 @@ import {
   PropertyObserver
 } from '../observation';
 import { proxySubscriberCollection, subscriberCollection } from './subscriber-collection';
+import { defineHiddenProp, isObject, isArray } from './utilities-objects';
 
 type Indexable = Record<string | number, unknown>;
 
@@ -192,4 +193,44 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
       subscribers.callSubscribers(newValue, oldValue, LifecycleFlags.proxyStrategy | LifecycleFlags.updateTargetInstance);
     }
   }
+}
+
+interface IMaybeProxied<T = unknown> {
+  _iP_?: T;
+}
+
+interface IMaybeProxy<T = unknown> {
+  _iP_?: T & { _raw_?: T; }
+}
+
+export const rawKey = '_raw_';
+export const proxyKey = '_iP_';
+
+export function getProxy<T extends object>(obj: T): T {
+  return (obj as IMaybeProxied<T>)._iP_ ?? createProxy(obj);
+}
+
+export function getRaw<T>(obj: T): T {
+  // todo: get in a weakmap if null/undef
+  return obj[rawKey] ?? obj;
+}
+
+export function doNotCollect(obj: object, key: PropertyKey): boolean {
+  return key === 'constructor'
+    || key === rawKey
+    || key === proxyKey
+    || key === '__proto__';
+}
+
+const proxyMap = new WeakMap<object, object>();
+
+function createProxy<T extends object>(obj: T): T {
+  const handler: ProxyHandler<T> = isArray(obj)
+    ? {}
+    : {};
+
+  const proxiedObj = new Proxy(obj, handler);
+  proxyMap.set(obj, proxiedObj);
+
+  return proxiedObj;
 }

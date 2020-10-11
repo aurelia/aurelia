@@ -492,13 +492,13 @@ export class ExpressionWatcher implements ExpressionWatcher {
     this.stop();
   }
 
-  public start(): void {
+  private start(): void {
     this.version++;
     this.oV = this.sourceExpression.evaluate(0, this.scope, null, this.locator, this);
     this.unobserve(false);
   }
 
-  public stop(): void {
+  private stop(): void {
     this.unobserve(true);
     this.oV = void 0;
   }

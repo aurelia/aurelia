@@ -4,6 +4,9 @@ module.exports = {
     'plugin:cypress/recommended',
     'plugin:mocha/recommended'
   ],
+  parserOptions: {
+    tsconfigRootDir: '.',
+  },
   env: {
     browser: true,
     mocha: true,

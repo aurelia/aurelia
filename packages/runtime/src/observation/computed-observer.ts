@@ -315,6 +315,7 @@ function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, o
 // they are treated as special and setup before all other bindings
 
 export interface ComputedWatcher extends IConnectableBinding {}
+
 @connectable()
 @subscriberCollection()
 @collectionSubscriberCollection()
@@ -400,12 +401,7 @@ export class ComputedWatcher implements IWatcher {
 /**
  * @internal The interface describes methods added by `connectable` & `subscriberCollection` decorators
  */
-export interface ExpressionWatcher extends IConnectableBinding {
-  scope: IScope;
-  callback: IWatcherCallback<object>;
-  start(): void;
-  stop(): void;
-}
+export interface ExpressionWatcher extends IConnectableBinding {}
 
 @connectable()
 export class ExpressionWatcher implements ExpressionWatcher {
@@ -418,7 +414,7 @@ export class ExpressionWatcher implements ExpressionWatcher {
    */
   private obj: object;
 
-  public callback: IWatcherCallback<object>;
+  private readonly callback: IWatcherCallback<object>;
 
   public constructor(
     public scope: IScope,

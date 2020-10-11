@@ -387,7 +387,7 @@ export {
   IObserverLocatorRegistration,
   ILifecycleRegistration,
   IRendererRegistration,
-  IStartTaskManagerRegistration,
+  IAppTaskManagerRegistration,
   IViewLocatorRegistration,
   IProjectionProviderRegistration,
   RuntimeConfiguration
@@ -492,8 +492,8 @@ export {
   PromiseTask,
   TaskSlot,
   AppTask,
-  IStartTask,
-  IStartTaskManager,
+  IAppTask,
+  IAppTaskManager,
   ProviderTask,
 } from './lifecycle-task';
 export {

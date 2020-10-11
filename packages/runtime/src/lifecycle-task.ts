@@ -29,23 +29,23 @@ export const enum TaskSlot {
   afterDeactivate       = 6,
 }
 
-export const IStartTask = DI.createInterface<IStartTask>('IStartTask').noDefault();
+export const IAppTask = DI.createInterface<IAppTask>('IAppTask').noDefault();
 
-export interface IStartTask {
+export interface IAppTask {
   readonly slot: TaskSlot;
   resolveTask(): ILifecycleTask;
   register(container: IContainer): IContainer;
 }
 
 export interface ISlotChooser {
-  beforeCreate(): IStartTask;
-  beforeCompile(): IStartTask;
-  beforeCompileChildren(): IStartTask;
-  beforeActivate(): IStartTask;
-  afterActivate(): IStartTask;
-  beforeDeactivate(): IStartTask;
-  afterDeactivate(): IStartTask;
-  at(slot: TaskSlot): IStartTask;
+  beforeCreate(): IAppTask;
+  beforeCompile(): IAppTask;
+  beforeCompileChildren(): IAppTask;
+  beforeActivate(): IAppTask;
+  afterActivate(): IAppTask;
+  beforeDeactivate(): IAppTask;
+  afterDeactivate(): IAppTask;
+  at(slot: TaskSlot): IAppTask;
 }
 
 export interface ICallbackSlotChooser<K extends Key> {
@@ -60,7 +60,7 @@ export interface ICallbackSlotChooser<K extends Key> {
 }
 
 export interface ICallbackChooser<K extends Key> {
-  call<K1 extends Key = K>(fn: (instance: Resolved<K1>) => MaybePromiseOrTask): IStartTask;
+  call<K1 extends Key = K>(fn: (instance: Resolved<K1>) => MaybePromiseOrTask): IAppTask;
 }
 
 const enum TaskType {
@@ -68,7 +68,7 @@ const enum TaskType {
   from,
 }
 
-export const AppTask = class $AppTask implements IStartTask {
+export const AppTask = class $AppTask implements IAppTask {
   public get slot(): TaskSlot {
     if (this._slot === void 0) {
       throw new Error('AppTask.slot is not set');
@@ -171,7 +171,7 @@ export const AppTask = class $AppTask implements IStartTask {
   }
 
   public register(container: IContainer): IContainer {
-    return this._container = container.register(Registration.instance(IStartTask, this));
+    return this._container = container.register(Registration.instance(IAppTask, this));
   }
 
   public resolveTask(): ILifecycleTask {
@@ -194,9 +194,9 @@ export const AppTask = class $AppTask implements IStartTask {
   from(promiseOrTask: PromiseOrTask): ISlotChooser;
 };
 
-export const IStartTaskManager = DI.createInterface<IStartTaskManager>('IStartTaskManager').noDefault();
+export const IAppTaskManager = DI.createInterface<IAppTaskManager>('IAppTaskManager').noDefault();
 
-export interface IStartTaskManager {
+export interface IAppTaskManager {
   /**
    * This is internal API and will be moved to an inaccessible place in the near future.
    */
@@ -215,7 +215,7 @@ export interface IStartTaskManager {
   run(slot: TaskSlot, container?: IContainer): ILifecycleTask;
 }
 
-export class StartTaskManager implements IStartTaskManager {
+export class AppTaskManager implements IAppTaskManager {
   private beforeCompileChildrenQueued: boolean = false;
   private beforeCompileQueued: boolean = false;
 
@@ -223,8 +223,8 @@ export class StartTaskManager implements IStartTaskManager {
     @IServiceLocator private readonly locator: IServiceLocator,
   ) {}
 
-  public static register(container: IContainer): IResolver<IStartTaskManager> {
-    return Registration.singleton(IStartTaskManager, this).register(container);
+  public static register(container: IContainer): IResolver<IAppTaskManager> {
+    return Registration.singleton(IAppTaskManager, this).register(container);
   }
 
   public enqueueBeforeCompileChildren(): void {
@@ -278,9 +278,9 @@ export class StartTaskManager implements IStartTaskManager {
   }
 
   public run(slot: TaskSlot, locator: IServiceLocator = this.locator): ILifecycleTask {
-    const tasks = locator.getAll(IStartTask)
-      .filter(startTask => startTask.slot === slot)
-      .map(startTask => startTask.resolveTask())
+    const tasks = locator.getAll(IAppTask)
+      .filter(appTask => appTask.slot === slot)
+      .map(appTask => appTask.resolveTask())
       .filter(task => !task.done);
 
     if (tasks.length === 0) {

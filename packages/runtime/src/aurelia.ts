@@ -23,7 +23,7 @@ import {
 import {
   ContinuationTask,
   ILifecycleTask,
-  IStartTaskManager,
+  IAppTaskManager,
   LifecycleTask,
   TerminalTask,
 } from './lifecycle-task';
@@ -47,7 +47,7 @@ export class CompositionRoot<T extends INode = INode> implements IDisposable {
   public readonly dom: IDOM<T>;
   public readonly strategy: BindingStrategy;
   public readonly lifecycle: ILifecycle;
-  public readonly taskManager: IStartTaskManager;
+  public readonly taskManager: IAppTaskManager;
 
   public controller: ICustomElementController<T>;
   public viewModel: ICustomElementViewModel<T>;
@@ -82,7 +82,7 @@ export class CompositionRoot<T extends INode = INode> implements IDisposable {
     this.dom = initializer.initialize(config) as IDOM<T>;
 
     this.lifecycle = this.container.get(ILifecycle);
-    this.taskManager = this.container.get(IStartTaskManager);
+    this.taskManager = this.container.get(IAppTaskManager);
 
     if (enhance) {
       const component = config.component as Constructable | ICustomElementViewModel<T>;

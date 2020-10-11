@@ -383,12 +383,12 @@ import {
 //   }
 
 //   public bind(flags?: LF): void {
-//     flags = arguments.length === 1 ? flags : LF.fromStartTask | LF.fromBind;
+//     flags = arguments.length === 1 ? flags : LF.fromAppTask | LF.fromBind;
 //     this.component.$bind(flags!);
 //   }
 
 //   public attach(flags?: LF): void {
-//     flags = arguments.length === 1 ? flags : LF.fromStartTask | LF.fromAttach;
+//     flags = arguments.length === 1 ? flags : LF.fromAppTask | LF.fromAttach;
 //     this.component.$attach(flags!);
 //   }
 

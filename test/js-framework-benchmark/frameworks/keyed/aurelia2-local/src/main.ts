@@ -3,7 +3,7 @@ import {
   IObserverLocatorRegistration,
   ILifecycleRegistration,
   IRendererRegistration,
-  IStartTaskManagerRegistration,
+  IAppTaskManagerRegistration,
   IProjectionProviderRegistration,
 
   DotSeparatedAttributePatternRegistration,
@@ -47,7 +47,7 @@ global['Aurelia'] = new Aurelia()
     IObserverLocatorRegistration,
     ILifecycleRegistration,
     IRendererRegistration,
-    IStartTaskManagerRegistration,
+    IAppTaskManagerRegistration,
     IProjectionProviderRegistration,
 
     ITemplateCompilerRegistration,

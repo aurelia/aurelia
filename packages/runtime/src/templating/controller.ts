@@ -81,7 +81,7 @@ import {
 } from './render-context';
 import { ChildrenObserver } from './children';
 import { RegisteredProjections } from '../resources/custom-elements/au-slot';
-import { IStartTaskManager } from '../lifecycle-task';
+import { IAppTaskManager } from '../lifecycle-task';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -332,7 +332,7 @@ export class Controller<
       context.beginChildComponentOperation(instance as ICustomElementViewModel);
     }
 
-    const taskmgr = parentContainer.get(IStartTaskManager);
+    const taskmgr = parentContainer.get(IAppTaskManager);
     taskmgr.runBeforeCompile(context);
     if (hooks.hasBeforeCompile) {
       if (this.debug) {

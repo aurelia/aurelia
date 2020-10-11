@@ -4,7 +4,7 @@ import {
   IRegistry
 } from '@aurelia/kernel';
 import { Lifecycle } from './lifecycle';
-import { StartTaskManager } from './lifecycle-task';
+import { AppTaskManager } from './lifecycle-task';
 import { ObserverLocator } from './observation/observer-locator';
 import {
   CallBindingRenderer,
@@ -63,7 +63,7 @@ export const IExpressionParserRegistration = ExpressionParser as IRegistry;
 export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;
 export const IRendererRegistration = Renderer as IRegistry;
-export const IStartTaskManagerRegistration = StartTaskManager as IRegistry;
+export const IAppTaskManagerRegistration = AppTaskManager as IRegistry;
 export const IViewLocatorRegistration = ViewLocator as IRegistry;
 export const IProjectionProviderRegistration = ProjectionProvider as IRegistry;
 
@@ -117,7 +117,7 @@ export const DefaultBindingLanguage = [
  * - `IObserverLocator`
  * - `ILifecycle`
  * - `IRenderer`
- * - `IStartTaskManager`
+ * - `IAppTaskManager`
  * - `IViewLocator`
  * - `IClockRegistration`
  * - `ISchedulerRegistration`
@@ -127,7 +127,7 @@ export const DefaultComponents = [
   IObserverLocatorRegistration,
   ILifecycleRegistration,
   IRendererRegistration,
-  IStartTaskManagerRegistration,
+  IAppTaskManagerRegistration,
   IViewLocatorRegistration,
   Now,
   IProjectionProviderRegistration,

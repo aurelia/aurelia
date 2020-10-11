@@ -244,7 +244,7 @@ describe.skip(`ViewFactory`, function () {
 //   ];
 
 //   const none = LF.none;
-//   const start = LF.fromStartTask;
+//   const start = LF.fromAppTask;
 //   const stop = LF.fromStopTask;
 //   const bind = LF.fromBind;
 //   const attach = LF.fromAttach;

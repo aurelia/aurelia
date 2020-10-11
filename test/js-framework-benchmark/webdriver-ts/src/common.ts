@@ -192,6 +192,9 @@ export async function loadFrameworkVersionInformation(matchPredicate: IMatchPred
     let results = new Array<Promise<FrameworkVersionInformation>>();
     let frameworksPath = path.resolve('..','frameworks');
     ['keyed','non-keyed'].forEach((keyedType: KeyedType) => {
+        if (!fs.existsSync(path.resolve(frameworksPath, keyedType))) {
+            return;
+        }
         let directories = fs.readdirSync(path.resolve(frameworksPath, keyedType));
 
         for (let directory of directories) {

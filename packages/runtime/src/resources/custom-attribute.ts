@@ -26,6 +26,7 @@ import {
 } from '../lifecycle';
 import { Bindable, BindableDefinition, PartialBindableDefinition } from '../templating/bindable';
 import { INode } from '../dom';
+import { IWatchDefinition, Watch } from '../templating/watch';
 
 export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;
@@ -47,6 +48,7 @@ export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
    * to a property name `http`, with value equal to literal string `//bla.bla.com`
    */
   readonly noMultiBindings?: boolean;
+  readonly watches?: IWatchDefinition[];
 }>;
 
 export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition>;
@@ -106,6 +108,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     public readonly strategy: BindingStrategy,
     public readonly hooks: HooksDefinition,
     public readonly noMultiBindings: boolean,
+    public readonly watches: IWatchDefinition[],
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -134,6 +137,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       firstDefined(CustomAttribute.getAnnotation(Type, 'strategy'), def.strategy, Type.strategy, BindingStrategy.getterSetter),
       firstDefined(CustomAttribute.getAnnotation(Type, 'hooks'), def.hooks, Type.hooks, new HooksDefinition(Type.prototype)),
       firstDefined(CustomAttribute.getAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
+      mergeArrays(Watch.getAnnotation(Type), Type.watches),
     );
   }
 

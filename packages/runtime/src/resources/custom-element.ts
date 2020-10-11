@@ -17,6 +17,7 @@ import {
   fromAnnotationOrDefinitionOrTypeOrDefault,
   Injectable,
   IResolver,
+  PLATFORM,
 } from '@aurelia/kernel';
 import {
   registerAliases,
@@ -39,6 +40,7 @@ import { Bindable, PartialBindableDefinition, BindableDefinition } from '../temp
 import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children';
 import { IProjections } from './custom-elements/au-slot';
 import { Controller } from '../templating/controller';
+import { IWatchDefinition, Watch } from '../templating/watch';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
@@ -58,6 +60,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly hooks?: Readonly<HooksDefinition>;
   readonly enhance?: boolean;
   readonly projectionsMap?: Map<ITargetedInstruction, IProjections>;
+  readonly watches?: IWatchDefinition[];
 }>;
 
 export type CustomElementType<
@@ -232,6 +235,7 @@ export class CustomElementDefinition<
     public readonly hooks: Readonly<HooksDefinition>,
     public readonly enhance: boolean,
     public readonly projectionsMap: Map<ITargetedInstruction, IProjections>,
+    public readonly watches: IWatchDefinition[],
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -290,6 +294,7 @@ export class CustomElementDefinition<
         fromDefinitionOrDefault('hooks', def, () => HooksDefinition.none),
         fromDefinitionOrDefault('enhance', def, () => false),
         fromDefinitionOrDefault('projectionsMap', def as CustomElementDefinition, () => new Map<ITargetedInstruction, IProjections>()),
+        fromDefinitionOrDefault('watches', def as CustomElementDefinition, () => PLATFORM.emptyArray),
       );
     }
 
@@ -328,6 +333,7 @@ export class CustomElementDefinition<
         fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
         fromAnnotationOrTypeOrDefault('enhance', Type, () => false),
         fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => new Map<ITargetedInstruction, IProjections>()),
+        mergeArrays(Watch.getAnnotation(Type), Type.watches),
       );
     }
 
@@ -371,6 +377,7 @@ export class CustomElementDefinition<
       fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false),
       fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => new Map<ITargetedInstruction, IProjections>()),
+      mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches),
     );
   }
 

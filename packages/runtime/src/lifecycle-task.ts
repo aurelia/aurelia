@@ -30,192 +30,101 @@ export const enum TaskSlot {
 }
 
 export const IAppTask = DI.createInterface<IAppTask>('IAppTask').noDefault();
+export interface IAppTask extends Pick<
+  $AppTask,
+  'slot' |
+  'resolveTask' |
+  'register'
+> {}
 
-export interface IAppTask {
-  readonly slot: TaskSlot;
-  resolveTask(): ILifecycleTask;
-  register(container: IContainer): IContainer;
-}
+export interface ICallbackSlotChooser<K extends Key> extends Pick<
+  $AppTask<K>,
+  'beforeCreate' |
+  'beforeCompile' |
+  'beforeCompileChildren' |
+  'beforeActivate' |
+  'afterActivate' |
+  'beforeDeactivate' |
+  'afterDeactivate'
+> {}
 
-export interface ISlotChooser {
-  beforeCreate(): IAppTask;
-  beforeCompile(): IAppTask;
-  beforeCompileChildren(): IAppTask;
-  beforeActivate(): IAppTask;
-  afterActivate(): IAppTask;
-  beforeDeactivate(): IAppTask;
-  afterDeactivate(): IAppTask;
-  at(slot: TaskSlot): IAppTask;
-}
+export interface ICallbackChooser<K extends Key> extends Pick<
+  $AppTask<K>,
+  'call'
+> {}
 
-export interface ICallbackSlotChooser<K extends Key> {
-  beforeCreate(): ICallbackChooser<K>;
-  beforeCompile(): ICallbackChooser<K>;
-  beforeCompileChildren(): ICallbackChooser<K>;
-  beforeActivate(): ICallbackChooser<K>;
-  afterActivate(): ICallbackChooser<K>;
-  beforeDeactivate(): ICallbackChooser<K>;
-  afterDeactivate(): ICallbackChooser<K>;
-  at(slot: TaskSlot): ICallbackChooser<K>;
-}
-
-export interface ICallbackChooser<K extends Key> {
-  call<K1 extends Key = K>(fn: (instance: Resolved<K1>) => MaybePromiseOrTask): IAppTask;
-}
-
-const enum TaskType {
-  with,
-  from,
-}
-
-export const AppTask = class $AppTask implements IAppTask {
-  public get slot(): TaskSlot {
-    if (this._slot === void 0) {
-      throw new Error('AppTask.slot is not set');
-    }
-    return this._slot;
-  }
-  public get promiseOrTask(): PromiseOrTask {
-    if (this._promiseOrTask === void 0) {
-      throw new Error('AppTask.promiseOrTask is not set');
-    }
-    return this._promiseOrTask;
-  }
-  public get container(): IContainer {
-    if (this._container === void 0) {
-      throw new Error('AppTask.container is not set');
-    }
-    return this._container;
-  }
-  public get key(): Key {
-    if (this._key === void 0) {
-      throw new Error('AppTask.key is not set');
-    }
-    return this._key;
-  }
-  public get callback(): (instance: unknown) => PromiseOrTask {
-    if (this._callback === void 0) {
-      throw new Error('AppTask.callback is not set');
-    }
-    return this._callback;
-  }
-  public get task(): ILifecycleTask {
-    if (this._task === void 0) {
-      throw new Error('AppTask.task is not set');
-    }
-    return this._task;
-  }
-
-  private _slot?: TaskSlot = void 0;
-  private _promiseOrTask?: PromiseOrTask = void 0;
-  private _container?: IContainer = void 0;
-  private _key?: Key = void 0;
-  private _callback?: (instance: unknown) => PromiseOrTask = void 0;
-  private _task?: ILifecycleTask = void 0;
+class $AppTask<K extends Key = Key> {
+  public slot: TaskSlot = (void 0)!;
+  public callback: (instance: unknown) => MaybePromiseOrTask = (void 0)!;
+  public task: ILifecycleTask = (void 0)!;
+  public container: IContainer = (void 0)!;
 
   private constructor(
-    private readonly type: TaskType,
+    private readonly key: K,
   ) {}
 
-  public static with<K extends Key>(key: K): ICallbackSlotChooser<K> {
-    const task = new $AppTask(TaskType.with);
-    task._key = key;
-    return task as ICallbackSlotChooser<K>;
+  public static with<K1 extends Key>(key: K1): ICallbackSlotChooser<K1> {
+    return new $AppTask(key);
   }
 
-  public static from(task: ILifecycleTask): ISlotChooser;
-  public static from(promise: Promise<unknown>): ISlotChooser;
-  public static from(promiseOrTask: PromiseOrTask): ISlotChooser;
-  public static from(promiseOrTask: PromiseOrTask): ISlotChooser {
-    const task = new $AppTask(TaskType.from);
-    task._promiseOrTask = promiseOrTask;
-    return task;
-  }
-
-  public beforeCreate(): $AppTask {
+  public beforeCreate(): ICallbackChooser<K> {
     return this.at(TaskSlot.beforeCreate);
   }
 
-  public beforeCompile(): $AppTask {
+  public beforeCompile(): ICallbackChooser<K> {
     return this.at(TaskSlot.beforeCompile);
   }
 
-  public beforeCompileChildren(): $AppTask {
+  public beforeCompileChildren(): ICallbackChooser<K> {
     return this.at(TaskSlot.beforeCompileChildren);
   }
 
-  public beforeActivate(): $AppTask {
+  public beforeActivate(): ICallbackChooser<K> {
     return this.at(TaskSlot.beforeActivate);
   }
 
-  public afterActivate(): $AppTask {
+  public afterActivate(): ICallbackChooser<K> {
     return this.at(TaskSlot.afterActivate);
   }
 
-  public beforeDeactivate(): $AppTask {
+  public beforeDeactivate(): ICallbackChooser<K> {
     return this.at(TaskSlot.beforeDeactivate);
   }
 
-  public afterDeactivate(): $AppTask {
+  public afterDeactivate(): ICallbackChooser<K> {
     return this.at(TaskSlot.afterDeactivate);
   }
 
-  public at(slot: TaskSlot): $AppTask {
-    this._slot = slot;
+  public at(slot: TaskSlot): ICallbackChooser<K> {
+    this.slot = slot;
     return this;
   }
 
-  public call(fn: (instance: unknown) => PromiseOrTask): $AppTask {
-    this._callback = fn;
+  public call<K1 extends Key = K>(fn: (instance: Resolved<K1>) => MaybePromiseOrTask): IAppTask {
+    this.callback = fn as (instance: unknown) => MaybePromiseOrTask;
     return this;
   }
 
   public register(container: IContainer): IContainer {
-    return this._container = container.register(Registration.instance(IAppTask, this));
+    return this.container = container.register(Registration.instance(IAppTask, this));
   }
 
   public resolveTask(): ILifecycleTask {
-    if (this._task === void 0) {
-      switch (this.type) {
-        case TaskType.with:
-          this._task = new ProviderTask(this.container, this.key, this.callback);
-          break;
-        case TaskType.from:
-          this._task = new TerminalTask(this.promiseOrTask);
-          break;
-      }
+    if (this.task === void 0) {
+      this.task = new ProviderTask(this.container, this.key, this.callback);
     }
     return this.task;
   }
-} as {
+}
+export const AppTask = $AppTask as {
   with<K extends Key>(key: K): ICallbackSlotChooser<K>;
-  from(task: ILifecycleTask): ISlotChooser;
-  from(promise: Promise<unknown>): ISlotChooser;
-  from(promiseOrTask: PromiseOrTask): ISlotChooser;
 };
 
 export const IAppTaskManager = DI.createInterface<IAppTaskManager>('IAppTaskManager').noDefault();
 
-export interface IAppTaskManager {
-  /**
-   * This is internal API and will be moved to an inaccessible place in the near future.
-   */
-  enqueueBeforeCompileChildren(): void;
-  /**
-   * This is internal API and will be moved to an inaccessible place in the near future.
-   */
-  enqueueBeforeCompile(): void;
-  runBeforeCreate(container?: IContainer): ILifecycleTask;
-  runBeforeCompile(container?: IContainer): ILifecycleTask;
-  runBeforeCompileChildren(container?: IContainer): ILifecycleTask;
-  runBeforeActivate(container?: IContainer): ILifecycleTask;
-  runAfterActivate(container?: IContainer): ILifecycleTask;
-  runBeforeDeactivate(container?: IContainer): ILifecycleTask;
-  runAfterDeactivate(container?: IContainer): ILifecycleTask;
-  run(slot: TaskSlot, container?: IContainer): ILifecycleTask;
-}
+export interface IAppTaskManager extends AppTaskManager {}
 
-export class AppTaskManager implements IAppTaskManager {
+export class AppTaskManager {
   private beforeCompileChildrenQueued: boolean = false;
   private beforeCompileQueued: boolean = false;
 
@@ -337,7 +246,7 @@ export class ProviderTask implements ILifecycleTask {
   public constructor(
     private container: IContainer,
     private key: Key,
-    private callback: (instance: unknown) => PromiseOrTask,
+    private callback: (instance: unknown) => MaybePromiseOrTask,
   ) {}
 
   public wait(): Promise<unknown> {

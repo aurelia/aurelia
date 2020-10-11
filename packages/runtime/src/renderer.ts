@@ -346,6 +346,7 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
       /* viewModel */component,
       /* lifecycle */lifecycle,
       /* host      */target,
+      /* parent ct */context,
       /* flags     */flags,
     );
 
@@ -394,6 +395,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
       /* viewModel */component,
       /* lifecycle */lifecycle,
       /* host      */target,
+      /* parent ct */parentContext,
       /* flags     */flags,
     );
 

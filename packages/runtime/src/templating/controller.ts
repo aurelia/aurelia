@@ -10,6 +10,7 @@ import {
   ILogger,
   LogLevel,
   resolveAll,
+  IServiceLocator,
 } from '@aurelia/kernel';
 import {
   PropertyBinding,
@@ -83,6 +84,11 @@ import {
 import { ChildrenObserver } from './children';
 import { RegisteredProjections } from '../resources/custom-elements/au-slot';
 import { IStartTaskManager } from '../lifecycle-task';
+import { ComputedWatcher, ExpressionWatcher } from '../observation/computed-observer';
+import { IObserverLocator } from '../observation/observer-locator';
+import { IExpressionParser, BindingType } from '../binding/expression-parser';
+import { AccessScopeExpression } from '../binding/ast';
+import { IWatchDefinition } from './watch';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -229,6 +235,9 @@ export class Controller<
       controller.hydrateCustomElement(parentContainer, targetedProjections);
     }
 
+    // timing?
+    createWatchers(controller as Controller, parentContainer, definition, flags, viewModel);
+
     return controller as unknown as ICustomElementController<T, C>;
   }
 
@@ -239,6 +248,7 @@ export class Controller<
     viewModel: C,
     lifecycle: ILifecycle,
     host: T,
+    context: IServiceLocator,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): ICustomAttributeController<T, C> {
     if (controllerLookup.has(viewModel)) {
@@ -263,6 +273,8 @@ export class Controller<
     controllerLookup.set(viewModel, controller as Controller);
 
     controller.hydrateCustomAttribute();
+
+    createWatchers(controller as Controller, context, definition, flags, viewModel);
 
     return controller as unknown as ICustomAttributeController<T, C>;
   }
@@ -1322,13 +1334,37 @@ function createChildrenObservers(
   }
 }
 
+const AccessScopeAst = {
+  map: new Map<PropertyKey, AccessScopeExpression>(),
+  for(key: PropertyKey) {
+    let ast = AccessScopeAst.map.get(key);
+    if (ast == null) {
+      ast = new AccessScopeExpression(key, 0);
+      AccessScopeAst.map.set(key, ast);
+    }
+    return ast;
+  },
+};
+
 function createWatchers(
   controller: Controller,
+  context: IServiceLocator,
   definition: CustomElementDefinition | CustomAttributeDefinition,
   flags: LifecycleFlags,
   instance: object,
 ) {
-
+  const observerLocator = context!.get(IObserverLocator);
+  definition.watches.map(({ expression, callback }) => {
+    if (typeof expression === 'function') {
+      controller.addBinding(new ComputedWatcher(instance, observerLocator, expression, callback));
+    } else {
+      const ast = typeof expression === 'symbol' || typeof expression === 'number'
+        // AST needs an upgrade
+        ? AccessScopeAst.for(expression)
+        : context.get(IExpressionParser).parse(expression, BindingType.BindCommand)
+      controller.addBinding(new ExpressionWatcher(controller.scope!, context, observerLocator, ast, callback));
+    }
+  });
 }
 
 function clearLinks<T extends INode>(initiator: Controller<T>): void {

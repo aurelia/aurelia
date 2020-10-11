@@ -41,7 +41,7 @@ describe('au-slot', function () {
           component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
         })
         .start();
-      app = au.root.viewModel as App;
+      app = au.root.controller.viewModel as App;
     } catch (e) {
       error = e;
     }

@@ -215,7 +215,7 @@ describe('validation-controller', function () {
       })
       .start();
 
-    const app = au.root.viewModel as App;
+    const app = au.root.controller.viewModel as App;
     await testFunction({ app, container, host, scheduler: container.get(IScheduler), ctx });
 
     await au.stop();

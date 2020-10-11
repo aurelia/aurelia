@@ -390,7 +390,7 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
           try {
             au.app({ host, component: App });
             await au.start();
-            component = au.root.viewModel as unknown as Root;
+            component = au.root.controller.viewModel as unknown as Root;
             assert.strictEqual(host.textContent, expectation(component.items, component), `#before mutation`);
           } catch (ex) {
             if (testWillThrow) {

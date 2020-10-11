@@ -81,7 +81,7 @@ describe('validation-container-custom-element', function () {
       })
       .start();
 
-    const app: App = au.root.viewModel as App;
+    const app: App = au.root.controller.viewModel as App;
     await testFunction({ app, host, container, scheduler: app.scheduler, ctx });
 
     await au.stop();
@@ -299,7 +299,7 @@ describe('validation-container-custom-element', function () {
       .app({ host, component: App1 })
       .start();
 
-    const app: App1 = au.root.viewModel as App1;
+    const app: App1 = au.root.controller.viewModel as App1;
     const scheduler = container.get(IScheduler);
 
     const ceEl1 = host.querySelector('validation-container');

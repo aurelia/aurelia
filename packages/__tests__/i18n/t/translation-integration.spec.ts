@@ -36,7 +36,7 @@ describe('translation-integration', function () {
     }
 
     public get app(): TApp {
-      return this.au.root.viewModel as TApp;
+      return this.au.root.controller.viewModel as TApp;
     }
 
     public get scheduler(): IScheduler {

@@ -49,7 +49,7 @@ describe('2-runtime/enhance.spec.ts', function () {
     au.enhance({ host, component: getComponent() });
     await au.start();
 
-    const app = au.root.viewModel;
+    const app = au.root.controller.viewModel;
     await testFunction(new EnhanceTestExecutionContext(ctx, container, host, app, child));
 
     await au.stop();
@@ -210,7 +210,7 @@ describe('2-runtime/enhance.spec.ts', function () {
         au[initialMethod]({ host, component });
         await au.start();
 
-        assert.equal((au.root.viewModel as App2).message, 'An instance of Aurelia is already registered with the container or an ancestor of it.');
+        assert.equal((au.root.controller.viewModel as App2).message, 'An instance of Aurelia is already registered with the container or an ancestor of it.');
 
         await au.stop();
         ctx.doc.body.removeChild(host);

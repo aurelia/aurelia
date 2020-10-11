@@ -35,9 +35,6 @@ import {
   IViewFactory,
   ISyntheticView,
   ICustomAttributeController,
-  IDryCustomElementController,
-  IContextualCustomElementController,
-  ICompiledCustomElementController,
   ICustomElementController,
   ICustomElementViewModel,
   ICustomAttributeViewModel,
@@ -81,7 +78,6 @@ import {
 } from './render-context';
 import { ChildrenObserver } from './children';
 import { RegisteredProjections } from '../resources/custom-elements/au-slot';
-import { IAppTaskManager } from '../lifecycle-task';
 import { ICompositionRoot } from '../aurelia';
 
 function callDispose(disposable: IDisposable): void {
@@ -115,7 +111,7 @@ export class Controller<
 
   public scope: Scope | undefined = void 0;
   public hostScope: Scope | null = null;
-  public projector: IElementProjector | undefined = void 0;
+  public projector: IElementProjector<T> | undefined = void 0;
 
   public nodes: INodeSequence<T> | undefined = void 0;
   public context: RenderContext<T> | undefined = void 0;
@@ -308,7 +304,8 @@ export class Controller<
     return controller as unknown as ISyntheticView<T>;
   }
 
-  private hydrateCustomElement(
+  /** @internal */
+  public hydrateCustomElement(
     parentContainer: IContainer,
     targetedProjections: RegisteredProjections | null,
   ): void {
@@ -324,7 +321,7 @@ export class Controller<
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this as Controller, definition, flags, instance);
 
-    const scope = this.scope = Scope.create(flags, this.bindingContext!, null);
+    this.scope = Scope.create(flags, this.bindingContext!, null);
 
     const hooks = this.hooks;
     if (hooks.hasCreate) {
@@ -332,7 +329,7 @@ export class Controller<
         this.logger.trace(`invoking create() hook`);
       }
       const result = instance.create(
-        /* controller      */this as unknown as IDryCustomElementController<T, typeof instance>,
+        /* controller      */this as ICustomElementController<T>,
         /* parentContainer */parentContainer,
         /* definition      */definition,
       );
@@ -349,58 +346,73 @@ export class Controller<
       context.beginChildComponentOperation(instance as ICustomElementViewModel);
     }
 
-    const taskmgr = parentContainer.get(IAppTaskManager);
-    taskmgr.runBeforeCompile(context);
-    if (hooks.hasBeforeCompile) {
+    // If this is the root controller, then the CompositionRoot will invoke things in the following order:
+    // - Controller.hydrateCustomElement
+    // - runAppTasks('beforeCompile') // may return a promise
+    // - Controller.compile
+    // - runAppTasks('beforeCompileChildren') // may return a promise
+    // - Controller.compileChildren
+    // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
+    if ((this.root?.controller as this | undefined) !== this) {
+      this.compile(targetedProjections);
+      this.compileChildren();
+    }
+  }
+
+  /** @internal */
+  public compile(
+    targetedProjections: RegisteredProjections | null,
+  ): void {
+    if (this.hooks.hasBeforeCompile) {
       if (this.debug) {
-        this.logger.trace(`invoking hasBeforeCompile() hook`);
+        this.logger!.trace(`invoking hasBeforeCompile() hook`);
       }
-      instance.beforeCompile(this as unknown as IContextualCustomElementController<T, typeof instance>);
+      (this.viewModel as BindingContext<T, C>).beforeCompile(this as ICustomElementController<T>);
     }
 
-    const compiledContext = context.compile(targetedProjections);
+    const compiledContext = this.context!.compile(targetedProjections);
     const compiledDefinition = compiledContext.compiledDefinition;
 
-    compiledContext.registerProjections(compiledDefinition.projectionsMap, scope);
+    compiledContext.registerProjections(compiledDefinition.projectionsMap, this.scope!);
     // once the projections are registered, we can cleanup the projection map to prevent memory leaks.
     compiledDefinition.projectionsMap.clear();
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
-    const projectorLocator = parentContainer.get(IProjectorLocator);
-
+    const projectorLocator = this.context!.get<IProjectorLocator<T>>(IProjectorLocator);
     this.projector = projectorLocator.getElementProjector(
-      context.dom,
-      this as unknown as ICustomElementController,
+      this.context!.dom,
+      this as ICustomElementController<T>,
       this.host!,
       compiledDefinition,
     );
 
-    (instance as Writable<C>).$controller = this;
-    const nodes = this.nodes = compiledContext.createNodes();
+    (this.viewModel as Writable<C>).$controller = this;
+    this.nodes = compiledContext.createNodes();
 
-    if (hooks.hasAfterCompile) {
+    if (this.hooks.hasAfterCompile) {
       if (this.debug) {
-        this.logger.trace(`invoking hasAfterCompile() hook`);
+        this.logger!.trace(`invoking hasAfterCompile() hook`);
       }
-      instance.afterCompile(this as unknown as ICompiledCustomElementController<T, typeof instance>);
+      (this.viewModel as BindingContext<T, C>).afterCompile(this as ICustomElementController<T>);
     }
+  }
 
-    taskmgr.runBeforeCompileChildren(context);
-
-    const targets = nodes.findTargets();
-    compiledContext.render(
+  /** @internal */
+  public compileChildren(): void {
+    const targets = this.nodes!.findTargets();
+    this.context!.render(
       /* flags      */this.flags,
-      /* controller */this,
+      /* controller */this as ICustomElementController<T>,
       /* targets    */targets,
-      /* definition */compiledDefinition,
+      /* definition */this.context!.compiledDefinition,
       /* host       */this.host,
     );
 
-    if (hooks.hasAfterCompileChildren) {
+    if (this.hooks.hasAfterCompileChildren) {
       if (this.debug) {
-        this.logger.trace(`invoking afterCompileChildren() hook`);
+        this.logger!.trace(`invoking afterCompileChildren() hook`);
       }
-      instance.afterCompileChildren(this as unknown as ICustomElementController<T, ICompileHooks<T>>);
+      (this.viewModel as BindingContext<T, C>).afterCompileChildren(this as ICustomElementController<T>);
     }
   }
 

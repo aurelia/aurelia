@@ -6,7 +6,8 @@ import {
   Registration,
   InstanceProvider,
   IDisposable,
-  onResolve
+  onResolve,
+  resolveAll
 } from '@aurelia/kernel';
 import {
   IDOM,
@@ -21,7 +22,7 @@ import {
   ILifecycle,
   ICustomElementController,
 } from './lifecycle';
-import { IAppTaskManager } from './lifecycle-task';
+import { IAppTask, TaskSlot } from './lifecycle-task';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element';
 import { Controller } from './templating/controller';
 import { HooksDefinition } from './definitions';
@@ -39,26 +40,23 @@ export interface ICompositionRoot<T extends INode = INode> extends CompositionRo
 export const ICompositionRoot = DI.createInterface<ICompositionRoot>('ICompositionRoot').noDefault();
 
 export class CompositionRoot<T extends INode = INode> implements IDisposable {
-  public readonly config: ISinglePageApp<T>;
   public readonly container: IContainer;
-  public readonly host: T & { $aurelia?: Aurelia<T> };
+  public readonly host: T & { $aurelia?: IAurelia<T> };
   public readonly dom: IDOM<T>;
-  public readonly strategy: BindingStrategy;
-  public readonly lifecycle: ILifecycle;
-  public readonly taskManager: IAppTaskManager;
 
-  public controller: ICustomElementController<T>;
-  public viewModel: ICustomElementViewModel<T>;
+  public controller: ICustomElementController<T> = (void 0)!;
 
+  private hydratePromise: Promise<void> | void = void 0;
   private readonly enhanceDefinition: CustomElementDefinition | undefined;
+  private readonly strategy: BindingStrategy;
+  private readonly lifecycle: ILifecycle;
 
   public constructor(
-    config: ISinglePageApp<T>,
+    public readonly config: ISinglePageApp<T>,
     container: IContainer,
     rootProvider: InstanceProvider<ICompositionRoot<T>>,
     enhance: boolean = false,
   ) {
-    this.config = config;
     rootProvider.prepare(this);
     if (config.host != void 0) {
       if (container.has(INode, false)) {
@@ -74,13 +72,9 @@ export class CompositionRoot<T extends INode = INode> implements IDisposable {
     } else {
       throw new Error(`No host element found.`);
     }
-    this.strategy = config.strategy != void 0 ? config.strategy : BindingStrategy.getterSetter;
-
-    const initializer = this.container.get(IDOMInitializer);
-    this.dom = initializer.initialize(config) as IDOM<T>;
-
+    this.strategy = config.strategy ?? BindingStrategy.getterSetter;
+    this.dom = this.container.get(IDOMInitializer).initialize(config) as IDOM<T>;
     this.lifecycle = this.container.get(ILifecycle);
-    this.taskManager = this.container.get(IAppTaskManager);
 
     if (enhance) {
       const component = config.component as Constructable | ICustomElementViewModel<T>;
@@ -91,35 +85,60 @@ export class CompositionRoot<T extends INode = INode> implements IDisposable {
       );
     }
 
-    // TODO(fkleuver): hook this promise up to a chain somewhere
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    this.taskManager.runBeforeCreate();
+    this.hydratePromise = onResolve(this.runAppTasks('beforeCreate'), () => {
+      const instance = CustomElement.isType(config.component as Constructable)
+        ? this.container.get(config.component as Constructable | {}) as ICustomElementViewModel<T>
+        : config.component as ICustomElementViewModel<T>;
 
-    const instance = this.viewModel = CustomElement.isType(config.component as Constructable)
-      ? this.container.get(config.component as Constructable | {}) as ICustomElementViewModel<T>
-      : config.component as ICustomElementViewModel<T>;
+      const controller = (this.controller = Controller.forCustomElement(
+        this,
+        container,
+        instance,
+        this.lifecycle,
+        this.host,
+        null,
+        this.strategy as number,
+        false,
+        this.enhanceDefinition,
+      )) as Controller<T>;
 
-    this.taskManager.enqueueBeforeCompileChildren();
-    this.taskManager.enqueueBeforeCompile();
-    // This "hack" with delayed hydration is to make the controller instance accessible to the `beforeCompile` and `beforeCompileChildren` hooks via the composition root.
-    this.controller = Controller.forCustomElement(this, container, instance, this.lifecycle, this.host, null, this.strategy as number, false, this.enhanceDefinition);
-    (this.controller as unknown as Controller)['hydrateCustomElement'](container, null);
+      controller.hydrateCustomElement(container, null);
+      return onResolve(this.runAppTasks('beforeCompile'), () => {
+        controller.compile(null);
+        return onResolve(this.runAppTasks('beforeCompileChildren'), () => {
+          controller.compileChildren();
+          this.hydratePromise = void 0;
+        });
+      });
+    });
   }
 
   public activate(): void | Promise<void> {
-    return onResolve(this.taskManager.runBeforeActivate(), () => {
-      return onResolve(this.controller.activate(this.controller, null, this.strategy | LifecycleFlags.fromBind, void 0), () => {
-        return this.taskManager.runAfterActivate();
+    return onResolve(this.hydratePromise, () => {
+      return onResolve(this.runAppTasks('beforeActivate'), () => {
+        return onResolve(this.controller.activate(this.controller, null, this.strategy | LifecycleFlags.fromBind, void 0), () => {
+          return this.runAppTasks('afterActivate');
+        });
       });
     });
   }
 
   public deactivate(): void | Promise<void> {
-    return onResolve(this.taskManager.runBeforeDeactivate(), () => {
+    return onResolve(this.runAppTasks('beforeDeactivate'), () => {
       return onResolve(this.controller.deactivate(this.controller, null, this.strategy | LifecycleFlags.none), () => {
-        return this.taskManager.runAfterActivate();
+        return this.runAppTasks('afterDeactivate');
       });
     });
+  }
+
+  /** @internal */
+  public runAppTasks(slot: TaskSlot): void | Promise<void> {
+    return resolveAll(...this.container.getAll(IAppTask).reduce((results, task) => {
+      if (task.slot === slot) {
+        results.push(task.run());
+      }
+      return results;
+    }, [] as (void | Promise<void>)[]));
   }
 
   public dispose(): void {

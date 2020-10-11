@@ -497,7 +497,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
         try {
           au.app({ host, component: App });
           await au.start();
-          component = au.root.viewModel;
+          component = au.root.controller.viewModel;
         } catch (ex) {
           if (testWillThrow) {
             // dont try to assert anything on throw

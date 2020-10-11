@@ -86,7 +86,7 @@ describe('validation-result-presenter-service', function () {
       })
       .start();
 
-    const app = au.root.viewModel as App;
+    const app = au.root.controller.viewModel as App;
     await testFunction({ app, host, container, scheduler: app.scheduler, ctx });
 
     await au.stop();

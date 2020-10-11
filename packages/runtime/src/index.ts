@@ -389,7 +389,6 @@ export {
   IObserverLocatorRegistration,
   ILifecycleRegistration,
   IRendererRegistration,
-  IAppTaskManagerRegistration,
   IViewLocatorRegistration,
   IProjectionProviderRegistration,
   RuntimeConfiguration
@@ -495,7 +494,6 @@ export {
   TaskSlot,
   AppTask,
   IAppTask,
-  IAppTaskManager,
 } from './lifecycle-task';
 export {
   AccessorOrObserver,

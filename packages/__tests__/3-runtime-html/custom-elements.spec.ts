@@ -548,7 +548,7 @@
 //         const fooVm = CustomElement.for(fooEl).viewModel as Foo;
 //         return {
 //           fooVm: fooVm,
-//           rootVm: options.au.root.viewModel as any,
+//           rootVm: options.au.root.controller.viewModel as any,
 //           tearDown: () => options.tearDown()
 //         };
 //       }
@@ -627,7 +627,7 @@
 //         const fooVm = CustomElement.for(fooEl).viewModel as Foo;
 //         return {
 //           fooVm: fooVm,
-//           rootVm: options.au.root.viewModel as any,
+//           rootVm: options.au.root.controller.viewModel as any,
 //           tearDown: () => options.tearDown()
 //         };
 //       }
@@ -808,7 +808,7 @@
 //         au.app({ host: host, component: App });
 //         au.start();
 
-//         assertionFn(ctx, au.root.viewModel as any, host);
+//         assertionFn(ctx, au.root.controller.viewModel as any, host);
 //         au.stop();
 //       });
 //     }

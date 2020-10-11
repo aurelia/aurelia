@@ -1116,7 +1116,7 @@ export class Router implements IRouter {
     if (!this.rootScope) {
       const root = this.container.get(ICompositionRoot);
       // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
-      this.rootScope = new ViewportScope('rootScope', this, root.viewModel as IConnectedCustomElement, null, true, root.config.component as CustomElementType);
+      this.rootScope = new ViewportScope('rootScope', this, root.controller.viewModel as IConnectedCustomElement, null, true, root.config.component as CustomElementType);
     }
     return this.rootScope!;
   }

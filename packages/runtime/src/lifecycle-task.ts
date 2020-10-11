@@ -2,11 +2,8 @@
 import {
   DI,
   IContainer,
-  IResolver,
-  IServiceLocator,
   Key,
   Registration,
-  resolveAll,
   Resolved,
 } from '@aurelia/kernel';
 
@@ -119,81 +116,6 @@ class $AppTask<K extends Key = Key> {
 export const AppTask = $AppTask as {
   with<K extends Key>(key: K): ICallbackSlotChooser<K>;
 };
-
-export const IAppTaskManager = DI.createInterface<IAppTaskManager>('IAppTaskManager').noDefault();
-
-export interface IAppTaskManager extends AppTaskManager {}
-
-export class AppTaskManager {
-  private beforeCompileChildrenQueued: boolean = false;
-  private beforeCompileQueued: boolean = false;
-
-  public constructor(
-    @IServiceLocator private readonly locator: IServiceLocator,
-  ) {}
-
-  public static register(container: IContainer): IResolver<IAppTaskManager> {
-    return Registration.singleton(IAppTaskManager, this).register(container);
-  }
-
-  public enqueueBeforeCompileChildren(): void {
-    if (this.beforeCompileChildrenQueued) {
-      throw new Error(`BeforeCompileChildren already queued`);
-    }
-    this.beforeCompileChildrenQueued = true;
-  }
-
-  public enqueueBeforeCompile(): void {
-    if (this.beforeCompileQueued) {
-      throw new Error(`BeforeCompile already queued`);
-    }
-    this.beforeCompileQueued = true;
-  }
-
-  public runBeforeCreate(locator: IServiceLocator = this.locator): void | Promise<void> {
-    return this.run('beforeCreate', locator);
-  }
-
-  public runBeforeCompile(locator: IServiceLocator = this.locator): void | Promise<void> {
-    if (this.beforeCompileQueued) {
-      this.beforeCompileQueued = false;
-      return this.run('beforeCompile', locator);
-    }
-  }
-
-  public runBeforeCompileChildren(locator: IServiceLocator = this.locator): void | Promise<void> {
-    if (this.beforeCompileChildrenQueued) {
-      this.beforeCompileChildrenQueued = false;
-      return this.run('beforeCompileChildren', locator);
-    }
-  }
-
-  public runBeforeActivate(locator: IServiceLocator = this.locator): void | Promise<void> {
-    return this.run('beforeActivate', locator);
-  }
-
-  public runAfterActivate(locator: IServiceLocator = this.locator): void | Promise<void> {
-    return this.run('afterActivate', locator);
-  }
-
-  public runBeforeDeactivate(locator: IServiceLocator = this.locator): void | Promise<void> {
-    return this.run('beforeDeactivate', locator);
-  }
-
-  public runAfterDeactivate(locator: IServiceLocator = this.locator): void | Promise<void> {
-    return this.run('afterDeactivate', locator);
-  }
-
-  public run(slot: TaskSlot, locator: IServiceLocator = this.locator): void | Promise<void> {
-    return resolveAll(...locator.getAll(IAppTask).reduce((results, task) => {
-      if (task.slot === slot) {
-        results.push(task.run());
-      }
-      return results;
-    }, [] as (void | Promise<void>)[]));
-  }
-}
-
 export interface ILifecycleTask<T = unknown> {
   readonly done: boolean;
   wait(): Promise<T>;

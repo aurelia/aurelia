@@ -81,7 +81,7 @@ describe('validation-errors-custom-attribute', function () {
       })
       .start();
 
-    const app = au.root.viewModel as App;
+    const app = au.root.controller.viewModel as App;
     await testFunction({ app, host, container, scheduler: app.scheduler, ctx });
 
     await au.stop();
@@ -392,7 +392,7 @@ describe('validation-errors-custom-attribute', function () {
       .app({ host, component: App1 })
       .start();
 
-    const app: App1 = au.root.viewModel as App1;
+    const app: App1 = au.root.controller.viewModel as App1;
     const scheduler = container.get(IScheduler);
 
     const div1 = host.querySelector('#div1');

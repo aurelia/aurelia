@@ -4,17 +4,11 @@ import { ISubscriber } from '../observation';
 
 type Signal = string;
 
-export interface ISignaler {
-  signals: Record<string, Set<ISubscriber>>;
-  dispatchSignal(name: Signal, flags?: LifecycleFlags): void;
-  addSignalListener(name: Signal, listener: ISubscriber): void;
-  removeSignalListener(name: Signal, listener: ISubscriber): void;
-}
-
+export interface ISignaler extends Signaler {}
 export const ISignaler = DI.createInterface<ISignaler>('ISignaler').withDefault(x => x.singleton(Signaler));
 
 /** @internal */
-export class Signaler implements ISignaler {
+export class Signaler {
   public signals: Record<string, Set<ISubscriber>> = Object.create(null);
 
   public dispatchSignal(name: Signal, flags?: LifecycleFlags): void {

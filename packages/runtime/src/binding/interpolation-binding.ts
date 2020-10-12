@@ -97,7 +97,7 @@ export class InterpolationBinding implements IBinding {
         this.task = null;
       }, queueTaskOptions);
     }
-    targetObserver.setValue(result, flags);
+    targetObserver.setValue(result, flags, this.target, this.targetProperty);
   }
 
   public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {

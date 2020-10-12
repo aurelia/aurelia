@@ -983,7 +983,7 @@ describe('PropertyBinding', function () {
   // TODO: create proper unparser
   function unparse(expr: IsBindingBehavior): string {
     return expr instanceof AccessScopeExpression
-      ? `AccessScopeExpression{${expr.name} | ${expr.ancestor}}`
+      ? `AccessScopeExpression{${String(expr.name)} | ${expr.ancestor}}`
       : expr instanceof AccessMemberExpression
         ? `AccessMemberExpression{${unparse(expr.object)}.${expr.name}}`
         : expr instanceof PrimitiveLiteralExpression

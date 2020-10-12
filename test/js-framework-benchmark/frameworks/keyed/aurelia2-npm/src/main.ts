@@ -38,7 +38,6 @@ import { App } from './app';
 
 global['Aurelia'] = new Aurelia()
   .register(
-    IStartTaskManagerRegistration,
 
     ITemplateCompilerRegistration,
     ITemplateElementFactoryRegistration,

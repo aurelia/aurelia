@@ -1,8 +1,7 @@
 import { Constructable, IIndexable } from '@aurelia/kernel';
-import { IBindingContext, ObserversLookup, PropertyObserver, ISubscriber } from '../observation';
+import { IBindingContext, PropertyObserver, ISubscriber, IObservable } from '../observation';
 import { SetterObserver, SetterNotifier } from './setter-observer';
 import { LifecycleFlags } from '../flags';
-import { InternalObserversLookup } from './binding-context';
 import { InterceptorFunc } from '../templating/bindable';
 
 // todo(bigopon): static obs here
@@ -17,15 +16,12 @@ export interface IObservableDefinition {
   set?: InterceptorFunc;
 }
 
-function getObserversLookup(obj: IIndexable<{ $observers?: ObserversLookup }>): ObserversLookup {
-  let $observers = obj.$observers;
-  if ($observers == null) {
-    $observers = new InternalObserversLookup();
-    if (!Reflect.defineProperty(obj, '$observers', { configurable: false, value: $observers })) {
-      // todo: define in a weakmap
-    }
+function getObserversLookup(obj: IObservable): IIndexable<{}, SetterObserver | SetterNotifier> {
+  if (obj.$observers === void 0) {
+    Reflect.defineProperty(obj, '$observers', { value: {} });
+    // todo: define in a weakmap
   }
-  return $observers;
+  return obj.$observers as IIndexable<{}, SetterObserver | SetterNotifier>;
 }
 
 const noValue: unknown = {};

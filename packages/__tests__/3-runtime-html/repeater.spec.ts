@@ -231,11 +231,11 @@ describe(spec, function () {
 
       const au = new Aurelia(container);
       au.app({ host, component });
-      await au.start().wait();
+      await au.start();
 
       assert.strictEqual(host.textContent, expected, 'host.textContent');
 
-      await au.stop().wait();
+      await au.stop();
 
       assert.strictEqual(host.textContent, '', 'host.textContent');
 

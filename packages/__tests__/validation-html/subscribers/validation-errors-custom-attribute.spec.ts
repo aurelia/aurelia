@@ -79,13 +79,12 @@ describe('validation-errors-custom-attribute', function () {
         host,
         component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
       })
-      .start()
-      .wait();
+      .start();
 
-    const app = au.root.viewModel as App;
+    const app = au.root.controller.viewModel as App;
     await testFunction({ app, host, container, scheduler: app.scheduler, ctx });
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
     if (removeSubscriberSpies !== void 0) {
       for (const [spy, count] of Object.entries(removeSubscriberSpies)) {
@@ -110,7 +109,7 @@ describe('validation-errors-custom-attribute', function () {
     handleValidationEventSpy.calls.splice(0);
     controllerValidateSpy.calls.splice(0);
     target.dispatchEvent(new ctx.Event(event));
-    await scheduler.yieldAll(3);
+    await scheduler.yieldAll();
     assert.equal(controllerValidateSpy.calls.length, 1, 'incorrect #calls for validate');
     assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
   }
@@ -140,7 +139,7 @@ describe('validation-errors-custom-attribute', function () {
       await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);
       target2.value = 'foo';
       target2.dispatchEvent(new ctx.Event('change'));
-      await scheduler.yieldAll(3);
+      await scheduler.yieldAll();
       await assertEventHandler(target2, scheduler, controllerValidateSpy, spy2, ctx);
 
       // assert that errors are rendered in the respective containers
@@ -165,12 +164,12 @@ describe('validation-errors-custom-attribute', function () {
       // assert that errors are removed
       target1.value = 'foo';
       target1.dispatchEvent(new ctx.Event('change'));
-      await scheduler.yieldAll(3);
+      await scheduler.yieldAll();
       await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);
 
       target2.value = '15';
       target2.dispatchEvent(new ctx.Event('change'));
-      await scheduler.yieldAll(3);
+      await scheduler.yieldAll();
       await assertEventHandler(target2, scheduler, controllerValidateSpy, spy2, ctx);
 
       errors1 = ca1.errors;
@@ -212,7 +211,7 @@ describe('validation-errors-custom-attribute', function () {
       await assertEventHandler(target1, scheduler, controllerValidateSpy, spy, ctx);
       target2.value = 'foo';
       target2.dispatchEvent(new ctx.Event('change'));
-      await scheduler.yieldAll(3);
+      await scheduler.yieldAll();
       await assertEventHandler(target2, scheduler, controllerValidateSpy, spy, ctx);
 
       const errors1 = ca.errors;
@@ -260,7 +259,7 @@ describe('validation-errors-custom-attribute', function () {
       await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);
       target2.value = 'foo';
       target2.dispatchEvent(new ctx.Event('change'));
-      await scheduler.yieldAll(3);
+      await scheduler.yieldAll();
       await assertEventHandler(target2, scheduler, controller2ValidateSpy, spy2, ctx);
 
       // assert that errors are rendered in the respective containers
@@ -285,12 +284,12 @@ describe('validation-errors-custom-attribute', function () {
       // assert that errors are removed
       target1.value = 'foo';
       target1.dispatchEvent(new ctx.Event('change'));
-      await scheduler.yieldAll(3);
+      await scheduler.yieldAll();
       await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);
 
       target2.value = '15';
       target2.dispatchEvent(new ctx.Event('change'));
-      await scheduler.yieldAll(3);
+      await scheduler.yieldAll();
       await assertEventHandler(target2, scheduler, controller2ValidateSpy, spy2, ctx);
 
       errors1 = ca1.errors;
@@ -391,10 +390,9 @@ describe('validation-errors-custom-attribute', function () {
 
     await au
       .app({ host, component: App1 })
-      .start()
-      .wait();
+      .start();
 
-    const app: App1 = au.root.viewModel as App1;
+    const app: App1 = au.root.controller.viewModel as App1;
     const scheduler = container.get(IScheduler);
 
     const div1 = host.querySelector('#div1');
@@ -410,7 +408,7 @@ describe('validation-errors-custom-attribute', function () {
     const target1 = div1.querySelector('#target1') as HTMLInputElement;
 
     await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);
-    await scheduler.yieldAll(3);
+    await scheduler.yieldAll();
 
     // assert that errors are rendered in the respective containers
     let errors1 = ca1.errors;
@@ -423,14 +421,14 @@ describe('validation-errors-custom-attribute', function () {
     // assert that errors are removed
     target1.value = 'foo';
     target1.dispatchEvent(new ctx.Event('change'));
-    await scheduler.yieldAll(3);
+    await scheduler.yieldAll();
     await assertEventHandler(target1, scheduler, controllerValidateSpy, spy1, ctx);
 
     errors1 = ca1.errors;
     assert.equal(errors1.length, 0);
     assert.equal(div1.querySelectorAll('span.error').length, 0);
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
     au.dispose();
   });

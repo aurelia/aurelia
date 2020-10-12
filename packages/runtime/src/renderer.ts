@@ -3,10 +3,8 @@ import {
   Class,
   IContainer,
   IRegistry,
-  IResolver,
   Registration,
   Metadata,
-  IIndexable,
   DI,
   IServiceLocator,
 } from '@aurelia/kernel';
@@ -50,7 +48,7 @@ import {
   CustomElement, CustomElementDefinition, PartialCustomElementDefinition,
 } from './resources/custom-element';
 import { Controller } from './templating/controller';
-import { ObserversLookup } from './observation';
+import { IObservable } from './observation';
 import { ICompiledRenderContext, getRenderContext } from './templating/render-context';
 import { AnyBindingExpression, BindingBehaviorExpression, IsBindingBehavior } from './binding/ast';
 import { BindingBehaviorFactory, BindingBehaviorInstance, IInterceptableBinding } from './resources/binding-behavior';
@@ -79,27 +77,6 @@ export interface IInstructionRenderer<
 }
 
 export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>('IInstructionRenderer').noDefault();
-
-export interface IRenderer {
-  render(
-    flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
-    targets: ArrayLike<INode>,
-    templateDefinition: CustomElementDefinition,
-    host: INode | null | undefined,
-  ): void;
-
-  renderInstructions(
-    flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    instructions: readonly ITargetedInstruction[],
-    controller: IRenderableController,
-    target: unknown,
-  ): void;
-}
-
-export const IRenderer = DI.createInterface<IRenderer>('IRenderer').noDefault();
 
 type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>, TClass> & IRegistry;
@@ -133,9 +110,12 @@ export function instructionRenderer<TType extends string>(instructionType: TType
   };
 }
 
+export interface IRenderer extends Renderer {}
+export const IRenderer = DI.createInterface<IRenderer>('IRenderer').withDefault(x => x.singleton(Renderer));
+
 /* @internal */
-export class Renderer implements IRenderer {
-  public instructionRenderers: Record<InstructionTypeName, IInstructionRenderer['render']>;
+export class Renderer {
+  private readonly instructionRenderers: Record<InstructionTypeName, IInstructionRenderer['render']>;
 
   public constructor(@all(IInstructionRenderer) instructionRenderers: IInstructionRenderer[]) {
     const record: Record<InstructionTypeName, IInstructionRenderer['render']> = this.instructionRenderers = {};
@@ -145,10 +125,6 @@ export class Renderer implements IRenderer {
       // Consumes slightly more memory but significantly less CPU.
       record[item.instructionType as string] = item.render.bind(item);
     });
-  }
-
-  public static register(container: IContainer): IResolver<IRenderer> {
-    return Registration.singleton(IRenderer, this).register(container);
   }
 
   public render(
@@ -254,7 +230,7 @@ export class SetPropertyRenderer implements IInstructionRenderer {
     target: IController,
     instruction: ISetPropertyInstruction,
   ): void {
-    const obj = getTarget(target) as IIndexable & { $observers: ObserversLookup };
+    const obj = getTarget(target) as IObservable;
     if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
       obj.$observers[instruction.to].setValue(instruction.value, LifecycleFlags.fromBind);
     } else {
@@ -295,10 +271,11 @@ export class CustomElementRenderer implements IInstructionRenderer {
 
     const lifecycle = context.get(ILifecycle);
     const childController = Controller.forCustomElement(
+      /* root                */controller.root,
+      /* container           */context,
       /* viewModel           */component,
       /* lifecycle           */lifecycle,
       /* host                */target,
-      /* parentContainer     */context,
       /* targetedProjections */context.getProjectionFor(instruction),
       /* flags               */flags,
     );
@@ -342,6 +319,8 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 
     const lifecycle = context.get(ILifecycle);
     const childController = Controller.forCustomAttribute(
+      /* root      */controller.root,
+      /* container */context,
       /* viewModel */component,
       /* lifecycle */lifecycle,
       /* host      */target,
@@ -368,16 +347,16 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 export class TemplateControllerRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
-    parentContext: ICompiledRenderContext,
+    context: ICompiledRenderContext,
     controller: IRenderableController,
     target: INode,
     instruction: IHydrateTemplateController,
   ): void {
 
-    const viewFactory = getRenderContext(instruction.def, parentContext).getViewFactory();
-    const renderLocation = parentContext.dom.convertToRenderLocation(target);
+    const viewFactory = getRenderContext(instruction.def, context).getViewFactory();
+    const renderLocation = context.dom.convertToRenderLocation(target);
 
-    const componentFactory = parentContext.getComponentFactory(
+    const componentFactory = context.getComponentFactory(
       /* parentController */controller,
       /* host             */target,
       /* instruction      */instruction,
@@ -388,8 +367,10 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     const key = CustomAttribute.keyFrom(instruction.res);
     const component = componentFactory.createComponent<ICustomAttributeViewModel>(key);
 
-    const lifecycle = parentContext.get(ILifecycle);
+    const lifecycle = context.get(ILifecycle);
     const childController = Controller.forCustomAttribute(
+      /* root      */controller.root,
+      /* container */context,
       /* viewModel */component,
       /* lifecycle */lifecycle,
       /* host      */target,
@@ -403,7 +384,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
       (component as { link(componentTail: IController): void}).link(children[children.length - 1]);
     }
 
-    parentContext.renderInstructions(
+    context.renderInstructions(
       /* flags        */flags,
       /* instructions */instruction.instructions,
       /* controller   */controller,

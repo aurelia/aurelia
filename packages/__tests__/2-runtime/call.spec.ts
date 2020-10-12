@@ -6,7 +6,7 @@ import {
   ExpressionKind,
   IsBindingBehavior,
   ILifecycle,
-  IScope,
+  Scope,
   LifecycleFlags as LF,
   RuntimeConfiguration,
   SetterObserver
@@ -45,7 +45,7 @@ describe.skip('CallBinding', function () {
       () => [new BindingBehaviorExpression(new CallScopeExpression('theFunc', []), 'debounce', []),          `theFunc()`]
     ];
 
-    const scopeVariations: (() => [IScope, string])[] = [
+    const scopeVariations: (() => [Scope, string])[] = [
       () => [createScopeForTest({theFunc: () => { return; }}),       `{theFunc:()=>{}}       `]
     ];
 
@@ -146,7 +146,7 @@ describe.skip('CallBinding', function () {
       () => [new BindingBehaviorExpression(new CallScopeExpression('theFunc', []), 'debounce', []),          `theFunc()`]
     ];
 
-    const scopeVariations: (() => [IScope, string])[] = [
+    const scopeVariations: (() => [Scope, string])[] = [
       () => [createScopeForTest({theFunc: () => { return; }}),       `{theFunc:()=>{}}       `]
     ];
 
@@ -250,7 +250,7 @@ describe.skip('CallBinding', function () {
       () => [new CallScopeExpression('theFunc', [new AccessScopeExpression('arg1'), new AccessScopeExpression('arg2'), new AccessScopeExpression('arg3')]), `theFunc(arg1, arg2, arg3)`]
     ];
 
-    const scopeVariations: (() => [IScope, string])[] = [
+    const scopeVariations: (() => [Scope, string])[] = [
       () => [createScopeForTest({theFunc: () => { return; }}),       `{theFunc:()=>{}}       `]
     ];
 

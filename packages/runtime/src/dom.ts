@@ -3,7 +3,6 @@ import {
   IContainer,
   IResolver,
   PLATFORM,
-  Reporter,
 } from '@aurelia/kernel';
 import { IScheduler } from '@aurelia/scheduler';
 
@@ -121,7 +120,7 @@ export interface IDOM<T extends INode = INode> {
 }
 
 const ni = function (...args: unknown[]): unknown {
-  throw Reporter.error(1000); // TODO: create error code (not implemented exception)
+  throw new Error(`No DOM implementation is provided.`);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any; // this function doesn't need typing because it is never directly called
 
@@ -164,7 +163,7 @@ export const DOM: IDOM & {
   },
   initialize(dom: IDOM): void {
     if (this.isInitialized) {
-      throw Reporter.error(1001); // TODO: create error code (already initialized, check isInitialized property and call destroy() if you want to assign a different dom)
+      throw new Error(`DOM is already initialized.`);
     }
     const descriptors: PropertyDescriptorMap = {};
     const protos: IDOM[] = [dom];
@@ -191,7 +190,7 @@ export const DOM: IDOM & {
   },
   destroy(): void {
     if (!this.isInitialized) {
-      throw Reporter.error(1002); // TODO: create error code (already destroyed)
+      throw new Error(`DOM is already destroyed.`);
     }
     const keys = Reflect.get(this, '$domKeys') as string[];
     keys.forEach(key => {

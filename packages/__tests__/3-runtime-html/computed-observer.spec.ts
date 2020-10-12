@@ -415,7 +415,7 @@ describe('simple Computed Observer test case', function () {
     const component = new App();
 
     au.app({ host: appHost, component });
-    await au.start().wait();
+    await au.start();
 
     return {
       ctx: ctx,
@@ -427,7 +427,7 @@ describe('simple Computed Observer test case', function () {
       component: component as T,
       observerLocator,
       tearDown: async () => {
-        await au.stop().wait();
+        await au.stop();
         testHost.remove();
 
         au.dispose();

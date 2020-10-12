@@ -1,4 +1,4 @@
-import { IScheduler, ITask, ILifecycleTask } from '@aurelia/runtime';
+import { IScheduler, ITask } from '@aurelia/runtime';
 import { bound } from '@aurelia/kernel';
 
 /**
@@ -15,7 +15,7 @@ export type QueueableFunction = ((task: QueueTask<void>) => void | Promise<void>
 /**
  * @internal - Shouldn't be used directly
  */
-export class QueueTask<T> implements ILifecycleTask {
+export class QueueTask<T> {
   public done: boolean = false;
   private readonly promise: Promise<void>;
 
@@ -47,10 +47,6 @@ export class QueueTask<T> implements ILifecycleTask {
   public wait(): Promise<void> {
     return this.promise;
   }
-  public canCancel(): boolean {
-    return false;
-  }
-  public cancel(): void { return; }
 }
 
 export interface ITaskQueueOptions {

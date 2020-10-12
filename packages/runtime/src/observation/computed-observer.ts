@@ -3,7 +3,6 @@ import {
   Constructable,
   IIndexable,
   PLATFORM,
-  Reporter,
   isArrayIndex
 } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
@@ -83,7 +82,7 @@ export function createComputedObserver(
     }
     return new GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator);
   }
-  throw Reporter.error(18, propertyName);
+  throw new Error(`You cannot observe a setter only property: '${propertyName}'`);
 }
 
 export interface CustomSetterObserver extends IBindingTargetObserver { }

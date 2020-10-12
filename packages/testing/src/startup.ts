@@ -17,10 +17,10 @@ export function createFixture<T>(template: string | Node,
   const App = CustomElement.define({ name: 'app', template }, $class || class { } as Constructable<T>);
   const component = new App();
 
-  let startPromise: Promise<unknown> = Promise.resolve();
+  let startPromise: Promise<void> | void = void 0;
   if (autoStart) {
     au.app({ host: host, component });
-    startPromise = au.start().wait();
+    startPromise = au.start();
   }
 
   return {
@@ -36,10 +36,10 @@ export function createFixture<T>(template: string | Node,
     component,
     observerLocator,
     start: async () => {
-      await au.app({ host: host, component }).start().wait();
+      await au.app({ host: host, component }).start();
     },
     tearDown: async () => {
-      await au.stop().wait();
+      await au.stop();
       root.remove();
       au.dispose();
     }

@@ -4,13 +4,15 @@ module.exports = {
     'plugin:cypress/recommended',
     'plugin:mocha/recommended'
   ],
+  parserOptions: {
+    tsconfigRootDir: '.',
+  },
   env: {
     browser: true,
-    node: true,
-    mocha: true
+    mocha: true,
   },
   plugins: [
-    'mocha'
+    'mocha',
   ],
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',

@@ -43,10 +43,10 @@ describe('Nav', function () {
 
     container.register(Foo, Bar, Baz, Qux);
 
-    await au.start().wait();
+    await au.start();
 
     async function tearDown() {
-      await au.stop().wait();
+      await au.stop();
       ctx.doc.body.removeChild(host);
 
       au.dispose();

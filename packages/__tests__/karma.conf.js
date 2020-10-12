@@ -34,7 +34,6 @@ module.exports = function (config) {
     browserDisconnectTimeout: 10000,
     processKillTimeout: 10000,
     frameworks: [
-      'source-map-support',
       'mocha',
     ],
     files: [
@@ -72,7 +71,7 @@ module.exports = function (config) {
           'module', 'main'
         ],
       },
-      devtool: 'inline-source-map',
+      devtool: 'eval-source-map',
       performance: {
         hints: false,
       },

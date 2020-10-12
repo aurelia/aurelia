@@ -36,12 +36,12 @@ describe('HookManager', function () {
     const router = container.get(IRouter);
     const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
-    await au.start().wait();
+    await au.start();
 
     async function tearDown() {
       unspyNavigationStates(router, _pushState, _replaceState);
       RouterConfiguration.customize();
-      await au.stop().wait();
+      await au.stop();
 
       au.dispose();
     }

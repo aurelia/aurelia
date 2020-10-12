@@ -47,7 +47,8 @@ export class TaskQueue {
   private processingHead: Task | undefined = void 0;
   private processingTail: Task | undefined = void 0;
 
-  private processingAsync: Task | undefined = void 0;
+  private suspenderTask: Task | undefined = void 0;
+  private pendingAsyncCount: number = 0;
 
   private pendingSize: number = 0;
   private pendingHead: Task | undefined = void 0;
@@ -79,6 +80,9 @@ export class TaskQueue {
    * If that is the case, we can resolve the promise that was created when `yield()` is called.
    */
   private get hasNoMoreFiniteWork(): boolean {
+    if (this.pendingAsyncCount > 0) {
+      return false;
+    }
     let cur = this.processingHead;
     while (cur !== void 0) {
       if (!cur.persistent) {
@@ -129,7 +133,7 @@ export class TaskQueue {
     this.flushRequested = false;
 
     // Only process normally if we are *not* currently waiting for an async task to finish
-    if (this.processingAsync === void 0) {
+    if (this.suspenderTask === void 0) {
       if (this.pendingSize > 0) {
         this.movePendingToProcessing();
       }
@@ -143,12 +147,16 @@ export class TaskQueue {
         cur.run();
         // If it's still running, it can only be an async task
         if (cur.status === 'running') {
-          this.processingAsync = cur;
-          this.requestFlushClamped();
+          if (cur.suspend === true) {
+            this.suspenderTask = cur;
+            this.requestFlushClamped();
 
-          leave(this, 'flush early async');
+            leave(this, 'flush early async');
 
-          return;
+            return;
+          } else {
+            ++this.pendingAsyncCount;
+          }
         }
       }
 
@@ -161,7 +169,7 @@ export class TaskQueue {
 
       if (this.processingSize > 0) {
         this.requestFlush();
-      } else if (this.delayedSize > 0) {
+      } else if (this.delayedSize > 0 || this.pendingAsyncCount > 0) {
         this.requestFlushClamped();
       }
 
@@ -176,7 +184,7 @@ export class TaskQueue {
     } else {
       // If we are still waiting for an async task to finish, just schedule the next flush and do nothing else.
       // Should the task finish before the next flush is invoked,
-      // the callback to `completeAsyncTask` will have reset `this.processingAsync` back to undefined so processing can return back to normal next flush.
+      // the callback to `completeAsyncTask` will have reset `this.suspenderTask` back to undefined so processing can return back to normal next flush.
       this.requestFlushClamped();
     }
 
@@ -233,7 +241,7 @@ export class TaskQueue {
   public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): Task<T> {
     enter(this, 'queueTask');
 
-    const { delay, preempt, persistent, reusable, async } = { ...defaultQueueTaskOptions, ...opts };
+    const { delay, preempt, persistent, reusable, suspend } = { ...defaultQueueTaskOptions, ...opts };
 
     if (preempt) {
       if (delay > 0) {
@@ -262,12 +270,12 @@ export class TaskQueue {
         taskPool[index] = (void 0)!;
         this.taskPoolSize = index;
 
-        task.reuse(time, delay, preempt, persistent, async, callback);
+        task.reuse(time, delay, preempt, persistent, suspend, callback);
       } else {
-        task = new Task(this, time, time + delay, preempt, persistent, async, reusable, callback);
+        task = new Task(this, time, time + delay, preempt, persistent, suspend, reusable, callback);
       }
     } else {
-      task = new Task(this, time, time + delay, preempt, persistent, async, reusable, callback);
+      task = new Task(this, time, time + delay, preempt, persistent, suspend, reusable, callback);
     }
 
     if (preempt) {
@@ -435,13 +443,18 @@ export class TaskQueue {
   public completeAsyncTask(task: Task): void {
     enter(this, 'completeAsyncTask');
 
-    if (this.processingAsync !== task) {
-      leave(this, 'completeAsyncTask error');
+    if (task.suspend === true) {
+      if (this.suspenderTask !== task) {
+        leave(this, 'completeAsyncTask error');
 
-      throw new Error(`Async task completion mismatch: processingAsync=${this.processingAsync?.id}, task=${task.id}`);
+        throw new Error(`Async task completion mismatch: suspenderTask=${this.suspenderTask?.id}, task=${task.id}`);
+      }
+
+      this.suspenderTask = void 0;
+    } else {
+      --this.pendingAsyncCount;
     }
 
-    this.processingAsync = void 0;
     if (
       this.yieldPromise !== void 0 &&
       this.hasNoMoreFiniteWork
@@ -653,5 +666,5 @@ const microTaskRequestFlushTaskOptions: QueueTaskOptions = {
   preempt: true,
   persistent: false,
   reusable: true,
-  async: false,
+  suspend: false,
 };

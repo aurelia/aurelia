@@ -3,7 +3,6 @@ import {
   Class,
   IContainer,
   IRegistry,
-  IResolver,
   Registration,
   Metadata,
   DI,
@@ -79,26 +78,6 @@ export interface IInstructionRenderer<
 
 export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>('IInstructionRenderer').noDefault();
 
-export interface IRenderer {
-  render(
-    flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
-    targets: ArrayLike<INode>,
-    templateDefinition: CustomElementDefinition,
-    host: INode | null | undefined,
-  ): void;
-
-  renderInstructions(
-    flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    instructions: readonly ITargetedInstruction[],
-    controller: IRenderableController,
-    target: unknown,
-  ): void;
-}
-
-export const IRenderer = DI.createInterface<IRenderer>('IRenderer').noDefault();
 
 type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>, TClass> & IRegistry;
@@ -132,9 +111,12 @@ export function instructionRenderer<TType extends string>(instructionType: TType
   };
 }
 
+export interface IRenderer extends Renderer {}
+export const IRenderer = DI.createInterface<IRenderer>('IRenderer').withDefault(x => x.singleton(Renderer));
+
 /* @internal */
-export class Renderer implements IRenderer {
-  public instructionRenderers: Record<InstructionTypeName, IInstructionRenderer['render']>;
+export class Renderer {
+  private instructionRenderers: Record<InstructionTypeName, IInstructionRenderer['render']>;
 
   public constructor(@all(IInstructionRenderer) instructionRenderers: IInstructionRenderer[]) {
     const record: Record<InstructionTypeName, IInstructionRenderer['render']> = this.instructionRenderers = {};
@@ -144,10 +126,6 @@ export class Renderer implements IRenderer {
       // Consumes slightly more memory but significantly less CPU.
       record[item.instructionType as string] = item.render.bind(item);
     });
-  }
-
-  public static register(container: IContainer): IResolver<IRenderer> {
-    return Registration.singleton(IRenderer, this).register(container);
   }
 
   public render(

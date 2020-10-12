@@ -131,16 +131,6 @@ export function view(v: PartialCustomElementDefinition) {
   };
 }
 
-export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator')
-  .noDefault();
-
-export interface IViewLocator {
-  getViewComponentForObject<T extends ClassInstance<ICustomElementViewModel>>(
-    object: T | null | undefined,
-    viewNameOrSelector?: string | ViewSelector,
-  ): ComposableObjectComponentType<T> | null;
-}
-
 export type ClassInstance<T> = T & {
   // eslint-disable-next-line @typescript-eslint/ban-types
   readonly constructor: Function;
@@ -150,13 +140,12 @@ export type ViewSelector = (object: ICustomElementViewModel, views: readonly Par
 export type ComposableObjectComponentType<T extends ICustomElementViewModel>
   = ConstructableClass<{ viewModel: T } & ICustomElementViewModel>;
 
-export class ViewLocator implements IViewLocator {
+export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator').withDefault(x => x.singleton(ViewLocator));
+export interface IViewLocator extends ViewLocator {}
+
+export class ViewLocator {
   private readonly modelInstanceToBoundComponent: WeakMap<object, Record<string, ComposableObjectComponentType<ICustomElementViewModel>>> = new WeakMap();
   private readonly modelTypeToUnboundComponent: Map<object, Record<string, ComposableObjectComponentType<ICustomElementViewModel>>> = new Map();
-
-  public static register(container: IContainer): IResolver<IViewLocator> {
-    return Registration.singleton(IViewLocator, this).register(container);
-  }
 
   public getViewComponentForObject<T extends ClassInstance<ICustomElementViewModel>>(
     object: T | null | undefined,

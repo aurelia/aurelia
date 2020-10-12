@@ -385,7 +385,6 @@ export {
   TemplateControllerRendererRegistration,
 
   DefaultResources,
-  IViewLocatorRegistration,
   IProjectionProviderRegistration,
   RuntimeConfiguration
 } from './configuration';

@@ -12,7 +12,6 @@ import {
   LetElementRenderer,
   PropertyBindingRenderer,
   RefBindingRenderer,
-  Renderer,
   SetPropertyRenderer,
   TemplateControllerRenderer
 } from './renderer';
@@ -46,17 +45,14 @@ import { Repeat } from './resources/custom-attributes/repeat';
 import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
-import { ViewLocator } from './templating/view';
 import { Now } from '@aurelia/scheduler';
 import { AuSlot, ProjectionProvider } from './resources/custom-elements/au-slot';
-import { ExpressionParser } from './binding/expression-parser';
 
 export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern as unknown as IRegistry;
 export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern as unknown as IRegistry;
 export const RefAttributePatternRegistration = RefAttributePattern as unknown as IRegistry;
 export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern as unknown as IRegistry;
 
-export const IViewLocatorRegistration = ViewLocator as IRegistry;
 export const IProjectionProviderRegistration = ProjectionProvider as IRegistry;
 
 /**
@@ -115,7 +111,6 @@ export const DefaultBindingLanguage = [
  * - `ISchedulerRegistration`
  */
 export const DefaultComponents = [
-  IViewLocatorRegistration,
   Now,
   IProjectionProviderRegistration,
 ];

@@ -357,7 +357,7 @@ describe('interpolation', function () {
       binding.updateTarget = (updateTarget => {
         return function (...args: unknown[]) {
           updateTargetCallCount++;
-          return updateTarget.apply(this, args);
+          return updateTarget.apply(this);
         };
       })(binding.updateTarget);
       binding.partBindings[0].handleChange = (handleChange => {

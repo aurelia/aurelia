@@ -73,11 +73,11 @@ describe(spec, function () {
       createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory(),
       expectedText: 'Hello!'
     },
-    {
-      t: '5',
-      createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory().create(),
-      expectedText: 'Hello!'
-    },
+    // {
+    //   t: '5',
+    //   createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory().create(),
+    //   expectedText: 'Hello!'
+    // },
     {
       t: '6',
       createSubject: ctx => new RenderPlan(ctx.dom, `<div>Hello!</div>`, [], []),

@@ -19,7 +19,6 @@ import {
   DotSeparatedAttributePatternRegistration,
   DefaultBindingCommandRegistration,
   ForBindingCommandRegistration,
-  IExpressionParserRegistration,
   OneTimeBindingCommandRegistration,
   TwoWayBindingCommandRegistration,
 } from '@aurelia/runtime';
@@ -95,9 +94,6 @@ const container = DI.createContainer().register(
 
   // runtime-html-browser components
   IDOMInitializerRegistration,
-
-  // jit components
-  IExpressionParserRegistration,
 
   // jit attribute patterns
   DotSeparatedAttributePatternRegistration,

@@ -1,8 +1,5 @@
 import {
   DI,
-  IContainer,
-  IResolver,
-  Registration,
 } from '@aurelia/kernel';
 import {
   ExpressionKind,
@@ -55,10 +52,6 @@ export class ExpressionParser {
   private readonly expressionLookup: Record<string, IsBindingBehavior> = Object.create(null);
   private readonly forOfLookup: Record<string, ForOfStatement> = Object.create(null);
   private readonly interpolationLookup: Record<string, Interpolation> = Object.create(null);
-
-  public static register(container: IContainer): IResolver<IExpressionParser> {
-    return Registration.singleton(IExpressionParser, this).register(container);
-  }
 
   public parse(expression: string, bindingType: BindingType.ForCommand): ForOfStatement;
   public parse(expression: string, bindingType: BindingType.Interpolation): Interpolation;

@@ -385,7 +385,6 @@ export {
   TemplateControllerRendererRegistration,
 
   DefaultResources,
-  IExpressionParserRegistration,
   IViewLocatorRegistration,
   IProjectionProviderRegistration,
   RuntimeConfiguration

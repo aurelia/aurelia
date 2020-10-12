@@ -56,7 +56,6 @@ export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAt
 export const RefAttributePatternRegistration = RefAttributePattern as unknown as IRegistry;
 export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern as unknown as IRegistry;
 
-export const IExpressionParserRegistration = ExpressionParser as IRegistry;
 export const IViewLocatorRegistration = ViewLocator as IRegistry;
 export const IProjectionProviderRegistration = ProjectionProvider as IRegistry;
 
@@ -116,7 +115,6 @@ export const DefaultBindingLanguage = [
  * - `ISchedulerRegistration`
  */
 export const DefaultComponents = [
-  IExpressionParserRegistration,
   IViewLocatorRegistration,
   Now,
   IProjectionProviderRegistration,

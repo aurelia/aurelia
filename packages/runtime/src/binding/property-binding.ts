@@ -76,7 +76,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.targetObserver!.setValue(value, flags);
+    this.targetObserver!.setValue(value, flags, this.target, this.targetProperty);
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
@@ -103,7 +103,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
       //  (1). determine whether this should be the behavior
       //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start()
       const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
-      const oldValue = targetObserver.getValue();
+      const oldValue = targetObserver.getValue(this.target, this.targetProperty);
 
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
@@ -199,7 +199,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     if ($mode & fromView) {
       targetObserver.subscribe(interceptor);
       if (!shouldConnect) {
-        interceptor.updateSource(targetObserver.getValue(), flags);
+        interceptor.updateSource(targetObserver.getValue(this.target, this.targetProperty), flags);
       }
       targetObserver[this.id] |= LifecycleFlags.updateSourceExpression;
     }

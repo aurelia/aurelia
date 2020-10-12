@@ -26,8 +26,8 @@ export class CallBinding {
 
   public constructor(
     public sourceExpression: IsBindingBehavior,
-    target: object,
-    targetProperty: string,
+    public readonly target: object,
+    public readonly targetProperty: string,
     observerLocator: IObserverLocator,
     public locator: IServiceLocator,
   ) {
@@ -62,7 +62,7 @@ export class CallBinding {
       this.sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
-    this.targetObserver.setValue(($args: object) => this.interceptor.callSource($args), flags);
+    this.targetObserver.setValue(($args: object) => this.interceptor.callSource($args), flags, this.target, this.targetProperty);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;
@@ -78,7 +78,7 @@ export class CallBinding {
     }
 
     this.$scope = void 0;
-    this.targetObserver.setValue(null, flags);
+    this.targetObserver.setValue(null, flags, this.target, this.targetProperty);
 
     this.isBound = false;
   }

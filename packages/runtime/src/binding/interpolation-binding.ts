@@ -119,7 +119,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
   }
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
-    this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance);
+    this.targetObserver.setValue(value, flags | LifecycleFlags.updateTargetInstance, this.target, this.targetProperty);
   }
 
   public handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void {
@@ -134,7 +134,7 @@ export class InterpolationBinding implements IPartialConnectableBinding {
     //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start()
     const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
     const newValue = this.interpolation.evaluate(flags, this.$scope!, this.$hostScope, this.locator, null);
-    const oldValue = targetObserver.getValue();
+    const oldValue = targetObserver.getValue(this.target, this.targetProperty);
     const interceptor = this.interceptor;
 
     // todo(fred): maybe let the observer decides whether it updates

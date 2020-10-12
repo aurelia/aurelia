@@ -3,6 +3,9 @@ import { LifecycleFlags } from './flags';
 import { ILifecycle } from './lifecycle';
 import { ITask } from '@aurelia/scheduler';
 
+import type { CollectionLengthObserver } from './observation/collection-length-observer';
+import type { CollectionSizeObserver } from './observation/collection-size-observer';
+
 export interface IConnectable {
   readonly locator: IServiceLocator;
   observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void;
@@ -224,8 +227,8 @@ export const enum AccessorType {
 export interface IAccessor<TValue = unknown> {
   task: ITask | null;
   type: AccessorType;
-  getValue(): TValue;
-  setValue(newValue: TValue, flags: LifecycleFlags): void;
+  getValue(obj?: object, key?: PropertyKey): TValue;
+  setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;
 }
 
 export interface INodeAccessor<TValue = unknown> extends IAccessor<TValue> {
@@ -323,14 +326,6 @@ export interface IPropertyChangeTracker<TObj, TProp = keyof TObj, TValue = unkno
   currentValue?: TValue;
 }
 
-export interface ICollectionLengthObserver extends IAccessor<number>, IPropertyChangeTracker<unknown[], 'length', number>, ISubscriberCollection {
-  currentValue: number;
-}
-
-export interface ICollectionSizeObserver extends IAccessor<number>, IPropertyChangeTracker<Set<unknown> | Map<unknown, unknown>, 'size', number>, ISubscriberCollection {
-  currentValue: number;
-}
-
 export interface ICollectionIndexObserver extends ICollectionSubscriber, IPropertyObserver<IIndexable, string> {
   owner: ICollectionObserver<CollectionKind.array>;
 }
@@ -355,8 +350,8 @@ export interface ICollectionObserver<T extends CollectionKind> extends
   lifecycle: ILifecycle;
   persistentFlags: LifecycleFlags;
   collection: ObservedCollectionKindToType<T>;
-  lengthObserver: T extends CollectionKind.array ? ICollectionLengthObserver : ICollectionSizeObserver;
-  getLengthObserver(): T extends CollectionKind.array ? ICollectionLengthObserver : ICollectionSizeObserver;
+  lengthObserver: T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
+  getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
   getIndexObserver(index: number): ICollectionIndexObserver;
   notify(): void;
 }

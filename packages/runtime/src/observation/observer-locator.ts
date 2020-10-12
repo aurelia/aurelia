@@ -22,7 +22,7 @@ import { createComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
 import { getMapObserver } from './map-observer';
 import { PrimitiveObserver } from './primitive-observer';
-import { PropertyAccessor } from './property-accessor';
+import { propertyAccessor } from './property-accessor';
 import { ProxyObserver } from './proxy-observer';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
@@ -105,7 +105,7 @@ export class ObserverLocator {
     if ((flags & LifecycleFlags.proxyStrategy) > 0) {
       return ProxyObserver.getOrCreate(obj, key) as unknown as AccessorOrObserver;
     }
-    return new PropertyAccessor((obj as IObservable), key);
+    return propertyAccessor as IBindingTargetAccessor;
   }
 
   public getArrayObserver(flags: LifecycleFlags, observedArray: IObservedArray): ICollectionObserver<CollectionKind.array> {

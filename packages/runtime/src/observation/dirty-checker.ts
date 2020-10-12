@@ -4,12 +4,7 @@ import { IBindingTargetObserver, IObservable, ISubscriber, AccessorType } from '
 import { subscriberCollection } from './subscriber-collection';
 import { IScheduler, ITask } from '@aurelia/scheduler';
 
-export interface IDirtyChecker {
-  createProperty(obj: object, propertyName: string): IBindingTargetObserver;
-  addProperty(property: DirtyCheckProperty): void;
-  removeProperty(property: DirtyCheckProperty): void;
-}
-
+export interface IDirtyChecker extends DirtyChecker {}
 export const IDirtyChecker = DI.createInterface<IDirtyChecker>('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
 
 export const DirtyCheckSettings = {
@@ -49,11 +44,11 @@ export const DirtyCheckSettings = {
 export class DirtyChecker {
   private readonly tracked: DirtyCheckProperty[] = [];
 
-  public task: ITask | null = null;
+  private task: ITask | null = null;
   private elapsedFrames: number = 0;
 
   public constructor(
-    @IScheduler public readonly scheduler: IScheduler,
+    @IScheduler private readonly scheduler: IScheduler,
   ) {}
 
   public createProperty(obj: object, propertyName: string): DirtyCheckProperty {
@@ -79,7 +74,7 @@ export class DirtyChecker {
     }
   }
 
-  public check(delta?: number): void {
+  private check(delta?: number): void {
     if (DirtyCheckSettings.disabled) {
       return;
     }

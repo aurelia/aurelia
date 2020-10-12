@@ -100,10 +100,6 @@ describe('Scheduler', function () {
       name: 'postRender',
     },
     {
-      priority: TaskQueuePriority.idle,
-      name: 'idle',
-    },
-    {
       priority: TaskQueuePriority.microTask,
       name: 'microTask',
     },
@@ -741,6 +737,8 @@ describe('Scheduler', function () {
     }
   }
 
+  // TODO(fkleuver): we need async tests with suspend: false.
+  // This is indirectly tested by various integration tests but we need at least a couple of thorough scheduler-specific tests as well.
   describe('async', function () {
     for (const reusable of [true, false]) {
       const $reusable = reusable ? 'reusable' : 'non-reusable';
@@ -761,7 +759,7 @@ describe('Scheduler', function () {
                 priority,
                 preempt: false,
                 delay: 0,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -782,7 +780,7 @@ describe('Scheduler', function () {
                 priority,
                 preempt: true,
                 delay: 0,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -802,7 +800,7 @@ describe('Scheduler', function () {
                 reusable,
                 priority,
                 delay: 5,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -828,7 +826,7 @@ describe('Scheduler', function () {
                 reusable,
                 priority,
                 delay: 5,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -840,7 +838,7 @@ describe('Scheduler', function () {
                 reusable,
                 priority,
                 delay: 0,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -866,7 +864,7 @@ describe('Scheduler', function () {
                 reusable,
                 priority,
                 preempt: false,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -878,7 +876,7 @@ describe('Scheduler', function () {
                 reusable,
                 priority,
                 preempt: true,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -904,7 +902,7 @@ describe('Scheduler', function () {
                 reusable,
                 priority,
                 delay: 5,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -916,7 +914,7 @@ describe('Scheduler', function () {
                 reusable,
                 priority,
                 preempt: false,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -928,7 +926,7 @@ describe('Scheduler', function () {
                 reusable,
                 priority,
                 preempt: true,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -953,7 +951,7 @@ describe('Scheduler', function () {
                     reusable,
                     priority,
                     delay,
-                    async: true,
+                    suspend: true,
                   },
                   expected,
                   increment,
@@ -978,7 +976,7 @@ describe('Scheduler', function () {
                     reusable,
                     priority,
                     delay,
-                    async: true,
+                    suspend: true,
                   },
                   expected,
                   increment,
@@ -997,7 +995,7 @@ describe('Scheduler', function () {
               priority,
               preempt: false,
               delay: 0,
-              async: true,
+              suspend: true,
             };
 
             let count = 0;
@@ -1034,7 +1032,7 @@ describe('Scheduler', function () {
                 priority,
                 preempt: false,
                 delay: 0,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -1051,7 +1049,7 @@ describe('Scheduler', function () {
                 priority,
                 preempt: true,
                 delay: 0,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -1067,7 +1065,7 @@ describe('Scheduler', function () {
                 reusable,
                 priority,
                 delay: 5,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -1089,7 +1087,7 @@ describe('Scheduler', function () {
                 reusable,
                 priority,
                 delay: 5,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -1101,7 +1099,7 @@ describe('Scheduler', function () {
                 reusable,
                 priority,
                 delay: 0,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -1123,7 +1121,7 @@ describe('Scheduler', function () {
                 reusable,
                 priority,
                 preempt: false,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -1135,7 +1133,7 @@ describe('Scheduler', function () {
                 reusable,
                 priority,
                 preempt: true,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -1157,7 +1155,7 @@ describe('Scheduler', function () {
                 reusable,
                 priority,
                 delay: 5,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -1169,7 +1167,7 @@ describe('Scheduler', function () {
                 reusable,
                 priority,
                 preempt: false,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -1181,7 +1179,7 @@ describe('Scheduler', function () {
                 reusable,
                 priority,
                 preempt: true,
-                async: true,
+                suspend: true,
               },
             );
 
@@ -1197,7 +1195,7 @@ describe('Scheduler', function () {
                     reusable,
                     priority,
                     delay,
-                    async: true,
+                    suspend: true,
                   },
                   expected,
                   async function () {
@@ -1219,7 +1217,7 @@ describe('Scheduler', function () {
                     reusable,
                     priority,
                     delay,
-                    async: true,
+                    suspend: true,
                   },
                   expected,
                   async function () {
@@ -1260,7 +1258,7 @@ describe('Scheduler', function () {
                       persistent: true,
                       reusable,
                       priority,
-                      async: true,
+                      suspend: true,
                     },
                   );
 
@@ -1301,7 +1299,7 @@ describe('Scheduler', function () {
                       persistent: true,
                       reusable,
                       priority,
-                      async: true,
+                      suspend: true,
                     },
                   );
 
@@ -1323,7 +1321,7 @@ describe('Scheduler', function () {
                       {
                         reusable,
                         priority,
-                        async: true,
+                        suspend: true,
                       },
                     );
                   }
@@ -1376,7 +1374,7 @@ describe('Scheduler', function () {
                       persistent: true,
                       reusable,
                       priority,
-                      async: true,
+                      suspend: true,
                     },
                   );
 
@@ -1416,7 +1414,7 @@ describe('Scheduler', function () {
                       persistent: true,
                       reusable,
                       priority,
-                      async: true,
+                      suspend: true,
                     },
                   );
 
@@ -1429,7 +1427,7 @@ describe('Scheduler', function () {
                       preempt: true,
                       reusable,
                       priority,
-                      async: true,
+                      suspend: true,
                     },
                   );
 
@@ -1441,7 +1439,7 @@ describe('Scheduler', function () {
                       preempt: false,
                       reusable,
                       priority,
-                      async: true,
+                      suspend: true,
                     },
                   );
 
@@ -1453,7 +1451,7 @@ describe('Scheduler', function () {
                       preempt: true,
                       reusable,
                       priority,
-                      async: true,
+                      suspend: true,
                     },
                   );
 
@@ -1465,7 +1463,7 @@ describe('Scheduler', function () {
                       preempt: false,
                       reusable,
                       priority,
-                      async: true,
+                      suspend: true,
                     },
                   );
 
@@ -1491,7 +1489,7 @@ describe('Scheduler', function () {
                   persistent: true,
                   reusable,
                   priority,
-                  async: true,
+                  suspend: true,
                 },
               );
 
@@ -1507,7 +1505,7 @@ describe('Scheduler', function () {
                 {
                   reusable,
                   priority,
-                  async: true,
+                  suspend: true,
                 },
               );
 
@@ -1533,7 +1531,7 @@ describe('Scheduler', function () {
                   persistent: true,
                   reusable,
                   priority,
-                  async: true,
+                  suspend: true,
                 },
               );
 
@@ -1588,7 +1586,7 @@ describe('Scheduler', function () {
 
       const opts: QueueTaskTargetOptions = {
         priority: TaskQueuePriority.macroTask,
-        async: true,
+        suspend: true,
       };
 
       const task0 = sut.queueTask(callback0, opts);

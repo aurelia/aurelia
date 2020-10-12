@@ -25,7 +25,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
     // with TS, initialization of class field are in constructor
     assert.strictEqual(callCount, 1);
     assert.strictEqual(instance.value, oldValue);
-    assert.notInstanceOf((instance as IObservable).$observers['value'], SetterObserver);
+    assert.notInstanceOf((instance as unknown as IObservable).$observers['value'], SetterObserver);
 
     instance.value = newValue;
     assert.strictEqual(callCount, 2);

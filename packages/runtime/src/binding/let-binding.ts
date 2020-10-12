@@ -13,7 +13,6 @@ import {
 } from '../lifecycle';
 import {
   IObservable,
-  IScope,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IsExpression } from './ast';
@@ -22,6 +21,8 @@ import {
   IConnectableBinding,
   IPartialConnectableBinding,
 } from './connectable';
+
+import type { Scope } from '../observation/binding-context';
 
 export interface LetBinding extends IConnectableBinding {}
 
@@ -32,8 +33,8 @@ export class LetBinding implements IPartialConnectableBinding {
   public id!: number;
   public isBound: boolean = false;
   public $lifecycle: ILifecycle;
-  public $scope?: IScope = void 0;
-  public $hostScope: IScope | null = null;
+  public $scope?: Scope = void 0;
+  public $hostScope: Scope | null = null;
   public task: ITask | null = null;
 
   public target: (IObservable & IIndexable) | null = null;
@@ -70,7 +71,7 @@ export class LetBinding implements IPartialConnectableBinding {
     throw new Error('Unexpected handleChange context in LetBinding');
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -107,12 +108,5 @@ export class LetBinding implements IPartialConnectableBinding {
 
     // remove isBound and isUnbinding flags
     this.isBound = false;
-  }
-
-  public dispose(): void {
-    this.interceptor = (void 0)!;
-    this.sourceExpression = (void 0)!;
-    this.locator = (void 0)!;
-    this.target = (void 0)!;
   }
 }

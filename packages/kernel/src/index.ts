@@ -33,38 +33,17 @@ export {
   Class,
   Constructable,
   ConstructableClass,
-  Diff,
-  ICallable,
   IDisposable,
-  IFrameRequestCallback,
   IIndexable,
   IPerformance,
   ITimerHandler,
   IWindowOrWorkerGlobalScope,
-  KnownKeys,
-  NoInfer,
   Omit,
-  OptionalKnownKeys,
-  OptionalValuesOf,
   Overwrite,
-  Param0,
-  Param1,
-  Param2,
-  Param3,
-  Pick2,
-  Pick3,
   Primitive,
-  Public,
-  Purify,
-  RequiredKnownKeys,
-  RequiredValuesOf,
   StrictPrimitive,
   Unwrap,
-  ValuesOf,
   Writable,
-  IfEquals,
-  ReadonlyKeys,
-  WritableKeys,
 } from './interfaces';
 export {
   metadata,
@@ -74,6 +53,7 @@ export {
   applyMetadataPolyfill,
 } from '@aurelia/metadata';
 export {
+  LogLevel,
   IConsoleLike,
   ColorOptions,
   ILogConfig,
@@ -90,19 +70,7 @@ export {
   format,
   sink,
 } from './logger';
-export {
-  relativeToFile,
-  join,
-} from './path';
 export { PLATFORM } from './platform';
-export {
-  ITraceInfo,
-  ITraceWriter,
-  ILiveLoggingOptions,
-  Reporter,
-  Tracer,
-  LogLevel,
-} from './reporter';
 export {
   Profiler
 } from './profiler';

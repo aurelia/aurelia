@@ -89,12 +89,11 @@ describe('validation controller factory', function () {
         CustomStuff3
       )
       .app({ host, component: App })
-      .start()
-      .wait();
+      .start();
 
     await testFunction({ app: void 0, container, host, scheduler: container.get(IScheduler), ctx });
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
 
     au.dispose();
@@ -214,13 +213,12 @@ describe('validation-controller', function () {
         host,
         component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
       })
-      .start()
-      .wait();
+      .start();
 
-    const app = au.root.viewModel as App;
+    const app = au.root.controller.viewModel as App;
     await testFunction({ app, container, host, scheduler: container.get(IScheduler), ctx });
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
 
     au.dispose();

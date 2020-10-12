@@ -440,7 +440,7 @@ describe('custom-attributes', function () {
         assert.strictEqual(foo1Vm.propertyChangedCallCount, 0, `#2 Foo1 count`);
         assert.strictEqual(foo1Vm.prop, `prop`);
 
-        const rootVm = options.au.root.viewModel;
+        const rootVm = options.au.root.controller.viewModel;
         // changing source value should trigger the change handler
         rootVm['prop'] = 5;
         assert.strictEqual(foo1Vm.propChangedCallCount, 1, '#3 Foo1 propChanged()');
@@ -680,7 +680,7 @@ describe('custom-attributes', function () {
           [Foo1, Foo2, Foo3, Foo4]
         );
         const fooEl = options.appHost.querySelector('div');
-        const rootVm = options.au.root.viewModel as any;
+        const rootVm = options.au.root.controller.viewModel as any;
         const foo1Vm = CustomAttribute.for(fooEl, 'foo1').viewModel as Foo1;
 
         assert.strictEqual(foo1Vm.prop, 'prop', '#1 <-> Foo1 initial');
@@ -725,7 +725,7 @@ describe('custom-attributes', function () {
           [Foo5]
         );
         const fooEl = options.appHost.querySelector('div');
-        const rootVm = options.au.root.viewModel as any;
+        const rootVm = options.au.root.controller.viewModel as any;
         const foo5Vm = CustomAttribute.for(fooEl, 'foo5').viewModel as Foo5;
 
         assert.strictEqual(foo5Vm.prop, NaN, '#1 <-> Foo1 initial');

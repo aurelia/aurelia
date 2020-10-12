@@ -18,7 +18,6 @@ import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition 
 import { Controller } from './controller';
 import { IRenderContext } from './render-context';
 import { AuSlotContentType } from '../resources/custom-elements/au-slot';
-import { IScope } from '../observation';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
   public static maxCacheSize: number = 0xFFFF;
@@ -33,7 +32,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     public readonly context: IRenderContext<T>,
     private readonly lifecycle: ILifecycle,
     public readonly contentType: AuSlotContentType | undefined,
-    public readonly projectionScope: IScope | null = null,
+    public readonly projectionScope: Scope | null = null,
   ) {}
 
   public setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void {
@@ -80,7 +79,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
       return controller;
     }
 
-    controller = Controller.forSyntheticView(this, this.lifecycle, this.context, flags);
+    controller = Controller.forSyntheticView(null, this.context, this, this.lifecycle, flags);
     return controller;
   }
 }
@@ -132,16 +131,6 @@ export function view(v: PartialCustomElementDefinition) {
   };
 }
 
-export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator')
-  .noDefault();
-
-export interface IViewLocator {
-  getViewComponentForObject<T extends ClassInstance<ICustomElementViewModel>>(
-    object: T | null | undefined,
-    viewNameOrSelector?: string | ViewSelector,
-  ): ComposableObjectComponentType<T> | null;
-}
-
 export type ClassInstance<T> = T & {
   // eslint-disable-next-line @typescript-eslint/ban-types
   readonly constructor: Function;
@@ -151,13 +140,12 @@ export type ViewSelector = (object: ICustomElementViewModel, views: readonly Par
 export type ComposableObjectComponentType<T extends ICustomElementViewModel>
   = ConstructableClass<{ viewModel: T } & ICustomElementViewModel>;
 
-export class ViewLocator implements IViewLocator {
+export const IViewLocator = DI.createInterface<IViewLocator>('IViewLocator').withDefault(x => x.singleton(ViewLocator));
+export interface IViewLocator extends ViewLocator {}
+
+export class ViewLocator {
   private readonly modelInstanceToBoundComponent: WeakMap<object, Record<string, ComposableObjectComponentType<ICustomElementViewModel>>> = new WeakMap();
   private readonly modelTypeToUnboundComponent: Map<object, Record<string, ComposableObjectComponentType<ICustomElementViewModel>>> = new Map();
-
-  public static register(container: IContainer): IResolver<IViewLocator> {
-    return Registration.singleton(IViewLocator, this).register(container);
-  }
 
   public getViewComponentForObject<T extends ClassInstance<ICustomElementViewModel>>(
     object: T | null | undefined,
@@ -380,7 +368,6 @@ export class ViewLocator implements IViewLocator {
     const v = views.find(x => x.name === name);
 
     if (v === void 0) {
-      // TODO: Use Reporter
       throw new Error(`Could not find view: ${name}`);
     }
 

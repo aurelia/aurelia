@@ -6,7 +6,6 @@ import {
   InstanceProvider,
   IResolver,
   Key,
-  Reporter,
   Resolved,
   Transformer,
 } from '@aurelia/kernel';
@@ -29,7 +28,8 @@ import { IRenderer, ITemplateCompiler } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { ViewFactory } from './view';
 import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot';
-import { IScope } from '../observation';
+
+import type { Scope } from '../observation/binding-context';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
 const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, RenderContext>>>();
@@ -79,7 +79,7 @@ export interface IRenderContext<T extends INode = INode> extends IContainer {
    *
    * @returns Either a new `IViewFactory` (if this is the first call), or a cached one.
    */
-  getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: IScope | null): IViewFactory<T>;
+  getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: Scope | null): IViewFactory<T>;
 }
 
 /**
@@ -268,23 +268,23 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     );
     container.registerResolver(
       IController,
-      this.parentControllerProvider = new InstanceProvider(),
+      this.parentControllerProvider = new InstanceProvider('IController'),
       true,
     );
     container.registerResolver(
       ITargetedInstruction,
-      this.instructionProvider = new InstanceProvider<ITargetedInstruction>(),
+      this.instructionProvider = new InstanceProvider<ITargetedInstruction>('ITargetedInstruction'),
       true,
     );
     container.registerResolver(
       IRenderLocation,
-      this.renderLocationProvider = new InstanceProvider<IRenderLocation>(),
+      this.renderLocationProvider = new InstanceProvider<IRenderLocation>('IRenderLocation'),
       true,
     );
 
     (this.dom = container.get<IDOM<T>>(IDOM)).registerElementResolver(
       container,
-      this.elementProvider = new InstanceProvider(),
+      this.elementProvider = new InstanceProvider('ElementResolver'),
     );
     container.register(...definition.dependencies);
   }
@@ -379,7 +379,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     return this;
   }
 
-  public getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: IScope | null): IViewFactory<T> {
+  public getViewFactory(name?: string, contentType?: AuSlotContentType, projectionScope?: Scope | null): IViewFactory<T> {
     let factory = this.factory;
     if (factory === void 0) {
       if (name === void 0) {
@@ -397,7 +397,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
       if (this.viewModelProvider === void 0) {
         this.container.registerResolver(
           definition.injectable,
-          this.viewModelProvider = new InstanceProvider<ICustomElementViewModel<T>>(),
+          this.viewModelProvider = new InstanceProvider<ICustomElementViewModel<T>>('definition.injectable'),
         );
       }
       this.viewModelProvider!.prepare(instance as ICustomElementViewModel<T>);
@@ -470,13 +470,11 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
 
   public dispose(): void {
     this.elementProvider.dispose();
-    this.container.disposeResolvers();
-
   }
   // #endregion
 
   // #region IProjectionProvider api
-  public registerProjections(projections: Map<ITargetedInstruction, Record<string, CustomElementDefinition>>, scope: IScope): void {
+  public registerProjections(projections: Map<ITargetedInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
     this.projectionProvider.registerProjections(projections, scope);
   }
 
@@ -497,11 +495,11 @@ export class ViewFactoryProvider<T extends INode = INode> implements IResolver {
 
   public resolve(_handler: IContainer, _requestor: IContainer): IViewFactory<T> {
     const factory = this.factory;
-    if (factory === null) { // unmet precondition: call prepare
-      throw Reporter.error(50); // TODO: organize error codes
+    if (factory === null) {
+      throw new Error('Cannot resolve ViewFactory before the provider was prepared.');
     }
-    if (typeof factory.name !== 'string' || factory.name.length === 0) { // unmet invariant: factory must have a name
-      throw Reporter.error(51); // TODO: organize error codes
+    if (typeof factory.name !== 'string' || factory.name.length === 0) {
+      throw new Error('Cannot resolve ViewFactory without a (valid) name.');
     }
     return factory;
   }

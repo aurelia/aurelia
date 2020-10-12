@@ -1,4 +1,4 @@
-import { DI, IContainer, Registration, Writable } from '@aurelia/kernel';
+import { DI, Writable } from '@aurelia/kernel';
 import {
   INode,
   IRenderLocation,
@@ -14,12 +14,13 @@ import {
   IViewFactory,
   MountStrategy
 } from '../../lifecycle';
-import { IScope } from '../../observation';
 import {
   customElement,
   CustomElementDefinition
 } from '../custom-element';
 import { IHydrateElementInstruction, ITargetedInstruction } from '../../definitions';
+
+import type { Scope } from '../../observation/binding-context';
 
 export type IProjections = Record<string, CustomElementDefinition>;
 export const IProjections = DI.createInterface<IProjections>("IProjections").noDefault();
@@ -40,32 +41,23 @@ export class SlotInfo {
 export class ProjectionContext {
   public constructor(
     public readonly content: CustomElementDefinition,
-    public readonly scope: IScope | null = null
+    public readonly scope: Scope | null = null
   ) { }
 }
 
 export class RegisteredProjections {
   public constructor(
-    public readonly scope: IScope,
+    public readonly scope: Scope,
     public readonly projections: Record<string, CustomElementDefinition>,
   ) { }
 }
 
-export interface IProjectionProvider {
-  registerProjections(projections: Map<ITargetedInstruction, IProjections>, scope: IScope): void;
-  getProjectionFor(instruction: IHydrateElementInstruction): RegisteredProjections | null;
-}
-
-export const IProjectionProvider = DI.createInterface<IProjectionProvider>('IProjectionProvider').noDefault();
+export interface IProjectionProvider extends ProjectionProvider {}
+export const IProjectionProvider = DI.createInterface<IProjectionProvider>('IProjectionProvider').withDefault(x => x.singleton(ProjectionProvider));
 
 const projectionMap: WeakMap<ITargetedInstruction, RegisteredProjections> = new WeakMap<ITargetedInstruction, RegisteredProjections>();
-export class ProjectionProvider implements IProjectionProvider {
-
-  public static register(container: IContainer): IContainer {
-    return container.register(Registration.singleton(IProjectionProvider, ProjectionProvider));
-  }
-
-  public registerProjections(projections: Map<ITargetedInstruction, Record<string, CustomElementDefinition>>, scope: IScope): void {
+export class ProjectionProvider {
+  public registerProjections(projections: Map<ITargetedInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
     for (const [instruction, $projections] of projections) {
       projectionMap.set(instruction, new RegisteredProjections(scope, $projections));
     }
@@ -82,8 +74,8 @@ export class AuSlot<T extends INode = Node> implements ICustomElementViewModel<T
   public readonly $controller!: ICustomElementController<T, this>; // This is set by the controller after this instance is constructed
 
   private readonly isProjection: boolean;
-  private hostScope: IScope | null = null;
-  private readonly outerScope: IScope | null;
+  private hostScope: Scope | null = null;
+  private readonly outerScope: Scope | null;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,

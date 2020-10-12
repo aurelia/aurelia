@@ -10,7 +10,6 @@ import {
 import {
   BindingBehaviorExpression,
   IExpressionParser,
-  IScope,
   LifecycleFlags,
   IScheduler,
   PropertyBinding,
@@ -27,6 +26,8 @@ import {
   IValidationRule,
   IValidateable
 } from '@aurelia/validation';
+
+import type { Scope } from '@aurelia/runtime';
 
 export type BindingWithBehavior = PropertyBinding & {
   sourceExpression: BindingBehaviorExpression;
@@ -97,16 +98,16 @@ export interface ValidationResultsSubscriber {
 export class BindingInfo {
   /**
    * @param {Element} target - The HTMLElement associated with the binding.
-   * @param {IScope} scope - The binding scope.
-   * @param {IScope | null} [hostScope] - The host scope.
+   * @param {Scope} scope - The binding scope.
+   * @param {Scope | null} [hostScope] - The host scope.
    * @param {PropertyRule[]} [rules] - Rules bound to the binding behavior.
    * @param {(PropertyInfo | undefined)} [propertyInfo=void 0] - Information describing the associated property for the binding.
    * @memberof BindingInfo
    */
   public constructor(
     public target: Element,
-    public scope: IScope,
-    public hostScope: IScope | null,
+    public scope: Scope,
+    public hostScope: Scope | null,
     public rules?: PropertyRule[],
     public propertyInfo: PropertyInfo | undefined = void 0,
   ) { }

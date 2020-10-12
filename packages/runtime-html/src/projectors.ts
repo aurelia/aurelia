@@ -3,7 +3,6 @@ import {
   IResolver,
   PLATFORM,
   Registration,
-  Reporter,
   toArray,
   Metadata
 } from '@aurelia/kernel';
@@ -31,7 +30,7 @@ export class HTMLProjectorLocator implements IProjectorLocator<Node> {
   public getElementProjector(dom: IDOM<Node>, $component: ICustomElementController<Node>, host: CustomElementHost<HTMLElement>, def: CustomElementDefinition): IElementProjector<Node> {
     if (def.shadowOptions || def.hasSlots) {
       if (def.containerless) {
-        throw Reporter.error(21);
+        throw new Error('You cannot combine the containerless custom element option with Shadow DOM.');
       }
 
       return new ShadowDOMProjector(dom, $component, host, def);

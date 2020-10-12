@@ -3,9 +3,8 @@ import { Metadata, isObject, applyMetadataPolyfill } from '@aurelia/metadata';
 applyMetadataPolyfill(Reflect);
 
 import { isArrayIndex, isNativeFunction } from './functions';
-import { Class, Constructable, IDisposable, Writable } from './interfaces';
+import { Class, Constructable, IDisposable } from './interfaces';
 import { PLATFORM } from './platform';
-import { Reporter } from './reporter';
 import { Protocol } from './resource';
 
 const { emptyArray } = PLATFORM;
@@ -311,7 +310,7 @@ export const DI = {
 
     Interface.withDefault = function (configure: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> {
       Interface.withDefault = function (): InterfaceSymbol<K> {
-        throw Reporter.error(17, Interface);
+        throw new Error(`You can only define one default implementation for an interface.`);
       };
 
       Interface.register = function (container: IContainer, key?: Key): IResolver<K> {
@@ -609,7 +608,7 @@ ignore.resolve = () => undefined;
 export const newInstanceForScope = createResolver((key: any, handler: IContainer, requestor: IContainer) => {
   const instance = createNewInstance(key, handler);
 
-  const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>();
+  const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(String(key));
   instanceProvider.prepare(instance);
 
   requestor.registerResolver(key, instanceProvider, true);
@@ -638,7 +637,7 @@ export const enum ResolverStrategy {
 }
 
 /** @internal */
-export class Resolver implements IDisposableResolver, IRegistration {
+export class Resolver implements IResolver, IRegistration {
   public constructor(
     public key: Key,
     public strategy: ResolverStrategy,
@@ -686,7 +685,7 @@ export class Resolver implements IDisposableResolver, IRegistration {
       case ResolverStrategy.alias:
         return handler.get(this.state);
       default:
-        throw Reporter.error(6, this.strategy);
+        throw new Error(`Invalid resolver strategy specified: ${this.strategy}.`);
     }
   }
 
@@ -705,10 +704,6 @@ export class Resolver implements IDisposableResolver, IRegistration {
       default:
         return null;
     }
-  }
-
-  public dispose(): void {
-    this.key = this.state = null!;
   }
 }
 
@@ -774,7 +769,7 @@ const createFactory = (function () {
       lookup = staticDependencies[i];
 
       if (lookup == null) {
-        throw Reporter.error(7, `Index ${i}.`);
+        throw new Error(`Constructor Parameter with index (${i}) cannot be null or undefined. Are you trying to inject/register something that doesn't exist with DI?`);
       } else {
         args[i] = container.get(lookup);
       }
@@ -844,7 +839,7 @@ const createFactory = (function () {
 
   return function <T extends Constructable> (Type: T): Factory<T> {
     if (isNativeFunction(Type)) {
-      Reporter.write(5, Type.name);
+      throw new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
     }
     const dependencies = DI.getDependencies(Type);
     const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
@@ -920,17 +915,20 @@ const factoryAnnotationKey = Protocol.annotation.keyFor(factoryKey);
 export class Container implements IContainer {
   private registerDepth: number = 0;
 
-  private root: Container;
+  public get depth(): number {
+    return this.parent === null ? 0 : this.parent.depth + 1;
+  }
+  private readonly root: Container;
 
-  private resolvers: Map<Key, IResolver | IDisposableResolver>;
+  private readonly resolvers: Map<Key, IResolver | IDisposableResolver>;
 
   private resourceResolvers: Record<string, IResolver | IDisposableResolver | undefined>;
 
-  private disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
+  private readonly disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
 
   public constructor(
-    private parent: Container | null,
-    private config: IContainerConfiguration = DefaultContainerConfiguration,
+    private readonly parent: Container | null,
+    private readonly config: IContainerConfiguration = DefaultContainerConfiguration,
   ) {
     if (parent === null) {
       this.root = this;
@@ -1213,14 +1211,7 @@ export class Container implements IContainer {
 
   public dispose(): void {
     this.disposeResolvers();
-    for (const key in this.resourceResolvers) {
-      (this.resourceResolvers[key] as Partial<IDisposableResolver>).dispose?.();
-    }
-    for (const key of this.resolvers.keys()) {
-      (this.resolvers.get(key) as Partial<IDisposableResolver>).dispose?.();
-    }
     this.resolvers.clear();
-    this.root = this.parent = this.config = this.resolvers = this.resourceResolvers = this.disposableResolvers = null!;
   }
 
   private jitRegister(keyAsValue: any, handler: Container): IResolver {
@@ -1238,7 +1229,7 @@ export class Container implements IContainer {
         if (newResolver != void 0) {
           return newResolver;
         }
-        throw Reporter.error(40); // did not return a valid resolver from the static register method
+        throw new Error(`Invalid resolver returned from the static register method`);
       }
       return registrationResolver as IResolver;
     } else if (Protocol.resource.has(keyAsValue)) {
@@ -1256,7 +1247,7 @@ export class Container implements IContainer {
       if (newResolver != void 0) {
         return newResolver;
       }
-      throw Reporter.error(40); // did not return a valid resolver from the static register method
+      throw new Error(`Invalid resolver returned from the static register method`);
     } else if (keyAsValue.$isInterface) {
       throw new Error(`Attempted to jitRegister an interface: ${keyAsValue.friendlyName}`);
     } else {
@@ -1411,6 +1402,10 @@ export const Registration = {
 export class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
   private instance: Resolved<K> | null = null;
 
+  public constructor(
+    public readonly friendlyName?: string,
+  ) {}
+
   public prepare(instance: Resolved<K>): void {
     this.instance = instance;
   }
@@ -1418,8 +1413,8 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
   public get $isResolver(): true {return true;}
 
   public resolve(): Resolved<K> | null {
-    if (this.instance === undefined) { // unmet precondition: call prepare
-      throw Reporter.error(50); // TODO: organize error codes
+    if (this.instance == null) {
+      throw new Error(`Cannot call resolve ${this.friendlyName} before calling prepare or after calling dispose.`);
     }
     return this.instance;
   }
@@ -1432,7 +1427,7 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
 /** @internal */
 export function validateKey(key: any): void {
   if (key === null || key === void 0) {
-    throw Reporter.error(5);
+    throw new Error('key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
   }
 }
 

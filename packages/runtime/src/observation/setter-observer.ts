@@ -1,4 +1,4 @@
-import { IIndexable, Reporter } from '@aurelia/kernel';
+import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IPropertyObserver, ISubscriber, AccessorType, ISubscribable, IAccessor, ISubscriberCollection } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
@@ -72,24 +72,20 @@ export class SetterObserver {
     if (this.observing === false) {
       this.observing = true;
       this.currentValue = this.obj[this.propertyKey];
-      if (
-        !Reflect.defineProperty(
-          this.obj,
-          this.propertyKey,
-          {
-            enumerable: true,
-            configurable: true,
-            get: () => {
-              return this.getValue();
-            },
-            set: value => {
-              this.setValue(value, LifecycleFlags.none);
-            },
-          }
-        )
-      ) {
-        Reporter.write(1, this.propertyKey, this.obj);
-      }
+      Reflect.defineProperty(
+        this.obj,
+        this.propertyKey,
+        {
+          enumerable: true,
+          configurable: true,
+          get: () => {
+            return this.getValue();
+          },
+          set: value => {
+            this.setValue(value, LifecycleFlags.none);
+          },
+        }
+      );
     }
     return this;
   }

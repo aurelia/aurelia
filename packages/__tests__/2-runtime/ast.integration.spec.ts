@@ -35,8 +35,6 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           source.name = `${idx}`;
           assert.strictEqual(target.name, `${idx}`);
         });
-
-        binding.dispose();
       });
 
       it('auto connects with ternary', function () {
@@ -96,8 +94,6 @@ describe('2-runtime/ast.integration.spec.ts', function () {
             assert.strictEqual(handleChangeCallCount, $count + 2);
           }
         });
-
-        binding.dispose();
       });
     });
 
@@ -123,8 +119,6 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           oc.name = `${idx}`;
           assert.strictEqual(source.value, `${idx}`);
         });
-
-        binding.dispose();
       });
 
       it('auto connects with ternary', function () {
@@ -185,8 +179,6 @@ describe('2-runtime/ast.integration.spec.ts', function () {
             assert.strictEqual(handleChangeCallCount, $count + 2);
           }
         });
-
-        binding.dispose();
       });
     });
   });

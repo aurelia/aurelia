@@ -40,7 +40,6 @@ export const DirtyCheckSettings = {
   }
 };
 
-/** @internal */
 export class DirtyChecker {
   private readonly tracked: DirtyCheckProperty[] = [];
 

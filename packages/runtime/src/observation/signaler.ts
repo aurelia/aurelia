@@ -7,7 +7,6 @@ type Signal = string;
 export interface ISignaler extends Signaler {}
 export const ISignaler = DI.createInterface<ISignaler>('ISignaler').withDefault(x => x.singleton(Signaler));
 
-/** @internal */
 export class Signaler {
   public signals: Record<string, Set<ISubscriber>> = Object.create(null);
 

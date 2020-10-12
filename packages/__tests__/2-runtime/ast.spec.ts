@@ -81,7 +81,7 @@ function evaluateThrowsWhenHostScopeIsNullForHostScopedExpr(inputs: [string, IsB
     for (const [text, expr] of inputs) {
       if (text.startsWith('$host')) {
         it(`${text}, null`, function () {
-          throwsOn(expr, 'evaluate', 'Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?', LF.none, dummyScope, null, dummyLocator);
+          throwsOn(expr, 'evaluate', 'Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?', LF.none, dummyScope, null, dummyLocator, null);
         });
       }
     }
@@ -502,7 +502,7 @@ describe('AST', function () {
     describe('evaluate() throws when returned converter is nil', function () {
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, undefined`, function () {
-          throwsOn(expr, 'evaluate', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyHostScope, dummyLocatorThatReturnsNull);
+          throwsOn(expr, 'evaluate', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyHostScope, dummyLocatorThatReturnsNull, null);
         });
       }
     });

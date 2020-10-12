@@ -1,9 +1,6 @@
 import {
   DI,
-  IContainer,
-  IResolver,
   Primitive,
-  Registration,
   isArrayIndex,
 } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
@@ -36,7 +33,6 @@ export interface IObjectObservationAdapter {
 }
 
 export interface IObserverLocator extends ObserverLocator {}
-
 export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
 
 export interface ITargetObserverLocator {
@@ -71,7 +67,6 @@ type ExtendedPropertyDescriptor = PropertyDescriptor & {
   };
 };
 
-/** @internal */
 export class ObserverLocator {
   private readonly adapters: IObjectObservationAdapter[] = [];
 
@@ -87,13 +82,13 @@ export class ObserverLocator {
     this.adapters.push(adapter);
   }
 
-  public getObserver(flags: LifecycleFlags, obj: IObservable, key: string): AccessorOrObserver {
-    return obj.$observers?.[key] as AccessorOrObserver | undefined
-      ?? this.cache(obj, key, this.createObserver(flags, obj, key));
+  public getObserver(flags: LifecycleFlags, obj: object, key: string): AccessorOrObserver {
+    return (obj as IObservable).$observers?.[key] as AccessorOrObserver | undefined
+      ?? this.cache((obj as IObservable), key, this.createObserver(flags, (obj as IObservable), key));
   }
 
-  public getAccessor(flags: LifecycleFlags, obj: IObservable, key: string): IBindingTargetAccessor {
-    const cached = obj.$observers?.[key] as AccessorOrObserver | undefined;
+  public getAccessor(flags: LifecycleFlags, obj: object, key: string): IBindingTargetAccessor {
+    const cached = (obj as IObservable).$observers?.[key] as AccessorOrObserver | undefined;
     if (cached !== void 0) {
       return cached;
     }
@@ -101,7 +96,7 @@ export class ObserverLocator {
       if (this.targetObserverLocator.overridesAccessor(flags, obj, key)) {
         const observer = this.targetObserverLocator.getObserver(flags, this.scheduler, this.lifecycle, this, obj, key);
         if (observer !== null) {
-          return this.cache(obj, key, observer);
+          return this.cache((obj as IObservable), key, observer);
         }
       }
       return this.targetAccessorLocator.getAccessor(flags, this.scheduler, this.lifecycle, obj, key);
@@ -110,7 +105,7 @@ export class ObserverLocator {
     if ((flags & LifecycleFlags.proxyStrategy) > 0) {
       return ProxyObserver.getOrCreate(obj, key) as unknown as AccessorOrObserver;
     }
-    return new PropertyAccessor(obj, key);
+    return new PropertyAccessor((obj as IObservable), key);
   }
 
   public getArrayObserver(flags: LifecycleFlags, observedArray: IObservedArray): ICollectionObserver<CollectionKind.array> {

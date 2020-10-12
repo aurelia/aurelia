@@ -210,7 +210,7 @@ export class ObserverLocator {
 
     // Ordinary get/set observation (the common use case)
     // TODO: think about how to handle a data property that does not sit on the instance (should we do anything different?)
-    return new SetterObserver(this.lifecycle, flags, obj, key);
+    return new SetterObserver(flags, obj, key);
   }
 
   private getAdapterObserver(flags: LifecycleFlags, obj: IObservable, propertyName: string, pd: PropertyDescriptor): IBindingTargetObserver | null {

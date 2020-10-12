@@ -74,7 +74,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
       }
     }
 
-    this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, binding.locator) as string;
+    this.local = this.forOf.declaration.evaluate(flags, this.$controller.scope, null, binding.locator, null) as string;
   }
 
   public afterAttach(

@@ -37,6 +37,7 @@ export function currentSub(): IWatcher | null {
 export function enterWatcher(subscriber: IWatcher): void {
   if ($collector == null) {
     collectors[0] = $collector = subscriber;
+    collecting = true;
     return;
   }
   if ($collector === subscriber) {

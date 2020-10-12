@@ -90,11 +90,4 @@ export class CallBinding {
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     return;
   }
-
-  public dispose(): void {
-    this.interceptor = (void 0)!;
-    this.sourceExpression = (void 0)!;
-    this.locator = (void 0)!;
-    this.targetObserver = (void 0)!;
-  }
 }

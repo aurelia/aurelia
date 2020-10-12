@@ -19,5 +19,4 @@ export class PrimitiveObserver implements IAccessor, ISubscribable {
   public setValue(): void { /* do nothing */ }
   public subscribe(): void { /* do nothing */ }
   public unsubscribe(): void { /* do nothing */ }
-  public dispose(): void { /* do nothing */ }
 }

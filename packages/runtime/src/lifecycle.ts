@@ -39,7 +39,7 @@ import {
 import type { Scope } from './observation/binding-context';
 import type { ICompositionRoot } from './aurelia';
 
-export interface IBinding extends IDisposable {
+export interface IBinding {
   interceptor: this;
   readonly locator: IServiceLocator;
   readonly $scope?: Scope;

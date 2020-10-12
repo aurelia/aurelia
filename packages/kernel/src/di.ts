@@ -608,7 +608,7 @@ ignore.resolve = () => undefined;
 export const newInstanceForScope = createResolver((key: any, handler: IContainer, requestor: IContainer) => {
   const instance = createNewInstance(key, handler);
 
-  const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>();
+  const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(String(key));
   instanceProvider.prepare(instance);
 
   requestor.registerResolver(key, instanceProvider, true);
@@ -637,7 +637,7 @@ export const enum ResolverStrategy {
 }
 
 /** @internal */
-export class Resolver implements IDisposableResolver, IRegistration {
+export class Resolver implements IResolver, IRegistration {
   public constructor(
     public key: Key,
     public strategy: ResolverStrategy,
@@ -704,10 +704,6 @@ export class Resolver implements IDisposableResolver, IRegistration {
       default:
         return null;
     }
-  }
-
-  public dispose(): void {
-    this.key = this.state = null!;
   }
 }
 
@@ -919,6 +915,9 @@ const factoryAnnotationKey = Protocol.annotation.keyFor(factoryKey);
 export class Container implements IContainer {
   private registerDepth: number = 0;
 
+  public get depth(): number {
+    return this.parent === null ? 0 : this.parent.depth + 1;
+  }
   private root: Container;
 
   private resolvers: Map<Key, IResolver | IDisposableResolver>;
@@ -1212,14 +1211,7 @@ export class Container implements IContainer {
 
   public dispose(): void {
     this.disposeResolvers();
-    for (const key in this.resourceResolvers) {
-      (this.resourceResolvers[key] as Partial<IDisposableResolver>).dispose?.();
-    }
-    for (const key of this.resolvers.keys()) {
-      (this.resolvers.get(key) as Partial<IDisposableResolver>).dispose?.();
-    }
     this.resolvers.clear();
-    this.root = this.parent = this.config = this.resolvers = this.resourceResolvers = this.disposableResolvers = null!;
   }
 
   private jitRegister(keyAsValue: any, handler: Container): IResolver {
@@ -1410,6 +1402,10 @@ export const Registration = {
 export class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
   private instance: Resolved<K> | null = null;
 
+  public constructor(
+    public readonly friendlyName?: string,
+  ) {}
+
   public prepare(instance: Resolved<K>): void {
     this.instance = instance;
   }
@@ -1418,7 +1414,7 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
 
   public resolve(): Resolved<K> | null {
     if (this.instance == null) {
-      throw new Error(`Cannot call resolve before calling prepare or after calling dispose.`);
+      throw new Error(`Cannot call resolve ${this.friendlyName} before calling prepare or after calling dispose.`);
     }
     return this.instance;
   }

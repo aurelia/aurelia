@@ -108,11 +108,4 @@ export class LetBinding implements IPartialConnectableBinding {
     // remove isBound and isUnbinding flags
     this.isBound = false;
   }
-
-  public dispose(): void {
-    this.interceptor = (void 0)!;
-    this.sourceExpression = (void 0)!;
-    this.locator = (void 0)!;
-    this.target = (void 0)!;
-  }
 }

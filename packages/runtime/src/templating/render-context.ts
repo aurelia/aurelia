@@ -268,23 +268,23 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     );
     container.registerResolver(
       IController,
-      this.parentControllerProvider = new InstanceProvider(),
+      this.parentControllerProvider = new InstanceProvider('IController'),
       true,
     );
     container.registerResolver(
       ITargetedInstruction,
-      this.instructionProvider = new InstanceProvider<ITargetedInstruction>(),
+      this.instructionProvider = new InstanceProvider<ITargetedInstruction>('ITargetedInstruction'),
       true,
     );
     container.registerResolver(
       IRenderLocation,
-      this.renderLocationProvider = new InstanceProvider<IRenderLocation>(),
+      this.renderLocationProvider = new InstanceProvider<IRenderLocation>('IRenderLocation'),
       true,
     );
 
     (this.dom = container.get<IDOM<T>>(IDOM)).registerElementResolver(
       container,
-      this.elementProvider = new InstanceProvider(),
+      this.elementProvider = new InstanceProvider('ElementResolver'),
     );
     container.register(...definition.dependencies);
   }
@@ -397,7 +397,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
       if (this.viewModelProvider === void 0) {
         this.container.registerResolver(
           definition.injectable,
-          this.viewModelProvider = new InstanceProvider<ICustomElementViewModel<T>>(),
+          this.viewModelProvider = new InstanceProvider<ICustomElementViewModel<T>>('definition.injectable'),
         );
       }
       this.viewModelProvider!.prepare(instance as ICustomElementViewModel<T>);
@@ -470,8 +470,6 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
 
   public dispose(): void {
     this.elementProvider.dispose();
-    this.container.disposeResolvers();
-
   }
   // #endregion
 

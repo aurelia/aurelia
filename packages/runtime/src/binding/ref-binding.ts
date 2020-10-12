@@ -77,11 +77,4 @@ export class RefBinding implements IBinding {
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     return;
   }
-
-  public dispose(): void {
-    this.interceptor = (void 0)!;
-    this.sourceExpression = (void 0)!;
-    this.locator = (void 0)!;
-    this.target = (void 0)!;
-  }
 }

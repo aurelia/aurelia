@@ -85,13 +85,6 @@ export class MultiInterpolationBinding implements IBinding {
       parts[i].interceptor.$unbind(flags);
     }
   }
-
-  public dispose(): void {
-    this.interceptor = (void 0)!;
-    this.interpolation = (void 0)!;
-    this.locator = (void 0)!;
-    this.target = (void 0)!;
-  }
 }
 
 export interface InterpolationBinding extends IConnectableBinding {}
@@ -229,12 +222,5 @@ export class InterpolationBinding implements IPartialConnectableBinding {
 
     this.$scope = void 0;
     this.interceptor.unobserve(true);
-  }
-
-  public dispose(): void {
-    this.interceptor = (void 0)!;
-    this.sourceExpression = (void 0)!;
-    this.locator = (void 0)!;
-    this.targetObserver = (void 0)!;
   }
 }

@@ -1184,11 +1184,6 @@ export class Controller<
       this.children = void 0;
     }
 
-    if (this.bindings !== void 0) {
-      this.bindings.forEach(callDispose);
-      this.bindings = void 0;
-    }
-
     this.scope = void 0;
     this.projector = void 0;
 

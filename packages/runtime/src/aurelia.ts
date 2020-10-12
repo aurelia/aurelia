@@ -180,7 +180,7 @@ export class Aurelia<TNode extends INode = INode> implements IDisposable {
     }
 
     container.register(Registration.instance(IAurelia, this));
-    container.registerResolver(ICompositionRoot, this.rootProvider = new InstanceProvider());
+    container.registerResolver(ICompositionRoot, this.rootProvider = new InstanceProvider('ICompositionRoot'));
   }
 
   public register(...params: any[]): this {

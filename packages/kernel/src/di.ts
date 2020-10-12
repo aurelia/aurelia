@@ -918,17 +918,17 @@ export class Container implements IContainer {
   public get depth(): number {
     return this.parent === null ? 0 : this.parent.depth + 1;
   }
-  private root: Container;
+  private readonly root: Container;
 
-  private resolvers: Map<Key, IResolver | IDisposableResolver>;
+  private readonly resolvers: Map<Key, IResolver | IDisposableResolver>;
 
   private resourceResolvers: Record<string, IResolver | IDisposableResolver | undefined>;
 
-  private disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
+  private readonly disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
 
   public constructor(
-    private parent: Container | null,
-    private config: IContainerConfiguration = DefaultContainerConfiguration,
+    private readonly parent: Container | null,
+    private readonly config: IContainerConfiguration = DefaultContainerConfiguration,
   ) {
     if (parent === null) {
       this.root = this;

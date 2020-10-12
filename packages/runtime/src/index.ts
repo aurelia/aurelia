@@ -482,19 +482,10 @@ export {
   IComponentFactory,
 } from './templating/render-context';
 export {
-  PromiseOrTask,
-  MaybePromiseOrTask,
-  AggregateContinuationTask,
-  TerminalTask,
-  AggregateTerminalTask,
-  ContinuationTask,
-  ILifecycleTask,
-  LifecycleTask,
-  PromiseTask,
   TaskSlot,
   AppTask,
   IAppTask,
-} from './lifecycle-task';
+} from './app-task';
 export {
   AccessorOrObserver,
   AccessorType,

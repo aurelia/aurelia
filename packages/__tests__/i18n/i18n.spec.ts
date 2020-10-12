@@ -22,7 +22,7 @@ describe('I18N', function () {
       eaSpy.getMock(new EventAggregator()),
       mockSignaler
     );
-    await sut.task.wait();
+    await sut.initPromise;
     await sut.setLocale('en');
     return { i18nextSpy, sut, eaSpy, mockSignaler };
   }

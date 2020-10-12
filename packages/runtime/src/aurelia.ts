@@ -22,7 +22,7 @@ import {
   ILifecycle,
   ICustomElementController,
 } from './lifecycle';
-import { IAppTask, TaskSlot } from './lifecycle-task';
+import { IAppTask, TaskSlot } from './app-task';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element';
 import { Controller } from './templating/controller';
 import { HooksDefinition } from './definitions';

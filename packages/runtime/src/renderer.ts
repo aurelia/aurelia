@@ -78,7 +78,6 @@ export interface IInstructionRenderer<
 
 export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>('IInstructionRenderer').noDefault();
 
-
 type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>, TClass> & IRegistry;
 
@@ -116,7 +115,7 @@ export const IRenderer = DI.createInterface<IRenderer>('IRenderer').withDefault(
 
 /* @internal */
 export class Renderer {
-  private instructionRenderers: Record<InstructionTypeName, IInstructionRenderer['render']>;
+  private readonly instructionRenderers: Record<InstructionTypeName, IInstructionRenderer['render']>;
 
   public constructor(@all(IInstructionRenderer) instructionRenderers: IInstructionRenderer[]) {
     const record: Record<InstructionTypeName, IInstructionRenderer['render']> = this.instructionRenderers = {};

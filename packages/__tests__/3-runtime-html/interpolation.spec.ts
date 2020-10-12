@@ -357,13 +357,13 @@ describe('interpolation', function () {
       binding.updateTarget = (updateTarget => {
         return function (...args: unknown[]) {
           updateTargetCallCount++;
-          return updateTarget.apply(this);
+          return updateTarget.apply(this, args);
         };
       })(binding.updateTarget);
       binding.partBindings[0].handleChange = (handleChange => {
         return function (...args: unknown[]) {
           handleChange1CallCount++;
-          return handleChange.apply(this, args);
+          return handleChange.apply(this);
         };
       })(binding.partBindings[0].handleChange);
       binding.partBindings[1].handleChange = (handleChange => {

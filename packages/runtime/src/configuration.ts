@@ -46,14 +46,12 @@ import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
 import { Now } from '@aurelia/scheduler';
-import { AuSlot, ProjectionProvider } from './resources/custom-elements/au-slot';
+import { AuSlot } from './resources/custom-elements/au-slot';
 
 export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern as unknown as IRegistry;
 export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern as unknown as IRegistry;
 export const RefAttributePatternRegistration = RefAttributePattern as unknown as IRegistry;
 export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern as unknown as IRegistry;
-
-export const IProjectionProviderRegistration = ProjectionProvider as IRegistry;
 
 /**
  * Default binding syntax for the following attribute name patterns:
@@ -112,7 +110,6 @@ export const DefaultBindingLanguage = [
  */
 export const DefaultComponents = [
   Now,
-  IProjectionProviderRegistration,
 ];
 
 export const FrequentMutationsRegistration = FrequentMutations as unknown as IRegistry;

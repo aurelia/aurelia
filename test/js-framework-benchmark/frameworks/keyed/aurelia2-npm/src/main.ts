@@ -1,6 +1,5 @@
 import {
   IStartTaskManagerRegistration,
-  IProjectionProviderRegistration,
 
   DotSeparatedAttributePatternRegistration,
 
@@ -40,7 +39,6 @@ import { App } from './app';
 global['Aurelia'] = new Aurelia()
   .register(
     IStartTaskManagerRegistration,
-    IProjectionProviderRegistration,
 
     ITemplateCompilerRegistration,
     ITemplateElementFactoryRegistration,

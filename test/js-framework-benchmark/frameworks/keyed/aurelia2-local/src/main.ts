@@ -1,6 +1,4 @@
 import {
-  IProjectionProviderRegistration,
-
   DotSeparatedAttributePatternRegistration,
 
   DefaultBindingCommandRegistration,
@@ -38,8 +36,6 @@ import { App } from './app';
 
 global['Aurelia'] = new Aurelia()
   .register(
-    IProjectionProviderRegistration,
-
     ITemplateCompilerRegistration,
     ITemplateElementFactoryRegistration,
     IAttrSyntaxTransformerRegistation,

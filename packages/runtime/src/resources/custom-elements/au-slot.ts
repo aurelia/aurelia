@@ -1,4 +1,4 @@
-import { DI, IContainer, Registration, Writable } from '@aurelia/kernel';
+import { DI, Writable } from '@aurelia/kernel';
 import {
   INode,
   IRenderLocation,
@@ -52,20 +52,11 @@ export class RegisteredProjections {
   ) { }
 }
 
-export interface IProjectionProvider {
-  registerProjections(projections: Map<ITargetedInstruction, IProjections>, scope: Scope): void;
-  getProjectionFor(instruction: IHydrateElementInstruction): RegisteredProjections | null;
-}
-
-export const IProjectionProvider = DI.createInterface<IProjectionProvider>('IProjectionProvider').noDefault();
+export interface IProjectionProvider extends ProjectionProvider {}
+export const IProjectionProvider = DI.createInterface<IProjectionProvider>('IProjectionProvider').withDefault(x => x.singleton(ProjectionProvider));
 
 const projectionMap: WeakMap<ITargetedInstruction, RegisteredProjections> = new WeakMap<ITargetedInstruction, RegisteredProjections>();
-export class ProjectionProvider implements IProjectionProvider {
-
-  public static register(container: IContainer): IContainer {
-    return container.register(Registration.singleton(IProjectionProvider, ProjectionProvider));
-  }
-
+export class ProjectionProvider {
   public registerProjections(projections: Map<ITargetedInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
     for (const [instruction, $projections] of projections) {
       projectionMap.set(instruction, new RegisteredProjections(scope, $projections));

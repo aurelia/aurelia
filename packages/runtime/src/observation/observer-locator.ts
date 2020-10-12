@@ -35,16 +35,9 @@ export interface IObjectObservationAdapter {
   getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null;
 }
 
-export interface IObserverLocator {
-  getObserver(flags: LifecycleFlags, obj: object, propertyName: string): AccessorOrObserver;
-  getAccessor(flags: LifecycleFlags, obj: object, propertyName: string): IBindingTargetAccessor;
-  addAdapter(adapter: IObjectObservationAdapter): void;
-  getArrayObserver(flags: LifecycleFlags, observedArray: unknown[]): ICollectionObserver<CollectionKind.array>;
-  getMapObserver(flags: LifecycleFlags, observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>;
-  getSetObserver(flags: LifecycleFlags, observedSet: Set<unknown>): ICollectionObserver<CollectionKind.set>;
-}
+export interface IObserverLocator extends ObserverLocator {}
 
-export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator').noDefault();
+export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
 
 export interface ITargetObserverLocator {
   getObserver(
@@ -79,7 +72,7 @@ type ExtendedPropertyDescriptor = PropertyDescriptor & {
 };
 
 /** @internal */
-export class ObserverLocator implements IObserverLocator {
+export class ObserverLocator {
   private readonly adapters: IObjectObservationAdapter[] = [];
 
   public constructor(
@@ -89,10 +82,6 @@ export class ObserverLocator implements IObserverLocator {
     @ITargetObserverLocator private readonly targetObserverLocator: ITargetObserverLocator,
     @ITargetAccessorLocator private readonly targetAccessorLocator: ITargetAccessorLocator,
   ) {}
-
-  public static register(container: IContainer): IResolver<IObserverLocator> {
-    return Registration.singleton(IObserverLocator, this).register(container);
-  }
 
   public addAdapter(adapter: IObjectObservationAdapter): void {
     this.adapters.push(adapter);

@@ -59,7 +59,6 @@ export const RefAttributePatternRegistration = RefAttributePattern as unknown as
 export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern as unknown as IRegistry;
 
 export const IExpressionParserRegistration = ExpressionParser as IRegistry;
-export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
 export const ILifecycleRegistration = Lifecycle as IRegistry;
 export const IRendererRegistration = Renderer as IRegistry;
 export const IViewLocatorRegistration = ViewLocator as IRegistry;
@@ -122,7 +121,6 @@ export const DefaultBindingLanguage = [
  */
 export const DefaultComponents = [
   IExpressionParserRegistration,
-  IObserverLocatorRegistration,
   ILifecycleRegistration,
   IRendererRegistration,
   IViewLocatorRegistration,

@@ -9,7 +9,6 @@ import {
   ILifecycle,
   ILifecycleRegistration,
   IObserverLocator,
-  IObserverLocatorRegistration,
   Scope,
   ITargetAccessorLocator,
   ITargetObserverLocator,
@@ -474,7 +473,6 @@ export function createObserverLocator(containerOrLifecycle?: IContainer | ILifec
   Registration.instance(IDirtyChecker, null).register(container);
   Registration.instance(ITargetObserverLocator, dummyLocator).register(container);
   Registration.instance(ITargetAccessorLocator, dummyLocator).register(container);
-  container.register(IObserverLocatorRegistration);
   Registration.instance(IScheduler, dummyScheduler).register(container);
   return container.get(IObserverLocator);
 }

@@ -7,7 +7,6 @@ import {
   IDirtyChecker,
 
   ILifecycle,
-  ILifecycleRegistration,
   IObserverLocator,
   Scope,
   ITargetAccessorLocator,
@@ -458,7 +457,6 @@ export function createObserverLocator(containerOrLifecycle?: IContainer | ILifec
   let container: IContainer;
   if (containerOrLifecycle === undefined || !('get' in containerOrLifecycle)) {
     container = DI.createContainer();
-    container.register(ILifecycleRegistration);
   } else {
     container = containerOrLifecycle;
   }

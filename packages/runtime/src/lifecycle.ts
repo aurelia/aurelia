@@ -586,12 +586,6 @@ export interface IHydratedCustomAttributeViewModel<T extends INode = INode> exte
   readonly $controller: ICustomAttributeController<T, this>;
 }
 
-export interface ILifecycle {
-  readonly batch: IAutoProcessingQueue<IBatchable>;
-}
-
-export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));
-
 export interface IProcessingQueue<T> {
   add(requestor: T): void;
   process(flags: LifecycleFlags): void;
@@ -654,10 +648,9 @@ export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
   }
 }
 
-export class Lifecycle implements ILifecycle {
-  public readonly batch: IAutoProcessingQueue<IBatchable> = new BatchQueue(this);
+export interface ILifecycle extends Lifecycle {}
+export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));
 
-  public static register(container: IContainer): IResolver<ILifecycle> {
-    return Registration.singleton(ILifecycle, this).register(container);
-  }
+export class Lifecycle  {
+  public readonly batch: IAutoProcessingQueue<IBatchable> = new BatchQueue(this);
 }

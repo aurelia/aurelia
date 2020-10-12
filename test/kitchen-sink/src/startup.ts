@@ -2,7 +2,6 @@ import * as faker from 'faker';
 import { TraceConfiguration, DebugConfiguration } from '@aurelia/debug';
 import {
   Aurelia,
-  ILifecycleRegistration,
   IRendererRegistration,
   IfRegistration,
   ElseRegistration,
@@ -67,7 +66,6 @@ Tracer.enableLiveLogging({
 // to use (yet)
 const container = DI.createContainer().register(
   // runtime components
-  ILifecycleRegistration,
   IRendererRegistration,
 
   // runtime resources

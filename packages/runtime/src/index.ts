@@ -386,7 +386,6 @@ export {
 
   DefaultResources,
   IExpressionParserRegistration,
-  ILifecycleRegistration,
   IRendererRegistration,
   IViewLocatorRegistration,
   IProjectionProviderRegistration,

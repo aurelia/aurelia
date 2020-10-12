@@ -71,7 +71,7 @@ module.exports = function (config) {
           'module', 'main'
         ],
       },
-      devtool: 'eval-source-map',
+      devtool: process.env.IS_CI ? 'inline-source-map' : 'eval-source-map',
       performance: {
         hints: false,
       },

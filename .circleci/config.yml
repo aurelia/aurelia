@@ -571,18 +571,18 @@ workflows:
           <<: *filter_only_tag
           name: unit_test_chrome
           e: docker-circleci
-          npm_command: "test-chrome:verbose"
+          npm_command: "IS_CI=true && test-chrome:verbose"
       - unit_test:
          <<: *filter_only_tag
          name: unit_test_firefox
          e: docker-circleci
-         npm_command: "test-firefox:verbose"
+         npm_command: "IS_CI=true && test-firefox:verbose"
          coverage: false
       - unit_test:
          <<: *filter_only_tag
          name: unit_test_node
          e: docker-circleci
-         npm_command: "test-node:verbose"
+         npm_command: "IS_CI=true && test-node:verbose"
          coverage: false
       #- unit_test:
       #   <<: *filter_only_tag

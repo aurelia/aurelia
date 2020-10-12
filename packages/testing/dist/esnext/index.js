@@ -22,6 +22,6 @@ export {
 // createCustomAttribute,
 // createCustomElement,
 createObserverLocator, createScopeForTest, } from './test-builder';
-export { enableTracing, disableTracing, SymbolTraceWriter, Call, CallCollection, recordCalls, stopRecordingCalls, trace } from './tracing';
+export { Call, CallCollection, recordCalls, stopRecordingCalls, trace } from './tracing';
 export { trimFull, createSpy, } from './util';
 //# sourceMappingURL=index.js.map

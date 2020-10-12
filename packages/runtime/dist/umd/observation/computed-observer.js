@@ -65,7 +65,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             }
             return new GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator);
         }
-        throw kernel_1.Reporter.error(18, propertyName);
+        throw new Error(`You cannot observe a setter only property: '${propertyName}'`);
     }
     exports.createComputedObserver = createComputedObserver;
     // Used when the getter is dependent solely on changes that happen within the setter.

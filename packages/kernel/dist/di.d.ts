@@ -384,7 +384,9 @@ export declare const Registration: {
     defer(key: Key, ...params: unknown[]): IRegistry;
 };
 export declare class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
+    readonly friendlyName?: string | undefined;
     private instance;
+    constructor(friendlyName?: string | undefined);
     prepare(instance: Resolved<K>): void;
     get $isResolver(): true;
     resolve(): Resolved<K> | null;

@@ -2,10 +2,11 @@ import { IServiceLocator } from '@aurelia/kernel';
 import { IScheduler, ITask } from '@aurelia/scheduler';
 import { BindingMode, LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
-import { IBindingTargetAccessor, IScope } from '../observation';
+import { IBindingTargetAccessor } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { Interpolation, IsExpression } from './ast';
 import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
+import type { Scope } from '../observation/binding-context';
 export declare class MultiInterpolationBinding implements IBinding {
     observerLocator: IObserverLocator;
     interpolation: Interpolation;
@@ -15,12 +16,11 @@ export declare class MultiInterpolationBinding implements IBinding {
     locator: IServiceLocator;
     interceptor: this;
     isBound: boolean;
-    $scope?: IScope;
+    $scope?: Scope;
     parts: InterpolationBinding[];
     constructor(observerLocator: IObserverLocator, interpolation: Interpolation, target: object, targetProperty: string, mode: BindingMode, locator: IServiceLocator);
-    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
+    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
-    dispose(): void;
 }
 export interface InterpolationBinding extends IConnectableBinding {
 }
@@ -35,8 +35,8 @@ export declare class InterpolationBinding implements IPartialConnectableBinding 
     isFirst: boolean;
     interceptor: this;
     id: number;
-    $scope?: IScope;
-    $hostScope: IScope | null;
+    $scope?: Scope;
+    $hostScope: Scope | null;
     $scheduler: IScheduler;
     task: ITask | null;
     isBound: boolean;
@@ -44,8 +44,7 @@ export declare class InterpolationBinding implements IPartialConnectableBinding 
     constructor(sourceExpression: IsExpression, interpolation: Interpolation, target: object, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
-    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
+    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
-    dispose(): void;
 }
 //# sourceMappingURL=interpolation-binding.d.ts.map

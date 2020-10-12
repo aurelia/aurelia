@@ -1,19 +1,20 @@
-import { IContainer, IIndexable, IResolver, IServiceLocator, IDisposable } from '@aurelia/kernel';
+import { IContainer, IIndexable, IServiceLocator, IDisposable } from '@aurelia/kernel';
 import { HooksDefinition } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
 import { LifecycleFlags } from './flags';
-import { IBatchable, IBindingTargetAccessor, IScope } from './observation';
+import { IBatchable, IBindingTargetAccessor } from './observation';
 import { IElementProjector, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
 import { IRenderContext, ICompiledRenderContext } from './templating/render-context';
-import { Scope } from './observation/binding-context';
 import { AuSlotContentType } from './resources/custom-elements/au-slot';
 import { CustomAttributeDefinition } from './resources/custom-attribute';
-export interface IBinding extends IDisposable {
+import type { Scope } from './observation/binding-context';
+import type { ICompositionRoot } from './aurelia';
+export interface IBinding {
     interceptor: this;
     readonly locator: IServiceLocator;
-    readonly $scope?: IScope;
+    readonly $scope?: Scope;
     readonly isBound: boolean;
-    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
+    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
 }
 export declare const enum ViewModelKind {
@@ -58,6 +59,7 @@ export declare type ControllerVisitor<T extends INode = INode> = (controller: IH
  * Every controller, regardless of their type and state, will have at least the properties/methods in this interface.
  */
 export interface IController<T extends INode = INode, C extends IViewModel<T> = IViewModel<T>> extends IDisposable {
+    readonly root: ICompositionRoot<T> | null;
     readonly flags: LifecycleFlags;
     readonly lifecycle: ILifecycle;
     readonly hooks: HooksDefinition;
@@ -142,7 +144,7 @@ export interface ISyntheticView<T extends INode = INode> extends IRenderableCont
      * The `scope` may be set during `activate()` and unset during `deactivate()`, or it may be statically set during rendering with `lockScope()`.
      */
     readonly scope: Scope;
-    hostScope: IScope | null;
+    hostScope: Scope | null;
     /**
      * The compiled render context used for rendering this view. Compilation was done by the `IViewFactory` prior to creating this view.
      */
@@ -156,17 +158,17 @@ export interface ISyntheticView<T extends INode = INode> extends IRenderableCont
      * The DOM node that this view will be mounted to.
      */
     readonly location: IRenderLocation<T> | undefined;
-    activate(initiator: IHydratedController<T>, parent: IHydratedComponentController<T>, flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null): void | Promise<void>;
+    activate(initiator: IHydratedController<T>, parent: IHydratedComponentController<T>, flags: LifecycleFlags, scope: Scope, hostScope?: Scope | null): void | Promise<void>;
     deactivate(initiator: IHydratedController<T>, parent: IHydratedComponentController<T>, flags: LifecycleFlags): void | Promise<void>;
     cancel(initiator: IHydratedController<T>, parent: IHydratedComponentController<T>, flags: LifecycleFlags): void;
     /**
-     * Lock this view's scope to the provided `IScope`. The scope, which is normally set during `activate()`, will then not change anymore.
+     * Lock this view's scope to the provided `Scope`. The scope, which is normally set during `activate()`, will then not change anymore.
      *
      * This is used by `au-compose` to set the binding context of a view to a particular component instance.
      *
      * @param scope - The scope to lock this view to.
      */
-    lockScope(scope: IScope): void;
+    lockScope(scope: Scope): void;
     /**
      * Set the DOM node that this view will be mounted to, as well as the mounting mechanism that will be used.
      *
@@ -203,10 +205,10 @@ export interface ICustomAttributeController<T extends INode = INode, C extends I
      * The scope's `bindingContext` will be the same instance as this controller's `bindingContext` property.
      */
     readonly scope: Scope;
-    hostScope: IScope | null;
+    hostScope: Scope | null;
     readonly children: undefined;
     readonly bindings: undefined;
-    activate(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null): void | Promise<void>;
+    activate(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags, scope: Scope, hostScope?: Scope | null): void | Promise<void>;
     deactivate(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void | Promise<void>;
     cancel(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void;
 }
@@ -226,7 +228,7 @@ export interface IDryCustomElementController<T extends INode = INode, C extends 
      * By default, the scope's `bindingContext` will be the same instance as this controller's `bindingContext` property.
      */
     scope: Scope;
-    hostScope: IScope | null;
+    hostScope: Scope | null;
     /**
      * The physical DOM node that this controller's `nodes` will be mounted to.
      */
@@ -279,7 +281,7 @@ export interface ICustomElementController<T extends INode = INode, C extends ICu
      * @inheritdoc
      */
     readonly bindingContext: C & IIndexable;
-    activate(initiator: IHydratedController<T>, parent: IHydratedParentController<T> | null, flags: LifecycleFlags, scope?: IScope, hostScope?: IScope | null): void | Promise<void>;
+    activate(initiator: IHydratedController<T>, parent: IHydratedParentController<T> | null, flags: LifecycleFlags, scope?: Scope, hostScope?: Scope | null): void | Promise<void>;
     deactivate(initiator: IHydratedController<T>, parent: IHydratedParentController<T> | null, flags: LifecycleFlags): void | Promise<void>;
     cancel(initiator: IHydratedController<T>, parent: IHydratedParentController<T> | null, flags: LifecycleFlags): void;
 }
@@ -301,7 +303,7 @@ export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
     readonly name: string;
     readonly context: IRenderContext<T>;
     readonly contentType: AuSlotContentType | undefined;
-    readonly projectionScope: IScope | null;
+    readonly projectionScope: Scope | null;
     create(flags?: LifecycleFlags): ISyntheticView<T>;
 }
 export declare const IViewFactory: import("@aurelia/kernel").InterfaceSymbol<IViewFactory<INode>>;
@@ -349,10 +351,12 @@ export interface IHydratedCustomElementViewModel<T extends INode = INode> extend
 export interface IHydratedCustomAttributeViewModel<T extends INode = INode> extends ICustomAttributeViewModel<T> {
     readonly $controller: ICustomAttributeController<T, this>;
 }
-export interface ILifecycle {
-    readonly batch: IAutoProcessingQueue<IBatchable>;
+export interface ILifecycle extends Lifecycle {
 }
 export declare const ILifecycle: import("@aurelia/kernel").InterfaceSymbol<ILifecycle>;
+export declare class Lifecycle {
+    readonly batch: IAutoProcessingQueue<IBatchable>;
+}
 export interface IProcessingQueue<T> {
     add(requestor: T): void;
     process(flags: LifecycleFlags): void;
@@ -374,10 +378,6 @@ export declare class BatchQueue implements IAutoProcessingQueue<IBatchable> {
     add(requestor: IBatchable): void;
     remove(requestor: IBatchable): void;
     process(flags: LifecycleFlags): void;
-}
-export declare class Lifecycle implements ILifecycle {
-    readonly batch: IAutoProcessingQueue<IBatchable>;
-    static register(container: IContainer): IResolver<ILifecycle>;
 }
 export {};
 //# sourceMappingURL=lifecycle.d.ts.map

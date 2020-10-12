@@ -19,7 +19,7 @@ export declare class Task<T = any> implements ITask {
     queueTime: number;
     preempt: boolean;
     persistent: boolean;
-    async: boolean | 'auto';
+    suspend: boolean;
     readonly reusable: boolean;
     callback: TaskCallback<T>;
     readonly id: number;
@@ -32,11 +32,11 @@ export declare class Task<T = any> implements ITask {
     private _status;
     get status(): TaskStatus;
     readonly priority: TaskQueuePriority;
-    constructor(taskQueue: TaskQueue, createdTime: number, queueTime: number, preempt: boolean, persistent: boolean, async: boolean | 'auto', reusable: boolean, callback: TaskCallback<T>);
+    constructor(taskQueue: TaskQueue, createdTime: number, queueTime: number, preempt: boolean, persistent: boolean, suspend: boolean, reusable: boolean, callback: TaskCallback<T>);
     run(): void;
     cancel(): boolean;
     reset(time: number): void;
-    reuse(time: number, delay: number, preempt: boolean, persistent: boolean, async: boolean | 'auto', callback: TaskCallback<T>): void;
+    reuse(time: number, delay: number, preempt: boolean, persistent: boolean, suspend: boolean, callback: TaskCallback<T>): void;
     dispose(): void;
 }
 //# sourceMappingURL=task.d.ts.map

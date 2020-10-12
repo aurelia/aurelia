@@ -13,6 +13,6 @@ export { ensureSchedulerEmpty, } from './scheduler';
 export { verifyBindingInstructionsEqual, verifyEqual, getVisibleText, targetedInstructionTypeName, } from './specialized-assertions';
 export { _, stringify, htmlStringify, jsonStringify, padLeft, padRight, } from './string-manipulation';
 export { createObserverLocator, createScopeForTest, } from './test-builder';
-export { enableTracing, disableTracing, SymbolTraceWriter, Call, CallCollection, recordCalls, stopRecordingCalls, trace } from './tracing';
+export { Call, CallCollection, recordCalls, stopRecordingCalls, trace } from './tracing';
 export { trimFull, createSpy, ISpy, } from './util';
 //# sourceMappingURL=index.d.ts.map

@@ -15,7 +15,7 @@
     exports.IRenderLocation = kernel_1.DI.createInterface('IRenderLocation').noDefault();
     exports.IDOM = kernel_1.DI.createInterface('IDOM').noDefault();
     const ni = function (...args) {
-        throw kernel_1.Reporter.error(1000); // TODO: create error code (not implemented exception)
+        throw new Error(`No DOM implementation is provided.`);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }; // this function doesn't need typing because it is never directly called
     const niDOM = {
@@ -51,7 +51,7 @@
         },
         initialize(dom) {
             if (this.isInitialized) {
-                throw kernel_1.Reporter.error(1001); // TODO: create error code (already initialized, check isInitialized property and call destroy() if you want to assign a different dom)
+                throw new Error(`DOM is already initialized.`);
             }
             const descriptors = {};
             const protos = [dom];
@@ -78,7 +78,7 @@
         },
         destroy() {
             if (!this.isInitialized) {
-                throw kernel_1.Reporter.error(1002); // TODO: create error code (already destroyed)
+                throw new Error(`DOM is already destroyed.`);
             }
             const keys = Reflect.get(this, '$domKeys');
             keys.forEach(key => {

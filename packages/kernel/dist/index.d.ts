@@ -1,10 +1,8 @@
 export { all, DI, IContainer, IDefaultableInterfaceSymbol, IFactory, inject, IRegistration, IRegistry, IResolver, IServiceLocator, Key, lazy, optional, ignore, RegisterSelf, Registration, ResolveCallback, singleton, transient, Injectable, InterfaceSymbol, InstanceProvider, Resolved, Transformer, newInstanceForScope, newInstanceOf, DefaultContainerConfiguration, DefaultResolver, IContainerConfiguration, } from './di';
-export { Class, Constructable, ConstructableClass, Diff, ICallable, IDisposable, IFrameRequestCallback, IIndexable, IPerformance, ITimerHandler, IWindowOrWorkerGlobalScope, KnownKeys, NoInfer, Omit, OptionalKnownKeys, OptionalValuesOf, Overwrite, Param0, Param1, Param2, Param3, Pick2, Pick3, Primitive, Public, Purify, RequiredKnownKeys, RequiredValuesOf, StrictPrimitive, Unwrap, ValuesOf, Writable, IfEquals, ReadonlyKeys, WritableKeys, } from './interfaces';
+export { Class, Constructable, ConstructableClass, IDisposable, IIndexable, IPerformance, ITimerHandler, IWindowOrWorkerGlobalScope, Omit, Overwrite, Primitive, StrictPrimitive, Unwrap, Writable, } from './interfaces';
 export { metadata, Metadata, isNullOrUndefined, isObject, applyMetadataPolyfill, } from '@aurelia/metadata';
-export { IConsoleLike, ColorOptions, ILogConfig, ILogEvent, ILogEventFactory, ISink, ILogger, LogConfig, DefaultLogEvent, DefaultLogEventFactory, DefaultLogger, ConsoleSink, LoggerConfiguration, format, sink, } from './logger';
-export { relativeToFile, join, } from './path';
+export { LogLevel, IConsoleLike, ColorOptions, ILogConfig, ILogEvent, ILogEventFactory, ISink, ILogger, LogConfig, DefaultLogEvent, DefaultLogEventFactory, DefaultLogger, ConsoleSink, LoggerConfiguration, format, sink, } from './logger';
 export { PLATFORM } from './platform';
-export { ITraceInfo, ITraceWriter, ILiveLoggingOptions, Reporter, Tracer, LogLevel, } from './reporter';
 export { Profiler } from './profiler';
 export { IResourceKind, PartialResourceDefinition, Protocol, ResourceDefinition, ResourceType, fromAnnotationOrDefinitionOrTypeOrDefault, fromAnnotationOrTypeOrDefault, fromDefinitionOrDefault, } from './resource';
 export { EventAggregator, IEventAggregator, } from './eventaggregator';

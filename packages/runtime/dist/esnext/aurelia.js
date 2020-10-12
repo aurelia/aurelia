@@ -1,14 +1,17 @@
-import { DI, PLATFORM, Registration, InstanceProvider } from '@aurelia/kernel';
-import { IActivator } from './activator';
+import { DI, PLATFORM, Registration, InstanceProvider, onResolve, resolveAll } from '@aurelia/kernel';
 import { INode } from './dom';
 import { ILifecycle, } from './lifecycle';
-import { ContinuationTask, IStartTaskManager, LifecycleTask, } from './lifecycle-task';
+import { IAppTask } from './app-task';
 import { CustomElement } from './resources/custom-element';
 import { Controller } from './templating/controller';
 import { HooksDefinition } from './definitions';
+export const ICompositionRoot = DI.createInterface('ICompositionRoot').noDefault();
 export class CompositionRoot {
     constructor(config, container, rootProvider, enhance = false) {
+        var _a;
         this.config = config;
+        this.controller = (void 0);
+        this.hydratePromise = void 0;
         rootProvider.prepare(this);
         if (config.host != void 0) {
             if (container.has(INode, false)) {
@@ -27,125 +30,80 @@ export class CompositionRoot {
         else {
             throw new Error(`No host element found.`);
         }
-        this.strategy = config.strategy != void 0 ? config.strategy : 1 /* getterSetter */;
-        const initializer = this.container.get(IDOMInitializer);
-        this.dom = initializer.initialize(config);
+        this.strategy = (_a = config.strategy) !== null && _a !== void 0 ? _a : 1 /* getterSetter */;
+        this.dom = this.container.get(IDOMInitializer).initialize(config);
         this.lifecycle = this.container.get(ILifecycle);
-        this.activator = this.container.get(IActivator);
-        const taskManager = this.container.get(IStartTaskManager);
-        const beforeCreateTask = taskManager.runBeforeCreate();
         if (enhance) {
             const component = config.component;
             this.enhanceDefinition = CustomElement.getDefinition(CustomElement.isType(component)
                 ? CustomElement.define({ ...CustomElement.getDefinition(component), template: this.host, enhance: true }, component)
                 : CustomElement.define({ name: (void 0), template: this.host, enhance: true, hooks: new HooksDefinition(component) }));
         }
-        if (beforeCreateTask.done) {
-            this.task = LifecycleTask.done;
-            this.create();
-        }
-        else {
-            this.task = new ContinuationTask(beforeCreateTask, this.create, this);
-        }
+        this.hydratePromise = onResolve(this.runAppTasks('beforeCreate'), () => {
+            const instance = CustomElement.isType(config.component)
+                ? this.container.get(config.component)
+                : config.component;
+            const controller = (this.controller = Controller.forCustomElement(this, container, instance, this.lifecycle, this.host, null, this.strategy, false, this.enhanceDefinition));
+            controller.hydrateCustomElement(container, null);
+            return onResolve(this.runAppTasks('beforeCompile'), () => {
+                controller.compile(null);
+                return onResolve(this.runAppTasks('beforeCompileChildren'), () => {
+                    controller.compileChildren();
+                    this.hydratePromise = void 0;
+                });
+            });
+        });
     }
-    activate(antecedent) {
-        const { task, host, viewModel, container, activator, strategy } = this;
-        const flags = strategy;
-        if (viewModel === void 0) {
-            if (this.createTask === void 0) {
-                this.createTask = new ContinuationTask(task, this.activate, this, antecedent);
-            }
-            return this.createTask;
-        }
-        if (task.done) {
-            if (antecedent == void 0 || antecedent.done) {
-                this.task = activator.activate(host, viewModel, container, flags, void 0);
-            }
-            else {
-                this.task = new ContinuationTask(antecedent, activator.activate, activator, host, viewModel, container, flags, void 0);
-            }
-        }
-        else {
-            if (antecedent == void 0 || antecedent.done) {
-                this.task = new ContinuationTask(task, activator.activate, activator, host, viewModel, container, flags, void 0);
-            }
-            else {
-                const combinedAntecedent = new ContinuationTask(task, antecedent.wait, antecedent);
-                this.task = new ContinuationTask(combinedAntecedent, activator.activate, activator, host, viewModel, container, flags, void 0);
-            }
-        }
-        return this.task;
+    activate() {
+        return onResolve(this.hydratePromise, () => {
+            return onResolve(this.runAppTasks('beforeActivate'), () => {
+                return onResolve(this.controller.activate(this.controller, null, this.strategy | 32 /* fromBind */, void 0), () => {
+                    return this.runAppTasks('afterActivate');
+                });
+            });
+        });
     }
-    deactivate(antecedent) {
-        const { task, viewModel, activator, strategy } = this;
-        const flags = strategy;
-        if (viewModel === void 0) {
-            if (this.createTask === void 0) {
-                this.createTask = new ContinuationTask(task, this.deactivate, this, antecedent);
+    deactivate() {
+        return onResolve(this.runAppTasks('beforeDeactivate'), () => {
+            return onResolve(this.controller.deactivate(this.controller, null, this.strategy | 0 /* none */), () => {
+                return this.runAppTasks('afterDeactivate');
+            });
+        });
+    }
+    /** @internal */
+    runAppTasks(slot) {
+        return resolveAll(...this.container.getAll(IAppTask).reduce((results, task) => {
+            if (task.slot === slot) {
+                results.push(task.run());
             }
-            return this.createTask;
-        }
-        if (task.done) {
-            if (antecedent == void 0 || antecedent.done) {
-                this.task = activator.deactivate(viewModel, flags);
-            }
-            else {
-                this.task = new ContinuationTask(antecedent, activator.deactivate, activator, viewModel, flags);
-            }
-        }
-        else {
-            if (antecedent == void 0 || antecedent.done) {
-                this.task = new ContinuationTask(task, activator.deactivate, activator, viewModel, flags);
-            }
-            else {
-                const combinedAntecedent = new ContinuationTask(task, antecedent.wait, antecedent);
-                this.task = new ContinuationTask(combinedAntecedent, activator.deactivate, activator, viewModel, flags);
-            }
-        }
-        return this.task;
+            return results;
+        }, []));
     }
     dispose() {
         var _a;
         (_a = this.controller) === null || _a === void 0 ? void 0 : _a.dispose();
     }
-    create() {
-        const config = this.config;
-        const instance = this.viewModel = CustomElement.isType(config.component)
-            ? this.container.get(config.component)
-            : config.component;
-        const container = this.container;
-        const lifecycle = container.get(ILifecycle);
-        const taskManager = container.get(IStartTaskManager);
-        taskManager.enqueueBeforeCompileChildren();
-        // This hack with delayed hydration is to make the controller instance accessible to the `beforeCompileChildren` hook via the composition root.
-        this.controller = Controller.forCustomElement(instance, lifecycle, this.host, container, null, this.strategy, false, this.enhanceDefinition);
-        this.controller['hydrateCustomElement'](container, null);
-    }
 }
+export const IAurelia = DI.createInterface('IAurelia').noDefault();
 export class Aurelia {
     constructor(container = DI.createContainer()) {
-        if (container.has(Aurelia, true)) {
-            throw new Error('An instance of Aurelia is already registered with the container or an ancestor of it.');
-        }
         this.container = container;
-        this.task = LifecycleTask.done;
         this._isRunning = false;
         this._isStarting = false;
         this._isStopping = false;
         this._root = void 0;
-        this.next = (void 0);
-        Registration.instance(Aurelia, this).register(container);
-        container.registerResolver(CompositionRoot, this.rootProvider = new InstanceProvider());
+        this.next = void 0;
+        this.startPromise = void 0;
+        this.stopPromise = void 0;
+        if (container.has(IAurelia, true)) {
+            throw new Error('An instance of Aurelia is already registered with the container or an ancestor of it.');
+        }
+        container.register(Registration.instance(IAurelia, this));
+        container.registerResolver(ICompositionRoot, this.rootProvider = new InstanceProvider('ICompositionRoot'));
     }
-    get isRunning() {
-        return this._isRunning;
-    }
-    get isStarting() {
-        return this._isStarting;
-    }
-    get isStopping() {
-        return this._isStopping;
-    }
+    get isRunning() { return this._isRunning; }
+    get isStarting() { return this._isStarting; }
+    get isStopping() { return this._isStopping; }
     get root() {
         if (this._root == void 0) {
             if (this.next == void 0) {
@@ -160,51 +118,49 @@ export class Aurelia {
         return this;
     }
     app(config) {
-        return this.configureRoot(config);
+        this.next = new CompositionRoot(config, this.container, this.rootProvider, false);
+        return this;
     }
     enhance(config) {
-        return this.configureRoot(config, true);
+        this.next = new CompositionRoot(config, this.container, this.rootProvider, true);
+        return this;
     }
     start(root = this.next) {
         if (root == void 0) {
-            throw new Error(`There is no composition root`); // TODO: create error code
+            throw new Error(`There is no composition root`);
         }
-        this.stop(root);
-        if (this.task.done) {
-            this.onBeforeStart(root);
+        if (this.startPromise instanceof Promise) {
+            return this.startPromise;
         }
-        else {
-            this.task = new ContinuationTask(this.task, this.onBeforeStart, this, root);
-        }
-        this.task = this.root.activate(this.task);
-        if (this.task.done) {
-            this.task = this.onAfterStart(root);
-        }
-        else {
-            this.task = new ContinuationTask(this.task, this.onAfterStart, this, root);
-        }
-        return this.task;
+        return this.startPromise = onResolve(this.stop(), () => {
+            Reflect.set(root.host, '$aurelia', this);
+            this.rootProvider.prepare(this._root = root);
+            this._isStarting = true;
+            return onResolve(root.activate(), () => {
+                this._isRunning = true;
+                this._isStarting = false;
+                this.startPromise = void 0;
+                this.dispatchEvent(root, 'aurelia-composed', root.dom);
+                this.dispatchEvent(root, 'au-started', root.host);
+            });
+        });
     }
-    stop(root = this._root) {
-        if (this._isRunning && root != void 0) {
-            if (this.task.done) {
-                this.onBeforeStop(root);
-            }
-            else {
-                this.task = new ContinuationTask(this.task, this.onBeforeStop, this, root);
-            }
-            this.task = root.deactivate(this.task);
-            if (this.task.done) {
-                this.task = this.onAfterStop(root);
-            }
-            else {
-                this.task = new ContinuationTask(this.task, this.onAfterStop, this, root);
-            }
+    stop() {
+        if (this.stopPromise instanceof Promise) {
+            return this.stopPromise;
         }
-        return this.task;
-    }
-    wait() {
-        return this.task.wait();
+        if (this._isRunning === true) {
+            const root = this._root;
+            this._isRunning = false;
+            this._isStopping = true;
+            return this.stopPromise = onResolve(root.deactivate(), () => {
+                Reflect.deleteProperty(root.host, '$aurelia');
+                this._root = void 0;
+                this.rootProvider.dispose();
+                this._isStopping = false;
+                this.dispatchEvent(root, 'au-stopped', root.host);
+            });
+        }
     }
     dispose() {
         var _a;
@@ -215,40 +171,9 @@ export class Aurelia {
         this._root = void 0;
         this.container.dispose();
     }
-    configureRoot(config, enhance) {
-        this.next = new CompositionRoot(config, this.container, this.rootProvider, enhance);
-        if (this.isRunning) {
-            this.start();
-        }
-        return this;
-    }
-    onBeforeStart(root) {
-        Reflect.set(root.host, '$aurelia', this);
-        this.rootProvider.prepare(this._root = root);
-        this._isStarting = true;
-    }
-    onAfterStart(root) {
-        this._isRunning = true;
-        this._isStarting = false;
-        this.dispatchEvent(root, 'aurelia-composed', root.dom);
-        this.dispatchEvent(root, 'au-started', root.host);
-        return LifecycleTask.done;
-    }
-    onBeforeStop(root) {
-        this._isRunning = false;
-        this._isStopping = true;
-    }
-    onAfterStop(root) {
-        Reflect.deleteProperty(root.host, '$aurelia');
-        this._root = void 0;
-        this.rootProvider.dispose();
-        this._isStopping = false;
-        this.dispatchEvent(root, 'au-stopped', root.host);
-        return LifecycleTask.done;
-    }
     dispatchEvent(root, name, target) {
-        target = 'dispatchEvent' in target ? target : root.dom;
-        target.dispatchEvent(root.dom.createCustomEvent(name, { detail: this, bubbles: true, cancelable: true }));
+        const $target = ('dispatchEvent' in target ? target : root.dom);
+        $target.dispatchEvent(root.dom.createCustomEvent(name, { detail: this, bubbles: true, cancelable: true }));
     }
 }
 PLATFORM.global.Aurelia = Aurelia;

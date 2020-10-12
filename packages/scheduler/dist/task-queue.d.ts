@@ -26,7 +26,8 @@ export declare class TaskQueue {
     private processingSize;
     private processingHead;
     private processingTail;
-    private processingAsync;
+    private suspenderTask;
+    private pendingAsyncCount;
     private pendingSize;
     private pendingHead;
     private pendingTail;

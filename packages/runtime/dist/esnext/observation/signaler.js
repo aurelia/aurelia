@@ -1,6 +1,5 @@
 import { DI } from '@aurelia/kernel';
 export const ISignaler = DI.createInterface('ISignaler').withDefault(x => x.singleton(Signaler));
-/** @internal */
 export class Signaler {
     constructor() {
         this.signals = Object.create(null);

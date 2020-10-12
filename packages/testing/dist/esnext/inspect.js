@@ -1,30 +1,7 @@
 // Significant portion of this code is copy-pasted from the node.js source
 // Modifications consist primarily of removing dependencies on v8 natives and adding typings
-// Original license:
-/*
- * Copyright Joyent, Inc. and other Node contributors. All rights reserved.
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to
- * deal in the Software without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
- * sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
- * IN THE SOFTWARE.
- */
-import { stringifyLifecycleFlags, } from '@aurelia/debug';
 import { isArrayIndex, } from '@aurelia/kernel';
 import { DOM, } from '@aurelia/runtime-html';
-import { Call } from './tracing';
 import { Boolean_valueOf, colors, Date_getTime, Date_toISOString, Date_toString, defineProperties, defineProperty, Error_toString, escapeAndQuoteString, escapeString, getOwnNonIndexProperties, getOwnPropertyDescriptor, getOwnPropertyDescriptors, getOwnPropertyNames, getOwnPropertySymbols, getPrototypeOf, hasOwnProperty, isAnyArrayBuffer, isArgumentsObject, isArrayBuffer, isBooleanObject, isBoxedPrimitive, isDataView, isDate, isError, isFloat32Array, isFloat64Array, isFunction, isInt16Array, isInt32Array, isInt8Array, isMap, isMapIterator, isNumber, isNumberObject, isObject, isPromise, isRegExp, isSet, isSetIterator, isString, isStringObject, isSymbol, isTypedArray, isUint16Array, isUint32Array, isUint8Array, isUint8ClampedArray, isUndefined, isWeakMap, isWeakSet, join, Map_entries, Number_valueOf, Object_assign, Object_freeze, Object_is, Object_keys, Object_toString, propertyIsEnumerable, RegExp_toString, removeColors, Set_values, String_valueOf, Symbol_valueOf, truncate, } from './util';
 /* eslint-disable max-lines-per-function, @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion */
 let maxStack_ErrorName;
@@ -958,62 +935,6 @@ const methodNamesWithFlags = [
 export function formatProperty(ctx, value, recurseTimes, key, type) {
     switch (key) {
         // Aurelia-specific:
-        // Note: this is actually the only place in inspection where we actually mutate the input
-        // It should be fine since we're only mutating recorded call args, but still important to keep in mind
-        case 'args':
-            if (value instanceof Call) {
-                switch (value.method) {
-                    case 'created':
-                    case 'bind':
-                    case 'bindCustomElement':
-                    case 'bindCustomAttribute':
-                    case 'bindSynthetic':
-                    case 'bindBindings':
-                    case 'bindControllers':
-                    case 'endBind':
-                    case 'beforeBind':
-                    case 'afterBind':
-                    case 'attach':
-                    case 'attachCustomElement':
-                    case 'attachCustomAttribute':
-                    case 'attachSynthetic':
-                    case 'attachControllers':
-                    case 'afterAttach':
-                    case 'afterAttachChildren':
-                    case 'detach':
-                    case 'detachCustomElement':
-                    case 'detachCustomAttribute':
-                    case 'detachSynthetic':
-                    case 'detachControllers':
-                    case 'beforeDetach':
-                    case 'afterDetachChildren':
-                    case 'tryReturnToCache':
-                    case 'cache':
-                    case 'cacheCustomElement':
-                    case 'cacheCustomAttribute':
-                    case 'cacheSynthetic':
-                    case 'dispose':
-                    case 'unbind':
-                    case 'unbindCustomElement':
-                    case 'unbindCustomAttribute':
-                    case 'unbindSynthetic':
-                    case 'unbindBindings':
-                    case 'unbindControllers':
-                    case 'endUnbind':
-                    case 'beforeUnbind':
-                    case 'afterUnbindChildren':
-                        value.args[0] = stringifyLifecycleFlags(value.args[0]);
-                        break;
-                    case 'valueChanged':
-                        value.args[2] = stringifyLifecycleFlags(value.args[2]);
-                        break;
-                    case 'swap':
-                    case 'updateView':
-                        value.args[1] = stringifyLifecycleFlags(value.args[1]);
-                        break;
-                }
-            }
-            break;
         case '$controller':
             return `$controller: { id: ${value.$controller.id} } (omitted for brevity)`;
         case 'overrideContext':

@@ -1,6 +1,7 @@
-import { IScope, LifecycleFlags } from '@aurelia/runtime';
+import { LifecycleFlags } from '@aurelia/runtime';
 import { BindingWithBehavior } from '../utils';
+import type { Scope } from '@aurelia/runtime';
 export declare class DateFormatBindingBehavior {
-    bind(flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, binding: BindingWithBehavior): void;
+    bind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: BindingWithBehavior): void;
 }
 //# sourceMappingURL=date-format-binding-behavior.d.ts.map

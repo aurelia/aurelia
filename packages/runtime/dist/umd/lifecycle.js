@@ -21,7 +21,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Lifecycle = exports.BatchQueue = exports.ILifecycle = exports.IViewFactory = exports.MountStrategy = exports.IController = exports.stringifyState = exports.State = exports.ViewModelKind = void 0;
+    exports.BatchQueue = exports.Lifecycle = exports.ILifecycle = exports.IViewFactory = exports.MountStrategy = exports.IController = exports.stringifyState = exports.State = exports.ViewModelKind = void 0;
     const kernel_1 = require("@aurelia/kernel");
     var ViewModelKind;
     (function (ViewModelKind) {
@@ -93,6 +93,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     })(MountStrategy = exports.MountStrategy || (exports.MountStrategy = {}));
     exports.IViewFactory = kernel_1.DI.createInterface('IViewFactory').noDefault();
     exports.ILifecycle = kernel_1.DI.createInterface('ILifecycle').withDefault(x => x.singleton(Lifecycle));
+    class Lifecycle {
+        constructor() {
+            this.batch = new BatchQueue(this);
+        }
+    }
+    exports.Lifecycle = Lifecycle;
     let BatchQueue = class BatchQueue {
         constructor(lifecycle) {
             this.lifecycle = lifecycle;
@@ -140,14 +146,5 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         __metadata("design:paramtypes", [Object])
     ], BatchQueue);
     exports.BatchQueue = BatchQueue;
-    class Lifecycle {
-        constructor() {
-            this.batch = new BatchQueue(this);
-        }
-        static register(container) {
-            return kernel_1.Registration.singleton(exports.ILifecycle, this).register(container);
-        }
-    }
-    exports.Lifecycle = Lifecycle;
 });
 //# sourceMappingURL=lifecycle.js.map

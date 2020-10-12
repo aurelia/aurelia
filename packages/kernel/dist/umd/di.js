@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/metadata", "./functions", "./platform", "./reporter", "./resource"], factory);
+        define(["require", "exports", "@aurelia/metadata", "./functions", "./platform", "./resource"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -14,7 +14,6 @@
     metadata_1.applyMetadataPolyfill(Reflect);
     const functions_1 = require("./functions");
     const platform_1 = require("./platform");
-    const reporter_1 = require("./reporter");
     const resource_1 = require("./resource");
     const { emptyArray } = platform_1.PLATFORM;
     class ResolverBuilder {
@@ -216,7 +215,7 @@
             };
             Interface.withDefault = function (configure) {
                 Interface.withDefault = function () {
-                    throw reporter_1.Reporter.error(17, Interface);
+                    throw new Error(`You can only define one default implementation for an interface.`);
                 };
                 Interface.register = function (container, key) {
                     return configure(new ResolverBuilder(container, key !== null && key !== void 0 ? key : Interface));
@@ -439,7 +438,7 @@
     ignore.resolve = () => undefined;
     exports.newInstanceForScope = createResolver((key, handler, requestor) => {
         const instance = createNewInstance(key, handler);
-        const instanceProvider = new InstanceProvider();
+        const instanceProvider = new InstanceProvider(String(key));
         instanceProvider.prepare(instance);
         requestor.registerResolver(key, instanceProvider, true);
         return instance;
@@ -507,7 +506,7 @@
                 case 5 /* alias */:
                     return handler.get(this.state);
                 default:
-                    throw reporter_1.Reporter.error(6, this.strategy);
+                    throw new Error(`Invalid resolver strategy specified: ${this.strategy}.`);
             }
         }
         getFactory(container) {
@@ -525,9 +524,6 @@
                 default:
                     return null;
             }
-        }
-        dispose() {
-            this.key = this.state = null;
         }
     }
     exports.Resolver = Resolver;
@@ -569,7 +565,7 @@
             while (i-- > 0) {
                 lookup = staticDependencies[i];
                 if (lookup == null) {
-                    throw reporter_1.Reporter.error(7, `Index ${i}.`);
+                    throw new Error(`Constructor Parameter with index (${i}) cannot be null or undefined. Are you trying to inject/register something that doesn't exist with DI?`);
                 }
                 else {
                     args[i] = container.get(lookup);
@@ -624,7 +620,7 @@
         };
         return function (Type) {
             if (functions_1.isNativeFunction(Type)) {
-                reporter_1.Reporter.write(5, Type.name);
+                throw new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
             }
             const dependencies = exports.DI.getDependencies(Type);
             const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
@@ -706,6 +702,9 @@
                 this.resourceResolvers = Object.assign(Object.create(null), this.root.resourceResolvers);
             }
             this.resolvers.set(exports.IContainer, containerResolver);
+        }
+        get depth() {
+            return this.parent === null ? 0 : this.parent.depth + 1;
         }
         register(...params) {
             if (++this.registerDepth === 100) {
@@ -940,16 +939,8 @@
             }
         }
         dispose() {
-            var _a, _b, _c, _d;
             this.disposeResolvers();
-            for (const key in this.resourceResolvers) {
-                (_b = (_a = this.resourceResolvers[key]).dispose) === null || _b === void 0 ? void 0 : _b.call(_a);
-            }
-            for (const key of this.resolvers.keys()) {
-                (_d = (_c = this.resolvers.get(key)).dispose) === null || _d === void 0 ? void 0 : _d.call(_c);
-            }
             this.resolvers.clear();
-            this.root = this.parent = this.config = this.resolvers = this.resourceResolvers = this.disposableResolvers = null;
         }
         jitRegister(keyAsValue, handler) {
             if (typeof keyAsValue !== 'function') {
@@ -965,7 +956,7 @@
                     if (newResolver != void 0) {
                         return newResolver;
                     }
-                    throw reporter_1.Reporter.error(40); // did not return a valid resolver from the static register method
+                    throw new Error(`Invalid resolver returned from the static register method`);
                 }
                 return registrationResolver;
             }
@@ -985,7 +976,7 @@
                 if (newResolver != void 0) {
                     return newResolver;
                 }
-                throw reporter_1.Reporter.error(40); // did not return a valid resolver from the static register method
+                throw new Error(`Invalid resolver returned from the static register method`);
             }
             else if (keyAsValue.$isInterface) {
                 throw new Error(`Attempted to jitRegister an interface: ${keyAsValue.friendlyName}`);
@@ -1137,7 +1128,8 @@
         }
     };
     class InstanceProvider {
-        constructor() {
+        constructor(friendlyName) {
+            this.friendlyName = friendlyName;
             this.instance = null;
         }
         prepare(instance) {
@@ -1145,8 +1137,8 @@
         }
         get $isResolver() { return true; }
         resolve() {
-            if (this.instance === undefined) { // unmet precondition: call prepare
-                throw reporter_1.Reporter.error(50); // TODO: organize error codes
+            if (this.instance == null) {
+                throw new Error(`Cannot call resolve ${this.friendlyName} before calling prepare or after calling dispose.`);
             }
             return this.instance;
         }
@@ -1158,7 +1150,7 @@
     /** @internal */
     function validateKey(key) {
         if (key === null || key === void 0) {
-            throw reporter_1.Reporter.error(5);
+            throw new Error('key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
         }
     }
     exports.validateKey = validateKey;

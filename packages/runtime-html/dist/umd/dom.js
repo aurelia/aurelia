@@ -43,7 +43,6 @@
             this.CSSStyleSheet = TCSSStyleSheet;
             this.ShadowRoot = TShadowRoot;
             if (runtime_1.DOM.isInitialized) {
-                kernel_1.Reporter.write(1001); // TODO: create reporters code // DOM already initialized (just info)
                 runtime_1.DOM.destroy();
             }
             runtime_1.DOM.initialize(this);
@@ -66,7 +65,7 @@
                 return node; // it's already a IRenderLocation (converted by FragmentNodeSequence)
             }
             if (node.parentNode == null) {
-                throw kernel_1.Reporter.error(52);
+                throw new Error('Cannot convert an element without a parent to a RenderLocation');
             }
             const locationEnd = this.document.createComment('au-end');
             const locationStart = this.document.createComment('au-start');

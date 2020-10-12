@@ -164,7 +164,7 @@
     function createNodeScheduler(container, g) {
         let scheduler = scheduler_1.Scheduler.get(kernel_1.PLATFORM.global);
         if (scheduler === void 0) {
-            scheduler_1.Scheduler.set(kernel_1.PLATFORM.global, scheduler = new scheduler_1.Scheduler(container.get(scheduler_1.Now), createMicroTaskFlushRequestorFactory(), createRequestAnimationFrameFlushRequestor(g), createSetTimeoutFlushRequestorFactory(g), createPostRequestAnimationFrameFlushRequestor(g), createRequestIdleCallbackFlushRequestor(g)));
+            scheduler_1.Scheduler.set(kernel_1.PLATFORM.global, scheduler = new scheduler_1.Scheduler(container.get(scheduler_1.Now), createMicroTaskFlushRequestorFactory(), createRequestAnimationFrameFlushRequestor(g), createSetTimeoutFlushRequestorFactory(g), createPostRequestAnimationFrameFlushRequestor(g)));
         }
         return scheduler;
     }

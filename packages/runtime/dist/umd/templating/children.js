@@ -140,7 +140,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.children = (void 0);
             this.callback = obj[cbName];
             this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
-            this.createGetterSetter();
+            Reflect.defineProperty(this.obj, this.propertyKey, {
+                enumerable: true,
+                configurable: true,
+                get: () => this.getValue(),
+                set: () => { return; },
+            });
         }
         getValue() {
             this.tryStartObserving();
@@ -165,16 +170,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 this.callback.call(this.obj);
             }
             this.callSubscribers(this.children, undefined, this.persistentFlags | 8 /* updateTargetInstance */);
-        }
-        createGetterSetter() {
-            if (!Reflect.defineProperty(this.obj, this.propertyKey, {
-                enumerable: true,
-                configurable: true,
-                get: () => this.getValue(),
-                set: () => { return; },
-            })) {
-                kernel_1.Reporter.write(1, this.propertyKey, this.obj);
-            }
         }
     };
     ChildrenObserver = ChildrenObserver_1 = __decorate([

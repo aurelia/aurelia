@@ -12,7 +12,6 @@
     exports.Signaler = exports.ISignaler = void 0;
     const kernel_1 = require("@aurelia/kernel");
     exports.ISignaler = kernel_1.DI.createInterface('ISignaler').withDefault(x => x.singleton(Signaler));
-    /** @internal */
     class Signaler {
         constructor() {
             this.signals = Object.create(null);

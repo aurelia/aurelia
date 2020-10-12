@@ -9,13 +9,12 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.shadowCSS = exports.cssModules = exports.StyleConfiguration = exports.DOM = exports.HTMLDOM = exports.createElement = exports.ShortHandBindingSyntax = exports.getTarget = exports.bindingCommand = exports.IAttributePattern = exports.attributePattern = exports.ensureExpression = exports.instructionRenderer = exports.ILifecycle = exports.LifecycleFlags = exports.BindingStrategy = exports.BindingMode = exports.IDOM = exports.IRenderLocation = exports.INode = exports.registerAliases = exports.alias = exports.CompositionRoot = exports.ViewFactory = exports.Controller = exports.children = exports.Bindable = exports.bindable = exports.TaskQueuePriority = exports.IScheduler = exports.valueConverter = exports.ValueConverter = exports.useShadowDOM = exports.CustomElement = exports.customElement = exports.containerless = exports.templateController = exports.CustomAttribute = exports.customAttribute = exports.BindingBehavior = exports.bindingBehavior = exports.proxySubscriberCollection = exports.collectionSubscriberCollection = exports.subscriberCollection = exports.ISignaler = exports.IObserverLocator = exports.computed = exports.RouterRegistration = exports.RouterConfiguration = exports.ViewportInstruction = exports.Router = exports.IRouter = exports.RouterOptions = exports.NavRoute = exports.bound = exports.toArray = exports.pascalCase = exports.kebabCase = exports.camelCase = exports.isArrayIndex = exports.IEventAggregator = exports.EventAggregator = exports.Profiler = exports.LogLevel = exports.Tracer = exports.Reporter = exports.PLATFORM = exports.LoggerConfiguration = exports.ILogger = exports.ColorOptions = exports.Metadata = exports.InstanceProvider = exports.transient = exports.singleton = exports.Registration = exports.optional = exports.lazy = exports.IServiceLocator = exports.inject = exports.IContainer = exports.DI = exports.all = exports.RuntimeHtmlBrowserConfiguration = exports.HttpClient = exports.HttpClientConfiguration = exports.json = exports.TraceConfiguration = exports.DebugConfiguration = exports.default = exports.Aurelia = void 0;
+    exports.shadowCSS = exports.cssModules = exports.StyleConfiguration = exports.DOM = exports.HTMLDOM = exports.createElement = exports.ShortHandBindingSyntax = exports.getTarget = exports.bindingCommand = exports.IAttributePattern = exports.attributePattern = exports.ensureExpression = exports.instructionRenderer = exports.ILifecycle = exports.LifecycleFlags = exports.BindingStrategy = exports.BindingMode = exports.IDOM = exports.IRenderLocation = exports.INode = exports.registerAliases = exports.alias = exports.ICompositionRoot = exports.ViewFactory = exports.Controller = exports.children = exports.Bindable = exports.bindable = exports.TaskQueuePriority = exports.IScheduler = exports.valueConverter = exports.ValueConverter = exports.useShadowDOM = exports.CustomElement = exports.customElement = exports.containerless = exports.templateController = exports.CustomAttribute = exports.customAttribute = exports.BindingBehavior = exports.bindingBehavior = exports.proxySubscriberCollection = exports.collectionSubscriberCollection = exports.subscriberCollection = exports.ISignaler = exports.IObserverLocator = exports.computed = exports.IAurelia = exports.RouterRegistration = exports.RouterConfiguration = exports.ViewportInstruction = exports.Router = exports.IRouter = exports.RouterOptions = exports.NavRoute = exports.bound = exports.toArray = exports.pascalCase = exports.kebabCase = exports.camelCase = exports.isArrayIndex = exports.IEventAggregator = exports.EventAggregator = exports.Profiler = exports.LogLevel = exports.PLATFORM = exports.LoggerConfiguration = exports.ILogger = exports.ColorOptions = exports.Metadata = exports.InstanceProvider = exports.transient = exports.singleton = exports.Registration = exports.optional = exports.lazy = exports.IServiceLocator = exports.inject = exports.IContainer = exports.DI = exports.all = exports.RuntimeHtmlBrowserConfiguration = exports.HttpClient = exports.HttpClientConfiguration = exports.json = exports.DebugConfiguration = exports.default = exports.Aurelia = void 0;
     var quick_start_1 = require("./quick-start");
     Object.defineProperty(exports, "Aurelia", { enumerable: true, get: function () { return quick_start_1.Aurelia; } });
     Object.defineProperty(exports, "default", { enumerable: true, get: function () { return quick_start_1.Aurelia; } });
     var debug_1 = require("@aurelia/debug");
     Object.defineProperty(exports, "DebugConfiguration", { enumerable: true, get: function () { return debug_1.DebugConfiguration; } });
-    Object.defineProperty(exports, "TraceConfiguration", { enumerable: true, get: function () { return debug_1.TraceConfiguration; } });
     var fetch_client_1 = require("@aurelia/fetch-client");
     // RetryConfiguration,
     // RetryableRequest,
@@ -95,8 +94,6 @@
     // ITraceInfo,
     // ITraceWriter,
     // ILiveLoggingOptions,
-    Object.defineProperty(exports, "Reporter", { enumerable: true, get: function () { return kernel_1.Reporter; } });
-    Object.defineProperty(exports, "Tracer", { enumerable: true, get: function () { return kernel_1.Tracer; } });
     Object.defineProperty(exports, "LogLevel", { enumerable: true, get: function () { return kernel_1.LogLevel; } });
     Object.defineProperty(exports, "Profiler", { enumerable: true, get: function () { return kernel_1.Profiler; } });
     // IResourceDefinition,
@@ -163,6 +160,7 @@
     Object.defineProperty(exports, "RouterConfiguration", { enumerable: true, get: function () { return router_1.RouterConfiguration; } });
     Object.defineProperty(exports, "RouterRegistration", { enumerable: true, get: function () { return router_1.RouterRegistration; } });
     var runtime_1 = require("@aurelia/runtime");
+    Object.defineProperty(exports, "IAurelia", { enumerable: true, get: function () { return runtime_1.IAurelia; } });
     // CallFunctionExpression,
     // connects,
     // observes,
@@ -273,7 +271,6 @@
     // enableSetObservation,
     // disableSetObservation,
     // BindingContext,
-    // Scope,
     // OverrideContext,
     // CollectionLengthObserver,
     // CollectionSizeObserver,
@@ -382,7 +379,7 @@
     // Aurelia, // Replaced by quick-start wrapper
     // IDOMInitializer,
     // ISinglePageApp,
-    Object.defineProperty(exports, "CompositionRoot", { enumerable: true, get: function () { return runtime_1.CompositionRoot; } });
+    Object.defineProperty(exports, "ICompositionRoot", { enumerable: true, get: function () { return runtime_1.ICompositionRoot; } });
     // IfRegistration,
     // ElseRegistration,
     // RepeatRegistration,
@@ -471,11 +468,10 @@
     // IOverrideContext,
     // IPropertyChangeTracker,
     // IPropertyObserver,
-    // IScope,
+    // Scope,
     // ISubscribable,
     // ISubscriberCollection,
     // ObservedCollection,
-    // ObserversLookup,
     // PropertyObserver,
     // CollectionObserver,
     // ICollectionSubscriberCollection,

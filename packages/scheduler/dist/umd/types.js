@@ -16,7 +16,6 @@
         TaskQueuePriority[TaskQueuePriority["render"] = 1] = "render";
         TaskQueuePriority[TaskQueuePriority["macroTask"] = 2] = "macroTask";
         TaskQueuePriority[TaskQueuePriority["postRender"] = 3] = "postRender";
-        TaskQueuePriority[TaskQueuePriority["idle"] = 4] = "idle";
     })(TaskQueuePriority = exports.TaskQueuePriority || (exports.TaskQueuePriority = {}));
     exports.defaultQueueTaskOptions = {
         delay: 0,
@@ -24,7 +23,7 @@
         priority: 1 /* render */,
         persistent: false,
         reusable: true,
-        async: false,
+        suspend: false,
     };
     let $resolve;
     let $reject;

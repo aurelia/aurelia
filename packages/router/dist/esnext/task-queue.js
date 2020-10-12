@@ -37,10 +37,6 @@ export class QueueTask {
     wait() {
         return this.promise;
     }
-    canCancel() {
-        return false;
-    }
-    cancel() { return; }
 }
 /**
  * A first-in-first-out task queue that only processes the next queued item

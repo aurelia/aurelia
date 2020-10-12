@@ -11,7 +11,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { DI, IEventAggregator, PLATFORM } from '@aurelia/kernel';
-import { ISignaler, PromiseTask } from '@aurelia/runtime';
+import { ISignaler } from '@aurelia/runtime';
 import { I18nInitOptions } from './i18n-configuration-options';
 import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
 var TimeSpan;
@@ -47,7 +47,7 @@ let I18nService = class I18nService {
         this.ea = ea;
         this.signaler = signaler;
         this.i18next = i18nextWrapper.i18next;
-        this.task = new PromiseTask(this.initializeI18next(options), null, this);
+        this.initPromise = this.initializeI18next(options);
         this.intl = PLATFORM.global.Intl;
     }
     evaluate(keyExpr, options) {

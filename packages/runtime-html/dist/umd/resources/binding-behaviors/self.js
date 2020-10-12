@@ -10,13 +10,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../observation/event-manager"], factory);
+        define(["require", "exports", "@aurelia/runtime", "../../observation/event-manager"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SelfBindingBehavior = exports.handleSelfEvent = void 0;
-    const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const event_manager_1 = require("../../observation/event-manager");
     /** @internal */
@@ -31,7 +30,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     let SelfBindingBehavior = class SelfBindingBehavior {
         bind(flags, _scope, _hostScope, binding) {
             if (!binding.callSource || !binding.targetEvent) {
-                throw kernel_1.Reporter.error(8);
+                throw new Error('Self binding behavior only supports events.');
             }
             binding.selfEventCallSource = binding.callSource;
             binding.callSource = handleSelfEvent;

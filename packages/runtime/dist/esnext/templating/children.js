@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var ChildrenObserver_1;
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { Protocol, Metadata, firstDefined, getPrototypeChain, Reporter } from '@aurelia/kernel';
+import { Protocol, Metadata, firstDefined, getPrototypeChain } from '@aurelia/kernel';
 import { CustomElement } from '../resources/custom-element';
 import { subscriberCollection } from '../observation/subscriber-collection';
 export function children(configOrTarget, prop) {
@@ -126,7 +126,12 @@ let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
         this.children = (void 0);
         this.callback = obj[cbName];
         this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
-        this.createGetterSetter();
+        Reflect.defineProperty(this.obj, this.propertyKey, {
+            enumerable: true,
+            configurable: true,
+            get: () => this.getValue(),
+            set: () => { return; },
+        });
     }
     getValue() {
         this.tryStartObserving();
@@ -151,16 +156,6 @@ let ChildrenObserver = ChildrenObserver_1 = class ChildrenObserver {
             this.callback.call(this.obj);
         }
         this.callSubscribers(this.children, undefined, this.persistentFlags | 8 /* updateTargetInstance */);
-    }
-    createGetterSetter() {
-        if (!Reflect.defineProperty(this.obj, this.propertyKey, {
-            enumerable: true,
-            configurable: true,
-            get: () => this.getValue(),
-            set: () => { return; },
-        })) {
-            Reporter.write(1, this.propertyKey, this.obj);
-        }
     }
 };
 ChildrenObserver = ChildrenObserver_1 = __decorate([

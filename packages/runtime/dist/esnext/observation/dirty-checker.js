@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { DI, Reporter } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 import { subscriberCollection } from './subscriber-collection';
 import { IScheduler } from '@aurelia/scheduler';
 export const IDirtyChecker = DI.createInterface('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
@@ -32,12 +32,6 @@ export const DirtyCheckSettings = {
      */
     disabled: false,
     /**
-     * Default: `true`
-     *
-     * Log a warning message to the console if a property is being dirty-checked.
-     */
-    warn: true,
-    /**
      * Default: `false`
      *
      * Throw an error if a property is being dirty-checked.
@@ -49,11 +43,9 @@ export const DirtyCheckSettings = {
     resetToDefault() {
         this.framesPerCheck = 6;
         this.disabled = false;
-        this.warn = true;
         this.throw = false;
     }
 };
-/** @internal */
 let DirtyChecker = class DirtyChecker {
     constructor(scheduler) {
         this.scheduler = scheduler;
@@ -63,10 +55,7 @@ let DirtyChecker = class DirtyChecker {
     }
     createProperty(obj, propertyName) {
         if (DirtyCheckSettings.throw) {
-            throw Reporter.error(800, propertyName); // TODO: create/organize error code
-        }
-        if (DirtyCheckSettings.warn) {
-            Reporter.write(801, propertyName);
+            throw new Error(`Property '${propertyName}' is being dirty-checked.`);
         }
         return new DirtyCheckProperty(this, obj, propertyName);
     }

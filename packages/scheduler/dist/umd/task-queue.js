@@ -21,7 +21,8 @@
             this.processingSize = 0;
             this.processingHead = void 0;
             this.processingTail = void 0;
-            this.processingAsync = void 0;
+            this.suspenderTask = void 0;
+            this.pendingAsyncCount = 0;
             this.pendingSize = 0;
             this.pendingHead = void 0;
             this.pendingTail = void 0;
@@ -49,6 +50,9 @@
          * If that is the case, we can resolve the promise that was created when `yield()` is called.
          */
         get hasNoMoreFiniteWork() {
+            if (this.pendingAsyncCount > 0) {
+                return false;
+            }
             let cur = this.processingHead;
             while (cur !== void 0) {
                 if (!cur.persistent) {
@@ -82,7 +86,7 @@
             }
             this.flushRequested = false;
             // Only process normally if we are *not* currently waiting for an async task to finish
-            if (this.processingAsync === void 0) {
+            if (this.suspenderTask === void 0) {
                 if (this.pendingSize > 0) {
                     this.movePendingToProcessing();
                 }
@@ -95,10 +99,15 @@
                     cur.run();
                     // If it's still running, it can only be an async task
                     if (cur.status === 'running') {
-                        this.processingAsync = cur;
-                        this.requestFlushClamped();
-                        log_1.leave(this, 'flush early async');
-                        return;
+                        if (cur.suspend === true) {
+                            this.suspenderTask = cur;
+                            this.requestFlushClamped();
+                            log_1.leave(this, 'flush early async');
+                            return;
+                        }
+                        else {
+                            ++this.pendingAsyncCount;
+                        }
                     }
                 }
                 if (this.pendingSize > 0) {
@@ -110,7 +119,7 @@
                 if (this.processingSize > 0) {
                     this.requestFlush();
                 }
-                else if (this.delayedSize > 0) {
+                else if (this.delayedSize > 0 || this.pendingAsyncCount > 0) {
                     this.requestFlushClamped();
                 }
                 if (this.yieldPromise !== void 0 &&
@@ -123,7 +132,7 @@
             else {
                 // If we are still waiting for an async task to finish, just schedule the next flush and do nothing else.
                 // Should the task finish before the next flush is invoked,
-                // the callback to `completeAsyncTask` will have reset `this.processingAsync` back to undefined so processing can return back to normal next flush.
+                // the callback to `completeAsyncTask` will have reset `this.suspenderTask` back to undefined so processing can return back to normal next flush.
                 this.requestFlushClamped();
             }
             log_1.leave(this, 'flush full');
@@ -170,7 +179,7 @@
         }
         queueTask(callback, opts) {
             log_1.enter(this, 'queueTask');
-            const { delay, preempt, persistent, reusable, async } = { ...types_1.defaultQueueTaskOptions, ...opts };
+            const { delay, preempt, persistent, reusable, suspend } = { ...types_1.defaultQueueTaskOptions, ...opts };
             if (preempt) {
                 if (delay > 0) {
                     throw new Error(`Invalid arguments: preempt cannot be combined with a greater-than-zero delay`);
@@ -194,14 +203,14 @@
                     task = taskPool[index];
                     taskPool[index] = (void 0);
                     this.taskPoolSize = index;
-                    task.reuse(time, delay, preempt, persistent, async, callback);
+                    task.reuse(time, delay, preempt, persistent, suspend, callback);
                 }
                 else {
-                    task = new task_1.Task(this, time, time + delay, preempt, persistent, async, reusable, callback);
+                    task = new task_1.Task(this, time, time + delay, preempt, persistent, suspend, reusable, callback);
                 }
             }
             else {
-                task = new task_1.Task(this, time, time + delay, preempt, persistent, async, reusable, callback);
+                task = new task_1.Task(this, time, time + delay, preempt, persistent, suspend, reusable, callback);
             }
             if (preempt) {
                 if (this.processingSize++ === 0) {
@@ -344,11 +353,16 @@
         completeAsyncTask(task) {
             var _a;
             log_1.enter(this, 'completeAsyncTask');
-            if (this.processingAsync !== task) {
-                log_1.leave(this, 'completeAsyncTask error');
-                throw new Error(`Async task completion mismatch: processingAsync=${(_a = this.processingAsync) === null || _a === void 0 ? void 0 : _a.id}, task=${task.id}`);
+            if (task.suspend === true) {
+                if (this.suspenderTask !== task) {
+                    log_1.leave(this, 'completeAsyncTask error');
+                    throw new Error(`Async task completion mismatch: suspenderTask=${(_a = this.suspenderTask) === null || _a === void 0 ? void 0 : _a.id}, task=${task.id}`);
+                }
+                this.suspenderTask = void 0;
             }
-            this.processingAsync = void 0;
+            else {
+                --this.pendingAsyncCount;
+            }
             if (this.yieldPromise !== void 0 &&
                 this.hasNoMoreFiniteWork) {
                 const p = this.yieldPromise;
@@ -518,7 +532,7 @@
         preempt: true,
         persistent: false,
         reusable: true,
-        async: false,
+        suspend: false,
     };
 });
 //# sourceMappingURL=task-queue.js.map

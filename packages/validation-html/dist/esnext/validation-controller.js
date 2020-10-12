@@ -67,8 +67,8 @@ export class ValidationEvent {
 export class BindingInfo {
     /**
      * @param {Element} target - The HTMLElement associated with the binding.
-     * @param {IScope} scope - The binding scope.
-     * @param {IScope | null} [hostScope] - The host scope.
+     * @param {Scope} scope - The binding scope.
+     * @param {Scope | null} [hostScope] - The host scope.
      * @param {PropertyRule[]} [rules] - Rules bound to the binding behavior.
      * @param {(PropertyInfo | undefined)} [propertyInfo=void 0] - Information describing the associated property for the binding.
      * @memberof BindingInfo

@@ -73,7 +73,7 @@ let AttributeBinding = class AttributeBinding {
             // Alpha: during bind a simple strategy for bind is always flush immediately
             // todo:
             //  (1). determine whether this should be the behavior
-            //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
+            //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start()
             const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
             const oldValue = targetObserver.getValue();
             if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
@@ -182,13 +182,6 @@ let AttributeBinding = class AttributeBinding {
             flags |= this.persistentFlags;
             this.sourceExpression.connect(flags | 128 /* mustEvaluate */, this.$scope, this.$hostScope, this.interceptor); // why do we have a connect method here in the first place? will this be called after bind?
         }
-    }
-    dispose() {
-        this.interceptor = (void 0);
-        this.sourceExpression = (void 0);
-        this.locator = (void 0);
-        this.targetObserver = (void 0);
-        this.target = (void 0);
     }
 };
 AttributeBinding = __decorate([

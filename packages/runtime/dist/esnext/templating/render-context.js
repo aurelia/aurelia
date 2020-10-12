@@ -1,4 +1,4 @@
-import { InstanceProvider, Reporter, } from '@aurelia/kernel';
+import { InstanceProvider, } from '@aurelia/kernel';
 import { ITargetedInstruction, } from '../definitions';
 import { IDOM, IRenderLocation } from '../dom';
 import { IController, ILifecycle, IViewFactory, } from '../lifecycle';
@@ -56,10 +56,10 @@ export class RenderContext {
         this.renderer = container.get(IRenderer);
         this.projectionProvider = container.get(IProjectionProvider);
         container.registerResolver(IViewFactory, this.factoryProvider = new ViewFactoryProvider(), true);
-        container.registerResolver(IController, this.parentControllerProvider = new InstanceProvider(), true);
-        container.registerResolver(ITargetedInstruction, this.instructionProvider = new InstanceProvider(), true);
-        container.registerResolver(IRenderLocation, this.renderLocationProvider = new InstanceProvider(), true);
-        (this.dom = container.get(IDOM)).registerElementResolver(container, this.elementProvider = new InstanceProvider());
+        container.registerResolver(IController, this.parentControllerProvider = new InstanceProvider('IController'), true);
+        container.registerResolver(ITargetedInstruction, this.instructionProvider = new InstanceProvider('ITargetedInstruction'), true);
+        container.registerResolver(IRenderLocation, this.renderLocationProvider = new InstanceProvider('IRenderLocation'), true);
+        (this.dom = container.get(IDOM)).registerElementResolver(container, this.elementProvider = new InstanceProvider('ElementResolver'));
         container.register(...definition.dependencies);
     }
     // #region IServiceLocator api
@@ -149,7 +149,7 @@ export class RenderContext {
         const definition = this.definition;
         if (definition.injectable !== null) {
             if (this.viewModelProvider === void 0) {
-                this.container.registerResolver(definition.injectable, this.viewModelProvider = new InstanceProvider());
+                this.container.registerResolver(definition.injectable, this.viewModelProvider = new InstanceProvider('definition.injectable'));
             }
             this.viewModelProvider.prepare(instance);
         }
@@ -193,7 +193,6 @@ export class RenderContext {
     }
     dispose() {
         this.elementProvider.dispose();
-        this.container.disposeResolvers();
     }
     // #endregion
     // #region IProjectionProvider api
@@ -215,11 +214,11 @@ export class ViewFactoryProvider {
     get $isResolver() { return true; }
     resolve(_handler, _requestor) {
         const factory = this.factory;
-        if (factory === null) { // unmet precondition: call prepare
-            throw Reporter.error(50); // TODO: organize error codes
+        if (factory === null) {
+            throw new Error('Cannot resolve ViewFactory before the provider was prepared.');
         }
-        if (typeof factory.name !== 'string' || factory.name.length === 0) { // unmet invariant: factory must have a name
-            throw Reporter.error(51); // TODO: organize error codes
+        if (typeof factory.name !== 'string' || factory.name.length === 0) {
+            throw new Error('Cannot resolve ViewFactory without a (valid) name.');
         }
         return factory;
     }

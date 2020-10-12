@@ -28,7 +28,6 @@ import { BindingBehaviorExpression } from './binding/ast';
 import { BindingBehaviorFactory } from './resources/binding-behavior';
 export const ITemplateCompiler = DI.createInterface('ITemplateCompiler').noDefault();
 export const IInstructionRenderer = DI.createInterface('IInstructionRenderer').noDefault();
-export const IRenderer = DI.createInterface('IRenderer').noDefault();
 export function instructionRenderer(instructionType) {
     return function decorator(target) {
         // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
@@ -55,6 +54,7 @@ export function instructionRenderer(instructionType) {
         return decoratedTarget;
     };
 }
+export const IRenderer = DI.createInterface('IRenderer').withDefault(x => x.singleton(Renderer));
 /* @internal */
 let Renderer = class Renderer {
     constructor(instructionRenderers) {
@@ -65,9 +65,6 @@ let Renderer = class Renderer {
             // Consumes slightly more memory but significantly less CPU.
             record[item.instructionType] = item.render.bind(item);
         });
-    }
-    static register(container) {
-        return Registration.singleton(IRenderer, this).register(container);
     }
     render(flags, context, controller, targets, definition, host) {
         const targetInstructions = definition.instructions;
@@ -182,10 +179,11 @@ class CustomElementRenderer {
         const component = factory.createComponent(key);
         const lifecycle = context.get(ILifecycle);
         const childController = Controller.forCustomElement(
+        /* root                */ controller.root, 
+        /* container           */ context, 
         /* viewModel           */ component, 
         /* lifecycle           */ lifecycle, 
         /* host                */ target, 
-        /* parentContainer     */ context, 
         /* targetedProjections */ context.getProjectionFor(instruction), 
         /* flags               */ flags);
         flags = childController.flags;
@@ -218,6 +216,8 @@ class CustomAttributeRenderer {
         const component = factory.createComponent(key);
         const lifecycle = context.get(ILifecycle);
         const childController = Controller.forCustomAttribute(
+        /* root      */ controller.root, 
+        /* container */ context, 
         /* viewModel */ component, 
         /* lifecycle */ lifecycle, 
         /* host      */ target, 
@@ -240,10 +240,10 @@ export { CustomAttributeRenderer };
 let TemplateControllerRenderer = 
 /** @internal */
 class TemplateControllerRenderer {
-    render(flags, parentContext, controller, target, instruction) {
-        const viewFactory = getRenderContext(instruction.def, parentContext).getViewFactory();
-        const renderLocation = parentContext.dom.convertToRenderLocation(target);
-        const componentFactory = parentContext.getComponentFactory(
+    render(flags, context, controller, target, instruction) {
+        const viewFactory = getRenderContext(instruction.def, context).getViewFactory();
+        const renderLocation = context.dom.convertToRenderLocation(target);
+        const componentFactory = context.getComponentFactory(
         /* parentController */ controller, 
         /* host             */ target, 
         /* instruction      */ instruction, 
@@ -251,8 +251,10 @@ class TemplateControllerRenderer {
         /* location         */ renderLocation);
         const key = CustomAttribute.keyFrom(instruction.res);
         const component = componentFactory.createComponent(key);
-        const lifecycle = parentContext.get(ILifecycle);
+        const lifecycle = context.get(ILifecycle);
         const childController = Controller.forCustomAttribute(
+        /* root      */ controller.root, 
+        /* container */ context, 
         /* viewModel */ component, 
         /* lifecycle */ lifecycle, 
         /* host      */ target, 
@@ -262,7 +264,7 @@ class TemplateControllerRenderer {
             const children = controller.children;
             component.link(children[children.length - 1]);
         }
-        parentContext.renderInstructions(
+        context.renderInstructions(
         /* flags        */ flags, 
         /* instructions */ instruction.instructions, 
         /* controller   */ controller, 

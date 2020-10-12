@@ -1,5 +1,6 @@
 import { IContainer, IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { ExpressionKind, IBinding, IConnectableBinding, IndexMap, IObserverLocator, IScope, ISignaler, ISubscribable, LifecycleFlags } from '@aurelia/runtime';
+import { ExpressionKind, IBinding, IConnectableBinding, IndexMap, IObserverLocator, ISignaler, ISubscribable, LifecycleFlags } from '@aurelia/runtime';
+import type { Scope } from '@aurelia/runtime';
 export declare class MockBinding implements IConnectableBinding {
     interceptor: this;
     id: number;
@@ -7,7 +8,7 @@ export declare class MockBinding implements IConnectableBinding {
     version: number;
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
-    $scope?: IScope | undefined;
+    $scope?: Scope | undefined;
     isBound: boolean;
     calls: [keyof MockBinding, ...any[]][];
     updateTarget(value: unknown, flags: LifecycleFlags): void;
@@ -16,15 +17,15 @@ export declare class MockBinding implements IConnectableBinding {
     observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void;
     unobserve(all?: boolean): void;
     addObserver(observer: ISubscribable): void;
-    $bind(flags: LifecycleFlags, scope: IScope): void;
+    $bind(flags: LifecycleFlags, scope: Scope): void;
     $unbind(flags: LifecycleFlags): void;
     trace(fnName: keyof MockBinding, ...args: any[]): void;
     dispose(): void;
 }
 export declare class MockBindingBehavior {
     calls: [keyof MockBindingBehavior, ...any[]][];
-    bind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...rest: any[]): void;
-    unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...rest: any[]): void;
+    bind(flags: LifecycleFlags, scope: Scope, binding: IBinding, ...rest: any[]): void;
+    unbind(flags: LifecycleFlags, scope: Scope, binding: IBinding, ...rest: any[]): void;
     trace(fnName: keyof MockBindingBehavior, ...args: any[]): void;
 }
 export interface MockServiceLocator extends IContainer {

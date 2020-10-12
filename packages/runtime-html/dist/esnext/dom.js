@@ -1,4 +1,4 @@
-import { DI, PLATFORM, Registration, Reporter } from '@aurelia/kernel';
+import { DI, PLATFORM, Registration } from '@aurelia/kernel';
 import { DOM, IDOM, INode, CustomElement } from '@aurelia/runtime';
 import { ShadowDOMProjector } from './projectors';
 export var NodeType;
@@ -31,7 +31,6 @@ export class HTMLDOM {
         this.CSSStyleSheet = TCSSStyleSheet;
         this.ShadowRoot = TShadowRoot;
         if (DOM.isInitialized) {
-            Reporter.write(1001); // TODO: create reporters code // DOM already initialized (just info)
             DOM.destroy();
         }
         DOM.initialize(this);
@@ -54,7 +53,7 @@ export class HTMLDOM {
             return node; // it's already a IRenderLocation (converted by FragmentNodeSequence)
         }
         if (node.parentNode == null) {
-            throw Reporter.error(52);
+            throw new Error('Cannot convert an element without a parent to a RenderLocation');
         }
         const locationEnd = this.document.createComment('au-end');
         const locationStart = this.document.createComment('au-start');

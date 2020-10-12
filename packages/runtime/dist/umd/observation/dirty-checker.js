@@ -44,12 +44,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
          */
         disabled: false,
         /**
-         * Default: `true`
-         *
-         * Log a warning message to the console if a property is being dirty-checked.
-         */
-        warn: true,
-        /**
          * Default: `false`
          *
          * Throw an error if a property is being dirty-checked.
@@ -61,11 +55,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         resetToDefault() {
             this.framesPerCheck = 6;
             this.disabled = false;
-            this.warn = true;
             this.throw = false;
         }
     };
-    /** @internal */
     let DirtyChecker = class DirtyChecker {
         constructor(scheduler) {
             this.scheduler = scheduler;
@@ -75,10 +67,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         createProperty(obj, propertyName) {
             if (exports.DirtyCheckSettings.throw) {
-                throw kernel_1.Reporter.error(800, propertyName); // TODO: create/organize error code
-            }
-            if (exports.DirtyCheckSettings.warn) {
-                kernel_1.Reporter.write(801, propertyName);
+                throw new Error(`Property '${propertyName}' is being dirty-checked.`);
             }
             return new DirtyCheckProperty(this, obj, propertyName);
         }

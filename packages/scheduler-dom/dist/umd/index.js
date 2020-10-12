@@ -135,59 +135,10 @@
             },
         };
     }
-    function createRequestIdleCallbackFlushRequestor(w) {
-        return {
-            create(taskQueue) {
-                let handle = -1;
-                function flush() {
-                    if (handle > -1) {
-                        handle = -1;
-                        taskQueue.flush();
-                    }
-                }
-                if (typeof w.requestIdleCallback === 'function' &&
-                    kernel_1.isNativeFunction(w.requestIdleCallback)) {
-                    return {
-                        cancel() {
-                            if (handle > -1) {
-                                // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-                                w.cancelIdleCallback(handle);
-                                handle = -1;
-                            }
-                        },
-                        request() {
-                            if (handle === -1) {
-                                // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-                                handle = w.requestIdleCallback(flush);
-                            }
-                        },
-                    };
-                }
-                else {
-                    return {
-                        cancel() {
-                            if (handle > -1) {
-                                w.clearTimeout(handle);
-                                handle = -1;
-                            }
-                        },
-                        request() {
-                            if (handle === -1) {
-                                // Instead of trying anything fancy with event handler debouncers (we could do that if there was a request for it),
-                                // we just wait 45ms which is approximately the interval in a native idleCallback loop in chrome, to at least make it look
-                                // the same from a timing perspective
-                                handle = w.setTimeout(flush, 45);
-                            }
-                        },
-                    };
-                }
-            },
-        };
-    }
     function createDOMScheduler(container, w) {
         let scheduler = scheduler_1.Scheduler.get(kernel_1.PLATFORM.global);
         if (scheduler === void 0) {
-            scheduler_1.Scheduler.set(kernel_1.PLATFORM.global, scheduler = new scheduler_1.Scheduler(container.get(scheduler_1.Now), createMicroTaskFlushRequestorFactory(), createRequestAnimationFrameFlushRequestor(w), createSetTimeoutFlushRequestorFactory(w), createPostRequestAnimationFrameFlushRequestor(w), createRequestIdleCallbackFlushRequestor(w)));
+            scheduler_1.Scheduler.set(kernel_1.PLATFORM.global, scheduler = new scheduler_1.Scheduler(container.get(scheduler_1.Now), createMicroTaskFlushRequestorFactory(), createRequestAnimationFrameFlushRequestor(w), createSetTimeoutFlushRequestorFactory(w), createPostRequestAnimationFrameFlushRequestor(w)));
         }
         return scheduler;
     }

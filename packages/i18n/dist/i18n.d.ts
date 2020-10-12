@@ -1,5 +1,5 @@
 import { IEventAggregator } from '@aurelia/kernel';
-import { ILifecycleTask, ISignaler } from '@aurelia/runtime';
+import { ISignaler } from '@aurelia/runtime';
 import i18nextCore from 'i18next';
 import { I18nInitOptions } from './i18n-configuration-options';
 import { I18nextWrapper } from './i18next-wrapper';
@@ -11,7 +11,7 @@ export declare class I18nKeyEvaluationResult {
 }
 export interface I18N {
     i18next: i18nextCore.i18n;
-    readonly task: ILifecycleTask;
+    readonly initPromise: Promise<void>;
     /**
      * Evaluates the `keyExpr` to translated values.
      * For a single key, `I18nService#tr` method can also be easily used.
@@ -76,9 +76,9 @@ export declare class I18nService implements I18N {
     i18next: i18nextCore.i18n;
     /**
      * This is used for i18next initialization and awaited for before the bind phase.
-     * If need be (usually there is none), this task can be awaited for explicitly in client code.
+     * If need be (usually there is none), this can be awaited for explicitly in client code.
      */
-    readonly task: ILifecycleTask;
+    readonly initPromise: Promise<void>;
     private options;
     private readonly intl;
     constructor(i18nextWrapper: I18nextWrapper, options: I18nInitOptions, ea: IEventAggregator, signaler: ISignaler);

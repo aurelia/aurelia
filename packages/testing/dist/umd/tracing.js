@@ -4,83 +4,14 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/debug", "@aurelia/kernel", "./util"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./util"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.trace = exports.stopRecordingCalls = exports.recordCalls = exports.CallCollection = exports.Call = exports.SymbolTraceWriter = exports.disableTracing = exports.enableTracing = void 0;
-    const debug_1 = require("@aurelia/debug");
+    exports.trace = exports.stopRecordingCalls = exports.recordCalls = exports.CallCollection = exports.Call = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const util_1 = require("./util");
-    const RuntimeTracer = { ...kernel_1.Tracer };
-    function enableTracing() {
-        Object.assign(kernel_1.Tracer, debug_1.DebugTracer);
-        kernel_1.Tracer.enabled = true;
-    }
-    exports.enableTracing = enableTracing;
-    function disableTracing() {
-        kernel_1.Tracer.flushAll(null);
-        Object.assign(kernel_1.Tracer, RuntimeTracer);
-        kernel_1.Tracer.enabled = false;
-    }
-    exports.disableTracing = disableTracing;
-    exports.SymbolTraceWriter = {
-        write(info) {
-            let output = '(';
-            const params = info.params;
-            for (let i = 0, ii = params.length; i < ii; ++i) {
-                const p = info.params[i];
-                switch (typeof p) {
-                    case 'string':
-                    case 'boolean':
-                        output += p.toString();
-                        break;
-                    case 'number':
-                        output += p > 0 ? `flags=${debug_1.stringifyLifecycleFlags(p)}` : '0';
-                        break;
-                    case 'object':
-                        if (p === null) {
-                            output += 'null';
-                        }
-                        else {
-                            if (p.flags !== undefined) {
-                                const symbol = p;
-                                if ('target' in symbol) {
-                                    output += `attr: ${symbol.target}=${symbol.rawValue}`;
-                                }
-                                else if ('interpolation' in symbol) {
-                                    output += `text: "${symbol.physicalNode.textContent}"`;
-                                }
-                                else {
-                                    output += `element: ${symbol.physicalNode.outerHTML}`;
-                                }
-                            }
-                            else {
-                                if ('outerHTML' in p) {
-                                    const el = p;
-                                    output += `${Object.getPrototypeOf(el).constructor.name}=${el.outerHTML}`;
-                                }
-                                else {
-                                    output += `[Object ${Object.getPrototypeOf(p).constructor.name || 'anonymous'}]`;
-                                }
-                            }
-                        }
-                        break;
-                    case 'undefined':
-                        output += 'undefined';
-                        break;
-                    default:
-                        output += '?';
-                }
-                if (i + 1 < ii) {
-                    output += ', ';
-                }
-            }
-            output += ')';
-            console.debug(`${'  '.repeat(info.depth)}${info.objName}.${info.methodName} - ${output}`);
-        }
-    };
     class Call {
         constructor(instance, args, method, index) {
             this.instance = instance;

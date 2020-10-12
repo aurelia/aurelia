@@ -1,6 +1,7 @@
 import { IServiceLocator, IContainer } from '@aurelia/kernel';
-import { ICallBindingInstruction, IConnectableBinding, IExpressionParser, IObserverLocator, IPartialConnectableBinding, IScope, IsExpression, LifecycleFlags, INode, IRenderableController } from '@aurelia/runtime';
+import { ICallBindingInstruction, IConnectableBinding, IExpressionParser, IObserverLocator, IPartialConnectableBinding, IsExpression, LifecycleFlags, INode, IRenderableController } from '@aurelia/runtime';
 import i18next from 'i18next';
+import type { Scope } from '@aurelia/runtime';
 interface TranslationBindingCreationContext {
     parser: IExpressionParser;
     observerLocator: IObserverLocator;
@@ -32,7 +33,7 @@ export declare class TranslationBinding implements IPartialConnectableBinding {
     constructor(target: INode, observerLocator: IObserverLocator, locator: IServiceLocator);
     static create({ parser, observerLocator, context, controller, target, instruction, isParameterContext, }: TranslationBindingCreationContext): void;
     private static getBinding;
-    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
+    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
     handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions, flags: LifecycleFlags): void;
     private handleLocaleChange;
@@ -45,7 +46,6 @@ export declare class TranslationBinding implements IPartialConnectableBinding {
     private addContentToTemplate;
     private unobserveTargets;
     private ensureKeyExpression;
-    dispose(): void;
 }
 export {};
 //# sourceMappingURL=translation-binding.d.ts.map

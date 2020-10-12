@@ -152,7 +152,7 @@ function createRequestIdleCallbackFlushRequestor(g) {
 export function createNodeScheduler(container, g) {
     let scheduler = Scheduler.get(PLATFORM.global);
     if (scheduler === void 0) {
-        Scheduler.set(PLATFORM.global, scheduler = new Scheduler(container.get(Now), createMicroTaskFlushRequestorFactory(), createRequestAnimationFrameFlushRequestor(g), createSetTimeoutFlushRequestorFactory(g), createPostRequestAnimationFrameFlushRequestor(g), createRequestIdleCallbackFlushRequestor(g)));
+        Scheduler.set(PLATFORM.global, scheduler = new Scheduler(container.get(Now), createMicroTaskFlushRequestorFactory(), createRequestAnimationFrameFlushRequestor(g), createSetTimeoutFlushRequestorFactory(g), createPostRequestAnimationFrameFlushRequestor(g)));
     }
     return scheduler;
 }

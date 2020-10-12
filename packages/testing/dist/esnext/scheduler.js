@@ -1,7 +1,7 @@
 import { Scheduler } from '@aurelia/scheduler';
 import { PLATFORM } from '@aurelia/kernel';
 export function ensureSchedulerEmpty(scheduler) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d;
     if (!scheduler) {
         scheduler = Scheduler.get(PLATFORM.global);
     }
@@ -19,8 +19,5 @@ export function ensureSchedulerEmpty(scheduler) {
     const postRenderQueue = $scheduler['postRender'];
     postRenderQueue.flush();
     (_d = postRenderQueue['pendingHead']) === null || _d === void 0 ? void 0 : _d.cancel();
-    const idleQueue = $scheduler['idle'];
-    idleQueue.flush();
-    (_e = idleQueue['pendingHead']) === null || _e === void 0 ? void 0 : _e.cancel();
 }
 //# sourceMappingURL=scheduler.js.map

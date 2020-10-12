@@ -1,10 +1,8 @@
 import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IBindingTargetObserver, IObservable, ISubscriber, AccessorType } from '../observation';
-export interface IDirtyChecker {
-    createProperty(obj: object, propertyName: string): IBindingTargetObserver;
-    addProperty(property: DirtyCheckProperty): void;
-    removeProperty(property: DirtyCheckProperty): void;
+import { IScheduler } from '@aurelia/scheduler';
+export interface IDirtyChecker extends DirtyChecker {
 }
 export declare const IDirtyChecker: import("@aurelia/kernel").InterfaceSymbol<IDirtyChecker>;
 export declare const DirtyCheckSettings: {
@@ -25,12 +23,6 @@ export declare const DirtyCheckSettings: {
      */
     disabled: boolean;
     /**
-     * Default: `true`
-     *
-     * Log a warning message to the console if a property is being dirty-checked.
-     */
-    warn: boolean;
-    /**
      * Default: `false`
      *
      * Throw an error if a property is being dirty-checked.
@@ -41,6 +33,17 @@ export declare const DirtyCheckSettings: {
      */
     resetToDefault(): void;
 };
+export declare class DirtyChecker {
+    private readonly scheduler;
+    private readonly tracked;
+    private task;
+    private elapsedFrames;
+    constructor(scheduler: IScheduler);
+    createProperty(obj: object, propertyName: string): DirtyCheckProperty;
+    addProperty(property: DirtyCheckProperty): void;
+    removeProperty(property: DirtyCheckProperty): void;
+    private check;
+}
 export interface DirtyCheckProperty extends IBindingTargetObserver {
 }
 export declare class DirtyCheckProperty implements DirtyCheckProperty {

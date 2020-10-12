@@ -10,7 +10,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Reporter } from '@aurelia/kernel';
 import { BindingMode, IDOM, IObserverLocator, bindingBehavior } from '@aurelia/runtime';
 import { EventSubscriber } from '../../observation/event-manager';
 let UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
@@ -19,16 +18,16 @@ let UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
     }
     bind(flags, _scope, _hostScope, binding, ...events) {
         if (events.length === 0) {
-            throw Reporter.error(9);
+            throw new Error('The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:\'blur\'">');
         }
         if (binding.mode !== BindingMode.twoWay && binding.mode !== BindingMode.fromView) {
-            throw Reporter.error(10);
+            throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
         }
         this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
         // ensure the binding's target observer has been set.
         const targetObserver = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
         if (!targetObserver.handler) {
-            throw Reporter.error(10);
+            throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
         }
         binding.targetObserver = targetObserver;
         // stash the original element subscribe function.

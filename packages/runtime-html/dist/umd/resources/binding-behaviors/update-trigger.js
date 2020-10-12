@@ -16,13 +16,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "@aurelia/runtime", "../../observation/event-manager"], factory);
+        define(["require", "exports", "@aurelia/runtime", "../../observation/event-manager"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.UpdateTriggerBindingBehavior = void 0;
-    const kernel_1 = require("@aurelia/kernel");
     const runtime_1 = require("@aurelia/runtime");
     const event_manager_1 = require("../../observation/event-manager");
     let UpdateTriggerBindingBehavior = class UpdateTriggerBindingBehavior {
@@ -31,16 +30,16 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
         bind(flags, _scope, _hostScope, binding, ...events) {
             if (events.length === 0) {
-                throw kernel_1.Reporter.error(9);
+                throw new Error('The updateTrigger binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:\'blur\'">');
             }
             if (binding.mode !== runtime_1.BindingMode.twoWay && binding.mode !== runtime_1.BindingMode.fromView) {
-                throw kernel_1.Reporter.error(10);
+                throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
             }
             this.persistentFlags = flags & 31751 /* persistentBindingFlags */;
             // ensure the binding's target observer has been set.
             const targetObserver = this.observerLocator.getObserver(this.persistentFlags | flags, binding.target, binding.targetProperty);
             if (!targetObserver.handler) {
-                throw kernel_1.Reporter.error(10);
+                throw new Error('The updateTrigger binding behavior can only be applied to two-way/ from-view bindings on input/select elements.');
             }
             binding.targetObserver = targetObserver;
             // stash the original element subscribe function.

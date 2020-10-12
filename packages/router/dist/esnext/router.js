@@ -2,7 +2,7 @@
 /* eslint-disable prefer-template */
 /* eslint-disable max-lines-per-function */
 import { DI, IContainer, Registration, Metadata } from '@aurelia/kernel';
-import { Aurelia, CustomElement, DOM, isRenderContext } from '@aurelia/runtime';
+import { CustomElement, DOM, ICompositionRoot, isRenderContext } from '@aurelia/runtime';
 import { InstructionResolver } from './instruction-resolver';
 import { LinkHandler } from './link-handler';
 import { Nav } from './nav';
@@ -1002,9 +1002,9 @@ export class Router {
     }
     ensureRootScope() {
         if (!this.rootScope) {
-            const root = this.container.get(Aurelia).root;
+            const root = this.container.get(ICompositionRoot);
             // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
-            this.rootScope = new ViewportScope('rootScope', this, root.viewModel, null, true, root.config.component);
+            this.rootScope = new ViewportScope('rootScope', this, root.controller.viewModel, null, true, root.config.component);
         }
         return this.rootScope;
     }

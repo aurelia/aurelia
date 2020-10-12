@@ -8,13 +8,13 @@ export class TaskAbortError extends Error {
 }
 let id = 0;
 export class Task {
-    constructor(taskQueue, createdTime, queueTime, preempt, persistent, async, reusable, callback) {
+    constructor(taskQueue, createdTime, queueTime, preempt, persistent, suspend, reusable, callback) {
         this.taskQueue = taskQueue;
         this.createdTime = createdTime;
         this.queueTime = queueTime;
         this.preempt = preempt;
         this.persistent = persistent;
-        this.async = async;
+        this.suspend = suspend;
         this.reusable = reusable;
         this.callback = callback;
         this.id = ++id;
@@ -58,14 +58,13 @@ export class Task {
         // this.persistent could be changed while the task is running (this can only be done by the task itself if canceled, and is a valid way of stopping a loop)
         // so we deliberately reference this.persistent instead of the local variable, but we keep it around to know whether the task *was* persistent before running it,
         // so we can set the correct cancelation state.
-        const { persistent, reusable, taskQueue, callback, resolve, reject, createdTime, async, } = this;
+        const { persistent, reusable, taskQueue, callback, resolve, reject, createdTime, } = this;
         taskQueue.remove(this);
         this._status = 'running';
         try {
             const ret = callback(taskQueue.now() - createdTime);
-            if (async === true || (async === 'auto' && ret instanceof Promise)) {
-                ret
-                    .then($ret => {
+            if (ret instanceof Promise) {
+                ret.then($ret => {
                     if (this.persistent) {
                         taskQueue.resetPersistentTask(this);
                     }
@@ -178,13 +177,13 @@ export class Task {
         this._result = void 0;
         leave(this, 'reset');
     }
-    reuse(time, delay, preempt, persistent, async, callback) {
+    reuse(time, delay, preempt, persistent, suspend, callback) {
         enter(this, 'reuse');
         this.createdTime = time;
         this.queueTime = time + delay;
         this.preempt = preempt;
         this.persistent = persistent;
-        this.async = async;
+        this.suspend = suspend;
         this.callback = callback;
         this._status = 'pending';
         leave(this, 'reuse');

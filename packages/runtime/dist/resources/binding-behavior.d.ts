@@ -1,16 +1,17 @@
 import { Constructable, IContainer, ResourceDefinition, IResourceKind, ResourceType, PartialResourceDefinition, IServiceLocator } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IScope, ISubscribable, IProxySubscribable } from '../observation';
+import { ISubscribable, IProxySubscribable } from '../observation';
 import { IBinding } from '../lifecycle';
 import { IConnectableBinding } from '../binding/connectable';
 import { IObserverLocator } from '../observation/observer-locator';
 import { BindingBehaviorExpression, IBindingBehaviorExpression } from '../binding/ast';
+import type { Scope } from '../observation/binding-context';
 export declare type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
     strategy?: BindingBehaviorStrategy;
 }>;
 export declare type BindingBehaviorInstance<T extends {} = {}> = {
-    bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IBinding, ...args: T[]): void;
-    unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IBinding, ...args: T[]): void;
+    bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, binding: IBinding, ...args: T[]): void;
+    unbind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, binding: IBinding, ...args: T[]): void;
 } & T;
 export declare const enum BindingBehaviorStrategy {
     singleton = 1,
@@ -67,14 +68,14 @@ export declare class BindingInterceptor implements IInterceptableBinding {
     get id(): number;
     get observerLocator(): IObserverLocator;
     get locator(): IServiceLocator;
-    get $scope(): IScope | undefined;
+    get $scope(): Scope | undefined;
     get isBound(): boolean;
     constructor(binding: IInterceptableBinding, expr: IBindingBehaviorExpression);
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
     callSource(args: object): unknown;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
-    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
+    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
 }
 export declare const BindingBehavior: BindingBehaviorKind;

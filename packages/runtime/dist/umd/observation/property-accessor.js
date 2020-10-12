@@ -9,30 +9,22 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.PropertyAccessor = void 0;
+    exports.propertyAccessor = exports.PropertyAccessor = void 0;
     class PropertyAccessor {
-        constructor(obj, propertyKey) {
-            this.obj = obj;
-            this.propertyKey = propertyKey;
+        constructor() {
+            this.task = null;
             // the only thing can be guaranteed is it's an object
             // even if this property accessor is used to access an element
             this.type = 4 /* Obj */;
-            if (obj.$observers !== void 0
-                && obj.$observers[propertyKey] !== void 0
-                && obj.$observers[propertyKey].setValue !== void 0) {
-                this.setValue = this.setValueDirect;
-            }
         }
-        getValue() {
-            return this.obj[this.propertyKey];
+        getValue(obj, key) {
+            return obj[key];
         }
-        setValue(value, flags) {
-            this.obj[this.propertyKey] = value;
-        }
-        setValueDirect(value, flags) {
-            this.obj.$observers[this.propertyKey].setValue(value, flags);
+        setValue(value, flags, obj, key) {
+            obj[key] = value;
         }
     }
     exports.PropertyAccessor = PropertyAccessor;
+    exports.propertyAccessor = new PropertyAccessor();
 });
 //# sourceMappingURL=property-accessor.js.map

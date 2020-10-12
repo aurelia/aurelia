@@ -1,9 +1,7 @@
 export { all, DI, IContainer, inject, IServiceLocator, lazy, optional, ignore, Registration, singleton, transient, InstanceProvider, newInstanceForScope, newInstanceOf, DefaultContainerConfiguration, DefaultResolver, } from './di';
 export { metadata, Metadata, isNullOrUndefined, isObject, applyMetadataPolyfill, } from '@aurelia/metadata';
-export { ColorOptions, ILogConfig, ILogEventFactory, ISink, ILogger, LogConfig, DefaultLogEvent, DefaultLogEventFactory, DefaultLogger, ConsoleSink, LoggerConfiguration, format, sink, } from './logger';
-export { relativeToFile, join, } from './path';
+export { LogLevel, ColorOptions, ILogConfig, ILogEventFactory, ISink, ILogger, LogConfig, DefaultLogEvent, DefaultLogEventFactory, DefaultLogger, ConsoleSink, LoggerConfiguration, format, sink, } from './logger';
 export { PLATFORM } from './platform';
-export { Reporter, Tracer, LogLevel, } from './reporter';
 export { Profiler } from './profiler';
 export { Protocol, fromAnnotationOrDefinitionOrTypeOrDefault, fromAnnotationOrTypeOrDefault, fromDefinitionOrDefault, } from './resource';
 export { EventAggregator, IEventAggregator, } from './eventaggregator';

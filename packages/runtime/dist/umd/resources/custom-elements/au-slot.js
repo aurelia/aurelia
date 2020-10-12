@@ -54,12 +54,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     }
     exports.RegisteredProjections = RegisteredProjections;
-    exports.IProjectionProvider = kernel_1.DI.createInterface('IProjectionProvider').noDefault();
+    exports.IProjectionProvider = kernel_1.DI.createInterface('IProjectionProvider').withDefault(x => x.singleton(ProjectionProvider));
     const projectionMap = new WeakMap();
     class ProjectionProvider {
-        static register(container) {
-            return container.register(kernel_1.Registration.singleton(exports.IProjectionProvider, ProjectionProvider));
-        }
         registerProjections(projections, scope) {
             for (const [instruction, $projections] of projections) {
                 projectionMap.set(instruction, new RegisteredProjections(scope, $projections));

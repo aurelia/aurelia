@@ -3,13 +3,17 @@ import { HooksDefinition } from '../definitions';
 import { INode, INodeSequence, IRenderLocation } from '../dom';
 import { LifecycleFlags } from '../flags';
 import { IBinding, IController, ILifecycle, IViewModel, ViewModelKind, MountStrategy, IViewFactory, ISyntheticView, ICustomAttributeController, ICustomElementController, ICustomElementViewModel, ICustomAttributeViewModel, IActivationHooks, ICompileHooks, IHydratedParentController, State, ControllerVisitor } from '../lifecycle';
-import { IBindingTargetAccessor, IScope } from '../observation';
+import { IBindingTargetAccessor } from '../observation';
+import { Scope } from '../observation/binding-context';
 import { IElementProjector, CustomElementDefinition } from '../resources/custom-element';
 import { CustomAttributeDefinition } from '../resources/custom-attribute';
 import { IRenderContext, RenderContext } from './render-context';
 import { RegisteredProjections } from '../resources/custom-elements/au-slot';
+import { ICompositionRoot } from '../aurelia';
 declare type BindingContext<T extends INode, C extends IViewModel<T>> = IIndexable<C & Required<ICompileHooks<T>> & Required<IActivationHooks<IHydratedParentController<T> | null, T>>>;
 export declare class Controller<T extends INode = INode, C extends IViewModel<T> = IViewModel<T>> implements IController<T, C> {
+    root: ICompositionRoot<T> | null;
+    container: IContainer;
     readonly vmKind: ViewModelKind;
     flags: LifecycleFlags;
     readonly lifecycle: ILifecycle;
@@ -40,9 +44,9 @@ export declare class Controller<T extends INode = INode, C extends IViewModel<T>
     children: Controller<T>[] | undefined;
     hasLockedScope: boolean;
     isStrictBinding: boolean;
-    scope: IScope | undefined;
-    hostScope: IScope | null;
-    projector: IElementProjector | undefined;
+    scope: Scope | undefined;
+    hostScope: Scope | null;
+    projector: IElementProjector<T> | undefined;
     nodes: INodeSequence<T> | undefined;
     context: RenderContext<T> | undefined;
     location: IRenderLocation<T> | undefined;
@@ -56,7 +60,7 @@ export declare class Controller<T extends INode = INode, C extends IViewModel<T>
     private logger;
     private debug;
     private fullyNamed;
-    constructor(vmKind: ViewModelKind, flags: LifecycleFlags, lifecycle: ILifecycle, definition: CustomElementDefinition | CustomAttributeDefinition | undefined, hooks: HooksDefinition, 
+    constructor(root: ICompositionRoot<T> | null, container: IContainer, vmKind: ViewModelKind, flags: LifecycleFlags, lifecycle: ILifecycle, definition: CustomElementDefinition | CustomAttributeDefinition | undefined, hooks: HooksDefinition, 
     /**
      * The viewFactory. Only present for synthetic views.
      */
@@ -75,15 +79,14 @@ export declare class Controller<T extends INode = INode, C extends IViewModel<T>
     host: T | undefined);
     static getCached<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(viewModel: C): ICustomElementController<T, C> | undefined;
     static getCachedOrThrow<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(viewModel: C): ICustomElementController<T, C>;
-    static forCustomElement<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(viewModel: C, lifecycle: ILifecycle, host: T, parentContainer: IContainer, targetedProjections: RegisteredProjections | null, flags?: LifecycleFlags, hydrate?: boolean, definition?: CustomElementDefinition | undefined): ICustomElementController<T, C>;
-    static forCustomAttribute<T extends INode = INode, C extends ICustomAttributeViewModel<T> = ICustomAttributeViewModel<T>>(viewModel: C, lifecycle: ILifecycle, host: T, flags?: LifecycleFlags): ICustomAttributeController<T, C>;
-    static forSyntheticView<T extends INode = INode>(viewFactory: IViewFactory<T>, lifecycle: ILifecycle, context: IRenderContext<T>, flags?: LifecycleFlags): ISyntheticView<T>;
-    private hydrateCustomElement;
+    static forCustomElement<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(root: ICompositionRoot<T> | null, container: IContainer, viewModel: C, lifecycle: ILifecycle, host: T, targetedProjections: RegisteredProjections | null, flags?: LifecycleFlags, hydrate?: boolean, definition?: CustomElementDefinition | undefined): ICustomElementController<T, C>;
+    static forCustomAttribute<T extends INode = INode, C extends ICustomAttributeViewModel<T> = ICustomAttributeViewModel<T>>(root: ICompositionRoot<T> | null, container: IContainer, viewModel: C, lifecycle: ILifecycle, host: T, flags?: LifecycleFlags): ICustomAttributeController<T, C>;
+    static forSyntheticView<T extends INode = INode>(root: ICompositionRoot<T> | null, context: IRenderContext<T>, viewFactory: IViewFactory<T>, lifecycle: ILifecycle, flags?: LifecycleFlags): ISyntheticView<T>;
     private hydrateCustomAttribute;
     private hydrateSynthetic;
     private canceling;
     cancel(initiator: Controller<T>, parent: Controller<T> | null, flags: LifecycleFlags): void;
-    activate(initiator: Controller<T>, parent: Controller<T> | null, flags: LifecycleFlags, scope?: IScope, hostScope?: IScope | null): void | Promise<void>;
+    activate(initiator: Controller<T>, parent: Controller<T> | null, flags: LifecycleFlags, scope?: Scope, hostScope?: Scope | null): void | Promise<void>;
     private beforeBind;
     private bind;
     private afterBind;
@@ -107,7 +110,7 @@ export declare class Controller<T extends INode = INode, C extends IViewModel<T>
     addBinding(binding: IBinding): void;
     addController(controller: Controller<T>): void;
     is(name: string): boolean;
-    lockScope(scope: Writable<IScope>): void;
+    lockScope(scope: Writable<Scope>): void;
     setLocation(location: IRenderLocation<T>, mountStrategy: MountStrategy): void;
     release(): void;
     dispose(): void;

@@ -6,7 +6,7 @@ export declare class TargetObserverLocator implements ITargetObserverLocator {
     private readonly svgAnalyzer;
     constructor(dom: IDOM, svgAnalyzer: ISVGAnalyzer);
     static register(container: IContainer): IResolver<ITargetObserverLocator>;
-    getObserver(flags: LifecycleFlags, scheduler: IScheduler, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: Node, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor;
+    getObserver(flags: LifecycleFlags, scheduler: IScheduler, lifecycle: ILifecycle, observerLocator: IObserverLocator, obj: Node, propertyName: string): IBindingTargetObserver | IBindingTargetAccessor | null;
     overridesAccessor(flags: LifecycleFlags, obj: Node, propertyName: string): boolean;
     handles(flags: LifecycleFlags, obj: unknown): boolean;
 }

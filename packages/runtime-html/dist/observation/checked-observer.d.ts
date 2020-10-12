@@ -1,9 +1,9 @@
-import { CollectionKind, IAccessor, ICollectionObserver, IndexMap, ISubscriber, ISubscriberCollection, LifecycleFlags, ObserversLookup, SetterObserver, IScheduler, ITask, ILifecycle, AccessorType } from '@aurelia/runtime';
+import { CollectionKind, IAccessor, ICollectionObserver, IndexMap, ISubscriber, ISubscriberCollection, LifecycleFlags, SetterObserver, IScheduler, ITask, ILifecycle, AccessorType } from '@aurelia/runtime';
 import { IEventSubscriber } from './event-manager';
 import { ValueAttributeObserver } from './value-attribute-observer';
 export interface IInputElement extends HTMLInputElement {
     model?: unknown;
-    $observers?: ObserversLookup & {
+    $observers?: {
         model?: SetterObserver;
         value?: ValueAttributeObserver;
     };

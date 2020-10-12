@@ -1,4 +1,3 @@
-import { Reporter } from '@aurelia/kernel';
 import { Queue } from './queue';
 import { Navigation } from './navigation';
 import { Runner } from './runner';
@@ -229,7 +228,6 @@ export class Navigator {
         const instruction = new Navigation({ ...entry });
         instruction.navigation = navigationFlags;
         instruction.previous = previousEntry;
-        Reporter.write(10000, 'callback', instruction, instruction.previous, this.entries);
         if (this.options.callback) {
             this.options.callback(instruction);
         }

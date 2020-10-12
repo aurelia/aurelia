@@ -2,6 +2,8 @@ import { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { LifecycleFlags } from './flags';
 import { ILifecycle } from './lifecycle';
 import { ITask } from '@aurelia/scheduler';
+import type { CollectionLengthObserver } from './observation/collection-length-observer';
+import type { CollectionSizeObserver } from './observation/collection-size-observer';
 export interface IConnectable {
     readonly locator: IServiceLocator;
     observeProperty(flags: LifecycleFlags, obj: object, propertyName: string): void;
@@ -132,8 +134,8 @@ export declare const enum AccessorType {
 export interface IAccessor<TValue = unknown> {
     task: ITask | null;
     type: AccessorType;
-    getValue(): TValue;
-    setValue(newValue: TValue, flags: LifecycleFlags): void;
+    getValue(obj?: object, key?: PropertyKey): TValue;
+    setValue(newValue: TValue, flags: LifecycleFlags, obj?: object, key?: PropertyKey): void;
 }
 export interface INodeAccessor<TValue = unknown> extends IAccessor<TValue> {
     flushChanges(flags: LifecycleFlags): void;
@@ -150,7 +152,9 @@ export interface IBindingTargetAccessor<TObj = any, TProp = keyof TObj, TValue =
  */
 export interface IBindingTargetObserver<TObj = any, TProp = keyof TObj, TValue = unknown> extends IBindingTargetAccessor<TObj, TProp, TValue>, ISubscribable, ISubscriberCollection {
 }
-export declare type AccessorOrObserver = IBindingTargetAccessor | IBindingTargetObserver;
+export declare type AccessorOrObserver = (IBindingTargetAccessor | IBindingTargetObserver) & {
+    doNotCache?: boolean;
+};
 /**
  * An array of indices, where the index of an element represents the index to map FROM, and the numeric value of the element itself represents the index to map TO
  *
@@ -174,12 +178,6 @@ export interface IPropertyChangeTracker<TObj, TProp = keyof TObj, TValue = unkno
     propertyKey?: TProp;
     currentValue?: TValue;
 }
-export interface ICollectionLengthObserver extends IAccessor<number>, IPropertyChangeTracker<unknown[], 'length', number>, ISubscriberCollection {
-    currentValue: number;
-}
-export interface ICollectionSizeObserver extends IAccessor<number>, IPropertyChangeTracker<Set<unknown> | Map<unknown, unknown>, 'size', number>, ISubscriberCollection {
-    currentValue: number;
-}
 export interface ICollectionIndexObserver extends ICollectionSubscriber, IPropertyObserver<IIndexable, string> {
     owner: ICollectionObserver<CollectionKind.array>;
 }
@@ -199,37 +197,21 @@ export interface ICollectionObserver<T extends CollectionKind> extends ICollecti
     lifecycle: ILifecycle;
     persistentFlags: LifecycleFlags;
     collection: ObservedCollectionKindToType<T>;
-    lengthObserver: T extends CollectionKind.array ? ICollectionLengthObserver : ICollectionSizeObserver;
-    getLengthObserver(): T extends CollectionKind.array ? ICollectionLengthObserver : ICollectionSizeObserver;
+    lengthObserver: T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
+    getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
     getIndexObserver(index: number): ICollectionIndexObserver;
     notify(): void;
 }
 export declare type CollectionObserver = ICollectionObserver<CollectionKind>;
 export interface IBindingContext {
     [key: string]: any;
-    readonly $synthetic?: true;
-    readonly $observers?: ObserversLookup;
-    getObservers?(flags: LifecycleFlags): ObserversLookup;
 }
 export interface IOverrideContext {
     [key: string]: unknown;
-    readonly $synthetic?: true;
-    readonly $observers?: ObserversLookup;
     readonly bindingContext: IBindingContext;
-    getObservers(flags: LifecycleFlags): ObserversLookup;
 }
-export interface IScope {
-    readonly parentScope: IScope | null;
-    readonly bindingContext: IBindingContext;
-    readonly overrideContext: IOverrideContext;
-}
-export declare type ObserversLookup = IIndexable<{
-    getOrCreate(lifecycle: ILifecycle, flags: LifecycleFlags, obj: IBindingContext | IOverrideContext, key: string): PropertyObserver;
-}, PropertyObserver>;
-export declare type InlineObserversLookup<T> = IIndexable<{}, T>;
-export declare type IObservable<T = {}> = {
-    readonly $synthetic?: false;
-    $observers?: ObserversLookup | InlineObserversLookup<T>;
+export declare type IObservable<T = IIndexable> = T & {
+    $observers?: IIndexable<{}, AccessorOrObserver>;
 };
 export {};
 //# sourceMappingURL=observation.d.ts.map

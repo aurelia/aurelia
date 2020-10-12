@@ -12,8 +12,8 @@ export const { enter, leave, trace, } = (function () {
             const delayed = obj['delayedSize'];
             const flushReq = obj['flushRequested'];
             const prio = obj['priority'];
-            const procAsync = !!obj['processingAsync'];
-            const info = `processing=${processing} pending=${pending} delayed=${delayed} flushReq=${flushReq} prio=${prio} procAsync=${procAsync}`;
+            const susTask = !!obj['suspenderTask'];
+            const info = `processing=${processing} pending=${pending} delayed=${delayed} flushReq=${flushReq} prio=${prio} susTask=${susTask}`;
             console.log(`${prefix}[Q.${method}] ${info}`);
         }
         else {
@@ -23,9 +23,9 @@ export const { enter, leave, trace, } = (function () {
             const preempt = obj['preempt'];
             const reusable = obj['reusable'];
             const persistent = obj['persistent'];
-            const async = obj['async'];
+            const suspend = obj['suspend'];
             const status = obj['_status'];
-            const info = `id=${id} created=${created} queue=${queue} preempt=${preempt} persistent=${persistent} reusable=${reusable} status=${status} async=${async}`;
+            const info = `id=${id} created=${created} queue=${queue} preempt=${preempt} persistent=${persistent} reusable=${reusable} status=${status} suspend=${suspend}`;
             console.log(`${prefix}[T.${method}] ${info}`);
         }
     }

@@ -11,18 +11,15 @@ export interface IScheduler {
     getRenderTaskQueue(): ITaskQueue;
     getMacroTaskQueue(): ITaskQueue;
     getPostRenderTaskQueue(): ITaskQueue;
-    getIdleTaskQueue(): ITaskQueue;
     yieldMicroTask(): Promise<void>;
     yieldRenderTask(): Promise<void>;
     yieldMacroTask(): Promise<void>;
     yieldPostRenderTask(): Promise<void>;
-    yieldIdleTask(): Promise<void>;
     yieldAll(repeat?: number): Promise<void>;
     queueMicroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
     queueRenderTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
     queueMacroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
     queuePostRenderTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
-    queueIdleTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
 }
 export declare class Scheduler implements IScheduler {
     private readonly taskQueues;
@@ -30,8 +27,7 @@ export declare class Scheduler implements IScheduler {
     private readonly render;
     private readonly macroTask;
     private readonly postRender;
-    private readonly idle;
-    constructor(now: Now, microtaskFactory: IFlushRequestorFactory, renderFactory: IFlushRequestorFactory, macroTaskFactory: IFlushRequestorFactory, postRenderFactory: IFlushRequestorFactory, idleFactory: IFlushRequestorFactory);
+    constructor(now: Now, microtaskFactory: IFlushRequestorFactory, renderFactory: IFlushRequestorFactory, macroTaskFactory: IFlushRequestorFactory, postRenderFactory: IFlushRequestorFactory);
     static get(key: object): IScheduler | undefined;
     static set(key: object, instance: IScheduler): void;
     getTaskQueue(priority: TaskQueuePriority): TaskQueue;
@@ -41,17 +37,14 @@ export declare class Scheduler implements IScheduler {
     getRenderTaskQueue(): ITaskQueue;
     getMacroTaskQueue(): ITaskQueue;
     getPostRenderTaskQueue(): ITaskQueue;
-    getIdleTaskQueue(): ITaskQueue;
     yieldMicroTask(): Promise<void>;
     yieldRenderTask(): Promise<void>;
     yieldMacroTask(): Promise<void>;
     yieldPostRenderTask(): Promise<void>;
-    yieldIdleTask(): Promise<void>;
     yieldAll(repeat?: number): Promise<void>;
     queueMicroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
     queueRenderTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
     queueMacroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
     queuePostRenderTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
-    queueIdleTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
 }
 //# sourceMappingURL=scheduler.d.ts.map

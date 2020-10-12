@@ -1,9 +1,10 @@
 import { Class, IServiceLocator } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
-import { IConnectable, IProxySubscribable, ISubscribable, ISubscriber, IScope } from '../observation';
+import { IConnectable, IProxySubscribable, ISubscribable, ISubscriber } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { CustomElementDefinition } from '../resources/custom-element';
+import type { Scope } from '../observation/binding-context';
 export interface IPartialConnectableBinding extends IBinding, ISubscriber {
     observerLocator: IObserverLocator;
 }
@@ -36,7 +37,7 @@ export declare class BindingMediator<K extends string> implements IConnectableBi
     observerLocator: IObserverLocator;
     locator: IServiceLocator;
     constructor(key: K, binding: MediatedBinding<K>, observerLocator: IObserverLocator, locator: IServiceLocator);
-    $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, projection?: CustomElementDefinition): void;
+    $bind(flags: LifecycleFlags, scope: Scope, hostScope?: Scope | null, projection?: CustomElementDefinition): void;
     $unbind(flags: LifecycleFlags): void;
     observeProperty: typeof observeProperty;
     unobserve: typeof unobserve;

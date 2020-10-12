@@ -11,9 +11,42 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { all, DI, ignore, optional, Registration } from './di';
-import { toLookup } from './functions';
+import { bound, toLookup } from './functions';
 import { Protocol } from './resource';
 import { Metadata } from '@aurelia/metadata';
+export var LogLevel;
+(function (LogLevel) {
+    /**
+     * The most detailed information about internal app state.
+     *
+     * Disabled by default and should never be enabled in a production environment.
+     */
+    LogLevel[LogLevel["trace"] = 0] = "trace";
+    /**
+     * Information that is useful for debugging during development and has no long-term value.
+     */
+    LogLevel[LogLevel["debug"] = 1] = "debug";
+    /**
+     * Information about the general flow of the application that has long-term value.
+     */
+    LogLevel[LogLevel["info"] = 2] = "info";
+    /**
+     * Unexpected circumstances that require attention but do not otherwise cause the current flow of execution to stop.
+     */
+    LogLevel[LogLevel["warn"] = 3] = "warn";
+    /**
+     * Unexpected circumstances that cause the flow of execution in the current activity to stop but do not cause an app-wide failure.
+     */
+    LogLevel[LogLevel["error"] = 4] = "error";
+    /**
+     * Unexpected circumstances that cause an app-wide failure or otherwise require immediate attention.
+     */
+    LogLevel[LogLevel["fatal"] = 5] = "fatal";
+    /**
+     * No messages should be written.
+     */
+    LogLevel[LogLevel["none"] = 6] = "none";
+})(LogLevel || (LogLevel = {}));
 /**
  * Flags to enable/disable color usage in the logging output.
  */
@@ -203,7 +236,15 @@ export class ConsoleSink {
     }
 }
 let DefaultLogger = class DefaultLogger {
-    constructor(config, factory, sinks, scope = [], parent = null) {
+    constructor(
+    /**
+     * The global logger configuration.
+     */
+    config, factory, sinks, 
+    /**
+     * The scopes that this logger was created for, if any.
+     */
+    scope = [], parent = null) {
         var _a, _b, _c, _d, _e, _f;
         this.config = config;
         this.factory = factory;
@@ -256,44 +297,63 @@ let DefaultLogger = class DefaultLogger {
             errorSinks = this.errorSinks = parent.errorSinks;
             fatalSinks = this.fatalSinks = parent.fatalSinks;
         }
-        const emit = ($sinks, level, msgOrGetMsg, optionalParams) => {
-            const message = typeof msgOrGetMsg === 'function' ? msgOrGetMsg() : msgOrGetMsg;
-            const event = factory.createLogEvent(this, level, message, optionalParams);
-            for (let i = 0, ii = $sinks.length; i < ii; ++i) {
-                $sinks[i].handleEvent(event);
-            }
-        };
-        this.trace = function trace(messageOrGetMessage, ...optionalParams) {
-            if (config.level <= 0 /* trace */) {
-                emit(traceSinks, 0 /* trace */, messageOrGetMessage, optionalParams);
-            }
-        };
-        this.debug = function debug(messageOrGetMessage, ...optionalParams) {
-            if (config.level <= 1 /* debug */) {
-                emit(debugSinks, 1 /* debug */, messageOrGetMessage, optionalParams);
-            }
-        };
-        this.info = function info(messageOrGetMessage, ...optionalParams) {
-            if (config.level <= 2 /* info */) {
-                emit(infoSinks, 2 /* info */, messageOrGetMessage, optionalParams);
-            }
-        };
-        this.warn = function warn(messageOrGetMessage, ...optionalParams) {
-            if (config.level <= 3 /* warn */) {
-                emit(warnSinks, 3 /* warn */, messageOrGetMessage, optionalParams);
-            }
-        };
-        this.error = function error(messageOrGetMessage, ...optionalParams) {
-            if (config.level <= 4 /* error */) {
-                emit(errorSinks, 4 /* error */, messageOrGetMessage, optionalParams);
-            }
-        };
-        this.fatal = function fatal(messageOrGetMessage, ...optionalParams) {
-            if (config.level <= 5 /* fatal */) {
-                emit(fatalSinks, 5 /* fatal */, messageOrGetMessage, optionalParams);
-            }
-        };
     }
+    trace(messageOrGetMessage, ...optionalParams) {
+        if (this.config.level <= 0 /* trace */) {
+            this.emit(this.traceSinks, 0 /* trace */, messageOrGetMessage, optionalParams);
+        }
+    }
+    debug(messageOrGetMessage, ...optionalParams) {
+        if (this.config.level <= 1 /* debug */) {
+            this.emit(this.debugSinks, 1 /* debug */, messageOrGetMessage, optionalParams);
+        }
+    }
+    info(messageOrGetMessage, ...optionalParams) {
+        if (this.config.level <= 2 /* info */) {
+            this.emit(this.infoSinks, 2 /* info */, messageOrGetMessage, optionalParams);
+        }
+    }
+    warn(messageOrGetMessage, ...optionalParams) {
+        if (this.config.level <= 3 /* warn */) {
+            this.emit(this.warnSinks, 3 /* warn */, messageOrGetMessage, optionalParams);
+        }
+    }
+    error(messageOrGetMessage, ...optionalParams) {
+        if (this.config.level <= 4 /* error */) {
+            this.emit(this.errorSinks, 4 /* error */, messageOrGetMessage, optionalParams);
+        }
+    }
+    fatal(messageOrGetMessage, ...optionalParams) {
+        if (this.config.level <= 5 /* fatal */) {
+            this.emit(this.fatalSinks, 5 /* fatal */, messageOrGetMessage, optionalParams);
+        }
+    }
+    /**
+     * Create a new logger with an additional permanent prefix added to the logging outputs.
+     * When chained, multiple scopes are separated by a dot.
+     *
+     * This is preliminary API and subject to change before alpha release.
+     *
+     * @example
+     *
+     * ```ts
+     * export class MyComponent {
+     *   constructor(@ILogger private logger: ILogger) {
+     *     this.logger.debug('before scoping');
+     *     // console output: '[DBG] before scoping'
+     *     this.logger = logger.scopeTo('MyComponent');
+     *     this.logger.debug('after scoping');
+     *     // console output: '[DBG MyComponent] after scoping'
+     *   }
+     *
+     *   public doStuff(): void {
+     *     const logger = this.logger.scopeTo('doStuff()');
+     *     logger.debug('doing stuff');
+     *     // console output: '[DBG MyComponent.doStuff()] doing stuff'
+     *   }
+     * }
+     * ```
+     */
     scopeTo(name) {
         const scopedLoggers = this.scopedLoggers;
         let scopedLogger = scopedLoggers[name];
@@ -302,7 +362,50 @@ let DefaultLogger = class DefaultLogger {
         }
         return scopedLogger;
     }
+    emit(sinks, level, msgOrGetMsg, optionalParams) {
+        const message = typeof msgOrGetMsg === 'function' ? msgOrGetMsg() : msgOrGetMsg;
+        const event = this.factory.createLogEvent(this, level, message, optionalParams);
+        for (let i = 0, ii = sinks.length; i < ii; ++i) {
+            sinks[i].handleEvent(event);
+        }
+    }
 };
+__decorate([
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], DefaultLogger.prototype, "trace", null);
+__decorate([
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], DefaultLogger.prototype, "debug", null);
+__decorate([
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], DefaultLogger.prototype, "info", null);
+__decorate([
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], DefaultLogger.prototype, "warn", null);
+__decorate([
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], DefaultLogger.prototype, "error", null);
+__decorate([
+    bound,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], DefaultLogger.prototype, "fatal", null);
 DefaultLogger = __decorate([
     __param(0, ILogConfig),
     __param(1, ILogEventFactory),

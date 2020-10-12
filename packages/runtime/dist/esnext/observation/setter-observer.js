@@ -7,7 +7,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Reporter } from '@aurelia/kernel';
 import { subscriberCollection } from './subscriber-collection';
 const $is = Object.is;
 /**
@@ -62,7 +61,7 @@ let SetterObserver = class SetterObserver {
         if (this.observing === false) {
             this.observing = true;
             this.currentValue = this.obj[this.propertyKey];
-            if (!Reflect.defineProperty(this.obj, this.propertyKey, {
+            Reflect.defineProperty(this.obj, this.propertyKey, {
                 enumerable: true,
                 configurable: true,
                 get: () => {
@@ -71,9 +70,7 @@ let SetterObserver = class SetterObserver {
                 set: value => {
                     this.setValue(value, 0 /* none */);
                 },
-            })) {
-                Reporter.write(1, this.propertyKey, this.obj);
-            }
+            });
         }
         return this;
     }

@@ -21,7 +21,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.applyBindingBehavior = exports.IteratorBindingRenderer = exports.PropertyBindingRenderer = exports.InterpolationBindingRenderer = exports.RefBindingRenderer = exports.CallBindingRenderer = exports.LetElementRenderer = exports.TemplateControllerRenderer = exports.CustomAttributeRenderer = exports.CustomElementRenderer = exports.SetPropertyRenderer = exports.getRefTarget = exports.getTarget = exports.ensureExpression = exports.Renderer = exports.instructionRenderer = exports.IRenderer = exports.IInstructionRenderer = exports.ITemplateCompiler = void 0;
+    exports.applyBindingBehavior = exports.IteratorBindingRenderer = exports.PropertyBindingRenderer = exports.InterpolationBindingRenderer = exports.RefBindingRenderer = exports.CallBindingRenderer = exports.LetElementRenderer = exports.TemplateControllerRenderer = exports.CustomAttributeRenderer = exports.CustomElementRenderer = exports.SetPropertyRenderer = exports.getRefTarget = exports.getTarget = exports.ensureExpression = exports.Renderer = exports.IRenderer = exports.instructionRenderer = exports.IInstructionRenderer = exports.ITemplateCompiler = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const call_binding_1 = require("./binding/call-binding");
     const expression_parser_1 = require("./binding/expression-parser");
@@ -40,7 +40,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const binding_behavior_1 = require("./resources/binding-behavior");
     exports.ITemplateCompiler = kernel_1.DI.createInterface('ITemplateCompiler').noDefault();
     exports.IInstructionRenderer = kernel_1.DI.createInterface('IInstructionRenderer').noDefault();
-    exports.IRenderer = kernel_1.DI.createInterface('IRenderer').noDefault();
     function instructionRenderer(instructionType) {
         return function decorator(target) {
             // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
@@ -68,6 +67,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         };
     }
     exports.instructionRenderer = instructionRenderer;
+    exports.IRenderer = kernel_1.DI.createInterface('IRenderer').withDefault(x => x.singleton(Renderer));
     /* @internal */
     let Renderer = class Renderer {
         constructor(instructionRenderers) {
@@ -78,9 +78,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 // Consumes slightly more memory but significantly less CPU.
                 record[item.instructionType] = item.render.bind(item);
             });
-        }
-        static register(container) {
-            return kernel_1.Registration.singleton(exports.IRenderer, this).register(container);
         }
         render(flags, context, controller, targets, definition, host) {
             const targetInstructions = definition.instructions;
@@ -198,10 +195,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             const component = factory.createComponent(key);
             const lifecycle = context.get(lifecycle_1.ILifecycle);
             const childController = controller_1.Controller.forCustomElement(
+            /* root                */ controller.root, 
+            /* container           */ context, 
             /* viewModel           */ component, 
             /* lifecycle           */ lifecycle, 
             /* host                */ target, 
-            /* parentContainer     */ context, 
             /* targetedProjections */ context.getProjectionFor(instruction), 
             /* flags               */ flags);
             flags = childController.flags;
@@ -234,6 +232,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             const component = factory.createComponent(key);
             const lifecycle = context.get(lifecycle_1.ILifecycle);
             const childController = controller_1.Controller.forCustomAttribute(
+            /* root      */ controller.root, 
+            /* container */ context, 
             /* viewModel */ component, 
             /* lifecycle */ lifecycle, 
             /* host      */ target, 
@@ -256,10 +256,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     let TemplateControllerRenderer = 
     /** @internal */
     class TemplateControllerRenderer {
-        render(flags, parentContext, controller, target, instruction) {
-            const viewFactory = render_context_1.getRenderContext(instruction.def, parentContext).getViewFactory();
-            const renderLocation = parentContext.dom.convertToRenderLocation(target);
-            const componentFactory = parentContext.getComponentFactory(
+        render(flags, context, controller, target, instruction) {
+            const viewFactory = render_context_1.getRenderContext(instruction.def, context).getViewFactory();
+            const renderLocation = context.dom.convertToRenderLocation(target);
+            const componentFactory = context.getComponentFactory(
             /* parentController */ controller, 
             /* host             */ target, 
             /* instruction      */ instruction, 
@@ -267,8 +267,10 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             /* location         */ renderLocation);
             const key = custom_attribute_1.CustomAttribute.keyFrom(instruction.res);
             const component = componentFactory.createComponent(key);
-            const lifecycle = parentContext.get(lifecycle_1.ILifecycle);
+            const lifecycle = context.get(lifecycle_1.ILifecycle);
             const childController = controller_1.Controller.forCustomAttribute(
+            /* root      */ controller.root, 
+            /* container */ context, 
             /* viewModel */ component, 
             /* lifecycle */ lifecycle, 
             /* host      */ target, 
@@ -278,7 +280,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 const children = controller.children;
                 component.link(children[children.length - 1]);
             }
-            parentContext.renderInstructions(
+            context.renderInstructions(
             /* flags        */ flags, 
             /* instructions */ instruction.instructions, 
             /* controller   */ controller, 

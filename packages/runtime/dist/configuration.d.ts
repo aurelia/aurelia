@@ -5,13 +5,6 @@ export declare const AtPrefixedTriggerAttributePatternRegistration: IRegistry;
 export declare const ColonPrefixedBindAttributePatternRegistration: IRegistry;
 export declare const RefAttributePatternRegistration: IRegistry;
 export declare const DotSeparatedAttributePatternRegistration: IRegistry;
-export declare const IExpressionParserRegistration: IRegistry;
-export declare const IObserverLocatorRegistration: IRegistry;
-export declare const ILifecycleRegistration: IRegistry;
-export declare const IRendererRegistration: IRegistry;
-export declare const IStartTaskManagerRegistration: IRegistry;
-export declare const IViewLocatorRegistration: IRegistry;
-export declare const IProjectionProviderRegistration: IRegistry;
 /**
  * Default binding syntax for the following attribute name patterns:
  * - `ref`
@@ -44,12 +37,12 @@ export declare const DefaultBindingLanguage: IRegistry[];
  * - `IObserverLocator`
  * - `ILifecycle`
  * - `IRenderer`
- * - `IStartTaskManager`
+ * - `IAppTaskManager`
  * - `IViewLocator`
  * - `IClockRegistration`
  * - `ISchedulerRegistration`
  */
-export declare const DefaultComponents: (IRegistry | import("@aurelia/kernel").InterfaceSymbol<Now>)[];
+export declare const DefaultComponents: import("@aurelia/kernel").InterfaceSymbol<Now>[];
 export declare const FrequentMutationsRegistration: IRegistry;
 export declare const InfrequentMutationsRegistration: IRegistry;
 export declare const ObserveShallowRegistration: IRegistry;

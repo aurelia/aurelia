@@ -4,19 +4,17 @@ import { TaskQueue, } from './task-queue';
 const store = new WeakMap();
 export const IScheduler = DI.createInterface('IScheduler').noDefault();
 export class Scheduler {
-    constructor(now, microtaskFactory, renderFactory, macroTaskFactory, postRenderFactory, idleFactory) {
+    constructor(now, microtaskFactory, renderFactory, macroTaskFactory, postRenderFactory) {
         this.taskQueues = [
             this.microtask = (new TaskQueue(now, 0 /* microTask */, this, microtaskFactory)),
             this.render = (new TaskQueue(now, 1 /* render */, this, renderFactory)),
             this.macroTask = (new TaskQueue(now, 2 /* macroTask */, this, macroTaskFactory)),
             this.postRender = (new TaskQueue(now, 3 /* postRender */, this, postRenderFactory)),
-            this.idle = (new TaskQueue(now, 4 /* idle */, this, idleFactory)),
         ];
         this.yieldMicroTask = this.yieldMicroTask.bind(this);
         this.yieldRenderTask = this.yieldRenderTask.bind(this);
         this.yieldMacroTask = this.yieldMacroTask.bind(this);
         this.yieldPostRenderTask = this.yieldPostRenderTask.bind(this);
-        this.yieldIdleTask = this.yieldIdleTask.bind(this);
         this.yieldAll = this.yieldAll.bind(this);
     }
     static get(key) {
@@ -32,8 +30,8 @@ export class Scheduler {
         return this.taskQueues[priority].yield();
     }
     queueTask(callback, opts) {
-        const { delay, preempt, priority, persistent, reusable, async } = { ...defaultQueueTaskOptions, ...opts };
-        return this.taskQueues[priority].queueTask(callback, { delay, preempt, persistent, reusable, async });
+        const { delay, preempt, priority, persistent, reusable, suspend } = { ...defaultQueueTaskOptions, ...opts };
+        return this.taskQueues[priority].queueTask(callback, { delay, preempt, persistent, reusable, suspend });
     }
     getMicroTaskQueue() {
         return this.microtask;
@@ -47,9 +45,6 @@ export class Scheduler {
     getPostRenderTaskQueue() {
         return this.postRender;
     }
-    getIdleTaskQueue() {
-        return this.idle;
-    }
     yieldMicroTask() {
         return this.microtask.yield();
     }
@@ -62,16 +57,12 @@ export class Scheduler {
     yieldPostRenderTask() {
         return this.postRender.yield();
     }
-    yieldIdleTask() {
-        return this.idle.yield();
-    }
     async yieldAll(repeat = 1) {
         while (repeat-- > 0) {
             await this.yieldMicroTask();
             await this.yieldRenderTask();
             await this.yieldMacroTask();
             await this.yieldPostRenderTask();
-            await this.yieldIdleTask();
         }
     }
     queueMicroTask(callback, opts) {
@@ -85,9 +76,6 @@ export class Scheduler {
     }
     queuePostRenderTask(callback, opts) {
         return this.postRender.queueTask(callback, opts);
-    }
-    queueIdleTask(callback, opts) {
-        return this.idle.queueTask(callback, opts);
     }
 }
 //# sourceMappingURL=scheduler.js.map

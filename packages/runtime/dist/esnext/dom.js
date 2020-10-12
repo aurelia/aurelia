@@ -1,9 +1,9 @@
-import { DI, PLATFORM, Reporter, } from '@aurelia/kernel';
+import { DI, PLATFORM, } from '@aurelia/kernel';
 export const INode = DI.createInterface('INode').noDefault();
 export const IRenderLocation = DI.createInterface('IRenderLocation').noDefault();
 export const IDOM = DI.createInterface('IDOM').noDefault();
 const ni = function (...args) {
-    throw Reporter.error(1000); // TODO: create error code (not implemented exception)
+    throw new Error(`No DOM implementation is provided.`);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
 }; // this function doesn't need typing because it is never directly called
 const niDOM = {
@@ -39,7 +39,7 @@ export const DOM = {
     },
     initialize(dom) {
         if (this.isInitialized) {
-            throw Reporter.error(1001); // TODO: create error code (already initialized, check isInitialized property and call destroy() if you want to assign a different dom)
+            throw new Error(`DOM is already initialized.`);
         }
         const descriptors = {};
         const protos = [dom];
@@ -66,7 +66,7 @@ export const DOM = {
     },
     destroy() {
         if (!this.isInitialized) {
-            throw Reporter.error(1002); // TODO: create error code (already destroyed)
+            throw new Error(`DOM is already destroyed.`);
         }
         const keys = Reflect.get(this, '$domKeys');
         keys.forEach(key => {

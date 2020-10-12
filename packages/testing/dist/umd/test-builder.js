@@ -343,11 +343,11 @@
     //     this.component.$hydrate(LF.none, this.container, host);
     //   }
     //   public bind(flags?: LF): void {
-    //     flags = arguments.length === 1 ? flags : LF.fromStartTask | LF.fromBind;
+    //     flags = arguments.length === 1 ? flags : LF.fromAppTask | LF.fromBind;
     //     this.component.$bind(flags!);
     //   }
     //   public attach(flags?: LF): void {
-    //     flags = arguments.length === 1 ? flags : LF.fromStartTask | LF.fromAttach;
+    //     flags = arguments.length === 1 ? flags : LF.fromAppTask | LF.fromAttach;
     //     this.component.$attach(flags!);
     //   }
     //   public detach(flags?: LF): void {
@@ -407,7 +407,6 @@
         let container;
         if (containerOrLifecycle === undefined || !('get' in containerOrLifecycle)) {
             container = kernel_1.DI.createContainer();
-            container.register(runtime_1.ILifecycleRegistration);
         }
         else {
             container = containerOrLifecycle;
@@ -421,7 +420,6 @@
         kernel_1.Registration.instance(runtime_1.IDirtyChecker, null).register(container);
         kernel_1.Registration.instance(runtime_1.ITargetObserverLocator, dummyLocator).register(container);
         kernel_1.Registration.instance(runtime_1.ITargetAccessorLocator, dummyLocator).register(container);
-        container.register(runtime_1.IObserverLocatorRegistration);
         kernel_1.Registration.instance(runtime_1.IScheduler, dummyScheduler).register(container);
         return container.get(runtime_1.IObserverLocator);
     }

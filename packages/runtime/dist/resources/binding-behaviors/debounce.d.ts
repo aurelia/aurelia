@@ -1,7 +1,7 @@
 import { LifecycleFlags } from '../../flags';
-import { IScope } from '../../observation';
 import { BindingInterceptor, IInterceptableBinding } from '../binding-behavior';
 import { BindingBehaviorExpression } from '../../binding/ast';
+import type { Scope } from '../../observation/binding-context';
 export declare class DebounceBindingBehavior extends BindingInterceptor {
     private readonly taskQueue;
     private readonly opts;
@@ -11,6 +11,6 @@ export declare class DebounceBindingBehavior extends BindingInterceptor {
     callSource(args: object): unknown;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
     private queueTask;
-    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
+    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
 }
 //# sourceMappingURL=debounce.d.ts.map

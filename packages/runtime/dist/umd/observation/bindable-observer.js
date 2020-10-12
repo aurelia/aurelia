@@ -116,16 +116,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             this.addSubscriber(subscriber);
         }
         createGetterSetter() {
-            if (!Reflect.defineProperty(this.obj, this.propertyKey, {
+            Reflect.defineProperty(this.obj, this.propertyKey, {
                 enumerable: true,
                 configurable: true,
                 get: () => this.currentValue,
                 set: (value) => {
                     this.setValue(value, 0 /* none */);
                 }
-            })) {
-                kernel_1.Reporter.write(1, this.propertyKey, this.obj);
-            }
+            });
         }
     };
     BindableObserver = BindableObserver_1 = __decorate([

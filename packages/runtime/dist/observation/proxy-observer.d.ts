@@ -16,6 +16,7 @@ export declare class ProxySubscriberCollection<TObj extends object = object> imp
 export interface ProxyObserver<TObj extends object = object> extends IProxyObserver<TObj> {
 }
 export declare class ProxyObserver<TObj extends object = object> implements ProxyObserver<TObj> {
+    get doNotCache(): true;
     readonly proxy: IProxy<TObj>;
     readonly raw: TObj;
     private readonly subscribers;

@@ -1,14 +1,9 @@
-import { IIndexable, StrictPrimitive } from '@aurelia/kernel';
+import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
-import { IBindingContext, IOverrideContext, IScope, ObservedCollection, ObserversLookup, PropertyObserver } from '../observation';
-export interface InternalObserversLookup extends IIndexable<ObserversLookup, PropertyObserver> {
-}
-export declare type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
+import { IBindingContext, IOverrideContext } from '../observation';
 export declare class BindingContext implements IBindingContext {
     [key: string]: unknown;
-    readonly $synthetic: true;
-    $observers?: ObserversLookup;
     private constructor();
     /**
      * Create a new synthetic `BindingContext` for use in a `Scope`.
@@ -30,11 +25,10 @@ export declare class BindingContext implements IBindingContext {
      * to keep strong typing in situations where the arguments are dynamic.
      */
     static create(flags: LifecycleFlags, keyOrObj?: string | IIndexable, value?: unknown): BindingContext;
-    static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: IScope | null): IBindingContext | IOverrideContext | IBinding | undefined | null;
-    getObservers(flags: LifecycleFlags): ObserversLookup;
+    static get(scope: Scope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: Scope | null): IBindingContext | IOverrideContext | IBinding | undefined | null;
 }
-export declare class Scope implements IScope {
-    parentScope: IScope | null;
+export declare class Scope {
+    parentScope: Scope | null;
     bindingContext: IBindingContext;
     overrideContext: IOverrideContext;
     private constructor();
@@ -68,15 +62,12 @@ export declare class Scope implements IScope {
      */
     static create(flags: LifecycleFlags, bc: object, oc: null): Scope;
     static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope;
-    static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: object): Scope;
+    static fromParent(flags: LifecycleFlags, ps: Scope | null, bc: object): Scope;
 }
 export declare class OverrideContext implements IOverrideContext {
     [key: string]: unknown;
-    readonly $synthetic: true;
-    $observers?: ObserversLookup;
     bindingContext: IBindingContext;
     private constructor();
     static create(flags: LifecycleFlags, bc: object): OverrideContext;
-    getObservers(): ObserversLookup;
 }
 //# sourceMappingURL=binding-context.d.ts.map

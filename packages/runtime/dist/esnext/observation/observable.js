@@ -1,14 +1,10 @@
 import { SetterNotifier } from './setter-observer';
-import { InternalObserversLookup } from './binding-context';
 function getObserversLookup(obj) {
-    let $observers = obj.$observers;
-    if ($observers == null) {
-        $observers = new InternalObserversLookup();
-        if (!Reflect.defineProperty(obj, '$observers', { configurable: false, value: $observers })) {
-            // todo: define in a weakmap
-        }
+    if (obj.$observers === void 0) {
+        Reflect.defineProperty(obj, '$observers', { value: {} });
+        // todo: define in a weakmap
     }
-    return $observers;
+    return obj.$observers;
 }
 const noValue = {};
 // impl, wont be seen

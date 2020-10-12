@@ -683,8 +683,6 @@
                     return 'macroTask';
                 case 3 /* postRender */:
                     return 'postRender';
-                case 4 /* idle */:
-                    return 'idle';
                 default:
                     return 'unknown';
             }
@@ -738,7 +736,6 @@
             const renderTaskQueue = scheduler.getRenderTaskQueue();
             const macroTaskQueue = scheduler.getMacroTaskQueue();
             const postRenderTaskQueue = scheduler.getPostRenderTaskQueue();
-            const idleTaskQueue = scheduler.getIdleTaskQueue();
             let isEmpty = true;
             let message = '';
             if (!microTaskQueue.isEmpty) {
@@ -755,10 +752,6 @@
             }
             if (!postRenderTaskQueue.isEmpty) {
                 message += `\n${reportTaskQueue(postRenderTaskQueue)}\n\n`;
-                isEmpty = false;
-            }
-            if (!idleTaskQueue.isEmpty) {
-                message += `\n${reportTaskQueue(idleTaskQueue)}\n\n`;
                 isEmpty = false;
             }
             if (!isEmpty) {

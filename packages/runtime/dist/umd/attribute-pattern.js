@@ -368,17 +368,6 @@
         }
     }
     exports.SyntaxInterpreter = SyntaxInterpreter;
-    function validatePrototype(handler, patternDefs) {
-        for (const def of patternDefs) {
-            // note: we're intentionally not throwing here
-            if (!(def.pattern in handler)) {
-                kernel_1.Reporter.write(401, def.pattern); // TODO: organize error codes
-            }
-            else if (typeof handler[def.pattern] !== 'function') {
-                kernel_1.Reporter.write(402, def.pattern); // TODO: organize error codes
-            }
-        }
-    }
     exports.IAttributePattern = kernel_1.DI.createInterface('IAttributePattern').noDefault();
     function attributePattern(...patternDefs) {
         return function decorator(target) {
@@ -400,7 +389,6 @@
         name: kernel_1.Protocol.resource.keyFor('attribute-pattern'),
         definitionAnnotationKey: 'attribute-pattern-definitions',
         define(patternDefs, Type) {
-            validatePrototype(Type.prototype, patternDefs);
             const definition = new AttributePatternResourceDefinition(Type);
             const { name, definitionAnnotationKey } = exports.AttributePattern;
             kernel_1.Metadata.define(name, definition, Type);

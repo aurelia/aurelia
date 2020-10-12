@@ -1,8 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { Lifecycle } from './lifecycle';
-import { StartTaskManager } from './lifecycle-task';
-import { ObserverLocator } from './observation/observer-locator';
-import { CallBindingRenderer, CustomAttributeRenderer, CustomElementRenderer, InterpolationBindingRenderer, IteratorBindingRenderer, LetElementRenderer, PropertyBindingRenderer, RefBindingRenderer, Renderer, SetPropertyRenderer, TemplateControllerRenderer } from './renderer';
+import { CallBindingRenderer, CustomAttributeRenderer, CustomElementRenderer, InterpolationBindingRenderer, IteratorBindingRenderer, LetElementRenderer, PropertyBindingRenderer, RefBindingRenderer, SetPropertyRenderer, TemplateControllerRenderer } from './renderer';
 import { FromViewBindingBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior } from './resources/binding-behaviors/binding-mode';
 import { AtPrefixedTriggerAttributePattern, ColonPrefixedBindAttributePattern, DotSeparatedAttributePattern, RefAttributePattern } from './attribute-patterns';
 import { CallBindingCommand, DefaultBindingCommand, ForBindingCommand, FromViewBindingCommand, OneTimeBindingCommand, ToViewBindingCommand, TwoWayBindingCommand } from './binding-commands';
@@ -15,21 +12,12 @@ import { Repeat } from './resources/custom-attributes/repeat';
 import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
-import { ViewLocator } from './templating/view';
 import { Now } from '@aurelia/scheduler';
-import { AuSlot, ProjectionProvider } from './resources/custom-elements/au-slot';
-import { ExpressionParser } from './binding/expression-parser';
+import { AuSlot } from './resources/custom-elements/au-slot';
 export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern;
 export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern;
 export const RefAttributePatternRegistration = RefAttributePattern;
 export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern;
-export const IExpressionParserRegistration = ExpressionParser;
-export const IObserverLocatorRegistration = ObserverLocator;
-export const ILifecycleRegistration = Lifecycle;
-export const IRendererRegistration = Renderer;
-export const IStartTaskManagerRegistration = StartTaskManager;
-export const IViewLocatorRegistration = ViewLocator;
-export const IProjectionProviderRegistration = ProjectionProvider;
 /**
  * Default binding syntax for the following attribute name patterns:
  * - `ref`
@@ -76,20 +64,13 @@ export const DefaultBindingLanguage = [
  * - `IObserverLocator`
  * - `ILifecycle`
  * - `IRenderer`
- * - `IStartTaskManager`
+ * - `IAppTaskManager`
  * - `IViewLocator`
  * - `IClockRegistration`
  * - `ISchedulerRegistration`
  */
 export const DefaultComponents = [
-    IExpressionParserRegistration,
-    IObserverLocatorRegistration,
-    ILifecycleRegistration,
-    IRendererRegistration,
-    IStartTaskManagerRegistration,
-    IViewLocatorRegistration,
     Now,
-    IProjectionProviderRegistration,
 ];
 export const FrequentMutationsRegistration = FrequentMutations;
 export const InfrequentMutationsRegistration = InfrequentMutations;

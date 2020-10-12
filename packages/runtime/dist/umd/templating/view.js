@@ -62,7 +62,7 @@
                 controller = cache.pop();
                 return controller;
             }
-            controller = controller_1.Controller.forSyntheticView(this, this.lifecycle, this.context, flags);
+            controller = controller_1.Controller.forSyntheticView(null, this.context, this, this.lifecycle, flags);
             return controller;
         }
     }
@@ -114,15 +114,11 @@
         };
     }
     exports.view = view;
-    exports.IViewLocator = kernel_1.DI.createInterface('IViewLocator')
-        .noDefault();
+    exports.IViewLocator = kernel_1.DI.createInterface('IViewLocator').withDefault(x => x.singleton(ViewLocator));
     class ViewLocator {
         constructor() {
             this.modelInstanceToBoundComponent = new WeakMap();
             this.modelTypeToUnboundComponent = new Map();
-        }
-        static register(container) {
-            return kernel_1.Registration.singleton(exports.IViewLocator, this).register(container);
         }
         getViewComponentForObject(object, viewNameOrSelector) {
             if (object) {
@@ -255,7 +251,6 @@
         getView(views, name) {
             const v = views.find(x => x.name === name);
             if (v === void 0) {
-                // TODO: Use Reporter
                 throw new Error(`Could not find view: ${name}`);
             }
             return v;

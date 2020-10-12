@@ -212,11 +212,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 throw new Error(`Expected the i18n key to be a string, but got ${expr} of type ${exprType}`); // TODO use reporter/logger
             }
         }
-        dispose() {
-            this.interceptor = (void 0);
-            this.locator = (void 0);
-            this.target = (void 0);
-        }
     };
     TranslationBinding = TranslationBinding_1 = __decorate([
         runtime_1.connectable(),

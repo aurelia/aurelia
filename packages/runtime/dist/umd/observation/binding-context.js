@@ -4,36 +4,16 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./proxy-observer", "./setter-observer"], factory);
+        define(["require", "exports", "./proxy-observer"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.OverrideContext = exports.Scope = exports.BindingContext = exports.InternalObserversLookup = void 0;
-    const kernel_1 = require("@aurelia/kernel");
+    exports.OverrideContext = exports.Scope = exports.BindingContext = void 0;
     const proxy_observer_1 = require("./proxy-observer");
-    const setter_observer_1 = require("./setter-observer");
-    var RuntimeError;
-    (function (RuntimeError) {
-        RuntimeError[RuntimeError["NilScope"] = 250] = "NilScope";
-        RuntimeError[RuntimeError["NilOverrideContext"] = 252] = "NilOverrideContext";
-        RuntimeError[RuntimeError["NilParentScope"] = 253] = "NilParentScope";
-    })(RuntimeError || (RuntimeError = {}));
     const marker = Object.freeze({});
-    /** @internal */
-    class InternalObserversLookup {
-        // @ts-ignore
-        getOrCreate(lifecycle, flags, obj, key) {
-            if (this[key] === void 0) {
-                this[key] = new setter_observer_1.SetterObserver(flags, obj, key);
-            }
-            return this[key];
-        }
-    }
-    exports.InternalObserversLookup = InternalObserversLookup;
     class BindingContext {
         constructor(keyOrObj, value) {
-            this.$synthetic = true;
             if (keyOrObj !== void 0) {
                 if (value !== void 0) {
                     // if value is defined then it's just a property and a value to initialize with
@@ -58,7 +38,7 @@
         }
         static get(scope, name, ancestor, flags, hostScope) {
             if (scope == null && hostScope == null) {
-                throw kernel_1.Reporter.error(250 /* NilScope */);
+                throw new Error(`Scope is ${scope} and HostScope is ${hostScope}.`);
             }
             /* eslint-disable jsdoc/check-indentation */
             /**
@@ -89,12 +69,6 @@
                 return marker;
             }
             return scope.bindingContext || scope.overrideContext;
-        }
-        getObservers(flags) {
-            if (this.$observers == null) {
-                this.$observers = new InternalObserversLookup();
-            }
-            return this.$observers;
         }
     }
     exports.BindingContext = BindingContext;
@@ -136,13 +110,13 @@
         }
         static fromOverride(flags, oc) {
             if (oc == null) {
-                throw kernel_1.Reporter.error(252 /* NilOverrideContext */);
+                throw new Error(`OverrideContext is ${oc}`);
             }
             return new Scope(null, oc.bindingContext, oc);
         }
         static fromParent(flags, ps, bc) {
             if (ps == null) {
-                throw kernel_1.Reporter.error(253 /* NilParentScope */);
+                throw new Error(`ParentScope is ${ps}`);
             }
             return new Scope(ps, bc, OverrideContext.create(flags, bc));
         }
@@ -150,17 +124,10 @@
     exports.Scope = Scope;
     class OverrideContext {
         constructor(bindingContext) {
-            this.$synthetic = true;
             this.bindingContext = bindingContext;
         }
         static create(flags, bc) {
             return new OverrideContext(bc);
-        }
-        getObservers() {
-            if (this.$observers === void 0) {
-                this.$observers = new InternalObserversLookup();
-            }
-            return this.$observers;
         }
     }
     exports.OverrideContext = OverrideContext;

@@ -42,7 +42,7 @@ let PropertyBinding = class PropertyBinding {
     }
     updateTarget(value, flags) {
         flags |= this.persistentFlags;
-        this.targetObserver.setValue(value, flags);
+        this.targetObserver.setValue(value, flags, this.target, this.targetProperty);
     }
     updateSource(value, flags) {
         flags |= this.persistentFlags;
@@ -63,9 +63,9 @@ let PropertyBinding = class PropertyBinding {
             // Alpha: during bind a simple strategy for bind is always flush immediately
             // todo:
             //  (1). determine whether this should be the behavior
-            //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
+            //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start()
             const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
-            const oldValue = targetObserver.getValue();
+            const oldValue = targetObserver.getValue(this.target, this.targetProperty);
             // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
             if (sourceExpression.$kind !== 10082 /* AccessScope */ || this.observerSlots > 1) {
                 // todo: in VC expressions, from view also requires connect
@@ -146,7 +146,7 @@ let PropertyBinding = class PropertyBinding {
         if ($mode & fromView) {
             targetObserver.subscribe(interceptor);
             if (!shouldConnect) {
-                interceptor.updateSource(targetObserver.getValue(), flags);
+                interceptor.updateSource(targetObserver.getValue(this.target, this.targetProperty), flags);
             }
             targetObserver[this.id] |= 16 /* updateSourceExpression */;
         }
@@ -181,13 +181,6 @@ let PropertyBinding = class PropertyBinding {
         }
         this.interceptor.unobserve(true);
         this.isBound = false;
-    }
-    dispose() {
-        this.interceptor = (void 0);
-        this.sourceExpression = (void 0);
-        this.locator = (void 0);
-        this.targetObserver = (void 0);
-        this.target = (void 0);
     }
 };
 PropertyBinding = __decorate([

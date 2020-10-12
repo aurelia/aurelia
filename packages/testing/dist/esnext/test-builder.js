@@ -1,5 +1,5 @@
 import { DI, Registration, } from '@aurelia/kernel';
-import { IDirtyChecker, ILifecycleRegistration, IObserverLocator, IObserverLocatorRegistration, ITargetAccessorLocator, ITargetObserverLocator, OverrideContext, Scope, IScheduler, } from '@aurelia/runtime';
+import { IDirtyChecker, IObserverLocator, Scope, ITargetAccessorLocator, ITargetObserverLocator, OverrideContext, IScheduler, } from '@aurelia/runtime';
 // import {
 //   HTMLTargetedInstruction,
 //   NodeSequenceFactory,
@@ -331,11 +331,11 @@ import { IDirtyChecker, ILifecycleRegistration, IObserverLocator, IObserverLocat
 //     this.component.$hydrate(LF.none, this.container, host);
 //   }
 //   public bind(flags?: LF): void {
-//     flags = arguments.length === 1 ? flags : LF.fromStartTask | LF.fromBind;
+//     flags = arguments.length === 1 ? flags : LF.fromAppTask | LF.fromBind;
 //     this.component.$bind(flags!);
 //   }
 //   public attach(flags?: LF): void {
-//     flags = arguments.length === 1 ? flags : LF.fromStartTask | LF.fromAttach;
+//     flags = arguments.length === 1 ? flags : LF.fromAppTask | LF.fromAttach;
 //     this.component.$attach(flags!);
 //   }
 //   public detach(flags?: LF): void {
@@ -395,7 +395,6 @@ export function createObserverLocator(containerOrLifecycle) {
     let container;
     if (containerOrLifecycle === undefined || !('get' in containerOrLifecycle)) {
         container = DI.createContainer();
-        container.register(ILifecycleRegistration);
     }
     else {
         container = containerOrLifecycle;
@@ -409,7 +408,6 @@ export function createObserverLocator(containerOrLifecycle) {
     Registration.instance(IDirtyChecker, null).register(container);
     Registration.instance(ITargetObserverLocator, dummyLocator).register(container);
     Registration.instance(ITargetAccessorLocator, dummyLocator).register(container);
-    container.register(IObserverLocatorRegistration);
     Registration.instance(IScheduler, dummyScheduler).register(container);
     return container.get(IObserverLocator);
 }

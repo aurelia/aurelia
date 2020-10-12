@@ -65,11 +65,5 @@ export class Listener {
     handleChange(newValue, previousValue, flags) {
         return;
     }
-    dispose() {
-        this.interceptor = (void 0);
-        this.sourceExpression = (void 0);
-        this.locator = (void 0);
-        this.target = (void 0);
-    }
 }
 //# sourceMappingURL=listener.js.map

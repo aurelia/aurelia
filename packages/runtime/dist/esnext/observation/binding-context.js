@@ -1,26 +1,7 @@
-import { Reporter } from '@aurelia/kernel';
 import { ProxyObserver } from './proxy-observer';
-import { SetterObserver } from './setter-observer';
-var RuntimeError;
-(function (RuntimeError) {
-    RuntimeError[RuntimeError["NilScope"] = 250] = "NilScope";
-    RuntimeError[RuntimeError["NilOverrideContext"] = 252] = "NilOverrideContext";
-    RuntimeError[RuntimeError["NilParentScope"] = 253] = "NilParentScope";
-})(RuntimeError || (RuntimeError = {}));
 const marker = Object.freeze({});
-/** @internal */
-export class InternalObserversLookup {
-    // @ts-ignore
-    getOrCreate(lifecycle, flags, obj, key) {
-        if (this[key] === void 0) {
-            this[key] = new SetterObserver(flags, obj, key);
-        }
-        return this[key];
-    }
-}
 export class BindingContext {
     constructor(keyOrObj, value) {
-        this.$synthetic = true;
         if (keyOrObj !== void 0) {
             if (value !== void 0) {
                 // if value is defined then it's just a property and a value to initialize with
@@ -45,7 +26,7 @@ export class BindingContext {
     }
     static get(scope, name, ancestor, flags, hostScope) {
         if (scope == null && hostScope == null) {
-            throw Reporter.error(250 /* NilScope */);
+            throw new Error(`Scope is ${scope} and HostScope is ${hostScope}.`);
         }
         /* eslint-disable jsdoc/check-indentation */
         /**
@@ -76,12 +57,6 @@ export class BindingContext {
             return marker;
         }
         return scope.bindingContext || scope.overrideContext;
-    }
-    getObservers(flags) {
-        if (this.$observers == null) {
-            this.$observers = new InternalObserversLookup();
-        }
-        return this.$observers;
     }
 }
 function chooseContext(scope, name, ancestor) {
@@ -122,30 +97,23 @@ export class Scope {
     }
     static fromOverride(flags, oc) {
         if (oc == null) {
-            throw Reporter.error(252 /* NilOverrideContext */);
+            throw new Error(`OverrideContext is ${oc}`);
         }
         return new Scope(null, oc.bindingContext, oc);
     }
     static fromParent(flags, ps, bc) {
         if (ps == null) {
-            throw Reporter.error(253 /* NilParentScope */);
+            throw new Error(`ParentScope is ${ps}`);
         }
         return new Scope(ps, bc, OverrideContext.create(flags, bc));
     }
 }
 export class OverrideContext {
     constructor(bindingContext) {
-        this.$synthetic = true;
         this.bindingContext = bindingContext;
     }
     static create(flags, bc) {
         return new OverrideContext(bc);
-    }
-    getObservers() {
-        if (this.$observers === void 0) {
-            this.$observers = new InternalObserversLookup();
-        }
-        return this.$observers;
     }
 }
 //# sourceMappingURL=binding-context.js.map

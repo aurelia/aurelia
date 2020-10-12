@@ -64,12 +64,6 @@ export class MultiInterpolationBinding {
             parts[i].interceptor.$unbind(flags);
         }
     }
-    dispose() {
-        this.interceptor = (void 0);
-        this.interpolation = (void 0);
-        this.locator = (void 0);
-        this.target = (void 0);
-    }
 }
 let InterpolationBinding = class InterpolationBinding {
     constructor(sourceExpression, interpolation, target, targetProperty, mode, observerLocator, locator, isFirst) {
@@ -90,7 +84,7 @@ let InterpolationBinding = class InterpolationBinding {
         this.targetObserver = observerLocator.getAccessor(0 /* none */, target, targetProperty);
     }
     updateTarget(value, flags) {
-        this.targetObserver.setValue(value, flags | 8 /* updateTargetInstance */);
+        this.targetObserver.setValue(value, flags | 8 /* updateTargetInstance */, this.target, this.targetProperty);
     }
     handleChange(_newValue, _previousValue, flags) {
         var _a, _b;
@@ -101,10 +95,10 @@ let InterpolationBinding = class InterpolationBinding {
         // Alpha: during bind a simple strategy for bind is always flush immediately
         // todo:
         //  (1). determine whether this should be the behavior
-        //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
+        //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start()
         const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
         const newValue = this.interpolation.evaluate(flags, this.$scope, this.$hostScope, this.locator, null);
-        const oldValue = targetObserver.getValue();
+        const oldValue = targetObserver.getValue(this.target, this.targetProperty);
         const interceptor = this.interceptor;
         // todo(fred): maybe let the observer decides whether it updates
         if (newValue !== oldValue) {
@@ -178,12 +172,6 @@ let InterpolationBinding = class InterpolationBinding {
         }
         this.$scope = void 0;
         this.interceptor.unobserve(true);
-    }
-    dispose() {
-        this.interceptor = (void 0);
-        this.sourceExpression = (void 0);
-        this.locator = (void 0);
-        this.targetObserver = (void 0);
     }
 };
 InterpolationBinding = __decorate([

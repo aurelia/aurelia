@@ -4,13 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./queue", "./navigation", "./runner"], factory);
+        define(["require", "exports", "./queue", "./navigation", "./runner"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Navigator = void 0;
-    const kernel_1 = require("@aurelia/kernel");
     const queue_1 = require("./queue");
     const navigation_1 = require("./navigation");
     const runner_1 = require("./runner");
@@ -241,7 +240,6 @@
             const instruction = new navigation_1.Navigation({ ...entry });
             instruction.navigation = navigationFlags;
             instruction.previous = previousEntry;
-            kernel_1.Reporter.write(10000, 'callback', instruction, instruction.previous, this.entries);
             if (this.options.callback) {
                 this.options.callback(instruction);
             }

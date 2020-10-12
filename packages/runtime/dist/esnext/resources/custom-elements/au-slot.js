@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { DI, Registration } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 import { IRenderLocation, } from '../../dom';
 import { IViewFactory } from '../../lifecycle';
 import { customElement } from '../custom-element';
@@ -39,12 +39,9 @@ export class RegisteredProjections {
         this.projections = projections;
     }
 }
-export const IProjectionProvider = DI.createInterface('IProjectionProvider').noDefault();
+export const IProjectionProvider = DI.createInterface('IProjectionProvider').withDefault(x => x.singleton(ProjectionProvider));
 const projectionMap = new WeakMap();
 export class ProjectionProvider {
-    static register(container) {
-        return container.register(Registration.singleton(IProjectionProvider, ProjectionProvider));
-    }
     registerProjections(projections, scope) {
         for (const [instruction, $projections] of projections) {
             projectionMap.set(instruction, new RegisteredProjections(scope, $projections));

@@ -70,10 +70,10 @@
             this.renderer = container.get(renderer_1.IRenderer);
             this.projectionProvider = container.get(au_slot_1.IProjectionProvider);
             container.registerResolver(lifecycle_1.IViewFactory, this.factoryProvider = new ViewFactoryProvider(), true);
-            container.registerResolver(lifecycle_1.IController, this.parentControllerProvider = new kernel_1.InstanceProvider(), true);
-            container.registerResolver(definitions_1.ITargetedInstruction, this.instructionProvider = new kernel_1.InstanceProvider(), true);
-            container.registerResolver(dom_1.IRenderLocation, this.renderLocationProvider = new kernel_1.InstanceProvider(), true);
-            (this.dom = container.get(dom_1.IDOM)).registerElementResolver(container, this.elementProvider = new kernel_1.InstanceProvider());
+            container.registerResolver(lifecycle_1.IController, this.parentControllerProvider = new kernel_1.InstanceProvider('IController'), true);
+            container.registerResolver(definitions_1.ITargetedInstruction, this.instructionProvider = new kernel_1.InstanceProvider('ITargetedInstruction'), true);
+            container.registerResolver(dom_1.IRenderLocation, this.renderLocationProvider = new kernel_1.InstanceProvider('IRenderLocation'), true);
+            (this.dom = container.get(dom_1.IDOM)).registerElementResolver(container, this.elementProvider = new kernel_1.InstanceProvider('ElementResolver'));
             container.register(...definition.dependencies);
         }
         // #region IServiceLocator api
@@ -163,7 +163,7 @@
             const definition = this.definition;
             if (definition.injectable !== null) {
                 if (this.viewModelProvider === void 0) {
-                    this.container.registerResolver(definition.injectable, this.viewModelProvider = new kernel_1.InstanceProvider());
+                    this.container.registerResolver(definition.injectable, this.viewModelProvider = new kernel_1.InstanceProvider('definition.injectable'));
                 }
                 this.viewModelProvider.prepare(instance);
             }
@@ -207,7 +207,6 @@
         }
         dispose() {
             this.elementProvider.dispose();
-            this.container.disposeResolvers();
         }
         // #endregion
         // #region IProjectionProvider api
@@ -230,11 +229,11 @@
         get $isResolver() { return true; }
         resolve(_handler, _requestor) {
             const factory = this.factory;
-            if (factory === null) { // unmet precondition: call prepare
-                throw kernel_1.Reporter.error(50); // TODO: organize error codes
+            if (factory === null) {
+                throw new Error('Cannot resolve ViewFactory before the provider was prepared.');
             }
-            if (typeof factory.name !== 'string' || factory.name.length === 0) { // unmet invariant: factory must have a name
-                throw kernel_1.Reporter.error(51); // TODO: organize error codes
+            if (typeof factory.name !== 'string' || factory.name.length === 0) {
+                throw new Error('Cannot resolve ViewFactory without a (valid) name.');
             }
             return factory;
         }

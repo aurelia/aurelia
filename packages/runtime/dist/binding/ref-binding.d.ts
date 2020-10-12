@@ -1,9 +1,9 @@
 import { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
-import { IScope } from '../observation';
 import { IsBindingBehavior } from './ast';
 import { IConnectableBinding } from './connectable';
+import type { Scope } from '../observation/binding-context';
 export interface RefBinding extends IConnectableBinding {
 }
 export declare class RefBinding implements IBinding {
@@ -12,13 +12,12 @@ export declare class RefBinding implements IBinding {
     locator: IServiceLocator;
     interceptor: this;
     isBound: boolean;
-    $scope?: IScope;
-    $hostScope: IScope | null;
+    $scope?: Scope;
+    $hostScope: Scope | null;
     constructor(sourceExpression: IsBindingBehavior, target: object, locator: IServiceLocator);
-    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
+    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
     observeProperty(flags: LifecycleFlags, obj: IIndexable, propertyName: string): void;
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
-    dispose(): void;
 }
 //# sourceMappingURL=ref-binding.d.ts.map

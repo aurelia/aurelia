@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { DI, Registration, } from '@aurelia/kernel';
+import { DI, } from '@aurelia/kernel';
 export var ViewModelKind;
 (function (ViewModelKind) {
     ViewModelKind[ViewModelKind["customElement"] = 0] = "customElement";
@@ -80,6 +80,11 @@ export var MountStrategy;
 })(MountStrategy || (MountStrategy = {}));
 export const IViewFactory = DI.createInterface('IViewFactory').noDefault();
 export const ILifecycle = DI.createInterface('ILifecycle').withDefault(x => x.singleton(Lifecycle));
+export class Lifecycle {
+    constructor() {
+        this.batch = new BatchQueue(this);
+    }
+}
 let BatchQueue = class BatchQueue {
     constructor(lifecycle) {
         this.lifecycle = lifecycle;
@@ -127,12 +132,4 @@ BatchQueue = __decorate([
     __metadata("design:paramtypes", [Object])
 ], BatchQueue);
 export { BatchQueue };
-export class Lifecycle {
-    constructor() {
-        this.batch = new BatchQueue(this);
-    }
-    static register(container) {
-        return Registration.singleton(ILifecycle, this).register(container);
-    }
-}
 //# sourceMappingURL=lifecycle.js.map

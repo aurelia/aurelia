@@ -4,12 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./di", "@aurelia/metadata", "./logger", "./path", "./platform", "./reporter", "./profiler", "./resource", "./eventaggregator", "./functions"], factory);
+        define(["require", "exports", "./di", "@aurelia/metadata", "./logger", "./platform", "./profiler", "./resource", "./eventaggregator", "./functions"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.resolveAll = exports.onResolve = exports.isNativeFunction = exports.getPrototypeChain = exports.firstDefined = exports.mergeObjects = exports.mergeArrays = exports.bound = exports.isStringOrDate = exports.isNumberOrBigInt = exports.mergeDistinct = exports.compareNumber = exports.resetId = exports.nextId = exports.toArray = exports.pascalCase = exports.kebabCase = exports.camelCase = exports.isArrayIndex = exports.IEventAggregator = exports.EventAggregator = exports.fromDefinitionOrDefault = exports.fromAnnotationOrTypeOrDefault = exports.fromAnnotationOrDefinitionOrTypeOrDefault = exports.Protocol = exports.Profiler = exports.LogLevel = exports.Tracer = exports.Reporter = exports.PLATFORM = exports.join = exports.relativeToFile = exports.sink = exports.format = exports.LoggerConfiguration = exports.ConsoleSink = exports.DefaultLogger = exports.DefaultLogEventFactory = exports.DefaultLogEvent = exports.LogConfig = exports.ILogger = exports.ISink = exports.ILogEventFactory = exports.ILogConfig = exports.ColorOptions = exports.applyMetadataPolyfill = exports.isObject = exports.isNullOrUndefined = exports.Metadata = exports.metadata = exports.DefaultResolver = exports.DefaultContainerConfiguration = exports.newInstanceOf = exports.newInstanceForScope = exports.InstanceProvider = exports.transient = exports.singleton = exports.Registration = exports.ignore = exports.optional = exports.lazy = exports.IServiceLocator = exports.inject = exports.IContainer = exports.DI = exports.all = void 0;
+    exports.resolveAll = exports.onResolve = exports.isNativeFunction = exports.getPrototypeChain = exports.firstDefined = exports.mergeObjects = exports.mergeArrays = exports.bound = exports.isStringOrDate = exports.isNumberOrBigInt = exports.mergeDistinct = exports.compareNumber = exports.resetId = exports.nextId = exports.toArray = exports.pascalCase = exports.kebabCase = exports.camelCase = exports.isArrayIndex = exports.IEventAggregator = exports.EventAggregator = exports.fromDefinitionOrDefault = exports.fromAnnotationOrTypeOrDefault = exports.fromAnnotationOrDefinitionOrTypeOrDefault = exports.Protocol = exports.Profiler = exports.PLATFORM = exports.sink = exports.format = exports.LoggerConfiguration = exports.ConsoleSink = exports.DefaultLogger = exports.DefaultLogEventFactory = exports.DefaultLogEvent = exports.LogConfig = exports.ILogger = exports.ISink = exports.ILogEventFactory = exports.ILogConfig = exports.ColorOptions = exports.LogLevel = exports.applyMetadataPolyfill = exports.isObject = exports.isNullOrUndefined = exports.Metadata = exports.metadata = exports.DefaultResolver = exports.DefaultContainerConfiguration = exports.newInstanceOf = exports.newInstanceForScope = exports.InstanceProvider = exports.transient = exports.singleton = exports.Registration = exports.ignore = exports.optional = exports.lazy = exports.IServiceLocator = exports.inject = exports.IContainer = exports.DI = exports.all = void 0;
     var di_1 = require("./di");
     Object.defineProperty(exports, "all", { enumerable: true, get: function () { return di_1.all; } });
     Object.defineProperty(exports, "DI", { enumerable: true, get: function () { return di_1.DI; } });
@@ -34,6 +34,7 @@
     Object.defineProperty(exports, "isObject", { enumerable: true, get: function () { return metadata_1.isObject; } });
     Object.defineProperty(exports, "applyMetadataPolyfill", { enumerable: true, get: function () { return metadata_1.applyMetadataPolyfill; } });
     var logger_1 = require("./logger");
+    Object.defineProperty(exports, "LogLevel", { enumerable: true, get: function () { return logger_1.LogLevel; } });
     Object.defineProperty(exports, "ColorOptions", { enumerable: true, get: function () { return logger_1.ColorOptions; } });
     Object.defineProperty(exports, "ILogConfig", { enumerable: true, get: function () { return logger_1.ILogConfig; } });
     Object.defineProperty(exports, "ILogEventFactory", { enumerable: true, get: function () { return logger_1.ILogEventFactory; } });
@@ -47,15 +48,8 @@
     Object.defineProperty(exports, "LoggerConfiguration", { enumerable: true, get: function () { return logger_1.LoggerConfiguration; } });
     Object.defineProperty(exports, "format", { enumerable: true, get: function () { return logger_1.format; } });
     Object.defineProperty(exports, "sink", { enumerable: true, get: function () { return logger_1.sink; } });
-    var path_1 = require("./path");
-    Object.defineProperty(exports, "relativeToFile", { enumerable: true, get: function () { return path_1.relativeToFile; } });
-    Object.defineProperty(exports, "join", { enumerable: true, get: function () { return path_1.join; } });
     var platform_1 = require("./platform");
     Object.defineProperty(exports, "PLATFORM", { enumerable: true, get: function () { return platform_1.PLATFORM; } });
-    var reporter_1 = require("./reporter");
-    Object.defineProperty(exports, "Reporter", { enumerable: true, get: function () { return reporter_1.Reporter; } });
-    Object.defineProperty(exports, "Tracer", { enumerable: true, get: function () { return reporter_1.Tracer; } });
-    Object.defineProperty(exports, "LogLevel", { enumerable: true, get: function () { return reporter_1.LogLevel; } });
     var profiler_1 = require("./profiler");
     Object.defineProperty(exports, "Profiler", { enumerable: true, get: function () { return profiler_1.Profiler; } });
     var resource_1 = require("./resource");

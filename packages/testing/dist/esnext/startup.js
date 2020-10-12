@@ -9,10 +9,10 @@ export function createFixture(template, $class, registrations = [], autoStart = 
     const App = CustomElement.define({ name: 'app', template }, $class || class {
     });
     const component = new App();
-    let startPromise = Promise.resolve();
+    let startPromise = void 0;
     if (autoStart) {
         au.app({ host: host, component });
-        startPromise = au.start().wait();
+        startPromise = au.start();
     }
     return {
         startPromise,
@@ -27,10 +27,10 @@ export function createFixture(template, $class, registrations = [], autoStart = 
         component,
         observerLocator,
         start: async () => {
-            await au.app({ host: host, component }).start().wait();
+            await au.app({ host: host, component }).start();
         },
         tearDown: async () => {
-            await au.stop().wait();
+            await au.stop();
             root.remove();
             au.dispose();
         }

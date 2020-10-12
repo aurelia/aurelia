@@ -1,4 +1,4 @@
-import { PLATFORM, Registration, Reporter, toArray, Metadata } from '@aurelia/kernel';
+import { PLATFORM, Registration, toArray, Metadata } from '@aurelia/kernel';
 import { IProjectorLocator, CustomElement, } from '@aurelia/runtime';
 import { IShadowDOMStyles, IShadowDOMGlobalStyles } from './styles/shadow-dom-styles';
 const defaultShadowOptions = {
@@ -11,7 +11,7 @@ export class HTMLProjectorLocator {
     getElementProjector(dom, $component, host, def) {
         if (def.shadowOptions || def.hasSlots) {
             if (def.containerless) {
-                throw Reporter.error(21);
+                throw new Error('You cannot combine the containerless custom element option with Shadow DOM.');
             }
             return new ShadowDOMProjector(dom, $component, host, def);
         }

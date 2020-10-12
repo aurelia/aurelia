@@ -1,6 +1,37 @@
 import { IRegistry } from './di';
-import { LogLevel } from './reporter';
 import { Class, Constructable } from './interfaces';
+export declare const enum LogLevel {
+    /**
+     * The most detailed information about internal app state.
+     *
+     * Disabled by default and should never be enabled in a production environment.
+     */
+    trace = 0,
+    /**
+     * Information that is useful for debugging during development and has no long-term value.
+     */
+    debug = 1,
+    /**
+     * Information about the general flow of the application that has long-term value.
+     */
+    info = 2,
+    /**
+     * Unexpected circumstances that require attention but do not otherwise cause the current flow of execution to stop.
+     */
+    warn = 3,
+    /**
+     * Unexpected circumstances that cause the flow of execution in the current activity to stop but do not cause an app-wide failure.
+     */
+    error = 4,
+    /**
+     * Unexpected circumstances that cause an app-wide failure or otherwise require immediate attention.
+     */
+    fatal = 5,
+    /**
+     * No messages should be written.
+     */
+    none = 6
+}
 /**
  * Flags to enable/disable color usage in the logging output.
  */
@@ -114,7 +145,77 @@ export interface ISink {
  *
  * Inject this as a dependency in your components to add centralized, configurable logging capabilities to your application.
  */
-export interface ILogger {
+export interface ILogger extends DefaultLogger {
+}
+export declare const ILogConfig: import("./di").InterfaceSymbol<ILogConfig>;
+export declare const ISink: import("./di").InterfaceSymbol<ISink>;
+export declare const ILogEventFactory: import("./di").InterfaceSymbol<ILogEventFactory>;
+export declare const ILogger: import("./di").InterfaceSymbol<ILogger>;
+export declare const ILogScopes: import("./di").InterfaceSymbol<string[]>;
+interface SinkDefinition {
+    handles: Exclude<LogLevel, LogLevel.none>[];
+}
+export declare const LoggerSink: Readonly<{
+    key: string;
+    define<TSink extends ISink>(target: Constructable<TSink>, definition: SinkDefinition): Constructable<TSink>;
+    getHandles<TSink_1 extends ISink>(target: TSink_1 | Constructable<TSink_1>): LogLevel[] | undefined;
+}>;
+export declare function sink(definition: SinkDefinition): <TSink extends ISink>(target: Constructable<TSink>) => Constructable<TSink>;
+export interface IConsoleLike {
+    debug(message: string, ...optionalParams: unknown[]): void;
+    info(message: string, ...optionalParams: unknown[]): void;
+    warn(message: string, ...optionalParams: unknown[]): void;
+    error(message: string, ...optionalParams: unknown[]): void;
+}
+export declare const format: {
+    readonly red: <T extends string>(str: T) => T;
+    readonly green: <T_1 extends string>(str: T_1) => T_1;
+    readonly yellow: <T_2 extends string>(str: T_2) => T_2;
+    readonly blue: <T_3 extends string>(str: T_3) => T_3;
+    readonly magenta: <T_4 extends string>(str: T_4) => T_4;
+    readonly cyan: <T_5 extends string>(str: T_5) => T_5;
+    readonly white: <T_6 extends string>(str: T_6) => T_6;
+    readonly grey: <T_7 extends string>(str: T_7) => T_7;
+};
+export interface ILogEvent {
+    readonly severity: LogLevel;
+    readonly optionalParams?: readonly unknown[];
+    toString(): string;
+}
+export declare class LogConfig implements ILogConfig {
+    readonly colorOptions: ColorOptions;
+    readonly level: LogLevel;
+    constructor(colorOptions: ColorOptions, level: LogLevel);
+}
+export declare class DefaultLogEvent implements ILogEvent {
+    readonly severity: LogLevel;
+    readonly message: string;
+    readonly optionalParams: unknown[];
+    readonly scope: readonly string[];
+    readonly colorOptions: ColorOptions;
+    readonly timestamp: number;
+    constructor(severity: LogLevel, message: string, optionalParams: unknown[], scope: readonly string[], colorOptions: ColorOptions, timestamp: number);
+    toString(): string;
+}
+export declare class DefaultLogEventFactory implements ILogEventFactory {
+    readonly config: ILogConfig;
+    constructor(config: ILogConfig);
+    createLogEvent(logger: ILogger, level: LogLevel, message: string, optionalParams: unknown[]): ILogEvent;
+}
+export declare class ConsoleSink implements ISink {
+    readonly handleEvent: (event: ILogEvent) => void;
+    constructor($console: IConsoleLike);
+}
+export declare class DefaultLogger {
+    /**
+     * The global logger configuration.
+     */
+    readonly config: ILogConfig;
+    private readonly factory;
+    /**
+     * The scopes that this logger was created for, if any.
+     */
+    readonly scope: string[];
     /**
      * The root `ILogger` instance. On the root logger itself, this property circularly references the root. It is never null.
      *
@@ -127,14 +228,16 @@ export interface ILogger {
      * When using `.scopeTo`, a new `ILogger` is created. That new logger will have the `parent` property set to the logger that it was created from.
      */
     readonly parent: ILogger;
-    /**
-     * The scopes that this logger was created for, if any.
-     */
-    readonly scope: readonly string[];
+    private readonly scopedLoggers;
+    constructor(
     /**
      * The global logger configuration.
      */
-    readonly config: ILogConfig;
+    config: ILogConfig, factory: ILogEventFactory, sinks: readonly ISink[], 
+    /**
+     * The scopes that this logger was created for, if any.
+     */
+    scope?: string[], parent?: DefaultLogger | null);
     /**
      * Write to TRC output, if the configured `LogLevel` is set to `trace`.
      *
@@ -282,81 +385,7 @@ export interface ILogger {
      * ```
      */
     scopeTo(name: string): ILogger;
-}
-export declare const ILogConfig: import("./di").InterfaceSymbol<ILogConfig>;
-export declare const ISink: import("./di").InterfaceSymbol<ISink>;
-export declare const ILogEventFactory: import("./di").InterfaceSymbol<ILogEventFactory>;
-export declare const ILogger: import("./di").InterfaceSymbol<ILogger>;
-export declare const ILogScopes: import("./di").InterfaceSymbol<string[]>;
-interface SinkDefinition {
-    handles: Exclude<LogLevel, LogLevel.none>[];
-}
-export declare const LoggerSink: Readonly<{
-    key: string;
-    define<TSink extends ISink>(target: Constructable<TSink>, definition: SinkDefinition): Constructable<TSink>;
-    getHandles<TSink_1 extends ISink>(target: TSink_1 | Constructable<TSink_1>): LogLevel[] | undefined;
-}>;
-export declare function sink(definition: SinkDefinition): <TSink extends ISink>(target: Constructable<TSink>) => Constructable<TSink>;
-export interface IConsoleLike {
-    debug(message: string, ...optionalParams: unknown[]): void;
-    info(message: string, ...optionalParams: unknown[]): void;
-    warn(message: string, ...optionalParams: unknown[]): void;
-    error(message: string, ...optionalParams: unknown[]): void;
-}
-export declare const format: {
-    readonly red: <T extends string>(str: T) => T;
-    readonly green: <T_1 extends string>(str: T_1) => T_1;
-    readonly yellow: <T_2 extends string>(str: T_2) => T_2;
-    readonly blue: <T_3 extends string>(str: T_3) => T_3;
-    readonly magenta: <T_4 extends string>(str: T_4) => T_4;
-    readonly cyan: <T_5 extends string>(str: T_5) => T_5;
-    readonly white: <T_6 extends string>(str: T_6) => T_6;
-    readonly grey: <T_7 extends string>(str: T_7) => T_7;
-};
-export interface ILogEvent {
-    readonly severity: LogLevel;
-    readonly optionalParams?: readonly unknown[];
-    toString(): string;
-}
-export declare class LogConfig implements ILogConfig {
-    readonly colorOptions: ColorOptions;
-    readonly level: LogLevel;
-    constructor(colorOptions: ColorOptions, level: LogLevel);
-}
-export declare class DefaultLogEvent implements ILogEvent {
-    readonly severity: LogLevel;
-    readonly message: string;
-    readonly optionalParams: unknown[];
-    readonly scope: readonly string[];
-    readonly colorOptions: ColorOptions;
-    readonly timestamp: number;
-    constructor(severity: LogLevel, message: string, optionalParams: unknown[], scope: readonly string[], colorOptions: ColorOptions, timestamp: number);
-    toString(): string;
-}
-export declare class DefaultLogEventFactory implements ILogEventFactory {
-    readonly config: ILogConfig;
-    constructor(config: ILogConfig);
-    createLogEvent(logger: ILogger, level: LogLevel, message: string, optionalParams: unknown[]): ILogEvent;
-}
-export declare class ConsoleSink implements ISink {
-    readonly handleEvent: (event: ILogEvent) => void;
-    constructor($console: IConsoleLike);
-}
-export declare class DefaultLogger implements ILogger {
-    readonly config: ILogConfig;
-    private readonly factory;
-    readonly scope: string[];
-    readonly root: DefaultLogger;
-    readonly parent: DefaultLogger;
-    readonly trace: (...args: unknown[]) => void;
-    readonly debug: (...args: unknown[]) => void;
-    readonly info: (...args: unknown[]) => void;
-    readonly warn: (...args: unknown[]) => void;
-    readonly error: (...args: unknown[]) => void;
-    readonly fatal: (...args: unknown[]) => void;
-    private readonly scopedLoggers;
-    constructor(config: ILogConfig, factory: ILogEventFactory, sinks: readonly ISink[], scope?: string[], parent?: DefaultLogger | null);
-    scopeTo(name: string): ILogger;
+    private emit;
 }
 /**
  * A basic `ILogger` configuration that configures a single `console` sink based on provided options.

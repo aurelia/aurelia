@@ -1,4 +1,4 @@
-import { DI, Registration, Metadata, Protocol } from '@aurelia/kernel';
+import { DI, Metadata, Protocol } from '@aurelia/kernel';
 import { Scope } from '../observation/binding-context';
 import { CustomElement, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
@@ -50,7 +50,7 @@ export class ViewFactory {
             controller = cache.pop();
             return controller;
         }
-        controller = Controller.forSyntheticView(this, this.lifecycle, this.context, flags);
+        controller = Controller.forSyntheticView(null, this.context, this, this.lifecycle, flags);
         return controller;
     }
 }
@@ -100,15 +100,11 @@ export function view(v) {
         Views.add(target, v);
     };
 }
-export const IViewLocator = DI.createInterface('IViewLocator')
-    .noDefault();
+export const IViewLocator = DI.createInterface('IViewLocator').withDefault(x => x.singleton(ViewLocator));
 export class ViewLocator {
     constructor() {
         this.modelInstanceToBoundComponent = new WeakMap();
         this.modelTypeToUnboundComponent = new Map();
-    }
-    static register(container) {
-        return Registration.singleton(IViewLocator, this).register(container);
     }
     getViewComponentForObject(object, viewNameOrSelector) {
         if (object) {
@@ -241,7 +237,6 @@ export class ViewLocator {
     getView(views, name) {
         const v = views.find(x => x.name === name);
         if (v === void 0) {
-            // TODO: Use Reporter
             throw new Error(`Could not find view: ${name}`);
         }
         return v;

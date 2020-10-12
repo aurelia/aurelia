@@ -60,7 +60,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.ea = ea;
             this.signaler = signaler;
             this.i18next = i18nextWrapper.i18next;
-            this.task = new runtime_1.PromiseTask(this.initializeI18next(options), null, this);
+            this.initPromise = this.initializeI18next(options);
             this.intl = kernel_1.PLATFORM.global.Intl;
         }
         evaluate(keyExpr, options) {

@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { DI } from './di';
-import { Reporter } from './reporter';
 /**
  * Represents a handler for an EventAggregator event.
  */
@@ -12,22 +12,6 @@ class Handler {
         if (message instanceof this.messageType) {
             this.callback.call(null, message);
         }
-    }
-}
-function invokeCallback(callback, message, channel) {
-    try {
-        callback(message, channel);
-    }
-    catch (e) {
-        Reporter.error(0, e); // TODO: create error code
-    }
-}
-function invokeHandler(handler, message) {
-    try {
-        handler.handle(message);
-    }
-    catch (e) {
-        Reporter.error(0, e); // TODO: create error code
     }
 }
 export const IEventAggregator = DI.createInterface('IEventAggregator').withDefault(x => x.singleton(EventAggregator));
@@ -43,7 +27,7 @@ export class EventAggregator {
     }
     publish(channelOrInstance, message) {
         if (!channelOrInstance) {
-            throw Reporter.error(0); // TODO: create error code for 'Event was invalid.'
+            throw new Error(`Invalid channel name or instance: ${channelOrInstance}.`);
         }
         if (typeof channelOrInstance === 'string') {
             let subscribers = this.eventLookup[channelOrInstance];
@@ -51,7 +35,7 @@ export class EventAggregator {
                 subscribers = subscribers.slice();
                 let i = subscribers.length;
                 while (i-- > 0) {
-                    invokeCallback(subscribers[i], message, channelOrInstance);
+                    subscribers[i](message, channelOrInstance);
                 }
             }
         }
@@ -59,13 +43,13 @@ export class EventAggregator {
             const subscribers = this.messageHandlers.slice();
             let i = subscribers.length;
             while (i-- > 0) {
-                invokeHandler(subscribers[i], channelOrInstance);
+                subscribers[i].handle(channelOrInstance);
             }
         }
     }
     subscribe(channelOrType, callback) {
         if (!channelOrType) {
-            throw Reporter.error(0); // TODO: create error code for 'Event channel/type was invalid.'
+            throw new Error(`Invalid channel name or type: ${channelOrType}.`);
         }
         let handler;
         let subscribers;

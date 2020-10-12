@@ -1,5 +1,5 @@
 import { Scheduler, Now, } from '@aurelia/scheduler';
-import { isNativeFunction, PLATFORM, } from '@aurelia/kernel';
+import { PLATFORM, } from '@aurelia/kernel';
 function createMicroTaskFlushRequestorFactory() {
     return {
         create(taskQueue) {
@@ -123,59 +123,10 @@ function createPostRequestAnimationFrameFlushRequestor(w) {
         },
     };
 }
-function createRequestIdleCallbackFlushRequestor(w) {
-    return {
-        create(taskQueue) {
-            let handle = -1;
-            function flush() {
-                if (handle > -1) {
-                    handle = -1;
-                    taskQueue.flush();
-                }
-            }
-            if (typeof w.requestIdleCallback === 'function' &&
-                isNativeFunction(w.requestIdleCallback)) {
-                return {
-                    cancel() {
-                        if (handle > -1) {
-                            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-                            w.cancelIdleCallback(handle);
-                            handle = -1;
-                        }
-                    },
-                    request() {
-                        if (handle === -1) {
-                            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-                            handle = w.requestIdleCallback(flush);
-                        }
-                    },
-                };
-            }
-            else {
-                return {
-                    cancel() {
-                        if (handle > -1) {
-                            w.clearTimeout(handle);
-                            handle = -1;
-                        }
-                    },
-                    request() {
-                        if (handle === -1) {
-                            // Instead of trying anything fancy with event handler debouncers (we could do that if there was a request for it),
-                            // we just wait 45ms which is approximately the interval in a native idleCallback loop in chrome, to at least make it look
-                            // the same from a timing perspective
-                            handle = w.setTimeout(flush, 45);
-                        }
-                    },
-                };
-            }
-        },
-    };
-}
 export function createDOMScheduler(container, w) {
     let scheduler = Scheduler.get(PLATFORM.global);
     if (scheduler === void 0) {
-        Scheduler.set(PLATFORM.global, scheduler = new Scheduler(container.get(Now), createMicroTaskFlushRequestorFactory(), createRequestAnimationFrameFlushRequestor(w), createSetTimeoutFlushRequestorFactory(w), createPostRequestAnimationFrameFlushRequestor(w), createRequestIdleCallbackFlushRequestor(w)));
+        Scheduler.set(PLATFORM.global, scheduler = new Scheduler(container.get(Now), createMicroTaskFlushRequestorFactory(), createRequestAnimationFrameFlushRequestor(w), createSetTimeoutFlushRequestorFactory(w), createPostRequestAnimationFrameFlushRequestor(w)));
     }
     return scheduler;
 }

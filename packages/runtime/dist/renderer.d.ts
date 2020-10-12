@@ -21,15 +21,13 @@ export interface IInstructionRenderer<TType extends InstructionTypeName = Instru
     render(flags: LifecycleFlags, context: ICompiledRenderContext, controller: IRenderableController, target: unknown, instruction: ITargetedInstruction): void;
 }
 export declare const IInstructionRenderer: import("@aurelia/kernel").InterfaceSymbol<IInstructionRenderer<string>>;
-export interface IRenderer {
-    render(flags: LifecycleFlags, context: ICompiledRenderContext, controller: IRenderableController, targets: ArrayLike<INode>, templateDefinition: CustomElementDefinition, host: INode | null | undefined): void;
-    renderInstructions(flags: LifecycleFlags, context: ICompiledRenderContext, instructions: readonly ITargetedInstruction[], controller: IRenderableController, target: unknown): void;
-}
-export declare const IRenderer: import("@aurelia/kernel").InterfaceSymbol<IRenderer>;
 declare type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 declare type DecoratedInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>, TClass> & IRegistry;
 declare type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>) => DecoratedInstructionRenderer<TType, TProto, TClass>;
 export declare function instructionRenderer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType>;
+export interface IRenderer extends Renderer {
+}
+export declare const IRenderer: import("@aurelia/kernel").InterfaceSymbol<IRenderer>;
 export declare function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, bindingType: BindingType): Exclude<TFrom, string>;
 export declare function getTarget(potentialTarget: object): object;
 export declare function getRefTarget(refHost: INode, refTargetName: string): object;
@@ -43,7 +41,7 @@ export declare class CustomAttributeRenderer implements IInstructionRenderer {
     render(flags: LifecycleFlags, context: ICompiledRenderContext, controller: IRenderableController, target: INode, instruction: IHydrateAttributeInstruction): void;
 }
 export declare class TemplateControllerRenderer implements IInstructionRenderer {
-    render(flags: LifecycleFlags, parentContext: ICompiledRenderContext, controller: IRenderableController, target: INode, instruction: IHydrateTemplateController): void;
+    render(flags: LifecycleFlags, context: ICompiledRenderContext, controller: IRenderableController, target: INode, instruction: IHydrateTemplateController): void;
 }
 export declare class LetElementRenderer implements IInstructionRenderer {
     private readonly parser;

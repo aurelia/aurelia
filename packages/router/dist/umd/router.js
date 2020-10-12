@@ -1014,9 +1014,9 @@
         }
         ensureRootScope() {
             if (!this.rootScope) {
-                const root = this.container.get(runtime_1.Aurelia).root;
+                const root = this.container.get(runtime_1.ICompositionRoot);
                 // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
-                this.rootScope = new viewport_scope_1.ViewportScope('rootScope', this, root.viewModel, null, true, root.config.component);
+                this.rootScope = new viewport_scope_1.ViewportScope('rootScope', this, root.controller.viewModel, null, true, root.config.component);
             }
             return this.rootScope;
         }

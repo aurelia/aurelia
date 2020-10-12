@@ -1,4 +1,4 @@
-import { DI, Metadata, PLATFORM, Protocol, Registration, Reporter } from '@aurelia/kernel';
+import { DI, Metadata, PLATFORM, Protocol, Registration } from '@aurelia/kernel';
 /** @internal */
 export class CharSpec {
     constructor(chars, repeat, isSymbol, isInverted) {
@@ -348,17 +348,6 @@ export class SyntaxInterpreter {
         return result;
     }
 }
-function validatePrototype(handler, patternDefs) {
-    for (const def of patternDefs) {
-        // note: we're intentionally not throwing here
-        if (!(def.pattern in handler)) {
-            Reporter.write(401, def.pattern); // TODO: organize error codes
-        }
-        else if (typeof handler[def.pattern] !== 'function') {
-            Reporter.write(402, def.pattern); // TODO: organize error codes
-        }
-    }
-}
 export const IAttributePattern = DI.createInterface('IAttributePattern').noDefault();
 export function attributePattern(...patternDefs) {
     return function decorator(target) {
@@ -378,7 +367,6 @@ export const AttributePattern = Object.freeze({
     name: Protocol.resource.keyFor('attribute-pattern'),
     definitionAnnotationKey: 'attribute-pattern-definitions',
     define(patternDefs, Type) {
-        validatePrototype(Type.prototype, patternDefs);
         const definition = new AttributePatternResourceDefinition(Type);
         const { name, definitionAnnotationKey } = AttributePattern;
         Metadata.define(name, definition, Type);

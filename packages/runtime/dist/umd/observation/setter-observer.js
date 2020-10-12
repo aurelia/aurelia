@@ -13,13 +13,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./subscriber-collection"], factory);
+        define(["require", "exports", "./subscriber-collection"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SetterNotifier = exports.SetterObserver = void 0;
-    const kernel_1 = require("@aurelia/kernel");
     const subscriber_collection_1 = require("./subscriber-collection");
     const $is = Object.is;
     /**
@@ -74,7 +73,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             if (this.observing === false) {
                 this.observing = true;
                 this.currentValue = this.obj[this.propertyKey];
-                if (!Reflect.defineProperty(this.obj, this.propertyKey, {
+                Reflect.defineProperty(this.obj, this.propertyKey, {
                     enumerable: true,
                     configurable: true,
                     get: () => {
@@ -83,9 +82,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                     set: value => {
                         this.setValue(value, 0 /* none */);
                     },
-                })) {
-                    kernel_1.Reporter.write(1, this.propertyKey, this.obj);
-                }
+                });
             }
             return this;
         }

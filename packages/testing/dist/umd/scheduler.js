@@ -13,7 +13,7 @@
     const scheduler_1 = require("@aurelia/scheduler");
     const kernel_1 = require("@aurelia/kernel");
     function ensureSchedulerEmpty(scheduler) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d;
         if (!scheduler) {
             scheduler = scheduler_1.Scheduler.get(kernel_1.PLATFORM.global);
         }
@@ -31,9 +31,6 @@
         const postRenderQueue = $scheduler['postRender'];
         postRenderQueue.flush();
         (_d = postRenderQueue['pendingHead']) === null || _d === void 0 ? void 0 : _d.cancel();
-        const idleQueue = $scheduler['idle'];
-        idleQueue.flush();
-        (_e = idleQueue['pendingHead']) === null || _e === void 0 ? void 0 : _e.cancel();
     }
     exports.ensureSchedulerEmpty = ensureSchedulerEmpty;
 });

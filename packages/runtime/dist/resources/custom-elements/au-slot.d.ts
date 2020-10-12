@@ -1,10 +1,9 @@
-import { IContainer } from '@aurelia/kernel';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
 import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView, IViewFactory } from '../../lifecycle';
-import { IScope } from '../../observation';
 import { CustomElementDefinition } from '../custom-element';
 import { IHydrateElementInstruction, ITargetedInstruction } from '../../definitions';
+import type { Scope } from '../../observation/binding-context';
 export declare type IProjections = Record<string, CustomElementDefinition>;
 export declare const IProjections: import("@aurelia/kernel").InterfaceSymbol<Record<string, CustomElementDefinition<import("@aurelia/kernel").Constructable<{}>, INode>>>;
 export declare enum AuSlotContentType {
@@ -19,22 +18,19 @@ export declare class SlotInfo {
 }
 export declare class ProjectionContext {
     readonly content: CustomElementDefinition;
-    readonly scope: IScope | null;
-    constructor(content: CustomElementDefinition, scope?: IScope | null);
+    readonly scope: Scope | null;
+    constructor(content: CustomElementDefinition, scope?: Scope | null);
 }
 export declare class RegisteredProjections {
-    readonly scope: IScope;
+    readonly scope: Scope;
     readonly projections: Record<string, CustomElementDefinition>;
-    constructor(scope: IScope, projections: Record<string, CustomElementDefinition>);
+    constructor(scope: Scope, projections: Record<string, CustomElementDefinition>);
 }
-export interface IProjectionProvider {
-    registerProjections(projections: Map<ITargetedInstruction, IProjections>, scope: IScope): void;
-    getProjectionFor(instruction: IHydrateElementInstruction): RegisteredProjections | null;
+export interface IProjectionProvider extends ProjectionProvider {
 }
 export declare const IProjectionProvider: import("@aurelia/kernel").InterfaceSymbol<IProjectionProvider>;
-export declare class ProjectionProvider implements IProjectionProvider {
-    static register(container: IContainer): IContainer;
-    registerProjections(projections: Map<ITargetedInstruction, Record<string, CustomElementDefinition>>, scope: IScope): void;
+export declare class ProjectionProvider {
+    registerProjections(projections: Map<ITargetedInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void;
     getProjectionFor(instruction: IHydrateElementInstruction): RegisteredProjections | null;
 }
 export declare class AuSlot<T extends INode = Node> implements ICustomElementViewModel<T> {

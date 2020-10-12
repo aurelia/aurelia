@@ -1,4 +1,3 @@
-import { IContainer, IResolver } from '@aurelia/kernel';
 import { ForOfStatement, Interpolation, AnyBindingExpression, IsBindingBehavior } from './ast';
 export interface IExpressionParser extends ExpressionParser {
 }
@@ -7,7 +6,6 @@ export declare class ExpressionParser {
     private readonly expressionLookup;
     private readonly forOfLookup;
     private readonly interpolationLookup;
-    static register(container: IContainer): IResolver<IExpressionParser>;
     parse(expression: string, bindingType: BindingType.ForCommand): ForOfStatement;
     parse(expression: string, bindingType: BindingType.Interpolation): Interpolation;
     parse(expression: string, bindingType: Exclude<BindingType, BindingType.ForCommand | BindingType.Interpolation>): IsBindingBehavior;

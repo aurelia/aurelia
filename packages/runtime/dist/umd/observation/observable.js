@@ -4,23 +4,19 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./setter-observer", "./binding-context"], factory);
+        define(["require", "exports", "./setter-observer"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.observable = void 0;
     const setter_observer_1 = require("./setter-observer");
-    const binding_context_1 = require("./binding-context");
     function getObserversLookup(obj) {
-        let $observers = obj.$observers;
-        if ($observers == null) {
-            $observers = new binding_context_1.InternalObserversLookup();
-            if (!Reflect.defineProperty(obj, '$observers', { configurable: false, value: $observers })) {
-                // todo: define in a weakmap
-            }
+        if (obj.$observers === void 0) {
+            Reflect.defineProperty(obj, '$observers', { value: {} });
+            // todo: define in a weakmap
         }
-        return $observers;
+        return obj.$observers;
     }
     const noValue = {};
     // impl, wont be seen

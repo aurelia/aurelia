@@ -1,5 +1,6 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { AccessorOrObserver, BindingMode, IConnectableBinding, ForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, IScope, LifecycleFlags, IScheduler, INode, CustomElementDefinition, ITask } from '@aurelia/runtime';
+import { AccessorOrObserver, BindingMode, IConnectableBinding, ForOfStatement, IObserverLocator, IPartialConnectableBinding, IsBindingBehavior, LifecycleFlags, IScheduler, INode, CustomElementDefinition, ITask } from '@aurelia/runtime';
+import type { Scope } from '@aurelia/runtime';
 export interface AttributeBinding extends IConnectableBinding {
 }
 /**
@@ -16,8 +17,8 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     id: number;
     isBound: boolean;
     $scheduler: IScheduler;
-    $scope: IScope;
-    $hostScope: IScope | null;
+    $scope: Scope;
+    $hostScope: Scope | null;
     projection?: CustomElementDefinition;
     task: ITask | null;
     /**
@@ -30,9 +31,8 @@ export declare class AttributeBinding implements IPartialConnectableBinding {
     updateTarget(value: unknown, flags: LifecycleFlags): void;
     updateSource(value: unknown, flags: LifecycleFlags): void;
     handleChange(newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
-    $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, projection?: CustomElementDefinition): void;
+    $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, projection?: CustomElementDefinition): void;
     $unbind(flags: LifecycleFlags): void;
     connect(flags: LifecycleFlags): void;
-    dispose(): void;
 }
 //# sourceMappingURL=attribute.d.ts.map

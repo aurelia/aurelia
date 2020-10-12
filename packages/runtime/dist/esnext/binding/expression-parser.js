@@ -1,4 +1,4 @@
-import { DI, Registration, Reporter, } from '@aurelia/kernel';
+import { DI, } from '@aurelia/kernel';
 import { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, ArrayBindingPattern, ArrayLiteralExpression, AssignExpression, BinaryExpression, BindingBehaviorExpression, BindingIdentifier, CallFunctionExpression, CallMemberExpression, CallScopeExpression, ConditionalExpression, CustomExpression, ForOfStatement, Interpolation, ObjectBindingPattern, ObjectLiteralExpression, PrimitiveLiteralExpression, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverterExpression, } from './ast';
 export const IExpressionParser = DI.createInterface('IExpressionParser').withDefault(x => x.singleton(ExpressionParser));
 export class ExpressionParser {
@@ -6,9 +6,6 @@ export class ExpressionParser {
         this.expressionLookup = Object.create(null);
         this.forOfLookup = Object.create(null);
         this.interpolationLookup = Object.create(null);
-    }
-    static register(container) {
-        return Registration.singleton(IExpressionParser, this).register(container);
     }
     parse(expression, bindingType) {
         switch (bindingType) {
@@ -308,28 +305,6 @@ export class ParserState {
     }
 }
 const $state = new ParserState('');
-var SyntaxError;
-(function (SyntaxError) {
-    SyntaxError[SyntaxError["InvalidExpressionStart"] = 100] = "InvalidExpressionStart";
-    SyntaxError[SyntaxError["UnconsumedToken"] = 101] = "UnconsumedToken";
-    SyntaxError[SyntaxError["DoubleDot"] = 102] = "DoubleDot";
-    SyntaxError[SyntaxError["InvalidMemberExpression"] = 103] = "InvalidMemberExpression";
-    SyntaxError[SyntaxError["UnexpectedEndOfExpression"] = 104] = "UnexpectedEndOfExpression";
-    SyntaxError[SyntaxError["ExpectedIdentifier"] = 105] = "ExpectedIdentifier";
-    SyntaxError[SyntaxError["InvalidForDeclaration"] = 106] = "InvalidForDeclaration";
-    SyntaxError[SyntaxError["InvalidObjectLiteralPropertyDefinition"] = 107] = "InvalidObjectLiteralPropertyDefinition";
-    SyntaxError[SyntaxError["UnterminatedQuote"] = 108] = "UnterminatedQuote";
-    SyntaxError[SyntaxError["UnterminatedTemplate"] = 109] = "UnterminatedTemplate";
-    SyntaxError[SyntaxError["MissingExpectedToken"] = 110] = "MissingExpectedToken";
-    SyntaxError[SyntaxError["UnexpectedCharacter"] = 111] = "UnexpectedCharacter";
-    SyntaxError[SyntaxError["MissingValueConverter"] = 112] = "MissingValueConverter";
-    SyntaxError[SyntaxError["MissingBindingBehavior"] = 113] = "MissingBindingBehavior";
-})(SyntaxError || (SyntaxError = {}));
-var SemanticError;
-(function (SemanticError) {
-    SemanticError[SemanticError["NotAssignable"] = 150] = "NotAssignable";
-    SemanticError[SemanticError["UnexpectedForOf"] = 151] = "UnexpectedForOf";
-})(SemanticError || (SemanticError = {}));
 /** @internal */
 export function parseExpression(input, bindingType) {
     $state.input = input;
@@ -358,7 +333,7 @@ export function parse(state, access, minPrecedence, bindingType) {
         }
         nextToken(state);
         if (state.currentToken & 1048576 /* ExpressionTerminal */) {
-            throw Reporter.error(100 /* InvalidExpressionStart */, { state });
+            throw new Error(`Invalid start of expression: '${state.input}'`);
         }
     }
     state.assignable = 448 /* Binary */ > minPrecedence;
@@ -420,10 +395,10 @@ export function parse(state, access, minPrecedence, bindingType) {
                     access++; // ancestor
                     if (consumeOpt(state, 16393 /* Dot */)) {
                         if (state.currentToken === 16393 /* Dot */) {
-                            throw Reporter.error(102 /* DoubleDot */, { state });
+                            throw new Error(`Double dot and spread operators are not supported: '${state.input}'`);
                         }
                         else if (state.currentToken === 1572864 /* EOF */) {
-                            throw Reporter.error(105 /* ExpectedIdentifier */, { state });
+                            throw new Error(`Expected identifier: '${state.input}'`);
                         }
                     }
                     else if (state.currentToken & 524288 /* AccessScopeTerminal */) {
@@ -433,7 +408,7 @@ export function parse(state, access, minPrecedence, bindingType) {
                         break primary;
                     }
                     else {
-                        throw Reporter.error(103 /* InvalidMemberExpression */, { state });
+                        throw new Error(`Invalid member expression: '${state.input}'`);
                     }
                 } while (state.currentToken === 3078 /* ParentScope */);
             // falls through
@@ -502,10 +477,10 @@ export function parse(state, access, minPrecedence, bindingType) {
                 break;
             default:
                 if (state.index >= state.length) {
-                    throw Reporter.error(104 /* UnexpectedEndOfExpression */, { state });
+                    throw new Error(`Unexpected end of expression: '${state.input}'`);
                 }
                 else {
-                    throw Reporter.error(101 /* UnconsumedToken */, { state });
+                    throw new Error(`Unconsumed token: '${state.input}'`);
                 }
         }
         if (bindingType & 512 /* IsIterator */) {
@@ -549,7 +524,7 @@ export function parse(state, access, minPrecedence, bindingType) {
                     state.assignable = true;
                     nextToken(state);
                     if ((state.currentToken & 3072 /* IdentifierName */) === 0) {
-                        throw Reporter.error(105 /* ExpectedIdentifier */, { state });
+                        throw new Error(`Expected identifier: '${state.input}'`);
                     }
                     name = state.tokenValue;
                     nextToken(state);
@@ -686,7 +661,7 @@ export function parse(state, access, minPrecedence, bindingType) {
      */
     if (consumeOpt(state, 1048616 /* Equals */)) {
         if (!state.assignable) {
-            throw Reporter.error(150 /* NotAssignable */, { state });
+            throw new Error(`Left hand side of expression is not assignable: '${state.input}'`);
         }
         result = new AssignExpression(result, parse(state, access, 62 /* Assign */, bindingType));
     }
@@ -698,7 +673,7 @@ export function parse(state, access, minPrecedence, bindingType) {
      */
     while (consumeOpt(state, 1572884 /* Bar */)) {
         if (state.currentToken === 1572864 /* EOF */) {
-            throw Reporter.error(112);
+            throw new Error(`Expected identifier to come after ValueConverter operator: '${state.input}'`);
         }
         const name = state.tokenValue;
         nextToken(state);
@@ -712,7 +687,7 @@ export function parse(state, access, minPrecedence, bindingType) {
      */
     while (consumeOpt(state, 1572883 /* Ampersand */)) {
         if (state.currentToken === 1572864 /* EOF */) {
-            throw Reporter.error(113);
+            throw new Error(`Expected identifier to come after BindingBehavior operator: '${state.input}'`);
         }
         const name = state.tokenValue;
         nextToken(state);
@@ -728,9 +703,9 @@ export function parse(state, access, minPrecedence, bindingType) {
             return result;
         }
         if (state.tokenRaw === 'of') {
-            throw Reporter.error(151 /* UnexpectedForOf */, { state });
+            throw new Error(`Unexpected keyword "of": '${state.input}'`);
         }
-        throw Reporter.error(101 /* UnconsumedToken */, { state });
+        throw new Error(`Unconsumed token: '${state.input}'`);
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return result;
@@ -785,10 +760,10 @@ function parseArrayLiteralExpression(state, access, bindingType) {
 }
 function parseForOfStatement(state, result) {
     if ((result.$kind & 65536 /* IsForDeclaration */) === 0) {
-        throw Reporter.error(106 /* InvalidForDeclaration */, { state });
+        throw new Error(`Invalid BindingIdentifier at left hand side of "of": '${state.input}'`);
     }
     if (state.currentToken !== 1051180 /* OfKeyword */) {
-        throw Reporter.error(106 /* InvalidForDeclaration */, { state });
+        throw new Error(`Invalid BindingIdentifier at left hand side of "of": '${state.input}'`);
     }
     nextToken(state);
     const declaration = result;
@@ -844,7 +819,7 @@ function parseObjectLiteralExpression(state, bindingType) {
             }
         }
         else {
-            throw Reporter.error(107 /* InvalidObjectLiteralPropertyDefinition */, { state });
+            throw new Error(`Invalid or unsupported property definition in object literal: '${state.input}'`);
         }
         if (state.currentToken !== 1835018 /* CloseBrace */) {
             consume(state, 1572876 /* Comma */);
@@ -1013,7 +988,7 @@ function scanString(state) {
             marker = state.index;
         }
         else if (state.index >= state.length) {
-            throw Reporter.error(108 /* UnterminatedQuote */, { state });
+            throw new Error(`Unterminated quote in string literal: '${state.input}'`);
         }
         else {
             nextChar(state);
@@ -1046,7 +1021,7 @@ function scanTemplate(state) {
         }
         else {
             if (state.index >= state.length) {
-                throw Reporter.error(109 /* UnterminatedTemplate */, { state });
+                throw new Error(`Unterminated template string: '${state.input}'`);
             }
             result += String.fromCharCode(state.currentChar);
         }
@@ -1060,7 +1035,7 @@ function scanTemplate(state) {
 }
 function scanTemplateTail(state) {
     if (state.index >= state.length) {
-        throw Reporter.error(109 /* UnterminatedTemplate */, { state });
+        throw new Error(`Unterminated template string: '${state.input}'`);
     }
     state.index--;
     return scanTemplate(state);
@@ -1077,7 +1052,7 @@ function consume(state, token) {
         nextToken(state);
     }
     else {
-        throw Reporter.error(110 /* MissingExpectedToken */, { state, expected: token });
+        throw new Error(`Missing expected token: '${state.input}'`);
     }
 }
 /**
@@ -1151,7 +1126,7 @@ function returnToken(token) {
     };
 }
 const unexpectedCharacter = s => {
-    throw Reporter.error(111 /* UnexpectedCharacter */, { state: s });
+    throw new Error(`Unexpected character: '${s.input}'`);
 };
 unexpectedCharacter.notMapped = true;
 // ASCII IdentifierPart lookup

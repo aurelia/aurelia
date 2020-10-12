@@ -13,6 +13,8 @@
     class CallBinding {
         constructor(sourceExpression, target, targetProperty, observerLocator, locator) {
             this.sourceExpression = sourceExpression;
+            this.target = target;
+            this.targetProperty = targetProperty;
             this.locator = locator;
             this.interceptor = this;
             this.isBound = false;
@@ -40,7 +42,7 @@
             if (this.sourceExpression.hasBind) {
                 this.sourceExpression.bind(flags, scope, hostScope, this.interceptor);
             }
-            this.targetObserver.setValue(($args) => this.interceptor.callSource($args), flags);
+            this.targetObserver.setValue(($args) => this.interceptor.callSource($args), flags, this.target, this.targetProperty);
             // add isBound flag and remove isBinding flag
             this.isBound = true;
         }
@@ -52,7 +54,7 @@
                 this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
             }
             this.$scope = void 0;
-            this.targetObserver.setValue(null, flags);
+            this.targetObserver.setValue(null, flags, this.target, this.targetProperty);
             this.isBound = false;
         }
         observeProperty(flags, obj, propertyName) {
@@ -60,12 +62,6 @@
         }
         handleChange(newValue, previousValue, flags) {
             return;
-        }
-        dispose() {
-            this.interceptor = (void 0);
-            this.sourceExpression = (void 0);
-            this.locator = (void 0);
-            this.targetObserver = (void 0);
         }
     }
     exports.CallBinding = CallBinding;

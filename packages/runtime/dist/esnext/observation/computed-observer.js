@@ -8,7 +8,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 /* eslint-disable eqeqeq, compat/compat */
-import { PLATFORM, Reporter, isArrayIndex } from '@aurelia/kernel';
+import { PLATFORM, isArrayIndex } from '@aurelia/kernel';
 import { IObserverLocator } from './observer-locator';
 import { subscriberCollection } from './subscriber-collection';
 export function computed(config) {
@@ -52,7 +52,7 @@ export function createComputedObserver(flags, observerLocator, dirtyChecker, lif
         }
         return new GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator);
     }
-    throw Reporter.error(18, propertyName);
+    throw new Error(`You cannot observe a setter only property: '${propertyName}'`);
 }
 // Used when the getter is dependent solely on changes that happen within the setter.
 let CustomSetterObserver = class CustomSetterObserver {

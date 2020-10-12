@@ -4,7 +4,7 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "../definitions", "../lifecycle", "../observation/binding-context", "../observation/proxy-observer", "../observation/bindable-observer", "../resources/custom-element", "../resources/custom-attribute", "./render-context", "./children", "../lifecycle-task"], factory);
+        define(["require", "exports", "@aurelia/kernel", "../definitions", "../lifecycle", "../observation/binding-context", "../observation/proxy-observer", "../observation/bindable-observer", "../resources/custom-element", "../resources/custom-attribute", "./render-context", "./children", "../aurelia"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -21,13 +21,13 @@
     const custom_attribute_1 = require("../resources/custom-attribute");
     const render_context_1 = require("./render-context");
     const children_1 = require("./children");
-    const lifecycle_task_1 = require("../lifecycle-task");
+    const aurelia_1 = require("../aurelia");
     function callDispose(disposable) {
         disposable.dispose();
     }
     const controllerLookup = new WeakMap();
     class Controller {
-        constructor(vmKind, flags, lifecycle, definition, hooks, 
+        constructor(root, container, vmKind, flags, lifecycle, definition, hooks, 
         /**
          * The viewFactory. Only present for synthetic views.
          */
@@ -44,6 +44,8 @@
          * The physical host dom node. Only present for custom elements.
          */
         host) {
+            this.root = root;
+            this.container = container;
             this.vmKind = vmKind;
             this.flags = flags;
             this.lifecycle = lifecycle;
@@ -77,6 +79,9 @@
             this.debug = false;
             this.fullyNamed = false;
             this.canceling = false;
+            if (root === null && container.has(aurelia_1.ICompositionRoot, true)) {
+                this.root = container.get(aurelia_1.ICompositionRoot);
+            }
         }
         get isActive() {
             return (this.state & (1 /* activating */ | 14 /* activated */)) > 0 && (this.state & 16 /* deactivating */) === 0;
@@ -104,7 +109,7 @@
             }
             return controller;
         }
-        static forCustomElement(viewModel, lifecycle, host, parentContainer, 
+        static forCustomElement(root, container, viewModel, lifecycle, host, 
         // projections *targeted* for this custom element. these are not the projections *provided* by this custom element.
         targetedProjections, flags = 0 /* none */, hydrate = true, 
         // Use this when `instance.constructor` is not a custom element type to pass on the CustomElement definition
@@ -114,7 +119,9 @@
             }
             definition = definition !== null && definition !== void 0 ? definition : custom_element_1.CustomElement.getDefinition(viewModel.constructor);
             flags |= definition.strategy;
-            const controller = new Controller(0 /* customElement */, 
+            const controller = new Controller(
+            /* root           */ root, 
+            /* container      */ container, 0 /* customElement */, 
             /* flags          */ flags, 
             /* lifecycle      */ lifecycle, 
             /* definition     */ definition, 
@@ -125,17 +132,19 @@
             /* host           */ host);
             controllerLookup.set(viewModel, controller);
             if (hydrate) {
-                controller.hydrateCustomElement(parentContainer, targetedProjections);
+                controller.hydrateCustomElement(container, targetedProjections);
             }
             return controller;
         }
-        static forCustomAttribute(viewModel, lifecycle, host, flags = 0 /* none */) {
+        static forCustomAttribute(root, container, viewModel, lifecycle, host, flags = 0 /* none */) {
             if (controllerLookup.has(viewModel)) {
                 return controllerLookup.get(viewModel);
             }
             const definition = custom_attribute_1.CustomAttribute.getDefinition(viewModel.constructor);
             flags |= definition.strategy;
-            const controller = new Controller(1 /* customAttribute */, 
+            const controller = new Controller(
+            /* root           */ root, 
+            /* container      */ container, 1 /* customAttribute */, 
             /* flags          */ flags, 
             /* lifecycle      */ lifecycle, 
             /* definition     */ definition, 
@@ -148,8 +157,10 @@
             controller.hydrateCustomAttribute();
             return controller;
         }
-        static forSyntheticView(viewFactory, lifecycle, context, flags = 0 /* none */) {
-            const controller = new Controller(2 /* synthetic */, 
+        static forSyntheticView(root, context, viewFactory, lifecycle, flags = 0 /* none */) {
+            const controller = new Controller(
+            /* root           */ root, 
+            /* container      */ context, 2 /* synthetic */, 
             /* flags          */ flags, 
             /* lifecycle      */ lifecycle, 
             /* definition     */ void 0, 
@@ -161,7 +172,9 @@
             controller.hydrateSynthetic(context);
             return controller;
         }
+        /** @internal */
         hydrateCustomElement(parentContainer, targetedProjections) {
+            var _a;
             this.logger = parentContainer.get(kernel_1.ILogger).root;
             this.debug = this.logger.config.level <= 1 /* debug */;
             if (this.debug) {
@@ -172,7 +185,7 @@
             const instance = this.viewModel;
             createObservers(this.lifecycle, definition, flags, instance);
             createChildrenObservers(this, definition, flags, instance);
-            const scope = this.scope = binding_context_1.Scope.create(flags, this.bindingContext, null);
+            this.scope = binding_context_1.Scope.create(flags, this.bindingContext, null);
             const hooks = this.hooks;
             if (hooks.hasCreate) {
                 if (this.debug) {
@@ -193,42 +206,57 @@
                 // If the element is registered as injectable, support injecting the instance into children
                 context.beginChildComponentOperation(instance);
             }
-            if (hooks.hasBeforeCompile) {
+            // If this is the root controller, then the CompositionRoot will invoke things in the following order:
+            // - Controller.hydrateCustomElement
+            // - runAppTasks('beforeCompile') // may return a promise
+            // - Controller.compile
+            // - runAppTasks('beforeCompileChildren') // may return a promise
+            // - Controller.compileChildren
+            // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
+            if (((_a = this.root) === null || _a === void 0 ? void 0 : _a.controller) !== this) {
+                this.compile(targetedProjections);
+                this.compileChildren();
+            }
+        }
+        /** @internal */
+        compile(targetedProjections) {
+            if (this.hooks.hasBeforeCompile) {
                 if (this.debug) {
                     this.logger.trace(`invoking hasBeforeCompile() hook`);
                 }
-                instance.beforeCompile(this);
+                this.viewModel.beforeCompile(this);
             }
-            const compiledContext = context.compile(targetedProjections);
+            const compiledContext = this.context.compile(targetedProjections);
             const compiledDefinition = compiledContext.compiledDefinition;
-            compiledContext.registerProjections(compiledDefinition.projectionsMap, scope);
+            compiledContext.registerProjections(compiledDefinition.projectionsMap, this.scope);
             // once the projections are registered, we can cleanup the projection map to prevent memory leaks.
             compiledDefinition.projectionsMap.clear();
             this.isStrictBinding = compiledDefinition.isStrictBinding;
-            const projectorLocator = parentContainer.get(custom_element_1.IProjectorLocator);
-            this.projector = projectorLocator.getElementProjector(context.dom, this, this.host, compiledDefinition);
-            instance.$controller = this;
-            const nodes = this.nodes = compiledContext.createNodes();
-            if (hooks.hasAfterCompile) {
+            const projectorLocator = this.context.get(custom_element_1.IProjectorLocator);
+            this.projector = projectorLocator.getElementProjector(this.context.dom, this, this.host, compiledDefinition);
+            this.viewModel.$controller = this;
+            this.nodes = compiledContext.createNodes();
+            if (this.hooks.hasAfterCompile) {
                 if (this.debug) {
                     this.logger.trace(`invoking hasAfterCompile() hook`);
                 }
-                instance.afterCompile(this);
+                this.viewModel.afterCompile(this);
             }
-            const taskmgr = parentContainer.get(lifecycle_task_1.IStartTaskManager);
-            taskmgr.runBeforeCompileChildren(parentContainer);
-            const targets = nodes.findTargets();
-            compiledContext.render(
+        }
+        /** @internal */
+        compileChildren() {
+            const targets = this.nodes.findTargets();
+            this.context.render(
             /* flags      */ this.flags, 
             /* controller */ this, 
             /* targets    */ targets, 
-            /* definition */ compiledDefinition, 
+            /* definition */ this.context.compiledDefinition, 
             /* host       */ this.host);
-            if (hooks.hasAfterCompileChildren) {
+            if (this.hooks.hasAfterCompileChildren) {
                 if (this.debug) {
                     this.logger.trace(`invoking afterCompileChildren() hook`);
                 }
-                instance.afterCompileChildren(this);
+                this.viewModel.afterCompileChildren(this);
             }
         }
         hydrateCustomAttribute() {
@@ -785,10 +813,6 @@
                 this.children.forEach(callDispose);
                 this.children = void 0;
             }
-            if (this.bindings !== void 0) {
-                this.bindings.forEach(callDispose);
-                this.bindings = void 0;
-            }
             this.scope = void 0;
             this.projector = void 0;
             this.nodes = void 0;
@@ -801,6 +825,7 @@
             }
             this.bindingContext = void 0;
             this.host = void 0;
+            this.root = null;
         }
         accept(visitor) {
             if (visitor(this) === true) {

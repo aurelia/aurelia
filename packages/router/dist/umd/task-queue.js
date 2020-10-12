@@ -49,10 +49,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
         wait() {
             return this.promise;
         }
-        canCancel() {
-            return false;
-        }
-        cancel() { return; }
     }
     exports.QueueTask = QueueTask;
     /**

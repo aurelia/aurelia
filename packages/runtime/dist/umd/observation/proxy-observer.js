@@ -61,6 +61,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             lookup.set(obj, this.proxy);
             this.subscribers = {};
         }
+        get doNotCache() { return true; }
         static getProxyOrSelf(obj) {
             if (obj.$raw === void 0) {
                 const proxy = lookup.get(obj);

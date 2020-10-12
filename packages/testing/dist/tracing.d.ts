@@ -1,9 +1,4 @@
-import { Class, IContainer, ITraceInfo } from '@aurelia/kernel';
-export declare function enableTracing(): void;
-export declare function disableTracing(): void;
-export declare const SymbolTraceWriter: {
-    write(info: ITraceInfo): void;
-};
+import { Class, IContainer } from '@aurelia/kernel';
 export declare class Call {
     readonly instance: any;
     readonly args: any[];

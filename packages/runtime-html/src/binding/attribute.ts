@@ -13,7 +13,6 @@ import {
   IObserverLocator,
   IPartialConnectableBinding,
   IsBindingBehavior,
-  IScope,
   LifecycleFlags,
   IScheduler,
   INode,
@@ -26,6 +25,8 @@ import {
   AttributeObserver,
   IHtmlElement,
 } from '../observation/element-attribute-observer';
+
+import type { Scope } from '@aurelia/runtime';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -50,8 +51,8 @@ export class AttributeBinding implements IPartialConnectableBinding {
   public id!: number;
   public isBound: boolean = false;
   public $scheduler: IScheduler;
-  public $scope: IScope = null!;
-  public $hostScope: IScope | null = null;
+  public $scope: Scope = null!;
+  public $hostScope: Scope | null = null;
   public projection?: CustomElementDefinition;
   public task: ITask | null = null;
 
@@ -117,39 +118,39 @@ export class AttributeBinding implements IPartialConnectableBinding {
       // Alpha: during bind a simple strategy for bind is always flush immediately
       // todo:
       //  (1). determine whether this should be the behavior
-      //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
+      //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start()
       const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
       const oldValue = targetObserver.getValue();
 
       if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
-        newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator);
+        const shouldConnect = (mode & oneTime) === 0;
+        if (shouldConnect) {
+          this.version++;
+        }
+        newValue = sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, interceptor);
+        if (shouldConnect) {
+          interceptor.unobserve(false);
+        }
       }
 
       if (newValue !== oldValue) {
         if (shouldQueueFlush) {
           flags |= LifecycleFlags.noTargetObserverQueue;
           this.task?.cancel();
-          targetObserver.task?.cancel();
-          targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
+          this.task = this.$scheduler.queueRenderTask(() => {
             (targetObserver as Partial<INodeAccessor>).flushChanges?.(flags);
-            this.task = targetObserver.task = null;
+            this.task = null;
           }, taskOptions);
         }
 
         interceptor.updateTarget(newValue, flags);
       }
 
-      if ((mode & oneTime) === 0) {
-        this.version++;
-        sourceExpression.connect(flags, $scope, this.$hostScope, interceptor);
-        interceptor.unobserve(false);
-      }
-
       return;
     }
 
     if (flags & LifecycleFlags.updateSourceExpression) {
-      if (newValue !== this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator)) {
+      if (newValue !== this.sourceExpression.evaluate(flags, $scope, this.$hostScope, locator, null)) {
         interceptor.updateSource(newValue, flags);
       }
       return;
@@ -158,7 +159,7 @@ export class AttributeBinding implements IPartialConnectableBinding {
     throw new Error('Unexpected handleChange context in AttributeBinding');
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, projection?: CustomElementDefinition): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, projection?: CustomElementDefinition): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -200,10 +201,11 @@ export class AttributeBinding implements IPartialConnectableBinding {
     const interceptor = this.interceptor;
 
     if ($mode & toViewOrOneTime) {
-      interceptor.updateTarget(sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator), flags);
-    }
-    if ($mode & toView) {
-      sourceExpression.connect(flags, scope, this.$hostScope, this);
+      const shouldConnect = ($mode & toView) > 0;
+      interceptor.updateTarget(
+        sourceExpression.evaluate(flags, scope, this.$hostScope, this.locator, shouldConnect ? interceptor : null),
+        flags
+      );
     }
     if ($mode & fromView) {
       targetObserver[this.id] |= LifecycleFlags.updateSourceExpression;
@@ -254,13 +256,5 @@ export class AttributeBinding implements IPartialConnectableBinding {
       flags |= this.persistentFlags;
       this.sourceExpression.connect(flags | LifecycleFlags.mustEvaluate, this.$scope, this.$hostScope, this.interceptor); // why do we have a connect method here in the first place? will this be called after bind?
     }
-  }
-
-  public dispose(): void {
-    this.interceptor = (void 0)!;
-    this.sourceExpression = (void 0)!;
-    this.locator = (void 0)!;
-    this.targetObserver = (void 0)!;
-    this.target = (void 0)!;
   }
 }

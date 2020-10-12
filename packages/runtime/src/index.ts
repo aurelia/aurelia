@@ -156,6 +156,10 @@ export {
   DirtyCheckSettings
 } from './observation/dirty-checker';
 export {
+  IObservableDefinition,
+  observable,
+} from './observation/observable';
+export {
   IObjectObservationAdapter,
   IObserverLocator,
   ITargetObserverLocator,
@@ -331,9 +335,11 @@ export {
 
 export {
   Aurelia,
+  IAurelia,
   IDOMInitializer,
   ISinglePageApp,
   CompositionRoot,
+  ICompositionRoot,
 } from './aurelia';
 export {
   RefAttributePatternRegistration,
@@ -383,9 +389,6 @@ export {
   TemplateControllerRendererRegistration,
 
   DefaultResources,
-  IObserverLocatorRegistration,
-  ILifecycleRegistration,
-  IRendererRegistration,
   RuntimeConfiguration
 } from './configuration';
 export {
@@ -477,21 +480,10 @@ export {
   IComponentFactory,
 } from './templating/render-context';
 export {
-  PromiseOrTask,
-  MaybePromiseOrTask,
-  AggregateContinuationTask,
-  TerminalTask,
-  AggregateTerminalTask,
-  ContinuationTask,
-  ILifecycleTask,
-  LifecycleTask,
-  PromiseTask,
   TaskSlot,
   AppTask,
-  IStartTask,
-  IStartTaskManager,
-  ProviderTask,
-} from './lifecycle-task';
+  IAppTask,
+} from './app-task';
 export {
   AccessorOrObserver,
   AccessorType,
@@ -515,11 +507,9 @@ export {
   IOverrideContext,
   IPropertyChangeTracker,
   IPropertyObserver,
-  IScope,
   ISubscribable,
   ISubscriberCollection,
   ObservedCollection,
-  ObserversLookup,
   PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,

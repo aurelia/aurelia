@@ -27,7 +27,6 @@ export type SymbolWithBindings = $SymbolWithBindings<Text, HTMLTemplateElement |
 export type SymbolWithMarker = $SymbolWithMarker<Text, HTMLTemplateElement | HTMLElement, Comment>;
 export type SymbolWithTemplate = $SymbolWithTemplate<Text, HTMLTemplateElement | HTMLElement, Comment>;
 
-/* eslint-disable @typescript-eslint/class-name-casing */
 declare class $$CustomElementSymbol extends $CustomElementSymbol<Text, HTMLTemplateElement | HTMLElement, Comment> {}
 declare class $$LetElementSymbol extends $LetElementSymbol<HTMLTemplateElement | HTMLElement, Comment> {}
 declare class $$PlainElementSymbol extends $PlainElementSymbol<Text, HTMLTemplateElement | HTMLElement, Comment> {}

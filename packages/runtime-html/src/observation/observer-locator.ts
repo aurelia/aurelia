@@ -94,7 +94,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
     observerLocator: IObserverLocator,
     obj: Node,
     propertyName: string,
-  ): IBindingTargetObserver | IBindingTargetAccessor {
+  ): IBindingTargetObserver | IBindingTargetAccessor | null {
     switch (propertyName) {
       case 'checked':
         return new CheckedObserver(scheduler, flags, lifecycle, new EventSubscriber(this.dom, inputEvents), obj as IInputElement);
@@ -117,7 +117,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
       case 'css':
         return new StyleAttributeAccessor(scheduler, flags, obj as HTMLElement);
       case 'model':
-        return new SetterObserver(lifecycle, flags, obj as Node & IIndexable, propertyName);
+        return new SetterObserver(flags, obj as Node & IIndexable, propertyName);
       case 'role':
         return new DataAttributeAccessor(scheduler, flags, obj as HTMLElement, propertyName);
       default:

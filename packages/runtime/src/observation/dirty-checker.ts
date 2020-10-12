@@ -1,15 +1,10 @@
-import { DI, IIndexable, Reporter } from '@aurelia/kernel';
+import { DI, IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { IBindingTargetObserver, IObservable, ISubscriber, AccessorType } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { IScheduler, ITask } from '@aurelia/scheduler';
 
-export interface IDirtyChecker {
-  createProperty(obj: object, propertyName: string): IBindingTargetObserver;
-  addProperty(property: DirtyCheckProperty): void;
-  removeProperty(property: DirtyCheckProperty): void;
-}
-
+export interface IDirtyChecker extends DirtyChecker {}
 export const IDirtyChecker = DI.createInterface<IDirtyChecker>('IDirtyChecker').withDefault(x => x.singleton(DirtyChecker));
 
 export const DirtyCheckSettings = {
@@ -30,12 +25,6 @@ export const DirtyCheckSettings = {
    */
   disabled: false,
   /**
-   * Default: `true`
-   *
-   * Log a warning message to the console if a property is being dirty-checked.
-   */
-  warn: true,
-  /**
    * Default: `false`
    *
    * Throw an error if a property is being dirty-checked.
@@ -47,28 +36,23 @@ export const DirtyCheckSettings = {
   resetToDefault(): void {
     this.framesPerCheck = 6;
     this.disabled = false;
-    this.warn = true;
     this.throw = false;
   }
 };
 
-/** @internal */
 export class DirtyChecker {
   private readonly tracked: DirtyCheckProperty[] = [];
 
-  public task: ITask | null = null;
+  private task: ITask | null = null;
   private elapsedFrames: number = 0;
 
   public constructor(
-    @IScheduler public readonly scheduler: IScheduler,
+    @IScheduler private readonly scheduler: IScheduler,
   ) {}
 
   public createProperty(obj: object, propertyName: string): DirtyCheckProperty {
     if (DirtyCheckSettings.throw) {
-      throw Reporter.error(800, propertyName); // TODO: create/organize error code
-    }
-    if (DirtyCheckSettings.warn) {
-      Reporter.write(801, propertyName);
+      throw new Error(`Property '${propertyName}' is being dirty-checked.`);
     }
     return new DirtyCheckProperty(this, obj as IIndexable, propertyName);
   }
@@ -89,7 +73,7 @@ export class DirtyChecker {
     }
   }
 
-  public check(delta?: number): void {
+  private check(delta?: number): void {
     if (DirtyCheckSettings.disabled) {
       return;
     }

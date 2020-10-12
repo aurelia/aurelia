@@ -3,10 +3,11 @@ import { Metadata, isObject, applyMetadataPolyfill } from '@aurelia/metadata';
 applyMetadataPolyfill(Reflect);
 
 import { isArrayIndex, isNativeFunction } from './functions';
-import { Class, Constructable, IDisposable, Writable } from './interfaces';
+import { Class, Constructable, IDisposable } from './interfaces';
 import { PLATFORM } from './platform';
-import { Reporter } from './reporter';
 import { Protocol } from './resource';
+
+const { emptyArray } = PLATFORM;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -49,9 +50,9 @@ export interface IServiceLocator {
   get<K extends Key>(key: K): Resolved<K>;
   get<K extends Key>(key: Key): Resolved<K>;
   get<K extends Key>(key: K | Key): Resolved<K>;
-  getAll<K extends Key>(key: K): readonly Resolved<K>[];
-  getAll<K extends Key>(key: Key): readonly Resolved<K>[];
-  getAll<K extends Key>(key: K | Key): readonly Resolved<K>[];
+  getAll<K extends Key>(key: K, searchAncestors?: boolean): readonly Resolved<K>[];
+  getAll<K extends Key>(key: Key, searchAncestors?: boolean): readonly Resolved<K>[];
+  getAll<K extends Key>(key: K | Key, searchAncestors?: boolean): readonly Resolved<K>[];
 }
 
 export interface IRegistry {
@@ -108,7 +109,7 @@ export class ResolverBuilder<K> {
 
 export type RegisterSelf<T extends Constructable> = {
   register(container: IContainer): IResolver<InstanceType<T>>;
-  registerInRequester: boolean;
+  registerInRequestor: boolean;
 };
 
 export type Key = PropertyKey | object | InterfaceSymbol | Constructable | IResolver;
@@ -309,7 +310,7 @@ export const DI = {
 
     Interface.withDefault = function (configure: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> {
       Interface.withDefault = function (): InterfaceSymbol<K> {
-        throw Reporter.error(17, Interface);
+        throw new Error(`You can only define one default implementation for an interface.`);
       };
 
       Interface.register = function (container: IContainer, key?: Key): IResolver<K> {
@@ -384,7 +385,7 @@ export const DI = {
       const registration = Registration.transient(target as T, target as T);
       return registration.register(container, target);
     };
-    target.registerInRequester = false;
+    target.registerInRequestor = false;
     return target as T & RegisterSelf<T>;
   },
   /**
@@ -410,7 +411,7 @@ export const DI = {
       const registration = Registration.singleton(target, target);
       return registration.register(container, target);
     };
-    target.registerInRequester = options.scoped;
+    target.registerInRequestor = options.scoped;
     return target as T & RegisterSelf<T>;
   },
 };
@@ -503,7 +504,38 @@ export function singleton<T extends Constructable>(targetOrOptions?: (T & Partia
   };
 }
 
-export const all = createResolver((key: Key, handler: IContainer, requestor: IContainer) => requestor.getAll(key));
+function createAllResolver(
+  getter: (key: any, handler: IContainer, requestor: IContainer, searchAncestors: boolean) => readonly any[]
+): (key: any, searchAncestors?: boolean) => ReturnType<typeof DI.inject> {
+  return function (key: any, searchAncestors?: boolean): ReturnType<typeof DI.inject> {
+    searchAncestors = !!searchAncestors;
+    const resolver: ReturnType<typeof DI.inject>
+      & Required<Pick<IResolver, 'resolve'>>
+      & { $isResolver: true}
+      = function (
+          target: Injectable,
+          property?: string | number,
+          descriptor?: PropertyDescriptor | number
+        ): void {
+          DI.inject(resolver)(target, property, descriptor);
+        };
+
+    resolver.$isResolver = true;
+    resolver.resolve = function (handler: IContainer, requestor: IContainer): any {
+      return getter(key, handler, requestor, searchAncestors!);
+    };
+
+    return resolver;
+  };
+}
+
+export const all = createAllResolver(
+  (key: any,
+    handler: IContainer,
+    requestor: IContainer,
+    searchAncestors: boolean
+  ) => requestor.getAll(key, searchAncestors)
+);
 
 /**
  * Lazily inject a dependency depending on whether the [[`Key`]] is present at the time of function call.
@@ -576,7 +608,7 @@ ignore.resolve = () => undefined;
 export const newInstanceForScope = createResolver((key: any, handler: IContainer, requestor: IContainer) => {
   const instance = createNewInstance(key, handler);
 
-  const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>();
+  const instanceProvider: InstanceProvider<any> = new InstanceProvider<any>(String(key));
   instanceProvider.prepare(instance);
 
   requestor.registerResolver(key, instanceProvider, true);
@@ -605,7 +637,7 @@ export const enum ResolverStrategy {
 }
 
 /** @internal */
-export class Resolver implements IDisposableResolver, IRegistration {
+export class Resolver implements IResolver, IRegistration {
   public constructor(
     public key: Key,
     public strategy: ResolverStrategy,
@@ -653,7 +685,7 @@ export class Resolver implements IDisposableResolver, IRegistration {
       case ResolverStrategy.alias:
         return handler.get(this.state);
       default:
-        throw Reporter.error(6, this.strategy);
+        throw new Error(`Invalid resolver strategy specified: ${this.strategy}.`);
     }
   }
 
@@ -672,10 +704,6 @@ export class Resolver implements IDisposableResolver, IRegistration {
       default:
         return null;
     }
-  }
-
-  public dispose(): void {
-    this.key = this.state = null!;
   }
 }
 
@@ -741,7 +769,7 @@ const createFactory = (function () {
       lookup = staticDependencies[i];
 
       if (lookup == null) {
-        throw Reporter.error(7, `Index ${i}.`);
+        throw new Error(`Constructor Parameter with index (${i}) cannot be null or undefined. Are you trying to inject/register something that doesn't exist with DI?`);
       } else {
         args[i] = container.get(lookup);
       }
@@ -811,7 +839,7 @@ const createFactory = (function () {
 
   return function <T extends Constructable> (Type: T): Factory<T> {
     if (isNativeFunction(Type)) {
-      Reporter.write(5, Type.name);
+      throw new Error(`${Type.name} is a native function and therefore cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`);
     }
     const dependencies = DI.getDependencies(Type);
     const invoker = classInvokers.length > dependencies.length ? classInvokers[dependencies.length] : fallbackInvoker;
@@ -831,11 +859,11 @@ function isRegistry(obj: IRegistry | Record<string, IRegistry>): obj is IRegistr
 }
 
 function isSelfRegistry<T extends Constructable>(obj: RegisterSelf<T>): obj is RegisterSelf<T> {
-  return isRegistry(obj) && typeof obj.registerInRequester === 'boolean';
+  return isRegistry(obj) && typeof obj.registerInRequestor === 'boolean';
 }
 
 function isRegisterInRequester<T extends Constructable>(obj: RegisterSelf<T>): obj is RegisterSelf<T> {
-  return isSelfRegistry(obj) && obj.registerInRequester;
+  return isSelfRegistry(obj) && obj.registerInRequestor;
 }
 
 function isClass<T extends { prototype?: any }>(obj: T): obj is Class<any, T> {
@@ -887,17 +915,20 @@ const factoryAnnotationKey = Protocol.annotation.keyFor(factoryKey);
 export class Container implements IContainer {
   private registerDepth: number = 0;
 
-  private root: Container;
+  public get depth(): number {
+    return this.parent === null ? 0 : this.parent.depth + 1;
+  }
+  private readonly root: Container;
 
-  private resolvers: Map<Key, IResolver | IDisposableResolver>;
+  private readonly resolvers: Map<Key, IResolver | IDisposableResolver>;
 
   private resourceResolvers: Record<string, IResolver | IDisposableResolver | undefined>;
 
-  private disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
+  private readonly disposableResolvers: Set<IDisposableResolver> = new Set<IDisposableResolver>();
 
   public constructor(
-    private parent: Container | null,
-    private config: IContainerConfiguration = DefaultContainerConfiguration,
+    private readonly parent: Container | null,
+    private readonly config: IContainerConfiguration = DefaultContainerConfiguration,
   ) {
     if (parent === null) {
       this.root = this;
@@ -1117,27 +1148,40 @@ export class Container implements IContainer {
     throw new Error(`Unable to resolve key: ${key}`);
   }
 
-  public getAll<K extends Key>(key: K): readonly Resolved<K>[] {
+  public getAll<K extends Key>(key: K, searchAncestors: boolean = false): readonly Resolved<K>[] {
     validateKey(key);
 
-    let current: Container | null = this;
+    const requestor = this;
+    let current: Container | null = requestor;
     let resolver: IResolver | undefined;
 
-    while (current != null) {
-      resolver = current.resolvers.get(key);
-
-      if (resolver == null) {
-        if (this.parent == null) {
-          return PLATFORM.emptyArray;
+    if (searchAncestors) {
+      let resolutions: any[] = emptyArray;
+      while (current != null) {
+        resolver = current.resolvers.get(key);
+        if (resolver != null) {
+          resolutions = resolutions.concat(buildAllResponse(resolver, current, requestor));
         }
-
         current = current.parent;
-      } else {
-        return buildAllResponse(resolver, current, this);
+      }
+      return resolutions;
+    } else {
+      while (current != null) {
+        resolver = current.resolvers.get(key);
+
+        if (resolver == null) {
+          current = current.parent;
+
+          if (current == null) {
+            return emptyArray;
+          }
+        } else {
+          return buildAllResponse(resolver, current, requestor);
+        }
       }
     }
 
-    return PLATFORM.emptyArray;
+    return emptyArray;
   }
 
   public getFactory<K extends Constructable>(Type: K): IFactory<K> | null {
@@ -1167,14 +1211,7 @@ export class Container implements IContainer {
 
   public dispose(): void {
     this.disposeResolvers();
-    for (const key in this.resourceResolvers) {
-      (this.resourceResolvers[key] as Partial<IDisposableResolver>).dispose?.();
-    }
-    for (const key of this.resolvers.keys()) {
-      (this.resolvers.get(key) as Partial<IDisposableResolver>).dispose?.();
-    }
     this.resolvers.clear();
-    this.root = this.parent = this.config = this.resolvers = this.resourceResolvers = this.disposableResolvers = null!;
   }
 
   private jitRegister(keyAsValue: any, handler: Container): IResolver {
@@ -1192,7 +1229,7 @@ export class Container implements IContainer {
         if (newResolver != void 0) {
           return newResolver;
         }
-        throw Reporter.error(40); // did not return a valid resolver from the static register method
+        throw new Error(`Invalid resolver returned from the static register method`);
       }
       return registrationResolver as IResolver;
     } else if (Protocol.resource.has(keyAsValue)) {
@@ -1210,7 +1247,7 @@ export class Container implements IContainer {
       if (newResolver != void 0) {
         return newResolver;
       }
-      throw Reporter.error(40); // did not return a valid resolver from the static register method
+      throw new Error(`Invalid resolver returned from the static register method`);
     } else if (keyAsValue.$isInterface) {
       throw new Error(`Attempted to jitRegister an interface: ${keyAsValue.friendlyName}`);
     } else {
@@ -1365,6 +1402,10 @@ export const Registration = {
 export class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
   private instance: Resolved<K> | null = null;
 
+  public constructor(
+    public readonly friendlyName?: string,
+  ) {}
+
   public prepare(instance: Resolved<K>): void {
     this.instance = instance;
   }
@@ -1372,8 +1413,8 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
   public get $isResolver(): true {return true;}
 
   public resolve(): Resolved<K> | null {
-    if (this.instance === undefined) { // unmet precondition: call prepare
-      throw Reporter.error(50); // TODO: organize error codes
+    if (this.instance == null) {
+      throw new Error(`Cannot call resolve ${this.friendlyName} before calling prepare or after calling dispose.`);
     }
     return this.instance;
   }
@@ -1386,7 +1427,7 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
 /** @internal */
 export function validateKey(key: any): void {
   if (key === null || key === void 0) {
-    throw Reporter.error(5);
+    throw new Error('key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
   }
 }
 

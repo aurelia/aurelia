@@ -28,13 +28,12 @@ module.exports = function (config) {
     browsers = ['Chrome'];
   }
 
-  const setup = 'setup-browser' + (config.package ? '-' + config.package : '');
+  const setup = `setup-browser${config.package ? `-${config.package}` : ''}`;
   const options = {
     basePath,
     browserDisconnectTimeout: 10000,
     processKillTimeout: 10000,
     frameworks: [
-      'source-map-support',
       'mocha',
     ],
     files: [
@@ -50,6 +49,13 @@ module.exports = function (config) {
       // webpack-dev-middleware configuration
       // i. e.
       stats: 'errors-only',
+      watchOptions: {
+        ignored: [
+          /\.ts$/,
+          'node_modules',
+          'coverage'
+        ],
+      },
     },
     webpack: {
       mode: 'none',
@@ -65,7 +71,7 @@ module.exports = function (config) {
           'module', 'main'
         ],
       },
-      devtool: 'inline-source-map',
+      devtool: 'eval-source-map',
       performance: {
         hints: false,
       },
@@ -94,14 +100,8 @@ module.exports = function (config) {
           },
           {
             test: /\.js$/,
-            use: [
-              {
-                loader: 'source-map-loader',
-                options: {
-                  enforce: 'pre',
-                },
-              },
-            ],
+            enforce: 'pre',
+            use: ['source-map-loader'],
           },
           {
             test: /\.html$/i,
@@ -175,4 +175,4 @@ module.exports = function (config) {
   }
 
   config.set(options);
-}
+};

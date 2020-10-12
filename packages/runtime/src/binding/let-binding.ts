@@ -13,7 +13,6 @@ import {
 } from '../lifecycle';
 import {
   IObservable,
-  IScope,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IsExpression } from './ast';
@@ -22,6 +21,8 @@ import {
   IConnectableBinding,
   IPartialConnectableBinding,
 } from './connectable';
+
+import type { Scope } from '../observation/binding-context';
 
 export interface LetBinding extends IConnectableBinding {}
 
@@ -32,8 +33,8 @@ export class LetBinding implements IPartialConnectableBinding {
   public id!: number;
   public isBound: boolean = false;
   public $lifecycle: ILifecycle;
-  public $scope?: IScope = void 0;
-  public $hostScope: IScope | null = null;
+  public $scope?: Scope = void 0;
+  public $hostScope: Scope | null = null;
   public task: ITask | null = null;
 
   public target: (IObservable & IIndexable) | null = null;
@@ -58,7 +59,9 @@ export class LetBinding implements IPartialConnectableBinding {
       const target = this.target as IIndexable;
       const targetProperty = this.targetProperty as string;
       const previousValue: unknown = target[targetProperty];
-      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator);
+      this.version++;
+      const newValue: unknown = this.sourceExpression.evaluate(flags, this.$scope!, this.$hostScope, this.locator, this.interceptor);
+      this.interceptor.unobserve(false);
       if (newValue !== previousValue) {
         target[targetProperty] = newValue;
       }
@@ -68,7 +71,7 @@ export class LetBinding implements IPartialConnectableBinding {
     throw new Error('Unexpected handleChange context in LetBinding');
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -85,8 +88,7 @@ export class LetBinding implements IPartialConnectableBinding {
       sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
     // sourceExpression might have been changed during bind
-    this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, hostScope, this.locator);
-    this.sourceExpression.connect(flags, scope, hostScope, this.interceptor);
+    this.target[this.targetProperty] = this.sourceExpression.evaluate(flags | LifecycleFlags.fromBind, scope, hostScope, this.locator, this.interceptor);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;
@@ -106,12 +108,5 @@ export class LetBinding implements IPartialConnectableBinding {
 
     // remove isBound and isUnbinding flags
     this.isBound = false;
-  }
-
-  public dispose(): void {
-    this.interceptor = (void 0)!;
-    this.sourceExpression = (void 0)!;
-    this.locator = (void 0)!;
-    this.target = (void 0)!;
   }
 }

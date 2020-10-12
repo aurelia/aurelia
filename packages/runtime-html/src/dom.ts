@@ -4,7 +4,6 @@ import {
   IResolver,
   PLATFORM,
   Registration,
-  Reporter,
   Writable
 } from '@aurelia/kernel';
 import {
@@ -64,7 +63,6 @@ export class HTMLDOM implements IDOM {
     this.CSSStyleSheet = TCSSStyleSheet;
     this.ShadowRoot = TShadowRoot;
     if (DOM.isInitialized) {
-      Reporter.write(1001); // TODO: create reporters code // DOM already initialized (just info)
       DOM.destroy();
     }
     DOM.initialize(this);
@@ -94,7 +92,7 @@ export class HTMLDOM implements IDOM {
     }
 
     if (node.parentNode == null) {
-      throw Reporter.error(52);
+      throw new Error('Cannot convert an element without a parent to a RenderLocation');
     }
 
     const locationEnd = this.document.createComment('au-end');

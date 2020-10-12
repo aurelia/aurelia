@@ -80,10 +80,11 @@ export class ViewportContent {
 
   public contentController(connectedCE: IConnectedCustomElement): ICustomElementController<Element, ICustomElementViewModel<Element>> {
     return Controller.forCustomElement(
+      null,
+      connectedCE.container,
       this.content.componentInstance as ICustomElementViewModel<Element>,
       connectedCE.container.get(ILifecycle),
       connectedCE.element,
-      connectedCE.container,
       null,
       void 0,
     );

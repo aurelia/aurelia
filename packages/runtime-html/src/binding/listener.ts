@@ -5,10 +5,11 @@ import {
   IConnectableBinding,
   IDOM,
   IsBindingBehavior,
-  IScope,
   LifecycleFlags,
 } from '@aurelia/runtime';
 import { IEventManager } from '../observation/event-manager';
+
+import type { Scope } from '@aurelia/runtime';
 
 export interface Listener extends IConnectableBinding {}
 /**
@@ -18,8 +19,8 @@ export class Listener implements IBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;
-  public $scope!: IScope;
-  public $hostScope: IScope | null = null;
+  public $scope!: Scope;
+  public $hostScope: Scope | null = null;
 
   private handler!: IDisposable;
 
@@ -38,7 +39,7 @@ export class Listener implements IBinding {
     const overrideContext = this.$scope.overrideContext;
     overrideContext.$event = event;
 
-    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.$hostScope, this.locator);
+    const result = this.sourceExpression.evaluate(LifecycleFlags.mustEvaluate, this.$scope, this.$hostScope, this.locator, null);
 
     Reflect.deleteProperty(overrideContext, '$event');
 
@@ -53,7 +54,7 @@ export class Listener implements IBinding {
     this.interceptor.callSource(event);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -106,12 +107,5 @@ export class Listener implements IBinding {
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     return;
-  }
-
-  public dispose(): void {
-    this.interceptor = (void 0)!;
-    this.sourceExpression = (void 0)!;
-    this.locator = (void 0)!;
-    this.target = (void 0)!;
   }
 }

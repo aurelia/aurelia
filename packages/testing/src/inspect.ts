@@ -24,9 +24,6 @@
  */
 
 import {
-  stringifyLifecycleFlags,
-} from '@aurelia/debug';
-import {
   Char,
 } from '@aurelia/runtime';
 import {
@@ -37,7 +34,6 @@ import {
 import {
   DOM,
 } from '@aurelia/runtime-html';
-import { Call } from './tracing';
 import {
   Boolean_valueOf,
   colors,
@@ -215,30 +211,18 @@ function getInspectContext(ctx: Partial<IInspectOptions>): IInspectContext {
   return obj;
 }
 
-interface IStyles {
-  special: 'cyan';
-  number: 'yellow';
-  boolean: 'yellow';
-  undefined: 'grey';
-  null: 'bold';
-  string: 'green';
-  symbol: 'green';
-  date: 'magenta';
-  regexp: 'red';
-}
-
-const styles: Readonly<IStyles> = Object_freeze(
+const styles = Object_freeze(
   {
-    special: 'cyan' as 'cyan',
-    number: 'yellow' as 'yellow',
-    boolean: 'yellow' as 'yellow',
-    undefined: 'grey' as 'grey',
-    null: 'bold' as 'bold',
-    string: 'green' as 'green',
-    symbol: 'green' as 'green',
-    date: 'magenta' as 'magenta',
-    regexp: 'red' as 'red',
-  },
+    special: 'cyan',
+    number: 'yellow',
+    boolean: 'yellow',
+    undefined: 'grey',
+    null: 'bold',
+    string: 'green',
+    symbol: 'green',
+    date: 'magenta',
+    regexp: 'red',
+  } as const,
 );
 
 interface IOperatorText {
@@ -991,14 +975,14 @@ function getMessage(self: AssertionError): string {
 }
 
 export function formatNumber(
-  fn: (value: string, styleType: keyof IStyles) => string,
+  fn: (value: string, styleType: keyof typeof styles) => string,
   value: number,
 ): string {
   return fn(Object_is(value, -0) ? '-0' : `${value}`, 'number');
 }
 
 export function formatPrimitive(
-  fn: (value: string, styleType: keyof IStyles) => string,
+  fn: (value: string, styleType: keyof typeof styles) => string,
   value: Primitive,
   ctx: IInspectContext,
 ): string {
@@ -1352,77 +1336,6 @@ export function formatProperty(
 ): string {
   switch (key) {
     // Aurelia-specific:
-    // Note: this is actually the only place in inspection where we actually mutate the input
-    // It should be fine since we're only mutating recorded call args, but still important to keep in mind
-    case 'args':
-      if (value instanceof Call) {
-        switch (value.method) {
-          case 'created':
-
-          case 'bind':
-          case 'bindCustomElement':
-          case 'bindCustomAttribute':
-          case 'bindSynthetic':
-
-          case 'bindBindings':
-          case 'bindControllers':
-          case 'endBind':
-
-          case 'beforeBind':
-          case 'afterBind':
-
-          case 'attach':
-          case 'attachCustomElement':
-          case 'attachCustomAttribute':
-          case 'attachSynthetic':
-
-          case 'attachControllers':
-
-          case 'afterAttach':
-          case 'afterAttachChildren':
-
-          case 'detach':
-          case 'detachCustomElement':
-          case 'detachCustomAttribute':
-          case 'detachSynthetic':
-
-          case 'detachControllers':
-
-          case 'beforeDetach':
-          case 'afterDetachChildren':
-
-          case 'tryReturnToCache':
-
-          case 'cache':
-          case 'cacheCustomElement':
-          case 'cacheCustomAttribute':
-          case 'cacheSynthetic':
-
-          case 'dispose':
-
-          case 'unbind':
-          case 'unbindCustomElement':
-          case 'unbindCustomAttribute':
-          case 'unbindSynthetic':
-
-          case 'unbindBindings':
-          case 'unbindControllers':
-          case 'endUnbind':
-
-          case 'beforeUnbind':
-          case 'afterUnbindChildren':
-            value.args[0] = stringifyLifecycleFlags(value.args[0]);
-            break;
-          case 'valueChanged':
-            value.args[2] = stringifyLifecycleFlags(value.args[2]);
-            break;
-          case 'swap':
-          case 'updateView':
-            value.args[1] = stringifyLifecycleFlags(value.args[1]);
-            break;
-        }
-      }
-      break;
     case '$controller':
       return `$controller: { id: ${value.$controller.id} } (omitted for brevity)`;
     case 'overrideContext':

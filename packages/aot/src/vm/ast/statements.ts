@@ -1882,7 +1882,7 @@ export class $LabeledStatement implements I$Node {
   public readonly LexicallyScopedDeclarations: readonly $$ESDeclaration[];
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-toplevellexicallydeclarednames
   // 13.13.8 Static Semantics: TopLevelLexicallyDeclaredNames
-  public readonly TopLevelLexicallyDeclaredNames: readonly $String[] = emptyArray;;
+  public readonly TopLevelLexicallyDeclaredNames: readonly $String[] = emptyArray;
   // http://www.ecma-international.org/ecma-262/#sec-labelled-statements-static-semantics-toplevellexicallyscopeddeclarations
   // 13.13.9 Static Semantics: TopLevelLexicallyScopedDeclarations
   public readonly TopLevelLexicallyScopedDeclarations: readonly $$ESDeclaration[] = emptyArray;

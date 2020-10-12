@@ -8,7 +8,6 @@ import {
   IBindingTargetObserver,
   ILifecycle,
   ISubscriber,
-  IScope,
   LifecycleFlags as LF,
   ObjectLiteralExpression,
   PrimitiveLiteralExpression,
@@ -154,7 +153,7 @@ describe('PropertyBinding', function () {
       () => [LF.updateTargetInstance,                                `updateTarget           `],
     ];
 
-    const scopeVariations: (() => [IScope, string])[] = [
+    const scopeVariations: (() => [Scope, string])[] = [
       () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
       () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
       () => [createScopeForTest({foo: {bar: undefined}}), `{foo:{bar:undefined}}`],
@@ -169,7 +168,7 @@ describe('PropertyBinding', function () {
       it(`$bind() [one-time]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
         // - Arrange -
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.oneTime);
-        const srcVal = expr.evaluate(LF.none, scope, null, container);
+        const srcVal = expr.evaluate(LF.none, scope, null, container, null);
         const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
         // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
         // $stub.withArgs(LF.none, target, prop);
@@ -226,7 +225,7 @@ describe('PropertyBinding', function () {
       () => [LF.updateTargetInstance,                                `updateTarget           `],
     ];
 
-    const scopeVariations: (() => [IScope, string])[] = [
+    const scopeVariations: (() => [Scope, string])[] = [
       () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
       () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
       () => [createScopeForTest({foo: {bar: undefined}}), `{foo:{bar:undefined}}`],
@@ -241,7 +240,7 @@ describe('PropertyBinding', function () {
       it(`$bind() [to-view]  target=${$1} prop=${$2} expr=${$3} flags=${$4} scope=${$5}`, function () {
         // - Arrange - Part 1
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.toView);
-        const srcVal = expr.evaluate(LF.none, scope, null, container);
+        const srcVal = expr.evaluate(LF.none, scope, null, container, null);
         const targetObserver = observerLocator.getAccessor(LF.none, target, prop);
 
         // const $stub = stub(observerLocator, 'getAccessor').returns(targetObserver);
@@ -455,7 +454,7 @@ describe('PropertyBinding', function () {
       () => [LF.updateTargetInstance,                                `updateTarget           `],
     ];
 
-    const scopeVariations: (() => [IScope, string])[] = [
+    const scopeVariations: (() => [Scope, string])[] = [
       () => [createScopeForTest({foo: {}}), `{foo:{}} `]
     ];
 
@@ -571,7 +570,7 @@ describe('PropertyBinding', function () {
       () => [LF.updateTargetInstance, `updateTarget `]
     ];
 
-    const scopeVariations: (() => [IScope, string])[] = [
+    const scopeVariations: (() => [Scope, string])[] = [
       () => [createScopeForTest({foo: {}}),              `{foo:{}} `],
       () => [createScopeForTest({foo: {bar: {}}}),       `{foo:{bar:{}}}       `],
       () => [createScopeForTest({foo: {bar: 42}}),       `{foo:{bar:42}}       `],
@@ -588,7 +587,7 @@ describe('PropertyBinding', function () {
         const originalScope = JSON.parse(JSON.stringify(scope));
         // - Arrange - Part 1
         const { sut, lifecycle, container, observerLocator } = createFixture(expr, target, prop, BindingMode.twoWay);
-        const srcVal = expr.evaluate(LF.none, scope, null, container);
+        const srcVal = expr.evaluate(LF.none, scope, null, container, null);
         const targetObserver = observerLocator.getObserver(LF.none, target, prop) as IBindingTargetObserver;
 
         // massSpy(targetObserver, 'setValue', 'getValue', 'callSubscribers', 'subscribe');

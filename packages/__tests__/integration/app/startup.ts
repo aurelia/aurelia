@@ -58,10 +58,10 @@ export async function startup(config: StartupConfiguration = {}) {
 
   ctx.doc.body.appendChild(host);
   au[method]({ host, component });
-  await au.start().wait();
+  await au.start();
 
   async function tearDown() {
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
     callCollection.calls.splice(0);
   }

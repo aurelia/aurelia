@@ -439,7 +439,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
       component,
       host,
       dispose: async () => {
-        await au.stop().wait();
+        await au.stop();
         host.remove();
 
         au.dispose();

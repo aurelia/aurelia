@@ -27,5 +27,5 @@ import { UpperValueConverter, Welcome } from './welcome';
       component: App,
     });
 
-  await au.start().wait();
+  await au.start();
 })().catch(console.error);

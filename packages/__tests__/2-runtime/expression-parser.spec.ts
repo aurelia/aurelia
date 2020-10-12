@@ -74,26 +74,6 @@ const $c = new AccessScopeExpression('c');
 const $num0 = new PrimitiveLiteralExpression(0);
 const $num1 = new PrimitiveLiteralExpression(1);
 
-const codes = {
-  // SyntaxError
-  InvalidExpressionStart: 'Code 100',
-  UnconsumedToken: 'Code 101',
-  DoubleDot: 'Code 102',
-  InvalidMemberExpression: 'Code 103',
-  UnexpectedEndOfExpression: 'Code 104',
-  ExpectedIdentifier: 'Code 105',
-  InvalidForDeclaration: 'Code 106',
-  InvalidObjectLiteralPropertyDefinition: 'Code 107',
-  UnterminatedQuote: 'Code 108',
-  UnterminatedTemplate: 'Code 109',
-  MissingExpectedToken: 'Code 110',
-  UnexpectedCharacter: 'Code 111',
-
-  // SemanticError
-  NotAssignable: 'Code 150',
-  UnexpectedForOf: 'Code 151'
-};
-
 function bindingTypeToString(bindingType: BindingType): string {
   switch (bindingType) {
     case BindingType.BindCommand:
@@ -1393,23 +1373,23 @@ describe('ExpressionParser', function () {
       ',', '/', ':', '>', '<',
       '=', '?', 'of', 'instanceof', 'in', ' '
     ]) {
-      it(`throw Code 100 (InvalidExpressionStart) on "${input}"`, function () {
-        verifyResultOrError(input, null, 'Code 100');
+      it(`throw 'Invalid start of expression' on "${input}"`, function () {
+        verifyResultOrError(input, null, 'Invalid start of expression');
       });
     }
 
     for (const input of ['..', '...', '..a', '...a', '..1', '...1', '.a.', '.a..']) {
-      it(`throw Code 101 (UnconsumedToken) on "${input}"`, function () {
-        verifyResultOrError(input, null, 'Code 101');
+      it(`throw 'Unconsumed token' on "${input}"`, function () {
+        verifyResultOrError(input, null, 'Unconsumed token');
       });
     }
-    it(`throw Code 101 (UnconsumedToken) on "$this!"`, function () {
-      verifyResultOrError(`$this!`, null, 'Code 101');
+    it(`throw 'Unconsumed token' on "$this!"`, function () {
+      verifyResultOrError(`$this!`, null, 'Unconsumed token');
     });
     for (const [input] of SimpleIsAssignList) {
       for (const op of [')', ']', '}']) {
-        it(`throw Code 110 (MissingExpectedToken) on "${input}${op}"`, function () {
-          verifyResultOrError(`${input}${op}`, null, 'Code 101');
+        it(`throw 'Unconsumed token' on "${input}${op}"`, function () {
+          verifyResultOrError(`${input}${op}`, null, 'Unconsumed token');
         });
       }
     }
@@ -1418,29 +1398,29 @@ describe('ExpressionParser', function () {
       for (const middle of ['..', '...']) {
         for (const end of ['', 'bar', '$parent']) {
           const expr = `${start}${middle}${end}`;
-          it(`throw Code 102 (DoubleDot) on "${expr}"`, function () {
-            verifyResultOrError(expr, null, 'Code 102');
+          it(`throw 'Double dot and spread operators are not supported' on "${expr}"`, function () {
+            verifyResultOrError(expr, null, 'Double dot and spread operators are not supported');
           });
         }
       }
     }
 
     for (const nonTerminal of ['!', ' of', ' typeof', '=']) {
-      it(`throw Code 103 (InvalidMemberExpression) on "$parent${nonTerminal}"`, function () {
-        verifyResultOrError(`$parent${nonTerminal}`, null, 'Code 103');
+      it(`throw 'Invalid member expression' on "$parent${nonTerminal}"`, function () {
+        verifyResultOrError(`$parent${nonTerminal}`, null, 'Invalid member expression');
       });
     }
 
     for (const op of ['!', '(', '+', '-', '.', '[', 'typeof']) {
-      it(`throw Code 104 (UnexpectedEndOfExpression) on "${op}"`, function () {
-        verifyResultOrError(op, null, 'Code 104');
+      it(`throw 'Unexpected end of expression' on "${op}"`, function () {
+        verifyResultOrError(op, null, 'Unexpected end of expression');
       });
     }
 
     for (const [input, expr] of SimpleIsLeftHandSideList) {
-      it(`throw Code 105 (ExpectedIdentifier) on "${input}."`, function () {
+      it(`throw 'Expected identifier' on "${input}."`, function () {
         if (typeof expr['value'] !== 'number' || input.includes('.')) { // only non-float numbers are allowed to end on a dot
-          verifyResultOrError(`${input}.`, null, 'Code 105');
+          verifyResultOrError(`${input}.`, null, 'Expected identifier');
         } else {
           verifyResultOrError(`${input}.`, expr, null);
         }
@@ -1449,91 +1429,91 @@ describe('ExpressionParser', function () {
 
     for (const [input] of SimpleIsNativeLeftHandSideList) {
       for (const dots of ['..', '...']) {
-        it(`throw Code 105 (ExpectedIdentifier) on "${input}${dots}"`, function () {
-          verifyResultOrError(`${input}${dots}`, null, 'Code 105');
+        it(`throw 'Expected identifier' on "${input}${dots}"`, function () {
+          verifyResultOrError(`${input}${dots}`, null, 'Expected identifier');
         });
       }
     }
     for (const input of ['.1.', '.1..']) {
-      it(`throw Code 105 (ExpectedIdentifier) on "${input}"`, function () {
-        verifyResultOrError(input, null, 'Code 105');
+      it(`throw'Expected identifier' on "${input}"`, function () {
+        verifyResultOrError(input, null, 'Expected identifier');
       });
     }
 
     for (const [input] of SimpleIsBindingBehaviorList) {
-      it(`throw Code 106 (InvalidForDeclaration) on "${input}"`, function () {
-        verifyResultOrError(input, null, 'Code 106', BindingType.ForCommand);
+      it(`throw 'Invalid BindingIdentifier at left hand side of "of"' on "${input}"`, function () {
+        verifyResultOrError(input, null, 'Invalid BindingIdentifier at left hand side of "of"', BindingType.ForCommand);
       });
     }
     for (const [input] of [
       [`a`, new BindingIdentifier('a')]
     ] as [string, any][]) {
-      it(`throw Code 106 (InvalidForDeclaration) on "${input}"`, function () {
-        verifyResultOrError(input, null, 'Code 106', BindingType.ForCommand);
+      it(`throw 'Invalid BindingIdentifier at left hand side of "of"' on "${input}"`, function () {
+        verifyResultOrError(input, null, 'Invalid BindingIdentifier at left hand side of "of"', BindingType.ForCommand);
       });
     }
 
     for (const input of ['{', '{[]}', '{[}', '{[a]}', '{[a}', '{{', '{(']) {
-      it(`throw Code 107 (InvalidObjectLiteralPropertyDefinition) on "${input}"`, function () {
-        verifyResultOrError(input, null, 'Code 107');
+      it(`throw 'Invalid or unsupported property definition in object literal' on "${input}"`, function () {
+        verifyResultOrError(input, null, 'Invalid or unsupported property definition in object literal');
       });
     }
 
     for (const input of ['"', '\'']) {
-      it(`throw Code 108 (UnterminatedQuote) on "${input}"`, function () {
-        verifyResultOrError(input, null, 'Code 108');
+      it(`throw 'Unterminated quote in string literal' on "${input}"`, function () {
+        verifyResultOrError(input, null, 'Unterminated quote in string literal');
       });
     }
 
     for (const input of ['`', '` ', `\`\${a}`]) {
-      it(`throw Code 109 (UnterminatedTemplate) on "${input}"`, function () {
-        verifyResultOrError(input, null, 'Code 109');
+      it(`throw 'Unterminated template string' on "${input}"`, function () {
+        verifyResultOrError(input, null, 'Unterminated template string');
       });
     }
 
     for (const [input] of SimpleIsAssignList) {
       for (const op of ['(', '[']) {
-        it(`throw Code 110 (MissingExpectedToken) on "${op}${input}"`, function () {
-          verifyResultOrError(`${op}${input}`, null, 'Code 110');
+        it(`throw 'Missing expected token' on "${op}${input}"`, function () {
+          verifyResultOrError(`${op}${input}`, null, 'Missing expected token');
         });
       }
     }
     for (const [input] of SimpleIsConditionalList) {
-      it(`throw Code 110 (MissingExpectedToken) on "${input}?${input}"`, function () {
-        verifyResultOrError(`${input}?${input}`, null, 'Code 110');
+      it(`throw 'Missing expected token' on "${input}?${input}"`, function () {
+        verifyResultOrError(`${input}?${input}`, null, 'Missing expected token');
       });
     }
     for (const [input] of AccessScopeList) {
-      it(`throw Code 110 (MissingExpectedToken) on "{${input}"`, function () {
-        verifyResultOrError(`{${input}`, null, 'Code 110');
+      it(`throw 'Missing expected token' on "{${input}"`, function () {
+        verifyResultOrError(`{${input}`, null, 'Missing expected token');
       });
     }
     for (const [input] of SimpleStringLiteralList) {
-      it(`throw Code 110 (MissingExpectedToken) on "{${input}}"`, function () {
-        verifyResultOrError(`{${input}}`, null, 'Code 110');
+      it(`throw 'Missing expected token' on "{${input}}"`, function () {
+        verifyResultOrError(`{${input}}`, null, 'Missing expected token');
       });
     }
     for (const input of ['{24}', '{24, 24}', '{\'\'}', '{a.b}', '{a[b]}', '{a()}']) {
-      it(`throw Code 110 (MissingExpectedToken) on "${input}"`, function () {
-        verifyResultOrError(input, null, 'Code 110');
+      it(`throw 'Missing expected token' on "${input}"`, function () {
+        verifyResultOrError(input, null, 'Missing expected token');
       });
     }
 
     for (const input of ['#', ';', '@', '^', '~', '\\', 'foo;']) {
-      it(`throw Code 111 (UnexpectedCharacter) on "${input}"`, function () {
-        verifyResultOrError(input, null, 'Code 111');
+      it(`throw 'Unexpected character' on "${input}"`, function () {
+        verifyResultOrError(input, null, 'Unexpected character');
       });
     }
 
     for (const [input] of SimpleIsAssignList) {
-      it(`throw Code 112 (MissingValueConverter) on "${input}|"`, function () {
-        verifyResultOrError(`${input}|`, null, 'Code 112');
+      it(`throw 'Expected identifier to come after ValueConverter operator' on "${input}|"`, function () {
+        verifyResultOrError(`${input}|`, null, 'Expected identifier to come after ValueConverter operator');
       });
     }
 
     for (const [input] of SimpleIsAssignList) {
-      it(`throw Code 113 (MissingBindingBehavior) on "${input}&"`, function () {
-        verifyResultOrError(`${input}&`, null, 'Code 113');
+      it(`throw 'Expected identifier to come after BindingBehavior operator' on "${input}&"`, function () {
+        verifyResultOrError(`${input}&`, null, 'Expected identifier to come after BindingBehavior operator');
       });
     }
 
@@ -1542,14 +1522,14 @@ describe('ExpressionParser', function () {
       ...SimpleLiteralList,
       ...SimpleUnaryList
     ]) {
-      it(`throw Code 150 (NotAssignable) on "${input}=a"`, function () {
-        verifyResultOrError(`${input}=a`, null, 'Code 150');
+      it(`throw 'Left hand side of expression is not assignable' on "${input}=a"`, function () {
+        verifyResultOrError(`${input}=a`, null, 'Left hand side of expression is not assignable');
       });
     }
 
     for (const [input] of SimpleIsBindingBehaviorList.filter(([, e]) => !e.ancestor)) {
-      it(`throw Code 151 (UnexpectedForOf) on "${input} of"`, function () {
-        verifyResultOrError(`${input} of`, null, 'Code 151');
+      it(`throw 'Unexpected keyword "of"' on "${input} of"`, function () {
+        verifyResultOrError(`${input} of`, null, 'Unexpected keyword "of"');
       });
     }
   });
@@ -1558,7 +1538,7 @@ describe('ExpressionParser', function () {
     for (const char of otherBMPIdentifierPartChars) {
       it(char, function () {
         const identifier = `$${char}`;
-        verifyResultOrError(identifier, null, codes.UnexpectedCharacter);
+        verifyResultOrError(identifier, null, 'Unexpected character');
       });
     }
   });

@@ -1,23 +1,25 @@
+/* eslint-disable eqeqeq */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import {
   IIndexable,
   IServiceLocator,
   PLATFORM,
-  Reporter,
   StrictPrimitive,
   isNumberOrBigInt,
   isStringOrDate,
 } from '@aurelia/kernel';
 import {
   ExpressionKind,
-  LifecycleFlags,
+  LifecycleFlags as LF,
 } from '../flags';
-import { IBinding } from '../lifecycle';
 import {
   Collection,
   IBindingContext,
+  IObservable,
   IOverrideContext,
-  IScope,
   ObservedCollection,
+  IConnectable,
+  ISubscriber,
 } from '../observation';
 import { BindingContext } from '../observation/binding-context';
 import { ProxyObserver } from '../observation/proxy-observer';
@@ -30,6 +32,7 @@ import {
 } from '../resources/value-converter';
 import { IConnectableBinding } from './connectable';
 import { CustomElementDefinition } from '../resources/custom-element';
+import type { Scope } from '../observation/binding-context';
 
 export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
 
@@ -80,22 +83,12 @@ export interface IVisitor<T = unknown> {
   visitValueConverter(expr: ValueConverterExpression): T;
 }
 
-function chooseScope(accessHostScope: boolean, scope: IScope, hostScope: IScope | null){
+function chooseScope(accessHostScope: boolean, s: Scope, hs: Scope | null){
   if (accessHostScope) {
-    if (hostScope === null || hostScope === void 0) { throw new Error('Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?'); }
-    return hostScope;
+    if (hs === null || hs === void 0) { throw new Error('Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?'); }
+    return hs;
   }
-  return scope;
-}
-const enum RuntimeError {
-  NoLocator = 202,
-  NoBehaviorFound = 203,
-  BehaviorAlreadyApplied = 204,
-  NoConverterFound = 205,
-  NoBinding = 206,
-  NotAFunction = 207,
-  UnknownOperator = 208,
-  NilScope = 250,
+  return s;
 }
 
 type BindingWithBehavior = IConnectableBinding & { [key: string]: BindingBehaviorInstance | undefined };
@@ -105,7 +98,7 @@ export class CustomExpression {
     public readonly value: string,
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): string {
+  public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _c: IConnectable | null): string {
     return this.value;
   }
 }
@@ -126,57 +119,45 @@ export class BindingBehaviorExpression {
     this.behaviorKey = BindingBehavior.keyFrom(name);
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
-    return this.expression.evaluate(flags, scope, hostScope, locator);
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
+    return this.expression.evaluate(f, s, hs, l, c);
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown {
-    return this.expression.assign(flags, scope, hostScope, locator, value);
+  public assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown {
+    return this.expression.assign(f, s, hs, l, val);
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    this.expression.connect(flags, scope, hostScope, binding);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    this.expression.connect(f, s, hs, b);
   }
 
-  public bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    if (scope == null) {
-      throw Reporter.error(RuntimeError.NilScope, this);
-    }
-    if (!binding) {
-      throw Reporter.error(RuntimeError.NoBinding, this);
-    }
-    const locator = binding.locator;
-    if (!locator) {
-      throw Reporter.error(RuntimeError.NoLocator, this);
-    }
+  public bind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     if (this.expression.hasBind) {
-      this.expression.bind(flags, scope, hostScope, binding);
+      this.expression.bind(f, s, hs, b);
     }
-    const behaviorKey = this.behaviorKey;
-    const behavior = locator.get<BindingBehaviorInstance>(behaviorKey);
-    if (!behavior) {
-      throw Reporter.error(RuntimeError.NoBehaviorFound, this);
+    const behavior = b.locator.get<BindingBehaviorInstance>(this.behaviorKey);
+    if (behavior == null) {
+      throw new Error(`BindingBehavior named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
     }
     if (!(behavior instanceof BindingBehaviorFactory)) {
-      if ((binding as BindingWithBehavior)[behaviorKey] === void 0) {
-        (binding as BindingWithBehavior)[behaviorKey] = behavior;
-        (behavior.bind.call as (...args: unknown[]) => void)(behavior, flags, scope, hostScope, binding, ...evalList(flags, scope, locator, this.args, hostScope));
+      if ((b as BindingWithBehavior)[this.behaviorKey] === void 0) {
+        (b as BindingWithBehavior)[this.behaviorKey] = behavior;
+        (behavior.bind.call as (...args: unknown[]) => void)(behavior, f, s, hs, b, ...this.args.map(a => a.evaluate(f, s, hs, b.locator, null)));
       } else {
-        Reporter.write(RuntimeError.BehaviorAlreadyApplied, this);
+        throw new Error(`BindingBehavior named '${this.name}' already applied.`);
       }
     }
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const behaviorKey = this.behaviorKey;
-    if ((binding as BindingWithBehavior)[behaviorKey] !== void 0) {
-      if (typeof (binding as BindingWithBehavior)[behaviorKey]!.unbind === 'function') {
-        (binding as BindingWithBehavior)[behaviorKey]!.unbind(flags, scope, hostScope, binding);
+  public unbind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    if ((b as BindingWithBehavior)[this.behaviorKey] !== void 0) {
+      if (typeof (b as BindingWithBehavior)[this.behaviorKey]!.unbind === 'function') {
+        (b as BindingWithBehavior)[this.behaviorKey]!.unbind(f, s, hs, b);
       }
-      (binding as BindingWithBehavior)[behaviorKey] = void 0;
+      (b as BindingWithBehavior)[this.behaviorKey] = void 0;
     }
     if (this.expression.hasUnbind) {
-      this.expression.unbind(flags, scope, hostScope, binding);
+      this.expression.unbind(f, s, hs, b);
     }
   }
 
@@ -199,81 +180,66 @@ export class ValueConverterExpression {
     this.converterKey = ValueConverter.keyFrom(name);
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
-    if (!locator) {
-      throw Reporter.error(RuntimeError.NoLocator, this);
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
+    const vc = l.get<ValueConverterExpression & ValueConverterInstance & { signals?: string[] }>(this.converterKey);
+    if (vc == null) {
+      throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
     }
-    const converter = locator.get<ValueConverterExpression & ValueConverterInstance>(this.converterKey);
-    if (!converter) {
-      throw Reporter.error(RuntimeError.NoConverterFound, this);
-    }
-    if ('toView' in converter) {
-      const args = this.args;
-      const len = args.length;
-      const result = Array(len + 1);
-      result[0] = this.expression.evaluate(flags, scope, hostScope, locator);
-      for (let i = 0; i < len; ++i) {
-        result[i + 1] = args[i].evaluate(flags, scope, hostScope, locator);
+    if ('toView' in vc) {
+      // note: everything should be ISubscriber eventually
+      // for now, it's sort of internal thing where only built-in bindings are passed as connectable
+      // so it by default satisfies ISubscriber constrain
+      if (c !== null && ('handleChange' in (c  as unknown as ISubscriber))) {
+        const signals = vc.signals;
+        if (signals != null) {
+          const signaler = l.get(ISignaler);
+          for (let i = 0, ii = signals.length; i < ii; ++i) {
+            signaler.addSignalListener(signals[i], c as unknown as ISubscriber);
+          }
+        }
       }
-      return (converter.toView.call as (...args: unknown[]) => void)(converter, ...result);
+      return (vc.toView.call as (...args: unknown[]) => void)(vc, this.expression.evaluate(f, s, hs, l, c), ...this.args.map(a => a.evaluate(f, s, hs, l, c)));
     }
-    return this.expression.evaluate(flags, scope, hostScope, locator);
+    return this.expression.evaluate(f, s, hs, l, c);
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown {
-    if (!locator) {
-      throw Reporter.error(RuntimeError.NoLocator, this);
+  public assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown {
+    const vc = l.get<ValueConverterExpression & ValueConverterInstance>(this.converterKey);
+    if (vc == null) {
+      throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
     }
-    const converter = locator.get<ValueConverterExpression & ValueConverterInstance>(this.converterKey);
-    if (!converter) {
-      throw Reporter.error(RuntimeError.NoConverterFound, this);
+    if ('fromView' in vc) {
+      val = (vc.fromView!.call as (...args: unknown[]) => void)(vc, val, ...this.args.map(a => a.evaluate(f, s, hs, l, null)));
     }
-    if ('fromView' in converter) {
-      value = (converter.fromView!.call as (...args: unknown[]) => void)(converter, value, ...(evalList(flags, scope, locator, this.args, hostScope)));
-    }
-    return this.expression.assign(flags, scope, hostScope, locator, value);
+    return this.expression.assign(f, s, hs, l, val);
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    if (scope == null) {
-      throw Reporter.error(RuntimeError.NilScope, this);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    this.expression.connect(f, s, hs, b);
+    for (let i = 0; i < this.args.length; ++i) {
+      this.args[i].connect(f, s, hs, b);
     }
-    if (!binding) {
-      throw Reporter.error(RuntimeError.NoBinding, this);
+    const vc = b.locator.get(this.converterKey) as { signals?: string[] };
+    if (vc == null) {
+      throw new Error(`ValueConverter named '${this.name}' could not be found. Did you forget to register it as a dependency?`);
     }
-    const locator = binding.locator;
-    if (!locator) {
-      throw Reporter.error(RuntimeError.NoLocator, this);
-    }
-    this.expression.connect(flags, scope, hostScope, binding);
-    const args = this.args;
-    for (let i = 0, ii = args.length; i < ii; ++i) {
-      args[i].connect(flags, scope, hostScope, binding);
-    }
-    const converter = locator.get(this.converterKey) as { signals?: string[] };
-    if (!converter) {
-      throw Reporter.error(RuntimeError.NoConverterFound, this);
-    }
-    const signals = converter.signals;
-    if (signals === void 0) {
+    if (vc.signals === void 0) {
       return;
     }
-    const signaler = locator.get(ISignaler);
-    for (let i = 0, ii = signals.length; i < ii; ++i) {
-      signaler.addSignalListener(signals[i], binding);
+    const signaler = b.locator.get(ISignaler);
+    for (let i = 0; i < vc.signals.length; ++i) {
+      signaler.addSignalListener(vc.signals[i], b);
     }
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const locator = binding.locator;
-    const converter = locator.get(this.converterKey) as { signals?: string[] };
-    const signals = converter.signals;
-    if (signals === void 0) {
+  public unbind(_f: LF, _s: Scope, _hs: Scope | null, b: IConnectableBinding): void {
+    const vc = b.locator.get(this.converterKey) as { signals?: string[] };
+    if (vc.signals === void 0) {
       return;
     }
-    const signaler = locator.get(ISignaler);
-    for (let i = 0, ii = signals.length; i < ii; ++i) {
-      signaler.removeSignalListener(signals[i], binding);
+    const signaler = b.locator.get(ISignaler);
+    for (let i = 0; i < vc.signals.length; ++i) {
+      signaler.removeSignalListener(vc.signals[i], b);
     }
   }
 
@@ -292,17 +258,17 @@ export class AssignExpression {
     public readonly value: IsAssign,
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
-    return this.target.assign(flags, scope, hostScope, locator, this.value.evaluate(flags, scope, hostScope, locator));
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
+    return this.target.assign(f, s, hs, l, this.value.evaluate(f, s, hs, l, c));
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
+  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
     return;
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown {
-    this.value.assign(flags, scope, hostScope, locator, value);
-    return this.target.assign(flags, scope, hostScope, locator, value);
+  public assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown {
+    this.value.assign(f, s, hs, l, val);
+    return this.target.assign(f, s, hs, l, val);
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -321,24 +287,21 @@ export class ConditionalExpression {
     public readonly no: IsAssign,
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
-    return (!!this.condition.evaluate(flags, scope, hostScope, locator))
-      ? this.yes.evaluate(flags, scope, hostScope, locator)
-      : this.no.evaluate(flags, scope, hostScope, locator);
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
+    return this.condition.evaluate(f, s, hs, l, c) ? this.yes.evaluate(f, s, hs, l, c) : this.no.evaluate(f, s, hs, l, c);
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const condition = this.condition;
-    if (condition.evaluate(flags, scope, hostScope, binding.locator)) {
-      this.condition.connect(flags, scope, hostScope, binding);
-      this.yes.connect(flags, scope, hostScope, binding);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    if (this.condition.evaluate(f, s, hs, b.locator, null)) {
+      this.condition.connect(f, s, hs, b);
+      this.yes.connect(f, s, hs, b);
     } else {
-      this.condition.connect(flags, scope, hostScope, binding);
-      this.no.connect(flags, scope, hostScope, binding);
+      this.condition.connect(f, s, hs, b);
+      this.no.connect(f, s, hs, b);
     }
   }
 
@@ -349,7 +312,7 @@ export class ConditionalExpression {
 
 export class AccessThisExpression {
   public static readonly $this: AccessThisExpression = new AccessThisExpression(0);
-  // $host and $this are loosely the same thing. $host is used in the context of `au-slot` with the primary objective of determining the scope.
+  // $host and $this are loosely the same thing. $host is used in the context of `au-slot` with the primary objective of determining the s.
   public static readonly $host: AccessThisExpression = new AccessThisExpression(0);
   public static readonly $parent: AccessThisExpression = new AccessThisExpression(1);
   public get $kind(): ExpressionKind.AccessThis { return ExpressionKind.AccessThis; }
@@ -360,15 +323,12 @@ export class AccessThisExpression {
     public readonly ancestor: number = 0,
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): IBindingContext | undefined {
-    if (scope == null) {
-      throw Reporter.error(RuntimeError.NilScope, this);
-    }
+  public evaluate(_f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator, _c: IConnectable | null): IBindingContext | undefined {
     if (this === AccessThisExpression.$host) {
-      scope = chooseScope(true, scope, hostScope);
+      s = chooseScope(true, s, hs);
     }
-    let oc: IOverrideContext | null = scope.overrideContext;
-    let currentScope: IScope | null = scope;
+    let oc: IOverrideContext | null = s.overrideContext;
+    let currentScope: Scope | null = s;
     let i = this.ancestor;
     while (i-- && oc) {
       currentScope = currentScope!.parentScope;
@@ -377,11 +337,11 @@ export class AccessThisExpression {
     return i < 1 && oc ? oc.bindingContext : void 0;
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
+  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
     return;
   }
 
@@ -401,31 +361,34 @@ export class AccessScopeExpression {
     public readonly accessHostScope: boolean = false,
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): IBindingContext | IBinding | IOverrideContext {
-    const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope) as IBindingContext;
+  public evaluate(f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator, c: IConnectable | null): IBindingContext | IOverrideContext {
+    const obj = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs) as IBindingContext;
+    if (c !== null) {
+      c.observeProperty(f, obj, this.name);
+    }
     const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
-    if (flags & LifecycleFlags.isStrictBindingStrategy) {
+    if (f & LF.isStrictBindingStrategy) {
       return evaluatedValue;
     }
     return evaluatedValue == null ? '' as unknown as ReturnType<AccessScopeExpression['evaluate']> : evaluatedValue;
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown {
-    const obj = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope) as IBindingContext;
+  public assign(f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator, val: unknown): unknown {
+    const obj = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs) as IObservable;
     if (obj instanceof Object) {
-      if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
-        obj.$observers[this.name].setValue(value, flags);
-        return value;
+      if (obj.$observers?.[this.name] !== void 0) {
+        obj.$observers[this.name].setValue(val, f);
+        return val;
       } else {
-        return obj[this.name] = value;
+        return obj[this.name] = val;
       }
     }
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const context = BindingContext.get(chooseScope(this.accessHostScope, scope, hostScope), this.name, this.ancestor, flags, hostScope)!;
-    binding.observeProperty(flags, context, this.name);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    const context = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs)!;
+    b.observeProperty(f, context, this.name);
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -443,35 +406,44 @@ export class AccessMemberExpression {
     public readonly name: string,
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
-    const instance = this.object.evaluate(flags, scope, hostScope, locator) as IIndexable;
-    if (flags & LifecycleFlags.isStrictBindingStrategy) {
-      return instance == null ? instance : instance[this.name];
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
+    const instance = this.object.evaluate(f, s, hs, l, c) as IIndexable;
+    if (f & LF.isStrictBindingStrategy) {
+      if (instance == null) {
+        return instance;
+      }
+      if (c !== null) {
+        c.observeProperty(f, instance, this.name);
+      }
+      return instance[this.name];
+    }
+    if (c !== null && instance instanceof Object) {
+      c.observeProperty(f, instance, this.name);
     }
     return instance ? instance[this.name] : '';
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown {
-    const obj = this.object.evaluate(flags, scope, hostScope, locator) as IBindingContext;
+  public assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown {
+    const obj = this.object.evaluate(f, s, hs, l, null) as IObservable;
     if (obj instanceof Object) {
       if (obj.$observers !== void 0 && obj.$observers[this.name] !== void 0) {
-        obj.$observers[this.name].setValue(value, flags);
+        obj.$observers[this.name].setValue(val, f);
       } else {
-        obj[this.name] = value;
+        obj[this.name] = val;
       }
     } else {
-      this.object.assign(flags, scope, hostScope, locator, { [this.name]: value });
+      this.object.assign(f, s, hs, l, { [this.name]: val });
     }
-    return value;
+    return val;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const obj = this.object.evaluate(flags, scope, hostScope, binding.locator) as IIndexable;
-    if ((flags & LifecycleFlags.observeLeafPropertiesOnly) === 0) {
-      this.object.connect(flags, scope, hostScope, binding);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    const obj = this.object.evaluate(f, s, hs, b.locator, null) as IIndexable;
+    if ((f & LF.observeLeafPropertiesOnly) === 0) {
+      this.object.connect(f, s, hs, b);
     }
     if (obj instanceof Object) {
-      binding.observeProperty(flags, obj, this.name);
+      b.observeProperty(f, obj, this.name);
     }
   }
 
@@ -490,31 +462,34 @@ export class AccessKeyedExpression {
     public readonly key: IsAssign,
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
-    const instance = this.object.evaluate(flags, scope, hostScope, locator) as IIndexable;
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
+    const instance = this.object.evaluate(f, s, hs, l, c) as IIndexable;
     if (instance instanceof Object) {
-      const key = this.key.evaluate(flags, scope, hostScope, locator) as string;
+      const key = this.key.evaluate(f, s, hs, l, c) as string;
+      if (c !== null) {
+        c.observeProperty(f, instance, key);
+      }
       return instance[key];
     }
     return void 0;
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, value: unknown): unknown {
-    const instance = this.object.evaluate(flags, scope, hostScope, locator) as IIndexable;
-    const key = this.key.evaluate(flags, scope, hostScope, locator) as string;
-    return instance[key] = value;
+  public assign(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, val: unknown): unknown {
+    const instance = this.object.evaluate(f, s, hs, l, null) as IIndexable;
+    const key = this.key.evaluate(f, s, hs, l, null) as string;
+    return instance[key] = val;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const obj = this.object.evaluate(flags, scope, hostScope, binding.locator);
-    if ((flags & LifecycleFlags.observeLeafPropertiesOnly) === 0) {
-      this.object.connect(flags, scope, hostScope, binding);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    const obj = this.object.evaluate(f, s, hs, b.locator, null);
+    if ((f & LF.observeLeafPropertiesOnly) === 0) {
+      this.object.connect(f, s, hs, b);
     }
     if (obj instanceof Object) {
-      this.key.connect(flags, scope, hostScope, binding);
-      const key = this.key.evaluate(flags, scope, hostScope, binding.locator);
+      this.key.connect(f, s, hs, b);
+      const key = this.key.evaluate(f, s, hs, b.locator, null);
       // (note: string indexers behave the same way as numeric indexers as long as they represent numbers)
-      binding.observeProperty(flags, obj, key as string);
+      b.observeProperty(f, obj, key as string);
     }
   }
 
@@ -535,25 +510,28 @@ export class CallScopeExpression {
     public readonly accessHostScope: boolean = false,
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
-    scope = chooseScope(this.accessHostScope, scope, hostScope);
-    const args = evalList(flags, scope, locator, this.args, hostScope);
-    const context = BindingContext.get(scope, this.name, this.ancestor, flags, hostScope)!;
-    const func = getFunction(flags, context, this.name);
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
+    s = chooseScope(this.accessHostScope, s, hs);
+
+    const args = this.args.map(a => a.evaluate(f, s, hs, l, c));
+    const context = BindingContext.get(s, this.name, this.ancestor, f, hs)!;
+    // ideally, should observe property represents by this.name as well
+    // because it could be changed
+    // todo: did it ever surprise anyone?
+    const func = getFunction(f, context, this.name);
     if (func) {
       return func.apply(context, args as unknown[]);
     }
     return void 0;
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const args = this.args;
-    for (let i = 0, ii = args.length; i < ii; ++i) {
-      args[i].connect(flags, scope, hostScope, binding);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    for (let i = 0; i < this.args.length; ++i) {
+      this.args[i].connect(f, s, hs, b);
     }
   }
 
@@ -573,29 +551,29 @@ export class CallMemberExpression {
     public readonly args: readonly IsAssign[],
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
-    const instance = this.object.evaluate(flags, scope, hostScope, locator) as IIndexable;
-    const args = evalList(flags, scope, locator, this.args, hostScope);
-    const func = getFunction(flags, instance, this.name);
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
+    const instance = this.object.evaluate(f, s, hs, l, c) as IIndexable;
+
+    const args = this.args.map(a => a.evaluate(f, s, hs, l, c));
+    const func = getFunction(f, instance, this.name);
     if (func) {
       return func.apply(instance, args as unknown[]);
     }
     return void 0;
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const obj = this.object.evaluate(flags, scope, hostScope, binding.locator) as IIndexable;
-    if ((flags & LifecycleFlags.observeLeafPropertiesOnly) === 0) {
-      this.object.connect(flags, scope, hostScope, binding);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    const obj = this.object.evaluate(f, s, hs, b.locator, null) as IIndexable;
+    if ((f & LF.observeLeafPropertiesOnly) === 0) {
+      this.object.connect(f, s, hs, b);
     }
-    if (getFunction(flags & ~LifecycleFlags.mustEvaluate, obj, this.name)) {
-      const args = this.args;
-      for (let i = 0, ii = args.length; i < ii; ++i) {
-        args[i].connect(flags, scope, hostScope, binding);
+    if (getFunction(f & ~LF.mustEvaluate, obj, this.name)) {
+      for (let i = 0; i < this.args.length; ++i) {
+        this.args[i].connect(f, s, hs, b);
       }
     }
   }
@@ -615,28 +593,27 @@ export class CallFunctionExpression {
     public readonly args: readonly IsAssign[],
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
-    const func = this.func.evaluate(flags, scope, hostScope, locator);
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
+    const func = this.func.evaluate(f, s, hs, l, c);
     if (typeof func === 'function') {
-      return func(...evalList(flags, scope, locator, this.args, hostScope));
+      return func(...this.args.map(a => a.evaluate(f, s, hs, l, c)));
     }
-    if (!(flags & LifecycleFlags.mustEvaluate) && (func == null)) {
+    if (!(f & LF.mustEvaluate) && (func == null)) {
       return void 0;
     }
-    throw Reporter.error(RuntimeError.NotAFunction, this);
+    throw new Error(`Expression is not a function.`);
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const func = this.func.evaluate(flags, scope, hostScope, binding.locator);
-    this.func.connect(flags, scope, hostScope, binding);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    const func = this.func.evaluate(f, s, hs, b.locator, null);
+    this.func.connect(f, s, hs, b);
     if (typeof func === 'function') {
-      const args = this.args;
-      for (let i = 0, ii = args.length; i < ii; ++i) {
-        args[i].connect(flags, scope, hostScope, binding);
+      for (let i = 0; i < this.args.length; ++i) {
+        this.args[i].connect(f, s, hs, b);
       }
     }
   }
@@ -657,35 +634,35 @@ export class BinaryExpression {
     public readonly right: IsBinary,
   ) {}
 
-  public evaluate(f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
     switch (this.operation) {
       case '&&':
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        return this.left.evaluate(f, s, hs, l) && this.right.evaluate(f, s, hs, l);
+        return this.left.evaluate(f, s, hs, l, c) && this.right.evaluate(f, s, hs, l, c);
       case '||':
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        return this.left.evaluate(f, s, hs, l) || this.right.evaluate(f, s, hs, l);
+        return this.left.evaluate(f, s, hs, l, c) || this.right.evaluate(f, s, hs, l, c);
       case '==':
         // eslint-disable-next-line eqeqeq
-        return this.left.evaluate(f, s, hs, l) == this.right.evaluate(f, s, hs, l);
+        return this.left.evaluate(f, s, hs, l, c) == this.right.evaluate(f, s, hs, l, c);
       case '===':
-        return this.left.evaluate(f, s, hs, l) === this.right.evaluate(f, s, hs, l);
+        return this.left.evaluate(f, s, hs, l, c) === this.right.evaluate(f, s, hs, l, c);
       case '!=':
         // eslint-disable-next-line eqeqeq
-        return this.left.evaluate(f, s, hs, l) != this.right.evaluate(f, s, hs, l);
+        return this.left.evaluate(f, s, hs, l, c) != this.right.evaluate(f, s, hs, l, c);
       case '!==':
-        return this.left.evaluate(f, s, hs, l) !== this.right.evaluate(f, s, hs, l);
+        return this.left.evaluate(f, s, hs, l, c) !== this.right.evaluate(f, s, hs, l, c);
       case 'instanceof': {
-        const right = this.right.evaluate(f, s, hs, l);
+        const right = this.right.evaluate(f, s, hs, l, c);
         if (typeof right === 'function') {
-          return this.left.evaluate(f, s, hs, l) instanceof right;
+          return this.left.evaluate(f, s, hs, l, c) instanceof right;
         }
         return false;
       }
       case 'in': {
-        const right = this.right.evaluate(f, s, hs, l);
+        const right = this.right.evaluate(f, s, hs, l, c);
         if (right instanceof Object) {
-          return this.left.evaluate(f, s, hs, l) as string in right;
+          return this.left.evaluate(f, s, hs, l, c) as string in right;
         }
         return false;
       }
@@ -694,54 +671,52 @@ export class BinaryExpression {
       // this makes bugs in user code easier to track down for end users
       // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
       case '+': {
-        const left: any = this.left.evaluate(f, s, hs, l);
-        const right: any = this.right.evaluate(f, s, hs, l);
+        const left: any = this.left.evaluate(f, s, hs, l, c);
+        const right: any = this.right.evaluate(f, s, hs, l, c);
 
-        if ((f & LifecycleFlags.isStrictBindingStrategy) > 0) {
+        if ((f & LF.isStrictBindingStrategy) > 0) {
           return (left as number) + (right as number);
         }
 
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (!left || !right) {
           if (isNumberOrBigInt(left) || isNumberOrBigInt(right)) {
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             return (left as number || 0) + (right as number || 0);
           }
           if (isStringOrDate(left) || isStringOrDate(right)) {
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             return (left as string || '') + (right as string || '');
           }
         }
         return (left as number) + (right as number);
       }
       case '-':
-        return (this.left.evaluate(f, s, hs, l) as number) - (this.right.evaluate(f, s, hs, l) as number);
+        return (this.left.evaluate(f, s, hs, l, c) as number) - (this.right.evaluate(f, s, hs, l, c) as number);
       case '*':
-        return (this.left.evaluate(f, s, hs, l) as number) * (this.right.evaluate(f, s, hs, l) as number);
+        return (this.left.evaluate(f, s, hs, l, c) as number) * (this.right.evaluate(f, s, hs, l, c) as number);
       case '/':
-        return (this.left.evaluate(f, s, hs, l) as number) / (this.right.evaluate(f, s, hs, l) as number);
+        return (this.left.evaluate(f, s, hs, l, c) as number) / (this.right.evaluate(f, s, hs, l, c) as number);
       case '%':
-        return (this.left.evaluate(f, s, hs, l) as number) % (this.right.evaluate(f, s, hs, l) as number);
+        return (this.left.evaluate(f, s, hs, l, c) as number) % (this.right.evaluate(f, s, hs, l, c) as number);
       case '<':
-        return (this.left.evaluate(f, s, hs, l) as number) < (this.right.evaluate(f, s, hs, l) as number);
+        return (this.left.evaluate(f, s, hs, l, c) as number) < (this.right.evaluate(f, s, hs, l, c) as number);
       case '>':
-        return (this.left.evaluate(f, s, hs, l) as number) > (this.right.evaluate(f, s, hs, l) as number);
+        return (this.left.evaluate(f, s, hs, l, c) as number) > (this.right.evaluate(f, s, hs, l, c) as number);
       case '<=':
-        return (this.left.evaluate(f, s, hs, l) as number) <= (this.right.evaluate(f, s, hs, l) as number);
+        return (this.left.evaluate(f, s, hs, l, c) as number) <= (this.right.evaluate(f, s, hs, l, c) as number);
       case '>=':
-        return (this.left.evaluate(f, s, hs, l) as number) >= (this.right.evaluate(f, s, hs, l) as number);
+        return (this.left.evaluate(f, s, hs, l, c) as number) >= (this.right.evaluate(f, s, hs, l, c) as number);
       default:
-        throw Reporter.error(RuntimeError.UnknownOperator, this);
+        throw new Error(`Unknown binary operator: '${this.operation}'`);
     }
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    this.left.connect(flags, scope, hostScope, binding);
-    this.right.connect(flags, scope, hostScope, binding);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    this.left.connect(f, s, hs, b);
+    this.right.connect(f, s, hs, b);
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -759,29 +734,29 @@ export class UnaryExpression {
     public readonly expression: IsLeftHandSide,
   ) {}
 
-  public evaluate(f: LifecycleFlags, s: IScope, hs: IScope | null, l: IServiceLocator): unknown {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
     switch (this.operation) {
       case 'void':
-        return void this.expression.evaluate(f, s, hs, l);
+        return void this.expression.evaluate(f, s, hs, l, c);
       case 'typeof':
-        return typeof this.expression.evaluate(f | LifecycleFlags.isStrictBindingStrategy, s, hs, l);
+        return typeof this.expression.evaluate(f | LF.isStrictBindingStrategy, s, hs, l, c);
       case '!':
-        return !this.expression.evaluate(f, s, hs, l);
+        return !(this.expression.evaluate(f, s, hs, l, c) as boolean);
       case '-':
-        return -(this.expression.evaluate(f, s, hs, l) as number);
+        return -(this.expression.evaluate(f, s, hs, l, c) as number);
       case '+':
-        return +(this.expression.evaluate(f, s, hs, l) as number);
+        return +(this.expression.evaluate(f, s, hs, l, c) as number);
       default:
-        throw Reporter.error(RuntimeError.UnknownOperator, this);
+        throw new Error(`Unknown unary operator: '${this.operation}'`);
     }
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    this.expression.connect(flags, scope, hostScope, binding);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    this.expression.connect(f, s, hs, b);
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -802,15 +777,15 @@ export class PrimitiveLiteralExpression<TValue extends StrictPrimitive = StrictP
     public readonly value: TValue,
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): TValue {
+  public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _c: IConnectable | null): TValue {
     return this.value;
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
+  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
     return;
   }
 
@@ -828,27 +803,25 @@ export class HtmlLiteralExpression {
     public readonly parts: readonly HtmlLiteralExpression[],
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): string {
-    const elements = this.parts;
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): string {
     let result = '';
-    let value;
-    for (let i = 0, ii = elements.length; i < ii; ++i) {
-      value = elements[i].evaluate(flags, scope, hostScope, locator);
-      if (value == null) {
+    for (let i = 0; i < this.parts.length; ++i) {
+      const v = this.parts[i].evaluate(f, s, hs, l, c);
+      if (v == null) {
         continue;
       }
-      result += value;
+      result += v;
     }
     return result;
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown, rojection?: CustomElementDefinition): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown, _projection?: CustomElementDefinition): unknown {
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    for (let i = 0, ii = this.parts.length; i < ii; ++i) {
-      this.parts[i].connect(flags, scope, hostScope, binding);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    for (let i = 0; i < this.parts.length; ++i) {
+      this.parts[i].connect(f, s, hs, b);
     }
   }
 
@@ -867,24 +840,17 @@ export class ArrayLiteralExpression {
     public readonly elements: readonly IsAssign[],
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): readonly unknown[] {
-    const elements = this.elements;
-    const length = elements.length;
-    const result = Array(length);
-    for (let i = 0; i < length; ++i) {
-      result[i] = elements[i].evaluate(flags, scope, hostScope, locator);
-    }
-    return result;
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): readonly unknown[] {
+    return this.elements.map(e => e.evaluate(f, s, hs, l, c));
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const elements = this.elements;
-    for (let i = 0, ii = elements.length; i < ii; ++i) {
-      elements[i].connect(flags, scope, hostScope, binding);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    for (let i = 0; i < this.elements.length; ++i) {
+      this.elements[i].connect(f, s, hs, b);
     }
   }
 
@@ -904,25 +870,21 @@ export class ObjectLiteralExpression {
     public readonly values: readonly IsAssign[],
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): Record<string, unknown> {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): Record<string, unknown> {
     const instance: Record<string, unknown> = {};
-    const keys = this.keys;
-    const values = this.values;
-    for (let i = 0, ii = keys.length; i < ii; ++i) {
-      instance[keys[i]] = values[i].evaluate(flags, scope, hostScope, locator);
+    for (let i = 0; i < this.keys.length; ++i) {
+      instance[this.keys[i]] = this.values[i].evaluate(f, s, hs, l, c);
     }
     return instance;
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const keys = this.keys;
-    const values = this.values;
-    for (let i = 0, ii = keys.length; i < ii; ++i) {
-      values[i].connect(flags, scope, hostScope, binding);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    for (let i = 0; i < this.keys.length; ++i) {
+      this.values[i].connect(f, s, hs, b);
     }
   }
 
@@ -942,25 +904,22 @@ export class TemplateExpression {
     public readonly expressions: readonly IsAssign[] = PLATFORM.emptyArray,
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): string {
-    const expressions = this.expressions;
-    const cooked = this.cooked;
-    let result = cooked[0];
-    for (let i = 0, ii = expressions.length; i < ii; ++i) {
-      result += expressions[i].evaluate(flags, scope, hostScope, locator);
-      result += cooked[i + 1];
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): string {
+    let result = this.cooked[0];
+    for (let i = 0; i < this.expressions.length; ++i) {
+      result += String(this.expressions[i].evaluate(f, s, hs, l, c));
+      result += this.cooked[i + 1];
     }
     return result;
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const expressions = this.expressions;
-    for (let i = 0, ii = expressions.length; i < ii; ++i) {
-      expressions[i].connect(flags, scope, hostScope, binding);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    for (let i = 0; i < this.expressions.length; ++i) {
+      this.expressions[i].connect(f, s, hs, b);
       i++;
     }
   }
@@ -984,30 +943,24 @@ export class TaggedTemplateExpression {
     cooked.raw = raw;
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): string {
-    const expressions = this.expressions;
-    const len = expressions.length;
-    const results = Array(len);
-    for (let i = 0, ii = len; i < ii; ++i) {
-      results[i] = expressions[i].evaluate(flags, scope, hostScope, locator);
-    }
-    const func = this.func.evaluate(flags, scope, hostScope, locator);
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): string {
+    const results = this.expressions.map(e => e.evaluate(f, s, hs, l, c));
+    const func = this.func.evaluate(f, s, hs, l, c);
     if (typeof func !== 'function') {
-      throw Reporter.error(RuntimeError.NotAFunction, this);
+      throw new Error(`Left-hand side of tagged template expression is not a function.`);
     }
     return func(this.cooked, ...results);
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    const expressions = this.expressions;
-    for (let i = 0, ii = expressions.length; i < ii; ++i) {
-      expressions[i].connect(flags, scope, hostScope, binding);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    for (let i = 0; i < this.expressions.length; ++i) {
+      this.expressions[i].connect(f, s, hs, b);
     }
-    this.func.connect(flags, scope, hostScope, binding);
+    this.func.connect(f, s, hs, b);
   }
 
   public accept<T>(visitor: IVisitor<T>): T {
@@ -1025,17 +978,17 @@ export class ArrayBindingPattern {
     public readonly elements: readonly IsAssign[],
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
+  public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _c: IConnectable | null): unknown {
     // TODO
     return void 0;
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     // TODO
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
+  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
     return;
   }
 
@@ -1055,17 +1008,17 @@ export class ObjectBindingPattern {
     public readonly values: readonly IsAssign[],
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
+  public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _c: IConnectable | null): unknown {
     // TODO
     return void 0;
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     // TODO
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
+  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
     return;
   }
 
@@ -1083,10 +1036,10 @@ export class BindingIdentifier {
     public readonly name: string,
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator | null): string {
+  public evaluate(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator | null, _c: IConnectable | null): string {
     return this.name;
   }
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
+  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
     return;
   }
 
@@ -1111,15 +1064,15 @@ export class ForOfStatement {
     public readonly iterable: IsBindingBehavior,
   ) {}
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): unknown {
-    return this.iterable.evaluate(flags, scope, hostScope, locator);
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): unknown {
+    return this.iterable.evaluate(f, s, hs, l, c);
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public count(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined): number {
+  public count(_f: LF, result: ObservedCollection | number | null | undefined): number {
     switch (toStringTag.call(result)) {
       case '[object Array]': return (result as unknown[]).length;
       case '[object Map]': return (result as Map<unknown, unknown>).size;
@@ -1127,36 +1080,36 @@ export class ForOfStatement {
       case '[object Number]': return result as number;
       case '[object Null]': return 0;
       case '[object Undefined]': return 0;
-      default: throw Reporter.error(0); // TODO: Set error code
+      default: throw new Error(`Cannot count ${toStringTag.call(result)}`);
     }
   }
 
-  public iterate(flags: LifecycleFlags, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
+  public iterate(f: LF, result: ObservedCollection | number | null | undefined, func: (arr: Collection, index: number, item: unknown) => void): void {
     switch (toStringTag.call(result)) {
-      case '[object Array]': return $array(flags, result as unknown[], func);
-      case '[object Map]': return $map(flags, result as Map<unknown, unknown>, func);
-      case '[object Set]': return $set(flags, result as Set<unknown>, func);
-      case '[object Number]': return $number(flags, result as number, func);
+      case '[object Array]': return $array(f, result as unknown[], func);
+      case '[object Map]': return $map(f, result as Map<unknown, unknown>, func);
+      case '[object Set]': return $set(f, result as Set<unknown>, func);
+      case '[object Number]': return $number(f, result as number, func);
       case '[object Null]': return;
       case '[object Undefined]': return;
-      default: throw Reporter.error(0); // TODO: Set error code
+      default: throw new Error(`Cannot iterate over ${toStringTag.call(result)}`);
     }
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
-    this.declaration.connect(flags, scope, hostScope, binding);
-    this.iterable.connect(flags, scope, hostScope, binding);
+  public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
+    this.declaration.connect(f, s, hs, b);
+    this.iterable.connect(f, s, hs, b);
   }
 
-  public bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
+  public bind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     if (this.iterable.hasBind) {
-      this.iterable.bind(flags, scope, hostScope, binding);
+      this.iterable.bind(f, s, hs, b);
     }
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
+  public unbind(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
     if (this.iterable.hasUnbind) {
-      this.iterable.unbind(flags, scope, hostScope, binding);
+      this.iterable.unbind(f, s, hs, b);
     }
   }
 
@@ -1185,27 +1138,24 @@ export class Interpolation {
     this.firstExpression = expressions[0];
   }
 
-  public evaluate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator): string {
+  public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): string {
     if (this.isMulti) {
-      const expressions = this.expressions;
-      const parts = this.parts;
-      let result = parts[0];
-      for (let i = 0, ii = expressions.length; i < ii; ++i) {
-        result += expressions[i].evaluate(flags, scope, hostScope, locator);
-        result += parts[i + 1];
+      let result = this.parts[0];
+      for (let i = 0; i < this.expressions.length; ++i) {
+        result += String(this.expressions[i].evaluate(f, s, hs, l, c));
+        result += this.parts[i + 1];
       }
       return result;
     } else {
-      const parts = this.parts;
-      return `${parts[0]}${this.firstExpression.evaluate(flags, scope, hostScope, locator)}${parts[1]}`;
+      return `${this.parts[0]}${this.firstExpression.evaluate(f, s, hs, l, c)}${this.parts[1]}`;
     }
   }
 
-  public assign(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, locator: IServiceLocator, obj: unknown): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown): unknown {
     return void 0;
   }
 
-  public connect(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
+  public connect(_f: LF, _s: Scope, _hs: Scope | null, _b: IConnectableBinding): void {
     return;
   }
 
@@ -1214,31 +1164,21 @@ export class Interpolation {
   }
 }
 
-/// Evaluate the [list] in context of the [scope].
-function evalList(flags: LifecycleFlags, scope: IScope, locator: IServiceLocator, list: readonly IsExpression[], hostScope: IScope | null): readonly unknown[] {
-  const len = list.length;
-  const result = Array(len);
-  for (let i = 0; i < len; ++i) {
-    result[i] = list[i].evaluate(flags, scope, hostScope, locator);
-  }
-  return result;
-}
-
-function getFunction(flags: LifecycleFlags, obj: object, name: string): ((...args: unknown[]) => unknown) | null {
+function getFunction(f: LF, obj: object, name: string): ((...args: unknown[]) => unknown) | null {
   const func = obj == null ? null : (obj as IIndexable)[name];
   if (typeof func === 'function') {
     return func as (...args: unknown[]) => unknown;
   }
-  if (!(flags & LifecycleFlags.mustEvaluate) && func == null) {
+  if (!(f & LF.mustEvaluate) && func == null) {
     return null;
   }
-  throw Reporter.error(RuntimeError.NotAFunction, obj, name, func);
+  throw new Error(`Expected '${name}' to be a function`);
 }
 
-const proxyAndOriginalArray = LifecycleFlags.proxyStrategy;
+const proxyAndOriginalArray = LF.proxyStrategy;
 
-function $array(flags: LifecycleFlags, result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
-  if ((flags & proxyAndOriginalArray) === proxyAndOriginalArray) {
+function $array(f: LF, result: unknown[], func: (arr: Collection, index: number, item: unknown) => void): void {
+  if ((f & proxyAndOriginalArray) === proxyAndOriginalArray) {
     // If we're in proxy mode, and the array is the original "items" (and not an array we created here to iterate over e.g. a set)
     // then replace all items (which are Objects) with proxies so their properties are observed in the source view model even if no
     // observers are explicitly created
@@ -1260,28 +1200,28 @@ function $array(flags: LifecycleFlags, result: unknown[], func: (arr: Collection
   }
 }
 
-function $map(flags: LifecycleFlags, result: Map<unknown, unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
+function $map(f: LF, result: Map<unknown, unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
   const arr = Array(result.size);
   let i = -1;
   for (const entry of result.entries()) {
     arr[++i] = entry;
   }
-  $array(flags, arr, func);
+  $array(f, arr, func);
 }
 
-function $set(flags: LifecycleFlags, result: Set<unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
+function $set(f: LF, result: Set<unknown>, func: (arr: Collection, index: number, item: unknown) => void): void {
   const arr = Array(result.size);
   let i = -1;
   for (const key of result.keys()) {
     arr[++i] = key;
   }
-  $array(flags, arr, func);
+  $array(f, arr, func);
 }
 
-function $number(flags: LifecycleFlags, result: number, func: (arr: Collection, index: number, item: unknown) => void): void {
+function $number(f: LF, result: number, func: (arr: Collection, index: number, item: unknown) => void): void {
   const arr = Array(result);
   for (let i = 0; i < result; ++i) {
     arr[i] = i;
   }
-  $array(flags, arr, func);
+  $array(f, arr, func);
 }

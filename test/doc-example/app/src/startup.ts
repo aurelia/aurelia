@@ -55,5 +55,5 @@ import { State } from './state';
       component: App,
     });
 
-  await au.start().wait();
+  await au.start();
 })().catch(console.error);

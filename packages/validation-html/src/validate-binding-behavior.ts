@@ -5,7 +5,6 @@ import {
   BindingMediator,
   IsAssign,
   IScheduler,
-  IScope,
   LifecycleFlags,
   CustomElementHost,
   DOM,
@@ -16,6 +15,8 @@ import {
 } from '@aurelia/runtime';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo, ValidationResultsSubscriber, ValidationEvent } from './validation-controller';
+
+import type { Scope } from '@aurelia/runtime';
 
 /**
  * Validation triggers.
@@ -69,8 +70,8 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   private readonly scheduler: IScheduler;
   private readonly defaultTrigger: ValidationTrigger;
   private readonly connectedExpressions: IsAssign[] = [];
-  private scope!: IScope;
-  private hostScope: IScope | null = null;
+  private scope!: Scope;
+  private hostScope: Scope | null = null;
   private readonly triggerMediator: BindingMediator<'handleTriggerChange'> = new BindingMediator('handleTriggerChange', this, this.observerLocator, this.locator);
   private readonly controllerMediator: BindingMediator<'handleControllerChange'> = new BindingMediator('handleControllerChange', this, this.observerLocator, this.locator);
   private readonly rulesMediator: BindingMediator<'handleRulesChange'> = new BindingMediator('handleRulesChange', this, this.observerLocator, this.locator);
@@ -121,7 +122,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     }
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null) {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null) {
     this.scope = scope;
     this.hostScope = hostScope;
     this.binding.$bind(flags, scope, hostScope);
@@ -164,8 +165,8 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   }
 
   private processBindingExpressionArgs(flags: LifecycleFlags): ValidateArgumentsDelta {
-    const scope: IScope = this.scope;
-    const hostScope: IScope | null = this.hostScope;
+    const scope: Scope = this.scope;
+    const hostScope: Scope | null = this.hostScope;
     const locator = this.locator;
     let rules: PropertyRule[] | undefined;
     let trigger: ValidationTrigger | undefined;
@@ -179,7 +180,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     const args = expression.args;
     for (let i = 0, ii = args.length; i < ii; i++) {
       const arg = args[i];
-      const temp = arg.evaluate(evaluationFlags, scope, hostScope, locator);
+      const temp = arg.evaluate(evaluationFlags, scope, hostScope, locator, null);
       switch (i) {
         case 0:
           trigger = this.ensureTrigger(temp);

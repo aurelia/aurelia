@@ -24,10 +24,10 @@ describe('InstructionResolver', function () {
     router.navigation.history = mockBrowserHistoryLocation as any;
     router.navigation.location = mockBrowserHistoryLocation as any;
 
-    await au.start().wait();
+    await au.start();
 
     async function tearDown() {
-      await au.stop().wait();
+      await au.stop();
       ctx.doc.body.removeChild(host);
 
       au.dispose();

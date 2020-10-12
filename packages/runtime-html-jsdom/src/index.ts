@@ -27,7 +27,7 @@ class JSDOMInitializer implements IDOMInitializer {
         dom = config.dom;
       } else if (config.host.ownerDocument) {
         dom = new HTMLDOM(
-          this.jsdom.window,
+          this.jsdom.window as unknown as Window,
           config.host.ownerDocument,
           this.jsdom.window.Node,
           this.jsdom.window.Element,
@@ -41,7 +41,7 @@ class JSDOMInitializer implements IDOMInitializer {
           this.jsdom.window.document.body.appendChild(config.host);
         }
         dom = new HTMLDOM(
-          this.jsdom.window,
+          this.jsdom.window as unknown as Window,
           this.jsdom.window.document,
           this.jsdom.window.Node,
           this.jsdom.window.Element,
@@ -53,7 +53,7 @@ class JSDOMInitializer implements IDOMInitializer {
       }
     } else {
       dom = new HTMLDOM(
-        this.jsdom.window,
+        this.jsdom.window as unknown as Window,
         this.jsdom.window.document,
         this.jsdom.window.Node,
         this.jsdom.window.Element,
@@ -64,7 +64,7 @@ class JSDOMInitializer implements IDOMInitializer {
       );
     }
     Registration.instance(IDOM, dom).register(this.container);
-    Registration.instance(IScheduler, createDOMScheduler(this.container, this.jsdom.window)).register(this.container);
+    Registration.instance(IScheduler, createDOMScheduler(this.container, this.jsdom.window as unknown as Window)).register(this.container);
 
     return dom;
   }

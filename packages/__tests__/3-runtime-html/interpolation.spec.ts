@@ -362,13 +362,13 @@ describe('interpolation', function () {
       })(binding.updateTarget);
       binding.partBindings[0].handleChange = (handleChange => {
         return function (...args: unknown[]) {
-          handleChange1CallCount++;
-          return handleChange.apply(this);
+          // handleChange1CallCount++;
+          return handleChange.apply(this, args);
         };
       })(binding.partBindings[0].handleChange);
       binding.partBindings[1].handleChange = (handleChange => {
         return function (...args: unknown[]) {
-          handleChange2CallCount++;
+          // handleChange2CallCount++;
           return handleChange.apply(this, args);
         };
       })(binding.partBindings[1].handleChange);

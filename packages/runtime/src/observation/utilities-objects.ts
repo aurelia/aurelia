@@ -18,7 +18,7 @@ export function defineHiddenReadonlyProp(obj: object, key: PropertyKey, value: u
   });
 }
 
-export function isArray(obj: unknown): obj is [] {
+export function isArray(obj: unknown): obj is unknown[] {
   return obj instanceof Array;
 }
 

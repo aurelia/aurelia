@@ -168,22 +168,25 @@ export {
   ObserverLocator
 } from './observation/observer-locator';
 export {
-  PrimitiveObserver
+  PrimitiveObserver,
 } from './observation/primitive-observer';
 export {
-  PropertyAccessor
+  PropertyAccessor,
 } from './observation/property-accessor';
 export {
-  ProxyObserver
+  ProxyObservable,
+} from './observation/proxy-observation';
+export {
+  ProxyObserver,
 } from './observation/proxy-observer';
 export {
-  BindableObserver
+  BindableObserver,
 } from './observation/bindable-observer';
 export {
-  SetterObserver
+  SetterObserver,
 } from './observation/setter-observer';
 export {
-  ISignaler
+  ISignaler,
 } from './observation/signaler';
 export {
   subscriberCollection,
@@ -332,6 +335,11 @@ export {
   view,
   Views,
 } from './templating/view';
+
+export {
+  watch,
+  Watch
+} from './templating/watch';
 
 export {
   Aurelia,

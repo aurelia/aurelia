@@ -20,7 +20,7 @@ export function getRaw<T extends object>(obj: T): T {
   return (obj as IIndexable)[rawKey] as T ?? obj;
 }
 
-export function doNotCollect(obj: object, key: PropertyKey): boolean {
+function doNotCollect(obj: object, key: PropertyKey): boolean {
   return key === 'constructor'
     || key === '__proto__'
     // probably should revert to v1 naming style for consistency with builtin?
@@ -41,7 +41,7 @@ function createProxy<T extends object>(obj: T): T {
   return proxiedObj as T;
 }
 
-export const objectHandler: ProxyHandler<object> = {
+const objectHandler: ProxyHandler<object> = {
   get(target: IIndexable, key: PropertyKey, receiver: object): unknown {
     // maybe use symbol?
     if (key === rawKey && getProxy(receiver) === target) {
@@ -62,7 +62,7 @@ export const objectHandler: ProxyHandler<object> = {
   },
 }
 
-export const arrayHandler: ProxyHandler<unknown[]> = {
+const arrayHandler: ProxyHandler<unknown[]> = {
   get(target: unknown[], key: PropertyKey, receiver?): unknown {
     // maybe use symbol?
     if (key === rawKey) {
@@ -91,7 +91,7 @@ export const arrayHandler: ProxyHandler<unknown[]> = {
 
 // the below logic takes inspiration from Vue, Mobx
 // much thanks to them for working out this
-export const collectionHandler: ProxyHandler<$MapOrSet> = {
+const collectionHandler: ProxyHandler<$MapOrSet> = {
   get(target: $MapOrSet, key: PropertyKey, receiver?): unknown {
     // maybe use symbol?
     if (key === rawKey) {
@@ -245,3 +245,8 @@ function wrappedEntries(this: $MapOrSet): IterableIterator<unknown> {
     },
   };
 }
+
+export const ProxyObservable = Object.freeze({
+  getProxy,
+  getRaw,
+});

@@ -20,7 +20,6 @@ import {
   IndexMap,
   IObservedArray,
   IOverrideContext,
-  IScope,
   ObservedCollection,
 } from '../../observation';
 import { applyMutationsToIndices, synchronizeIndices } from '../../observation/array-observer';
@@ -205,7 +204,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let promises: Promise<void>[] | undefined = void 0;
     let ret: void | Promise<void>;
     let view: ISyntheticView<T>;
-    let viewScope: IScope;
+    let viewScope: Scope;
 
     const { $controller, factory, local, location, items } = this;
     const parentScope = $controller.scope;
@@ -304,7 +303,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     let promises: Promise<void>[] | undefined = void 0;
     let ret: void | Promise<void>;
     let view: ISyntheticView<T>;
-    let viewScope: IScope;
+    let viewScope: Scope;
 
     const { $controller, factory, local, normalizedItems, location, views } = this;
     const mapLen = indexMap.length;

@@ -86,7 +86,7 @@ describe('[repeat] -- funny cases', function () {
       const component = new App();
 
       au.app({ host, component });
-      await au.start().wait();
+      await au.start();
 
       assert.strictEqual(host.textContent, expectedTextContent, `host.textContent`);
       if (customAssertion) {
@@ -118,7 +118,7 @@ describe('[repeat] -- funny cases', function () {
   }
 
   async function tearDown(au: Aurelia) {
-    await au.stop().wait();
+    await au.stop();
     (au.root.host as Element).remove();
 
     au.dispose();

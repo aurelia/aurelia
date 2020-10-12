@@ -332,11 +332,11 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         ctx.container.register(...resources);
         const au = new Aurelia(ctx.container);
         au.app({ host, component: comp });
-        await au.start().wait();
+        await au.start();
 
         await assertFn(ctx, host, comp);
 
-        await au.stop().wait();
+        await au.stop();
 
         au.dispose();
       } finally {

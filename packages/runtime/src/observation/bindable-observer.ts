@@ -1,4 +1,4 @@
-import { IIndexable, Reporter, PLATFORM } from '@aurelia/kernel';
+import { IIndexable, PLATFORM } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { IPropertyObserver, ISubscriber, AccessorType } from '../observation';
@@ -129,21 +129,17 @@ export class BindableObserver {
   }
 
   private createGetterSetter(): void {
-    if (
-      !Reflect.defineProperty(
-        this.obj,
-        this.propertyKey,
-        {
-          enumerable: true,
-          configurable: true,
-          get: () => this.currentValue,
-          set: (value: unknown) => {
-            this.setValue(value, LifecycleFlags.none);
-          }
+    Reflect.defineProperty(
+      this.obj,
+      this.propertyKey,
+      {
+        enumerable: true,
+        configurable: true,
+        get: () => this.currentValue,
+        set: (value: unknown) => {
+          this.setValue(value, LifecycleFlags.none);
         }
-      )
-    ) {
-      Reporter.write(1, this.propertyKey, this.obj);
-    }
+      }
+    );
   }
 }

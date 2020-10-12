@@ -95,7 +95,7 @@ export function asyncTaskWaiter(
       });
     },
     {
-      async: true,
+      suspend: true,
     },
   );
   const promise = task.result;

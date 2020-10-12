@@ -33,7 +33,7 @@ describe('binding-resources', function () {
 
       const component = new App();
       au.app({ component, host });
-      await au.start().wait();
+      await au.start();
 
       const receiver = component.receiver;
       component.value = '1';
@@ -58,7 +58,7 @@ describe('binding-resources', function () {
 
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
 
-      await au.stop().wait();
+      await au.stop();
 
       au.dispose();
     });
@@ -87,7 +87,7 @@ describe('binding-resources', function () {
 
       const component = new App();
       au.app({ component, host });
-      await au.start().wait();
+      await au.start();
 
       const receiver = component.receiver;
       component.value = '1';
@@ -112,7 +112,7 @@ describe('binding-resources', function () {
 
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
 
-      await au.stop().wait();
+      await au.stop();
 
       au.dispose();
     });
@@ -141,7 +141,7 @@ describe('binding-resources', function () {
 
       const component = new App();
       au.app({ component, host });
-      await au.start().wait();
+      await au.start();
 
       const receiver = component.receiver;
       component.value = '1';
@@ -169,7 +169,7 @@ describe('binding-resources', function () {
 
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
 
-      await au.stop().wait();
+      await au.stop();
 
       au.dispose();
     });
@@ -195,7 +195,7 @@ describe('binding-resources', function () {
 
         ctx.doc.body.appendChild(host);
         au.app({ component, host });
-        await au.start().wait();
+        await au.start();
 
         const eventInit = { bubbles: true, cancelable: true };
         const receiver = component.receiver;
@@ -227,7 +227,7 @@ describe('binding-resources', function () {
 
         host.remove();
 
-        await au.stop().wait();
+        await au.stop();
 
         au.dispose();
       });

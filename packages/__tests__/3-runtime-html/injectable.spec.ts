@@ -89,11 +89,11 @@ describe('CustomElement.createInjectable', function () {
     const component = new Root();
     const au = new Aurelia(ctx.container).register(Parent, Child).app({ host, component });
 
-    await au.start().wait();
+    await au.start();
 
     assert.visibleTextEqual(au.root, ' P(1 C(1) C(5) C(2) C(6)) P(3 C(7) C(9) C(8) C(10)) P(2 C(3) C(11) C(4) C(12)) P(4 C(13) C(15) C(14) C(16))');
 
-    await au.stop().wait();
+    await au.stop();
 
     au.dispose();
   });

@@ -1,4 +1,5 @@
-import { IServiceLocator, Writable, IIndexable, PLATFORM } from '@aurelia/kernel';
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+import { IServiceLocator, Writable, IIndexable } from '@aurelia/kernel';
 import {
   eachCartesianJoin,
   eachCartesianJoinFactory,
@@ -30,7 +31,7 @@ import {
   IConnectableBinding,
   IsBinary,
   IsBindingBehavior,
-  IScope,
+  Scope,
   ISignaler,
   IsLeftHandSide,
   IsPrimary,
@@ -39,7 +40,6 @@ import {
   ObjectLiteralExpression,
   OverrideContext,
   PrimitiveLiteralExpression,
-  Scope,
   TaggedTemplateExpression,
   TemplateExpression,
   UnaryExpression,
@@ -58,9 +58,84 @@ const $tpl = TemplateExpression.$empty;
 const $this = AccessThisExpression.$this;
 const $host = AccessThisExpression.$host;
 const $parent = AccessThisExpression.$parent;
-const dummyBinding = { locator: null } as unknown as IConnectableBinding;
 
-function throwsOn<TExpr extends IsBindingBehavior>(expr: TExpr, method: keyof TExpr, msg: string, ...args: any[]): void {
+const dummyLocator = {} as unknown as IServiceLocator;
+const dummyLocatorThatReturnsNull = {
+  get() {
+    return null;
+  },
+} as unknown as IServiceLocator;
+const dummyBinding = {
+  observeProperty: () => { return; },
+  locator: dummyLocator
+} as unknown as IConnectableBinding;
+const dummyBindingWithLocatorThatReturnsNull = {
+  observeProperty: () => { return; },
+  locator: dummyLocatorThatReturnsNull,
+} as unknown as IConnectableBinding;
+const dummyScope = Scope.create(LF.none, {});
+const dummyHostScope = Scope.create(LF.none, {});
+
+function evaluateThrowsWhenHostScopeIsNullForHostScopedExpr(inputs: [string, IsBindingBehavior][]) {
+  describe('evaluate() throws when hostScope is null for a hostScoped expression', function () {
+    for (const [text, expr] of inputs) {
+      if (text.startsWith('$host')) {
+        it(`${text}, null`, function () {
+          throwsOn(expr, 'evaluate', 'Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?', LF.none, dummyScope, null, dummyLocator, null);
+        });
+      }
+    }
+  });
+}
+
+function assignThrowsWhenHostScopeIsNullForHostScopedExpr(inputs: [string, IsBindingBehavior][]) {
+  describe('assign() throws when hostScope is null for a hostScoped expression', function () {
+    for (const [text, expr] of inputs) {
+      if (text.startsWith('$host')) {
+        it(`${text}, null`, function () {
+          throwsOn(expr, 'assign', 'Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?', LF.none, dummyScope, null, dummyLocator, null);
+        });
+      }
+    }
+  });
+}
+
+function assignDoesNotThrow(inputs: [string, IsBindingBehavior][]) {
+  describe('assign() does not throw / is a no-op', function () {
+    for (const [text, expr] of inputs) {
+      it(`${text}, null`, function () {
+        expr.assign(LF.none, null, null, null, null);
+      });
+    }
+  });
+}
+
+function connectThrowsWhenHostScopeIsNullForHostScopedExpr(inputs: [string, IsBindingBehavior][]) {
+  describe('connect() throws when hostScope is null for a hostScoped expression', function () {
+    for (const [text, expr] of inputs) {
+      if (text.startsWith('$host')) {
+        it(`${text}, null`, function () {
+          throwsOn(expr, 'connect', 'Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?', LF.none, dummyScope, null, dummyBinding);
+        });
+      }
+    }
+  });
+}
+
+function connectDoesNotThrow(inputs: [string, IsBindingBehavior][]) {
+  describe('connect() does not throw / is a no-op', function () {
+    for (const [text, expr] of inputs) {
+      it(`${text}, null`, function () {
+        expr.connect(null, null, null, dummyBinding);
+      });
+    }
+  });
+}
+
+function throwsOn<
+  TExpr extends IsBindingBehavior,
+  TMethod extends keyof TExpr,
+>(expr: TExpr, method: TMethod, msg: string, ...args: TExpr[TMethod] extends ((...args: infer TArgs) => any) ? TArgs : never): void {
   let err = null;
   try {
     (expr as any)[method](...args);
@@ -326,584 +401,139 @@ describe('AST', function () {
       }
     });
 
-    describe('connect() does not throw / is a no-op', function () {
-      for (const [text, expr] of [
-        ...StringLiteralList,
-        ...NumberLiteralList,
-        ...KeywordLiteralList,
-        ...TemplateLiteralList,
-        ...ArrayLiteralList,
-        ...ObjectLiteralList
-      ]) {
-        it(`${text}, undefined`, function () {
-          assert.strictEqual(expr.connect(null, undefined, null, dummyBinding), undefined, `expr.connect(null, undefined, dummyBinding)`);
-        });
-        it(`${text}, null`, function () {
-          assert.strictEqual(expr.connect(null, null, null, dummyBinding), undefined, `expr.connect(null, null, dummyBinding)`);
-        });
-      }
-    });
-
-    describe('assign() does not throw / is a no-op', function () {
-      for (const [text, expr] of [
-        ...StringLiteralList,
-        ...NumberLiteralList,
-        ...KeywordLiteralList,
-        ...TemplateLiteralList,
-        ...ArrayLiteralList,
-        ...ObjectLiteralList
-      ]) {
-        it(`${text}, undefined`, function () {
-          assert.strictEqual(expr.assign(null, undefined, null, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-        });
-        it(`${text}, null`, function () {
-          assert.strictEqual(expr.assign(null, null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-        });
-      }
-    });
+    connectDoesNotThrow([
+      ...StringLiteralList,
+      ...NumberLiteralList,
+      ...KeywordLiteralList,
+      ...TemplateLiteralList,
+      ...ArrayLiteralList,
+      ...ObjectLiteralList
+    ]);
+    assignDoesNotThrow([
+      ...StringLiteralList,
+      ...NumberLiteralList,
+      ...KeywordLiteralList,
+      ...TemplateLiteralList,
+      ...ArrayLiteralList,
+      ...ObjectLiteralList
+    ]);
   });
 
   describe('Context Accessors', function () {
-    describe('evaluate() throws when scope is nil', function () {
-      for (const [text, expr] of AccessThisList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
-        });
-        it(`${text}, null`, function () {
-          throwsOn(expr, 'evaluate', 'Code 250', null, null);
-        });
-      }
-    });
-
-    describe('assign() does not throw / is a no-op', function () {
-      for (const [text, expr] of AccessThisList) {
-        it(`${text}, undefined`, function () {
-          assert.strictEqual(expr.assign(null, undefined, null, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-        });
-        it(`${text}, null`, function () {
-          assert.strictEqual(expr.assign(null, null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-        });
-      }
-    });
-
-    describe('connect() does not throw / is a no-op', function () {
-      for (const [text, expr] of AccessThisList) {
-        it(`${text}, undefined`, function () {
-          assert.strictEqual(expr.connect(null, undefined, null, dummyBinding), undefined, `expr.connect(null, undefined, dummyBinding)`);
-        });
-        it(`${text}, null`, function () {
-          assert.strictEqual(expr.connect(null, null, null, dummyBinding), undefined, `expr.connect(null, null, dummyBinding)`);
-        });
-      }
-    });
+    assignDoesNotThrow(AccessThisList);
+    connectDoesNotThrow(AccessThisList);
   });
 
   describe('Scope Accessors', function () {
-    describe('evaluate() throws', function () {
-      for (const [text, expr] of [
-        ...AccessScopeList,
-        ...SimpleAccessKeyedList,
-        ...SimpleAccessMemberList,
-        ...TemplateInterpolationList,
-        ...SimpleTaggedTemplateList
-      ]) {
-        if (!text.startsWith('$host')) {
-          describe('when scope is nil', function () {
-            it(`${text}, undefined`, function () {
-              throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
-            });
-            it(`${text}, null`, function () {
-              throwsOn(expr, 'evaluate', 'Code 250', null, null);
-            });
-          });
-        } else {
-          describe('when hostScope is null for a hostScoped expression', function () {
-            it(`${text}, null`, function () {
-              throwsOn(expr, 'evaluate', 'Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?', null, Scope.create(LF.none, {}), null, null);
-            });
-          });
-        }
-      }
-    });
+    evaluateThrowsWhenHostScopeIsNullForHostScopedExpr([
+      ...AccessScopeList,
+      ...SimpleAccessKeyedList,
+      ...SimpleAccessMemberList,
+      ...TemplateInterpolationList,
+      ...SimpleTaggedTemplateList
+    ]);
 
-    describe('assign() throws', function () {
-      for (const [text, expr] of [
-        ...AccessScopeList,
-        ...SimpleAccessKeyedList,
-        ...SimpleAccessMemberList
-      ]) {
-        if (!text.startsWith('$host')) {
-          describe('when scope is nil', function () {
-            it(`${text}, undefined`, function () {
-              throwsOn(expr, 'assign', 'Code 250', null, undefined);
-            });
-            it(`${text}, null`, function () {
-              throwsOn(expr, 'assign', 'Code 250', null, null);
-            });
-          });
-        } else {
-          describe('when hostScope is null for a hostScoped-expression', function () {
-            it(`${text}, null`, function () {
-              throwsOn(expr, 'assign', 'Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?', null, Scope.create(LF.none, {}), null, null);
-            });
-          });
-        }
-      }
-    });
+    assignThrowsWhenHostScopeIsNullForHostScopedExpr([
+      ...AccessScopeList,
+      ...SimpleAccessKeyedList,
+      ...SimpleAccessMemberList
+    ]);
+    assignDoesNotThrow([
+      ...TemplateInterpolationList,
+      ...SimpleTaggedTemplateList
+    ]);
 
-    describe('assign() does not throw / is a no-op', function () {
-      for (const [text, expr] of [
-        ...TemplateInterpolationList,
-        ...SimpleTaggedTemplateList
-      ]) {
-        if (!text.startsWith('$host')) {
-          it(`${text}, undefined`, function () {
-            assert.strictEqual(expr.assign(null, undefined, null, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-          });
-          it(`${text}, null`, function () {
-            assert.strictEqual(expr.assign(null, null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-          });
-        }
-      }
-    });
-
-    describe('connect() throws', function () {
-      for (const [text, expr] of [
-        ...AccessScopeList,
-        ...SimpleAccessKeyedList,
-        ...SimpleAccessMemberList,
-        ...TemplateInterpolationList,
-        ...SimpleTaggedTemplateList
-      ]) {
-        if (!text.startsWith('$host')) {
-          describe('when scope is nil', function () {
-            it(`${text}, undefined`, function () {
-              throwsOn(expr, 'connect', 'Code 250', null, undefined, undefined, dummyBinding);
-            });
-            it(`${text}, null`, function () {
-              throwsOn(expr, 'connect', 'Code 250', null, null, undefined, dummyBinding);
-            });
-          });
-        } else {
-          describe('when hostScope is null for a hostScoped-expression', function () {
-            it(`${text}, null`, function () {
-              throwsOn(expr, 'connect', 'Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?', null, Scope.create(LF.none, {}), null, { observeProperty: PLATFORM.noop, locator: null });
-            });
-          });
-        }
-      }
-    });
+    connectThrowsWhenHostScopeIsNullForHostScopedExpr([
+      ...AccessScopeList,
+      ...SimpleAccessKeyedList,
+      ...SimpleAccessMemberList,
+      ...TemplateInterpolationList,
+      ...SimpleTaggedTemplateList
+    ]);
   });
 
   describe('CallExpression', function () {
-    describe('evaluate() throws', function () {
-      for (const [text, expr] of [
-        ...SimpleCallFunctionList,
-        ...SimpleCallScopeList,
-        ...SimpleCallMemberList
-      ]) {
-        if (!text.startsWith('$host')) {
-          describe('when scope is nil', function () {
-            it(`${text}, undefined`, function () {
-              throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
-            });
-            it(`${text}, null`, function () {
-              throwsOn(expr, 'evaluate', 'Code 250', null, null);
-            });
-          });
-        } else {
-          describe('when hostScope is null for a hostScoped-expression', function () {
-            it(`${text}, null`, function () {
-              throwsOn(expr, 'evaluate', 'Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?', null, Scope.create(LF.none, {}), null, null);
-            });
-          });
-        }
-      }
-    });
+    evaluateThrowsWhenHostScopeIsNullForHostScopedExpr([
+      ...SimpleCallFunctionList,
+      ...SimpleCallScopeList,
+      ...SimpleCallMemberList
+    ]);
+    assignDoesNotThrow([
+      ...SimpleCallFunctionList,
+      ...SimpleCallScopeList,
+      ...SimpleCallMemberList
+    ]);
 
-    describe('assign() does not throw / is a no-op', function () {
-      for (const [text, expr] of [
-        ...SimpleCallFunctionList,
-        ...SimpleCallScopeList,
-        ...SimpleCallMemberList
-      ]) {
-        if (!text.startsWith('$host')) {
-          it(`${text}, undefined`, function () {
-            assert.strictEqual(expr.assign(null, undefined, null, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-          });
-          it(`${text}, null`, function () {
-            assert.strictEqual(expr.assign(null, null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-          });
-        }
-      }
-    });
-
-    describe('connect() throws', function () {
-      for (const [text, expr] of [
-        ...SimpleCallMemberList,
-        ...SimpleCallFunctionList
-      ]) {
-        if (!text.startsWith('$host')) {
-          describe('when scope is nil', function () {
-            it(`${text}, undefined`, function () {
-              throwsOn(expr, 'connect', 'Code 250', null, undefined, undefined, dummyBinding);
-            });
-            it(`${text}, null`, function () {
-              throwsOn(expr, 'connect', 'Code 250', null, null, undefined, dummyBinding);
-            });
-          });
-        } else {
-          describe('when hostScope is null for a hostScoped-expression', function () {
-            it(`${text}, null`, function () {
-              throwsOn(expr, 'connect', 'Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?', null, Scope.create(LF.none, {}), null, dummyBinding);
-            });
-          });
-        }
-      }
-    });
-
-    describe('connect() does not throw / is a no-op', function () {
-      for (const [text, expr] of [
-        ...SimpleCallScopeList
-      ]) {
-        it(`${text}, undefined`, function () {
-          assert.strictEqual(expr.connect(null, undefined, null, dummyBinding), undefined, `expr.connect(null, undefined, dummyBinding)`);
-        });
-        it(`${text}, null`, function () {
-          assert.strictEqual(expr.connect(null, null, null, dummyBinding), undefined, `expr.connect(null, null, dummyBinding)`);
-        });
-      }
-    });
+    connectThrowsWhenHostScopeIsNullForHostScopedExpr([
+      ...SimpleCallMemberList,
+      ...SimpleCallFunctionList
+    ]);
+    connectDoesNotThrow(SimpleCallScopeList);
   });
 
   describe('UnaryExpression', function () {
-    describe('evaluate() throws when scope is nil', function () {
-      for (const [text, expr] of SimpleUnaryList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
-        });
-        it(`${text}, null`, function () {
-          throwsOn(expr, 'evaluate', 'Code 250', null, null);
-        });
-      }
-    });
-
-    describe('assign() does not throw / is a no-op', function () {
-      for (const [text, expr] of SimpleUnaryList) {
-        it(`${text}, undefined`, function () {
-          assert.strictEqual(expr.assign(null, undefined, null, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-        });
-        it(`${text}, null`, function () {
-          assert.strictEqual(expr.assign(null, null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-        });
-      }
-    });
-
-    describe('connect() throws when scope is nil', function () {
-      for (const [text, expr] of SimpleUnaryList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, undefined, undefined, dummyBinding);
-        });
-        it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, null, undefined, dummyBinding);
-        });
-      }
-    });
+    assignDoesNotThrow(SimpleUnaryList);
+    connectThrowsWhenHostScopeIsNullForHostScopedExpr(SimpleUnaryList);
   });
 
   describe('BinaryExpression', function () {
-    describe('evaluate() throws when scope is nil', function () {
-      for (const [text, expr] of [
-        ...SimpleMultiplicativeList,
-        ...SimpleAdditiveList,
-        ...SimpleRelationalList,
-        ...SimpleEqualityList,
-        ...SimpleLogicalANDList,
-        ...SimpleLogicalORList
-      ]) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
-        });
-        it(`${text}, null`, function () {
-          throwsOn(expr, 'evaluate', 'Code 250', null, null);
-        });
-      }
-    });
-
-    describe('assign() does not throw / is a no-op', function () {
-      for (const [text, expr] of [
-        ...SimpleMultiplicativeList,
-        ...SimpleAdditiveList,
-        ...SimpleRelationalList,
-        ...SimpleEqualityList,
-        ...SimpleLogicalANDList,
-        ...SimpleLogicalORList
-      ]) {
-        it(`${text}, undefined`, function () {
-          assert.strictEqual(expr.assign(null, undefined, null, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-        });
-        it(`${text}, null`, function () {
-          assert.strictEqual(expr.assign(null, null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-        });
-      }
-    });
-
-    describe('connect() throws when scope is nil', function () {
-      for (const [text, expr] of [
-        ...SimpleMultiplicativeList,
-        ...SimpleAdditiveList,
-        ...SimpleRelationalList,
-        ...SimpleEqualityList,
-        ...SimpleLogicalANDList,
-        ...SimpleLogicalORList
-      ]) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, undefined, undefined, dummyBinding);
-        });
-        it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, null, undefined, dummyBinding);
-        });
-      }
-    });
+    const SimplyBinaryList = [
+      ...SimpleMultiplicativeList,
+      ...SimpleAdditiveList,
+      ...SimpleRelationalList,
+      ...SimpleEqualityList,
+      ...SimpleLogicalANDList,
+      ...SimpleLogicalORList
+    ];
+    assignDoesNotThrow(SimplyBinaryList);
+    connectThrowsWhenHostScopeIsNullForHostScopedExpr(SimplyBinaryList);
   });
 
   describe('ConditionalExpression', function () {
-    describe('evaluate() throws when scope is nil', function () {
-      for (const [text, expr] of SimpleConditionalList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
-        });
-        it(`${text}, null`, function () {
-          throwsOn(expr, 'evaluate', 'Code 250', null, null);
-        });
-      }
-    });
-
-    describe('assign() does not throw / is a no-op', function () {
-      for (const [text, expr] of SimpleConditionalList) {
-        it(`${text}, undefined`, function () {
-          assert.strictEqual(expr.assign(null, undefined, null, null, undefined), undefined, `expr.assign(null, undefined, null, undefined)`);
-        });
-        it(`${text}, null`, function () {
-          assert.strictEqual(expr.assign(null, null, null, null, undefined), undefined, `expr.assign(null, null, null, undefined)`);
-        });
-      }
-    });
-
-    describe('connect() throws when scope is nil', function () {
-      for (const [text, expr] of SimpleConditionalList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, undefined, undefined, dummyBinding);
-        });
-        it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, null, undefined, dummyBinding);
-        });
-      }
-    });
+    assignDoesNotThrow(SimpleConditionalList);
+    connectThrowsWhenHostScopeIsNullForHostScopedExpr(SimpleConditionalList);
   });
 
   describe('AssignExpression', function () {
-    describe('evaluate() throws when scope is nil', function () {
-      for (const [text, expr] of SimpleAssignList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
-        });
-        it(`${text}, null`, function () {
-          throwsOn(expr, 'evaluate', 'Code 250', null, null);
-        });
-      }
-    });
-
-    describe('assign() throws when scope is nil', function () {
-      for (const [text, expr] of SimpleAssignList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'assign', 'Code 250', null, undefined);
-        });
-        it(`${text}, null`, function () {
-          throwsOn(expr, 'assign', 'Code 250', null, null);
-        });
-      }
-    });
-
-    describe('connect() does not throw / is a no-op', function () {
-      for (const [text, expr] of SimpleAssignList) {
-        it(`${text}, undefined`, function () {
-          assert.strictEqual(expr.connect(null, undefined, null, dummyBinding), undefined, `expr.connect(null, undefined, dummyBinding)`);
-        });
-        it(`${text}, null`, function () {
-          assert.strictEqual(expr.connect(null, null, null, dummyBinding), undefined, `expr.connect(null, null, dummyBinding)`);
-        });
-      }
-    });
+    connectDoesNotThrow(SimpleAssignList);
   });
 
   describe('ValueConverterExpression', function () {
-    describe('evaluate() throws when locator is nil', function () {
-      for (const [text, expr] of SimpleValueConverterList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'evaluate', 'Code 202', null, undefined);
-        });
-        it(`${text}, null`, function () {
-          throwsOn(expr, 'evaluate', 'Code 202', null, null);
-        });
-      }
-    });
     describe('evaluate() throws when returned converter is nil', function () {
-      const locator = { get() {
-        return null;
-      } };
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, undefined`, function () {
-          throwsOn(expr, 'evaluate', 'Code 205', null, null, null, locator);
+          throwsOn(expr, 'evaluate', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyHostScope, dummyLocatorThatReturnsNull, null);
         });
       }
     });
 
-    describe('assign() throws when locator is nil', function () {
-      for (const [text, expr] of SimpleValueConverterList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'assign', 'Code 202', null, null, undefined);
-        });
-        it(`${text}, null`, function () {
-          throwsOn(expr, 'assign', 'Code 202', null, null, null);
-        });
-      }
-    });
     describe('assign() throws when returned converter is null', function () {
-      const locator = { get() {
-        return null;
-      } };
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, null`, function () {
-          throwsOn(expr, 'assign', 'Code 205', null, null, null, locator);
+          throwsOn(expr, 'assign', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyHostScope, dummyLocatorThatReturnsNull, null);
         });
       }
     });
 
-    describe('connect() throws when scope is nil', function () {
-      for (const [text, expr] of SimpleValueConverterList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, undefined, undefined, dummyBinding);
-        });
-        it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, null, undefined, dummyBinding);
-        });
-      }
-    });
-
-    describe('connect() throws when binding is null', function () {
-      for (const [text, expr] of SimpleValueConverterList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'connect', 'Code 206', null, {}, null, null);
-        });
-      }
-    });
-
-    describe('connect() throws when locator is null', function () {
-      for (const [text, expr] of SimpleValueConverterList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'connect', 'Code 202', null, {}, null, dummyBinding);
-        });
-      }
-    });
+    connectThrowsWhenHostScopeIsNullForHostScopedExpr(SimpleValueConverterList);
 
     describe('connect() throws when returned converter is null', function () {
-      const locator = { get() {
-        return null;
-      } };
       for (const [text, expr] of SimpleValueConverterList) {
         it(`${text}, undefined`, function () {
-          throwsOn(expr, 'connect', 'Code 205', null, {}, null, { locator, observeProperty: () => { return; } });
+          throwsOn(expr, 'connect', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyHostScope, dummyBindingWithLocatorThatReturnsNull);
         });
       }
     });
   });
 
   describe('BindingBehaviorExpression', function () {
-    describe('evaluate() throws when locator is nil', function () {
-      for (const [text, expr] of SimpleBindingBehaviorList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'evaluate', 'Code 250', null, undefined);
-        });
-        it(`${text}, null`, function () {
-          throwsOn(expr, 'evaluate', 'Code 250', null, null);
-        });
-      }
-    });
-
-    describe('assign() throws when locator is nil', function () {
-      for (const [text, expr] of SimpleBindingBehaviorList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'assign', 'Code 250', null, undefined);
-        });
-        it(`${text}, null`, function () {
-          throwsOn(expr, 'assign', 'Code 250', null, null);
-        });
-      }
-    });
-
-    describe('connect() throws when scope is nil', function () {
-      for (const [text, expr] of SimpleBindingBehaviorList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, undefined);
-        });
-        it(`${text}, null`, function () {
-          throwsOn(expr, 'connect', 'Code 250', null, null);
-        });
-      }
-    });
-
-    describe('bind() throws when scope is nil', function () {
-      for (const [text, expr] of SimpleBindingBehaviorList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'bind', 'Code 250', null, undefined);
-        });
-        it(`${text}, null`, function () {
-          throwsOn(expr, 'bind', 'Code 250', null, null);
-        });
-      }
-    });
-
-    describe('bind() throws when binding is null', function () {
-      for (const [text, expr] of SimpleBindingBehaviorList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'bind', 'Code 206', null, {}, null);
-        });
-      }
-    });
-
-    describe('bind() throws when locator is null', function () {
-      for (const [text, expr] of SimpleBindingBehaviorList) {
-        it(`${text}, undefined`, function () {
-          throwsOn(expr, 'bind', 'Code 202', null, {}, null, {});
-        });
-      }
-    });
-
     describe('bind() throws when returned behavior is null', function () {
-      const locator = { get() {
-        return null;
-      } };
       for (const [text, expr] of SimpleBindingBehaviorList) {
         it(`${text}, undefined`, function () {
-          throwsOn(expr, 'bind', 'Code 203', null, {}, null, { locator, observeProperty: () => { return; } });
+          throwsOn(expr, 'bind', `BindingBehavior named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyHostScope, dummyBindingWithLocatorThatReturnsNull);
         });
       }
     });
-
-    // TODO: this should throw (or at least verify warning), but leave it be for now due to friction with generated
-    // tests (which need to be fixed of course)
-    // describe('bind() throws when returned behavior is already present', function () {
-    //   const behavior = {};
-    //   const locator = { get() {
-    //     return behavior;
-    //   } };
-    //   for (const [text, expr] of SimpleBindingBehaviorList) {
-    //     it(`${text}, undefined`, function () {
-    //       throwsOn(expr, 'bind', 'Code 204', null, {}, { [expr.behaviorKey]: behavior, locator, observeProperty: () => { return; } });
-    //     });
-    //   }
-    // });
   });
 });
 
@@ -1324,7 +954,7 @@ describe('AccessScopeExpression', function () {
   for(const isHostScoped of [true, false]) {
     it(`evaluates undefined bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const scope = Scope.create(LF.none, undefined, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = Scope.create(LF.none, undefined, null);
         makeHostScoped(foo, true);
@@ -1334,7 +964,7 @@ describe('AccessScopeExpression', function () {
 
     it(`evaluates undefined bindingContext STRICT${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const scope = Scope.create(LF.none, undefined, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = Scope.create(LF.none, undefined, null);
         makeHostScoped(foo, true);
@@ -1344,7 +974,7 @@ describe('AccessScopeExpression', function () {
 
     it(`assigns undefined bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const scope = Scope.create(LF.none, undefined, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = Scope.create(LF.none, undefined, null);
         makeHostScoped(foo, true);
@@ -1355,7 +985,7 @@ describe('AccessScopeExpression', function () {
 
     it(`connects undefined bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const scope = Scope.create(LF.none, undefined, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = Scope.create(LF.none, undefined, null);
         makeHostScoped(foo, true);
@@ -1368,7 +998,7 @@ describe('AccessScopeExpression', function () {
 
     it(`evaluates null bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const scope = Scope.create(LF.none, null, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = Scope.create(LF.none, undefined, null);
         makeHostScoped(foo, true);
@@ -1378,7 +1008,7 @@ describe('AccessScopeExpression', function () {
 
     it(`evaluates null bindingContext STRICT${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const scope = Scope.create(LF.none, null, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = Scope.create(LF.none, null, null);
         makeHostScoped(foo, true);
@@ -1388,7 +1018,7 @@ describe('AccessScopeExpression', function () {
 
     it(`assigns null bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const scope = Scope.create(LF.none, null, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = Scope.create(LF.none, null, null);
         makeHostScoped(foo, true);
@@ -1399,7 +1029,7 @@ describe('AccessScopeExpression', function () {
 
     it(`connects null bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const scope = Scope.create(LF.none, null, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = Scope.create(LF.none, null, null);
         makeHostScoped(foo, true);
@@ -1411,8 +1041,8 @@ describe('AccessScopeExpression', function () {
     });
 
     it(`evaluates defined property on bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
-      let scope: IScope = createScopeForTest({ foo: 'bar' });
-      let hs: IScope | null = null;
+      let scope: Scope = createScopeForTest({ foo: 'bar' });
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1424,7 +1054,7 @@ describe('AccessScopeExpression', function () {
     it(`evaluates defined property on overrideContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' });
       scope.overrideContext.foo = 'bar';
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1435,7 +1065,7 @@ describe('AccessScopeExpression', function () {
 
     it(`assigns defined property on bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ foo: 'bar' });
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1447,7 +1077,7 @@ describe('AccessScopeExpression', function () {
 
     it(`assigns undefined property to bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' });
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1460,7 +1090,7 @@ describe('AccessScopeExpression', function () {
     it(`assigns defined property on overrideContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' });
       scope.overrideContext.foo = 'bar';
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1472,7 +1102,7 @@ describe('AccessScopeExpression', function () {
 
     it(`connects defined property on bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ foo: 'bar' });
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1487,7 +1117,7 @@ describe('AccessScopeExpression', function () {
     it(`connects defined property on overrideContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' });
       scope.overrideContext.foo = 'bar';
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1501,7 +1131,7 @@ describe('AccessScopeExpression', function () {
 
     it(`connects undefined property on bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' });
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1515,7 +1145,7 @@ describe('AccessScopeExpression', function () {
 
     it(`evaluates defined property on first ancestor bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' }, { foo: 'bar' });
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1534,7 +1164,7 @@ describe('AccessScopeExpression', function () {
 
     it(`assigns defined property on first ancestor bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' }, { foo: 'bar' });
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1549,7 +1179,7 @@ describe('AccessScopeExpression', function () {
     it(`assigns defined property on first ancestor overrideContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
       scope.parentScope.overrideContext.foo = 'bar';
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1563,7 +1193,7 @@ describe('AccessScopeExpression', function () {
 
     it(`connects defined property on first ancestor bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' }, { foo: 'bar' });
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1582,7 +1212,7 @@ describe('AccessScopeExpression', function () {
     it(`connects defined property on first ancestor overrideContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
       scope.parentScope.overrideContext.foo = 'bar';
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1600,8 +1230,8 @@ describe('AccessScopeExpression', function () {
 
     it(`connects undefined property on first ancestor bindingContext${isHostScoped ? ' - hostScoped' : ''}`, function () {
       let scope = createScopeForTest({ abc: 'xyz' }, {});
-      (scope.parentScope as Writable<IScope>).parentScope = Scope.create(LF.none, undefined, OverrideContext.create(LF.none, { foo: 'bar' }));
-      let hs: IScope | null = null;
+      (scope.parentScope as Writable<Scope>).parentScope = Scope.create(LF.none, undefined, OverrideContext.create(LF.none, { foo: 'bar' }));
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -1876,8 +1506,8 @@ describe('BinaryExpression', function () {
     public constructor(
       public expr: BinaryExpression,
       public expected: boolean,
-      public scope: IScope = createScopeForTest(),
-      public hs: IScope | null = null,
+      public scope: Scope = createScopeForTest(),
+      public hs: Scope | null = null,
     ) { }
 
     public toString() { return `${Unparser.unparse(this.expr)}${this.hs !== null ? ' - hostScoped' : ''}`; }
@@ -2006,7 +1636,7 @@ describe('CallMemberExpression', function () {
         }
       };
       let scope = createScopeForTest(bindingContext);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest({});
@@ -2017,12 +1647,12 @@ describe('CallMemberExpression', function () {
 
     it(`evaluate handles null/undefined member${isHostScoped ? ' - hostScoped' : ''}`, function () {
       const expression = new CallMemberExpression(new AccessScopeExpression('foo', 0, isHostScoped), 'bar', []);
-      let s1: IScope = createScopeForTest({ foo: {} });
-      let s2: IScope = createScopeForTest({ foo: { bar: undefined } });
-      let s3: IScope = createScopeForTest({ foo: { bar: null } });
-      let hs1: IScope | null = null;
-      let hs2: IScope | null = null;
-      let hs3: IScope | null = null;
+      let s1: Scope = createScopeForTest({ foo: {} });
+      let s2: Scope = createScopeForTest({ foo: { bar: undefined } });
+      let s3: Scope = createScopeForTest({ foo: { bar: null } });
+      let hs1: Scope | null = null;
+      let hs2: Scope | null = null;
+      let hs3: Scope | null = null;
       if(isHostScoped) {
         hs1 = s1;
         s1 = createScopeForTest();
@@ -2043,10 +1673,10 @@ describe('CallMemberExpression', function () {
       let s2 = createScopeForTest({ foo: {} });
       let s3 = createScopeForTest({ foo: { bar: undefined } });
       let s4 = createScopeForTest({ foo: { bar: null } });
-      let hs1: IScope | null = null;
-      let hs2: IScope | null = null;
-      let hs3: IScope | null = null;
-      let hs4: IScope | null = null;
+      let hs1: Scope | null = null;
+      let hs2: Scope | null = null;
+      let hs3: Scope | null = null;
+      let hs4: Scope | null = null;
       if(isHostScoped) {
         hs1 = s1;
         s1 = createScopeForTest();
@@ -2076,9 +1706,9 @@ describe('CallScopeExpression', function () {
     makeHostScoped(hello.args[0] as AccessScopeExpression, false);
   });
 
-  function getScopes(initialScope: IScope, isHostScoped: boolean) {
+  function getScopes(initialScope: Scope, isHostScoped: boolean) {
     let scope = initialScope;
-    let hs: IScope | null = null;
+    let hs: Scope | null = null;
     if(isHostScoped) {
       hs = scope;
       scope = createScopeForTest();
@@ -2500,7 +2130,7 @@ describe('UnaryExpression', function () {
       { expr: new UnaryExpression('typeof', $parent), expected: 'undefined' },
       { expr: new UnaryExpression('typeof', new AccessScopeExpression('foo', 0)), expected: 'undefined' }
     ];
-    const scope: IScope = createScopeForTest({});
+    const scope: Scope = createScopeForTest({});
 
     for (const { expr, expected } of tests) {
       it(expr.toString(), function () {
@@ -2523,7 +2153,7 @@ describe('UnaryExpression', function () {
       { expr: new UnaryExpression('void', $parent) },
       { expr: new UnaryExpression('void', new AccessScopeExpression('foo', 0)) }
     ];
-    let scope: IScope = createScopeForTest({});
+    let scope: Scope = createScopeForTest({});
 
     for (const { expr } of tests) {
       it(expr.toString(), function () {
@@ -2545,7 +2175,7 @@ describe('UnaryExpression', function () {
 describe('BindingBehaviorExpression', function () {
   type $1 = [/* title */string, /* flags */LF];
   type $2 = [/* title */string, /* $kind */ExpressionKind];
-  type $3 = [/* title */string, /* scope */IScope, /* hostScope */IScope | null, /* sut */BindingBehaviorExpression, /* mock */MockBindingBehavior, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[]];
+  type $3 = [/* title */string, /* scope */Scope, /* hostScope */Scope | null, /* sut */BindingBehaviorExpression, /* mock */MockBindingBehavior, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[]];
 
   const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LF],
   [
@@ -2561,7 +2191,7 @@ describe('BindingBehaviorExpression', function () {
     () => [`hasBind|hasUnbind`, ExpressionKind.HasBind | ExpressionKind.HasUnbind]
   ];
 
-  const inputVariations: (($1: $1, $2: $2) => $3)[] = // [/*title*/string, /*scope*/IScope, /*hostScope*/IScope|null, /*sut*/BindingBehaviorExpression, /*mock*/MockBindingBehavior, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[]],
+  const inputVariations: (($1: $1, $2: $2) => $3)[] = // [/*title*/string, /*scope*/Scope, /*hostScope*/Scope|null, /*sut*/BindingBehaviorExpression, /*mock*/MockBindingBehavior, /*locator*/IServiceLocator, /*binding*/IConnectableBinding, /*value*/any, /*argValues*/any[]],
   [true, false].flatMap((isHostScoped) =>  [
     // test without arguments
     (_$1: $1, [_t2, $kind]: $2) => {
@@ -2579,7 +2209,7 @@ describe('BindingBehaviorExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -2603,7 +2233,7 @@ describe('BindingBehaviorExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value, a: arg1 }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -2633,7 +2263,7 @@ describe('BindingBehaviorExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value, a: arg1, b: arg2, c: arg3 }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -2844,7 +2474,7 @@ describe('BindingBehaviorExpression', function () {
 describe('ValueConverterExpression', function () {
   type $1 = [/* title */string, /* flags */LF];
   type $2 = [/* title */string, /* signals */string[], /* signaler */MockSignaler];
-  type $3 = [/* title */string, /* scope */IScope, /* hostScope */IScope | null, /* sut */ValueConverterExpression, /* mock */MockValueConverter, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[], /* methods */string[]];
+  type $3 = [/* title */string, /* scope */Scope, /* hostScope */Scope | null, /* sut */ValueConverterExpression, /* mock */MockValueConverter, /* locator */IServiceLocator, /* binding */IConnectableBinding, /* value */any, /* argValues */any[], /* methods */string[]];
 
   const flagVariations: (() => $1)[] = // [/*title*/string, /*flags*/LF],
   [
@@ -2876,7 +2506,7 @@ describe('ValueConverterExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -2898,7 +2528,7 @@ describe('ValueConverterExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -2920,7 +2550,7 @@ describe('ValueConverterExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -2942,7 +2572,7 @@ describe('ValueConverterExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -2965,7 +2595,7 @@ describe('ValueConverterExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value, a: arg1 }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();
@@ -2994,7 +2624,7 @@ describe('ValueConverterExpression', function () {
       const binding = new PropertyBinding(expr as any, null, null, null, observerLocator, locator);
 
       let scope = Scope.create(LF.none, { foo: value, a: arg1, b: arg2, c: arg3 }, null);
-      let hs: IScope | null = null;
+      let hs: Scope | null = null;
       if(isHostScoped) {
         hs = scope;
         scope = createScopeForTest();

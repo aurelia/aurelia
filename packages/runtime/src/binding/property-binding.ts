@@ -15,7 +15,6 @@ import { ILifecycle } from '../lifecycle';
 import {
   AccessorOrObserver,
   IBindingTargetObserver,
-  IScope,
   AccessorType,
   INodeAccessor,
 } from '../observation';
@@ -29,6 +28,8 @@ import {
   IConnectableBinding,
   IPartialConnectableBinding,
 } from './connectable';
+
+import type { Scope } from '../observation/binding-context';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;
@@ -50,8 +51,8 @@ export class PropertyBinding implements IPartialConnectableBinding {
   public id!: number;
   public isBound: boolean = false;
   public $lifecycle: ILifecycle;
-  public $scope?: IScope = void 0;
-  public $hostScope: IScope | null = null;
+  public $scope?: Scope = void 0;
+  public $hostScope: Scope | null = null;
 
   public targetObserver?: AccessorOrObserver = void 0;
 
@@ -75,7 +76,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
 
   public updateTarget(value: unknown, flags: LifecycleFlags): void {
     flags |= this.persistentFlags;
-    this.targetObserver!.setValue(value, flags);
+    this.targetObserver!.setValue(value, flags, this.target, this.targetProperty);
   }
 
   public updateSource(value: unknown, flags: LifecycleFlags): void {
@@ -100,9 +101,9 @@ export class PropertyBinding implements IPartialConnectableBinding {
       // Alpha: during bind a simple strategy for bind is always flush immediately
       // todo:
       //  (1). determine whether this should be the behavior
-      //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
+      //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start()
       const shouldQueueFlush = (flags & LifecycleFlags.fromBind) === 0 && (targetObserver.type & AccessorType.Layout) > 0;
-      const oldValue = targetObserver.getValue();
+      const oldValue = targetObserver.getValue(this.target, this.targetProperty);
 
       // if the only observable is an AccessScope then we can assume the passed-in newValue is the correct and latest value
       if (sourceExpression.$kind !== ExpressionKind.AccessScope || this.observerSlots > 1) {
@@ -144,7 +145,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     throw new Error('Unexpected handleChange context in PropertyBinding');
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -198,7 +199,7 @@ export class PropertyBinding implements IPartialConnectableBinding {
     if ($mode & fromView) {
       targetObserver.subscribe(interceptor);
       if (!shouldConnect) {
-        interceptor.updateSource(targetObserver.getValue(), flags);
+        interceptor.updateSource(targetObserver.getValue(this.target, this.targetProperty), flags);
       }
       targetObserver[this.id] |= LifecycleFlags.updateSourceExpression;
     }
@@ -241,13 +242,5 @@ export class PropertyBinding implements IPartialConnectableBinding {
     this.interceptor.unobserve(true);
 
     this.isBound = false;
-  }
-
-  public dispose(): void {
-    this.interceptor = (void 0)!;
-    this.sourceExpression = (void 0)!;
-    this.locator = (void 0)!;
-    this.targetObserver = (void 0)!;
-    this.target = (void 0)!;
   }
 }

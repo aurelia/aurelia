@@ -10,11 +10,11 @@ import {
   IProxySubscribable,
   ISubscribable,
   ISubscriber,
-  IScope
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { BindingBehaviorInstance } from '../resources/binding-behavior';
 import { CustomElementDefinition } from '../resources/custom-element';
+import type { Scope } from '../observation/binding-context';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
 
@@ -162,7 +162,7 @@ export class BindingMediator<K extends string> implements IConnectableBinding {
   ) {
     connectable.assignIdTo(this);
   }
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope?: IScope | null, projection?: CustomElementDefinition): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope?: Scope | null, projection?: CustomElementDefinition): void {
     throw new Error('Method not implemented.');
   }
   public $unbind(flags: LifecycleFlags): void {

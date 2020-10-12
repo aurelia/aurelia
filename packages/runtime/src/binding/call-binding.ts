@@ -6,28 +6,28 @@ import {
 } from '../flags';
 import {
   IAccessor,
-  IScope,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import {
   IsBindingBehavior,
 } from './ast';
 import { IConnectableBinding } from './connectable';
+import type { Scope } from '../observation/binding-context';
 
 export interface CallBinding extends IConnectableBinding {}
 export class CallBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;
-  public $scope?: IScope;
-  public $hostScope: IScope | null = null;
+  public $scope?: Scope;
+  public $hostScope: Scope | null = null;
 
   public targetObserver: IAccessor;
 
   public constructor(
     public sourceExpression: IsBindingBehavior,
-    target: object,
-    targetProperty: string,
+    public readonly target: object,
+    public readonly targetProperty: string,
     observerLocator: IObserverLocator,
     public locator: IServiceLocator,
   ) {
@@ -46,7 +46,7 @@ export class CallBinding {
     return result;
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -62,7 +62,7 @@ export class CallBinding {
       this.sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
-    this.targetObserver.setValue(($args: object) => this.interceptor.callSource($args), flags);
+    this.targetObserver.setValue(($args: object) => this.interceptor.callSource($args), flags, this.target, this.targetProperty);
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;
@@ -78,7 +78,7 @@ export class CallBinding {
     }
 
     this.$scope = void 0;
-    this.targetObserver.setValue(null, flags);
+    this.targetObserver.setValue(null, flags, this.target, this.targetProperty);
 
     this.isBound = false;
   }
@@ -89,12 +89,5 @@ export class CallBinding {
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
     return;
-  }
-
-  public dispose(): void {
-    this.interceptor = (void 0)!;
-    this.sourceExpression = (void 0)!;
-    this.locator = (void 0)!;
-    this.targetObserver = (void 0)!;
   }
 }

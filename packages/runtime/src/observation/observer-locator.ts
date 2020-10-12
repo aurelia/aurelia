@@ -1,10 +1,6 @@
 import {
   DI,
-  IContainer,
-  IResolver,
   Primitive,
-  Registration,
-  Reporter,
   isArrayIndex,
 } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
@@ -13,7 +9,6 @@ import {
   AccessorOrObserver,
   CollectionKind,
   CollectionObserver,
-  IBindingContext,
   IBindingTargetAccessor,
   IBindingTargetObserver,
   ICollectionObserver,
@@ -21,36 +16,24 @@ import {
   IObservedArray,
   IObservedMap,
   IObservedSet,
-  ObserversLookup,
-  PropertyObserver,
 } from '../observation';
 import { getArrayObserver } from './array-observer';
 import { createComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
 import { getMapObserver } from './map-observer';
 import { PrimitiveObserver } from './primitive-observer';
-import { PropertyAccessor } from './property-accessor';
+import { propertyAccessor } from './property-accessor';
 import { ProxyObserver } from './proxy-observer';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
 import { IScheduler } from '@aurelia/scheduler';
 
-const toStringTag = Object.prototype.toString;
-
 export interface IObjectObservationAdapter {
-  getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver;
+  getObserver(flags: LifecycleFlags, object: unknown, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null;
 }
 
-export interface IObserverLocator {
-  getObserver(flags: LifecycleFlags, obj: object, propertyName: string): AccessorOrObserver;
-  getAccessor(flags: LifecycleFlags, obj: object, propertyName: string): IBindingTargetAccessor;
-  addAdapter(adapter: IObjectObservationAdapter): void;
-  getArrayObserver(flags: LifecycleFlags, observedArray: unknown[]): ICollectionObserver<CollectionKind.array>;
-  getMapObserver(flags: LifecycleFlags, observedMap: Map<unknown, unknown>): ICollectionObserver<CollectionKind.map>;
-  getSetObserver(flags: LifecycleFlags, observedSet: Set<unknown>): ICollectionObserver<CollectionKind.set>;
-}
-
-export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator').noDefault();
+export interface IObserverLocator extends ObserverLocator {}
+export const IObserverLocator = DI.createInterface<IObserverLocator>('IObserverLocator').withDefault(x => x.singleton(ObserverLocator));
 
 export interface ITargetObserverLocator {
   getObserver(
@@ -60,7 +43,7 @@ export interface ITargetObserverLocator {
     observerLocator: IObserverLocator,
     obj: unknown,
     propertyName: string,
-  ): IBindingTargetAccessor | IBindingTargetObserver;
+  ): IBindingTargetAccessor | IBindingTargetObserver | null;
   overridesAccessor(flags: LifecycleFlags, obj: unknown, propertyName: string): boolean;
   handles(flags: LifecycleFlags, obj: unknown): boolean;
 }
@@ -78,20 +61,13 @@ export interface ITargetAccessorLocator {
 }
 export const ITargetAccessorLocator = DI.createInterface<ITargetAccessorLocator>('ITargetAccessorLocator').noDefault();
 
-function getPropertyDescriptor(subject: object, name: string): PropertyDescriptor {
-  let pd = Object.getOwnPropertyDescriptor(subject, name);
-  let proto = Object.getPrototypeOf(subject);
+type ExtendedPropertyDescriptor = PropertyDescriptor & {
+  get: PropertyDescriptor['get'] & {
+    getObserver(obj: IObservable): IBindingTargetObserver;
+  };
+};
 
-  while (pd == null && proto != null) {
-    pd = Object.getOwnPropertyDescriptor(proto, name);
-    proto = Object.getPrototypeOf(proto);
-  }
-
-  return pd!;
-}
-
-/** @internal */
-export class ObserverLocator implements IObserverLocator {
+export class ObserverLocator {
   private readonly adapters: IObjectObservationAdapter[] = [];
 
   public constructor(
@@ -99,55 +75,37 @@ export class ObserverLocator implements IObserverLocator {
     @IScheduler private readonly scheduler: IScheduler,
     @IDirtyChecker private readonly dirtyChecker: IDirtyChecker,
     @ITargetObserverLocator private readonly targetObserverLocator: ITargetObserverLocator,
-    @ITargetAccessorLocator private readonly targetAccessorLocator: ITargetAccessorLocator
+    @ITargetAccessorLocator private readonly targetAccessorLocator: ITargetAccessorLocator,
   ) {}
-
-  public static register(container: IContainer): IResolver<IObserverLocator> {
-    return Registration.singleton(IObserverLocator, this).register(container);
-  }
-
-  public getObserver(flags: LifecycleFlags, obj: IObservable|IBindingContext, propertyName: string): AccessorOrObserver {
-    if (flags & LifecycleFlags.proxyStrategy && typeof obj === 'object') {
-      return ProxyObserver.getOrCreate(obj, propertyName) as unknown as AccessorOrObserver; // TODO: fix typings (and ensure proper contracts ofc)
-    }
-    if (isBindingContext(obj)) {
-      return obj.getObservers!(flags).getOrCreate(this.lifecycle, flags, obj, propertyName);
-    }
-    let observersLookup = obj.$observers as ObserversLookup;
-
-    if (observersLookup && propertyName in observersLookup) {
-      return observersLookup[propertyName];
-    }
-
-    const observer: AccessorOrObserver & { doNotCache?: boolean } = this.createPropertyObserver(flags, obj, propertyName);
-
-    if (!observer.doNotCache) {
-      if (observersLookup === void 0) {
-        observersLookup = this.getOrCreateObserversLookup(obj) as ObserversLookup;
-      }
-
-      observersLookup[propertyName] = observer as PropertyObserver;
-    }
-
-    return observer;
-  }
 
   public addAdapter(adapter: IObjectObservationAdapter): void {
     this.adapters.push(adapter);
   }
 
-  public getAccessor(flags: LifecycleFlags, obj: IObservable, propertyName: string): IBindingTargetAccessor {
+  public getObserver(flags: LifecycleFlags, obj: object, key: string): AccessorOrObserver {
+    return (obj as IObservable).$observers?.[key] as AccessorOrObserver | undefined
+      ?? this.cache((obj as IObservable), key, this.createObserver(flags, (obj as IObservable), key));
+  }
+
+  public getAccessor(flags: LifecycleFlags, obj: object, key: string): IBindingTargetAccessor {
+    const cached = (obj as IObservable).$observers?.[key] as AccessorOrObserver | undefined;
+    if (cached !== void 0) {
+      return cached;
+    }
     if (this.targetAccessorLocator.handles(flags, obj)) {
-      if (this.targetObserverLocator.overridesAccessor(flags, obj, propertyName)) {
-        return this.getObserver(flags, obj, propertyName);
+      if (this.targetObserverLocator.overridesAccessor(flags, obj, key)) {
+        const observer = this.targetObserverLocator.getObserver(flags, this.scheduler, this.lifecycle, this, obj, key);
+        if (observer !== null) {
+          return this.cache((obj as IObservable), key, observer);
+        }
       }
-      return this.targetAccessorLocator.getAccessor(flags, this.scheduler, this.lifecycle, obj, propertyName);
+      return this.targetAccessorLocator.getAccessor(flags, this.scheduler, this.lifecycle, obj, key);
     }
 
-    if (flags & LifecycleFlags.proxyStrategy) {
-      return ProxyObserver.getOrCreate(obj, propertyName) as unknown as AccessorOrObserver;
+    if ((flags & LifecycleFlags.proxyStrategy) > 0) {
+      return ProxyObserver.getOrCreate(obj, key) as unknown as AccessorOrObserver;
     }
-    return new PropertyAccessor(obj, propertyName);
+    return propertyAccessor as IBindingTargetAccessor;
   }
 
   public getArrayObserver(flags: LifecycleFlags, observedArray: IObservedArray): ICollectionObserver<CollectionKind.array> {
@@ -162,93 +120,115 @@ export class ObserverLocator implements IObserverLocator {
     return getSetObserver(flags, this.lifecycle, observedSet);
   }
 
-  private getOrCreateObserversLookup(obj: IObservable): Record<string, AccessorOrObserver | IBindingTargetObserver> {
-    return obj.$observers as ObserversLookup || this.createObserversLookup(obj);
-  }
-
-  private createObserversLookup(obj: IObservable): Record<string, IBindingTargetObserver> {
-    const value: Record<string, IBindingTargetObserver> = {};
-    if (!Reflect.defineProperty(obj, '$observers', {
-      enumerable: false,
-      configurable: false,
-      writable: false,
-      value: value
-    })) {
-      Reporter.write(0, obj);
+  private createObserver(flags: LifecycleFlags, obj: IObservable, key: string): AccessorOrObserver {
+    if (!(obj instanceof Object)) {
+      return new PrimitiveObserver(obj as unknown as Primitive, key) as IBindingTargetAccessor;
     }
-    return value;
+
+    let isNode = false;
+    // Never use proxies for observing nodes, so check target observer first and only then evaluate proxy strategy
+    if (this.targetObserverLocator.handles(flags, obj)) {
+      const observer = this.targetObserverLocator.getObserver(flags, this.scheduler, this.lifecycle, this, obj, key);
+      if (observer !== null) {
+        return observer;
+      }
+      isNode = true;
+    } else if ((flags & LifecycleFlags.proxyStrategy) > 0) {
+      // TODO: fix typings (and ensure proper contracts ofc)
+      return ProxyObserver.getOrCreate(obj, key) as unknown as AccessorOrObserver;
+    }
+
+    switch (key) {
+      case 'length':
+        if (obj instanceof Array) {
+          return getArrayObserver(flags, this.lifecycle, obj).getLengthObserver();
+        }
+        break;
+      case 'size':
+        if (obj instanceof Map) {
+          return getMapObserver(flags, this.lifecycle, obj).getLengthObserver();
+        } else if (obj instanceof Set) {
+          return getSetObserver(flags, this.lifecycle, obj).getLengthObserver();
+        }
+        break;
+      default:
+        if (obj instanceof Array && isArrayIndex(key)) {
+          return getArrayObserver(flags, this.lifecycle, obj).getIndexObserver(Number(key));
+        }
+        break;
+    }
+
+    let pd = Object.getOwnPropertyDescriptor(obj, key);
+    // Only instance properties will yield a descriptor here, otherwise walk up the proto chain
+    if (pd === void 0) {
+      let proto = Object.getPrototypeOf(obj) as object | null;
+      while (proto !== null) {
+        pd = Object.getOwnPropertyDescriptor(proto, key);
+        if (pd === void 0) {
+          proto = Object.getPrototypeOf(proto) as object | null;
+        } else {
+          break;
+        }
+      }
+    }
+
+    // If the descriptor does not have a 'value' prop, it must have a getter and/or setter
+    if (pd !== void 0 && !(Object.prototype.hasOwnProperty.call(pd, 'value') as boolean)) {
+      if (pd.get === void 0) {
+        // The user could decide to read from a different prop, so don't assume the absense of a setter won't work for custom adapters
+        const obs = this.getAdapterObserver(flags, obj, key, pd);
+        if (obs !== null) {
+          return obs;
+        }
+        // None of our built-in stuff can read a setter-only without throwing, so just throw right away
+        throw new Error(`You cannot observe a setter only property: '${key}'`);
+      }
+
+      // Check custom getter-specific override first
+      if ((pd as ExtendedPropertyDescriptor).get.getObserver !== void 0) {
+        return (pd as ExtendedPropertyDescriptor).get.getObserver(obj);
+      }
+
+      // Then check if any custom adapter handles it (the obj could be any object, including a node )
+      const obs = this.getAdapterObserver(flags, obj, key, pd);
+      if (obs !== null) {
+        return obs;
+      }
+
+      if (isNode) {
+        // TODO: use MutationObserver
+        return this.dirtyChecker.createProperty(obj, key);
+      }
+
+      return createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, key, pd);
+    }
+
+    // Ordinary get/set observation (the common use case)
+    // TODO: think about how to handle a data property that does not sit on the instance (should we do anything different?)
+    return new SetterObserver(flags, obj, key);
   }
 
-  private getAdapterObserver(flags: LifecycleFlags, obj: IObservable, propertyName: string, descriptor: PropertyDescriptor): IBindingTargetObserver | null {
-    for (let i = 0, ii = this.adapters.length; i < ii; i++) {
-      const adapter = this.adapters[i];
-      const observer = adapter.getObserver(flags, obj, propertyName, descriptor);
-      if (observer != null) {
-        return observer;
+  private getAdapterObserver(flags: LifecycleFlags, obj: IObservable, propertyName: string, pd: PropertyDescriptor): IBindingTargetObserver | null {
+    if (this.adapters.length > 0) {
+      for (const adapter of this.adapters) {
+        const observer = adapter.getObserver(flags, obj, propertyName, pd);
+        if (observer != null) {
+          return observer;
+        }
       }
     }
     return null;
   }
 
-  private createPropertyObserver(flags: LifecycleFlags, obj: IObservable, propertyName: string): AccessorOrObserver {
-    if (!(obj instanceof Object)) {
-      return new PrimitiveObserver(obj as unknown as Primitive, propertyName) as IBindingTargetAccessor;
+  private cache(obj: IObservable, key: string, observer: AccessorOrObserver): AccessorOrObserver {
+    if (observer.doNotCache === true) {
+      return observer;
     }
-
-    let isNode = false;
-    if (this.targetObserverLocator.handles(flags, obj)) {
-      const observer = this.targetObserverLocator.getObserver(flags, this.scheduler, this.lifecycle, this, obj, propertyName);
-      if (observer != null) {
-        return observer;
-      }
-      isNode = true;
+    if (obj.$observers === void 0) {
+      Reflect.defineProperty(obj, '$observers', { value: { [key]: observer } });
+      return observer;
     }
-
-    const tag = toStringTag.call(obj);
-    switch (tag) {
-      case '[object Array]':
-        if (propertyName === 'length') {
-          return this.getArrayObserver(flags, obj as IObservedArray).getLengthObserver();
-        }
-        // is numer only returns true for integer
-        if (isArrayIndex(propertyName)) {
-          return this.getArrayObserver(flags, obj as IObservedArray).getIndexObserver(Number(propertyName));
-        }
-        break;
-      case '[object Map]':
-        if (propertyName === 'size') {
-          return this.getMapObserver(flags, obj as IObservedMap).getLengthObserver();
-        }
-        break;
-      case '[object Set]':
-        if (propertyName === 'size') {
-          return this.getSetObserver(flags, obj as IObservedSet).getLengthObserver();
-        }
-        break;
-    }
-
-    const descriptor = getPropertyDescriptor(obj, propertyName) as PropertyDescriptor & {
-      get: PropertyDescriptor['get'] & { getObserver(obj: IObservable): IBindingTargetObserver };
-    };
-
-    if (descriptor != null && (descriptor.get != null || descriptor.set != null)) {
-      if (descriptor.get != null && descriptor.get.getObserver != null) {
-        return descriptor.get.getObserver(obj);
-      }
-
-      // attempt to use an adapter before resorting to dirty checking.
-      const adapterObserver = this.getAdapterObserver(flags, obj, propertyName, descriptor);
-      if (adapterObserver != null) {
-        return adapterObserver;
-      }
-      if (isNode) {
-        // TODO: use MutationObserver
-        return this.dirtyChecker.createProperty(obj, propertyName);
-      }
-
-      return createComputedObserver(flags, this, this.dirtyChecker, this.lifecycle, obj, propertyName, descriptor);
-    }
-    return new SetterObserver(flags, obj, propertyName);
+    return obj.$observers[key] = observer;
   }
 }
 
@@ -258,17 +238,12 @@ export function getCollectionObserver(flags: LifecycleFlags, lifecycle: ILifecyc
   // If the collection is wrapped by a proxy then `$observer` will return the proxy observer instead of the collection observer, which is not what we want
   // when we ask for getCollectionObserver
   const rawCollection = collection instanceof Object ? ProxyObserver.getRawIfProxy(collection) : collection;
-  switch (toStringTag.call(collection)) {
-    case '[object Array]':
-      return getArrayObserver(flags, lifecycle, rawCollection as IObservedArray);
-    case '[object Map]':
-      return getMapObserver(flags, lifecycle, rawCollection as IObservedMap);
-    case '[object Set]':
-      return getSetObserver(flags, lifecycle, rawCollection as IObservedSet);
+  if (collection instanceof Array) {
+    return getArrayObserver(flags, lifecycle, rawCollection as IObservedArray);
+  } else if (collection instanceof Map) {
+    return getMapObserver(flags, lifecycle, rawCollection as IObservedMap);
+  } else if (collection instanceof Set) {
+    return getSetObserver(flags, lifecycle, rawCollection as IObservedSet);
   }
   return void 0;
-}
-
-function isBindingContext(obj: unknown): obj is IBindingContext {
-  return (obj as IBindingContext).$synthetic === true;
 }

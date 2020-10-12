@@ -1,56 +1,16 @@
-import { IIndexable, Reporter, StrictPrimitive } from '@aurelia/kernel';
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+import { IIndexable } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
-import { IBinding, ILifecycle } from '../lifecycle';
-import {
-  IBindingContext,
-  IOverrideContext,
-  IScope,
-  ObservedCollection,
-  ObserversLookup,
-  PropertyObserver
-} from '../observation';
+import { IBinding } from '../lifecycle';
+import { IBindingContext, IOverrideContext } from '../observation';
 import { ProxyObserver } from './proxy-observer';
-import { SetterObserver } from './setter-observer';
-
-const enum RuntimeError {
-  NilScope = 250,
-  NilOverrideContext = 252,
-  NilParentScope = 253
-}
 
 const marker = Object.freeze({});
-
-export interface InternalObserversLookup extends IIndexable<ObserversLookup, PropertyObserver> {}
-/** @internal */
-export class InternalObserversLookup {
-
-  // @ts-ignore
-  public getOrCreate(
-    this: { [key: string]: PropertyObserver },
-    lifecycle: ILifecycle,
-    flags: LifecycleFlags,
-    obj: IBindingContext | IOverrideContext,
-    key: string,
-  ): PropertyObserver {
-    if (this[key] === void 0) {
-      this[key] = new SetterObserver(flags, obj, key);
-    }
-    return this[key];
-  }
-}
-
-export type BindingContextValue = ObservedCollection | StrictPrimitive | IIndexable;
 
 export class BindingContext implements IBindingContext {
   [key: string]: unknown;
 
-  public readonly $synthetic: true;
-
-  public $observers?: ObserversLookup;
-
   private constructor(keyOrObj?: string | IIndexable, value?: unknown) {
-    this.$synthetic = true;
-
     if (keyOrObj !== void 0) {
       if (value !== void 0) {
         // if value is defined then it's just a property and a value to initialize with
@@ -58,7 +18,7 @@ export class BindingContext implements IBindingContext {
       } else {
         // can either be some random object or another bindingContext to clone from
         for (const prop in keyOrObj as IIndexable) {
-          if (Object.prototype.hasOwnProperty.call(keyOrObj, prop)) {
+          if (Object.prototype.hasOwnProperty.call(keyOrObj, prop)as boolean) {
             this[prop] = (keyOrObj as IIndexable)[prop];
           }
         }
@@ -94,9 +54,9 @@ export class BindingContext implements IBindingContext {
     return bc;
   }
 
-  public static get(scope: IScope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: IScope | null): IBindingContext | IOverrideContext | IBinding | undefined | null {
+  public static get(scope: Scope, name: string, ancestor: number, flags: LifecycleFlags, hostScope?: Scope | null): IBindingContext | IOverrideContext | IBinding | undefined | null {
     if (scope == null && hostScope == null) {
-      throw Reporter.error(RuntimeError.NilScope);
+      throw new Error(`Scope is ${scope} and HostScope is ${hostScope}.`);
     }
 
     /* eslint-disable jsdoc/check-indentation */
@@ -126,18 +86,11 @@ export class BindingContext implements IBindingContext {
     }
     return scope.bindingContext || scope.overrideContext;
   }
-
-  public getObservers(flags: LifecycleFlags): ObserversLookup {
-    if (this.$observers == null) {
-      this.$observers = new InternalObserversLookup() as ObserversLookup;
-    }
-    return this.$observers;
-  }
 }
 
-function chooseContext(scope: IScope, name: string, ancestor: number) {
+function chooseContext(scope: Scope, name: string, ancestor: number) {
   let overrideContext: IOverrideContext | null = scope.overrideContext;
-  let currentScope: IScope | null = scope;
+  let currentScope: Scope | null = scope;
 
   if (ancestor > 0) {
     // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
@@ -167,20 +120,12 @@ function chooseContext(scope: IScope, name: string, ancestor: number) {
   return null;
 }
 
-export class Scope implements IScope {
-  public parentScope: IScope | null;
-  public bindingContext: IBindingContext;
-  public overrideContext: IOverrideContext;
-
+export class Scope {
   private constructor(
-    parentScope: IScope | null,
-    bindingContext: IBindingContext,
-    overrideContext: IOverrideContext,
-  ) {
-    this.parentScope = parentScope;
-    this.bindingContext = bindingContext;
-    this.overrideContext = overrideContext;
-  }
+    public parentScope: Scope | null,
+    public bindingContext: IBindingContext,
+    public overrideContext: IOverrideContext,
+  ) {}
 
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and a new standalone `OverrideContext`.
@@ -221,14 +166,14 @@ export class Scope implements IScope {
 
   public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {
     if (oc == null) {
-      throw Reporter.error(RuntimeError.NilOverrideContext);
+      throw new Error(`OverrideContext is ${oc}`);
     }
     return new Scope(null, oc.bindingContext, oc);
   }
 
-  public static fromParent(flags: LifecycleFlags, ps: IScope | null, bc: object): Scope {
+  public static fromParent(flags: LifecycleFlags, ps: Scope | null, bc: object): Scope {
     if (ps == null) {
-      throw Reporter.error(RuntimeError.NilParentScope);
+      throw new Error(`ParentScope is ${ps}`);
     }
     return new Scope(ps, bc as IBindingContext, OverrideContext.create(flags, bc));
   }
@@ -237,23 +182,13 @@ export class Scope implements IScope {
 export class OverrideContext implements IOverrideContext {
   [key: string]: unknown;
 
-  public readonly $synthetic: true;
-  public $observers?: ObserversLookup;
   public bindingContext: IBindingContext;
 
   private constructor(bindingContext: IBindingContext) {
-    this.$synthetic = true;
     this.bindingContext = bindingContext;
   }
 
   public static create(flags: LifecycleFlags, bc: object): OverrideContext {
     return new OverrideContext(bc as IBindingContext);
-  }
-
-  public getObservers(): ObserversLookup {
-    if (this.$observers === void 0) {
-      this.$observers = new InternalObserversLookup() as ObserversLookup;
-    }
-    return this.$observers;
   }
 }

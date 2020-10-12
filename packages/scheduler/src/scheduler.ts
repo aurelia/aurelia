@@ -32,25 +32,21 @@ export interface IScheduler {
   getRenderTaskQueue(): ITaskQueue;
   getMacroTaskQueue(): ITaskQueue;
   getPostRenderTaskQueue(): ITaskQueue;
-  getIdleTaskQueue(): ITaskQueue;
 
   yieldMicroTask(): Promise<void>;
   yieldRenderTask(): Promise<void>;
   yieldMacroTask(): Promise<void>;
   yieldPostRenderTask(): Promise<void>;
-  yieldIdleTask(): Promise<void>;
   yieldAll(repeat?: number): Promise<void>;
 
   queueMicroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
   queueRenderTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
   queueMacroTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
   queuePostRenderTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
-  queueIdleTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
 }
 
 export class Scheduler implements IScheduler {
   private readonly taskQueues: [
-    TaskQueue,
     TaskQueue,
     TaskQueue,
     TaskQueue,
@@ -60,7 +56,6 @@ export class Scheduler implements IScheduler {
   private readonly render: TaskQueue;
   private readonly macroTask: TaskQueue;
   private readonly postRender: TaskQueue;
-  private readonly idle: TaskQueue;
 
   public constructor(
     now: Now,
@@ -68,7 +63,6 @@ export class Scheduler implements IScheduler {
     renderFactory: IFlushRequestorFactory,
     macroTaskFactory: IFlushRequestorFactory,
     postRenderFactory: IFlushRequestorFactory,
-    idleFactory: IFlushRequestorFactory,
   ) {
     this.taskQueues = [
       this.microtask = (
@@ -83,16 +77,12 @@ export class Scheduler implements IScheduler {
       this.postRender = (
         new TaskQueue(now, TaskQueuePriority.postRender, this, postRenderFactory)
       ),
-      this.idle = (
-        new TaskQueue(now, TaskQueuePriority.idle, this, idleFactory)
-      ),
     ];
 
     this.yieldMicroTask = this.yieldMicroTask.bind(this);
     this.yieldRenderTask = this.yieldRenderTask.bind(this);
     this.yieldMacroTask = this.yieldMacroTask.bind(this);
     this.yieldPostRenderTask = this.yieldPostRenderTask.bind(this);
-    this.yieldIdleTask = this.yieldIdleTask.bind(this);
     this.yieldAll = this.yieldAll.bind(this);
   }
 
@@ -113,8 +103,8 @@ export class Scheduler implements IScheduler {
   }
 
   public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskTargetOptions): Task<T> {
-    const { delay, preempt, priority, persistent, reusable, async } = { ...defaultQueueTaskOptions, ...opts };
-    return this.taskQueues[priority].queueTask(callback, { delay, preempt, persistent, reusable, async });
+    const { delay, preempt, priority, persistent, reusable, suspend } = { ...defaultQueueTaskOptions, ...opts };
+    return this.taskQueues[priority].queueTask(callback, { delay, preempt, persistent, reusable, suspend });
   }
 
   public getMicroTaskQueue(): ITaskQueue {
@@ -129,9 +119,6 @@ export class Scheduler implements IScheduler {
   public getPostRenderTaskQueue(): ITaskQueue {
     return this.postRender;
   }
-  public getIdleTaskQueue(): ITaskQueue {
-    return this.idle;
-  }
 
   public yieldMicroTask(): Promise<void> {
     return this.microtask.yield();
@@ -145,16 +132,12 @@ export class Scheduler implements IScheduler {
   public yieldPostRenderTask(): Promise<void> {
     return this.postRender.yield();
   }
-  public yieldIdleTask(): Promise<void> {
-    return this.idle.yield();
-  }
   public async yieldAll(repeat: number = 1): Promise<void> {
     while (repeat-- > 0) {
       await this.yieldMicroTask();
       await this.yieldRenderTask();
       await this.yieldMacroTask();
       await this.yieldPostRenderTask();
-      await this.yieldIdleTask();
     }
   }
 
@@ -169,9 +152,6 @@ export class Scheduler implements IScheduler {
   }
   public queuePostRenderTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T> {
     return this.postRender.queueTask(callback, opts);
-  }
-  public queueIdleTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T> {
-    return this.idle.queueTask(callback, opts);
   }
 }
 

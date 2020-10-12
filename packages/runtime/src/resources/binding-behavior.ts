@@ -17,19 +17,21 @@ import {
 } from '@aurelia/kernel';
 import { registerAliases } from '../definitions';
 import { LifecycleFlags } from '../flags';
-import { IScope, ISubscribable, IProxySubscribable } from '../observation';
+import { ISubscribable, IProxySubscribable } from '../observation';
 import { IBinding } from '../lifecycle';
 import { connectable, IConnectableBinding } from '../binding/connectable';
 import { IObserverLocator } from '../observation/observer-locator';
 import { BindingBehaviorExpression, IBindingBehaviorExpression } from '../binding/ast';
+
+import type { Scope } from '../observation/binding-context';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition<{
   strategy?: BindingBehaviorStrategy;
 }>;
 
 export type BindingBehaviorInstance<T extends {} = {}> = {
-  bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IBinding, ...args: T[]): void;
-  unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IBinding, ...args: T[]): void;
+  bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, binding: IBinding, ...args: T[]): void;
+  unbind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, binding: IBinding, ...args: T[]): void;
 } & T;
 
 export const enum BindingBehaviorStrategy {
@@ -169,7 +171,7 @@ export class BindingInterceptor implements IInterceptableBinding {
   public get locator(): IServiceLocator {
     return this.binding.locator;
   }
-  public get $scope(): IScope | undefined {
+  public get $scope(): Scope | undefined {
     return this.binding.$scope;
   }
   public get isBound(): boolean {
@@ -201,7 +203,7 @@ export class BindingInterceptor implements IInterceptableBinding {
     this.binding.handleChange!(newValue, previousValue, flags);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     this.binding.$bind(flags, scope, hostScope);
   }
   public $unbind(flags: LifecycleFlags): void {

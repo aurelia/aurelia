@@ -49,6 +49,7 @@ import {
 } from '../lifecycle';
 import {
   IBindingTargetAccessor,
+  IObservable,
 } from '../observation';
 import {
   Scope,
@@ -1379,7 +1380,7 @@ function createWatchers(
   const observerLocator = context!.get(IObserverLocator);
   definition.watches.map(({ expression, callback }) => {
     if (typeof expression === 'function') {
-      controller.addBinding(new ComputedWatcher(instance, observerLocator, expression, callback));
+      controller.addBinding(new ComputedWatcher(instance as IObservable, observerLocator, expression, callback));
     } else {
       const ast = typeof expression === 'symbol' || typeof expression === 'number'
         // AST needs an upgrade

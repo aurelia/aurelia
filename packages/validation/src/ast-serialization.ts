@@ -171,7 +171,7 @@ export class Serializer implements AST.IVisitor<string> {
     return `{"$TYPE":"${ASTExpressionTypes.AccessThisExpression}","ancestor":${expr.ancestor}}`;
   }
   public visitAccessScope(expr: AST.AccessScopeExpression): string {
-    return `{"$TYPE":"${ASTExpressionTypes.AccessScopeExpression}","name":"${String(expr.name)}","ancestor":${expr.ancestor}}`;
+    return `{"$TYPE":"${ASTExpressionTypes.AccessScopeExpression}","name":"${expr.name}","ancestor":${expr.ancestor}}`;
   }
   public visitArrayLiteral(expr: AST.ArrayLiteralExpression): string {
     return `{"$TYPE":"${ASTExpressionTypes.ArrayLiteralExpression}","elements":${this.serializeExpressions(expr.elements)}}`;

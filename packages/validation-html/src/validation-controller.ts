@@ -164,7 +164,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
   if (propertyName.length === 0) {
     // expression.name should not be anything other than string here
     // as it won't be manually built
-    propertyName = expression.name as string;
+    propertyName = expression.name;
     object = expression.accessHostScope ? hostScope?.bindingContext : scope.bindingContext;
   } else {
     object = expression.evaluate(flags, scope, hostScope, locator, null);

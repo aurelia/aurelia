@@ -334,28 +334,39 @@ export class ComputedWatcher implements IWatcher {
   }
 
   public handleChange(_newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
-    if (this.isCollecting) {
-      throw new Error('Circular dependencies detected');
-    }
-    const oldValue = this.oV;
-    const obj = this.obj;
-    this.isCollecting = true;
-    this.version++;
-    enterWatcher(this);
-    const newValue = this.computed(getProxyOrSelf(obj));
-    exitWatcher(this);
-    this.unobserve(false);
-    this.unobserveCollection(false);
-    this.isCollecting = false;
-    
-    if (!Object.is(newValue, oldValue)) {
-      this.oV = newValue;
-      // should optionally queue for batched synchronous
-      this.callback.call(obj, newValue, oldValue, obj);
-    }
+    this.run();
   }
 
   public handleCollectionChange(_indexMap: IndexMap, _flags: LifecycleFlags): void {
+    this.run();
+  }
+
+  public $bind(): void {
+    this.version++;
+    enterWatcher(this);
+    this.oV = this.computed(getProxyOrSelf(this.obj));
+    exitWatcher(this);
+    this.unobserve(false);
+  }
+
+  public $unbind(): void {
+    this.unobserve(true);
+    this.unobserveCollection(true);
+  }
+
+  public observeCollection(collection: Collection): void {
+    this.getCollectionObserver(collection).subscribeToCollection(this);
+  }
+
+  public observeCollectionSize(collection: Collection): void {
+    this.getCollectionObserver(collection).getLengthObserver().subscribe(this);
+  }
+
+  public observeArrayIndex(arr: unknown[], index: number): void {
+    this.getCollectionObserver(arr).getIndexObserver(index).subscribe(this);
+  }
+
+  private run(): void {
     if (this.isCollecting) {
       throw new Error('Circular dependencies detected');
     }
@@ -375,28 +386,6 @@ export class ComputedWatcher implements IWatcher {
       // should optionally queue
       this.callback.call(obj, newValue, oldValue, obj);
     }
-  }
-
-  public $bind(): void {
-    enterWatcher(this);
-    this.oV = this.computed(getProxyOrSelf(this.obj));
-    exitWatcher(this);
-  }
-
-  public $unbind(): void {
-    this.unobserveCollection(true);
-  }
-
-  public observeCollection(collection: Collection): void {
-    this.getCollectionObserver(collection).subscribeToCollection(this);
-  }
-
-  public observeCollectionSize(collection: Collection): void {
-    this.getCollectionObserver(collection).getLengthObserver().subscribe(this);
-  }
-
-  public observeArrayIndex(arr: unknown[], index: number): void {
-    this.getCollectionObserver(arr).getIndexObserver(index).subscribe(this);
   }
 
   private getCollectionObserver(collection: Collection): ICollectionObserver<CollectionKind> {

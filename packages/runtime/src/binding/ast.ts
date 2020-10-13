@@ -53,7 +53,7 @@ export type BindingIdentifierOrPattern = BindingIdentifier | ArrayBindingPattern
 export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern | HtmlLiteralExpression;
 export type AnyBindingExpression = Interpolation | ForOfStatement | IsBindingBehavior;
 
-export interface IHydrator {
+export interface IExpressionHydrator {
   hydrate(jsonExpr: any): any;
 }
 export interface IVisitor<T = unknown> {

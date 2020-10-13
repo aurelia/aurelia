@@ -77,7 +77,7 @@ export {
   BinaryOperator,
   BindingIdentifierOrPattern,
   UnaryOperator,
-  IHydrator,
+  IExpressionHydrator,
 } from './binding/ast';
 export {
   PropertyBinding

@@ -1,8 +1,8 @@
 import { IContainer, PLATFORM, Registration } from '@aurelia/kernel';
-import { IValidationHydrator } from './rule-interfaces';
+import { IValidationExpressionHydrator } from './rule-interfaces';
 import { ICustomMessages, IValidationRules, ValidationMessageProvider, ValidationRules } from './rule-provider';
 import { IValidationMessageProvider } from './rules';
-import { ModelValidationHydrator, ValidationDeserializer } from './serialization';
+import { ModelValidationExpressionHydrator, ValidationDeserializer } from './serialization';
 import { ValidationCustomizationOptions } from './validation-customization-options';
 import { IValidator, StandardValidator } from './validator';
 
@@ -13,7 +13,7 @@ export function getDefaultValidationConfiguration(): ValidationCustomizationOpti
     ValidatorType: StandardValidator,
     MessageProviderType: ValidationMessageProvider,
     CustomMessages: [],
-    HydratorType: ModelValidationHydrator,
+    HydratorType: ModelValidationExpressionHydrator,
   };
 }
 
@@ -29,7 +29,7 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
         Registration.instance(ICustomMessages, options.CustomMessages),
         Registration.singleton(IValidator, options.ValidatorType),
         Registration.singleton(IValidationMessageProvider, options.MessageProviderType),
-        Registration.singleton(IValidationHydrator, options.HydratorType),
+        Registration.singleton(IValidationExpressionHydrator, options.HydratorType),
         Registration.transient(IValidationRules, ValidationRules),
         ValidationDeserializer
       );

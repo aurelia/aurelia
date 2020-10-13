@@ -20,7 +20,7 @@ import {
   ModelBasedRule,
   IValidator,
   ValidateInstruction,
-  IValidationHydrator
+  IValidationExpressionHydrator
 } from '@aurelia/validation';
 import { Person } from './_test-resources';
 
@@ -283,13 +283,13 @@ describe('validation de/serialization', function () {
     }
   });
 });
-describe('ModelValidationHydrator', function () {
+describe('ModelValidationExpressionHydrator', function () {
   function setup() {
     const container = TestContext.createHTMLTestContext().container;
     container.register(ValidationConfiguration);
     return {
       container,
-      hydrator: container.get(IValidationHydrator),
+      expressionHydrator: container.get(IValidationExpressionHydrator),
       validationRules: container.get(IValidationRules),
       messageProvider: container.get(IValidationMessageProvider),
       parser: container.get(IExpressionParser)
@@ -345,9 +345,9 @@ describe('ModelValidationHydrator', function () {
   for (const { name, getRule, modelRule } of list) {
     for (const displayName of [undefined, 'foo']) {
       it(`works for ${name} ${displayName === undefined ? 'w/o' : 'with'} display name`, function () {
-        const { hydrator, validationRules, messageProvider, parser, container } = setup();
+        const { expressionHydrator, validationRules, messageProvider, parser, container } = setup();
         const ruleset = { prop: { displayName, rules: [{ ...modelRule }] } };
-        const actual = hydrator.hydrateRuleset(ruleset, validationRules);
+        const actual = expressionHydrator.hydrateRuleset(ruleset, validationRules);
         const [propertyName, propertyExpression] = parsePropertyName('prop', parser);
         const expected = [new PropertyRule(container, validationRules, messageProvider, new RuleProperty(propertyExpression, propertyName, displayName), [[getRule()]])];
 
@@ -361,7 +361,7 @@ describe('ModelValidationHydrator', function () {
     }
   }
   it(`works for nested property`, function () {
-    const { hydrator, validationRules, messageProvider, parser, container } = setup();
+    const { expressionHydrator, validationRules, messageProvider, parser, container } = setup();
     const requiredModelRule = simpleRuleList.find((r) => r.name.includes('required')).modelRule;
     const regexModelRule = simpleRuleList.find((r) => r.name.includes('regex')).modelRule;
     const ruleset = {
@@ -376,7 +376,7 @@ describe('ModelValidationHydrator', function () {
         }
       }
     };
-    const actual = hydrator.hydrateRuleset(ruleset, validationRules);
+    const actual = expressionHydrator.hydrateRuleset(ruleset, validationRules);
     const parseProperty = (name: string) => {
       const [propName, expr] = parsePropertyName(name, parser);
       return [expr, propName] as const;

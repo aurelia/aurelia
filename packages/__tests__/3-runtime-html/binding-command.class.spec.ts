@@ -123,7 +123,7 @@ describe('template-compiler.binding-commands.class', function () {
    * - wait for 1 promise tick
    * - the element does contain the class
    *
-   * 4. TODO: assert class binding command on root surrogate once root surrogate rendering is supported
+   * 4. TODO: assert class binding command on root surrogate once root surrogate composition is supported
    */
   eachCartesianJoin(
     [classNameTests, testCases],

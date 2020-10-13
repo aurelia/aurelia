@@ -2,7 +2,7 @@
 /* eslint-disable prefer-template */
 /* eslint-disable max-lines-per-function */
 import { DI, IContainer, Registration, IIndexable, Key, Metadata } from '@aurelia/kernel';
-import { CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, ICompositionRoot, isRenderContext } from '@aurelia/runtime';
+import { CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, ICompositionRoot, isCompositionContext } from '@aurelia/runtime';
 import { InstructionResolver } from './instruction-resolver';
 import { IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
@@ -1301,7 +1301,7 @@ export class Router implements IRouter {
       return viewModelOrContainer;
     }
 
-    if (isRenderContext(viewModelOrContainer)) {
+    if (isCompositionContext(viewModelOrContainer)) {
       return viewModelOrContainer.get(IContainer);
     }
 

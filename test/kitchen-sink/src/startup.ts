@@ -7,12 +7,12 @@ import {
   RepeatRegistration,
   OneTimeBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
-  CustomElementRendererRegistration,
-  InterpolationBindingRendererRegistration,
-  IteratorBindingRendererRegistration,
-  PropertyBindingRendererRegistration,
-  SetPropertyRendererRegistration,
-  TemplateControllerRendererRegistration,
+  CustomElementComposerRegistration,
+  InterpolationBindingComposerRegistration,
+  IteratorBindingComposerRegistration,
+  PropertyBindingComposerRegistration,
+  SetPropertyComposerRegistration,
+  TemplateControllerComposerRegistration,
   ValueConverter,
   AtPrefixedTriggerAttributePatternRegistration,
   ColonPrefixedBindAttributePatternRegistration,
@@ -26,9 +26,9 @@ import {
   IProjectorLocatorRegistration,
   ITargetAccessorLocatorRegistration,
   ComposeRegistration,
-  ListenerBindingRendererRegistration,
-  SetAttributeRendererRegistration,
-  TextBindingRendererRegistration,
+  ListenerBindingComposerRegistration,
+  SetAttributeComposerRegistration,
+  TextBindingComposerRegistration,
   ITargetObserverLocatorRegistration,
   ITemplateCompilerRegistration,
   ITemplateElementFactoryRegistration,
@@ -72,12 +72,12 @@ const container = DI.createContainer().register(
   TwoWayBindingBehaviorRegistration,
 
   // runtime renderers
-  CustomElementRendererRegistration,
-  InterpolationBindingRendererRegistration,
-  IteratorBindingRendererRegistration,
-  PropertyBindingRendererRegistration,
-  SetPropertyRendererRegistration,
-  TemplateControllerRendererRegistration,
+  CustomElementComposerRegistration,
+  InterpolationBindingComposerRegistration,
+  IteratorBindingComposerRegistration,
+  PropertyBindingComposerRegistration,
+  SetPropertyComposerRegistration,
+  TemplateControllerComposerRegistration,
 
   // runtime-html components
   IProjectorLocatorRegistration,
@@ -88,9 +88,9 @@ const container = DI.createContainer().register(
   ComposeRegistration,
 
   // runtime-html renderers
-  ListenerBindingRendererRegistration,
-  SetAttributeRendererRegistration,
-  TextBindingRendererRegistration,
+  ListenerBindingComposerRegistration,
+  SetAttributeComposerRegistration,
+  TextBindingComposerRegistration,
 
   // runtime-html-browser components
   IDOMInitializerRegistration,

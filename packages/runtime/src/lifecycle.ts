@@ -28,9 +28,9 @@ import {
   PartialCustomElementDefinition,
 } from './resources/custom-element';
 import {
-  IRenderContext,
-  ICompiledRenderContext,
-} from './templating/render-context';
+  ICompositionContext,
+  ICompiledCompositionContext,
+} from './templating/composition-context';
 import { AuSlotContentType } from './resources/custom-elements/au-slot';
 import {
   CustomAttributeDefinition,
@@ -136,10 +136,10 @@ export interface IComponentController<
  * The base type for `ISyntheticView` and `ICustomElementController`.
  *
  * Both of those types can:
- * - Have `bindings` and `children` which are populated during rendering (hence, 'Renderable').
+ * - Have `bindings` and `children` which are populated during composing (hence, 'Composable').
  * - Have physical DOM nodes that can be mounted.
  */
-export interface IRenderableController<
+export interface IComposableController<
   T extends INode = INode,
   C extends IViewModel<T> = IViewModel<T>,
 > extends IController<T, C> {
@@ -232,13 +232,13 @@ interface IHydratedControllerProperties<
 /**
  * The controller for a synthetic view, that is, a controller created by an `IViewFactory`.
  *
- * A synthetic view, typically created when rendering a template controller (`if`, `repeat`, etc), is a renderable component with mountable DOM nodes that has no user view model.
+ * A synthetic view, typically created when composing a template controller (`if`, `repeat`, etc), is a composable component with mountable DOM nodes that has no user view model.
  *
  * It has either its own synthetic binding context or is locked to some externally sourced scope (in the case of `au-compose`)
  */
 export interface ISyntheticView<
   T extends INode = INode,
-> extends IRenderableController<T>, IHydratedControllerProperties<T> {
+> extends IComposableController<T>, IHydratedControllerProperties<T> {
   parent: IHydratedComponentController<T> | null;
 
   readonly vmKind: ViewModelKind.synthetic;
@@ -248,14 +248,14 @@ export interface ISyntheticView<
   /**
    * The scope that belongs to this view. This property will always be defined when the `state` property of this view indicates that the view is currently bound.
    *
-   * The `scope` may be set during `activate()` and unset during `deactivate()`, or it may be statically set during rendering with `lockScope()`.
+   * The `scope` may be set during `activate()` and unset during `deactivate()`, or it may be statically set during composing with `lockScope()`.
    */
   readonly scope: Scope;
   hostScope: Scope | null;
   /**
-   * The compiled render context used for rendering this view. Compilation was done by the `IViewFactory` prior to creating this view.
+   * The compiled composition context used for composing this view. Compilation was done by the `IViewFactory` prior to creating this view.
    */
-  readonly context: ICompiledRenderContext<T>;
+  readonly context: ICompiledCompositionContext<T>;
   readonly isStrictBinding: boolean;
   /**
    * The physical DOM nodes that will be appended during the `mount()` operation.
@@ -359,12 +359,12 @@ export interface ICustomAttributeController<
 /**
  * A representation of `IController` specific to a custom element whose `create` hook is about to be invoked (if present).
  *
- * It is not yet hydrated (hence 'dry') with any rendering-specific information.
+ * It is not yet hydrated (hence 'dry') with any composition-specific information.
  */
 export interface IDryCustomElementController<
   T extends INode = INode,
   C extends IViewModel<T> = IViewModel<T>,
-> extends IComponentController<T, C>, IRenderableController<T, C> {
+> extends IComponentController<T, C>, IComposableController<T, C> {
   readonly vmKind: ViewModelKind.customElement;
   readonly definition: CustomElementDefinition;
   /**
@@ -385,16 +385,16 @@ export interface IDryCustomElementController<
 /**
  * A representation of `IController` specific to a custom element whose `beforeCompile` hook is about to be invoked (if present).
  *
- * It has the same properties as `IDryCustomElementController`, as well as a render context (hence 'contextual').
+ * It has the same properties as `IDryCustomElementController`, as well as a composition context (hence 'contextual').
  */
 export interface IContextualCustomElementController<
   T extends INode = INode,
   C extends IViewModel<T> = IViewModel<T>,
 > extends IDryCustomElementController<T, C> {
   /**
-   * The non-compiled render context used for compiling this component's `CustomElementDefinition`.
+   * The non-compiled composition context used for compiling this component's `CustomElementDefinition`.
    */
-  readonly context: IRenderContext<T>;
+  readonly context: ICompositionContext<T>;
 }
 
 /**
@@ -407,9 +407,9 @@ export interface ICompiledCustomElementController<
   C extends IViewModel<T> = IViewModel<T>,
 > extends IContextualCustomElementController<T, C>, IHydratedControllerProperties<T> {
   /**
-   * The compiled render context used for hydrating this controller.
+   * The compiled composition context used for hydrating this controller.
    */
-  readonly context: ICompiledRenderContext<T>;
+  readonly context: ICompiledCompositionContext<T>;
   readonly isStrictBinding: boolean;
   /**
    * The projector used for mounting the `nodes` of this controller. Typically this will be one of:
@@ -480,7 +480,7 @@ export interface IViewCache<T extends INode = INode> {
 
 export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   readonly name: string;
-  readonly context: IRenderContext<T>;
+  readonly context: ICompositionContext<T>;
   readonly contentType: AuSlotContentType | undefined;
   readonly projectionScope: Scope | null;
   create(flags?: LifecycleFlags): ISyntheticView<T>;

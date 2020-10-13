@@ -174,26 +174,26 @@ export {
 
   DefaultResources,
 
-  AttributeBindingRendererRegistration,
-  ListenerBindingRendererRegistration,
-  SetAttributeRendererRegistration,
-  SetClassAttributeRendererRegistration,
-  SetStyleAttributeRendererRegistration,
-  StylePropertyBindingRendererRegistration,
-  TextBindingRendererRegistration,
+  AttributeBindingComposerRegistration,
+  ListenerBindingComposerRegistration,
+  SetAttributeComposerRegistration,
+  SetClassAttributeComposerRegistration,
+  SetStyleAttributeComposerRegistration,
+  StylePropertyBindingComposerRegistration,
+  TextBindingComposerRegistration,
 
-  RefBindingRendererRegistration,
-  CallBindingRendererRegistration,
-  CustomAttributeRendererRegistration,
-  CustomElementRendererRegistration,
-  InterpolationBindingRendererRegistration,
-  IteratorBindingRendererRegistration,
-  LetElementRendererRegistration,
-  PropertyBindingRendererRegistration,
-  SetPropertyRendererRegistration,
-  TemplateControllerRendererRegistration,
+  RefBindingComposerRegistration,
+  CallBindingComposerRegistration,
+  CustomAttributeComposerRegistration,
+  CustomElementComposerRegistration,
+  InterpolationBindingComposerRegistration,
+  IteratorBindingComposerRegistration,
+  LetElementComposerRegistration,
+  PropertyBindingComposerRegistration,
+  SetPropertyComposerRegistration,
+  TemplateControllerComposerRegistration,
 
-  DefaultRenderers,
+  DefaultComposers,
 
   RuntimeHtmlConfiguration
 } from './configuration';
@@ -210,7 +210,7 @@ export {
 } from './template-element-factory';
 export {
   createElement,
-  RenderPlan
+  CompositionPlan
 } from './create-element';
 export {
   NodeType,

@@ -4,11 +4,11 @@ import {
   DefaultBindingCommandRegistration,
   ForBindingCommandRegistration,
 
-  PropertyBindingRendererRegistration,
-  IteratorBindingRendererRegistration,
+  PropertyBindingComposerRegistration,
+  IteratorBindingComposerRegistration,
 
-  CustomElementRendererRegistration,
-  TemplateControllerRendererRegistration,
+  CustomElementComposerRegistration,
+  TemplateControllerComposerRegistration,
 
   RepeatRegistration,
   OneTimeBindingBehaviorRegistration,
@@ -25,8 +25,8 @@ import {
 
   DelegateBindingCommandRegistration,
 
-  TextBindingRendererRegistration,
-  ListenerBindingRendererRegistration,
+  TextBindingComposerRegistration,
+  ListenerBindingComposerRegistration,
 } from '@aurelia/runtime-html';
 import {
   IDOMInitializerRegistration,
@@ -52,12 +52,12 @@ global['Aurelia'] = new Aurelia()
     DelegateBindingCommandRegistration,
     ForBindingCommandRegistration,
 
-    TextBindingRendererRegistration,
-    ListenerBindingRendererRegistration,
-    PropertyBindingRendererRegistration,
-    IteratorBindingRendererRegistration,
-    CustomElementRendererRegistration,
-    TemplateControllerRendererRegistration,
+    TextBindingComposerRegistration,
+    ListenerBindingComposerRegistration,
+    PropertyBindingComposerRegistration,
+    IteratorBindingComposerRegistration,
+    CustomElementComposerRegistration,
+    TemplateControllerComposerRegistration,
 
     IDOMInitializerRegistration,
   )

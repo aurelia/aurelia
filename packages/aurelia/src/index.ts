@@ -534,21 +534,21 @@ export {
   // ThrottleBindingBehaviorRegistration,
   // TwoWayBindingBehaviorRegistration,
 
-  // RefBindingRendererRegistration,
-  // CallBindingRendererRegistration,
-  // CustomAttributeRendererRegistration,
-  // CustomElementRendererRegistration,
-  // InterpolationBindingRendererRegistration,
-  // IteratorBindingRendererRegistration,
-  // LetElementRendererRegistration,
-  // PropertyBindingRendererRegistration,
-  // SetPropertyRendererRegistration,
-  // TemplateControllerRendererRegistration,
+  // RefBindingComposerRegistration,
+  // CallBindingComposerRegistration,
+  // CustomAttributeComposerRegistration,
+  // CustomElementComposerRegistration,
+  // InterpolationBindingComposerRegistration,
+  // IteratorBindingComposerRegistration,
+  // LetElementComposerRegistration,
+  // PropertyBindingComposerRegistration,
+  // SetPropertyComposerRegistration,
+  // TemplateControllerComposerRegistration,
 
   // DefaultResources as RuntimeDefaultResources,
   // IObserverLocatorRegistration,
   // ILifecycleRegistration,
-  // IRendererRegistration,
+  // IComposerRegistration,
   // RuntimeConfiguration,
 
   // AttributeInstruction,
@@ -772,7 +772,7 @@ export {
   // ITemplateCompiler,
   // ITemplateFactory,
 
-  // RenderContext
+  // CompositionContext
 
   // AttrSyntax,
 
@@ -835,20 +835,20 @@ export {
 
   // DefaultResources as RuntimeHtmlDefaultResources,
 
-  // AttributeBindingRendererRegistration,
-  // ListenerBindingRendererRegistration,
-  // SetAttributeRendererRegistration,
-  // SetClassAttributeRendererRegistration,
-  // SetStyleAttributeRendererRegistration,
-  // StylePropertyBindingRendererRegistration,
-  // TextBindingRendererRegistration,
+  // AttributeBindingComposerRegistration,
+  // ListenerBindingComposerRegistration,
+  // SetAttributeComposerRegistration,
+  // SetClassAttributeComposerRegistration,
+  // SetStyleAttributeComposerRegistration,
+  // StylePropertyBindingComposerRegistration,
+  // TextBindingComposerRegistration,
 
-  // DefaultRenderers,
+  // DefaultComposers,
 
   // RuntimeHtmlConfiguration,
 
   createElement,
-  // RenderPlan,
+  // CompositionPlan,
 
   // AttributeInstruction,
   // InstructionRow,

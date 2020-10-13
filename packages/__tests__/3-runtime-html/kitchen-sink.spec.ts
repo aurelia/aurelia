@@ -154,32 +154,32 @@ describe('dependency injection', function () {
 //     const elseText = 'bar';
 
 //     const ifTemplate: ITemplate<AuNode> = {
-//       renderContext: null as any,
+//       compositionContext: null as any,
 //       dom: null as any,
-//       compose(renderable) {
+//       compose(composable) {
 //         const text = AuNode.createText();
 //         const wrapper = AuNode.createTemplate().appendChild(text);
 
 //         const nodes = new AuNodeSequence(dom, wrapper);
 //         const binding = new Binding(new AccessScope(ifPropName), text, 'textContent', BindingMode.toView, observerLocator, container);
 
-//         (renderable as Writable<typeof renderable>).$nodes = nodes;
-//         addBinding(renderable, binding);
+//         (composable as Writable<typeof composable>).$nodes = nodes;
+//         addBinding(composable, binding);
 //       }
 //     };
 
 //     const elseTemplate: ITemplate<AuNode> = {
-//       renderContext: null as any,
+//       compositionContext: null as any,
 //       dom: null as any,
-//       compose(renderable) {
+//       compose(composable) {
 //         const text = AuNode.createText();
 //         const wrapper = AuNode.createTemplate().appendChild(text);
 
 //         const nodes = new AuNodeSequence(dom, wrapper);
 //         const binding = new Binding(new AccessScope(elsePropName), text, 'textContent', BindingMode.toView, observerLocator, container);
 
-//         (renderable as Writable<typeof renderable>).$nodes = nodes;
-//         addBinding(renderable, binding);
+//         (composable as Writable<typeof composable>).$nodes = nodes;
+//         addBinding(composable, binding);
 //       }
 //     };
 

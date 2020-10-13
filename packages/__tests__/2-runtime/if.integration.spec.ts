@@ -11,7 +11,7 @@ import {
   ViewFactory,
   Controller,
   CustomElementDefinition,
-  getRenderContext,
+  getCompositionContext,
 } from '@aurelia/runtime';
 import {
   ToViewBindingInstruction,
@@ -120,7 +120,7 @@ describe(`If/Else`, function () {
         const location2 = AuNode.createRenderLocation();
         const host = AuNode.createHost().appendChild(location.$start).appendChild(location).appendChild(location2.$start).appendChild(location2);
 
-        const ifContext = getRenderContext<AuNode>(
+        const ifContext = getCompositionContext<AuNode>(
           CustomElementDefinition.create({
             name: void 0,
             template: AuNode.createText().makeTarget(),
@@ -133,7 +133,7 @@ describe(`If/Else`, function () {
           }),
           container,
         );
-        const elseContext = getRenderContext<AuNode>(
+        const elseContext = getCompositionContext<AuNode>(
           CustomElementDefinition.create({
             name: void 0,
             template: AuNode.createText().makeTarget(),

@@ -15,7 +15,7 @@ import {
   bindable,
   customElement,
   MountStrategy,
-  getRenderContext,
+  getCompositionContext,
   ICustomElementController,
   ISyntheticView,
   ICustomElementViewModel,
@@ -23,10 +23,10 @@ import {
   IHydratedParentController,
   ControllerVisitor,
 } from '@aurelia/runtime';
-import { createElement, RenderPlan } from '../../create-element';
+import { createElement, CompositionPlan } from '../../create-element';
 import { HydrateElementInstruction, TargetedInstruction } from '../../instructions';
 
-export type Subject<T extends INode = Node> = IViewFactory<T> | ISyntheticView<T> | RenderPlan<T> | Constructable | CustomElementDefinition;
+export type Subject<T extends INode = Node> = IViewFactory<T> | ISyntheticView<T> | CompositionPlan<T> | Constructable | CustomElementDefinition;
 export type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | undefined;
 
 function toLookup(
@@ -175,7 +175,7 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
       return subject;
     }
 
-    if ('createView' in subject) { // RenderPlan
+    if ('createView' in subject) { // CompositionPlan
       return subject.createView(this.$controller.context!);
     }
 
@@ -185,7 +185,7 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
 
     if ('template' in subject) { // Raw Template Definition
       const definition = CustomElementDefinition.getOrCreate(subject);
-      return getRenderContext<T>(definition, this.$controller.context!).getViewFactory().create(flags);
+      return getCompositionContext<T>(definition, this.$controller.context!).getViewFactory().create(flags);
     }
 
     // Constructable (Custom Element Constructor)

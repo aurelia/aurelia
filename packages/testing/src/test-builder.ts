@@ -519,7 +519,7 @@ export function createScopeForTest(bindingContext: any = {}, parentBindingContex
 //     view.$nodes = new NodeSequenceFactory(dom, '<div>Fake View</div>').createNodeSequence() as INodeSequence<T>;
 //     return view;
 //   };
-//   const renderable = new FakeViewFactory('fake-view', createView, ctx.lifecycle).create();
+//   const composable = new FakeViewFactory('fake-view', createView, ctx.lifecycle).create();
 //   const instruction: IHydrateElementInstruction = {
 //     type: TargetedInstructionType.hydrateElement,
 //     res: 'au-compose',
@@ -528,16 +528,16 @@ export function createScopeForTest(bindingContext: any = {}, parentBindingContex
 
 //   dom.appendChild(parent, host);
 
-//   const renderableProvider = new InstanceProvider();
+//   const composableProvider = new InstanceProvider();
 //   const elementProvider = new InstanceProvider();
 //   const instructionProvider = new InstanceProvider<ITargetedInstruction>();
 
-//   renderableProvider.prepare(renderable);
+//   composableProvider.prepare(composable);
 //   elementProvider.prepare(host);
 //   instructionProvider.prepare(instruction);
 
 //   container.register(ElementType);
-//   container.registerResolver(IController, renderableProvider);
+//   container.registerResolver(IController, composableProvider);
 //   container.registerResolver(ITargetedInstruction, instructionProvider);
 //   dom.registerElementResolver(container, elementProvider);
 

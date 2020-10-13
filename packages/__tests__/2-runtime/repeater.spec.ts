@@ -15,8 +15,8 @@ import {
   Controller,
   IScheduler,
   CustomElementDefinition,
-  getRenderContext,
-  IRenderableController,
+  getCompositionContext,
+  IComposableController,
 } from '@aurelia/runtime';
 import {
   ToViewBindingInstruction,
@@ -550,7 +550,7 @@ describe(`Repeat`, function () {
         const location = AuNode.createRenderLocation();
         const host = AuNode.createHost().appendChild(location.$start).appendChild(location);
 
-        const itemContext = getRenderContext<AuNode>(
+        const itemContext = getCompositionContext<AuNode>(
           CustomElementDefinition.create({
             name: void 0,
             template: AuNode.createText().makeTarget(),
@@ -571,16 +571,16 @@ describe(`Repeat`, function () {
           targetProperty: 'items',
           sourceExpression: new ForOfStatement(new BindingIdentifier('item'), new AccessScopeExpression('items'))
         } as any;
-        const renderable: IRenderableController<AuNode> = {
+        const composable: IComposableController<AuNode> = {
           bindings: [binding]
         } as any;
         let sut: Repeat<IObservedArray, AuNode>;
         if (proxies) {
-          const raw = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
+          const raw = new Repeat<IObservedArray, AuNode>(location, composable, itemFactory);
           sut = new ProxyObserver(raw).proxy;
           (raw as Writable<Repeat>).$controller = Controller.forCustomAttribute(null, container, sut, lifecycle, (void 0)!);
         } else {
-          sut = new Repeat<IObservedArray, AuNode>(location, renderable, itemFactory);
+          sut = new Repeat<IObservedArray, AuNode>(location, composable, itemFactory);
           (sut as Writable<Repeat>).$controller = Controller.forCustomAttribute(null, container, sut, lifecycle, (void 0)!);
         }
         binding.target = sut as any;

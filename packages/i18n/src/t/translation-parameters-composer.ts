@@ -2,7 +2,7 @@ import { IContainer } from '@aurelia/kernel';
 import {
   BindingMode,
   BindingType,
-  IRenderableController,
+  IComposableController,
   IExpressionParser,
   IInstructionComposer,
   instructionComposer,
@@ -65,7 +65,7 @@ export class TranslationParametersBindingComposer implements IInstructionCompose
   public compose(
     flags: LifecycleFlags,
     context: IContainer,
-    controller: IRenderableController,
+    controller: IComposableController,
     target: HTMLElement,
     instruction: CallBindingInstruction,
   ): void {

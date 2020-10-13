@@ -8,8 +8,8 @@ import {
   IObserverLocator,
   LifecycleFlags,
   RuntimeConfiguration,
-  ICompiledRenderContext,
-  IRenderableController,
+  ICompiledCompositionContext,
+  IComposableController,
   IBinding,
 } from '@aurelia/runtime';
 import {
@@ -86,16 +86,16 @@ describe('TranslationParametersBindingComposer', function () {
     assert.equal(sut.instructionType, TranslationParametersInstructionType);
   });
 
-  it('#render instantiates TranslationBinding if there are none existing', function () {
+  it('#compose instantiates TranslationBinding if there are none existing', function () {
     const container = createFixture();
     const sut: IInstructionComposer = new TranslationParametersBindingComposer(container.get(IExpressionParser), container.get(IObserverLocator));
     const expressionParser = container.get(IExpressionParser);
-    const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); }} as unknown as IRenderableController);
+    const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); }} as unknown as IComposableController);
     const callBindingInstruction: CallBindingInstruction = { from: expressionParser.parse('{foo: "bar"}', BindingType.BindCommand) } as unknown as CallBindingInstruction;
 
     sut.compose(
       LifecycleFlags.none,
-      container as unknown as ICompiledRenderContext,
+      container as unknown as ICompiledCompositionContext,
       controller,
       DOM.createElement('span'),
       callBindingInstruction,
@@ -104,20 +104,20 @@ describe('TranslationParametersBindingComposer', function () {
     assert.instanceOf(controller.bindings[0], TranslationBinding);
   });
 
-  it('#render add the paramExpr to the existing TranslationBinding for the target element', function () {
+  it('#compose add the paramExpr to the existing TranslationBinding for the target element', function () {
     const container = createFixture();
     const sut: IInstructionComposer = new TranslationParametersBindingComposer(container.get(IExpressionParser), container.get(IObserverLocator));
     const expressionParser = container.get(IExpressionParser);
     const targetElement = DOM.createElement('span');
     const binding = new TranslationBinding(targetElement, container.get(IObserverLocator), container);
-    const renderable = ({ bindings: [binding] } as unknown as IRenderableController);
+    const composable = ({ bindings: [binding] } as unknown as IComposableController);
     const paramExpr = expressionParser.parse('{foo: "bar"}', BindingType.BindCommand);
     const callBindingInstruction: CallBindingInstruction = { from: paramExpr } as unknown as CallBindingInstruction;
 
     sut.compose(
       LifecycleFlags.none,
-      container as unknown as ICompiledRenderContext,
-      renderable,
+      container as unknown as ICompiledCompositionContext,
+      composable,
       targetElement,
       callBindingInstruction,
     );

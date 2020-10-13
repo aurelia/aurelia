@@ -19,7 +19,7 @@ import {
   ICustomAttributeViewModel,
   ICustomElementViewModel,
   ILifecycle,
-  IRenderableController,
+  IComposableController,
   IViewFactory,
 } from '../lifecycle';
 import { IComposer, ITemplateCompiler } from '../composer';
@@ -29,30 +29,30 @@ import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '.
 
 import type { Scope } from '../observation/binding-context';
 
-const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, RenderContext>>();
-const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, RenderContext>>>();
+const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, CompositionContext>>();
+const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, CompositionContext>>>();
 
 const fragmentCache = new WeakMap<CustomElementDefinition, INode | null>();
 
-export function isRenderContext<T extends INode = INode>(value: unknown): value is IRenderContext<T> {
-  return value instanceof RenderContext;
+export function isCompositionContext<T extends INode = INode>(value: unknown): value is ICompositionContext<T> {
+  return value instanceof CompositionContext;
 }
 
 /**
- * A render context that wraps an `IContainer` and must be compiled before it can be used for rendering.
+ * A composition context that wraps an `IContainer` and must be compiled before it can be used for composing.
  */
-export interface IRenderContext<T extends INode = INode> extends IContainer {
+export interface ICompositionContext<T extends INode = INode> extends IContainer {
   readonly dom: IDOM<T>;
 
   /**
-   * The `CustomElementDefinition` that this `IRenderContext` was created with.
+   * The `CustomElementDefinition` that this `ICompositionContext` was created with.
    *
    * If a `PartialCustomElementDefinition` was used to create this context, then this property will be the return value of `CustomElementDefinition.getOrCreate`.
    */
   readonly definition: CustomElementDefinition;
 
   /**
-   * The `IContainer` (which may be, but is not guaranteed to be, an `IRenderContext`) that this `IRenderContext` was created with.
+   * The `IContainer` (which may be, but is not guaranteed to be, an `ICompositionContext`) that this `ICompositionContext` was created with.
    */
   readonly parentContainer: IContainer;
 
@@ -61,16 +61,16 @@ export interface IRenderContext<T extends INode = INode> extends IContainer {
    *
    * @param instance - The component instance to make available to child components if this context's definition has `injectable` set to `true`.
    */
-  beginChildComponentOperation(instance: ICustomElementViewModel): IRenderContext<T>;
+  beginChildComponentOperation(instance: ICustomElementViewModel): ICompositionContext<T>;
 
   /**
-   * Compiles the backing `CustomElementDefinition` (if needed) and returns the compiled `IRenderContext` that exposes the compiled `CustomElementDefinition` as well as rendering operations.
+   * Compiles the backing `CustomElementDefinition` (if needed) and returns the compiled `ICompositionContext` that exposes the compiled `CustomElementDefinition` as well as composing operations.
    *
    * This operation is idempotent.
    *
-   * @returns The compiled `IRenderContext`.
+   * @returns The compiled `ICompositionContext`.
    */
-  compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext<T>;
+  compile(targetedProjections: RegisteredProjections | null): ICompiledCompositionContext<T>;
 
   /**
    * Creates an (or returns the cached) `IViewFactory` that can be used to create synthetic view controllers.
@@ -81,10 +81,10 @@ export interface IRenderContext<T extends INode = INode> extends IContainer {
 }
 
 /**
- * A compiled `IRenderContext` that can create instances of `INodeSequence` (based on the template of the compiled definition)
+ * A compiled `ICompositionContext` that can create instances of `INodeSequence` (based on the template of the compiled definition)
  * and begin a component operation to create new component instances.
  */
-export interface ICompiledRenderContext<T extends INode = INode> extends IRenderContext<T>, IProjectionProvider {
+export interface ICompiledCompositionContext<T extends INode = INode> extends ICompositionContext<T>, IProjectionProvider {
   /**
    * The compiled `CustomElementDefinition`.
    *
@@ -102,7 +102,7 @@ export interface ICompiledRenderContext<T extends INode = INode> extends IRender
   createNodes(): INodeSequence<T>;
 
   /**
-   * Prepare this render context for creating a new component instance.
+   * Prepare this composition context for creating a new component instance.
    *
    * All parameters are optional injectable dependencies, that is: only those that are actually needed by the to-be-created component, need to be provided in order for that component to work.
    *
@@ -110,7 +110,7 @@ export interface ICompiledRenderContext<T extends INode = INode> extends IRender
    *
    * @param parentController - The `IController` of the immediate parent of the to-be-created component. Not used by any built-in components.
    * @param host - The DOM node that declared the component, or the node that the component will be mounted to (in case of containerless). Used by some built-in custom attributes.
-   * @param instruction - The hydrate instruction that resulted in the creation of this render context. Only used by `au-compose`.
+   * @param instruction - The hydrate instruction that resulted in the creation of this composition context. Only used by `au-compose`.
    * @param viewFactory - The `IViewFactory` that was created from the template that the template controller was placed on. Only applicable for template controllers. Used by all built-in template controllers.
    * @param location - The DOM node that the nodes created by the `IViewFactory` should be mounted to. Only applicable for template controllers. Used by all built-in template controllers.
    */
@@ -130,7 +130,7 @@ export interface ICompiledRenderContext<T extends INode = INode> extends IRender
     host: INode | null | undefined,
   ): void;
 
-  renderInstructions(
+  composeChildren(
     flags: LifecycleFlags,
     instructions: readonly ITargetedInstruction[],
     controller: IController,
@@ -139,9 +139,9 @@ export interface ICompiledRenderContext<T extends INode = INode> extends IRender
 }
 
 /**
- * A compiled `IRenderContext` that is ready to be used for creating component instances, and rendering them.
+ * A compiled `ICompositionContext` that is ready to be used for creating component instances, and composing them.
  */
-export interface IComponentFactory<T extends INode = INode> extends ICompiledRenderContext<T>, IDisposable {
+export interface IComponentFactory<T extends INode = INode> extends ICompiledCompositionContext<T>, IDisposable {
   /**
    * Creates a new component instance based on the provided `resourceKey`.
    *
@@ -172,16 +172,16 @@ export interface IComponentFactory<T extends INode = INode> extends ICompiledRen
   dispose(): void;
 }
 
-export function getRenderContext<T extends INode = INode>(
+export function getCompositionContext<T extends INode = INode>(
   partialDefinition: PartialCustomElementDefinition,
   parentContainer: IContainer,
   projections?: Record<string, CustomElementDefinition> | null,
-): IRenderContext<T> {
+): ICompositionContext<T> {
   const definition = CustomElementDefinition.getOrCreate(partialDefinition);
 
-  // injectable completely prevents caching, ensuring that each instance gets a new render context
+  // injectable completely prevents caching, ensuring that each instance gets a new composition context
   if (definition.injectable !== null) {
-    return new RenderContext<T>(definition, parentContainer);
+    return new CompositionContext<T>(definition, parentContainer);
   }
 
   if (projections == null) {
@@ -197,11 +197,11 @@ export function getRenderContext<T extends INode = INode>(
     if (context === void 0) {
       containerLookup.set(
         parentContainer,
-        context = new RenderContext<T>(definition, parentContainer),
+        context = new CompositionContext<T>(definition, parentContainer),
       );
     }
 
-    return context as unknown as IRenderContext<T>;
+    return context as unknown as ICompositionContext<T>;
   }
 
   let containerProjectionsLookup = definitionContainerProjectionsLookup.get(definition);
@@ -224,14 +224,14 @@ export function getRenderContext<T extends INode = INode>(
   if (context === void 0) {
     projectionsLookup.set(
       projections,
-      context = new RenderContext<T>(definition, parentContainer),
+      context = new CompositionContext<T>(definition, parentContainer),
     );
   }
 
-  return context as unknown as IRenderContext<T>;
+  return context as unknown as ICompositionContext<T>;
 }
 
-export class RenderContext<T extends INode = INode> implements IComponentFactory<T> {
+export class CompositionContext<T extends INode = INode> implements IComponentFactory<T> {
   private readonly container: IContainer;
 
   private readonly parentControllerProvider: InstanceProvider<IController<T>>;
@@ -339,8 +339,8 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   }
   // #endregion
 
-  // #region IRenderContext api
-  public compile(targetedProjections: RegisteredProjections | null): ICompiledRenderContext<T> {
+  // #region ICompositionContext api
+  public compile(targetedProjections: RegisteredProjections | null): ICompiledCompositionContext<T> {
     let compiledDefinition: CustomElementDefinition;
     if (this.isCompiled) {
       return this;
@@ -389,7 +389,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     return factory;
   }
 
-  public beginChildComponentOperation(instance: ICustomElementViewModel): IRenderContext<T> {
+  public beginChildComponentOperation(instance: ICustomElementViewModel): ICompositionContext<T> {
     const definition = this.definition;
     if (definition.injectable !== null) {
       if (this.viewModelProvider === void 0) {
@@ -406,7 +406,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
 
   // #endregion
 
-  // #region ICompiledRenderContext api
+  // #region ICompiledCompositionContext api
 
   public createNodes(): INodeSequence<T> {
     return this.dom.createNodeSequence(this.fragment, !this.definition.enhance);
@@ -449,7 +449,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
 
   public compose(
     flags: LifecycleFlags,
-    controller: IRenderableController,
+    controller: IComposableController,
     targets: ArrayLike<INode>,
     templateDefinition: CustomElementDefinition,
     host: INode | null | undefined,
@@ -457,13 +457,13 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     this.composer.compose(flags, this, controller, targets, templateDefinition, host);
   }
 
-  public renderInstructions(
+  public composeChildren(
     flags: LifecycleFlags,
     instructions: readonly ITargetedInstruction[],
-    controller: IRenderableController,
+    controller: IComposableController,
     target: unknown,
   ): void {
-    this.composer.renderInstructions(flags, this, instructions, controller, target);
+    this.composer.composeChildren(flags, this, instructions, controller, target);
   }
 
   public dispose(): void {

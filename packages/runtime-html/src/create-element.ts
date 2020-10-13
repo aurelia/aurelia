@@ -11,8 +11,8 @@ import {
   INode,
   IViewFactory,
   CustomElementDefinition,
-  IRenderContext,
-  getRenderContext,
+  ICompositionContext,
+  getCompositionContext,
   ISyntheticView,
 } from '@aurelia/runtime';
 import {
@@ -28,7 +28,7 @@ export function createElement<T extends INode = Node, C extends Constructable = 
   tagOrType: string | C,
   props?: Record<string, string | TargetedInstruction>,
   children?: ArrayLike<unknown>
-): RenderPlan<T> {
+): CompositionPlan<T> {
   if (typeof tagOrType === 'string') {
     return createElementForTag(dom, tagOrType, props, children);
   } else if (CustomElement.isType(tagOrType)) {
@@ -39,9 +39,9 @@ export function createElement<T extends INode = Node, C extends Constructable = 
 }
 
 /**
- * RenderPlan. Todo: describe goal of this class
+ * CompositionPlan. Todo: describe goal of this class
  */
-export class RenderPlan<T extends INode = Node> {
+export class CompositionPlan<T extends INode = Node> {
   private lazyDefinition?: CustomElementDefinition = void 0;
 
   public constructor(
@@ -64,8 +64,8 @@ export class RenderPlan<T extends INode = Node> {
     return this.lazyDefinition;
   }
 
-  public getContext(parentContainer: IContainer): IRenderContext<T> {
-    return getRenderContext(this.definition, parentContainer);
+  public getContext(parentContainer: IContainer): ICompositionContext<T> {
+    return getCompositionContext(this.definition, parentContainer);
   }
 
   public createView(parentContainer: IContainer): ISyntheticView<T> {
@@ -84,7 +84,7 @@ export class RenderPlan<T extends INode = Node> {
   }
 }
 
-function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, props?: Record<string, string | TargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan<T> {
+function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, props?: Record<string, string | TargetedInstruction>, children?: ArrayLike<unknown>): CompositionPlan<T> {
   const instructions: TargetedInstruction[] = [];
   const allInstructions: TargetedInstruction[][] = [];
   const dependencies: IRegistry[] = [];
@@ -114,7 +114,7 @@ function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, pro
     addChildren(dom, element, children, allInstructions, dependencies);
   }
 
-  return new RenderPlan(dom, element, allInstructions, dependencies);
+  return new CompositionPlan(dom, element, allInstructions, dependencies);
 }
 
 function createElementForType<T extends INode>(
@@ -122,7 +122,7 @@ function createElementForType<T extends INode>(
   Type: CustomElementType,
   props?: Record<string, unknown>,
   children?: ArrayLike<unknown>,
-): RenderPlan<T> {
+): CompositionPlan<T> {
   const definition = CustomElement.getDefinition(Type);
   const tagName = definition.name;
   const instructions: TargetedInstruction[] = [];
@@ -167,7 +167,7 @@ function createElementForType<T extends INode>(
     addChildren(dom, element, children, allInstructions, dependencies);
   }
 
-  return new RenderPlan<T>(dom, element, allInstructions, dependencies);
+  return new CompositionPlan<T>(dom, element, allInstructions, dependencies);
 }
 
 function addChildren<T extends INode>(
@@ -187,8 +187,8 @@ function addChildren<T extends INode>(
       case 'object':
         if (dom.isNodeInstance(current)) {
           dom.appendChild(parent, current);
-        } else if ('mergeInto' in (current as RenderPlan)) {
-          (current as RenderPlan<T>).mergeInto(parent, allInstructions, dependencies);
+        } else if ('mergeInto' in (current as CompositionPlan)) {
+          (current as CompositionPlan<T>).mergeInto(parent, allInstructions, dependencies);
         }
     }
   }

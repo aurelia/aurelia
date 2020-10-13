@@ -2,9 +2,9 @@ import { IContainer, DI, Class, IRegistry, Metadata, Registration } from '@aurel
 import { InstructionTypeName, ITargetedInstruction } from './definitions';
 import { INode } from './dom';
 import { LifecycleFlags } from './flags';
-import { IRenderableController } from './lifecycle';
+import { IComposableController } from './lifecycle';
 import { CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
-import { ICompiledRenderContext } from './templating/render-context';
+import { ICompiledCompositionContext } from './templating/composition-context';
 import { RegisteredProjections } from './resources/custom-elements/au-slot';
 
 export interface ITemplateCompiler {
@@ -20,18 +20,18 @@ export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplat
 export interface IComposer {
   compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     targets: ArrayLike<INode>,
     definition: CustomElementDefinition,
     host: INode | null | undefined,
   ): void;
 
-  renderInstructions(
+  composeChildren(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
+    context: ICompiledCompositionContext,
     instructions: readonly ITargetedInstruction[],
-    controller: IRenderableController,
+    controller: IComposableController,
     target: unknown,
   ): void ;
 }
@@ -45,8 +45,8 @@ export interface IInstructionComposer<
 > extends Partial<IInstructionTypeClassifier<TType>> {
   compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: unknown,
     instruction: ITargetedInstruction,
   ): void;
@@ -54,12 +54,12 @@ export interface IInstructionComposer<
 
 export const IInstructionComposer = DI.createInterface<IInstructionComposer>('IInstructionComposer').noDefault();
 
-type DecoratableInstructionComposer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionComposer, 'render'>>, TClass> & Partial<IRegistry>;
-type DecoratedInstructionComposer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionComposer, 'render'>, TClass> & IRegistry;
+type DecoratableInstructionComposer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionComposer, 'compose'>>, TClass> & Partial<IRegistry>;
+type DecoratedInstructionComposer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionComposer, 'compose'>, TClass> & IRegistry;
 
-type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionComposer<TType, TProto, TClass>) => DecoratedInstructionComposer<TType, TProto, TClass>;
+type InstructionComposerDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionComposer<TType, TProto, TClass>) => DecoratedInstructionComposer<TType, TProto, TClass>;
 
-export function instructionComposer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType> {
+export function instructionComposer<TType extends string>(instructionType: TType): InstructionComposerDecorator<TType> {
   return function decorator<TProto, TClass>(target: DecoratableInstructionComposer<TType, TProto, TClass>): DecoratedInstructionComposer<TType, TProto, TClass> {
     // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
     const decoratedTarget = function (...args: unknown[]): TProto {

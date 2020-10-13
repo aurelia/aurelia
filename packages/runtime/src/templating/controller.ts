@@ -72,10 +72,10 @@ import {
   BindableDefinition,
 } from './bindable';
 import {
-  IRenderContext,
-  getRenderContext,
-  RenderContext,
-} from './render-context';
+  ICompositionContext,
+  getCompositionContext,
+  CompositionContext,
+} from './composition-context';
 import { ChildrenObserver } from './children';
 import { RegisteredProjections } from '../resources/custom-elements/au-slot';
 import { ICompositionRoot } from '../aurelia';
@@ -114,7 +114,7 @@ export class Controller<
   public projector: IElementProjector<T> | undefined = void 0;
 
   public nodes: INodeSequence<T> | undefined = void 0;
-  public context: RenderContext<T> | undefined = void 0;
+  public context: CompositionContext<T> | undefined = void 0;
   public location: IRenderLocation<T> | undefined = void 0;
   public mountStrategy: MountStrategy = MountStrategy.insertBefore;
 
@@ -280,7 +280,7 @@ export class Controller<
     T extends INode = INode,
   >(
     root: ICompositionRoot<T> | null,
-    context: IRenderContext<T>,
+    context: ICompositionContext<T>,
     viewFactory: IViewFactory<T>,
     lifecycle: ILifecycle,
     flags: LifecycleFlags = LifecycleFlags.none,
@@ -338,7 +338,7 @@ export class Controller<
       }
     }
 
-    const context = this.context = getRenderContext<T>(definition, parentContainer, targetedProjections?.projections) as RenderContext<T>;
+    const context = this.context = getCompositionContext<T>(definition, parentContainer, targetedProjections?.projections) as CompositionContext<T>;
     // Support Recursive Components by adding self to own context
     definition.register(context);
     if (definition.injectable !== null) {
@@ -426,9 +426,9 @@ export class Controller<
   }
 
   private hydrateSynthetic(
-    context: IRenderContext<T>,
+    context: ICompositionContext<T>,
   ): void {
-    this.context = context as RenderContext<T>;
+    this.context = context as CompositionContext<T>;
     const compiledContext = context.compile(null);
     const compiledDefinition = compiledContext.compiledDefinition;
 

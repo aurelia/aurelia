@@ -1,4 +1,4 @@
-import { LifecycleFlags, ICompiledRenderContext, ICustomElementController, CustomElement, ICustomElementViewModel, IHydratedController, IHydratedParentController } from '@aurelia/runtime';
+import { LifecycleFlags, ICompiledCompositionContext, ICustomElementController, CustomElement, ICustomElementViewModel, IHydratedController, IHydratedParentController } from '@aurelia/runtime';
 import { ComponentAppellation, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType, NavigationInstruction } from './interfaces';
 import { IRouter } from './router';
 import { arrayRemove } from './utils';
@@ -720,7 +720,7 @@ export class Viewport implements IScopeOwner {
     if (componentType === null) {
       const controller = CustomElement.for(this.connectedCE!.element);
       componentType = (controller!.context as
-        ICompiledRenderContext<Element> & { componentType: RouteableComponentType })
+        ICompiledCompositionContext<Element> & { componentType: RouteableComponentType })
         .componentType;
     }
     return componentType ?? null;

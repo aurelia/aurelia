@@ -357,7 +357,7 @@ export {
   IController,
   IComponentController,
   IContextualCustomElementController,
-  IRenderableController,
+  IComposableController,
   IDryCustomElementController,
   ICustomAttributeController,
   IHydratedController,
@@ -375,12 +375,12 @@ export {
   ISyntheticView,
 } from './lifecycle';
 export {
-  getRenderContext,
-  isRenderContext,
-  IRenderContext,
-  ICompiledRenderContext,
+  getCompositionContext,
+  isCompositionContext,
+  ICompositionContext,
+  ICompiledCompositionContext,
   IComponentFactory,
-} from './templating/render-context';
+} from './templating/composition-context';
 export {
   TaskSlot,
   AppTask,

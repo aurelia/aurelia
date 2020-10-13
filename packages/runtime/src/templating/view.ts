@@ -16,7 +16,7 @@ import {
 import { Scope } from '../observation/binding-context';
 import { CustomElement, PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
 import { Controller } from './controller';
-import { IRenderContext } from './render-context';
+import { ICompositionContext } from './composition-context';
 import { AuSlotContentType } from '../resources/custom-elements/au-slot';
 
 export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
@@ -29,7 +29,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
 
   public constructor(
     public name: string,
-    public readonly context: IRenderContext<T>,
+    public readonly context: ICompositionContext<T>,
     private readonly lifecycle: ILifecycle,
     public readonly contentType: AuSlotContentType | undefined,
     public readonly projectionScope: Scope | null = null,

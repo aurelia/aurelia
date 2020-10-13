@@ -14,7 +14,7 @@ import {
   IsExpression,
   LifecycleFlags,
   INode,
-  IRenderableController,
+  IComposableController,
   IsBindingBehavior,
 } from '@aurelia/runtime';
 import i18next from 'i18next';
@@ -28,7 +28,7 @@ interface TranslationBindingCreationContext {
   parser: IExpressionParser;
   observerLocator: IObserverLocator;
   context: IContainer;
-  controller: IRenderableController;
+  controller: IComposableController;
   target: HTMLElement;
   instruction: CallBindingInstruction;
   isParameterContext?: boolean;

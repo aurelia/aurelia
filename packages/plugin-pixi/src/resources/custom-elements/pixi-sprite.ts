@@ -33,7 +33,7 @@ const directProps = [
   'interactive',
   'mask',
   'name',
-  'renderable',
+  'composable',
   'rotation',
   'transform',
   'visible',
@@ -92,7 +92,7 @@ export class PixiSprite {
   @bindable public pivotY?: number;
   @bindable public positionX?: number;
   @bindable public positionY?: number;
-  @bindable public renderable?: boolean;
+  @bindable public composable?: boolean;
   @bindable public rotation?: number;
   @bindable public scaleX?: number;
   @bindable public scaleY?: number;

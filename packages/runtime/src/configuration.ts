@@ -84,7 +84,7 @@ export const DefaultResources = [
  * A DI configuration object containing environment/runtime-agnostic registrations:
  * - `DefaultComponents`
  * - `DefaultResources`
- * - `DefaultRenderers`
+ * - `DefaultComposers`
  */
 export const RuntimeConfiguration = {
   /**

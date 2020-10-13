@@ -7,9 +7,9 @@ import {
   IObserverLocator,
   view,
   customElement,
-  getRenderContext,
+  getCompositionContext,
 } from '@aurelia/runtime';
-import { RenderPlan } from '@aurelia/runtime-html';
+import { CompositionPlan } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
   TestContext,
@@ -70,17 +70,17 @@ describe(spec, function () {
     },
     {
       t: '4',
-      createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory(),
+      createSubject: ctx => getCompositionContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory(),
       expectedText: 'Hello!'
     },
     // {
     //   t: '5',
-    //   createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory().create(),
+    //   createSubject: ctx => getCompositionContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory().create(),
     //   expectedText: 'Hello!'
     // },
     {
       t: '6',
-      createSubject: ctx => new RenderPlan(ctx.dom, `<div>Hello!</div>`, [], []),
+      createSubject: ctx => new CompositionPlan(ctx.dom, `<div>Hello!</div>`, [], []),
       expectedText: 'Hello!'
     }
   ];
@@ -150,7 +150,7 @@ describe(spec, function () {
   });
 
   describe('With the ViewLocator value converter', function () {
-    it('can render a vanilla JS class instance', async function () {
+    it('can compose a vanilla JS class instance', async function () {
       const { au, host } = createFixture();
 
       @view({ name: 'default-view', template: `\${message}` })

@@ -37,7 +37,7 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
   public target: PortalTarget<T>;
 
   @bindable({ callback: 'targetChanged' })
-  public renderContext: PortalTarget<T>;
+  public compositionContext: PortalTarget<T>;
 
   @bindable()
   public strict: boolean = false;
@@ -216,7 +216,7 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
     // with a $ in front to make it less confusing/error prone
     const $document = dom.document;
     let target = this.target;
-    let context = this.renderContext;
+    let context = this.compositionContext;
 
     if (typeof target === 'string') {
       let queryContext: ParentNode = $document;
@@ -235,7 +235,7 @@ export class Portal<T extends ParentNode = ParentNode> implements ICustomAttribu
 
     if (target == null) {
       if (this.strict) {
-        throw new Error('Render target not found');
+        throw new Error('Compose target not found');
       } else {
         target = $document.body as unknown as ResolvedTarget<T>;
       }

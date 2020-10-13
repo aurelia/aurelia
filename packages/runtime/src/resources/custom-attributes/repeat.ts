@@ -8,7 +8,7 @@ import {
   IViewFactory,
   MountStrategy,
   ICustomAttributeController,
-  IRenderableController,
+  IComposableController,
   IController,
   ICustomAttributeViewModel,
   IHydratedController,
@@ -54,7 +54,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
 
   public constructor(
     @IRenderLocation public location: IRenderLocation<T>,
-    @IController public renderable: IRenderableController<T>,
+    @IController public composable: IComposableController<T>,
     @IViewFactory public factory: IViewFactory<T>
   ) {}
 
@@ -64,7 +64,7 @@ export class Repeat<C extends ObservedCollection = IObservedArray, T extends INo
     flags: LifecycleFlags,
   ): void | Promise<void> {
     this.checkCollectionObserver(flags);
-    const bindings = this.renderable.bindings as PropertyBinding[];
+    const bindings = this.composable.bindings as PropertyBinding[];
     let binding: PropertyBinding = (void 0)!;
     for (let i = 0, ii = bindings.length; i < ii; ++i) {
       binding = bindings[i];

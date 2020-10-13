@@ -344,7 +344,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
       }
     },
     {
-      title: 'works regardless of declaration order, and template controller in path with delayed rendering',
+      title: 'works regardless of declaration order, and template controller in path with delayed composition',
       template: '<input value.to-view="div.toString()"><div if.bind="renderDiv" ref="div"></div>',
       assertFn: (ctx, host, comp: { renderDiv: boolean }) => {
         assert.strictEqual(host.querySelector('input').value, '', 'should have been empty initially');

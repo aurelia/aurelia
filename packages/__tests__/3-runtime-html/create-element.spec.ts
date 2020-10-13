@@ -7,7 +7,7 @@ import {
   createElement as sut,
   TargetedInstructionType,
   HydrateElementInstruction,
-  RenderPlan,
+  CompositionPlan,
   TargetedInstruction
 } from '@aurelia/runtime-html';
 import {
@@ -90,12 +90,12 @@ describe(`createElement() creates element based on tag`, function () {
           ctx => [['foo', 'bar'], 'foobar'],
           ctx => [[ctx.createElementFromMarkup('<div>foo</div>'), ctx.createElementFromMarkup('<div>bar</div>')], 'foobar'],
           ctx => [['foo', ctx.createElementFromMarkup('<div>bar</div>')], 'foobar']
-        ] as ((ctx: HTMLTestContext) => [(RenderPlan | string | INode)[], string])[],
+        ] as ((ctx: HTMLTestContext) => [(CompositionPlan | string | INode)[], string])[],
         [
           (ctx, [children, expected]) => [children, expected],
           (ctx, [children, expected]) => [[sut(ctx.dom, 'div', null, ['baz']), ...children], `baz${expected}`],
           (ctx, [children, expected]) => [[sut(ctx.dom, 'div', null, [ctx.createElementFromMarkup('<div>baz</div>')]), ...children], `baz${expected}`]
-        ] as ((ctx: HTMLTestContext, $1: [(RenderPlan | string | INode)[], string]) => [(RenderPlan | string | INode)[], string])[]
+        ] as ((ctx: HTMLTestContext, $1: [(CompositionPlan | string | INode)[], string]) => [(CompositionPlan | string | INode)[], string])[]
       ],                       (ctx, $1, [children, expected]) => {
         it(_`adds children (${children})`, function () {
           const actual = sut(ctx.dom, tag, null, children);
@@ -215,12 +215,12 @@ describe(`createElement() creates element based on type`, function () {
           ctx => [['foo', 'bar'], 'foobar'],
           ctx => [[ctx.createElementFromMarkup('<div>foo</div>'), ctx.createElementFromMarkup('<div>bar</div>')], 'foobar'],
           ctx => [['foo', ctx.createElementFromMarkup('<div>bar</div>')], 'foobar']
-        ] as ((ctx: HTMLTestContext) => [(RenderPlan | string | INode)[], string])[],
+        ] as ((ctx: HTMLTestContext) => [(CompositionPlan | string | INode)[], string])[],
         [
           (ctx, [children, expected]) => [children, expected],
           (ctx, [children, expected]) => [[sut(ctx.dom, 'div', null, ['baz']), ...children], `baz${expected}`],
           (ctx, [children, expected]) => [[sut(ctx.dom, 'div', null, [ctx.createElementFromMarkup('<div>baz</div>')]), ...children], `baz${expected}`]
-        ] as ((ctx: HTMLTestContext, $1: [(RenderPlan | string | INode)[], string]) => [(RenderPlan | string | INode)[], string])[]
+        ] as ((ctx: HTMLTestContext, $1: [(CompositionPlan | string | INode)[], string]) => [(CompositionPlan | string | INode)[], string])[]
       ],                       (ctx, $1, [children, expected]) => {
         it(_`adds children (${children})`, function () {
           const type = createType();

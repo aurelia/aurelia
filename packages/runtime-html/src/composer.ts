@@ -3,10 +3,10 @@ import {
   BindingMode,
   BindingType,
   ContentBinding,
-  ICompiledRenderContext,
+  ICompiledCompositionContext,
   IExpressionParser,
   IObserverLocator,
-  IRenderableController,
+  IComposableController,
   IScheduler,
   Interpolation,
   IsBindingBehavior,
@@ -21,7 +21,7 @@ import {
   CustomAttribute,
   CustomElement,
   CustomElementDefinition,
-  getRenderContext,
+  getCompositionContext,
   IController,
   ICustomAttributeViewModel,
   ICustomElementViewModel,
@@ -65,26 +65,26 @@ import {
 } from './instructions';
 
 export class Composer implements IComposer {
-  private readonly instructionRenderers: Record<InstructionTypeName, IInstructionComposer['render']>;
+  private readonly instructionComposers: Record<InstructionTypeName, IInstructionComposer['compose']>;
 
   public static register(container: IContainer): IResolver<IComposer> {
     return Registration.singleton(IComposer, this).register(container);
   }
 
-  public constructor(@all(IInstructionComposer) instructionRenderers: IInstructionComposer[]) {
-    const record: Record<InstructionTypeName, IInstructionComposer['render']> = this.instructionRenderers = {};
-    instructionRenderers.forEach(item => {
+  public constructor(@all(IInstructionComposer) instructionComposers: IInstructionComposer[]) {
+    const record: Record<InstructionTypeName, IInstructionComposer['compose']> = this.instructionComposers = {};
+    instructionComposers.forEach(item => {
       // Binding the functions to the composer instances and calling the functions directly,
-      // prevents the `render` call sites from going megamorphic.
+      // prevents the `compose` call sites from going megamorphic.
       // Consumes slightly more memory but significantly less CPU.
-      record[item.instructionType as string] = item.render.bind(item);
+      record[item.instructionType as string] = item.compose.bind(item);
     });
   }
 
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     targets: ArrayLike<INode>,
     definition: CustomElementDefinition,
     host: INode | null | undefined,
@@ -92,11 +92,11 @@ export class Composer implements IComposer {
     const targetInstructions = definition.instructions;
 
     if (targets.length !== targetInstructions.length) {
-      throw new Error(`The compiled template is not aligned with the render instructions. There are ${targets.length} targets and ${targetInstructions.length} instructions.`);
+      throw new Error(`The compiled template is not aligned with the compose instructions. There are ${targets.length} targets and ${targetInstructions.length} instructions.`);
     }
 
     for (let i = 0, ii = targets.length; i < ii; ++i) {
-      this.renderInstructions(
+      this.composeChildren(
         /* flags        */flags,
         /* context      */context,
         /* instructions */targetInstructions[i] as readonly TargetedInstruction[],
@@ -106,7 +106,7 @@ export class Composer implements IComposer {
     }
 
     if (host !== void 0 && host !== null) {
-      this.renderInstructions(
+      this.composeChildren(
         /* flags        */flags,
         /* context      */context,
         /* instructions */definition.surrogates as readonly TargetedInstruction[],
@@ -116,18 +116,18 @@ export class Composer implements IComposer {
     }
   }
 
-  public renderInstructions(
+  public composeChildren(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
+    context: ICompiledCompositionContext,
     instructions: readonly TargetedInstruction[],
-    controller: IRenderableController,
+    controller: IComposableController,
     target: unknown,
   ): void {
-    const instructionRenderers = this.instructionRenderers;
+    const instructionComposers = this.instructionComposers;
     let current: TargetedInstruction;
     for (let i = 0, ii = instructions.length; i < ii; ++i) {
       current = instructions[i];
-      instructionRenderers[current.type](flags, context, controller, target, current);
+      instructionComposers[current.type](flags, context, controller, target, current);
     }
   }
 }
@@ -179,8 +179,8 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
 export class SetPropertyComposer implements IInstructionComposer {
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: IController,
     instruction: SetPropertyInstruction,
   ): void {
@@ -198,8 +198,8 @@ export class SetPropertyComposer implements IInstructionComposer {
 export class CustomElementComposer implements IInstructionComposer {
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: INode,
     instruction: HydrateElementInstruction,
   ): void {
@@ -209,7 +209,7 @@ export class CustomElementComposer implements IInstructionComposer {
     const slotInfo = instruction.slotInfo;
     if (slotInfo!==null) {
       const projectionCtx = slotInfo.projectionContext;
-      viewFactory = getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
+      viewFactory = getCompositionContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
     }
 
     const factory = context.getComponentFactory(
@@ -237,7 +237,7 @@ export class CustomElementComposer implements IInstructionComposer {
     flags = childController.flags;
     Metadata.define(key, childController, target);
 
-    context.renderInstructions(
+    context.composeChildren(
       /* flags        */flags,
       /* instructions */instruction.instructions,
       /* controller   */controller,
@@ -255,8 +255,8 @@ export class CustomElementComposer implements IInstructionComposer {
 export class CustomAttributeComposer implements IInstructionComposer {
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: INode,
     instruction: HydrateAttributeInstruction,
   ): void {
@@ -283,7 +283,7 @@ export class CustomAttributeComposer implements IInstructionComposer {
 
     Metadata.define(key, childController, target);
 
-    context.renderInstructions(
+    context.composeChildren(
       /* flags        */flags,
       /* instructions */instruction.instructions,
       /* controller   */controller,
@@ -301,13 +301,13 @@ export class CustomAttributeComposer implements IInstructionComposer {
 export class TemplateControllerComposer implements IInstructionComposer {
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: INode,
     instruction: HydrateTemplateController,
   ): void {
 
-    const viewFactory = getRenderContext(instruction.def, context).getViewFactory();
+    const viewFactory = getCompositionContext(instruction.def, context).getViewFactory();
     const renderLocation = context.dom.convertToRenderLocation(target);
 
     const componentFactory = context.getComponentFactory(
@@ -338,7 +338,7 @@ export class TemplateControllerComposer implements IInstructionComposer {
       (component as { link(componentTail: IController): void}).link(children[children.length - 1]);
     }
 
-    context.renderInstructions(
+    context.composeChildren(
       /* flags        */flags,
       /* instructions */instruction.instructions,
       /* controller   */controller,
@@ -361,8 +361,8 @@ export class LetElementComposer implements IInstructionComposer {
 
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: INode,
     instruction: HydrateLetElementInstruction,
   ): void {
@@ -396,8 +396,8 @@ export class CallBindingComposer implements IInstructionComposer {
 
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: IController,
     instruction: CallBindingInstruction,
   ): void {
@@ -420,8 +420,8 @@ export class RefBindingComposer implements IInstructionComposer {
 
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: INode,
     instruction: RefBindingInstruction,
   ): void {
@@ -446,8 +446,8 @@ export class InterpolationBindingComposer implements IInstructionComposer {
 
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: IController,
     instruction: InterpolationInstruction,
   ): void {
@@ -485,8 +485,8 @@ export class PropertyBindingComposer implements IInstructionComposer {
 
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: IController,
     instruction: PropertyBindingInstruction,
   ): void {
@@ -510,8 +510,8 @@ export class IteratorBindingComposer implements IInstructionComposer {
 
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: IController,
     instruction: IteratorBindingInstruction,
   ): void {
@@ -559,8 +559,8 @@ export class TextBindingComposer implements IInstructionComposer {
 
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: ChildNode,
     instruction: TextBindingInstruction,
   ): void {
@@ -602,8 +602,8 @@ export class ListenerBindingComposer implements IInstructionComposer {
 
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: HTMLElement,
     instruction: ListenerBindingInstruction,
   ): void {
@@ -623,8 +623,8 @@ export class ListenerBindingComposer implements IInstructionComposer {
 export class SetAttributeComposer implements IInstructionComposer {
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: HTMLElement,
     instruction: SetAttributeInstruction,
   ): void {
@@ -636,8 +636,8 @@ export class SetAttributeComposer implements IInstructionComposer {
 export class SetClassAttributeComposer implements IInstructionComposer {
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: HTMLElement,
     instruction: SetClassAttributeInstruction,
   ): void {
@@ -649,8 +649,8 @@ export class SetClassAttributeComposer implements IInstructionComposer {
 export class SetStyleAttributeComposer implements IInstructionComposer {
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: HTMLElement,
     instruction: SetStyleAttributeInstruction,
   ): void {
@@ -668,8 +668,8 @@ export class StylePropertyBindingComposer implements IInstructionComposer {
 
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: HTMLElement,
     instruction: StylePropertyBindingInstruction,
   ): void {
@@ -693,8 +693,8 @@ export class AttributeBindingComposer implements IInstructionComposer {
 
   public compose(
     flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
+    context: ICompiledCompositionContext,
+    controller: IComposableController,
     target: HTMLElement,
     instruction: AttributeBindingInstruction,
   ): void {

@@ -129,9 +129,9 @@ describe.skip(`ViewFactory`, function () {
   });
 });
 
-// public compose(renderable: Partial<IController>, host?: INode, parts?: TemplatePartDefinitions): void {
-//   const nodes = (<Writable<IController>>renderable).nodes = new MockTextNodeSequence();
-//   addBinding(renderable, new PropertyBinding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
+// public compose(composable: Partial<IController>, host?: INode, parts?: TemplatePartDefinitions): void {
+//   const nodes = (<Writable<IController>>composable).nodes = new MockTextNodeSequence();
+//   addBinding(composable, new PropertyBinding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
 // }
 // describe.skip('View', function () {
 //   function runBindLifecycle(lifecycle: ILifecycle, view: IController<AuNode>, flags: LF, scope: Scope): void {
@@ -386,9 +386,9 @@ describe.skip(`ViewFactory`, function () {
 
 //       // CompiledTemplate mock for the child views
 //       const childTemplate: ITemplate<AuNode> = {
-//         renderContext: null as any,
+//         compositionContext: null as any,
 //         dom: null as any,
-//         compose(renderable) {
+//         compose(composable) {
 //           const text = AuNode.createText();
 //           const wrapper = AuNode.createTemplate().appendChild(text);
 //           childWrapper.appendChild(wrapper);
@@ -396,8 +396,8 @@ describe.skip(`ViewFactory`, function () {
 //           const nodes = new AuNodeSequence(dom, wrapper);
 //           const binding = new PropertyBinding(new AccessScopeExpression(propName), text, 'textContent', BindingMode.oneTime, observerLocator, container);
 
-//           (renderable as Writable<typeof renderable>).nodes = nodes;
-//           addBinding(renderable, binding);
+//           (composable as Writable<typeof composable>).nodes = nodes;
+//           addBinding(composable, binding);
 //         }
 //       };
 //       const childFactory = new ViewFactory<AuNode>('child', childTemplate, lifecycle);
@@ -407,21 +407,21 @@ describe.skip(`ViewFactory`, function () {
 
 //       // CompiledTemplate mock for the top-level view (sut)
 //       const rootTemplate: ITemplate<AuNode> = {
-//         renderContext: null as any,
+//         compositionContext: null as any,
 //         dom: null as any,
-//         compose(renderable) {
+//         compose(composable) {
 //           const text = AuNode.createText();
 //           const wrapper = AuNode.createTemplate().appendChild(text).appendChild(childWrapper);
 //           const nodes = new AuNodeSequence(dom, wrapper);
 //           const binding = new PropertyBinding(new AccessScopeExpression(propName), text, 'textContent', BindingMode.oneTime, observerLocator, container);
 
-//           (renderable as Writable<typeof renderable>).nodes = nodes;
-//           addBinding(renderable, binding);
+//           (composable as Writable<typeof composable>).nodes = nodes;
+//           addBinding(composable, binding);
 
 //           for (let i = 0; i < childCount; ++i) {
 //             const child = childSuts[i] = childFactory.create();
 //             child.setLocation(childLocs[i]);
-//             addComponent(renderable, child);
+//             addComponent(composable, child);
 //           }
 //         }
 //       };

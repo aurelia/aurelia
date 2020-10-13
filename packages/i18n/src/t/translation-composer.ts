@@ -8,7 +8,7 @@ import {
   IObserverLocator,
   IsBindingBehavior,
   LifecycleFlags,
-  IRenderableController,
+  IComposableController,
 } from '@aurelia/runtime';
 import { TranslationBinding } from './translation-binding';
 import {
@@ -63,7 +63,7 @@ export class TranslationBindingComposer implements IInstructionComposer {
   public compose(
     flags: LifecycleFlags,
     context: IContainer,
-    controller: IRenderableController,
+    controller: IComposableController,
     target: HTMLElement,
     instruction: CallBindingInstruction,
   ): void {
@@ -112,7 +112,7 @@ export class TranslationBindBindingComposer implements IInstructionComposer {
   public compose(
     flags: LifecycleFlags,
     context: IContainer,
-    controller: IRenderableController,
+    controller: IComposableController,
     target: HTMLElement,
     instruction: CallBindingInstruction,
   ): void {

@@ -464,6 +464,7 @@ const defaultCustomElementDefinitionProperties = {
   strategy: 1,
   surrogates: [],
   hooks: HooksDefinition.none,
+  watches: [],
 };
 
 function createTplCtrlAttributeInstruction(attr: string, value: string) {
@@ -1034,7 +1035,8 @@ describe(`TemplateCompiler - combinations`, function () {
       [
         (ctx, $1, $2, $3, [input, output]) => createTemplateController(ctx, 'quux',       'quux',   '',              null,       true, output.instructions[0][0], input.template)
       ] as ((ctx: HTMLTestContext, $1: CTCResult, $2: CTCResult, $3: CTCResult, $4: CTCResult) => CTCResult)[]
-    ],                       (ctx, $1, $2, $3, $4, [input, output]) => {
+    ],
+    (ctx, $1, $2, $3, $4, [input, output]) => {
 
       it(`${input.template}`, function () {
 
@@ -1113,6 +1115,7 @@ describe(`TemplateCompiler - combinations`, function () {
           needsCompile: false,
           enhance: false,
           projectionsMap: new Map<ITargetedInstruction, IProjections>(),
+          watches: [],
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);

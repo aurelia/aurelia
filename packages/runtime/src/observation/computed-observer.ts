@@ -443,26 +443,26 @@ export class ExpressionWatcher implements ExpressionWatcher {
     public scope: Scope,
     public locator: IServiceLocator,
     public observerLocator: IObserverLocator,
-    public sourceExpression: IsBindingBehavior,
-    private readonly callback: IWatcherCallback<object>,
+    private readonly expr: IsBindingBehavior,
+    private readonly cb: IWatcherCallback<object>,
   ) {
     this.obj = scope.bindingContext;
   }
 
   public handleChange(value: unknown): void {
-    const expression = this.sourceExpression;
-    const canOptimize = expression.$kind === ExpressionKind.AccessScope;
-    const oldValue = this.oV;
+    const expr = this.expr;
     const obj = this.obj;
+    const oldValue = this.oV;
+    const canOptimize = expr.$kind === ExpressionKind.AccessScope && this.observerSlots === 1;
     if (!canOptimize) {
       this.version++;
-      value = expression.evaluate(0, this.scope, null, this.locator, this);
+      value = expr.evaluate(0, this.scope, null, this.locator, this);
       this.unobserve(false);
     }
     if (!Object.is(value, oldValue)) {
       this.oV = value;
       // should optionally queue for batch synchronous
-      this.callback.call(obj, value, oldValue, obj);
+      this.cb.call(obj, value, oldValue, obj);
     }
   }
 
@@ -472,7 +472,7 @@ export class ExpressionWatcher implements ExpressionWatcher {
     }
     this.isBound = true;
     this.version++;
-    this.oV = this.sourceExpression.evaluate(0, this.scope, null, this.locator, this);
+    this.oV = this.expr.evaluate(0, this.scope, null, this.locator, this);
     this.unobserve(false);
   }
 

@@ -77,7 +77,7 @@ export const DefaultComponents = [
  * - `RuntimeHtmlConfiguration` from `@aurelia/runtime-html`
  * - `DefaultComponents`
  */
-export const RuntimeHtmlBrowserConfiguration = {
+export const RuntimeHtmlConfiguration = {
   /**
    * Apply this configuration to the provided container.
    */

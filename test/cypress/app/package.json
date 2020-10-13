@@ -20,7 +20,6 @@
     "@aurelia/platform-browser": "dev",
     "@aurelia/route-recognizer": "dev",
     "@aurelia/router": "dev",
-    "@aurelia/runtime-html-browser": "dev",
     "@aurelia/runtime-html": "dev",
     "@aurelia/runtime": "dev",
     "@aurelia/scheduler-dom": "dev",

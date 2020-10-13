@@ -107,8 +107,6 @@ export class HTMLTestContext {
     TextType: typeof Text,
     CommentType: typeof Comment,
     DOMParserType: typeof DOMParser,
-    CSSStyleSheetType: typeof CSSStyleSheet,
-    ShadowRootType: typeof ShadowRoot
   ) {
     this.config = config;
     this.wnd = wnd;
@@ -123,7 +121,7 @@ export class HTMLTestContext {
     this.Comment = CommentType;
     this.DOMParser = DOMParserType;
     this.doc = wnd.document;
-    this.dom = new HTMLDOM(this.wnd, this.doc, NodeType, ElementType, HTMLElementType, CustomEventType, CSSStyleSheetType, ShadowRootType);
+    this.dom = new HTMLDOM(this.wnd.document.body);
     this._container = void 0;
     this._scheduler = void 0;
     this._templateCompiler = void 0;
@@ -147,8 +145,6 @@ export class HTMLTestContext {
     TextType: typeof Text,
     CommentType: typeof Comment,
     DOMParserType: typeof DOMParser,
-    CSSStyleSheetType: typeof CSSStyleSheet,
-    ShadowRootType: typeof ShadowRoot
   ): HTMLTestContext {
     return new HTMLTestContext(
       config,
@@ -163,8 +159,6 @@ export class HTMLTestContext {
       TextType,
       CommentType,
       DOMParserType,
-      CSSStyleSheetType,
-      ShadowRootType
     );
   }
 

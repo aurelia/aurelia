@@ -1,4 +1,4 @@
-import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
+import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { register } from '@aurelia/plugin-svg';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
@@ -13,7 +13,7 @@ const LOOPS = 6;
 try {
   new Aurelia()
     .register(
-      RuntimeHtmlBrowserConfiguration,
+      RuntimeHtmlConfiguration,
       { register }
     )
     .app({

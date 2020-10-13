@@ -5,15 +5,16 @@ import {
   TestContext,
 } from '@aurelia/testing';
 import {
-  RuntimeHtmlJsdomConfiguration
-} from '@aurelia/runtime-html-jsdom';
+  Aurelia,
+  RuntimeHtmlConfiguration
+} from '@aurelia/runtime-html';
 import { JSDOM } from 'jsdom';
 
 function createJSDOMTestContext(): HTMLTestContext {
   const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, { pretendToBeVisual: true });
 
   return HTMLTestContext.create(
-    RuntimeHtmlJsdomConfiguration,
+    RuntimeHtmlConfiguration,
     jsdom.window as unknown as Window,
     jsdom.window.UIEvent,
     jsdom.window.Event,
@@ -25,17 +26,14 @@ function createJSDOMTestContext(): HTMLTestContext {
     jsdom.window.Text,
     jsdom.window.Comment,
     jsdom.window.DOMParser,
-    jsdom.window.CSSStyleSheet,
-    (jsdom.window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot
   );
 }
 
 function initializeJSDOMTestContext(): void {
   TestContext.createHTMLTestContext = createJSDOMTestContext;
   // Just trigger the HTMLDOM to be resolved once so it sets the DOM globals
-  const ctx = TestContext.createHTMLTestContext();
-  ctx.dom.createElement('div');
-  ctx.scheduler.getRenderTaskQueue();
+  const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, { pretendToBeVisual: true });
+  new Aurelia().app({ host: jsdom.window.document.body, component: class {} });
 
   // eslint-disable-next-line
   beforeEach(function() {

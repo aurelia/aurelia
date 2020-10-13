@@ -1,14 +1,13 @@
-import { DebugConfiguration } from '@aurelia/debug';
-import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
+import { DebugConfiguration } from '@aurelia/debug';;
 import { DI, IContainer } from '@aurelia/kernel';
 import { IAppRoot, CustomElementType, ISinglePageApp, CustomElement } from '@aurelia/runtime';
-import { Aurelia as $Aurelia } from '@aurelia/runtime-html';
+import { RuntimeHtmlConfiguration, Aurelia as $Aurelia } from '@aurelia/runtime-html';
 
 // TODO: SSR?? abstract HTMLElement and document.
 
 function createAurelia(): Aurelia {
   const au = new Aurelia();
-  au.register(RuntimeHtmlBrowserConfiguration);
+  au.register(RuntimeHtmlConfiguration);
 
   // eslint-disable-next-line sonarjs/no-collapsible-if
   if (typeof process !== 'undefined' && typeof process.env === 'object') {

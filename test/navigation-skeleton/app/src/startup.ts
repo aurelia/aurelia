@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
+import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { RouterConfiguration } from '@aurelia/router';
 import { Aurelia } from '@aurelia/runtime';
 import { ChildRouter } from './child-router';
@@ -18,7 +18,7 @@ import { UpperValueConverter, Welcome } from './welcome';
       Users,
       ChildRouter,
       UpperValueConverter,
-      RuntimeHtmlBrowserConfiguration,
+      RuntimeHtmlConfiguration,
       RouterConfiguration,
       DebugConfiguration,
     )

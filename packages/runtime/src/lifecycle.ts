@@ -37,7 +37,7 @@ import {
 } from './resources/custom-attribute';
 
 import type { Scope } from './observation/binding-context';
-import type { IAppRoot } from './aurelia';
+import type { IAppRoot } from './app-root';
 
 export interface IBinding {
   interceptor: this;

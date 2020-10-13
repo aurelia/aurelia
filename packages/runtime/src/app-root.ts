@@ -28,7 +28,6 @@ import { HooksDefinition } from './definitions';
 
 export interface ISinglePageApp<THost extends INode = INode> {
   strategy?: BindingStrategy;
-  dom?: IDOM;
   host: THost;
   component: unknown;
 }
@@ -37,9 +36,7 @@ export interface IAppRoot<T extends INode = INode> extends AppRoot<T> {}
 export const IAppRoot = DI.createInterface<IAppRoot>('IAppRoot').noDefault();
 
 export class AppRoot<T extends INode = INode> implements IDisposable {
-  public readonly container: IContainer;
   public readonly host: T;
-  public readonly dom: IDOM<T>;
 
   public controller: ICustomElementController<T> = (void 0)!;
 
@@ -50,27 +47,18 @@ export class AppRoot<T extends INode = INode> implements IDisposable {
 
   public constructor(
     public readonly config: ISinglePageApp<T>,
-    container: IContainer,
+    public readonly dom: IDOM<T>,
+    public readonly container: IContainer,
     rootProvider: InstanceProvider<IAppRoot<T>>,
     enhance: boolean = false,
   ) {
+    this.host = config.host;
     rootProvider.prepare(this);
-    if (config.host != void 0) {
-      if (container.has(INode, false)) {
-        this.container = container.createChild();
-      } else {
-        this.container = container;
-      }
-      Registration.instance(INode, config.host).register(this.container);
-      this.host = config.host;
-    } else if (container.has(INode, true)) {
-      this.container = container;
-      this.host = container.get(INode) as T;
-    } else {
-      throw new Error(`No host element found.`);
+    if (container.has(INode, false) && container.get(INode) !== config.host) {
+      this.container = container.createChild();
     }
+    this.container.register(Registration.instance(INode, config.host));
     this.strategy = config.strategy ?? BindingStrategy.getterSetter;
-    this.dom = this.container.get(IDOMInitializer).initialize(config) as IDOM<T>;
     this.lifecycle = this.container.get(ILifecycle);
 
     if (enhance) {

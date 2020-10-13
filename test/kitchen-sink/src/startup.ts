@@ -36,7 +36,7 @@ import {
 } from '@aurelia/runtime-html';
 import {
   IDOMInitializerRegistration
-} from '@aurelia/runtime-html-browser';
+} from '@aurelia/runtime-html';
 import {
   ViewportCustomElement,
   Router

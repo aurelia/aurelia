@@ -27,8 +27,6 @@
     "packages/route-recognizer",
     "packages/runtime",
     "packages/runtime-html",
-    "packages/runtime-html-browser",
-    "packages/runtime-html-jsdom",
     "packages/http-server",
     "packages/scheduler",
     "packages/scheduler-dom",

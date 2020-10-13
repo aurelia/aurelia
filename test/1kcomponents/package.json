@@ -17,7 +17,6 @@
     "@aurelia/platform": "0.7.0",
     "@aurelia/platform-browser": "0.7.0",
     "@aurelia/plugin-svg": "0.7.0",
-    "@aurelia/runtime-html-browser": "0.7.0",
     "@aurelia/runtime-html": "0.7.0",
     "@aurelia/runtime": "0.7.0",
     "@aurelia/scheduler-dom": "0.7.0",

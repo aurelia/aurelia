@@ -5,12 +5,13 @@ import {
   ensureSchedulerEmpty,
 } from '@aurelia/testing';
 import {
-  RuntimeHtmlBrowserConfiguration
-} from '@aurelia/runtime-html-browser';
+  Aurelia,
+  RuntimeHtmlConfiguration,
+} from '@aurelia/runtime-html';
 
 function createBrowserTestContext(): HTMLTestContext {
   return HTMLTestContext.create(
-    RuntimeHtmlBrowserConfiguration,
+    RuntimeHtmlConfiguration,
     window,
     UIEvent,
     Event,
@@ -22,17 +23,11 @@ function createBrowserTestContext(): HTMLTestContext {
     Text,
     Comment,
     DOMParser,
-    CSSStyleSheet,
-    ShadowRoot
   );
 }
 
 function initializeBrowserTestContext(): void {
   TestContext.createHTMLTestContext = createBrowserTestContext;
-  // Just trigger the HTMLDOM to be resolved once so it sets the DOM globals
-  const ctx = TestContext.createHTMLTestContext();
-  ctx.dom.createElement('div');
-  ctx.scheduler.getRenderTaskQueue();
 
   // eslint-disable-next-line
   afterEach(function() {

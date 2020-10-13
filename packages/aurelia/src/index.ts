@@ -30,10 +30,6 @@ export {
 } from '@aurelia/fetch-client';
 
 export {
-  RuntimeHtmlBrowserConfiguration
-} from '@aurelia/runtime-html-browser';
-
-export {
   all,
   DI,
   IContainer,
@@ -934,10 +930,3 @@ export {
   // ITemplateElementFactory
 } from '@aurelia/runtime-html';
 
-export {
-  // IDOMInitializerRegistration,
-  // DefaultComponents as RuntimeHtmlBrowserDefaultComponents,
-  // RuntimeHtmlBrowserConfiguration
-  // BrowserDOMInitializer,
-  // BrowserScheduler
-} from '@aurelia/runtime-html-browser';

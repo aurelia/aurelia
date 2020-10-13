@@ -78,7 +78,7 @@ import {
 } from './composition-context';
 import { ChildrenObserver } from './children';
 import { RegisteredProjections } from '../resources/custom-elements/au-slot';
-import { IAppRoot } from '../aurelia';
+import { IAppRoot } from '../app-root';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();

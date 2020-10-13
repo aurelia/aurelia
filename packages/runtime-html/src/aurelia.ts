@@ -7,6 +7,9 @@ import {
   onResolve,
 } from '@aurelia/kernel';
 import { AppRoot, IAppRoot, IDOM, ISinglePageApp } from '@aurelia/runtime';
+import { IScheduler } from '@aurelia/scheduler';
+import { createDOMScheduler } from '@aurelia/scheduler-dom';
+import { HTMLDOM } from './dom';
 
 type Publisher = { dispatchEvent(evt: unknown, options?: unknown): void };
 
@@ -53,13 +56,28 @@ export class Aurelia implements IDisposable {
   }
 
   public app(config: ISinglePageApp<HTMLElement>): Omit<this, 'register' | 'app' | 'enhance'> {
-    this.next = new AppRoot(config, this.container, this.rootProvider, false);
+    this.next = new AppRoot<HTMLElement>(config, this.initializeDOM(config.host), this.container, this.rootProvider, false);
     return this;
   }
 
   public enhance(config: ISinglePageApp<HTMLElement>): Omit<this, 'register' | 'app' | 'enhance'> {
-    this.next = new AppRoot(config, this.container, this.rootProvider, true);
+    this.next = new AppRoot<HTMLElement>(config, this.initializeDOM(config.host), this.container, this.rootProvider, true);
     return this;
+  }
+
+  private initializeDOM(host: HTMLElement): IDOM<HTMLElement> {
+    let dom: HTMLDOM;
+    if (this.container.has(IDOM, false)) {
+      dom = this.container.get(IDOM) as HTMLDOM;
+    } else {
+      dom = new HTMLDOM(host);
+      this.container.register(Registration.instance(IDOM, dom));
+    }
+    if (!this.container.has(IDOM, true)) {
+      this.container.register(Registration.instance(IScheduler, createDOMScheduler(this.container, dom.window)));
+    }
+    // cast is temporary hack but we're soon getting rid of IDOM anyway
+    return dom as unknown as IDOM<HTMLElement>;
   }
 
   private startPromise: Promise<void> | void = void 0;

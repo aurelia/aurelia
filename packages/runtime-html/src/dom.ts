@@ -37,6 +37,9 @@ const effectiveParentNodeOverrides = new WeakMap<Node, Node>();
  * IDOM implementation for Html.
  */
 export class HTMLDOM implements IDOM {
+  public readonly window: Window & typeof globalThis;
+  public readonly document: Document;
+
   public readonly Node: typeof Node;
   public readonly Element: typeof Element;
   public readonly HTMLElement: typeof HTMLElement;
@@ -46,28 +49,31 @@ export class HTMLDOM implements IDOM {
 
   private readonly emptyNodes: FragmentNodeSequence;
 
-  public constructor(
-    public readonly window: Window,
-    public readonly document: Document,
-    TNode: typeof Node,
-    TElement: typeof Element,
-    THTMLElement: typeof HTMLElement,
-    TCustomEvent: typeof CustomEvent,
-    TCSSStyleSheet: typeof CSSStyleSheet,
-    TShadowRoot: typeof ShadowRoot
-  ) {
-    this.Node = TNode;
-    this.Element = TElement;
-    this.HTMLElement = THTMLElement;
-    this.CustomEvent = TCustomEvent;
-    this.CSSStyleSheet = TCSSStyleSheet;
-    this.ShadowRoot = TShadowRoot;
+  public constructor(host: Node) {
+    if (!Reflect.has(host, 'ownerDocument')) {
+      throw new Error(`host must be a HTMLElement with an ownerDocument, but instead got: ${Object.prototype.toString.call(host)}`);
+    }
+    const doc = host.ownerDocument;
+    if (doc === null) {
+      throw new Error(`host.ownerDocument must not be null. To successfully start Aurelia from a detached node, run document.adoptNode(host) before calling Aurelia#app`);
+    }
+    const win = doc.defaultView;
+    if (win === null) {
+      throw new Error(`host.ownerDocument.defaultView must not be null. To successfully start Aurelia from a detached node, run document.adoptNode(host) before calling Aurelia#app`);
+    }
+    this.window = win;
+    this.document = doc;
+    this.Node = win.Node;
+    this.Element = win.Element;
+    this.HTMLElement = win.HTMLElement;
+    this.CustomEvent = win.CustomEvent;
+    this.CSSStyleSheet = win.CSSStyleSheet;
+    this.ShadowRoot = win.ShadowRoot;
     if (DOM.isInitialized) {
       DOM.destroy();
     }
     DOM.initialize(this);
-
-    this.emptyNodes = new FragmentNodeSequence(this, document.createDocumentFragment());
+    this.emptyNodes = new FragmentNodeSequence(this, this.document.adoptNode(this.document.createDocumentFragment()));
   }
 
   public static register(container: IContainer): IResolver<IDOM> {
@@ -109,16 +115,12 @@ export class HTMLDOM implements IDOM {
   }
 
   public createDocumentFragment(markupOrNode?: string | Node): DocumentFragment {
-    if (markupOrNode == null) {
-      return this.document.createDocumentFragment();
-    }
-
-    if (this.isNodeInstance(markupOrNode)) {
-      if ((markupOrNode as HTMLTemplateElement).content !== undefined) {
-        return (markupOrNode as HTMLTemplateElement).content;
+    if (markupOrNode instanceof this.Node) {
+      if (markupOrNode.nodeName === 'TEMPLATE') {
+        return this.document.adoptNode((markupOrNode as HTMLTemplateElement).content);
       }
 
-      const fragment = this.document.createDocumentFragment();
+      const fragment = this.document.adoptNode(this.document.createDocumentFragment());
       fragment.appendChild(markupOrNode);
       return fragment;
     }
@@ -165,14 +167,12 @@ export class HTMLDOM implements IDOM {
     return observer;
   }
 
-  public createTemplate(markup?: unknown): HTMLTemplateElement {
-    if (markup == null) {
-      return this.document.createElement('template');
-    }
-
+  public createTemplate(markup?: string): HTMLTemplateElement {
     const template = this.document.createElement('template');
-    template.innerHTML = (markup as string | object).toString();
-
+    this.document.adoptNode(template.content);
+    if (typeof markup === 'string') {
+      template.innerHTML = markup;
+    }
     return template;
   }
   public createTextNode(text: string): Text {

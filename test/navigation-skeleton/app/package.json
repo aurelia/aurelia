@@ -18,7 +18,6 @@
     "@aurelia/platform-browser": "0.7.0",
     "@aurelia/route-recognizer": "0.7.0",
     "@aurelia/router": "0.7.0",
-    "@aurelia/runtime-html-browser": "0.7.0",
     "@aurelia/runtime-html": "0.7.0",
     "@aurelia/runtime": "0.7.0",
     "@aurelia/scheduler-dom": "0.7.0",

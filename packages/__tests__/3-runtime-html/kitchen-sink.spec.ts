@@ -99,7 +99,7 @@ describe('dependency injection', function () {
 //   it.skip('$1', function () {
 //     enableTracing();
 //     Tracer.enableLiveLogging(SymbolTraceWriter);
-//     const container = RuntimeHtmlBrowserConfiguration.createContainer();
+//     const container = RuntimeHtmlConfiguration.createContainer();
 //     const dom = new HTMLDOM(document);
 //     Registration.instance(IDOM, dom).register(container, IDOM);
 //     const host = document.createElement('div');

@@ -57,7 +57,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: npm ci
       - run: npm run build
-      - run: npm run test-${{matrix.browser}}:verbose
+      - run: npm run test-${{matrix.browser}}
         working-directory: packages/__tests__
 
   cypress:

@@ -48,6 +48,7 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
       opts.delay = nextDelay;
       this.task = this.taskQueue.queueTask(() => {
         this.lastCall = now();
+        this.task = null;
         callback();
       }, opts);
     } else {
@@ -64,5 +65,11 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
       }
     }
     this.binding.$bind(flags, scope, hostScope);
+  }
+
+  public $unbind(flags: LifecycleFlags): void {
+    this.task?.cancel();
+    this.task = null;
+    super.$unbind(flags);
   }
 }

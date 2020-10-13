@@ -29,6 +29,9 @@ module.exports = function (config) {
   }
 
   const setup = `setup-browser${config.package ? `-${config.package}` : ''}`;
+  /**
+   * @type {import('webpack').Configuration}
+   */
   const options = {
     basePath,
     browserDisconnectTimeout: 10000,
@@ -71,7 +74,7 @@ module.exports = function (config) {
           'module', 'main'
         ],
       },
-      devtool: 'eval-source-map',
+      devtool: process.env.CI ? 'inline-source-map' : 'eval-source-map',
       performance: {
         hints: false,
       },

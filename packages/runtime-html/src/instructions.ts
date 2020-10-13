@@ -19,10 +19,10 @@ import {
  * starts counting from letter `a`. The standard runtime instruction types all start with the letter `r`.
  */
 export const enum InstructionType {
-  hydrateElement = 'ra',
-  hydrateAttribute = 'rb',
-  hydrateTemplateController = 'rc',
-  hydrateLetElement = 'rd',
+  composeElement = 'ra',
+  composeAttribute = 'rb',
+  composeTemplateController = 'rc',
+  composeLetElement = 'rd',
   setProperty = 're',
   interpolation = 'rf',
   propertyBinding = 'rg',
@@ -178,7 +178,7 @@ export class SetPropertyInstruction {
 }
 
 export class HydrateElementInstruction {
-  public type: InstructionType.hydrateElement = InstructionType.hydrateElement;
+  public type: InstructionType.composeElement = InstructionType.composeElement;
 
   public constructor(
     public res: string,
@@ -188,7 +188,7 @@ export class HydrateElementInstruction {
 }
 
 export class HydrateAttributeInstruction {
-  public type: InstructionType.hydrateAttribute = InstructionType.hydrateAttribute;
+  public type: InstructionType.composeAttribute = InstructionType.composeAttribute;
 
   public constructor(
     public res: string,
@@ -197,7 +197,7 @@ export class HydrateAttributeInstruction {
 }
 
 export class HydrateTemplateController {
-  public type: InstructionType.hydrateTemplateController = InstructionType.hydrateTemplateController;
+  public type: InstructionType.composeTemplateController = InstructionType.composeTemplateController;
 
   public constructor(
     public def: PartialCustomElementDefinition,
@@ -208,7 +208,7 @@ export class HydrateTemplateController {
 }
 
 export class HydrateLetElementInstruction {
-  public type: InstructionType.hydrateLetElement = InstructionType.hydrateLetElement;
+  public type: InstructionType.composeLetElement = InstructionType.composeLetElement;
 
   public constructor(
     public instructions: LetBindingInstruction[],

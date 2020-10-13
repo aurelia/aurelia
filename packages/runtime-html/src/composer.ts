@@ -193,7 +193,7 @@ export class SetPropertyComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.hydrateElement)
+@instructionComposer(InstructionType.composeElement)
 /** @internal */
 export class CustomElementComposer implements IInstructionComposer {
   public compose(
@@ -250,7 +250,7 @@ export class CustomElementComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.hydrateAttribute)
+@instructionComposer(InstructionType.composeAttribute)
 /** @internal */
 export class CustomAttributeComposer implements IInstructionComposer {
   public compose(
@@ -296,7 +296,7 @@ export class CustomAttributeComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.hydrateTemplateController)
+@instructionComposer(InstructionType.composeTemplateController)
 /** @internal */
 export class TemplateControllerComposer implements IInstructionComposer {
   public compose(
@@ -351,7 +351,7 @@ export class TemplateControllerComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(InstructionType.hydrateLetElement)
+@instructionComposer(InstructionType.composeLetElement)
 /** @internal */
 export class LetElementComposer implements IInstructionComposer {
   public constructor(

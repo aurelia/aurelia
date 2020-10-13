@@ -73,26 +73,26 @@ export function stringifyInstructions(instruction: Instruction, depth: number): 
     case InstructionType.interpolation:
       output += 'interpolation\n';
       break;
-    case InstructionType.hydrateLetElement:
-      output += 'hydrateLetElement\n';
+    case InstructionType.composeLetElement:
+      output += 'composeLetElement\n';
       instruction.instructions.forEach(i => {
         output += stringifyInstructions(i, depth + 1);
       });
       break;
-    case InstructionType.hydrateAttribute:
-      output += `hydrateAttribute: ${instruction.res}\n`;
+    case InstructionType.composeAttribute:
+      output += `composeAttribute: ${instruction.res}\n`;
       instruction.instructions.forEach(i => {
         output += stringifyInstructions(i as Instruction, depth + 1);
       });
       break;
-    case InstructionType.hydrateElement:
-      output += `hydrateElement: ${instruction.res}\n`;
+    case InstructionType.composeElement:
+      output += `composeElement: ${instruction.res}\n`;
       instruction.instructions.forEach(i => {
         output += stringifyInstructions(i as Instruction, depth + 1);
       });
       break;
-    case InstructionType.hydrateTemplateController:
-      output += `hydrateTemplateController: ${instruction.res}\n`;
+    case InstructionType.composeTemplateController:
+      output += `composeTemplateController: ${instruction.res}\n`;
       output += stringifyTemplateDefinition(instruction.def, depth + 1);
       instruction.instructions.forEach(i => {
         output += stringifyInstructions(i as Instruction, depth + 1);

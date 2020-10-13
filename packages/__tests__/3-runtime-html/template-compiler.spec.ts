@@ -161,8 +161,8 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         assert.strictEqual(actual.instructions[0].length, 3, `actual.instructions[0].length`);
         const siblingInstructions = actual.instructions[0].slice(1);
         const expectedSiblingInstructions = [
-          { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: 'prop3' },
-          { toVerify: ['type', 'res', 'to'], type: TT.hydrateAttribute, res: 'prop3' }
+          { toVerify: ['type', 'res', 'to'], type: TT.composeAttribute, res: 'prop3' },
+          { toVerify: ['type', 'res', 'to'], type: TT.composeAttribute, res: 'prop3' }
         ];
         verifyInstructions(siblingInstructions, expectedSiblingInstructions);
         const rootInstructions = actual.instructions[0][0]['instructions'];
@@ -189,7 +189,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         );
         const rootInstructions = actual.instructions[0];
         const expectedRootInstructions = [
-          { toVerify: ['type', 'res'], type: TT.hydrateElement, res: 'el' }
+          { toVerify: ['type', 'res'], type: TT.composeElement, res: 'el' }
         ];
         verifyInstructions(rootInstructions, expectedRootInstructions);
 
@@ -308,7 +308,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
             const { instructions } = compileWith('<template><div as-element="not-div"></div></template>', [NotDiv]);
             verifyInstructions(instructions[0], [
               { toVerify: ['type', 'res'],
-                type: TT.hydrateElement, res: 'not-div' }
+                type: TT.composeElement, res: 'not-div' }
             ]);
           });
 
@@ -328,7 +328,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
 
               verifyInstructions(instructions[0], [
                 { toVerify: ['type', 'res', 'to'],
-                  type: TT.hydrateTemplateController, res: 'if' }
+                  type: TT.composeTemplateController, res: 'if' }
               ]);
               const templateControllerInst = instructions[0][0] as HydrateTemplateController;
               verifyInstructions(templateControllerInst.instructions, [
@@ -338,7 +338,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
               const [hydrateNotDivInstruction] = templateControllerInst.def.instructions[0] as [HydrateElementInstruction];
               verifyInstructions([hydrateNotDivInstruction], [
                 { toVerify: ['type', 'res'],
-                  type: TT.hydrateElement, res: 'not-div' }
+                  type: TT.composeElement, res: 'not-div' }
               ]);
               verifyInstructions(hydrateNotDivInstruction.instructions, []);
             });
@@ -367,7 +367,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
             [Let]
           );
           verifyInstructions(instructions[0], [
-            { toVerify: ['type'], type: TT.hydrateLetElement }
+            { toVerify: ['type'], type: TT.composeLetElement }
           ]);
         });
 
@@ -390,11 +390,11 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
           it('ignores [to-binding-context] order', function () {
             let instructions = compileWith(`<template><let a.bind="a" to-binding-context></let></template>`).instructions[0];
             verifyInstructions(instructions, [
-              { toVerify: ['type', 'toBindingContext'], type: TT.hydrateLetElement, toBindingContext: true }
+              { toVerify: ['type', 'toBindingContext'], type: TT.composeLetElement, toBindingContext: true }
             ]);
             instructions = compileWith(`<template><let to-binding-context a.bind="a"></let></template>`).instructions[0];
             verifyInstructions(instructions, [
-              { toVerify: ['type', 'toBindingContext'], type: TT.hydrateLetElement, toBindingContext: true }
+              { toVerify: ['type', 'toBindingContext'], type: TT.composeLetElement, toBindingContext: true }
             ]);
           });
         });
@@ -507,7 +507,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
     node.setAttribute(attr, value);
     const rawMarkup = node.outerHTML;
     const instruction = {
-      type: TT.hydrateTemplateController,
+      type: TT.composeTemplateController,
       res: target,
       def: {
         ...defaultCustomElementDefinitionProperties,
@@ -546,7 +546,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       instructions = [[childInstr]];
     }
     const instruction = {
-      type: TT.hydrateTemplateController,
+      type: TT.composeTemplateController,
       res: target,
       def: {
         ...defaultCustomElementDefinitionProperties,
@@ -590,7 +590,7 @@ function createCustomElement(
   childInput?,
 ): [PartialCustomElementDefinition, PartialCustomElementDefinition] {
   const instruction = {
-    type: TT.hydrateElement,
+    type: TT.composeElement,
     res: tagName,
     instructions: childInstructions,
     slotInfo: null,
@@ -629,7 +629,7 @@ function createCustomAttribute(
   childInput?,
 ): [PartialCustomAttributeDefinition, PartialCustomAttributeDefinition] {
   const instruction = {
-    type: TT.hydrateAttribute,
+    type: TT.composeAttribute,
     res: resName,
     instructions: childInstructions
   };
@@ -830,7 +830,7 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
         } as unknown as PartialCustomElementDefinition;
         const instruction = {
-          type: TT.hydrateAttribute,
+          type: TT.composeAttribute,
           res: def.name,
           instructions: [childInstruction],
         };
@@ -1743,7 +1743,7 @@ describe('TemplateCompiler - au-slot', function () {
       const allInstructions = compiledDefinition.instructions.flat();
       for (const expectedSlotInfo of expectedSlotInfos) {
         const actualInstruction = allInstructions.find((i) =>
-          i.type === InstructionType.hydrateElement
+          i.type === InstructionType.composeElement
           && (i as HydrateElementInstruction).res.includes('au-slot')
           && (i as HydrateElementInstruction).slotInfo.name === expectedSlotInfo.slotName
         ) as HydrateElementInstruction;

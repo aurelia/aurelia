@@ -93,7 +93,7 @@ describe('TranslationParametersBindingComposer', function () {
     const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); }} as unknown as IRenderableController);
     const callBindingInstruction: CallBindingInstruction = { from: expressionParser.parse('{foo: "bar"}', BindingType.BindCommand) } as unknown as CallBindingInstruction;
 
-    sut.render(
+    sut.compose(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
       controller,
@@ -114,7 +114,7 @@ describe('TranslationParametersBindingComposer', function () {
     const paramExpr = expressionParser.parse('{foo: "bar"}', BindingType.BindCommand);
     const callBindingInstruction: CallBindingInstruction = { from: paramExpr } as unknown as CallBindingInstruction;
 
-    sut.render(
+    sut.compose(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
       renderable,

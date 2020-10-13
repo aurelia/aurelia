@@ -60,7 +60,7 @@ export class TranslationBindingComposer implements IInstructionComposer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) { }
 
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: IContainer,
     controller: IRenderableController,
@@ -109,7 +109,7 @@ export class TranslationBindBindingComposer implements IInstructionComposer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) { }
 
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: IContainer,
     controller: IRenderableController,

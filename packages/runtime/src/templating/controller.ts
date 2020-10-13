@@ -400,7 +400,7 @@ export class Controller<
   /** @internal */
   public compileChildren(): void {
     const targets = this.nodes!.findTargets();
-    this.context!.render(
+    this.context!.compose(
       /* flags      */this.flags,
       /* controller */this as ICustomElementController<T>,
       /* targets    */targets,
@@ -436,7 +436,7 @@ export class Controller<
 
     const nodes = this.nodes = compiledContext.createNodes();
     const targets = nodes.findTargets();
-    compiledContext.render(
+    compiledContext.compose(
       /* flags      */this.flags,
       /* controller */this,
       /* targets    */targets,

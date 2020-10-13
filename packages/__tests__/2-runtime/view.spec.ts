@@ -129,7 +129,7 @@ describe.skip(`ViewFactory`, function () {
   });
 });
 
-// public render(renderable: Partial<IController>, host?: INode, parts?: TemplatePartDefinitions): void {
+// public compose(renderable: Partial<IController>, host?: INode, parts?: TemplatePartDefinitions): void {
 //   const nodes = (<Writable<IController>>renderable).nodes = new MockTextNodeSequence();
 //   addBinding(renderable, new PropertyBinding(this.sourceExpression, nodes.firstChild, 'textContent', BindingMode.toView, this.observerLocator, this.container));
 // }
@@ -388,7 +388,7 @@ describe.skip(`ViewFactory`, function () {
 //       const childTemplate: ITemplate<AuNode> = {
 //         renderContext: null as any,
 //         dom: null as any,
-//         render(renderable) {
+//         compose(renderable) {
 //           const text = AuNode.createText();
 //           const wrapper = AuNode.createTemplate().appendChild(text);
 //           childWrapper.appendChild(wrapper);
@@ -409,7 +409,7 @@ describe.skip(`ViewFactory`, function () {
 //       const rootTemplate: ITemplate<AuNode> = {
 //         renderContext: null as any,
 //         dom: null as any,
-//         render(renderable) {
+//         compose(renderable) {
 //           const text = AuNode.createText();
 //           const wrapper = AuNode.createTemplate().appendChild(text).appendChild(childWrapper);
 //           const nodes = new AuNodeSequence(dom, wrapper);

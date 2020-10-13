@@ -122,7 +122,7 @@ export interface ICompiledRenderContext<T extends INode = INode> extends IRender
     location?: IRenderLocation,
   ): IComponentFactory<T>;
 
-  render(
+  compose(
     flags: LifecycleFlags,
     controller: IController,
     targets: ArrayLike<INode>,
@@ -447,14 +447,14 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     return this.container.get(resourceKey) as unknown as TViewModel;
   }
 
-  public render(
+  public compose(
     flags: LifecycleFlags,
     controller: IRenderableController,
     targets: ArrayLike<INode>,
     templateDefinition: CustomElementDefinition,
     host: INode | null | undefined,
   ): void {
-    this.composer.render(flags, this, controller, targets, templateDefinition, host);
+    this.composer.compose(flags, this, controller, targets, templateDefinition, host);
   }
 
   public renderInstructions(

@@ -144,7 +144,7 @@ describe('TranslationBindingComposer', function () {
 
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
     const callBindingInstruction: CallBindingInstruction = { from } as unknown as CallBindingInstruction;
-    sut.render(
+    sut.compose(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
       controller,
@@ -165,7 +165,7 @@ describe('TranslationBindingComposer', function () {
 
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
     const callBindingInstruction: CallBindingInstruction = { from } as unknown as CallBindingInstruction;
-    sut.render(
+    sut.compose(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
       controller,
@@ -289,7 +289,7 @@ describe('TranslationBindBindingComposer', function () {
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
-    sut.render(
+    sut.compose(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
       controller,
@@ -308,7 +308,7 @@ describe('TranslationBindBindingComposer', function () {
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
-    sut.render(
+    sut.compose(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
       controller,
@@ -329,7 +329,7 @@ describe('TranslationBindBindingComposer', function () {
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
     const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
-    sut.render(
+    sut.compose(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
       controller,

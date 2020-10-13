@@ -81,7 +81,7 @@ export class Composer implements IComposer {
     });
   }
 
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -177,7 +177,7 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
 @instructionComposer(TargetedInstructionType.setProperty)
 /** @internal */
 export class SetPropertyComposer implements IInstructionComposer {
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -196,7 +196,7 @@ export class SetPropertyComposer implements IInstructionComposer {
 @instructionComposer(TargetedInstructionType.hydrateElement)
 /** @internal */
 export class CustomElementComposer implements IInstructionComposer {
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -253,7 +253,7 @@ export class CustomElementComposer implements IInstructionComposer {
 @instructionComposer(TargetedInstructionType.hydrateAttribute)
 /** @internal */
 export class CustomAttributeComposer implements IInstructionComposer {
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -299,7 +299,7 @@ export class CustomAttributeComposer implements IInstructionComposer {
 @instructionComposer(TargetedInstructionType.hydrateTemplateController)
 /** @internal */
 export class TemplateControllerComposer implements IInstructionComposer {
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -359,7 +359,7 @@ export class LetElementComposer implements IInstructionComposer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -394,7 +394,7 @@ export class CallBindingComposer implements IInstructionComposer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -418,7 +418,7 @@ export class RefBindingComposer implements IInstructionComposer {
     @IExpressionParser private readonly parser: IExpressionParser,
   ) {}
 
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -444,7 +444,7 @@ export class InterpolationBindingComposer implements IInstructionComposer {
     @IScheduler private readonly scheduler: IScheduler,
   ) {}
 
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -483,7 +483,7 @@ export class PropertyBindingComposer implements IInstructionComposer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -508,7 +508,7 @@ export class IteratorBindingComposer implements IInstructionComposer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -557,7 +557,7 @@ export class TextBindingComposer implements IInstructionComposer {
     @IScheduler private readonly scheduler: IScheduler,
   ) {}
 
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -600,7 +600,7 @@ export class ListenerBindingComposer implements IInstructionComposer {
     @IEventManager private readonly eventManager: IEventManager,
   ) {}
 
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -621,7 +621,7 @@ export class ListenerBindingComposer implements IInstructionComposer {
 @instructionComposer(TargetedInstructionType.setAttribute)
 /** @internal */
 export class SetAttributeComposer implements IInstructionComposer {
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -634,7 +634,7 @@ export class SetAttributeComposer implements IInstructionComposer {
 
 @instructionComposer(TargetedInstructionType.setClassAttribute)
 export class SetClassAttributeComposer implements IInstructionComposer {
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -647,7 +647,7 @@ export class SetClassAttributeComposer implements IInstructionComposer {
 
 @instructionComposer(TargetedInstructionType.setStyleAttribute)
 export class SetStyleAttributeComposer implements IInstructionComposer {
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -666,7 +666,7 @@ export class StylePropertyBindingComposer implements IInstructionComposer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -691,7 +691,7 @@ export class AttributeBindingComposer implements IInstructionComposer {
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) {}
 
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,

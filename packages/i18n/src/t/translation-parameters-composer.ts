@@ -62,7 +62,7 @@ export class TranslationParametersBindingComposer implements IInstructionCompose
     @IObserverLocator private readonly observerLocator: IObserverLocator,
   ) { }
 
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: IContainer,
     controller: IRenderableController,

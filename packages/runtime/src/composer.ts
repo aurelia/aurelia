@@ -18,7 +18,7 @@ export interface ITemplateCompiler {
 export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler').noDefault();
 
 export interface IComposer {
-  render(
+  compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,
@@ -43,7 +43,7 @@ export interface IInstructionTypeClassifier<TType extends string = string> {
 export interface IInstructionComposer<
   TType extends InstructionTypeName = InstructionTypeName
 > extends Partial<IInstructionTypeClassifier<TType>> {
-  render(
+  compose(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
     controller: IRenderableController,

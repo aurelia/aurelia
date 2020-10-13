@@ -156,7 +156,7 @@ describe('dependency injection', function () {
 //     const ifTemplate: ITemplate<AuNode> = {
 //       renderContext: null as any,
 //       dom: null as any,
-//       render(renderable) {
+//       compose(renderable) {
 //         const text = AuNode.createText();
 //         const wrapper = AuNode.createTemplate().appendChild(text);
 
@@ -171,7 +171,7 @@ describe('dependency injection', function () {
 //     const elseTemplate: ITemplate<AuNode> = {
 //       renderContext: null as any,
 //       dom: null as any,
-//       render(renderable) {
+//       compose(renderable) {
 //         const text = AuNode.createText();
 //         const wrapper = AuNode.createTemplate().appendChild(text);
 

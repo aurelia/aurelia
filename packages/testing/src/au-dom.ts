@@ -673,7 +673,7 @@ export class AuTextComposer implements IInstructionComposer {
     this.observerLocator = observerLocator;
   }
 
-  public render(
+  public compose(
     flags: LifecycleFlags,
     context: IContainer,
     controller: ICustomElementController<AuNode>,

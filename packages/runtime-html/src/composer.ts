@@ -60,7 +60,7 @@ import {
   SetStyleAttributeInstruction,
   StylePropertyBindingInstruction,
   TargetedInstruction,
-  TargetedInstructionType,
+  InstructionType,
   TextBindingInstruction,
 } from './instructions';
 
@@ -174,7 +174,7 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
   }
 }
 
-@instructionComposer(TargetedInstructionType.setProperty)
+@instructionComposer(InstructionType.setProperty)
 /** @internal */
 export class SetPropertyComposer implements IInstructionComposer {
   public compose(
@@ -193,7 +193,7 @@ export class SetPropertyComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(TargetedInstructionType.hydrateElement)
+@instructionComposer(InstructionType.hydrateElement)
 /** @internal */
 export class CustomElementComposer implements IInstructionComposer {
   public compose(
@@ -250,7 +250,7 @@ export class CustomElementComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(TargetedInstructionType.hydrateAttribute)
+@instructionComposer(InstructionType.hydrateAttribute)
 /** @internal */
 export class CustomAttributeComposer implements IInstructionComposer {
   public compose(
@@ -296,7 +296,7 @@ export class CustomAttributeComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(TargetedInstructionType.hydrateTemplateController)
+@instructionComposer(InstructionType.hydrateTemplateController)
 /** @internal */
 export class TemplateControllerComposer implements IInstructionComposer {
   public compose(
@@ -351,7 +351,7 @@ export class TemplateControllerComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(TargetedInstructionType.hydrateLetElement)
+@instructionComposer(InstructionType.hydrateLetElement)
 /** @internal */
 export class LetElementComposer implements IInstructionComposer {
   public constructor(
@@ -386,7 +386,7 @@ export class LetElementComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(TargetedInstructionType.callBinding)
+@instructionComposer(InstructionType.callBinding)
 /** @internal */
 export class CallBindingComposer implements IInstructionComposer {
   public constructor(
@@ -411,7 +411,7 @@ export class CallBindingComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(TargetedInstructionType.refBinding)
+@instructionComposer(InstructionType.refBinding)
 /** @internal */
 export class RefBindingComposer implements IInstructionComposer {
   public constructor(
@@ -435,7 +435,7 @@ export class RefBindingComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(TargetedInstructionType.interpolation)
+@instructionComposer(InstructionType.interpolation)
 /** @internal */
 export class InterpolationBindingComposer implements IInstructionComposer {
   public constructor(
@@ -475,7 +475,7 @@ export class InterpolationBindingComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(TargetedInstructionType.propertyBinding)
+@instructionComposer(InstructionType.propertyBinding)
 /** @internal */
 export class PropertyBindingComposer implements IInstructionComposer {
   public constructor(
@@ -500,7 +500,7 @@ export class PropertyBindingComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(TargetedInstructionType.iteratorBinding)
+@instructionComposer(InstructionType.iteratorBinding)
 /** @internal */
 export class IteratorBindingComposer implements IInstructionComposer {
   public constructor(
@@ -548,7 +548,7 @@ export function applyBindingBehavior(
   return binding;
 }
 
-@instructionComposer(TargetedInstructionType.textBinding)
+@instructionComposer(InstructionType.textBinding)
 /** @internal */
 export class TextBindingComposer implements IInstructionComposer {
   public constructor(
@@ -592,7 +592,7 @@ export class TextBindingComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(TargetedInstructionType.listenerBinding)
+@instructionComposer(InstructionType.listenerBinding)
 /** @internal */
 export class ListenerBindingComposer implements IInstructionComposer {
   public constructor(
@@ -618,7 +618,7 @@ export class ListenerBindingComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(TargetedInstructionType.setAttribute)
+@instructionComposer(InstructionType.setAttribute)
 /** @internal */
 export class SetAttributeComposer implements IInstructionComposer {
   public compose(
@@ -632,7 +632,7 @@ export class SetAttributeComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(TargetedInstructionType.setClassAttribute)
+@instructionComposer(InstructionType.setClassAttribute)
 export class SetClassAttributeComposer implements IInstructionComposer {
   public compose(
     flags: LifecycleFlags,
@@ -645,7 +645,7 @@ export class SetClassAttributeComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(TargetedInstructionType.setStyleAttribute)
+@instructionComposer(InstructionType.setStyleAttribute)
 export class SetStyleAttributeComposer implements IInstructionComposer {
   public compose(
     flags: LifecycleFlags,
@@ -658,7 +658,7 @@ export class SetStyleAttributeComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(TargetedInstructionType.stylePropertyBinding)
+@instructionComposer(InstructionType.stylePropertyBinding)
 /** @internal */
 export class StylePropertyBindingComposer implements IInstructionComposer {
   public constructor(
@@ -683,7 +683,7 @@ export class StylePropertyBindingComposer implements IInstructionComposer {
   }
 }
 
-@instructionComposer(TargetedInstructionType.attributeBinding)
+@instructionComposer(InstructionType.attributeBinding)
 /** @internal */
 export class AttributeBindingComposer implements IInstructionComposer {
   public constructor(

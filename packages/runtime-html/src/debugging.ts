@@ -1,6 +1,6 @@
 import { PartialCustomElementDefinition } from '@aurelia/runtime';
 import { NodeType } from './dom';
-import { TargetedInstruction, TargetedInstructionType } from './instructions';
+import { TargetedInstruction, InstructionType } from './instructions';
 
 export function stringifyDOM(node: Node, depth: number): string {
   const indent = ' '.repeat(depth);
@@ -43,55 +43,55 @@ export function stringifyInstructions(instruction: TargetedInstruction, depth: n
   const indent = ' '.repeat(depth);
   let output = indent;
   switch (instruction.type) {
-    case TargetedInstructionType.textBinding:
+    case InstructionType.textBinding:
       output += 'textBinding\n';
       break;
-    case TargetedInstructionType.callBinding:
+    case InstructionType.callBinding:
       output += 'callBinding\n';
       break;
-    case TargetedInstructionType.iteratorBinding:
+    case InstructionType.iteratorBinding:
       output += 'iteratorBinding\n';
       break;
-    case TargetedInstructionType.listenerBinding:
+    case InstructionType.listenerBinding:
       output += 'listenerBinding\n';
       break;
-    case TargetedInstructionType.propertyBinding:
+    case InstructionType.propertyBinding:
       output += 'propertyBinding\n';
       break;
-    case TargetedInstructionType.refBinding:
+    case InstructionType.refBinding:
       output += 'refBinding\n';
       break;
-    case TargetedInstructionType.stylePropertyBinding:
+    case InstructionType.stylePropertyBinding:
       output += 'stylePropertyBinding\n';
       break;
-    case TargetedInstructionType.setProperty:
+    case InstructionType.setProperty:
       output += 'setProperty\n';
       break;
-    case TargetedInstructionType.setAttribute:
+    case InstructionType.setAttribute:
       output += 'setAttribute\n';
       break;
-    case TargetedInstructionType.interpolation:
+    case InstructionType.interpolation:
       output += 'interpolation\n';
       break;
-    case TargetedInstructionType.hydrateLetElement:
+    case InstructionType.hydrateLetElement:
       output += 'hydrateLetElement\n';
       instruction.instructions.forEach(i => {
         output += stringifyInstructions(i, depth + 1);
       });
       break;
-    case TargetedInstructionType.hydrateAttribute:
+    case InstructionType.hydrateAttribute:
       output += `hydrateAttribute: ${instruction.res}\n`;
       instruction.instructions.forEach(i => {
         output += stringifyInstructions(i as TargetedInstruction, depth + 1);
       });
       break;
-    case TargetedInstructionType.hydrateElement:
+    case InstructionType.hydrateElement:
       output += `hydrateElement: ${instruction.res}\n`;
       instruction.instructions.forEach(i => {
         output += stringifyInstructions(i as TargetedInstruction, depth + 1);
       });
       break;
-    case TargetedInstructionType.hydrateTemplateController:
+    case InstructionType.hydrateTemplateController:
       output += `hydrateTemplateController: ${instruction.res}\n`;
       output += stringifyTemplateDefinition(instruction.def, depth + 1);
       instruction.instructions.forEach(i => {

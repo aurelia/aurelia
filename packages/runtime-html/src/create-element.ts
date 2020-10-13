@@ -20,7 +20,7 @@ import {
   isTargetedInstruction,
   SetAttributeInstruction,
   TargetedInstruction,
-  TargetedInstructionType,
+  InstructionType,
 } from './instructions';
 
 export function createElement<T extends INode = Node, C extends Constructable = Constructable>(
@@ -152,7 +152,7 @@ function createElementForType<T extends INode>(
 
           if (bindable !== void 0) {
             childInstructions.push({
-              type: TargetedInstructionType.setProperty,
+              type: InstructionType.setProperty,
               to,
               value
             });

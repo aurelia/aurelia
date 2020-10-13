@@ -3,7 +3,7 @@
 //   Unparser,
 // } from '@aurelia/debug';
 import { IElementProjector, If, Repeat, With, ICustomElementController, ViewModelKind, ISyntheticView } from '@aurelia/runtime';
-import { Compose, TargetedInstructionType } from '@aurelia/runtime-html';
+import { Compose, InstructionType } from '@aurelia/runtime-html';
 import { assert } from './assert';
 
 // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
@@ -114,35 +114,35 @@ function $getVisibleText(root: ICustomElementController | ISyntheticView, contex
 
 export function targetedInstructionTypeName(type: string): string {
   switch (type) {
-    case TargetedInstructionType.textBinding:
+    case InstructionType.textBinding:
       return 'textBinding';
-    case TargetedInstructionType.interpolation:
+    case InstructionType.interpolation:
       return 'interpolation';
-    case TargetedInstructionType.propertyBinding:
+    case InstructionType.propertyBinding:
       return 'propertyBinding';
-    case TargetedInstructionType.iteratorBinding:
+    case InstructionType.iteratorBinding:
       return 'iteratorBinding';
-    case TargetedInstructionType.listenerBinding:
+    case InstructionType.listenerBinding:
       return 'listenerBinding';
-    case TargetedInstructionType.callBinding:
+    case InstructionType.callBinding:
       return 'callBinding';
-    case TargetedInstructionType.refBinding:
+    case InstructionType.refBinding:
       return 'refBinding';
-    case TargetedInstructionType.stylePropertyBinding:
+    case InstructionType.stylePropertyBinding:
       return 'stylePropertyBinding';
-    case TargetedInstructionType.setProperty:
+    case InstructionType.setProperty:
       return 'setProperty';
-    case TargetedInstructionType.setAttribute:
+    case InstructionType.setAttribute:
       return 'setAttribute';
-    case TargetedInstructionType.hydrateElement:
+    case InstructionType.hydrateElement:
       return 'hydrateElement';
-    case TargetedInstructionType.hydrateAttribute:
+    case InstructionType.hydrateAttribute:
       return 'hydrateAttribute';
-    case TargetedInstructionType.hydrateTemplateController:
+    case InstructionType.hydrateTemplateController:
       return 'hydrateTemplateController';
-    case TargetedInstructionType.hydrateLetElement:
+    case InstructionType.hydrateLetElement:
       return 'hydrateLetElement';
-    case TargetedInstructionType.letBinding:
+    case InstructionType.letBinding:
       return 'letBinding';
     default:
       return type;

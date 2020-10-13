@@ -250,7 +250,7 @@ export {
   isTargetedInstruction,
   NodeInstruction,
   TargetedInstruction,
-  TargetedInstructionType,
+  InstructionType,
 } from './instructions';
 export {
   ContainerlessProjector,

@@ -40,11 +40,11 @@ import {
 import {
   HydrateElementInstruction,
   HydrateTemplateController,
-  TargetedInstructionType as HTT,
+  InstructionType as HTT,
   ITemplateElementFactory,
-  TargetedInstructionType as TT,
+  InstructionType as TT,
   HydrateLetElementInstruction,
-  TargetedInstructionType,
+  InstructionType,
   ResourceModel,
   ElementInfo,
   BindableInfo,
@@ -1743,7 +1743,7 @@ describe('TemplateCompiler - au-slot', function () {
       const allInstructions = compiledDefinition.instructions.flat();
       for (const expectedSlotInfo of expectedSlotInfos) {
         const actualInstruction = allInstructions.find((i) =>
-          i.type === TargetedInstructionType.hydrateElement
+          i.type === InstructionType.hydrateElement
           && (i as HydrateElementInstruction).res.includes('au-slot')
           && (i as HydrateElementInstruction).slotInfo.name === expectedSlotInfo.slotName
         ) as HydrateElementInstruction;

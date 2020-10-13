@@ -10,7 +10,7 @@ import {
 } from '@aurelia/runtime';
 
 /**
- * TargetedInstructionType enum values become the property names for the associated renderers when they are injected
+ * InstructionType enum values become the property names for the associated renderers when they are injected
  * into the `Composer`.
  *
  * Additional instruction types can be added as long as they are 2 characters long and do not clash with existing ones.
@@ -18,7 +18,7 @@ import {
  * By convention, the instruction types for a particular runtime start with the same first letter, and the second letter
  * starts counting from letter `a`. The standard runtime instruction types all start with the letter `r`.
  */
-export const enum TargetedInstructionType {
+export const enum InstructionType {
   hydrateElement = 'ra',
   hydrateAttribute = 'rb',
   hydrateTemplateController = 'rc',
@@ -83,7 +83,7 @@ export function isTargetedInstruction(value: unknown): value is TargetedInstruct
 }
 
 export class InterpolationInstruction {
-  public type: TargetedInstructionType.interpolation = TargetedInstructionType.interpolation;
+  public type: InstructionType.interpolation = InstructionType.interpolation;
 
   public constructor(
     public from: string | Interpolation,
@@ -92,7 +92,7 @@ export class InterpolationInstruction {
 }
 
 export class OneTimeBindingInstruction {
-  public type: TargetedInstructionType.propertyBinding = TargetedInstructionType.propertyBinding;
+  public type: InstructionType.propertyBinding = InstructionType.propertyBinding;
 
   public mode: BindingMode.oneTime = BindingMode.oneTime;
   public oneTime: true = true;
@@ -104,7 +104,7 @@ export class OneTimeBindingInstruction {
 }
 
 export class ToViewBindingInstruction {
-  public type: TargetedInstructionType.propertyBinding = TargetedInstructionType.propertyBinding;
+  public type: InstructionType.propertyBinding = InstructionType.propertyBinding;
 
   public mode: BindingMode.toView = BindingMode.toView;
   public oneTime: false = false;
@@ -116,7 +116,7 @@ export class ToViewBindingInstruction {
 }
 
 export class FromViewBindingInstruction {
-  public type: TargetedInstructionType.propertyBinding = TargetedInstructionType.propertyBinding;
+  public type: InstructionType.propertyBinding = InstructionType.propertyBinding;
 
   public mode: BindingMode.fromView = BindingMode.fromView;
   public oneTime: false = false;
@@ -128,7 +128,7 @@ export class FromViewBindingInstruction {
 }
 
 export class TwoWayBindingInstruction {
-  public type: TargetedInstructionType.propertyBinding = TargetedInstructionType.propertyBinding;
+  public type: InstructionType.propertyBinding = InstructionType.propertyBinding;
 
   public mode: BindingMode.twoWay = BindingMode.twoWay;
   public oneTime: false = false;
@@ -140,7 +140,7 @@ export class TwoWayBindingInstruction {
 }
 
 export class IteratorBindingInstruction {
-  public type: TargetedInstructionType.iteratorBinding = TargetedInstructionType.iteratorBinding;
+  public type: InstructionType.iteratorBinding = InstructionType.iteratorBinding;
 
   public constructor(
     public from: string | ForOfStatement,
@@ -149,7 +149,7 @@ export class IteratorBindingInstruction {
 }
 
 export class CallBindingInstruction {
-  public type: TargetedInstructionType.callBinding = TargetedInstructionType.callBinding;
+  public type: InstructionType.callBinding = InstructionType.callBinding;
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -158,18 +158,18 @@ export class CallBindingInstruction {
 }
 
 export class RefBindingInstruction {
-  public type: TargetedInstructionType.refBinding = TargetedInstructionType.refBinding;
+  public type: InstructionType.refBinding = InstructionType.refBinding;
 
   public constructor(
     public readonly from: string | IsBindingBehavior,
     public readonly to: string
   ) {
-    this.type = TargetedInstructionType.refBinding;
+    this.type = InstructionType.refBinding;
   }
 }
 
 export class SetPropertyInstruction {
-  public type: TargetedInstructionType.setProperty = TargetedInstructionType.setProperty;
+  public type: InstructionType.setProperty = InstructionType.setProperty;
 
   public constructor(
     public value: unknown,
@@ -178,7 +178,7 @@ export class SetPropertyInstruction {
 }
 
 export class HydrateElementInstruction {
-  public type: TargetedInstructionType.hydrateElement = TargetedInstructionType.hydrateElement;
+  public type: InstructionType.hydrateElement = InstructionType.hydrateElement;
 
   public constructor(
     public res: string,
@@ -188,7 +188,7 @@ export class HydrateElementInstruction {
 }
 
 export class HydrateAttributeInstruction {
-  public type: TargetedInstructionType.hydrateAttribute = TargetedInstructionType.hydrateAttribute;
+  public type: InstructionType.hydrateAttribute = InstructionType.hydrateAttribute;
 
   public constructor(
     public res: string,
@@ -197,7 +197,7 @@ export class HydrateAttributeInstruction {
 }
 
 export class HydrateTemplateController {
-  public type: TargetedInstructionType.hydrateTemplateController = TargetedInstructionType.hydrateTemplateController;
+  public type: InstructionType.hydrateTemplateController = InstructionType.hydrateTemplateController;
 
   public constructor(
     public def: PartialCustomElementDefinition,
@@ -208,7 +208,7 @@ export class HydrateTemplateController {
 }
 
 export class HydrateLetElementInstruction {
-  public type: TargetedInstructionType.hydrateLetElement = TargetedInstructionType.hydrateLetElement;
+  public type: InstructionType.hydrateLetElement = InstructionType.hydrateLetElement;
 
   public constructor(
     public instructions: LetBindingInstruction[],
@@ -217,7 +217,7 @@ export class HydrateLetElementInstruction {
 }
 
 export class LetBindingInstruction {
-  public type: TargetedInstructionType.letBinding = TargetedInstructionType.letBinding;
+  public type: InstructionType.letBinding = InstructionType.letBinding;
 
   public constructor(
     public from: string | IsBindingBehavior | Interpolation,
@@ -226,7 +226,7 @@ export class LetBindingInstruction {
 }
 
 export class TextBindingInstruction {
-  public type: TargetedInstructionType.textBinding = TargetedInstructionType.textBinding;
+  public type: InstructionType.textBinding = InstructionType.textBinding;
 
   public constructor(
     public from: string | Interpolation,
@@ -234,7 +234,7 @@ export class TextBindingInstruction {
 }
 
 export class TriggerBindingInstruction {
-  public type: TargetedInstructionType.listenerBinding = TargetedInstructionType.listenerBinding;
+  public type: InstructionType.listenerBinding = InstructionType.listenerBinding;
 
   public preventDefault: true = true;
   public strategy: DelegationStrategy.none = DelegationStrategy.none;
@@ -246,7 +246,7 @@ export class TriggerBindingInstruction {
 }
 
 export class DelegateBindingInstruction {
-  public type: TargetedInstructionType.listenerBinding = TargetedInstructionType.listenerBinding;
+  public type: InstructionType.listenerBinding = InstructionType.listenerBinding;
 
   public preventDefault: false = false;
   public strategy: DelegationStrategy.bubbling = DelegationStrategy.bubbling;
@@ -258,7 +258,7 @@ export class DelegateBindingInstruction {
 }
 
 export class CaptureBindingInstruction {
-  public type: TargetedInstructionType.listenerBinding = TargetedInstructionType.listenerBinding;
+  public type: InstructionType.listenerBinding = InstructionType.listenerBinding;
 
   public preventDefault: false = false;
   public strategy: DelegationStrategy.capturing = DelegationStrategy.capturing;
@@ -270,7 +270,7 @@ export class CaptureBindingInstruction {
 }
 
 export class StylePropertyBindingInstruction {
-  public type: TargetedInstructionType.stylePropertyBinding = TargetedInstructionType.stylePropertyBinding;
+  public type: InstructionType.stylePropertyBinding = InstructionType.stylePropertyBinding;
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -279,7 +279,7 @@ export class StylePropertyBindingInstruction {
 }
 
 export class SetAttributeInstruction {
-  public type: TargetedInstructionType.setAttribute = TargetedInstructionType.setAttribute;
+  public type: InstructionType.setAttribute = InstructionType.setAttribute;
 
   public constructor(
     public value: string,
@@ -288,7 +288,7 @@ export class SetAttributeInstruction {
 }
 
 export class SetClassAttributeInstruction {
-  public readonly type: TargetedInstructionType.setClassAttribute = TargetedInstructionType.setClassAttribute;
+  public readonly type: InstructionType.setClassAttribute = InstructionType.setClassAttribute;
 
   public constructor(
     public readonly value: string,
@@ -296,7 +296,7 @@ export class SetClassAttributeInstruction {
 }
 
 export class SetStyleAttributeInstruction {
-  public readonly type: TargetedInstructionType.setStyleAttribute = TargetedInstructionType.setStyleAttribute;
+  public readonly type: InstructionType.setStyleAttribute = InstructionType.setStyleAttribute;
 
   public constructor(
     public readonly value: string,
@@ -304,7 +304,7 @@ export class SetStyleAttributeInstruction {
 }
 
 export class AttributeBindingInstruction {
-  public type: TargetedInstructionType.attributeBinding = TargetedInstructionType.attributeBinding;
+  public type: InstructionType.attributeBinding = InstructionType.attributeBinding;
 
   public constructor(
     /**

@@ -5,7 +5,7 @@ import {
 } from '@aurelia/runtime';
 import {
   createElement as sut,
-  TargetedInstructionType,
+  InstructionType,
   HydrateElementInstruction,
   CompositionPlan,
   TargetedInstruction
@@ -50,21 +50,21 @@ describe(`createElement() creates element based on tag`, function () {
       eachCartesianJoin(
         [
           [
-            TargetedInstructionType.callBinding,
-            TargetedInstructionType.hydrateAttribute,
-            TargetedInstructionType.hydrateElement,
-            TargetedInstructionType.hydrateLetElement,
-            TargetedInstructionType.hydrateTemplateController,
-            TargetedInstructionType.interpolation,
-            TargetedInstructionType.iteratorBinding,
-            TargetedInstructionType.letBinding,
-            TargetedInstructionType.propertyBinding,
-            TargetedInstructionType.refBinding,
-            TargetedInstructionType.setProperty,
-            TargetedInstructionType.listenerBinding,
-            TargetedInstructionType.setAttribute,
-            TargetedInstructionType.stylePropertyBinding,
-            TargetedInstructionType.textBinding
+            InstructionType.callBinding,
+            InstructionType.hydrateAttribute,
+            InstructionType.hydrateElement,
+            InstructionType.hydrateLetElement,
+            InstructionType.hydrateTemplateController,
+            InstructionType.interpolation,
+            InstructionType.iteratorBinding,
+            InstructionType.letBinding,
+            InstructionType.propertyBinding,
+            InstructionType.refBinding,
+            InstructionType.setProperty,
+            InstructionType.listenerBinding,
+            InstructionType.setAttribute,
+            InstructionType.stylePropertyBinding,
+            InstructionType.textBinding
           ]
         ],
         t => {
@@ -135,16 +135,16 @@ describe(`createElement() creates element based on type`, function () {
 
         assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
         assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
-        assert.strictEqual(instruction.type, TargetedInstructionType.hydrateElement, `instruction.type`);
+        assert.strictEqual(instruction.type, InstructionType.hydrateElement, `instruction.type`);
         assert.strictEqual(instruction.res, definition.name, `instruction.res`);
         assert.strictEqual(instruction.instructions.length, 2, `instruction.instructions.length`);
-        assert.strictEqual(instruction.instructions[0].type, TargetedInstructionType.setAttribute, `instruction.instructions[0].type`);
+        assert.strictEqual(instruction.instructions[0].type, InstructionType.setAttribute, `instruction.instructions[0].type`);
         assert.strictEqual(instruction.instructions[0]['to'], 'title', `instruction.instructions[0]['to']`);
         assert.strictEqual(instruction.instructions[0]['value'], 'asdf', `instruction.instructions[0]['value']`);
         if (definition.bindables['foo']) {
-          assert.strictEqual(instruction.instructions[1].type, TargetedInstructionType.setProperty, `instruction.instructions[1].type`);
+          assert.strictEqual(instruction.instructions[1].type, InstructionType.setProperty, `instruction.instructions[1].type`);
         } else {
-          assert.strictEqual(instruction.instructions[1].type, TargetedInstructionType.setAttribute, `instruction.instructions[1].type`);
+          assert.strictEqual(instruction.instructions[1].type, InstructionType.setAttribute, `instruction.instructions[1].type`);
         }
         assert.strictEqual(instruction.instructions[1]['to'], 'foo', `instruction.instructions[1]['to']`);
         assert.strictEqual(instruction.instructions[1]['value'], 'bar', `instruction.instructions[1]['value']`);
@@ -170,21 +170,21 @@ describe(`createElement() creates element based on type`, function () {
       eachCartesianJoin(
         [
           [
-            TargetedInstructionType.callBinding,
-            TargetedInstructionType.hydrateAttribute,
-            TargetedInstructionType.hydrateElement,
-            TargetedInstructionType.hydrateLetElement,
-            TargetedInstructionType.hydrateTemplateController,
-            TargetedInstructionType.interpolation,
-            TargetedInstructionType.iteratorBinding,
-            TargetedInstructionType.letBinding,
-            TargetedInstructionType.propertyBinding,
-            TargetedInstructionType.refBinding,
-            TargetedInstructionType.setProperty,
-            TargetedInstructionType.listenerBinding,
-            TargetedInstructionType.setAttribute,
-            TargetedInstructionType.stylePropertyBinding,
-            TargetedInstructionType.textBinding
+            InstructionType.callBinding,
+            InstructionType.hydrateAttribute,
+            InstructionType.hydrateElement,
+            InstructionType.hydrateLetElement,
+            InstructionType.hydrateTemplateController,
+            InstructionType.interpolation,
+            InstructionType.iteratorBinding,
+            InstructionType.letBinding,
+            InstructionType.propertyBinding,
+            InstructionType.refBinding,
+            InstructionType.setProperty,
+            InstructionType.listenerBinding,
+            InstructionType.setAttribute,
+            InstructionType.stylePropertyBinding,
+            InstructionType.textBinding
           ]
         ],
         t => {
@@ -199,7 +199,7 @@ describe(`createElement() creates element based on type`, function () {
 
             assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
             assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
-            assert.strictEqual(instruction.type, TargetedInstructionType.hydrateElement, `instruction.type`);
+            assert.strictEqual(instruction.type, InstructionType.hydrateElement, `instruction.type`);
             assert.strictEqual(instruction.res, definition.name, `instruction.res`);
             assert.strictEqual(instruction.instructions.length, 1, `instruction.instructions.length`);
             assert.strictEqual(instruction.instructions[0].type, t, `instruction.instructions[0].type`);
@@ -232,7 +232,7 @@ describe(`createElement() creates element based on type`, function () {
 
           assert.strictEqual(actual['instructions'].length, 1, `actual['instructions'].length`);
           assert.strictEqual(actual['instructions'][0].length, 1, `actual['instructions'][0].length`);
-          assert.strictEqual(instruction.type, TargetedInstructionType.hydrateElement, `instruction.type`);
+          assert.strictEqual(instruction.type, InstructionType.hydrateElement, `instruction.type`);
           assert.strictEqual(instruction.res, definition.name, `instruction.res`);
           assert.strictEqual(instruction.instructions.length, 0, `instruction.instructions.length`);
           assert.strictEqual(node.getAttribute('class'), 'au', `node.getAttribute('class')`);

@@ -521,7 +521,7 @@ export function createScopeForTest(bindingContext: any = {}, parentBindingContex
 //   };
 //   const composable = new FakeViewFactory('fake-view', createView, ctx.lifecycle).create();
 //   const instruction: IHydrateElementInstruction = {
-//     type: TargetedInstructionType.hydrateElement,
+//     type: InstructionType.hydrateElement,
 //     res: 'au-compose',
 //     instructions: []
 //   };

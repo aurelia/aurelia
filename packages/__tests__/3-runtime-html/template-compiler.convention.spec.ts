@@ -4,7 +4,7 @@ import {
   ITargetedInstruction,
 } from '@aurelia/runtime';
 import {
-  TargetedInstructionType as TT,
+  InstructionType as TT,
 } from '@aurelia/runtime-html';
 import {
   assert,

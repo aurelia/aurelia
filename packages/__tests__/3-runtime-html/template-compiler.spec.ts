@@ -654,6 +654,7 @@ function createCustomAttribute(
     needsCompile: false,
     enhance: false,
     projectionsMap: new Map<ITargetedInstruction, IProjections>(),
+    watches: [],
   };
   return [input, output];
 }
@@ -845,6 +846,7 @@ describe(`TemplateCompiler - combinations`, function () {
           needsCompile: false,
           enhance: false,
           projectionsMap: new Map<ITargetedInstruction, IProjections>(),
+          watches: [],
         };
 
         const $def = CustomAttribute.define(def, ctor);

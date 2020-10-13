@@ -1374,7 +1374,7 @@ function createWatchers(
   controller: Controller,
   context: IServiceLocator,
   definition: CustomElementDefinition | CustomAttributeDefinition,
-  flags: LifecycleFlags,
+  _flags: LifecycleFlags,
   instance: object,
 ) {
   const observerLocator = context!.get(IObserverLocator);

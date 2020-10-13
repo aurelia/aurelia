@@ -1,4 +1,4 @@
-import { observable, SetterObserver, IObservable, watch } from '@aurelia/runtime';
+import { watch } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/decorator-watch.spec.ts', function () {

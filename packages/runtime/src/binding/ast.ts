@@ -358,7 +358,7 @@ export class AccessScopeExpression {
   public constructor(
     // property key instead of string
     // so that it can support manual ast construction
-    public readonly name: PropertyKey,
+    public readonly name: string,
     public readonly ancestor: number = 0,
     public readonly accessHostScope: boolean = false,
   ) {}

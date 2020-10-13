@@ -1,5 +1,5 @@
 import { IIndexable, isArrayIndex } from '@aurelia/kernel';
-import { collecting, currentWatcher } from './subscriber-switcher';
+import { watching, currentWatcher } from './subscriber-switcher';
 import { LifecycleFlags } from '../flags';
 import { isMap, isSet, isObject, isArray } from './utilities-objects';
 
@@ -51,7 +51,7 @@ const objectHandler: ProxyHandler<object> = {
 
     const connectable = currentWatcher();
 
-    if (!collecting || doNotCollect(target, key) || connectable == null) {
+    if (!watching || doNotCollect(target, key) || connectable == null) {
       // maybe just use symbol
       return R$get(target, key, receiver);
     }
@@ -72,7 +72,7 @@ const arrayHandler: ProxyHandler<unknown[]> = {
 
     const connectable = currentWatcher();
 
-    if (!collecting || doNotCollect(target, key) || connectable == null) {
+    if (!watching || doNotCollect(target, key) || connectable == null) {
       return R$get(target, key, receiver);
     }
 
@@ -101,7 +101,7 @@ const collectionHandler: ProxyHandler<$MapOrSet> = {
 
     const connectable = currentWatcher();
 
-    if (!collecting || doNotCollect(target, key) || connectable == null) {
+    if (!watching || doNotCollect(target, key) || connectable == null) {
       return R$get(target, key, receiver);;
     }
 

@@ -1363,7 +1363,7 @@ const AccessScopeAst = {
   for(key: PropertyKey) {
     let ast = AccessScopeAst.map.get(key);
     if (ast == null) {
-      ast = new AccessScopeExpression(key, 0);
+      ast = new AccessScopeExpression(key as string, 0);
       AccessScopeAst.map.set(key, ast);
     }
     return ast;

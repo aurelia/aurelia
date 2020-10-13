@@ -615,6 +615,7 @@ function createCustomElement(
     needsCompile: false,
     enhance: false,
     projectionsMap: new Map<ITargetedInstruction, IProjections>(),
+    watches: [],
   };
   return [input, output];
 }
@@ -1232,7 +1233,8 @@ describe(`TemplateCompiler - combinations`, function () {
       //   ($1, [input, output]) => createCustomElement(`baz`, true, [], [], [], output.instructions, output, input)
       // ]
       // ], ($1, $2, [input, output]) => {
-    ],                       (ctx, [input, output]) => {
+    ],
+    (ctx, [input, output]) => {
       it(`${input.template}`, function () {
 
         const { sut, container } = createFixture(

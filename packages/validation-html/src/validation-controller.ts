@@ -162,7 +162,9 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
   }
   let object: any;
   if (propertyName.length === 0) {
-    propertyName = expression.name;
+    // expression.name should not be anything other than string here
+    // as it won't be manually built
+    propertyName = expression.name as string;
     object = expression.accessHostScope ? hostScope?.bindingContext : scope.bindingContext;
   } else {
     object = expression.evaluate(flags, scope, hostScope, locator, null);

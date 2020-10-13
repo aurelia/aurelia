@@ -37,7 +37,7 @@ import {
 } from './resources/custom-attribute';
 
 import type { Scope } from './observation/binding-context';
-import type { ICompositionRoot } from './aurelia';
+import type { IAppRoot } from './aurelia';
 
 export interface IBinding {
   interceptor: this;
@@ -97,7 +97,7 @@ export interface IController<
   C extends IViewModel<T> = IViewModel<T>,
 > extends IDisposable {
   /** @internal */readonly id: number;
-  readonly root: ICompositionRoot<T> | null;
+  readonly root: IAppRoot<T> | null;
   readonly flags: LifecycleFlags;
   readonly lifecycle: ILifecycle;
   readonly hooks: HooksDefinition;

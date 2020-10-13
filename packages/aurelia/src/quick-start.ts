@@ -1,7 +1,7 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
 import { DI, IContainer } from '@aurelia/kernel';
-import { ICompositionRoot, CustomElementType, ISinglePageApp, CustomElement } from '@aurelia/runtime';
+import { IAppRoot, CustomElementType, ISinglePageApp, CustomElement } from '@aurelia/runtime';
 import { Aurelia as $Aurelia } from '@aurelia/runtime-html';
 
 // TODO: SSR?? abstract HTMLElement and document.
@@ -28,7 +28,7 @@ export class Aurelia extends $Aurelia {
     super(container);
   }
 
-  public static start(root: ICompositionRoot<HTMLElement> | undefined): void | Promise<void> {
+  public static start(root: IAppRoot<HTMLElement> | undefined): void | Promise<void> {
     return createAurelia().start(root);
   }
 

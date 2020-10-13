@@ -33,10 +33,10 @@ export interface ISinglePageApp<THost extends INode = INode> {
   component: unknown;
 }
 
-export interface ICompositionRoot<T extends INode = INode> extends CompositionRoot<T> {}
-export const ICompositionRoot = DI.createInterface<ICompositionRoot>('ICompositionRoot').noDefault();
+export interface IAppRoot<T extends INode = INode> extends AppRoot<T> {}
+export const IAppRoot = DI.createInterface<IAppRoot>('IAppRoot').noDefault();
 
-export class CompositionRoot<T extends INode = INode> implements IDisposable {
+export class AppRoot<T extends INode = INode> implements IDisposable {
   public readonly container: IContainer;
   public readonly host: T;
   public readonly dom: IDOM<T>;
@@ -51,7 +51,7 @@ export class CompositionRoot<T extends INode = INode> implements IDisposable {
   public constructor(
     public readonly config: ISinglePageApp<T>,
     container: IContainer,
-    rootProvider: InstanceProvider<ICompositionRoot<T>>,
+    rootProvider: InstanceProvider<IAppRoot<T>>,
     enhance: boolean = false,
   ) {
     rootProvider.prepare(this);

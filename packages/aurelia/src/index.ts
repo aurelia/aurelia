@@ -515,7 +515,7 @@ export {
   // Aurelia, // Replaced by quick-start wrapper
   // IDOMInitializer,
   // ISinglePageApp,
-  ICompositionRoot,
+  IAppRoot,
 
   // IfRegistration,
   // ElseRegistration,

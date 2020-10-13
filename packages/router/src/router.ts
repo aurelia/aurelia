@@ -2,7 +2,7 @@
 /* eslint-disable prefer-template */
 /* eslint-disable max-lines-per-function */
 import { DI, IContainer, Registration, IIndexable, Key, Metadata } from '@aurelia/kernel';
-import { CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, ICompositionRoot, isCompositionContext } from '@aurelia/runtime';
+import { CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, IAppRoot, isCompositionContext } from '@aurelia/runtime';
 import { InstructionResolver } from './instruction-resolver';
 import { IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
@@ -1114,7 +1114,7 @@ export class Router implements IRouter {
 
   private ensureRootScope(): ViewportScope {
     if (!this.rootScope) {
-      const root = this.container.get(ICompositionRoot);
+      const root = this.container.get(IAppRoot);
       // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
       this.rootScope = new ViewportScope('rootScope', this, root.controller.viewModel as IConnectedCustomElement, null, true, root.config.component as CustomElementType);
     }

@@ -78,7 +78,7 @@ import {
 } from './composition-context';
 import { ChildrenObserver } from './children';
 import { RegisteredProjections } from '../resources/custom-elements/au-slot';
-import { ICompositionRoot } from '../aurelia';
+import { IAppRoot } from '../aurelia';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -144,7 +144,7 @@ export class Controller<
   private fullyNamed: boolean = false;
 
   public constructor(
-    public root: ICompositionRoot<T> | null,
+    public root: IAppRoot<T> | null,
     public container: IContainer,
     public readonly vmKind: ViewModelKind,
     public flags: LifecycleFlags,
@@ -168,8 +168,8 @@ export class Controller<
      */
     public host: T | undefined,
   ) {
-    if (root === null && container.has(ICompositionRoot, true)) {
-      this.root = container.get<ICompositionRoot<T>>(ICompositionRoot);
+    if (root === null && container.has(IAppRoot, true)) {
+      this.root = container.get<IAppRoot<T>>(IAppRoot);
     }
   }
 
@@ -195,7 +195,7 @@ export class Controller<
     T extends INode = INode,
     C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>,
   >(
-    root: ICompositionRoot<T> | null,
+    root: IAppRoot<T> | null,
     container: IContainer,
     viewModel: C,
     lifecycle: ILifecycle,
@@ -241,7 +241,7 @@ export class Controller<
     T extends INode = INode,
     C extends ICustomAttributeViewModel<T> = ICustomAttributeViewModel<T>,
   >(
-    root: ICompositionRoot<T> | null,
+    root: IAppRoot<T> | null,
     container: IContainer,
     viewModel: C,
     lifecycle: ILifecycle,
@@ -279,7 +279,7 @@ export class Controller<
   public static forSyntheticView<
     T extends INode = INode,
   >(
-    root: ICompositionRoot<T> | null,
+    root: IAppRoot<T> | null,
     context: ICompositionContext<T>,
     viewFactory: IViewFactory<T>,
     lifecycle: ILifecycle,
@@ -346,7 +346,7 @@ export class Controller<
       context.beginChildComponentOperation(instance as ICustomElementViewModel);
     }
 
-    // If this is the root controller, then the CompositionRoot will invoke things in the following order:
+    // If this is the root controller, then the AppRoot will invoke things in the following order:
     // - Controller.hydrateCustomElement
     // - runAppTasks('beforeCompile') // may return a promise
     // - Controller.compile

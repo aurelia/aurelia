@@ -302,9 +302,9 @@ export {
 export {
   IDOMInitializer,
   ISinglePageApp,
-  CompositionRoot,
-  ICompositionRoot,
-} from './aurelia';
+  AppRoot,
+  IAppRoot,
+} from './app-root';
 export {
   IfRegistration,
   ElseRegistration,

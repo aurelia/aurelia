@@ -273,7 +273,7 @@ export class HTMLDOM implements IDOM {
   }
 
   public isMarker(node: unknown): node is HTMLElement {
-    return (node as AuMarker).nodeName === 'AU-M';
+    return (node as Element).nodeName === 'AU-M';
   }
 
   public isNodeInstance(potentialNode: unknown): potentialNode is Node {
@@ -505,36 +505,6 @@ export class FragmentNodeSequence implements INodeSequence {
     }
   }
 }
-
-export interface AuMarker extends INode { }
-
-/** @internal */
-export class AuMarker implements INode {
-  public get parentNode(): Node & ParentNode {
-    return this.nextSibling.parentNode!;
-  }
-
-  public readonly previousSibling!: Node;
-  public readonly content?: Node;
-  public readonly childNodes!: ArrayLike<ChildNode>;
-  public readonly nodeName!: 'AU-M';
-  public readonly nodeType!: NodeType.Element;
-
-  public textContent: string = '';
-
-  public constructor(
-    public readonly nextSibling: Node,
-  ) {}
-
-  public remove(): void { /* do nothing */ }
-}
-
-(proto => {
-  proto.previousSibling = null!;
-  proto.childNodes = PLATFORM.emptyArray;
-  proto.nodeName = 'AU-M';
-  proto.nodeType = NodeType.Element;
-})(AuMarker.prototype as Writable<AuMarker>);
 
 export const IWindow = DI.createInterface<IWindow>('IWindow').withDefault(x => x.callback(handler => handler.get(HTMLDOM).window));
 export interface IWindow extends Window { }

@@ -1,19 +1,20 @@
 import {
   BindingMode,
   BindingType,
-  ensureExpression,
-  IRenderableController,
+  ContentBinding,
+  ICompiledRenderContext,
   IExpressionParser,
   IInstructionComposer,
-  instructionComposer,
-  InterpolationBinding,
   IObserverLocator,
-  ICompiledRenderContext,
+  IRenderableController,
+  IScheduler,
+  Interpolation,
+  IsBindingBehavior,
   LifecycleFlags,
-  MultiInterpolationBinding,
+  InterpolationBinding,
   PropertyBinding,
   applyBindingBehavior,
-  IsBindingBehavior,
+  ensureExpression,
 } from '@aurelia/runtime';
 import { AttributeBinding } from './binding/attribute';
 import { Listener } from './binding/listener';
@@ -25,7 +26,7 @@ import {
   IStylePropertyBindingInstruction,
   ITextBindingInstruction,
   ISetClassAttributeInstruction,
-  ISetStyleAttributeInstruction
+  ISetStyleAttributeInstruction,
 } from './definitions';
 import { IEventManager } from './observation/event-manager';
 
@@ -35,6 +36,7 @@ export class TextBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IScheduler private readonly scheduler: IScheduler,
   ) {}
 
   public render(
@@ -48,20 +50,25 @@ export class TextBindingComposer implements IInstructionComposer {
     if (context.dom.isMarker(target)) {
       context.dom.remove(target);
     }
-    let binding: MultiInterpolationBinding | InterpolationBinding;
-    const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
-    if (expr.isMulti) {
-      binding = applyBindingBehavior(
-        new MultiInterpolationBinding(this.observerLocator, expr, next!, 'textContent', BindingMode.toView, context),
-        expr as unknown as IsBindingBehavior,
-        context,
-      ) as MultiInterpolationBinding;
-    } else {
-      binding = applyBindingBehavior(
-        new InterpolationBinding(expr.firstExpression, expr, next!, 'textContent', BindingMode.toView, this.observerLocator, context, true),
-        expr as unknown as IsBindingBehavior,
-        context,
-      ) as InterpolationBinding;
+    const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation) as Interpolation;
+    const binding = new InterpolationBinding(
+      this.observerLocator,
+      expr,
+      next!,
+      'textContent',
+      BindingMode.toView,
+      context,
+      this.scheduler,
+    );
+    const partBindings = binding.partBindings;
+    let partBinding: ContentBinding;
+    for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+      partBinding = partBindings[i];
+      partBindings[i] = applyBindingBehavior(
+        partBinding,
+        partBinding.sourceExpression as unknown as IsBindingBehavior,
+        context
+      ) as ContentBinding;
     }
     controller.addBinding(binding);
   }

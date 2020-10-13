@@ -103,8 +103,8 @@ export {
   ParserState,
 } from './binding/expression-parser';
 export {
-  MultiInterpolationBinding,
-  InterpolationBinding
+  ContentBinding,
+  InterpolationBinding,
 } from './binding/interpolation-binding';
 export {
   LetBinding

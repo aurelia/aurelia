@@ -12,6 +12,7 @@ export function getProxyOrSelf<T extends unknown>(v: T): T {
   return isObject(v) ? getProxy(v) : v;
 }
 export function getProxy<T extends object>(obj: T): T {
+  // deepscan-disable-next-line
   return proxyMap.get(obj) as T ?? createProxy(obj);
 }
 

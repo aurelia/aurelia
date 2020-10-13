@@ -17,7 +17,7 @@ export interface IWatcher extends IConnectableBinding, ICollectionSubscriber {
  */
 let $collector: IWatcher | null = null;
 const collectors: IWatcher[] = [];
-const collectingStatus: boolean[] = [];
+// const collectingStatus: boolean[] = [];
 
 export let collecting = false;
 

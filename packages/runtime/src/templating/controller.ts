@@ -242,7 +242,7 @@ export class Controller<
     }
 
     // timing?
-    createWatchers(controller as Controller, container, definition, flags, viewModel);
+    createWatchers(controller as Controller, container, definition, viewModel);
 
     return controller as unknown as ICustomElementController<T, C>;
   }
@@ -283,7 +283,7 @@ export class Controller<
 
     controller.hydrateCustomAttribute();
 
-    createWatchers(controller as Controller, container, definition, flags, viewModel);
+    createWatchers(controller as Controller, container, definition, viewModel);
 
     return controller as unknown as ICustomAttributeController<T, C>;
   }
@@ -1374,7 +1374,6 @@ function createWatchers(
   controller: Controller,
   context: IServiceLocator,
   definition: CustomElementDefinition | CustomAttributeDefinition,
-  _flags: LifecycleFlags,
   instance: object,
 ) {
   const observerLocator = context!.get(IObserverLocator);

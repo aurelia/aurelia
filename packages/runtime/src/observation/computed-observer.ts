@@ -28,6 +28,7 @@ import { connectable, IConnectableBinding } from '../binding/connectable';
 import { IWatcherCallback } from '../templating/watch';
 import { IsBindingBehavior } from '../binding/ast';
 import { getProxyOrSelf } from './proxy-observation';
+import { Scope } from './binding-context';
 
 export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
@@ -450,7 +451,7 @@ export class ExpressionWatcher implements ExpressionWatcher {
   private readonly callback: IWatcherCallback<object>;
 
   public constructor(
-    public scope: IScope,
+    public scope: Scope,
     public locator: IServiceLocator,
     public observerLocator: IObserverLocator,
     public sourceExpression: IsBindingBehavior,

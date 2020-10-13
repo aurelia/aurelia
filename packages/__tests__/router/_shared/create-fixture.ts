@@ -1,5 +1,5 @@
 import { Constructable, LogLevel, Registration, ILogConfig, LoggerConfiguration } from '@aurelia/kernel';
-import { Aurelia } from '@aurelia/runtime';
+import { Aurelia } from '@aurelia/runtime-html';
 import { RouterOptions, RouterConfiguration, IRouter, IRouterActivateOptions, NavigationState } from '@aurelia/router';
 import { TestContext, assert } from '@aurelia/testing';
 

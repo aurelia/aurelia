@@ -3,13 +3,13 @@ import {
   PLATFORM
 } from '@aurelia/kernel';
 import {
-  Aurelia,
   Controller,
   CustomAttribute,
   CustomElement,
   CustomElementHost,
   INode,
 } from '@aurelia/runtime';
+import { Aurelia } from '@aurelia/runtime-html';
 import {
   assert,
   HTMLTestContext,

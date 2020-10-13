@@ -1,6 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
 import {
-  Aurelia,
   CustomElement,
   IDOM,
   ILifecycle,
@@ -9,7 +8,7 @@ import {
   customElement,
   getCompositionContext,
 } from '@aurelia/runtime';
-import { CompositionPlan } from '@aurelia/runtime-html';
+import { Aurelia, CompositionPlan } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
   TestContext,

@@ -1,5 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElement, Aurelia } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime';
+import { Aurelia } from '@aurelia/runtime-html';
 import { assert } from './assert';
 import { HTMLTestContext, TestContext } from './html-test-context';
 

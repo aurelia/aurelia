@@ -15,12 +15,12 @@ import {
   pascalCase,
 } from '@aurelia/kernel';
 import {
-  Aurelia,
   customElement,
   bindable,
   Controller,
   LifecycleFlags,
 } from '@aurelia/runtime';
+import { Aurelia } from '@aurelia/runtime-html';
 
 import {
   TestContext,

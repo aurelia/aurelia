@@ -2,13 +2,11 @@ import {
   PLATFORM
 } from '@aurelia/kernel';
 import {
-  Aurelia,
   BindingStrategy,
   CustomElement,
-  ILifecycle,
-  LifecycleFlags,
   ValueConverter,
 } from '@aurelia/runtime';
+import { Aurelia } from '@aurelia/runtime-html';
 import {
   assert,
   TestContext

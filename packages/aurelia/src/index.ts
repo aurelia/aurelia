@@ -245,7 +245,6 @@ export {
 } from '@aurelia/router';
 
 export {
-  IAurelia,
   // CallFunctionExpression,
   // connects,
   // observes,
@@ -694,6 +693,7 @@ export {
 } from '@aurelia/runtime';
 
 export {
+  IAurelia,
   // Listener,
 
   // AttributeBinding,

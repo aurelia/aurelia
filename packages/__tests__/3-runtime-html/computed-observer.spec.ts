@@ -3,7 +3,6 @@ import {
   IScheduler,
   LifecycleFlags,
   CustomElement,
-  Aurelia,
   BindingStrategy,
   GetterObserver,
   SetterObserver,
@@ -11,6 +10,9 @@ import {
   CustomSetterObserver,
   IDirtyChecker
 } from '@aurelia/runtime';
+import {
+  Aurelia,
+} from '@aurelia/runtime-html';
 import {
   Constructable
 } from '@aurelia/kernel';

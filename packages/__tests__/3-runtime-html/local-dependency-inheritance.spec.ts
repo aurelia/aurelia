@@ -1,5 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
-import { Aurelia, CustomElement } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime';
+import { Aurelia } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('local dependency inheritance', function () {

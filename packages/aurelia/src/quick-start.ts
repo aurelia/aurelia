@@ -1,7 +1,8 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
 import { DI, IContainer } from '@aurelia/kernel';
-import { Aurelia as $Aurelia, ICompositionRoot, CustomElementType, ISinglePageApp, CustomElement } from '@aurelia/runtime';
+import { ICompositionRoot, CustomElementType, ISinglePageApp, CustomElement } from '@aurelia/runtime';
+import { Aurelia as $Aurelia } from '@aurelia/runtime-html';
 
 // TODO: SSR?? abstract HTMLElement and document.
 
@@ -22,7 +23,7 @@ function createAurelia(): Aurelia {
   return au;
 }
 
-export class Aurelia extends $Aurelia<HTMLElement> {
+export class Aurelia extends $Aurelia {
   public constructor(container: IContainer = DI.createContainer()) {
     super(container);
   }

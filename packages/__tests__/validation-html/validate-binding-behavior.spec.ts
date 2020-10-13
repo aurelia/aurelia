@@ -2,7 +2,6 @@ import { Unparser } from '@aurelia/debug';
 import { DI, IServiceLocator, newInstanceForScope, newInstanceOf, Registration } from '@aurelia/kernel';
 import {
   ArrayObserver,
-  Aurelia,
   bindable,
   bindingBehavior,
   BindingBehaviorInstance,
@@ -20,6 +19,9 @@ import {
   LifecycleFlags,
   valueConverter,
 } from '@aurelia/runtime';
+import {
+  Aurelia,
+} from '@aurelia/runtime-html';
 import { assert, createSpy, HTMLTestContext, ISpy, TestContext } from '@aurelia/testing';
 import { IValidationRules, PropertyRule, RangeRule, RequiredRule } from '@aurelia/validation';
 import {

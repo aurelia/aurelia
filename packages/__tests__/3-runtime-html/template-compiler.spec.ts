@@ -27,7 +27,6 @@ import {
   PartialCustomAttributeDefinition,
   HooksDefinition,
   CustomElementDefinition,
-  Aurelia,
   IProjections,
   IInstruction,
   CustomElementType,
@@ -38,6 +37,7 @@ import {
   parseExpression,
 } from '@aurelia/runtime';
 import {
+  Aurelia,
   HydrateElementInstruction,
   HydrateTemplateController,
   InstructionType as HTT,

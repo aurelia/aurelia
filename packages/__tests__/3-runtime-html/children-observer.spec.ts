@@ -1,4 +1,5 @@
-import { children, Aurelia, CustomElement, PartialChildrenDefinition } from '@aurelia/runtime';
+import { children, CustomElement, PartialChildrenDefinition } from '@aurelia/runtime';
+import { Aurelia } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 import { IContainer, PLATFORM } from '@aurelia/kernel';
 

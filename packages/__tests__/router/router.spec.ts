@@ -1,7 +1,8 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { PLATFORM, inject, IContainer } from '@aurelia/kernel';
 import { IRouter, RouterConfiguration, IConfigurableRoute, IRoute, IRouterTitle, ViewportInstruction } from '@aurelia/router';
-import { Aurelia, CustomElement, customElement, IScheduler } from '@aurelia/runtime';
+import { CustomElement, customElement, IScheduler } from '@aurelia/runtime';
+import { Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('Router', function () {

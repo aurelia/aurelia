@@ -1,6 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
-import { Aurelia, BindingMode, CustomElement, IScheduler } from '@aurelia/runtime';
-import { IEventManager, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { BindingMode, CustomElement, IScheduler } from '@aurelia/runtime';
+import { Aurelia, IEventManager, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert } from '@aurelia/testing';
 import { ClassAttributePattern } from './attribute-pattern';
 

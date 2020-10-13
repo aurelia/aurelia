@@ -1,5 +1,6 @@
 import { Profiler } from "@aurelia/kernel";
-import { Aurelia, CustomElement } from "@aurelia/runtime";
+import { CustomElement } from "@aurelia/runtime";
+import { Aurelia } from "@aurelia/runtime-html"
 import { TestContext, writeProfilerReport, assert } from "@aurelia/testing";
 
 describe("generated.template-compiler.static", function () {

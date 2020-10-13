@@ -1,4 +1,8 @@
 export {
+  Aurelia,
+  IAurelia,
+} from './aurelia';
+export {
   AttrSyntax,
   IAttributeParser,
 } from './attribute-parser';

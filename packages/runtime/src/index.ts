@@ -300,8 +300,6 @@ export {
 } from './templating/view';
 
 export {
-  Aurelia,
-  IAurelia,
   IDOMInitializer,
   ISinglePageApp,
   CompositionRoot,

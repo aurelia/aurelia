@@ -17,10 +17,10 @@ import {
   ISubscriber,
   IScheduler,
   CustomElement,
-  Aurelia,
   BindingStrategy,
   IDirtyChecker,
 } from '@aurelia/runtime';
+import { Aurelia } from '@aurelia/runtime-html';
 
 describe('simple Computed Observer test case', function () {
 

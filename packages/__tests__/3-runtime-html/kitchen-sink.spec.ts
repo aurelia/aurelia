@@ -3,9 +3,9 @@ import {
   TemplateBinder,
   IAttributeParser,
   ResourceModel,
+  Aurelia,
 } from '@aurelia/runtime-html';
 import {
-  Aurelia,
   CustomElement,
   IExpressionParser,
 } from '@aurelia/runtime';

@@ -1,6 +1,7 @@
 // This is to test for some intrinsic properties of enhance which is otherwise difficult to test in Data-driven tests parallel to `.app`
 import { Constructable, IContainer } from '@aurelia/kernel';
-import { Aurelia, CustomElement, ICustomElementViewModel, IScheduler } from '@aurelia/runtime';
+import { CustomElement, ICustomElementViewModel, IScheduler } from '@aurelia/runtime';
+import { Aurelia } from '@aurelia/runtime-html';
 import { assert, HTMLTestContext, TestContext, eachCartesianJoin } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
 

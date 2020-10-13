@@ -1,6 +1,7 @@
 import { HookManager, HookTypes, ViewportInstruction, RouterConfiguration, IRouter, Navigation, InstructionResolver } from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
-import { CustomElement, Aurelia, IScheduler } from '@aurelia/runtime';
+import { CustomElement, IScheduler } from '@aurelia/runtime';
+import { Aurelia } from '@aurelia/runtime-html';
 import { DebugConfiguration } from '@aurelia/debug';
 
 describe('HookManager', function () {

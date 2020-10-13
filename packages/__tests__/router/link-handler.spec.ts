@@ -1,7 +1,8 @@
 import { AnchorEventInfo, LinkHandler, GotoCustomAttribute, HrefCustomAttribute } from '@aurelia/router';
 import { assert, createSpy, TestContext } from '@aurelia/testing';
 import { Writable, IRegistry, PLATFORM } from '@aurelia/kernel';
-import { CustomElement, Aurelia } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime';
+import { Aurelia } from '@aurelia/runtime-html';
 
 describe('LinkHandler', function () {
   function createFixture() {

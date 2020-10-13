@@ -1,5 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IScheduler, bindable, customElement, BindingMode } from '@aurelia/runtime';
+import { CustomElement, IScheduler, bindable, customElement, BindingMode } from '@aurelia/runtime';
+import { Aurelia } from '@aurelia/runtime-html';
 import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
 

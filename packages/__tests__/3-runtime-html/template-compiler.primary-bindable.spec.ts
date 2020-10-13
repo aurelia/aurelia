@@ -2,7 +2,6 @@ import {
   Constructable, PLATFORM
 } from '@aurelia/kernel';
 import {
-  Aurelia,
   bindable,
   bindingBehavior,
   customAttribute,
@@ -18,7 +17,7 @@ import {
   HTMLTestContext,
   TestContext
 } from '@aurelia/testing';
-import { HTMLDOM } from '@aurelia/runtime-html';
+import { Aurelia, HTMLDOM } from '@aurelia/runtime-html';
 
 describe('template-compiler.primary-bindable.spec.ts', function () {
 

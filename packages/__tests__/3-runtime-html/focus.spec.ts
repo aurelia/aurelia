@@ -1,6 +1,6 @@
 import { Constructable, PLATFORM } from '@aurelia/kernel';
-import { Aurelia, CustomElement } from '@aurelia/runtime';
-import { Focus } from '@aurelia/runtime-html';
+import { CustomElement } from '@aurelia/runtime';
+import { Aurelia, Focus } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
 describe('focus.spec.ts', function () {

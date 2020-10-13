@@ -1,5 +1,5 @@
-import { Aurelia, CustomElement } from '@aurelia/runtime';
-import { cssModules } from '@aurelia/runtime-html';
+import { CustomElement } from '@aurelia/runtime';
+import { Aurelia, cssModules } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('styles', function () {

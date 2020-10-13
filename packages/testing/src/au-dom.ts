@@ -9,7 +9,6 @@ import {
   Metadata
 } from '@aurelia/kernel';
 import {
-  Aurelia,
   BindingMode,
   BindingType,
   CustomElementHost,
@@ -44,6 +43,7 @@ import {
   parseExpression,
 } from '@aurelia/runtime';
 import {
+  Aurelia,
   HydrateElementInstruction,
   HydrateLetElementInstruction,
   HydrateTemplateController,

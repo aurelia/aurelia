@@ -3,7 +3,6 @@ import {
   IBindingTargetObserver,
   LifecycleFlags as LF,
   CustomElement,
-  Aurelia,
   BindingStrategy,
   ProxyObserver,
 } from '@aurelia/runtime';
@@ -11,6 +10,7 @@ import {
   Constructable
 } from '@aurelia/kernel';
 import {
+  Aurelia,
   CheckedObserver,
   IInputElement,
 } from '@aurelia/runtime-html';

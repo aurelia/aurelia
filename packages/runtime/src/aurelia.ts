@@ -2,7 +2,6 @@ import {
   Constructable,
   DI,
   IContainer,
-  PLATFORM,
   Registration,
   InstanceProvider,
   IDisposable,
@@ -34,14 +33,12 @@ export interface ISinglePageApp<THost extends INode = INode> {
   component: unknown;
 }
 
-type Publisher = { dispatchEvent(evt: unknown, options?: unknown): void };
-
 export interface ICompositionRoot<T extends INode = INode> extends CompositionRoot<T> {}
 export const ICompositionRoot = DI.createInterface<ICompositionRoot>('ICompositionRoot').noDefault();
 
 export class CompositionRoot<T extends INode = INode> implements IDisposable {
   public readonly container: IContainer;
-  public readonly host: T & { $aurelia?: IAurelia<T> };
+  public readonly host: T;
   public readonly dom: IDOM<T>;
 
   public controller: ICustomElementController<T> = (void 0)!;
@@ -145,120 +142,6 @@ export class CompositionRoot<T extends INode = INode> implements IDisposable {
     this.controller?.dispose();
   }
 }
-
-export interface IAurelia<T extends INode = INode> extends Aurelia<T> {}
-export const IAurelia = DI.createInterface<IAurelia>('IAurelia').noDefault();
-
-export class Aurelia<TNode extends INode = INode> implements IDisposable {
-  private _isRunning: boolean = false;
-  public get isRunning(): boolean { return this._isRunning; }
-  private _isStarting: boolean = false;
-  public get isStarting(): boolean { return this._isStarting; }
-  private _isStopping: boolean = false;
-  public get isStopping(): boolean { return this._isStopping; }
-
-  private _root: ICompositionRoot<TNode> | undefined = void 0;
-  public get root(): ICompositionRoot<TNode> {
-    if (this._root == void 0) {
-      if (this.next == void 0) {
-        throw new Error(`root is not defined`); // TODO: create error code
-      }
-      return this.next;
-    }
-    return this._root;
-  }
-
-  private next: ICompositionRoot<TNode> | undefined = void 0;
-
-  private readonly rootProvider: InstanceProvider<ICompositionRoot<TNode>>;
-
-  public constructor(
-    public readonly container: IContainer = DI.createContainer(),
-  ) {
-    if (container.has(IAurelia, true)) {
-      throw new Error('An instance of Aurelia is already registered with the container or an ancestor of it.');
-    }
-
-    container.register(Registration.instance(IAurelia, this));
-    container.registerResolver(ICompositionRoot, this.rootProvider = new InstanceProvider('ICompositionRoot'));
-  }
-
-  public register(...params: any[]): this {
-    this.container.register(...params);
-    return this;
-  }
-
-  public app(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app' | 'enhance'> {
-    this.next = new CompositionRoot(config, this.container, this.rootProvider, false);
-    return this;
-  }
-
-  public enhance(config: ISinglePageApp<TNode>): Omit<this, 'register' | 'app' | 'enhance'> {
-    this.next = new CompositionRoot(config, this.container, this.rootProvider, true);
-    return this;
-  }
-
-  private startPromise: Promise<void> | void = void 0;
-  public start(root: ICompositionRoot<TNode> | undefined = this.next): void | Promise<void> {
-    if (root == void 0) {
-      throw new Error(`There is no composition root`);
-    }
-
-    if (this.startPromise instanceof Promise) {
-      return this.startPromise;
-    }
-
-    return this.startPromise = onResolve(this.stop(), () => {
-      Reflect.set(root.host, '$aurelia', this);
-      this.rootProvider.prepare(this._root = root);
-      this._isStarting = true;
-
-      return onResolve(root.activate(), () => {
-        this._isRunning = true;
-        this._isStarting = false;
-        this.startPromise = void 0;
-        this.dispatchEvent(root, 'aurelia-composed', root.dom);
-        this.dispatchEvent(root, 'au-started', root.host);
-      });
-    });
-  }
-
-  private stopPromise: Promise<void> | void = void 0;
-  public stop(): void | Promise<void> {
-    if (this.stopPromise instanceof Promise) {
-      return this.stopPromise;
-    }
-
-    if (this._isRunning === true) {
-      const root = this._root!;
-      this._isRunning = false;
-      this._isStopping = true;
-
-      return this.stopPromise = onResolve(root.deactivate(), () => {
-        Reflect.deleteProperty(root.host, '$aurelia');
-        this._root = void 0;
-        this.rootProvider.dispose();
-        this._isStopping = false;
-        this.dispatchEvent(root, 'au-stopped', root.host);
-      });
-    }
-  }
-
-  public dispose(): void {
-    if (this._isRunning || this._isStopping) {
-      throw new Error(`The aurelia instance must be fully stopped before it can be disposed`);
-    }
-    this._root?.dispose();
-    this._root = void 0;
-    this.container.dispose();
-  }
-
-  private dispatchEvent(root: ICompositionRoot, name: string, target: IDOM<TNode> | (TNode & Partial<Publisher>)): void {
-    const $target = ('dispatchEvent' in target ? target : root.dom) as Publisher;
-    $target.dispatchEvent(root.dom.createCustomEvent(name, { detail: this, bubbles: true, cancelable: true }));
-  }
-}
-(PLATFORM.global as typeof PLATFORM.global & { Aurelia: unknown }).Aurelia = Aurelia;
 
 export const IDOMInitializer = DI.createInterface<IDOMInitializer>('IDOMInitializer').noDefault();
 

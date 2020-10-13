@@ -50,7 +50,7 @@ export class MultiInterpolationBinding implements IBinding {
     // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
     // value converters and binding behaviors.
     // Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
-    // in which case the renderer will create the TextBinding directly
+    // in which case the composer will create the TextBinding directly
     const expressions = interpolation.expressions;
     const parts = this.parts = Array(expressions.length);
     for (let i = 0, ii = expressions.length; i < ii; ++i) {

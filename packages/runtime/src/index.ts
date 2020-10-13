@@ -527,13 +527,13 @@ export {
 } from './observation';
 export {
   applyBindingBehavior,
-  IInstructionRenderer,
+  IInstructionComposer,
   IInstructionTypeClassifier,
-  IRenderer,
+  IComposer,
   ITemplateCompiler,
-  instructionRenderer,
+  instructionComposer,
   ensureExpression,
-} from './renderer';
+} from './composer';
 export {
   ResourceModel,
   BindableInfo,

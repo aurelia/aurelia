@@ -13,14 +13,14 @@ import { HtmlAttrSyntaxTransformer } from './html-attribute-syntax-transformer';
 import { TemplateCompiler } from './template-compiler';
 import { HTMLTemplateElementFactory } from './template-element-factory';
 import {
-  AttributeBindingRenderer,
-  ListenerBindingRenderer,
-  SetAttributeRenderer,
-  StylePropertyBindingRenderer,
-  TextBindingRenderer,
-  SetClassAttributeRenderer,
-  SetStyleAttributeRenderer
-} from './html-renderer';
+  AttributeBindingComposer,
+  ListenerBindingComposer,
+  SetAttributeComposer,
+  StylePropertyBindingComposer,
+  TextBindingComposer,
+  SetClassAttributeComposer,
+  SetStyleAttributeComposer
+} from './html-composer';
 import { TargetAccessorLocator, TargetObserverLocator } from './observation/observer-locator';
 import { HTMLProjectorLocator } from './projectors';
 import { AttrBindingBehavior } from './resources/binding-behaviors/attr';
@@ -102,13 +102,13 @@ export const DefaultResources = [
   BlurRegistration
 ];
 
-export const ListenerBindingRendererRegistration = ListenerBindingRenderer as unknown as IRegistry;
-export const AttributeBindingRendererRegistration = AttributeBindingRenderer as unknown as IRegistry;
-export const SetAttributeRendererRegistration = SetAttributeRenderer as unknown as IRegistry;
-export const SetClassAttributeRendererRegistration = SetClassAttributeRenderer as unknown as IRegistry;
-export const SetStyleAttributeRendererRegistration = SetStyleAttributeRenderer as unknown as IRegistry;
-export const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer as unknown as IRegistry;
-export const TextBindingRendererRegistration = TextBindingRenderer as unknown as IRegistry;
+export const ListenerBindingRendererRegistration = ListenerBindingComposer as unknown as IRegistry;
+export const AttributeBindingRendererRegistration = AttributeBindingComposer as unknown as IRegistry;
+export const SetAttributeRendererRegistration = SetAttributeComposer as unknown as IRegistry;
+export const SetClassAttributeRendererRegistration = SetClassAttributeComposer as unknown as IRegistry;
+export const SetStyleAttributeRendererRegistration = SetStyleAttributeComposer as unknown as IRegistry;
+export const StylePropertyBindingRendererRegistration = StylePropertyBindingComposer as unknown as IRegistry;
+export const TextBindingRendererRegistration = TextBindingComposer as unknown as IRegistry;
 
 /**
  * Default HTML-specfic (but environment-agnostic) renderers for:

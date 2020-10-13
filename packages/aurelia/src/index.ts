@@ -653,14 +653,14 @@ export {
   // cloneIndexMap,
   // createIndexMap,
 
-  instructionRenderer,
+  instructionComposer,
   ensureExpression,
 
   // CompiledTemplate,
   // ChildrenObserver,
-  // IInstructionRenderer,
+  // IInstructionComposer,
   // IInstructionTypeClassifier,
-  // IRenderer,
+  // IComposer,
   // IRenderingEngine,
   // ITemplate,
   // ITemplateCompiler,

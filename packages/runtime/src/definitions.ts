@@ -23,7 +23,7 @@ import { SlotInfo } from './resources/custom-elements/au-slot';
 
 /**
  * TargetedInstructionType enum values become the property names for the associated renderers when they are injected
- * into the `Renderer`.
+ * into the `Composer`.
  *
  * Additional instruction types can be added as long as they are 2 characters long and do not clash with existing ones.
  *

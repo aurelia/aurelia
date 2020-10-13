@@ -24,7 +24,7 @@ import {
   IRenderableController,
   IViewFactory,
 } from '../lifecycle';
-import { IRenderer, ITemplateCompiler } from '../renderer';
+import { IComposer, ITemplateCompiler } from '../composer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { ViewFactory } from './view';
 import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot';
@@ -248,7 +248,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   private isCompiled: boolean = false;
 
   private readonly projectionProvider: IProjectionProvider;
-  public readonly renderer: IRenderer;
+  public readonly composer: IComposer;
   public readonly dom: IDOM<T>;
 
   public compiledDefinition: CustomElementDefinition = (void 0)!;
@@ -258,7 +258,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     public readonly parentContainer: IContainer,
   ) {
     const container = this.container = parentContainer.createChild();
-    this.renderer = container.get(IRenderer);
+    this.composer = container.get(IComposer);
     this.projectionProvider = container.get(IProjectionProvider);
 
     container.registerResolver(
@@ -456,7 +456,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     templateDefinition: CustomElementDefinition,
     host: INode | null | undefined,
   ): void {
-    this.renderer.render(flags, this, controller, targets, templateDefinition, host);
+    this.composer.render(flags, this, controller, targets, templateDefinition, host);
   }
 
   public renderInstructions(
@@ -465,7 +465,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     controller: IRenderableController,
     target: unknown,
   ): void {
-    this.renderer.renderInstructions(flags, this, instructions, controller, target);
+    this.composer.renderInstructions(flags, this, instructions, controller, target);
   }
 
   public dispose(): void {

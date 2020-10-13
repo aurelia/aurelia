@@ -5,8 +5,8 @@ import {
   ICallBindingInstruction,
   IRenderableController,
   IExpressionParser,
-  IInstructionRenderer,
-  instructionRenderer,
+  IInstructionComposer,
+  instructionComposer,
   IObserverLocator,
   IsBindingBehavior,
   LifecycleFlags,
@@ -50,8 +50,8 @@ export class TranslationParametersBindingCommand implements BindingCommandInstan
   }
 }
 
-@instructionRenderer(TranslationParametersInstructionType)
-export class TranslationParametersBindingRenderer implements IInstructionRenderer {
+@instructionComposer(TranslationParametersInstructionType)
+export class TranslationParametersBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,

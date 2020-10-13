@@ -20,12 +20,12 @@ import {
   IDOM,
   IDOMInitializer,
   IElementProjector,
-  IInstructionRenderer,
+  IInstructionComposer,
   ILifecycle,
   INode,
   INodeSequence,
   INodeSequenceFactory,
-  instructionRenderer,
+  instructionComposer,
   IObserverLocator,
   IProjectorLocator,
   IRenderLocation,
@@ -643,9 +643,9 @@ export class AuTextInstruction implements ITargetedInstruction {
 }
 
 @inject(IObserverLocator)
-@instructionRenderer('au')
+@instructionComposer('au')
 /** @internal */
-export class AuTextRenderer implements IInstructionRenderer {
+export class AuTextComposer implements IInstructionComposer {
   private readonly observerLocator: IObserverLocator;
 
   public constructor(observerLocator: IObserverLocator) {
@@ -675,7 +675,7 @@ export const AuDOMConfiguration = {
   register(container: IContainer): void {
     container.register(
       RuntimeConfiguration,
-      AuTextRenderer as unknown as IRegistry,
+      AuTextComposer as unknown as IRegistry,
       Registration.singleton(IDOM, AuDOM),
       Registration.singleton(IDOMInitializer, AuDOMInitializer),
       Registration.singleton(IProjectorLocator, AuProjectorLocator),

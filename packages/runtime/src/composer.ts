@@ -64,7 +64,7 @@ export interface IInstructionTypeClassifier<TType extends string = string> {
   instructionType: TType;
 }
 
-export interface IInstructionRenderer<
+export interface IInstructionComposer<
   TType extends InstructionTypeName = InstructionTypeName
 > extends Partial<IInstructionTypeClassifier<TType>> {
   render(
@@ -76,24 +76,24 @@ export interface IInstructionRenderer<
   ): void;
 }
 
-export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>('IInstructionRenderer').noDefault();
+export const IInstructionComposer = DI.createInterface<IInstructionComposer>('IInstructionComposer').noDefault();
 
-type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
-type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>, TClass> & IRegistry;
+type DecoratableInstructionComposer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionComposer, 'render'>>, TClass> & Partial<IRegistry>;
+type DecoratedInstructionComposer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionComposer, 'render'>, TClass> & IRegistry;
 
-type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>) => DecoratedInstructionRenderer<TType, TProto, TClass>;
+type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionComposer<TType, TProto, TClass>) => DecoratedInstructionComposer<TType, TProto, TClass>;
 
-export function instructionRenderer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType> {
-  return function decorator<TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>): DecoratedInstructionRenderer<TType, TProto, TClass> {
+export function instructionComposer<TType extends string>(instructionType: TType): InstructionRendererDecorator<TType> {
+  return function decorator<TProto, TClass>(target: DecoratableInstructionComposer<TType, TProto, TClass>): DecoratedInstructionComposer<TType, TProto, TClass> {
     // wrap the constructor to set the instructionType to the instance (for better performance than when set on the prototype)
     const decoratedTarget = function (...args: unknown[]): TProto {
       const instance = new target(...args);
       instance.instructionType = instructionType;
       return instance;
-    } as unknown as DecoratedInstructionRenderer<TType, TProto, TClass>;
+    } as unknown as DecoratedInstructionComposer<TType, TProto, TClass>;
     // make sure we register the decorated constructor with DI
     decoratedTarget.register = function register(container: IContainer): void {
-      Registration.singleton(IInstructionRenderer, decoratedTarget).register(container);
+      Registration.singleton(IInstructionComposer, decoratedTarget).register(container);
     };
     // copy over any metadata such as annotations (set by preceding decorators) as well as static properties set by the user
     // also copy the name, to be less confusing to users (so they can still use constructor.name for whatever reason)
@@ -110,17 +110,17 @@ export function instructionRenderer<TType extends string>(instructionType: TType
   };
 }
 
-export interface IRenderer extends Renderer {}
-export const IRenderer = DI.createInterface<IRenderer>('IRenderer').withDefault(x => x.singleton(Renderer));
+export interface IComposer extends Composer {}
+export const IComposer = DI.createInterface<IComposer>('IComposer').withDefault(x => x.singleton(Composer));
 
 /* @internal */
-export class Renderer {
-  private readonly instructionRenderers: Record<InstructionTypeName, IInstructionRenderer['render']>;
+export class Composer {
+  private readonly instructionRenderers: Record<InstructionTypeName, IInstructionComposer['render']>;
 
-  public constructor(@all(IInstructionRenderer) instructionRenderers: IInstructionRenderer[]) {
-    const record: Record<InstructionTypeName, IInstructionRenderer['render']> = this.instructionRenderers = {};
+  public constructor(@all(IInstructionComposer) instructionRenderers: IInstructionComposer[]) {
+    const record: Record<InstructionTypeName, IInstructionComposer['render']> = this.instructionRenderers = {};
     instructionRenderers.forEach(item => {
-      // Binding the functions to the renderer instances and calling the functions directly,
+      // Binding the functions to the composer instances and calling the functions directly,
       // prevents the `render` call sites from going megamorphic.
       // Consumes slightly more memory but significantly less CPU.
       record[item.instructionType as string] = item.render.bind(item);
@@ -220,9 +220,9 @@ export function getRefTarget(refHost: INode, refTargetName: string): object {
   }
 }
 
-@instructionRenderer(TargetedInstructionType.setProperty)
+@instructionComposer(TargetedInstructionType.setProperty)
 /** @internal */
-export class SetPropertyRenderer implements IInstructionRenderer {
+export class SetPropertyComposer implements IInstructionComposer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
@@ -239,9 +239,9 @@ export class SetPropertyRenderer implements IInstructionRenderer {
   }
 }
 
-@instructionRenderer(TargetedInstructionType.hydrateElement)
+@instructionComposer(TargetedInstructionType.hydrateElement)
 /** @internal */
-export class CustomElementRenderer implements IInstructionRenderer {
+export class CustomElementComposer implements IInstructionComposer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
@@ -296,9 +296,9 @@ export class CustomElementRenderer implements IInstructionRenderer {
   }
 }
 
-@instructionRenderer(TargetedInstructionType.hydrateAttribute)
+@instructionComposer(TargetedInstructionType.hydrateAttribute)
 /** @internal */
-export class CustomAttributeRenderer implements IInstructionRenderer {
+export class CustomAttributeComposer implements IInstructionComposer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
@@ -342,9 +342,9 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
   }
 }
 
-@instructionRenderer(TargetedInstructionType.hydrateTemplateController)
+@instructionComposer(TargetedInstructionType.hydrateTemplateController)
 /** @internal */
-export class TemplateControllerRenderer implements IInstructionRenderer {
+export class TemplateControllerComposer implements IInstructionComposer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
@@ -397,9 +397,9 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
   }
 }
 
-@instructionRenderer(TargetedInstructionType.hydrateLetElement)
+@instructionComposer(TargetedInstructionType.hydrateLetElement)
 /** @internal */
-export class LetElementRenderer implements IInstructionRenderer {
+export class LetElementComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
@@ -432,9 +432,9 @@ export class LetElementRenderer implements IInstructionRenderer {
   }
 }
 
-@instructionRenderer(TargetedInstructionType.callBinding)
+@instructionComposer(TargetedInstructionType.callBinding)
 /** @internal */
-export class CallBindingRenderer implements IInstructionRenderer {
+export class CallBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
@@ -457,9 +457,9 @@ export class CallBindingRenderer implements IInstructionRenderer {
   }
 }
 
-@instructionRenderer(TargetedInstructionType.refBinding)
+@instructionComposer(TargetedInstructionType.refBinding)
 /** @internal */
-export class RefBindingRenderer implements IInstructionRenderer {
+export class RefBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
   ) {}
@@ -481,9 +481,9 @@ export class RefBindingRenderer implements IInstructionRenderer {
   }
 }
 
-@instructionRenderer(TargetedInstructionType.interpolation)
+@instructionComposer(TargetedInstructionType.interpolation)
 /** @internal */
-export class InterpolationBindingRenderer implements IInstructionRenderer {
+export class InterpolationBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
@@ -515,9 +515,9 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
   }
 }
 
-@instructionRenderer(TargetedInstructionType.propertyBinding)
+@instructionComposer(TargetedInstructionType.propertyBinding)
 /** @internal */
-export class PropertyBindingRenderer implements IInstructionRenderer {
+export class PropertyBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
@@ -540,9 +540,9 @@ export class PropertyBindingRenderer implements IInstructionRenderer {
   }
 }
 
-@instructionRenderer(TargetedInstructionType.iteratorBinding)
+@instructionComposer(TargetedInstructionType.iteratorBinding)
 /** @internal */
-export class IteratorBindingRenderer implements IInstructionRenderer {
+export class IteratorBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,

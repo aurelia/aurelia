@@ -15,7 +15,7 @@ export {
   AuProjector,
   AuProjectorLocator,
   AuTextInstruction,
-  AuTextRenderer,
+  AuTextComposer,
 } from './au-dom';
 export {
   globalAttributeNames,

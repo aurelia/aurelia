@@ -5,7 +5,7 @@ import {
   ILifecycle,
   IObserverLocator,
   IProjectorLocator,
-  IRenderer,
+  IComposer,
   IScheduler,
   ITemplateCompiler,
 } from '@aurelia/runtime';
@@ -66,11 +66,11 @@ export class HTMLTestContext {
     }
     return this._lifecycle;
   }
-  public get renderer(): IRenderer {
-    if (this._renderer === void 0) {
-      this._renderer = this.container.get(IRenderer);
+  public get composer(): IComposer {
+    if (this._composer === void 0) {
+      this._composer = this.container.get(IComposer);
     }
-    return this._renderer;
+    return this._composer;
   }
   public get projectorLocator(): IProjectorLocator {
     if (this._projectorLocator === void 0) {
@@ -90,7 +90,7 @@ export class HTMLTestContext {
   private _templateCompiler?: ITemplateCompiler;
   private _observerLocator?: IObserverLocator;
   private _lifecycle?: ILifecycle;
-  private _renderer?: IRenderer;
+  private _composer?: IComposer;
   private _projectorLocator?: IProjectorLocator;
   private _domParser?: HTMLDivElement;
 
@@ -129,7 +129,7 @@ export class HTMLTestContext {
     this._templateCompiler = void 0;
     this._observerLocator = void 0;
     this._lifecycle = void 0;
-    this._renderer = void 0;
+    this._composer = void 0;
     this._projectorLocator = void 0;
     this._domParser = void 0;
   }

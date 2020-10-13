@@ -4,8 +4,8 @@ import {
   ensureExpression,
   IRenderableController,
   IExpressionParser,
-  IInstructionRenderer,
-  instructionRenderer,
+  IInstructionComposer,
+  instructionComposer,
   InterpolationBinding,
   IObserverLocator,
   ICompiledRenderContext,
@@ -29,9 +29,9 @@ import {
 } from './definitions';
 import { IEventManager } from './observation/event-manager';
 
-@instructionRenderer(HTMLTargetedInstructionType.textBinding)
+@instructionComposer(HTMLTargetedInstructionType.textBinding)
 /** @internal */
-export class TextBindingRenderer implements IInstructionRenderer {
+export class TextBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
@@ -67,9 +67,9 @@ export class TextBindingRenderer implements IInstructionRenderer {
   }
 }
 
-@instructionRenderer(HTMLTargetedInstructionType.listenerBinding)
+@instructionComposer(HTMLTargetedInstructionType.listenerBinding)
 /** @internal */
-export class ListenerBindingRenderer implements IInstructionRenderer {
+export class ListenerBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IEventManager private readonly eventManager: IEventManager,
@@ -93,9 +93,9 @@ export class ListenerBindingRenderer implements IInstructionRenderer {
   }
 }
 
-@instructionRenderer(HTMLTargetedInstructionType.setAttribute)
+@instructionComposer(HTMLTargetedInstructionType.setAttribute)
 /** @internal */
-export class SetAttributeRenderer implements IInstructionRenderer {
+export class SetAttributeComposer implements IInstructionComposer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
@@ -107,8 +107,8 @@ export class SetAttributeRenderer implements IInstructionRenderer {
   }
 }
 
-@instructionRenderer(HTMLTargetedInstructionType.setClassAttribute)
-export class SetClassAttributeRenderer implements IInstructionRenderer {
+@instructionComposer(HTMLTargetedInstructionType.setClassAttribute)
+export class SetClassAttributeComposer implements IInstructionComposer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
@@ -120,8 +120,8 @@ export class SetClassAttributeRenderer implements IInstructionRenderer {
   }
 }
 
-@instructionRenderer(HTMLTargetedInstructionType.setStyleAttribute)
-export class SetStyleAttributeRenderer implements IInstructionRenderer {
+@instructionComposer(HTMLTargetedInstructionType.setStyleAttribute)
+export class SetStyleAttributeComposer implements IInstructionComposer {
   public render(
     flags: LifecycleFlags,
     context: ICompiledRenderContext,
@@ -133,9 +133,9 @@ export class SetStyleAttributeRenderer implements IInstructionRenderer {
   }
 }
 
-@instructionRenderer(HTMLTargetedInstructionType.stylePropertyBinding)
+@instructionComposer(HTMLTargetedInstructionType.stylePropertyBinding)
 /** @internal */
-export class StylePropertyBindingRenderer implements IInstructionRenderer {
+export class StylePropertyBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
@@ -158,9 +158,9 @@ export class StylePropertyBindingRenderer implements IInstructionRenderer {
   }
 }
 
-@instructionRenderer(HTMLTargetedInstructionType.attributeBinding)
+@instructionComposer(HTMLTargetedInstructionType.attributeBinding)
 /** @internal */
-export class AttributeBindingRenderer implements IInstructionRenderer {
+export class AttributeBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,

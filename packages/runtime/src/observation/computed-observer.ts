@@ -322,7 +322,7 @@ export class ComputedWatcher implements IWatcher {
   
   private readonly observers: Map<ICollectionObserver<CollectionKind>, number> = new Map();
 
-  private isCollecting: boolean = false;
+  private isRunning: boolean = false;
   private oV: unknown = void 0;
 
   public constructor(
@@ -354,32 +354,34 @@ export class ComputedWatcher implements IWatcher {
     this.unobserveCollection(true);
   }
 
-  public observeCollection(collection: Collection): void {
+  public observeCollection<T extends Collection>(collection: T): T {
     this.getCollectionObserver(collection).subscribeToCollection(this);
+    return collection;
   }
 
-  public observeCollectionSize(collection: Collection): void {
+  public observeLength<T extends Collection>(collection: T): T {
     this.getCollectionObserver(collection).getLengthObserver().subscribe(this);
+    return collection;
   }
 
-  public observeArrayIndex(arr: unknown[], index: number): void {
+  public observeIndex(arr: unknown[], index: number): void {
     this.getCollectionObserver(arr).getIndexObserver(index).subscribe(this);
   }
 
   private run(): void {
-    if (this.isCollecting) {
-      throw new Error('Circular dependencies detected');
+    if (this.isRunning) {
+      return;
     }
     const oldValue = this.oV;
     const obj = this.obj;
-    this.isCollecting = true;
+    this.isRunning = true;
     this.version++;
     enterWatcher(this);
     const newValue = this.computed(getProxyOrSelf(obj));
     exitWatcher(this);
     this.unobserve(false);
     this.unobserveCollection(false);
-    this.isCollecting = false;
+    this.isRunning = false;
 
     if (!Object.is(newValue, oldValue)) {
       this.oV = newValue;

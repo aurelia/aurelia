@@ -1,5 +1,5 @@
 import { IIndexable, isArrayIndex } from '@aurelia/kernel';
-import { collecting, currentSub } from './subscriber-switcher';
+import { collecting, currentWatcher } from './subscriber-switcher';
 import { LifecycleFlags } from '../flags';
 import { isMap, isSet, isObject, isArray } from './utilities-objects';
 
@@ -49,7 +49,7 @@ const objectHandler: ProxyHandler<object> = {
       return target;
     }
 
-    const connectable = currentSub();
+    const connectable = currentWatcher();
 
     if (!collecting || doNotCollect(target, key) || connectable == null) {
       // maybe just use symbol
@@ -70,20 +70,20 @@ const arrayHandler: ProxyHandler<unknown[]> = {
       return target;
     }
 
-    const connectable = currentSub();
+    const connectable = currentWatcher();
 
     if (!collecting || doNotCollect(target, key) || connectable == null) {
       return R$get(target, key, receiver);
     }
 
     if (key === 'length') {
-      connectable.observeCollectionSize(target);
+      connectable.observeLength(target);
       return target.length;
     } else if (key in Array.prototype) {
       // assume that all method in the prototype requires subscription to the array itself
       connectable.observeCollection(target);
     } else if (isArrayIndex(key)) {
-      connectable.observeArrayIndex(target, key as number);
+      connectable.observeIndex(target, key as number);
     }
 
     return getProxyOrSelf(R$get(target, key, receiver));
@@ -99,7 +99,7 @@ const collectionHandler: ProxyHandler<$MapOrSet> = {
       return target;
     }
 
-    const connectable = currentSub();
+    const connectable = currentWatcher();
 
     if (!collecting || doNotCollect(target, key) || connectable == null) {
       return R$get(target, key, receiver);;
@@ -107,7 +107,7 @@ const collectionHandler: ProxyHandler<$MapOrSet> = {
 
     switch (key) {
       case 'size':
-        connectable.observeCollectionSize(target);
+        connectable.observeLength(target);
         return R$get(target, key, receiver);
       case 'clear':
         return wrappedClear;
@@ -145,7 +145,7 @@ type CollectionMethod = (this: unknown, ...args: unknown[]) => unknown;
 
 function wrappedForEach(this: $MapOrSet, cb: CollectionMethod, thisArg?: unknown): void {
   const raw = getRaw(this);
-  currentSub()?.observeCollection(raw);
+  currentWatcher()?.observeCollection(raw);
   return raw.forEach((v: unknown, key: unknown) => {
     cb.call(/* should wrap or not?? */thisArg, getProxyOrSelf(v), getProxyOrSelf(key), this);
   });
@@ -153,19 +153,19 @@ function wrappedForEach(this: $MapOrSet, cb: CollectionMethod, thisArg?: unknown
 
 function wrappedHas(this: $MapOrSet, v: unknown): boolean {
   const raw = getRaw(this);
-  currentSub()?.observeCollection(raw);
+  currentWatcher()?.observeCollection(raw);
   return raw.has(v);
 }
 
 function wrappedSet(this: Map<unknown, unknown>, k: unknown, v: unknown): Map<unknown, unknown> {
   const raw = getRaw(this);
-  currentSub()?.observeCollection(raw);
+  currentWatcher()?.observeCollection(raw);
   return raw.set(k, v);
 }
 
 function wrappedAdd(this: Set<unknown>, v: unknown): Set<unknown> {
   const raw = getRaw(this);
-  currentSub()?.observeCollection(raw);
+  currentWatcher()?.observeCollection(raw);
   return getProxyOrSelf(raw.add(v));
 }
 
@@ -175,13 +175,13 @@ function wrappedClear(this: $MapOrSet): void {
 
 function wrappedDelete(this: $MapOrSet, k: unknown): boolean {
   const raw = getRaw(this);
-  currentSub()?.observeCollection(raw);
+  currentWatcher()?.observeCollection(raw);
   return getProxyOrSelf(raw.delete(k));
 }
 
 function wrappedKeys(this: $MapOrSet): IterableIterator<unknown> {
   const raw = getRaw(this);
-  currentSub()?.observeCollection(raw);
+  currentWatcher()?.observeCollection(raw);
   const iterator = raw.keys();
 
   return {
@@ -202,7 +202,7 @@ function wrappedKeys(this: $MapOrSet): IterableIterator<unknown> {
 
 function wrappedValues(this: $MapOrSet): IterableIterator<unknown> {
   const raw = getRaw(this);
-  currentSub()?.observeCollection(raw);
+  currentWatcher()?.observeCollection(raw);
   const iterator = raw.values();
 
   return {
@@ -223,7 +223,7 @@ function wrappedValues(this: $MapOrSet): IterableIterator<unknown> {
 
 function wrappedEntries(this: $MapOrSet): IterableIterator<unknown> {
   const raw = getRaw(this);
-  currentSub()?.observeCollection(raw);
+  currentWatcher()?.observeCollection(raw);
   const iterator = raw.entries();
 
   // return a wrapped iterator which returns observed versions of the

@@ -7,54 +7,54 @@ import { Collection, ICollectionSubscriber } from '../observation';
 // An alternative way is to make collection observation manual & user controllable
 // so it works even without proxy
 export interface IWatcher extends IConnectableBinding, ICollectionSubscriber {
-  observeCollection(collection: Collection): void;
-  observeCollectionSize(collection: Collection): void;
-  observeArrayIndex(arr: unknown[], index: number): void;
+  observeCollection<T extends Collection>(collection: T): T;
+  observeLength<T extends Collection>(collection: T): T;
+  observeIndex(arr: unknown[], index: number): void;
 }
 
 /**
  * Current subscription collector
  */
-let $collector: IWatcher | null = null;
-const collectors: IWatcher[] = [];
+let $watcher: IWatcher | null = null;
+const watchers: IWatcher[] = [];
 // const collectingStatus: boolean[] = [];
 
-export let collecting = false;
+export let watching = false;
 
 // todo: layer based collection pause/resume?
 export function pauseSubscription() {
-  collecting = false;
+  watching = false;
 }
 
 export function resumeSubscription() {
-  collecting = true;
+  watching = true;
 }
 
-export function currentSub(): IWatcher | null {
-  return $collector;
+export function currentWatcher(): IWatcher | null {
+  return $watcher;
 }
 
 export function enterWatcher(subscriber: IWatcher): void {
-  if ($collector == null) {
-    collectors[0] = $collector = subscriber;
-    collecting = true;
+  if ($watcher == null) {
+    watchers[0] = $watcher = subscriber;
+    watching = true;
     return;
   }
-  if ($collector === subscriber) {
+  if ($watcher === subscriber) {
     throw new Error('Already in this watcher {watcher.id}');
   }
-  collectors.push($collector = subscriber);
-  collecting = true;
+  watchers.push($watcher = subscriber);
+  watching = true;
 }
 
 export function exitWatcher(subscriber: IWatcher): void {
-  if ($collector == null || $collector !== subscriber) {
+  if ($watcher == null || $watcher !== subscriber) {
     throw new Error('${watcher?.id} is not currently collecting');
   }
 
-  collectors.pop();
-  $collector = collectors.length > 0 ? collectors[collectors.length - 1] : null;
-  collecting = $collector != null;
+  watchers.pop();
+  $watcher = watchers.length > 0 ? watchers[watchers.length - 1] : null;
+  watching = $watcher != null;
 }
 
 // export const DepCollectorSwitcher = Object.freeze({

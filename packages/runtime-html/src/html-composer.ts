@@ -7,6 +7,7 @@ import {
   IInstructionComposer,
   IObserverLocator,
   IRenderableController,
+  instructionComposer,
   IScheduler,
   Interpolation,
   IsBindingBehavior,

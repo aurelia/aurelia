@@ -13,7 +13,6 @@ import {
   Interpolation,
   IObserverLocator,
   IPartialConnectableBinding,
-  IScope,
   IsExpression,
   LifecycleFlags,
   INode,
@@ -22,6 +21,8 @@ import {
 import i18next from 'i18next';
 import { I18N } from '../i18n';
 import { Signals } from '../utils';
+
+import type { Scope } from '@aurelia/runtime';
 
 interface TranslationBindingCreationContext {
   parser: IExpressionParser;
@@ -58,8 +59,8 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private readonly contentAttributes: readonly string[] = contentAttributes;
   private keyExpression: string | undefined | null;
   private translationParameters!: i18next.TOptions;
-  private scope!: IScope;
-  private hostScope: IScope | null = null;
+  private scope!: Scope;
+  private hostScope: Scope | null = null;
   private isInterpolatedSourceExpr!: boolean;
   private readonly targetObservers: Set<IBindingTargetAccessor>;
 
@@ -109,7 +110,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
     return binding;
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     if (!this.expr) { throw new Error('key expression is missing'); } // TODO replace with error code
     this.scope = scope;
     this.hostScope = hostScope;
@@ -283,11 +284,5 @@ export class TranslationBinding implements IPartialConnectableBinding {
     if (exprType !== 'string') {
       throw new Error(`Expected the i18n key to be a string, but got ${expr} of type ${exprType}`); // TODO use reporter/logger
     }
-  }
-
-  public dispose(): void {
-    this.interceptor = (void 0)!;
-    this.locator = (void 0)!;
-    this.target = (void 0)!;
   }
 }

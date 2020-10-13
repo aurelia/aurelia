@@ -14,7 +14,7 @@ describe('the view value converter', function () {
       }
     };
 
-    const converter = new ViewValueConverter(fakeViewLocator);
+    const converter = new ViewValueConverter(fakeViewLocator as unknown as ViewLocator);
     const object = {} as any;
     const viewName = 'view-name';
 

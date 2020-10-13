@@ -1,4 +1,4 @@
-import { Class, Constructable, DI, IContainer, Metadata, PLATFORM, Protocol, Registration, Reporter, ResourceDefinition, ResourceType } from '@aurelia/kernel';
+import { Class, Constructable, DI, IContainer, Metadata, PLATFORM, Protocol, Registration, ResourceDefinition, ResourceType } from '@aurelia/kernel';
 import { AttrSyntax } from './attribute-parser';
 
 export interface AttributePatternDefinition {
@@ -411,17 +411,6 @@ export class SyntaxInterpreter {
   }
 }
 
-function validatePrototype(handler: IAttributePattern, patternDefs: AttributePatternDefinition[]): void {
-  for (const def of patternDefs) {
-    // note: we're intentionally not throwing here
-    if (!(def.pattern in handler)) {
-      Reporter.write(401, def.pattern); // TODO: organize error codes
-    } else if (typeof handler[def.pattern] !== 'function') {
-      Reporter.write(402, def.pattern); // TODO: organize error codes
-    }
-  }
-}
-
 export interface IAttributePattern {
   [pattern: string]: (rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax;
 }
@@ -465,9 +454,6 @@ export const AttributePattern: AttributePattern = Object.freeze({
     patternDefs: AttributePatternDefinition[],
     Type: DecoratableAttributePattern<TProto, TClass>,
   ) {
-
-    validatePrototype(Type.prototype as IAttributePattern, patternDefs);
-
     const definition = new AttributePatternResourceDefinition(Type);
     const { name, definitionAnnotationKey } = AttributePattern;
     Metadata.define(name, definition, Type);

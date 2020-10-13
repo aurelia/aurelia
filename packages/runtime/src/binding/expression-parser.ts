@@ -1,9 +1,5 @@
 import {
   DI,
-  IContainer,
-  IResolver,
-  Registration,
-  Reporter,
 } from '@aurelia/kernel';
 import {
   ExpressionKind,
@@ -56,10 +52,6 @@ export class ExpressionParser {
   private readonly expressionLookup: Record<string, IsBindingBehavior> = Object.create(null);
   private readonly forOfLookup: Record<string, ForOfStatement> = Object.create(null);
   private readonly interpolationLookup: Record<string, Interpolation> = Object.create(null);
-
-  public static register(container: IContainer): IResolver<IExpressionParser> {
-    return Registration.singleton(IExpressionParser, this).register(container);
-  }
 
   public parse(expression: string, bindingType: BindingType.ForCommand): ForOfStatement;
   public parse(expression: string, bindingType: BindingType.Interpolation): Interpolation;
@@ -379,28 +371,6 @@ export class ParserState {
 
 const $state = new ParserState('');
 
-const enum SyntaxError {
-  InvalidExpressionStart = 100,
-  UnconsumedToken = 101,
-  DoubleDot = 102,
-  InvalidMemberExpression = 103,
-  UnexpectedEndOfExpression = 104,
-  ExpectedIdentifier = 105,
-  InvalidForDeclaration = 106,
-  InvalidObjectLiteralPropertyDefinition = 107,
-  UnterminatedQuote = 108,
-  UnterminatedTemplate = 109,
-  MissingExpectedToken = 110,
-  UnexpectedCharacter = 111,
-  MissingValueConverter = 112,
-  MissingBindingBehavior = 113
-}
-
-const enum SemanticError {
-  NotAssignable = 150,
-  UnexpectedForOf = 151
-}
-
 /** @internal */
 export function parseExpression<TType extends BindingType = BindingType.BindCommand>(input: string, bindingType?: TType):
 TType extends BindingType.Interpolation ? Interpolation :
@@ -452,7 +422,7 @@ TPrec extends Precedence.Unary ? IsUnary :
     }
     nextToken(state);
     if (state.currentToken & Token.ExpressionTerminal) {
-      throw Reporter.error(SyntaxError.InvalidExpressionStart, { state });
+      throw new Error(`Invalid start of expression: '${state.input}'`);
     }
   }
 
@@ -515,9 +485,9 @@ TPrec extends Precedence.Unary ? IsUnary :
           access++; // ancestor
           if (consumeOpt(state, Token.Dot)) {
             if ((state.currentToken as Token) === Token.Dot) {
-              throw Reporter.error(SyntaxError.DoubleDot, { state });
+              throw new Error(`Double dot and spread operators are not supported: '${state.input}'`);
             } else if ((state.currentToken as Token) === Token.EOF) {
-              throw Reporter.error(SyntaxError.ExpectedIdentifier, { state });
+              throw new Error(`Expected identifier: '${state.input}'`);
             }
           } else if (state.currentToken & Token.AccessScopeTerminal) {
             const ancestor = access & Access.Ancestor;
@@ -525,7 +495,7 @@ TPrec extends Precedence.Unary ? IsUnary :
             access = Access.This;
             break primary;
           } else {
-            throw Reporter.error(SyntaxError.InvalidMemberExpression, { state });
+            throw new Error(`Invalid member expression: '${state.input}'`);
           }
         } while (state.currentToken === Token.ParentScope);
         // falls through
@@ -593,9 +563,9 @@ TPrec extends Precedence.Unary ? IsUnary :
         break;
       default:
         if (state.index >= state.length) {
-          throw Reporter.error(SyntaxError.UnexpectedEndOfExpression, { state });
+          throw new Error(`Unexpected end of expression: '${state.input}'`);
         } else {
-          throw Reporter.error(SyntaxError.UnconsumedToken, { state });
+          throw new Error(`Unconsumed token: '${state.input}'`);
         }
     }
 
@@ -641,7 +611,7 @@ TPrec extends Precedence.Unary ? IsUnary :
           state.assignable = true;
           nextToken(state);
           if ((state.currentToken & Token.IdentifierName) === 0) {
-            throw Reporter.error(SyntaxError.ExpectedIdentifier, { state });
+            throw new Error(`Expected identifier: '${state.input}'`);
           }
           name = state.tokenValue as string;
           nextToken(state);
@@ -780,7 +750,7 @@ TPrec extends Precedence.Unary ? IsUnary :
    */
   if (consumeOpt(state, Token.Equals)) {
     if (!state.assignable) {
-      throw Reporter.error(SemanticError.NotAssignable, { state });
+      throw new Error(`Left hand side of expression is not assignable: '${state.input}'`);
     }
     result = new AssignExpression(result as IsAssignable, parse(state, access, Precedence.Assign, bindingType));
   }
@@ -793,7 +763,7 @@ TPrec extends Precedence.Unary ? IsUnary :
    */
   while (consumeOpt(state, Token.Bar)) {
     if (state.currentToken === Token.EOF) {
-      throw Reporter.error(112);
+      throw new Error(`Expected identifier to come after ValueConverter operator: '${state.input}'`);
     }
     const name = state.tokenValue as string;
     nextToken(state);
@@ -808,7 +778,7 @@ TPrec extends Precedence.Unary ? IsUnary :
    */
   while (consumeOpt(state, Token.Ampersand)) {
     if (state.currentToken === Token.EOF) {
-      throw Reporter.error(113);
+      throw new Error(`Expected identifier to come after BindingBehavior operator: '${state.input}'`);
     }
     const name = state.tokenValue as string;
     nextToken(state);
@@ -824,9 +794,9 @@ TPrec extends Precedence.Unary ? IsUnary :
       return result as any;
     }
     if (state.tokenRaw === 'of') {
-      throw Reporter.error(SemanticError.UnexpectedForOf, { state });
+      throw new Error(`Unexpected keyword "of": '${state.input}'`);
     }
-    throw Reporter.error(SyntaxError.UnconsumedToken, { state });
+    throw new Error(`Unconsumed token: '${state.input}'`);
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return result as any;
@@ -880,10 +850,10 @@ function parseArrayLiteralExpression(state: ParserState, access: Access, binding
 
 function parseForOfStatement(state: ParserState, result: BindingIdentifierOrPattern): ForOfStatement {
   if ((result.$kind & ExpressionKind.IsForDeclaration) === 0) {
-    throw Reporter.error(SyntaxError.InvalidForDeclaration, { state });
+    throw new Error(`Invalid BindingIdentifier at left hand side of "of": '${state.input}'`);
   }
   if (state.currentToken !== Token.OfKeyword) {
-    throw Reporter.error(SyntaxError.InvalidForDeclaration, { state });
+    throw new Error(`Invalid BindingIdentifier at left hand side of "of": '${state.input}'`);
   }
   nextToken(state);
   const declaration = result;
@@ -937,7 +907,7 @@ function parseObjectLiteralExpression(state: ParserState, bindingType: BindingTy
         values.push(parse(state, Access.Reset, Precedence.Primary, bindingType & ~BindingType.IsIterator));
       }
     } else {
-      throw Reporter.error(SyntaxError.InvalidObjectLiteralPropertyDefinition, { state });
+      throw new Error(`Invalid or unsupported property definition in object literal: '${state.input}'`);
     }
     if ((state.currentToken as Token) !== Token.CloseBrace) {
       consume(state, Token.Comma);
@@ -1114,7 +1084,7 @@ function scanString(state: ParserState): Token {
       buffer.push(String.fromCharCode(unescaped));
       marker = state.index;
     } else if (state.index >= state.length) {
-      throw Reporter.error(SyntaxError.UnterminatedQuote, { state });
+      throw new Error(`Unterminated quote in string literal: '${state.input}'`);
     } else {
       nextChar(state);
     }
@@ -1148,7 +1118,7 @@ function scanTemplate(state: ParserState): Token {
       result += String.fromCharCode(unescapeCode(nextChar(state)));
     } else {
       if (state.index >= state.length) {
-        throw Reporter.error(SyntaxError.UnterminatedTemplate, { state });
+        throw new Error(`Unterminated template string: '${state.input}'`);
       }
       result += String.fromCharCode(state.currentChar);
     }
@@ -1164,7 +1134,7 @@ function scanTemplate(state: ParserState): Token {
 
 function scanTemplateTail(state: ParserState): Token {
   if (state.index >= state.length) {
-    throw Reporter.error(SyntaxError.UnterminatedTemplate, { state });
+    throw new Error(`Unterminated template string: '${state.input}'`);
   }
   state.index--;
   return scanTemplate(state);
@@ -1183,7 +1153,7 @@ function consume(state: ParserState, token: Token): void {
   if (state.currentToken === token) {
     nextToken(state);
   } else {
-    throw Reporter.error(SyntaxError.MissingExpectedToken, { state, expected: token });
+    throw new Error(`Missing expected token: '${state.input}'`);
   }
 }
 
@@ -1266,7 +1236,7 @@ function returnToken(token: Token): (s: ParserState) => Token {
   };
 }
 const unexpectedCharacter: CharScanner = s => {
-  throw Reporter.error(SyntaxError.UnexpectedCharacter, { state: s });
+  throw new Error(`Unexpected character: '${s.input}'`);
 };
 unexpectedCharacter.notMapped = true;
 

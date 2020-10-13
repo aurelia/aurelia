@@ -24,9 +24,6 @@
  */
 
 import {
-  stringifyLifecycleFlags,
-} from '@aurelia/debug';
-import {
   Char,
 } from '@aurelia/runtime';
 import {
@@ -37,7 +34,6 @@ import {
 import {
   DOM,
 } from '@aurelia/runtime-html';
-import { Call } from './tracing';
 import {
   Boolean_valueOf,
   colors,
@@ -1340,77 +1336,6 @@ export function formatProperty(
 ): string {
   switch (key) {
     // Aurelia-specific:
-    // Note: this is actually the only place in inspection where we actually mutate the input
-    // It should be fine since we're only mutating recorded call args, but still important to keep in mind
-    case 'args':
-      if (value instanceof Call) {
-        switch (value.method) {
-          case 'created':
-
-          case 'bind':
-          case 'bindCustomElement':
-          case 'bindCustomAttribute':
-          case 'bindSynthetic':
-
-          case 'bindBindings':
-          case 'bindControllers':
-          case 'endBind':
-
-          case 'beforeBind':
-          case 'afterBind':
-
-          case 'attach':
-          case 'attachCustomElement':
-          case 'attachCustomAttribute':
-          case 'attachSynthetic':
-
-          case 'attachControllers':
-
-          case 'afterAttach':
-          case 'afterAttachChildren':
-
-          case 'detach':
-          case 'detachCustomElement':
-          case 'detachCustomAttribute':
-          case 'detachSynthetic':
-
-          case 'detachControllers':
-
-          case 'beforeDetach':
-          case 'afterDetachChildren':
-
-          case 'tryReturnToCache':
-
-          case 'cache':
-          case 'cacheCustomElement':
-          case 'cacheCustomAttribute':
-          case 'cacheSynthetic':
-
-          case 'dispose':
-
-          case 'unbind':
-          case 'unbindCustomElement':
-          case 'unbindCustomAttribute':
-          case 'unbindSynthetic':
-
-          case 'unbindBindings':
-          case 'unbindControllers':
-          case 'endUnbind':
-
-          case 'beforeUnbind':
-          case 'afterUnbindChildren':
-            value.args[0] = stringifyLifecycleFlags(value.args[0]);
-            break;
-          case 'valueChanged':
-            value.args[2] = stringifyLifecycleFlags(value.args[2]);
-            break;
-          case 'swap':
-          case 'updateView':
-            value.args[1] = stringifyLifecycleFlags(value.args[1]);
-            break;
-        }
-      }
-      break;
     case '$controller':
       return `$controller: { id: ${value.$controller.id} } (omitted for brevity)`;
     case 'overrideContext':

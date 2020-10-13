@@ -3,9 +3,8 @@ import {
   Constructable,
   IIndexable,
   PLATFORM,
-  Reporter,
-  isArrayIndex,
   IServiceLocator,
+  isArrayIndex
 } from '@aurelia/kernel';
 import { LifecycleFlags, ExpressionKind } from '../flags';
 import { ILifecycle } from '../lifecycle';
@@ -20,7 +19,6 @@ import {
   ICollectionObserver,
   CollectionKind,
   IndexMap,
-  IScope
 } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
 import { IObserverLocator } from './observer-locator';
@@ -94,7 +92,7 @@ export function createComputedObserver(
     }
     return new GetterObserver(flags, overrides, instance, propertyName, descriptor, observerLocator);
   }
-  throw Reporter.error(18, propertyName);
+  throw new Error(`You cannot observe a setter only property: '${propertyName}'`);
 }
 
 export interface CustomSetterObserver extends IBindingTargetObserver { }

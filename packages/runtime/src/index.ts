@@ -343,9 +343,11 @@ export {
 
 export {
   Aurelia,
+  IAurelia,
   IDOMInitializer,
   ISinglePageApp,
   CompositionRoot,
+  ICompositionRoot,
 } from './aurelia';
 export {
   RefAttributePatternRegistration,
@@ -395,13 +397,6 @@ export {
   TemplateControllerRendererRegistration,
 
   DefaultResources,
-  IExpressionParserRegistration,
-  IObserverLocatorRegistration,
-  ILifecycleRegistration,
-  IRendererRegistration,
-  IStartTaskManagerRegistration,
-  IViewLocatorRegistration,
-  IProjectionProviderRegistration,
   RuntimeConfiguration
 } from './configuration';
 export {
@@ -493,21 +488,10 @@ export {
   IComponentFactory,
 } from './templating/render-context';
 export {
-  PromiseOrTask,
-  MaybePromiseOrTask,
-  AggregateContinuationTask,
-  TerminalTask,
-  AggregateTerminalTask,
-  ContinuationTask,
-  ILifecycleTask,
-  LifecycleTask,
-  PromiseTask,
   TaskSlot,
   AppTask,
-  IStartTask,
-  IStartTaskManager,
-  ProviderTask,
-} from './lifecycle-task';
+  IAppTask,
+} from './app-task';
 export {
   AccessorOrObserver,
   AccessorType,
@@ -531,11 +515,9 @@ export {
   IOverrideContext,
   IPropertyChangeTracker,
   IPropertyObserver,
-  IScope,
   ISubscribable,
   ISubscriberCollection,
   ObservedCollection,
-  ObserversLookup,
   PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,

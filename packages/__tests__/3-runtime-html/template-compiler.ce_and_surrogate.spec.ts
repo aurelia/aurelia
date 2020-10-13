@@ -178,11 +178,11 @@ describe('template-compiler.ce_and_surrogate.spec.ts', function () {
 
         aurelia.app({ host: host, component: Root });
 
-        await aurelia.start().wait();
+        await aurelia.start();
 
         await assertFn(ctx, host, aurelia.container.get(Root));
 
-        await aurelia.stop().wait();
+        await aurelia.stop();
 
         aurelia.dispose();
         host.remove();

@@ -1,9 +1,41 @@
 import { all, DI, IContainer, ignore, IRegistry, optional, Registration } from './di';
-import { toLookup } from './functions';
-import { LogLevel } from './reporter';
+import { bound, toLookup } from './functions';
 import { Class, Constructable } from './interfaces';
 import { Protocol } from './resource';
 import { Metadata } from '@aurelia/metadata';
+
+export const enum LogLevel {
+  /**
+   * The most detailed information about internal app state.
+   *
+   * Disabled by default and should never be enabled in a production environment.
+   */
+  trace = 0,
+  /**
+   * Information that is useful for debugging during development and has no long-term value.
+   */
+  debug = 1,
+  /**
+   * Information about the general flow of the application that has long-term value.
+   */
+  info = 2,
+  /**
+   * Unexpected circumstances that require attention but do not otherwise cause the current flow of execution to stop.
+   */
+  warn = 3,
+  /**
+   * Unexpected circumstances that cause the flow of execution in the current activity to stop but do not cause an app-wide failure.
+   */
+  error = 4,
+  /**
+   * Unexpected circumstances that cause an app-wide failure or otherwise require immediate attention.
+   */
+  fatal = 5,
+  /**
+   * No messages should be written.
+   */
+  none = 6,
+}
 
 /**
  * Flags to enable/disable color usage in the logging output.
@@ -123,182 +155,7 @@ export interface ISink {
  *
  * Inject this as a dependency in your components to add centralized, configurable logging capabilities to your application.
  */
-export interface ILogger {
-  /**
-   * The root `ILogger` instance. On the root logger itself, this property circularly references the root. It is never null.
-   *
-   * When using `.scopeTo`, a new `ILogger` is created. That new logger will have the `root` property set to the global (non-scoped) logger.
-   */
-  readonly root: ILogger;
-  /**
-   * The parent `ILogger` instance. On the root logger itself, this property circularly references the root. It is never null.
-   *
-   * When using `.scopeTo`, a new `ILogger` is created. That new logger will have the `parent` property set to the logger that it was created from.
-   */
-  readonly parent: ILogger;
-  /**
-   * The scopes that this logger was created for, if any.
-   */
-  readonly scope: readonly string[];
-  /**
-   * The global logger configuration.
-   */
-  readonly config: ILogConfig;
-
-  /**
-   * Write to TRC output, if the configured `LogLevel` is set to `trace`.
-   *
-   * Intended for the most detailed information about internal app state.
-   *
-   * @param getMessage - A function to build the message to pass to the `ILogEventFactory`.
-   * Only called if the configured `LogLevel` dictates that these messages be emitted.
-   * Use this when creating the log message is potentially expensive and should only be done if the log is actually emitted.
-   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
-   */
-  trace(getMessage: () => unknown, ...optionalParams: unknown[]): void;
-  /**
-   * Write to TRC output, if the configured `LogLevel` is set to `trace`.
-   *
-   * Intended for the most detailed information about internal app state.
-   *
-   * @param message - The message to pass to the `ILogEventFactory`.
-   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
-   */
-  trace(message: unknown, ...optionalParams: unknown[]): void;
-
-  /**
-   * Write to DBG output, if the configured `LogLevel` is set to `debug` or lower.
-   *
-   * Intended for information that is useful for debugging during development and has no long-term value.
-   *
-   * @param getMessage - A function to build the message to pass to the `ILogEventFactory`.
-   * Only called if the configured `LogLevel` dictates that these messages be emitted.
-   * Use this when creating the log message is potentially expensive and should only be done if the log is actually emitted.
-   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
-   */
-  debug(getMessage: () => unknown, ...optionalParams: unknown[]): void;
-  /**
-   * Write to DBG output, if the configured `LogLevel` is set to `debug` or lower.
-   *
-   * Intended for information that is useful for debugging during development and has no long-term value.
-   *
-   * @param message - The message to pass to the `ILogEventFactory`.
-   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
-   */
-  debug(message: unknown, ...optionalParams: unknown[]): void;
-
-  /**
-   * Write to trace UBF, if the configured `LogLevel` is set to `info` or lower.
-   *
-   * Intended for information about the general flow of the application that has long-term value.
-   *
-   * @param getMessage - A function to build the message to pass to the `ILogEventFactory`.
-   * Only called if the configured `LogLevel` dictates that these messages be emitted.
-   * Use this when creating the log message is potentially expensive and should only be done if the log is actually emitted.
-   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
-   */
-  info(getMessage: () => unknown, ...optionalParams: unknown[]): void;
-  /**
-   * Write to trace UBF, if the configured `LogLevel` is set to `info` or lower.
-   *
-   * Intended for information about the general flow of the application that has long-term value.
-   *
-   * @param message - The message to pass to the `ILogEventFactory`.
-   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
-   */
-  info(message: unknown, ...optionalParams: unknown[]): void;
-
-  /**
-   * Write to WRN output, if the configured `LogLevel` is set to `warn` or lower.
-   *
-   * Intended for unexpected circumstances that require attention but do not otherwise cause the current flow of execution to stop.
-   *
-   * @param getMessage - A function to build the message to pass to the `ILogEventFactory`.
-   * Only called if the configured `LogLevel` dictates that these messages be emitted.
-   * Use this when creating the log message is potentially expensive and should only be done if the log is actually emitted.
-   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
-   */
-  warn(getMessage: () => unknown, ...optionalParams: unknown[]): void;
-  /**
-   * Write to WRN output, if the configured `LogLevel` is set to `warn` or lower.
-   *
-   * Intended for unexpected circumstances that require attention but do not otherwise cause the current flow of execution to stop.
-   *
-   * @param message - The message to pass to the `ILogEventFactory`.
-   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
-   */
-  warn(message: unknown, ...optionalParams: unknown[]): void;
-
-  /**
-   * Write to ERR output, if the configured `LogLevel` is set to `error` or lower.
-   *
-   * Intended for unexpected circumstances that cause the flow of execution in the current activity to stop but do not cause an app-wide failure.
-   *
-   * @param getMessage - A function to build the message to pass to the `ILogEventFactory`.
-   * Only called if the configured `LogLevel` dictates that these messages be emitted.
-   * Use this when creating the log message is potentially expensive and should only be done if the log is actually emitted.
-   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
-   */
-  error(getMessage: () => unknown, ...optionalParams: unknown[]): void;
-  /**
-   * Write to ERR output, if the configured `LogLevel` is set to `error` or lower.
-   *
-   * Intended for unexpected circumstances that cause the flow of execution in the current activity to stop but do not cause an app-wide failure.
-   *
-   * @param message - The message to pass to the `ILogEventFactory`.
-   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
-   */
-  error(message: unknown, ...optionalParams: unknown[]): void;
-
-  /**
-   * Write to FTL output, if the configured `LogLevel` is set to `fatal` or lower.
-   *
-   * Intended for unexpected circumstances that cause an app-wide failure or otherwise require immediate attention.
-   *
-   * @param getMessage - A function to build the message to pass to the `ILogEventFactory`.
-   * Only called if the configured `LogLevel` dictates that these messages be emitted.
-   * Use this when creating the log message is potentially expensive and should only be done if the log is actually emitted.
-   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
-   */
-  fatal(getMessage: () => unknown, ...optionalParams: unknown[]): void;
-  /**
-   * Write to FTL output, if the configured `LogLevel` is set to `fatal` or lower.
-   *
-   * Intended for unexpected circumstances that cause an app-wide failure or otherwise require immediate attention.
-   *
-   * @param message - The message to pass to the `ILogEventFactory`.
-   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
-   */
-  fatal(message: unknown, ...optionalParams: unknown[]): void;
-
-  /**
-   * Create a new logger with an additional permanent prefix added to the logging outputs.
-   * When chained, multiple scopes are separated by a dot.
-   *
-   * This is preliminary API and subject to change before alpha release.
-   *
-   * @example
-   *
-   * ```ts
-   * export class MyComponent {
-   *   constructor(@ILogger private logger: ILogger) {
-   *     this.logger.debug('before scoping');
-   *     // console output: '[DBG] before scoping'
-   *     this.logger = logger.scopeTo('MyComponent');
-   *     this.logger.debug('after scoping');
-   *     // console output: '[DBG MyComponent] after scoping'
-   *   }
-   *
-   *   public doStuff(): void {
-   *     const logger = this.logger.scopeTo('doStuff()');
-   *     logger.debug('doing stuff');
-   *     // console output: '[DBG MyComponent.doStuff()] doing stuff'
-   *   }
-   * }
-   * ```
-   */
-  scopeTo(name: string): ILogger;
-}
+export interface ILogger extends DefaultLogger {}
 
 export const ILogConfig = DI.createInterface<ILogConfig>('ILogConfig').withDefault(x => x.instance(new LogConfig(ColorOptions.noColors, LogLevel.warn)));
 export const ISink = DI.createInterface<ISink>('ISink').noDefault();
@@ -501,9 +358,19 @@ export class ConsoleSink implements ISink {
   }
 }
 
-export class DefaultLogger implements ILogger {
-  public readonly root: DefaultLogger;
-  public readonly parent: DefaultLogger;
+export class DefaultLogger {
+  /**
+   * The root `ILogger` instance. On the root logger itself, this property circularly references the root. It is never null.
+   *
+   * When using `.scopeTo`, a new `ILogger` is created. That new logger will have the `root` property set to the global (non-scoped) logger.
+   */
+  public readonly root: ILogger;
+  /**
+   * The parent `ILogger` instance. On the root logger itself, this property circularly references the root. It is never null.
+   *
+   * When using `.scopeTo`, a new `ILogger` is created. That new logger will have the `parent` property set to the logger that it was created from.
+   */
+  public readonly parent: ILogger;
   /** @internal */
   public readonly traceSinks: ISink[];
   /** @internal */
@@ -517,19 +384,18 @@ export class DefaultLogger implements ILogger {
   /** @internal */
   public readonly fatalSinks: ISink[];
 
-  public readonly trace: (...args: unknown[]) => void;
-  public readonly debug: (...args: unknown[]) => void;
-  public readonly info: (...args: unknown[]) => void;
-  public readonly warn: (...args: unknown[]) => void;
-  public readonly error: (...args: unknown[]) => void;
-  public readonly fatal: (...args: unknown[]) => void;
-
   private readonly scopedLoggers: { [key: string]: ILogger | undefined } = Object.create(null);
 
   public constructor(
+    /**
+     * The global logger configuration.
+     */
     @ILogConfig public readonly config: ILogConfig,
     @ILogEventFactory private readonly factory: ILogEventFactory,
     @all(ISink) sinks: readonly ISink[],
+    /**
+     * The scopes that this logger was created for, if any.
+     */
     @optional(ILogScopes) public readonly scope: string[] = [],
     @ignore parent: DefaultLogger | null = null,
   ) {
@@ -581,52 +447,196 @@ export class DefaultLogger implements ILogger {
       errorSinks = this.errorSinks = parent.errorSinks;
       fatalSinks = this.fatalSinks = parent.fatalSinks;
     }
-
-    const emit = ($sinks: ISink[], level: LogLevel, msgOrGetMsg: unknown, optionalParams: unknown[]): void => {
-      const message = typeof msgOrGetMsg === 'function' ? msgOrGetMsg() : msgOrGetMsg;
-      const event = factory.createLogEvent(this, level, message, optionalParams);
-      for (let i = 0, ii = $sinks.length; i < ii; ++i) {
-        $sinks[i].handleEvent(event);
-      }
-    };
-
-    this.trace = function trace(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
-      if (config.level <= LogLevel.trace) {
-        emit(traceSinks, LogLevel.trace, messageOrGetMessage, optionalParams);
-      }
-    };
-
-    this.debug = function debug(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
-      if (config.level <= LogLevel.debug) {
-        emit(debugSinks, LogLevel.debug, messageOrGetMessage, optionalParams);
-      }
-    };
-
-    this.info = function info(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
-      if (config.level <= LogLevel.info) {
-        emit(infoSinks, LogLevel.info, messageOrGetMessage, optionalParams);
-      }
-    };
-
-    this.warn = function warn(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
-      if (config.level <= LogLevel.warn) {
-        emit(warnSinks, LogLevel.warn, messageOrGetMessage, optionalParams);
-      }
-    };
-
-    this.error = function error(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
-      if (config.level <= LogLevel.error) {
-        emit(errorSinks, LogLevel.error, messageOrGetMessage, optionalParams);
-      }
-    };
-
-    this.fatal = function fatal(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
-      if (config.level <= LogLevel.fatal) {
-        emit(fatalSinks, LogLevel.fatal, messageOrGetMessage, optionalParams);
-      }
-    };
   }
 
+  /**
+   * Write to TRC output, if the configured `LogLevel` is set to `trace`.
+   *
+   * Intended for the most detailed information about internal app state.
+   *
+   * @param getMessage - A function to build the message to pass to the `ILogEventFactory`.
+   * Only called if the configured `LogLevel` dictates that these messages be emitted.
+   * Use this when creating the log message is potentially expensive and should only be done if the log is actually emitted.
+   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
+   */
+  public trace(getMessage: () => unknown, ...optionalParams: unknown[]): void;
+  /**
+   * Write to TRC output, if the configured `LogLevel` is set to `trace`.
+   *
+   * Intended for the most detailed information about internal app state.
+   *
+   * @param message - The message to pass to the `ILogEventFactory`.
+   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
+   */
+  public trace(message: unknown, ...optionalParams: unknown[]): void;
+  @bound
+  public trace(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
+    if (this.config.level <= LogLevel.trace) {
+      this.emit(this.traceSinks, LogLevel.trace, messageOrGetMessage, optionalParams);
+    }
+  }
+
+  /**
+   * Write to DBG output, if the configured `LogLevel` is set to `debug` or lower.
+   *
+   * Intended for information that is useful for debugging during development and has no long-term value.
+   *
+   * @param getMessage - A function to build the message to pass to the `ILogEventFactory`.
+   * Only called if the configured `LogLevel` dictates that these messages be emitted.
+   * Use this when creating the log message is potentially expensive and should only be done if the log is actually emitted.
+   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
+   */
+  public debug(getMessage: () => unknown, ...optionalParams: unknown[]): void;
+  /**
+   * Write to DBG output, if the configured `LogLevel` is set to `debug` or lower.
+   *
+   * Intended for information that is useful for debugging during development and has no long-term value.
+   *
+   * @param message - The message to pass to the `ILogEventFactory`.
+   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
+   */
+  public debug(message: unknown, ...optionalParams: unknown[]): void;
+  @bound
+  public debug(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
+    if (this.config.level <= LogLevel.debug) {
+      this.emit(this.debugSinks, LogLevel.debug, messageOrGetMessage, optionalParams);
+    }
+  }
+
+  /**
+   * Write to trace UBF, if the configured `LogLevel` is set to `info` or lower.
+   *
+   * Intended for information about the general flow of the application that has long-term value.
+   *
+   * @param getMessage - A function to build the message to pass to the `ILogEventFactory`.
+   * Only called if the configured `LogLevel` dictates that these messages be emitted.
+   * Use this when creating the log message is potentially expensive and should only be done if the log is actually emitted.
+   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
+   */
+  public info(getMessage: () => unknown, ...optionalParams: unknown[]): void;
+  /**
+   * Write to trace UBF, if the configured `LogLevel` is set to `info` or lower.
+   *
+   * Intended for information about the general flow of the application that has long-term value.
+   *
+   * @param message - The message to pass to the `ILogEventFactory`.
+   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
+   */
+  public info(message: unknown, ...optionalParams: unknown[]): void;
+  @bound
+  public info(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
+    if (this.config.level <= LogLevel.info) {
+      this.emit(this.infoSinks, LogLevel.info, messageOrGetMessage, optionalParams);
+    }
+  }
+
+  /**
+   * Write to WRN output, if the configured `LogLevel` is set to `warn` or lower.
+   *
+   * Intended for unexpected circumstances that require attention but do not otherwise cause the current flow of execution to stop.
+   *
+   * @param getMessage - A function to build the message to pass to the `ILogEventFactory`.
+   * Only called if the configured `LogLevel` dictates that these messages be emitted.
+   * Use this when creating the log message is potentially expensive and should only be done if the log is actually emitted.
+   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
+   */
+  public warn(getMessage: () => unknown, ...optionalParams: unknown[]): void;
+  /**
+   * Write to WRN output, if the configured `LogLevel` is set to `warn` or lower.
+   *
+   * Intended for unexpected circumstances that require attention but do not otherwise cause the current flow of execution to stop.
+   *
+   * @param message - The message to pass to the `ILogEventFactory`.
+   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
+   */
+  public warn(message: unknown, ...optionalParams: unknown[]): void;
+  @bound
+  public warn(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
+    if (this.config.level <= LogLevel.warn) {
+      this.emit(this.warnSinks, LogLevel.warn, messageOrGetMessage, optionalParams);
+    }
+  }
+
+  /**
+   * Write to ERR output, if the configured `LogLevel` is set to `error` or lower.
+   *
+   * Intended for unexpected circumstances that cause the flow of execution in the current activity to stop but do not cause an app-wide failure.
+   *
+   * @param getMessage - A function to build the message to pass to the `ILogEventFactory`.
+   * Only called if the configured `LogLevel` dictates that these messages be emitted.
+   * Use this when creating the log message is potentially expensive and should only be done if the log is actually emitted.
+   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
+   */
+  public error(getMessage: () => unknown, ...optionalParams: unknown[]): void;
+  /**
+   * Write to ERR output, if the configured `LogLevel` is set to `error` or lower.
+   *
+   * Intended for unexpected circumstances that cause the flow of execution in the current activity to stop but do not cause an app-wide failure.
+   *
+   * @param message - The message to pass to the `ILogEventFactory`.
+   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
+   */
+  public error(message: unknown, ...optionalParams: unknown[]): void;
+  @bound
+  public error(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
+    if (this.config.level <= LogLevel.error) {
+      this.emit(this.errorSinks, LogLevel.error, messageOrGetMessage, optionalParams);
+    }
+  }
+
+  /**
+   * Write to FTL output, if the configured `LogLevel` is set to `fatal` or lower.
+   *
+   * Intended for unexpected circumstances that cause an app-wide failure or otherwise require immediate attention.
+   *
+   * @param getMessage - A function to build the message to pass to the `ILogEventFactory`.
+   * Only called if the configured `LogLevel` dictates that these messages be emitted.
+   * Use this when creating the log message is potentially expensive and should only be done if the log is actually emitted.
+   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
+   */
+  public fatal(getMessage: () => unknown, ...optionalParams: unknown[]): void;
+  /**
+   * Write to FTL output, if the configured `LogLevel` is set to `fatal` or lower.
+   *
+   * Intended for unexpected circumstances that cause an app-wide failure or otherwise require immediate attention.
+   *
+   * @param message - The message to pass to the `ILogEventFactory`.
+   * @param optionalParams - Any additional, optional params that should be passed to the `ILogEventFactory`
+   */
+  public fatal(message: unknown, ...optionalParams: unknown[]): void;
+  @bound
+  public fatal(messageOrGetMessage: unknown, ...optionalParams: unknown[]): void {
+    if (this.config.level <= LogLevel.fatal) {
+      this.emit(this.fatalSinks, LogLevel.fatal, messageOrGetMessage, optionalParams);
+    }
+  }
+
+  /**
+   * Create a new logger with an additional permanent prefix added to the logging outputs.
+   * When chained, multiple scopes are separated by a dot.
+   *
+   * This is preliminary API and subject to change before alpha release.
+   *
+   * @example
+   *
+   * ```ts
+   * export class MyComponent {
+   *   constructor(@ILogger private logger: ILogger) {
+   *     this.logger.debug('before scoping');
+   *     // console output: '[DBG] before scoping'
+   *     this.logger = logger.scopeTo('MyComponent');
+   *     this.logger.debug('after scoping');
+   *     // console output: '[DBG MyComponent] after scoping'
+   *   }
+   *
+   *   public doStuff(): void {
+   *     const logger = this.logger.scopeTo('doStuff()');
+   *     logger.debug('doing stuff');
+   *     // console output: '[DBG MyComponent.doStuff()] doing stuff'
+   *   }
+   * }
+   * ```
+   */
   public scopeTo(name: string): ILogger {
     const scopedLoggers = this.scopedLoggers;
     let scopedLogger = scopedLoggers[name];
@@ -634,6 +644,14 @@ export class DefaultLogger implements ILogger {
       scopedLogger = scopedLoggers[name] = new DefaultLogger(this.config, this.factory, (void 0)!, this.scope.concat(name), this);
     }
     return scopedLogger;
+  }
+
+  private emit(sinks: ISink[], level: LogLevel, msgOrGetMsg: unknown, optionalParams: unknown[]): void {
+    const message = typeof msgOrGetMsg === 'function' ? msgOrGetMsg() : msgOrGetMsg;
+    const event = this.factory.createLogEvent(this, level, message, optionalParams);
+    for (let i = 0, ii = sinks.length; i < ii; ++i) {
+      sinks[i].handleEvent(event);
+    }
   }
 }
 

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { Constructable, Protocol, Metadata, firstDefined, getPrototypeChain, IIndexable, Reporter } from '@aurelia/kernel';
+import { Constructable, Protocol, Metadata, firstDefined, getPrototypeChain, IIndexable } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { ICustomElementViewModel, ICustomElementController } from '../lifecycle';
 import { IElementProjector, CustomElement } from '../resources/custom-element';
@@ -182,7 +182,16 @@ export class ChildrenObserver {
   ) {
     this.callback = obj[cbName] as typeof ChildrenObserver.prototype.callback;
     this.persistentFlags = flags & LifecycleFlags.persistentBindingFlags;
-    this.createGetterSetter();
+    Reflect.defineProperty(
+      this.obj,
+      this.propertyKey,
+      {
+        enumerable: true,
+        configurable: true,
+        get: () => this.getValue(),
+        set: () => { return; },
+      }
+    );
   }
 
   public getValue(): any[] {
@@ -214,23 +223,6 @@ export class ChildrenObserver {
     }
 
     this.callSubscribers(this.children, undefined, this.persistentFlags | LifecycleFlags.updateTargetInstance);
-  }
-
-  private createGetterSetter(): void {
-    if (
-      !Reflect.defineProperty(
-        this.obj,
-        this.propertyKey,
-        {
-          enumerable: true,
-          configurable: true,
-          get: () => this.getValue(),
-          set: () => { return; },
-        }
-      )
-    ) {
-      Reporter.write(1, this.propertyKey, this.obj);
-    }
   }
 }
 

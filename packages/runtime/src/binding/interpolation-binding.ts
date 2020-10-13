@@ -12,7 +12,6 @@ import {
 import { IBinding } from '../lifecycle';
 import {
   IBindingTargetAccessor,
-  IScope,
   AccessorType,
   INodeAccessor,
   IObservedArray,
@@ -28,8 +27,9 @@ import {
   IConnectableBinding,
 } from './connectable';
 
-const { toView } = BindingMode;
+import type { Scope } from '../observation/binding-context';
 
+const { toView } = BindingMode;
 const queueTaskOptions: QueueTaskOptions = {
   reusable: false,
   preempt: true,
@@ -45,7 +45,7 @@ export class InterpolationBinding implements IBinding {
   public interceptor: this = this;
 
   public isBound: boolean = false;
-  public $scope?: IScope = void 0;
+  public $scope?: Scope = void 0;
 
   public partBindings: ContentBinding[];
 
@@ -97,10 +97,10 @@ export class InterpolationBinding implements IBinding {
         this.task = null;
       }, queueTaskOptions);
     }
-    targetObserver.setValue(result, flags);
+    targetObserver.setValue(result, flags, this.target, this.targetProperty);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;
@@ -132,14 +132,6 @@ export class InterpolationBinding implements IBinding {
       this.task = null;
     }
   }
-
-  public dispose(): void {
-    this.interceptor
-      = this.interpolation
-      = this.locator
-      = this.target
-      = (void 0)!;
-  }
 }
 
 // a pseudo binding, part of a larger interpolation binding
@@ -163,9 +155,11 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
   // but it wouldn't matter here, just start with something for later check
   public readonly mode: BindingMode = BindingMode.toView;
   public value: unknown = '';
+  public id!: number;
+  public $scope?: Scope;
+  public $hostScope: Scope | null = null;
+  public task: ITask | null = null;
   public isBound: boolean = false;
-  public $scope?: IScope = void 0;
-  public $hostScope: IScope | null = null;
 
   private arrayObserver?: ICollectionObserver<CollectionKind.array> = void 0;
 
@@ -210,7 +204,7 @@ export class ContentBinding implements ContentBinding, ICollectionSubscriber {
     this.owner.updateTarget(void 0, flags);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     if (this.isBound) {
       if (this.$scope === scope) {
         return;

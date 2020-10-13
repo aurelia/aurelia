@@ -322,75 +322,80 @@ export class ComputedWatcher implements IWatcher {
   
   private readonly observers: Map<ICollectionObserver<CollectionKind>, number> = new Map();
 
-  private isRunning: boolean = false;
+  private runId: number = 0;
   private oV: unknown = void 0;
+
+  public isBound: boolean = false;
 
   public constructor(
     public readonly obj: IObservable,
     public readonly observerLocator: IObserverLocator,
-    public readonly computed: (obj: object) => unknown,
-    private readonly callback: IWatcherCallback<object>,
+    public readonly get: (obj: object) => unknown,
+    private readonly cb: IWatcherCallback<object>,
   ) {
   }
 
   public handleChange(_newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
-    this.run();
+    this.run(++this.runId);
   }
 
   public handleCollectionChange(_indexMap: IndexMap, _flags: LifecycleFlags): void {
-    this.run();
+    this.run(++this.runId);
   }
 
   public $bind(): void {
-    this.version++;
-    enterWatcher(this);
-    this.oV = this.computed(getProxyOrSelf(this.obj));
-    exitWatcher(this);
-    this.unobserve(false);
+    if (this.isBound) {
+      return;
+    }
+    this.isBound = true;
+    this.compute();
   }
 
   public $unbind(): void {
+    if (!this.isBound) {
+      return;
+    }
+    this.isBound = false;
     this.unobserve(true);
     this.unobserveCollection(true);
   }
 
   public observeCollection<T extends Collection>(collection: T): T {
-    this.getCollectionObserver(collection).subscribeToCollection(this);
+    this.forCollection(collection).subscribeToCollection(this);
     return collection;
   }
 
   public observeLength<T extends Collection>(collection: T): T {
-    this.getCollectionObserver(collection).getLengthObserver().subscribe(this);
+    this.forCollection(collection).getLengthObserver().subscribe(this);
     return collection;
   }
 
   public observeIndex(arr: unknown[], index: number): void {
-    this.getCollectionObserver(arr).getIndexObserver(index).subscribe(this);
+    this.forCollection(arr).getIndexObserver(index).subscribe(this);
   }
 
-  private run(): void {
-    if (this.isRunning) {
-      return;
-    }
-    const oldValue = this.oV;
+  private run(runId: number): void {
     const obj = this.obj;
-    this.isRunning = true;
+    const oldValue = this.oV;
+    const newValue = this.compute();
+
+    if (runId === this.runId && !Object.is(newValue, oldValue)) {
+      // should optionally queue
+      this.cb.call(obj, newValue, oldValue, obj);
+    }
+  }
+
+  private compute(): unknown {
     this.version++;
     enterWatcher(this);
-    const newValue = this.computed(getProxyOrSelf(obj));
+    this.oV = this.get(getProxyOrSelf(this.obj));
     exitWatcher(this);
     this.unobserve(false);
     this.unobserveCollection(false);
-    this.isRunning = false;
-
-    if (!Object.is(newValue, oldValue)) {
-      this.oV = newValue;
-      // should optionally queue
-      this.callback.call(obj, newValue, oldValue, obj);
-    }
+    return this.oV;
   }
 
-  private getCollectionObserver(collection: Collection): ICollectionObserver<CollectionKind> {
+  private forCollection(collection: Collection): ICollectionObserver<CollectionKind> {
     const obsLocator = this.observerLocator;
     let observer: ICollectionObserver<CollectionKind>;
     if (collection instanceof Array) {
@@ -432,6 +437,8 @@ export class ExpressionWatcher implements ExpressionWatcher {
    */
   private obj: object;
 
+  public isBound: boolean = false;
+
   public constructor(
     public scope: Scope,
     public locator: IServiceLocator,
@@ -460,20 +467,20 @@ export class ExpressionWatcher implements ExpressionWatcher {
   }
 
   public $bind(): void {
-    this.start();
-  }
-
-  public $unbind(): void {
-    this.stop();
-  }
-
-  private start(): void {
+    if (this.isBound) {
+      return;
+    }
+    this.isBound = true;
     this.version++;
     this.oV = this.sourceExpression.evaluate(0, this.scope, null, this.locator, this);
     this.unobserve(false);
   }
 
-  private stop(): void {
+  public $unbind(): void {
+    if (!this.isBound) {
+      return;
+    }
+    this.isBound = false;
     this.unobserve(true);
     this.oV = void 0;
   }

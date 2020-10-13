@@ -85,6 +85,7 @@ import { IObserverLocator } from '../observation/observer-locator';
 import { IExpressionParser, BindingType } from '../binding/expression-parser';
 import { AccessScopeExpression } from '../binding/ast';
 import { ICompositionRoot } from '../aurelia';
+import { IWatcherCallback } from './watch';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -329,13 +330,12 @@ export class Controller<
     let definition = this.definition as CustomElementDefinition;
     const flags = this.flags |= definition.strategy;
     const instance = this.viewModel as BindingContext<T, C>;
-    const scope = this.scope = Scope.create(flags, this.bindingContext!, null);
-    const hooks = this.hooks;
+    this.scope = Scope.create(flags, this.bindingContext!, null);
 
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this as Controller, definition, flags, instance);
 
-    if (hooks.hasCreate) {
+    if (this.hooks.hasCreate) {
       if (this.debug) {
         this.logger.trace(`invoking create() hook`);
       }
@@ -1378,14 +1378,22 @@ function createWatchers(
   instance: object,
 ) {
   const observerLocator = context!.get(IObserverLocator);
+  const expressionParser = context.get(IExpressionParser);
+
   definition.watches.map(({ expression, callback }) => {
+    callback = typeof callback === 'function'
+      ? callback
+      : Reflect.get(instance, callback) as IWatcherCallback<object>;
+    if (typeof callback !== 'function') {
+      throw new Error(`Invalid callback for @watch decorator: ${String(callback)}`);
+    }
     if (typeof expression === 'function') {
       controller.addBinding(new ComputedWatcher(instance as IObservable, observerLocator, expression, callback));
     } else {
-      const ast = typeof expression === 'symbol' || typeof expression === 'number'
-        // AST needs an upgrade
-        ? AccessScopeAst.for(expression)
-        : context.get(IExpressionParser).parse(expression, BindingType.BindCommand)
+      const ast = typeof expression === 'string'
+        ? expressionParser.parse(expression, BindingType.BindCommand)
+        : AccessScopeAst.for(expression);
+
       controller.addBinding(new ExpressionWatcher(controller.scope!, context, observerLocator, ast, callback));
     }
   });

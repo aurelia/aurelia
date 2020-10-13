@@ -13,6 +13,8 @@
   "dependencies": {
     "@aurelia/kernel": "dev",
     "@aurelia/metadata": "dev",
+    "@aurelia/platform": "dev",
+    "@aurelia/platform-browser": "dev",
     "@aurelia/runtime-html-browser": "dev",
     "@aurelia/runtime-html": "dev",
     "@aurelia/runtime": "dev",

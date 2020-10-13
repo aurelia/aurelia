@@ -16,6 +16,8 @@
     "@aurelia/fetch-client": "dev",
     "@aurelia/kernel": "dev",
     "@aurelia/metadata": "dev",
+    "@aurelia/platform": "dev",
+    "@aurelia/platform-browser": "dev",
     "@aurelia/route-recognizer": "dev",
     "@aurelia/router": "dev",
     "@aurelia/runtime-html-browser": "dev",

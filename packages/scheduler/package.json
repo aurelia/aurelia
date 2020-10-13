@@ -35,7 +35,8 @@
   },
   "dependencies": {
     "@aurelia/kernel": "0.7.0",
-    "@aurelia/metadata": "0.7.0"
+    "@aurelia/metadata": "0.7.0",
+    "@aurelia/platform": "0.7.0"
   },
   "devDependencies": {
     "typescript": "^4.0.3"

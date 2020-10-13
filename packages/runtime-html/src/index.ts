@@ -1,13 +1,47 @@
 export {
+  AttrSyntax,
+  IAttributeParser,
+} from './attribute-parser';
+export {
+  attributePattern,
+  AttributePatternDefinition,
+  IAttributePattern,
+  AttributePattern,
+  Interpretation,
+  ISyntaxInterpreter,
+} from './attribute-pattern';
+export {
+  AtPrefixedTriggerAttributePattern,
+  ColonPrefixedBindAttributePattern,
+  DotSeparatedAttributePattern,
+  RefAttributePattern,
+} from './attribute-patterns';
+export {
+  bindingCommand,
+  BindingCommand ,
+  BindingCommandInstance,
+  BindingCommandDefinition,
+  BindingCommandKind,
+  BindingCommandType,
+  getTarget,
+} from './binding-command';
+export {
   IAttrSyntaxTransformer
 } from './attribute-syntax-transformer';
 export {
+  CallBindingCommand,
+  DefaultBindingCommand,
+  ForBindingCommand,
+  FromViewBindingCommand,
+  OneTimeBindingCommand,
+  ToViewBindingCommand,
+  TwoWayBindingCommand,
   TriggerBindingCommand,
   DelegateBindingCommand,
   CaptureBindingCommand,
   AttrBindingCommand,
   ClassBindingCommand,
-  StyleBindingCommand
+  StyleBindingCommand,
 } from './binding-commands';
 export {
   Listener
@@ -98,15 +132,32 @@ export {
 } from './resources/custom-elements/compose';
 
 export {
+  IComposerRegistration,
   ITemplateCompilerRegistration,
-  ITemplateElementFactoryRegistration,
-  IAttrSyntaxTransformerRegistation,
   IProjectorLocatorRegistration,
   ITargetAccessorLocatorRegistration,
   ITargetObserverLocatorRegistration,
 
   DefaultComponents,
 
+  RefAttributePatternRegistration,
+  DotSeparatedAttributePatternRegistration,
+
+  DefaultBindingSyntax,
+
+  AtPrefixedTriggerAttributePatternRegistration,
+  ColonPrefixedBindAttributePatternRegistration,
+
+  ShortHandBindingSyntax,
+
+  CallBindingCommandRegistration,
+  DefaultBindingCommandRegistration,
+  ForBindingCommandRegistration,
+  RefBindingCommandRegistration,
+  FromViewBindingCommandRegistration,
+  OneTimeBindingCommandRegistration,
+  ToViewBindingCommandRegistration,
+  TwoWayBindingCommandRegistration,
   TriggerBindingCommandRegistration,
   DelegateBindingCommandRegistration,
   CaptureBindingCommandRegistration,
@@ -131,6 +182,17 @@ export {
   StylePropertyBindingRendererRegistration,
   TextBindingRendererRegistration,
 
+  RefBindingRendererRegistration,
+  CallBindingRendererRegistration,
+  CustomAttributeRendererRegistration,
+  CustomElementRendererRegistration,
+  InterpolationBindingRendererRegistration,
+  IteratorBindingRendererRegistration,
+  LetElementRendererRegistration,
+  PropertyBindingRendererRegistration,
+  SetPropertyRendererRegistration,
+  TemplateControllerRendererRegistration,
+
   DefaultRenderers,
 
   RuntimeHtmlConfiguration
@@ -151,19 +213,6 @@ export {
   RenderPlan
 } from './create-element';
 export {
-  HTMLAttributeInstruction,
-  HTMLInstructionRow,
-  HTMLNodeInstruction,
-  HTMLTargetedInstruction,
-  HTMLTargetedInstructionType,
-  IAttributeBindingInstruction,
-  IListenerBindingInstruction,
-  ISetAttributeInstruction,
-  isHTMLTargetedInstruction,
-  IStylePropertyBindingInstruction,
-  ITextBindingInstruction
-} from './definitions';
-export {
   NodeType,
   HTMLDOM,
   DOM,
@@ -173,6 +222,20 @@ export {
   ILocation,
 } from './dom';
 export {
+  CallBindingInstruction,
+  FromViewBindingInstruction,
+  HydrateAttributeInstruction,
+  HydrateElementInstruction,
+  HydrateTemplateController,
+  InterpolationInstruction,
+  IteratorBindingInstruction,
+  LetBindingInstruction,
+  HydrateLetElementInstruction,
+  OneTimeBindingInstruction,
+  RefBindingInstruction,
+  SetPropertyInstruction,
+  ToViewBindingInstruction,
+  TwoWayBindingInstruction,
   AttributeBindingInstruction,
   CaptureBindingInstruction,
   DelegateBindingInstruction,
@@ -181,7 +244,13 @@ export {
   SetStyleAttributeInstruction,
   StylePropertyBindingInstruction,
   TextBindingInstruction,
-  TriggerBindingInstruction
+  TriggerBindingInstruction,
+  AttributeInstruction,
+  InstructionRow,
+  isTargetedInstruction,
+  NodeInstruction,
+  TargetedInstruction,
+  TargetedInstructionType,
 } from './instructions';
 export {
   ContainerlessProjector,
@@ -189,6 +258,33 @@ export {
   HTMLProjectorLocator,
   ShadowDOMProjector
 } from './projectors';
+
+export {
+  ResourceModel,
+  BindableInfo,
+  ElementInfo,
+  AttrInfo
+} from './resource-model';
+export {
+  AnySymbol,
+  BindingSymbol,
+  CustomAttributeSymbol,
+  CustomElementSymbol,
+  ElementSymbol,
+  LetElementSymbol,
+  NodeSymbol,
+  ParentNodeSymbol,
+  PlainAttributeSymbol,
+  PlainElementSymbol,
+  ResourceAttributeSymbol,
+  SymbolFlags,
+  SymbolWithBindings,
+  SymbolWithMarker,
+  SymbolWithTemplate,
+  TemplateControllerSymbol,
+  TextSymbol,
+  ProjectionSymbol,
+} from './semantic-model';
 
 export {
   StyleConfiguration,

@@ -18,7 +18,7 @@ import {
   customElement,
   CustomElementDefinition
 } from '../custom-element';
-import { IHydrateElementInstruction, ITargetedInstruction } from '../../definitions';
+import { ITargetedInstruction } from '../../definitions';
 
 import type { Scope } from '../../observation/binding-context';
 
@@ -63,7 +63,7 @@ export class ProjectionProvider {
     }
   }
 
-  public getProjectionFor(instruction: IHydrateElementInstruction): RegisteredProjections | null {
+  public getProjectionFor(instruction: ITargetedInstruction): RegisteredProjections | null {
     return projectionMap.get(instruction) ?? null;
   }
 }

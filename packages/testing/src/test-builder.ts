@@ -16,7 +16,7 @@ import {
   IScheduler,
 } from '@aurelia/runtime';
 // import {
-//   HTMLTargetedInstruction,
+//   TargetedInstruction,
 //   NodeSequenceFactory,
 //   TextBindingInstruction,
 // } from '@aurelia/runtime-html';
@@ -73,7 +73,7 @@ import {
 // }
 
 // export class InstructionBuilder {
-//   private instructions: HTMLTargetedInstruction[];
+//   private instructions: TargetedInstruction[];
 
 //   constructor() {
 //     this.instructions = [];
@@ -140,7 +140,7 @@ import {
 //     insCbOrBuilder: InstructionCb | InstructionBuilder,
 //     defCbOrBuilder: DefinitionCb | DefinitionBuilder
 //   ): InstructionBuilder {
-//     let childInstructions: HTMLTargetedInstruction[];
+//     let childInstructions: TargetedInstruction[];
 //     let definition: PartialCustomElementDefinition;
 //     if (insCbOrBuilder instanceof InstructionBuilder) {
 //       childInstructions = insCbOrBuilder.build();
@@ -171,7 +171,7 @@ import {
 //     return this;
 //   }
 
-//   public build(): HTMLTargetedInstruction[] {
+//   public build(): TargetedInstruction[] {
 //     const { instructions } = this;
 //     this.instructions = null!;
 //     return instructions;
@@ -183,7 +183,7 @@ import {
 //   private name: string;
 //   private templateBuilder: TemplateBuilder;
 //   private instructionBuilder: InstructionBuilder;
-//   private instructions: HTMLTargetedInstruction[][];
+//   private instructions: TargetedInstruction[][];
 
 //   constructor(name?: string) {
 //     // eslint-disable-next-line prefer-template

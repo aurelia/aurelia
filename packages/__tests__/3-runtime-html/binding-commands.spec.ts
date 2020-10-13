@@ -1,13 +1,15 @@
 import {
   alias,
   BindingType,
+} from '@aurelia/runtime';
+import {
   AttributeInstruction,
   BindingCommandInstance,
   PlainAttributeSymbol,
   BindingSymbol,
   bindingCommand,
   OneTimeBindingCommand,
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('binding-commands', function () {

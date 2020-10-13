@@ -1,40 +1,4 @@
 export {
-  AttrSyntax,
-  IAttributeParser,
-} from './attribute-parser';
-export {
-  attributePattern,
-  AttributePatternDefinition,
-  IAttributePattern,
-  AttributePattern,
-  Interpretation,
-  ISyntaxInterpreter,
-} from './attribute-pattern';
-export {
-  AtPrefixedTriggerAttributePattern,
-  ColonPrefixedBindAttributePattern,
-  DotSeparatedAttributePattern,
-  RefAttributePattern,
-} from './attribute-patterns';
-export {
-  bindingCommand,
-  BindingCommand ,
-  BindingCommandInstance,
-  BindingCommandDefinition,
-  BindingCommandKind,
-  BindingCommandType,
-  getTarget,
-} from './binding-command';
-export {
-  CallBindingCommand,
-  DefaultBindingCommand,
-  ForBindingCommand,
-  FromViewBindingCommand,
-  OneTimeBindingCommand,
-  ToViewBindingCommand,
-  TwoWayBindingCommand
-} from './binding-commands';
-export {
   CallFunctionExpression,
   CustomExpression,
   BindingBehaviorExpression,
@@ -201,7 +165,9 @@ export {
   BindingBehaviorInstance,
   BindingBehaviorType,
   BindingInterceptor,
-  IInterceptableBinding
+  BindingBehaviorFactory,
+  BindingBehaviorStrategy,
+  IInterceptableBinding,
 } from './resources/binding-behavior';
 export {
   BindingModeBehavior,
@@ -342,26 +308,6 @@ export {
   ICompositionRoot,
 } from './aurelia';
 export {
-  RefAttributePatternRegistration,
-  DotSeparatedAttributePatternRegistration,
-
-  DefaultBindingSyntax,
-
-  AtPrefixedTriggerAttributePatternRegistration,
-  ColonPrefixedBindAttributePatternRegistration,
-
-  ShortHandBindingSyntax,
-
-  CallBindingCommandRegistration,
-  DefaultBindingCommandRegistration,
-  ForBindingCommandRegistration,
-  FromViewBindingCommandRegistration,
-  OneTimeBindingCommandRegistration,
-  ToViewBindingCommandRegistration,
-  TwoWayBindingCommandRegistration,
-
-  DefaultBindingLanguage,
-
   IfRegistration,
   ElseRegistration,
   RepeatRegistration,
@@ -377,41 +323,13 @@ export {
   ThrottleBindingBehaviorRegistration,
   TwoWayBindingBehaviorRegistration,
 
-  RefBindingRendererRegistration,
-  CallBindingRendererRegistration,
-  CustomAttributeRendererRegistration,
-  CustomElementRendererRegistration,
-  InterpolationBindingRendererRegistration,
-  IteratorBindingRendererRegistration,
-  LetElementRendererRegistration,
-  PropertyBindingRendererRegistration,
-  SetPropertyRendererRegistration,
-  TemplateControllerRendererRegistration,
-
   DefaultResources,
   RuntimeConfiguration
 } from './configuration';
 export {
-  AttributeInstruction,
   HooksDefinition,
-  ICallBindingInstruction,
-  IHydrateAttributeInstruction,
-  IHydrateElementInstruction,
-  IHydrateLetElementInstruction,
-  IHydrateTemplateController,
-  IInterpolationInstruction,
-  IIteratorBindingInstruction,
-  ILetBindingInstruction,
-  InstructionRow,
   InstructionTypeName,
-  IPropertyBindingInstruction,
-  IRefBindingInstruction,
-  ISetPropertyInstruction,
-  isTargetedInstruction,
   ITargetedInstruction,
-  NodeInstruction,
-  TargetedInstruction,
-  TargetedInstructionType,
   alias,
   registerAliases
 } from './definitions';
@@ -430,22 +348,6 @@ export {
   ExpressionKind,
   LifecycleFlags,
 } from './flags';
-export {
-  CallBindingInstruction,
-  FromViewBindingInstruction,
-  HydrateAttributeInstruction,
-  HydrateElementInstruction,
-  HydrateTemplateController,
-  InterpolationInstruction,
-  IteratorBindingInstruction,
-  LetBindingInstruction,
-  LetElementInstruction,
-  OneTimeBindingInstruction,
-  RefBindingInstruction,
-  SetPropertyInstruction,
-  ToViewBindingInstruction,
-  TwoWayBindingInstruction
-} from './instructions';
 export {
   ViewModelKind,
   ControllerVisitor,
@@ -526,37 +428,9 @@ export {
   createIndexMap,
 } from './observation';
 export {
-  applyBindingBehavior,
   IInstructionComposer,
   IInstructionTypeClassifier,
   IComposer,
   ITemplateCompiler,
   instructionComposer,
-  ensureExpression,
 } from './composer';
-export {
-  ResourceModel,
-  BindableInfo,
-  ElementInfo,
-  AttrInfo
-} from './resource-model';
-export {
-  AnySymbol,
-  BindingSymbol,
-  CustomAttributeSymbol,
-  CustomElementSymbol,
-  ElementSymbol,
-  LetElementSymbol,
-  NodeSymbol,
-  ParentNodeSymbol,
-  PlainAttributeSymbol,
-  PlainElementSymbol,
-  ResourceAttributeSymbol,
-  SymbolFlags,
-  SymbolWithBindings,
-  SymbolWithMarker,
-  SymbolWithTemplate,
-  TemplateControllerSymbol,
-  TextSymbol,
-  ProjectionSymbol,
-} from './semantic-model';

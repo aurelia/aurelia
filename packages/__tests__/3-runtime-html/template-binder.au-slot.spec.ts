@@ -1,12 +1,8 @@
 /* eslint-disable mocha/no-hooks, mocha/no-sibling-hooks */
-import { IAttrSyntaxTransformer, ITemplateElementFactory, TemplateBinder } from '@aurelia/runtime-html';
 import {
-  AuSlot,
-  CustomElement,
-  CustomElementType,
-  IDOM,
-  IExpressionParser,
-  INode,
+  IAttrSyntaxTransformer,
+  ITemplateElementFactory,
+  TemplateBinder,
   CustomElementSymbol,
   IAttributeParser,
   PlainElementSymbol,
@@ -14,6 +10,14 @@ import {
   ResourceModel,
   SymbolFlags,
   TemplateControllerSymbol,
+} from '@aurelia/runtime-html';
+import {
+  AuSlot,
+  CustomElement,
+  CustomElementType,
+  IDOM,
+  IExpressionParser,
+  INode,
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -218,9 +222,9 @@ describe('template-binder.au-slot', function () {
         assert.instanceOf(ce, CustomElementSymbol);
         assert.includes(ce.res, 'my-element1');
 
-        const mel2 = new CustomElementSymbol(dom, (factory.createTemplate('<my-element2 class="au"></my-element2>') as HTMLTemplateElement).content.firstChild as INode, resources.getElementInfo('my-element2'));
-        mel2.projections.push(new ProjectionSymbol("s1", new PlainElementSymbol(dom, (factory.createTemplate('<div></div>') as HTMLTemplateElement).content.firstChild as INode)));
-        const mel1 = new PlainElementSymbol(dom, (factory.createTemplate('<div><my-element2><div></div></my-element2></div>') as HTMLTemplateElement).content.firstChild as INode);
+        const mel2 = new CustomElementSymbol(dom, factory.createTemplate('<my-element2 class="au"></my-element2>').content.firstChild as HTMLElement, resources.getElementInfo('my-element2'));
+        mel2.projections.push(new ProjectionSymbol("s1", new PlainElementSymbol(dom, factory.createTemplate('<div></div>').content.firstChild as HTMLElement)));
+        const mel1 = new PlainElementSymbol(dom, factory.createTemplate('<div><my-element2><div></div></my-element2></div>').content.firstChild as HTMLElement);
         mel1.childNodes.push(mel2);
         const expected = [
           new ProjectionSymbol(

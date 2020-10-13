@@ -2,7 +2,6 @@ import { IContainer } from '@aurelia/kernel';
 import {
   BindingMode,
   BindingType,
-  ICallBindingInstruction,
   IExpressionParser,
   IInstructionComposer,
   instructionComposer,
@@ -10,13 +9,19 @@ import {
   IsBindingBehavior,
   LifecycleFlags,
   IRenderableController,
-  AttrSyntax,
-  BindingSymbol,
-  getTarget,
-  BindingCommandInstance,
-  PlainAttributeSymbol,
 } from '@aurelia/runtime';
 import { TranslationBinding } from './translation-binding';
+import {
+  AttrSyntax,
+  getTarget,
+} from '@aurelia/runtime-html';
+
+import type {
+  CallBindingInstruction,
+  BindingSymbol,
+  BindingCommandInstance,
+  PlainAttributeSymbol,
+} from '@aurelia/runtime-html';
 
 export const TranslationInstructionType = 'tt';
 
@@ -60,7 +65,7 @@ export class TranslationBindingComposer implements IInstructionComposer {
     context: IContainer,
     controller: IRenderableController,
     target: HTMLElement,
-    instruction: ICallBindingInstruction,
+    instruction: CallBindingInstruction,
   ): void {
     TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
   }
@@ -109,7 +114,7 @@ export class TranslationBindBindingComposer implements IInstructionComposer {
     context: IContainer,
     controller: IRenderableController,
     target: HTMLElement,
-    instruction: ICallBindingInstruction,
+    instruction: CallBindingInstruction,
   ): void {
     TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller, target, instruction });
   }

@@ -5,7 +5,7 @@ import {
   IAttributePattern,
   ISyntaxInterpreter,
   AttributePattern
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
 describe('@attributePattern', function () {

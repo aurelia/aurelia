@@ -1,14 +1,4 @@
 import {
-  stringifyLifecycleFlags,
-} from '@aurelia/debug';
-import {
-  CustomAttributeSymbol,
-  NodeSymbol,
-  PlainAttributeSymbol,
-  AnySymbol,
-  AttrSyntax,
-} from '@aurelia/runtime';
-import {
   Class,
   IContainer,
   Registration,

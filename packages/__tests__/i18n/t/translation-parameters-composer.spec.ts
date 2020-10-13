@@ -3,7 +3,6 @@ import { DI } from '@aurelia/kernel';
 import {
   AnyBindingExpression,
   BindingType,
-  ICallBindingInstruction,
   IExpressionParser,
   IInstructionComposer,
   IObserverLocator,
@@ -12,13 +11,17 @@ import {
   ICompiledRenderContext,
   IRenderableController,
   IBinding,
+} from '@aurelia/runtime';
+import {
+  CallBindingInstruction,
   AttrSyntax,
   BindingCommand,
   BindingCommandInstance,
   IAttributePattern,
   PlainAttributeSymbol,
-} from '@aurelia/runtime';
-import { AttrBindingCommand, DOM } from '@aurelia/runtime-html';
+  AttrBindingCommand,
+  DOM,
+} from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('TranslationParametersAttributePattern', function () {
@@ -88,7 +91,7 @@ describe('TranslationParametersBindingComposer', function () {
     const sut: IInstructionComposer = new TranslationParametersBindingComposer(container.get(IExpressionParser), container.get(IObserverLocator));
     const expressionParser = container.get(IExpressionParser);
     const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); }} as unknown as IRenderableController);
-    const callBindingInstruction: ICallBindingInstruction = { from: expressionParser.parse('{foo: "bar"}', BindingType.BindCommand) } as unknown as ICallBindingInstruction;
+    const callBindingInstruction: CallBindingInstruction = { from: expressionParser.parse('{foo: "bar"}', BindingType.BindCommand) } as unknown as CallBindingInstruction;
 
     sut.render(
       LifecycleFlags.none,
@@ -109,7 +112,7 @@ describe('TranslationParametersBindingComposer', function () {
     const binding = new TranslationBinding(targetElement, container.get(IObserverLocator), container);
     const renderable = ({ bindings: [binding] } as unknown as IRenderableController);
     const paramExpr = expressionParser.parse('{foo: "bar"}', BindingType.BindCommand);
-    const callBindingInstruction: ICallBindingInstruction = { from: paramExpr } as unknown as ICallBindingInstruction;
+    const callBindingInstruction: CallBindingInstruction = { from: paramExpr } as unknown as CallBindingInstruction;
 
     sut.render(
       LifecycleFlags.none,

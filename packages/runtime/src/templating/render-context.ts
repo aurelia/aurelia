@@ -10,9 +10,7 @@ import {
   Transformer,
 } from '@aurelia/kernel';
 import {
-  IHydrateInstruction,
   ITargetedInstruction,
-  IHydrateElementInstruction,
 } from '../definitions';
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { LifecycleFlags } from '../flags';
@@ -119,7 +117,7 @@ export interface ICompiledRenderContext<T extends INode = INode> extends IRender
   getComponentFactory(
     parentController?: IController,
     host?: INode,
-    instruction?: IHydrateInstruction,
+    instruction?: ITargetedInstruction,
     viewFactory?: IViewFactory,
     location?: IRenderLocation,
   ): IComponentFactory<T>;
@@ -418,7 +416,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
   public getComponentFactory(
     parentController?: IController,
     host?: INode,
-    instruction?: IHydrateInstruction,
+    instruction?: ITargetedInstruction,
     viewFactory?: IViewFactory,
     location?: IRenderLocation,
   ): IComponentFactory<T> {
@@ -478,7 +476,7 @@ export class RenderContext<T extends INode = INode> implements IComponentFactory
     this.projectionProvider.registerProjections(projections, scope);
   }
 
-  public getProjectionFor(instruction: IHydrateElementInstruction): RegisteredProjections | null {
+  public getProjectionFor(instruction: ITargetedInstruction): RegisteredProjections | null {
     return this.projectionProvider.getProjectionFor(instruction);
   }
   // #endregion

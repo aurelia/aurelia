@@ -1,6 +1,6 @@
-import { PartialCustomElementDefinition, TargetedInstructionType } from '@aurelia/runtime';
-import { HTMLTargetedInstruction, HTMLTargetedInstructionType } from './definitions';
+import { PartialCustomElementDefinition } from '@aurelia/runtime';
 import { NodeType } from './dom';
+import { TargetedInstruction, TargetedInstructionType } from './instructions';
 
 export function stringifyDOM(node: Node, depth: number): string {
   const indent = ' '.repeat(depth);
@@ -39,11 +39,11 @@ export function stringifyDOM(node: Node, depth: number): string {
   return output;
 }
 
-export function stringifyInstructions(instruction: HTMLTargetedInstruction, depth: number): string {
+export function stringifyInstructions(instruction: TargetedInstruction, depth: number): string {
   const indent = ' '.repeat(depth);
   let output = indent;
   switch (instruction.type) {
-    case HTMLTargetedInstructionType.textBinding:
+    case TargetedInstructionType.textBinding:
       output += 'textBinding\n';
       break;
     case TargetedInstructionType.callBinding:
@@ -52,7 +52,7 @@ export function stringifyInstructions(instruction: HTMLTargetedInstruction, dept
     case TargetedInstructionType.iteratorBinding:
       output += 'iteratorBinding\n';
       break;
-    case HTMLTargetedInstructionType.listenerBinding:
+    case TargetedInstructionType.listenerBinding:
       output += 'listenerBinding\n';
       break;
     case TargetedInstructionType.propertyBinding:
@@ -61,13 +61,13 @@ export function stringifyInstructions(instruction: HTMLTargetedInstruction, dept
     case TargetedInstructionType.refBinding:
       output += 'refBinding\n';
       break;
-    case HTMLTargetedInstructionType.stylePropertyBinding:
+    case TargetedInstructionType.stylePropertyBinding:
       output += 'stylePropertyBinding\n';
       break;
     case TargetedInstructionType.setProperty:
       output += 'setProperty\n';
       break;
-    case HTMLTargetedInstructionType.setAttribute:
+    case TargetedInstructionType.setAttribute:
       output += 'setAttribute\n';
       break;
     case TargetedInstructionType.interpolation:
@@ -82,20 +82,20 @@ export function stringifyInstructions(instruction: HTMLTargetedInstruction, dept
     case TargetedInstructionType.hydrateAttribute:
       output += `hydrateAttribute: ${instruction.res}\n`;
       instruction.instructions.forEach(i => {
-        output += stringifyInstructions(i as HTMLTargetedInstruction, depth + 1);
+        output += stringifyInstructions(i as TargetedInstruction, depth + 1);
       });
       break;
     case TargetedInstructionType.hydrateElement:
       output += `hydrateElement: ${instruction.res}\n`;
       instruction.instructions.forEach(i => {
-        output += stringifyInstructions(i as HTMLTargetedInstruction, depth + 1);
+        output += stringifyInstructions(i as TargetedInstruction, depth + 1);
       });
       break;
     case TargetedInstructionType.hydrateTemplateController:
       output += `hydrateTemplateController: ${instruction.res}\n`;
       output += stringifyTemplateDefinition(instruction.def, depth + 1);
       instruction.instructions.forEach(i => {
-        output += stringifyInstructions(i as HTMLTargetedInstruction, depth + 1);
+        output += stringifyInstructions(i as TargetedInstruction, depth + 1);
       });
   }
   return output;
@@ -111,7 +111,7 @@ export function stringifyTemplateDefinition(def: PartialCustomElementDefinition,
   def.instructions!.forEach(row => {
     output += `${indent}  Row:\n`;
     row.forEach(i => {
-      output += stringifyInstructions(i as HTMLTargetedInstruction, depth + 3);
+      output += stringifyInstructions(i as TargetedInstruction, depth + 3);
     });
   });
 

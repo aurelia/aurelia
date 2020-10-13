@@ -1,16 +1,14 @@
 import {
   CustomElement,
-  HydrateElementInstruction,
   CustomElementType,
   INode,
-  TargetedInstruction,
-  TargetedInstructionType
 } from '@aurelia/runtime';
 import {
   createElement as sut,
-  HTMLTargetedInstructionType,
+  TargetedInstructionType,
+  HydrateElementInstruction,
   RenderPlan,
-  HTMLTargetedInstruction
+  TargetedInstruction
 } from '@aurelia/runtime-html';
 import {
   _,
@@ -63,16 +61,16 @@ describe(`createElement() creates element based on tag`, function () {
             TargetedInstructionType.propertyBinding,
             TargetedInstructionType.refBinding,
             TargetedInstructionType.setProperty,
-            HTMLTargetedInstructionType.listenerBinding,
-            HTMLTargetedInstructionType.setAttribute,
-            HTMLTargetedInstructionType.stylePropertyBinding,
-            HTMLTargetedInstructionType.textBinding
+            TargetedInstructionType.listenerBinding,
+            TargetedInstructionType.setAttribute,
+            TargetedInstructionType.stylePropertyBinding,
+            TargetedInstructionType.textBinding
           ]
         ],
         t => {
           it(`understands targeted instruction type=${t}`, function () {
             const ctx = TestContext.createHTMLTestContext();
-            const actual = sut(ctx.dom, tag, { prop: { type: t }  as unknown as string|HTMLTargetedInstruction});
+            const actual = sut(ctx.dom, tag, { prop: { type: t }  as unknown as string|TargetedInstruction});
 
             const instruction = actual['instructions'][0][0] as TargetedInstruction;
             const node = actual['node'] as Element;
@@ -140,13 +138,13 @@ describe(`createElement() creates element based on type`, function () {
         assert.strictEqual(instruction.type, TargetedInstructionType.hydrateElement, `instruction.type`);
         assert.strictEqual(instruction.res, definition.name, `instruction.res`);
         assert.strictEqual(instruction.instructions.length, 2, `instruction.instructions.length`);
-        assert.strictEqual(instruction.instructions[0].type, HTMLTargetedInstructionType.setAttribute, `instruction.instructions[0].type`);
+        assert.strictEqual(instruction.instructions[0].type, TargetedInstructionType.setAttribute, `instruction.instructions[0].type`);
         assert.strictEqual(instruction.instructions[0]['to'], 'title', `instruction.instructions[0]['to']`);
         assert.strictEqual(instruction.instructions[0]['value'], 'asdf', `instruction.instructions[0]['value']`);
         if (definition.bindables['foo']) {
           assert.strictEqual(instruction.instructions[1].type, TargetedInstructionType.setProperty, `instruction.instructions[1].type`);
         } else {
-          assert.strictEqual(instruction.instructions[1].type, HTMLTargetedInstructionType.setAttribute, `instruction.instructions[1].type`);
+          assert.strictEqual(instruction.instructions[1].type, TargetedInstructionType.setAttribute, `instruction.instructions[1].type`);
         }
         assert.strictEqual(instruction.instructions[1]['to'], 'foo', `instruction.instructions[1]['to']`);
         assert.strictEqual(instruction.instructions[1]['value'], 'bar', `instruction.instructions[1]['value']`);
@@ -157,7 +155,7 @@ describe(`createElement() creates element based on type`, function () {
         it(`can handle ${str} props`, function () {
           const type = createType();
           const ctx = TestContext.createHTMLTestContext();
-          const actual = sut(ctx.dom, type, props as unknown as Record<string, string|HTMLTargetedInstruction>);
+          const actual = sut(ctx.dom, type, props as unknown as Record<string, string|TargetedInstruction>);
 
           const node = actual['node'] as Element;
           const instruction = (actual['instructions'][0][0]) as HydrateElementInstruction;
@@ -183,10 +181,10 @@ describe(`createElement() creates element based on type`, function () {
             TargetedInstructionType.propertyBinding,
             TargetedInstructionType.refBinding,
             TargetedInstructionType.setProperty,
-            HTMLTargetedInstructionType.listenerBinding,
-            HTMLTargetedInstructionType.setAttribute,
-            HTMLTargetedInstructionType.stylePropertyBinding,
-            HTMLTargetedInstructionType.textBinding
+            TargetedInstructionType.listenerBinding,
+            TargetedInstructionType.setAttribute,
+            TargetedInstructionType.stylePropertyBinding,
+            TargetedInstructionType.textBinding
           ]
         ],
         t => {
@@ -194,7 +192,7 @@ describe(`createElement() creates element based on type`, function () {
             const type = createType();
             const definition = CustomElement.getDefinition(type);
             const ctx = TestContext.createHTMLTestContext();
-            const actual = sut(ctx.dom, type, { prop: { type: t } as unknown as string|HTMLTargetedInstruction});
+            const actual = sut(ctx.dom, type, { prop: { type: t } as unknown as string|TargetedInstruction});
 
             const node = actual['node'] as Element;
             const instruction = (actual['instructions'][0][0]) as HydrateElementInstruction;

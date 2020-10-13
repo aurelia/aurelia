@@ -10,16 +10,12 @@ import {
   IDOM,
   IExpressionParser,
   Char,
-  AttrInfo,
-  AttrSyntax,
-  BindableInfo,
-  IAttributeParser,
-  BindingCommandInstance,
-  ResourceModel,
-  SymbolFlags,
 } from '@aurelia/runtime';
+import { AttrSyntax, IAttributeParser } from './attribute-parser';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
+import { BindingCommandInstance } from './binding-command';
 import { NodeType } from './dom';
+import { AttrInfo, BindableInfo, ResourceModel } from './resource-model';
 import {
   BindingSymbol,
   CustomAttributeSymbol,
@@ -33,6 +29,7 @@ import {
   TemplateControllerSymbol,
   TextSymbol,
   ProjectionSymbol,
+  SymbolFlags,
 } from './semantic-model';
 
 const invalidSurrogateAttribute = Object.assign(Object.create(null), {

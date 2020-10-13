@@ -6,27 +6,27 @@ import {
 } from '@aurelia/kernel';
 import {
   CustomElement,
-  HydrateElementInstruction,
   CustomElementType,
   IDOM,
   INode,
   IViewFactory,
-  TargetedInstructionType,
   CustomElementDefinition,
   IRenderContext,
   getRenderContext,
+  ISyntheticView,
 } from '@aurelia/runtime';
 import {
-  HTMLTargetedInstruction,
-  isHTMLTargetedInstruction
-} from './definitions';
-import { SetAttributeInstruction } from './instructions';
-import { ISyntheticView } from '@aurelia/runtime/dist/lifecycle';
+  HydrateElementInstruction,
+  isTargetedInstruction,
+  SetAttributeInstruction,
+  TargetedInstruction,
+  TargetedInstructionType,
+} from './instructions';
 
 export function createElement<T extends INode = Node, C extends Constructable = Constructable>(
   dom: IDOM<T>,
   tagOrType: string | C,
-  props?: Record<string, string | HTMLTargetedInstruction>,
+  props?: Record<string, string | TargetedInstruction>,
   children?: ArrayLike<unknown>
 ): RenderPlan<T> {
   if (typeof tagOrType === 'string') {
@@ -47,7 +47,7 @@ export class RenderPlan<T extends INode = Node> {
   public constructor(
     private readonly dom: IDOM<T>,
     private readonly node: T,
-    private readonly instructions: HTMLTargetedInstruction[][],
+    private readonly instructions: TargetedInstruction[][],
     private readonly dependencies: Key[]
   ) {}
 
@@ -77,16 +77,16 @@ export class RenderPlan<T extends INode = Node> {
   }
 
   /** @internal */
-  public mergeInto(parent: T, instructions: HTMLTargetedInstruction[][], dependencies: Key[]): void {
+  public mergeInto(parent: T, instructions: TargetedInstruction[][], dependencies: Key[]): void {
     this.dom.appendChild(parent, this.node);
     instructions.push(...this.instructions);
     dependencies.push(...this.dependencies);
   }
 }
 
-function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, props?: Record<string, string | HTMLTargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan<T> {
-  const instructions: HTMLTargetedInstruction[] = [];
-  const allInstructions: HTMLTargetedInstruction[][] = [];
+function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, props?: Record<string, string | TargetedInstruction>, children?: ArrayLike<unknown>): RenderPlan<T> {
+  const instructions: TargetedInstruction[] = [];
+  const allInstructions: TargetedInstruction[][] = [];
   const dependencies: IRegistry[] = [];
   const element = dom.createElement(tagName);
   let hasInstructions = false;
@@ -96,7 +96,7 @@ function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, pro
       .forEach(to => {
         const value = props[to];
 
-        if (isHTMLTargetedInstruction(value)) {
+        if (isTargetedInstruction(value)) {
           hasInstructions = true;
           instructions.push(value);
         } else {
@@ -125,10 +125,10 @@ function createElementForType<T extends INode>(
 ): RenderPlan<T> {
   const definition = CustomElement.getDefinition(Type);
   const tagName = definition.name;
-  const instructions: HTMLTargetedInstruction[] = [];
+  const instructions: TargetedInstruction[] = [];
   const allInstructions = [instructions];
   const dependencies: Key[] = [];
-  const childInstructions: HTMLTargetedInstruction[] = [];
+  const childInstructions: TargetedInstruction[] = [];
   const bindables = definition.bindables;
   const element = dom.createElement(tagName);
 
@@ -143,9 +143,9 @@ function createElementForType<T extends INode>(
   if (props) {
     Object.keys(props)
       .forEach(to => {
-        const value = props[to] as HTMLTargetedInstruction | string;
+        const value = props[to] as TargetedInstruction | string;
 
-        if (isHTMLTargetedInstruction(value)) {
+        if (isTargetedInstruction(value)) {
           childInstructions.push(value);
         } else {
           const bindable = bindables[to];
@@ -174,7 +174,7 @@ function addChildren<T extends INode>(
   dom: IDOM<T>,
   parent: T,
   children: ArrayLike<unknown>,
-  allInstructions: HTMLTargetedInstruction[][],
+  allInstructions: TargetedInstruction[][],
   dependencies: Key[],
 ): void {
   for (let i = 0, ii = children.length; i < ii; ++i) {

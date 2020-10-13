@@ -1,13 +1,13 @@
 import {
   IAttrSyntaxTransformer,
-  TemplateBinder
+  TemplateBinder,
+  IAttributeParser,
+  ResourceModel,
 } from '@aurelia/runtime-html';
 import {
   Aurelia,
   CustomElement,
   IExpressionParser,
-  IAttributeParser,
-  ResourceModel,
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 

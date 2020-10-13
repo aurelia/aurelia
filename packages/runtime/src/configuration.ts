@@ -4,38 +4,11 @@ import {
   IRegistry
 } from '@aurelia/kernel';
 import {
-  CallBindingComposer,
-  CustomAttributeComposer,
-  CustomElementComposer,
-  InterpolationBindingComposer,
-  IteratorBindingComposer,
-  LetElementComposer,
-  PropertyBindingComposer,
-  RefBindingComposer,
-  SetPropertyComposer,
-  TemplateControllerComposer
-} from './composer';
-import {
   FromViewBindingBehavior,
   OneTimeBindingBehavior,
   ToViewBindingBehavior,
   TwoWayBindingBehavior
 } from './resources/binding-behaviors/binding-mode';
-import {
-  AtPrefixedTriggerAttributePattern,
-  ColonPrefixedBindAttributePattern,
-  DotSeparatedAttributePattern,
-  RefAttributePattern
-} from './attribute-patterns';
-import {
-  CallBindingCommand,
-  DefaultBindingCommand,
-  ForBindingCommand,
-  FromViewBindingCommand,
-  OneTimeBindingCommand,
-  ToViewBindingCommand,
-  TwoWayBindingCommand
-} from './binding-commands';
 import { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
 import { SignalBindingBehavior } from './resources/binding-behaviors/signals';
 import { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
@@ -47,55 +20,6 @@ import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
 import { Now } from '@aurelia/scheduler';
 import { AuSlot } from './resources/custom-elements/au-slot';
-
-export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern as unknown as IRegistry;
-export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern as unknown as IRegistry;
-export const RefAttributePatternRegistration = RefAttributePattern as unknown as IRegistry;
-export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern as unknown as IRegistry;
-
-/**
- * Default binding syntax for the following attribute name patterns:
- * - `ref`
- * - `target.command` (dot-separated)
- */
-export const DefaultBindingSyntax = [
-  RefAttributePatternRegistration,
-  DotSeparatedAttributePatternRegistration
-];
-
-/**
- * Binding syntax for short-hand attribute name patterns:
- * - `@target` (short-hand for `target.trigger`)
- * - `:target` (short-hand for `target.bind`)
- */
-export const ShortHandBindingSyntax = [
-  AtPrefixedTriggerAttributePatternRegistration,
-  ColonPrefixedBindAttributePatternRegistration
-];
-
-export const CallBindingCommandRegistration = CallBindingCommand as unknown as IRegistry;
-export const DefaultBindingCommandRegistration = DefaultBindingCommand as unknown as IRegistry;
-export const ForBindingCommandRegistration = ForBindingCommand as unknown as IRegistry;
-export const FromViewBindingCommandRegistration = FromViewBindingCommand as unknown as IRegistry;
-export const OneTimeBindingCommandRegistration = OneTimeBindingCommand as unknown as IRegistry;
-export const ToViewBindingCommandRegistration = ToViewBindingCommand as unknown as IRegistry;
-export const TwoWayBindingCommandRegistration = TwoWayBindingCommand as unknown as IRegistry;
-
-/**
- * Default runtime/environment-agnostic binding commands:
- * - Property observation: `.bind`, `.one-time`, `.from-view`, `.to-view`, `.two-way`
- * - Function call: `.call`
- * - Collection observation: `.for`
- */
-export const DefaultBindingLanguage = [
-  DefaultBindingCommandRegistration,
-  OneTimeBindingCommandRegistration,
-  FromViewBindingCommandRegistration,
-  ToViewBindingCommandRegistration,
-  TwoWayBindingCommandRegistration,
-  CallBindingCommandRegistration,
-  ForBindingCommandRegistration
-];
 
 /**
  * Default implementations for the following interfaces:
@@ -156,43 +80,6 @@ export const DefaultResources = [
   AuSlot,
 ];
 
-export const CallBindingRendererRegistration = CallBindingComposer as unknown as IRegistry;
-export const CustomAttributeRendererRegistration = CustomAttributeComposer as unknown as IRegistry;
-export const CustomElementRendererRegistration = CustomElementComposer as unknown as IRegistry;
-export const InterpolationBindingRendererRegistration = InterpolationBindingComposer as unknown as IRegistry;
-export const IteratorBindingRendererRegistration = IteratorBindingComposer as unknown as IRegistry;
-export const LetElementRendererRegistration = LetElementComposer as unknown as IRegistry;
-export const PropertyBindingRendererRegistration = PropertyBindingComposer as unknown as IRegistry;
-export const RefBindingRendererRegistration = RefBindingComposer as unknown as IRegistry;
-export const SetPropertyRendererRegistration = SetPropertyComposer as unknown as IRegistry;
-export const TemplateControllerRendererRegistration = TemplateControllerComposer as unknown as IRegistry;
-
-/**
- * Default renderers for:
- * - PropertyBinding: `bind`, `one-time`, `to-view`, `from-view`, `two-way`
- * - IteratorBinding: `for`
- * - CallBinding: `call`
- * - RefBinding: `ref`
- * - InterpolationBinding: `${}`
- * - SetProperty
- * - `customElement` hydration
- * - `customAttribute` hydration
- * - `templateController` hydration
- * - `let` element hydration
- */
-export const DefaultRenderers = [
-  PropertyBindingRendererRegistration,
-  IteratorBindingRendererRegistration,
-  CallBindingRendererRegistration,
-  RefBindingRendererRegistration,
-  InterpolationBindingRendererRegistration,
-  SetPropertyRendererRegistration,
-  CustomElementRendererRegistration,
-  CustomAttributeRendererRegistration,
-  TemplateControllerRendererRegistration,
-  LetElementRendererRegistration
-];
-
 /**
  * A DI configuration object containing environment/runtime-agnostic registrations:
  * - `DefaultComponents`
@@ -207,9 +94,6 @@ export const RuntimeConfiguration = {
     return container.register(
       ...DefaultComponents,
       ...DefaultResources,
-      ...DefaultRenderers,
-      ...DefaultBindingSyntax,
-      ...DefaultBindingLanguage,
     );
   },
   /**

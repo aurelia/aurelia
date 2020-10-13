@@ -7,12 +7,10 @@ import {
 import {
   BindingMode,
   IDOM,
-  IHydrateElementInstruction,
   INode,
   ITargetedInstruction,
   IViewFactory,
   LifecycleFlags,
-  TargetedInstruction,
   CustomElementDefinition,
   bindable,
   customElement,
@@ -25,10 +23,8 @@ import {
   IHydratedParentController,
   ControllerVisitor,
 } from '@aurelia/runtime';
-import {
-  createElement,
-  RenderPlan,
-} from '../../create-element';
+import { createElement, RenderPlan } from '../../create-element';
+import { HydrateElementInstruction, TargetedInstruction } from '../../instructions';
 
 export type Subject<T extends INode = Node> = IViewFactory<T> | ISyntheticView<T> | RenderPlan<T> | Constructable | CustomElementDefinition;
 export type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | undefined;
@@ -62,7 +58,7 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
 
   public constructor(
     @IDOM private readonly dom: IDOM<T>,
-    @ITargetedInstruction instruction: IHydrateElementInstruction,
+    @ITargetedInstruction instruction: HydrateElementInstruction,
   ) {
     this.properties = instruction.instructions.reduce(toLookup, {});
   }

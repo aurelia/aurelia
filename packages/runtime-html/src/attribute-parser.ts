@@ -10,14 +10,10 @@ export class AttrSyntax {
   ) {}
 }
 
-export interface IAttributeParser {
-  parse(name: string, value: string): AttrSyntax;
-}
-
+export interface IAttributeParser extends AttributeParser {}
 export const IAttributeParser = DI.createInterface<IAttributeParser>('IAttributeParser').withDefault(x => x.singleton(AttributeParser));
 
-/** @internal */
-export class AttributeParser implements IAttributeParser {
+export class AttributeParser {
   private readonly cache: Record<string, Interpretation> = {};
   private readonly patterns: Record<string, IAttributePattern>;
 

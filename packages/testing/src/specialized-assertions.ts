@@ -2,8 +2,8 @@
 //   Serializer,
 //   Unparser,
 // } from '@aurelia/debug';
-import { IElementProjector, If, Repeat, TargetedInstructionType, With, ICustomElementController, ViewModelKind, ISyntheticView } from '@aurelia/runtime';
-import { Compose, HTMLTargetedInstructionType } from '@aurelia/runtime-html';
+import { IElementProjector, If, Repeat, With, ICustomElementController, ViewModelKind, ISyntheticView } from '@aurelia/runtime';
+import { Compose, TargetedInstructionType } from '@aurelia/runtime-html';
 import { assert } from './assert';
 
 // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
@@ -114,7 +114,7 @@ function $getVisibleText(root: ICustomElementController | ISyntheticView, contex
 
 export function targetedInstructionTypeName(type: string): string {
   switch (type) {
-    case HTMLTargetedInstructionType.textBinding:
+    case TargetedInstructionType.textBinding:
       return 'textBinding';
     case TargetedInstructionType.interpolation:
       return 'interpolation';
@@ -122,17 +122,17 @@ export function targetedInstructionTypeName(type: string): string {
       return 'propertyBinding';
     case TargetedInstructionType.iteratorBinding:
       return 'iteratorBinding';
-    case HTMLTargetedInstructionType.listenerBinding:
+    case TargetedInstructionType.listenerBinding:
       return 'listenerBinding';
     case TargetedInstructionType.callBinding:
       return 'callBinding';
     case TargetedInstructionType.refBinding:
       return 'refBinding';
-    case HTMLTargetedInstructionType.stylePropertyBinding:
+    case TargetedInstructionType.stylePropertyBinding:
       return 'stylePropertyBinding';
     case TargetedInstructionType.setProperty:
       return 'setProperty';
-    case HTMLTargetedInstructionType.setAttribute:
+    case TargetedInstructionType.setAttribute:
       return 'setAttribute';
     case TargetedInstructionType.hydrateElement:
       return 'hydrateElement';

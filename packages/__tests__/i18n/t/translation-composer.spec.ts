@@ -17,7 +17,6 @@ import {
   AnyBindingExpression,
   BindingType,
   IBinding,
-  ICallBindingInstruction,
   ICompiledRenderContext,
   IExpressionParser,
   IInstructionComposer,
@@ -25,14 +24,18 @@ import {
   IRenderableController,
   LifecycleFlags,
   RuntimeConfiguration,
+} from '@aurelia/runtime';
+import {
   AttributePattern,
   AttributePatternDefinition,
   AttrSyntax,
   BindingCommand,
   IAttributePattern,
   PlainAttributeSymbol,
-} from '@aurelia/runtime';
-import { AttrBindingCommand, DOM } from '@aurelia/runtime-html';
+  CallBindingInstruction,
+  AttrBindingCommand,
+  DOM,
+} from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
 describe('TranslationAttributePattern', function () {
@@ -140,7 +143,7 @@ describe('TranslationBindingComposer', function () {
     const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IRenderableController);
 
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
-    const callBindingInstruction: ICallBindingInstruction = { from } as unknown as ICallBindingInstruction;
+    const callBindingInstruction: CallBindingInstruction = { from } as unknown as CallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
@@ -161,7 +164,7 @@ describe('TranslationBindingComposer', function () {
     const controller = ({ bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IRenderableController);
 
     const from = expressionParser.parse('simple.key', BindingType.CustomCommand);
-    const callBindingInstruction: ICallBindingInstruction = { from } as unknown as ICallBindingInstruction;
+    const callBindingInstruction: CallBindingInstruction = { from } as unknown as CallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
@@ -285,7 +288,7 @@ describe('TranslationBindBindingComposer', function () {
     const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IRenderableController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
-    const callBindingInstruction: ICallBindingInstruction = { from, to: '.bind' } as unknown as ICallBindingInstruction;
+    const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
@@ -304,7 +307,7 @@ describe('TranslationBindBindingComposer', function () {
     const controller = ({ bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IRenderableController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
-    const callBindingInstruction: ICallBindingInstruction = { from, to: '.bind' } as unknown as ICallBindingInstruction;
+    const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,
@@ -325,7 +328,7 @@ describe('TranslationBindBindingComposer', function () {
     const controller = ({ bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IRenderableController);
 
     const from = expressionParser.parse('simple.key', BindingType.BindCommand);
-    const callBindingInstruction: ICallBindingInstruction = { from, to: '.bind' } as unknown as ICallBindingInstruction;
+    const callBindingInstruction: CallBindingInstruction = { from, to: '.bind' } as unknown as CallBindingInstruction;
     sut.render(
       LifecycleFlags.none,
       container as unknown as ICompiledRenderContext,

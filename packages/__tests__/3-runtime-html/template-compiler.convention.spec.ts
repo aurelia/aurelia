@@ -1,9 +1,11 @@
 import {
   BindingMode,
   ITemplateCompiler,
-  TargetedInstructionType as TT,
-  ITargetedInstruction
+  ITargetedInstruction,
 } from '@aurelia/runtime';
+import {
+  TargetedInstructionType as TT,
+} from '@aurelia/runtime-html';
 import {
   assert,
   TestContext

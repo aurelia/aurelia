@@ -15,10 +15,12 @@ import {
   Controller,
   IScheduler,
   CustomElementDefinition,
-  ToViewBindingInstruction,
   getRenderContext,
   IRenderableController,
 } from '@aurelia/runtime';
+import {
+  ToViewBindingInstruction,
+} from '@aurelia/runtime-html';
 import {
   AuDOMConfiguration,
   AuNode,

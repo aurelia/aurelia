@@ -598,7 +598,7 @@ export {
   // InterpolationInstruction,
   // IteratorBindingInstruction,
   // LetBindingInstruction,
-  // LetElementInstruction,
+  // HydrateLetElementInstruction,
   // OneTimeBindingInstruction,
   // RefBindingInstruction,
   // SetPropertyInstruction,
@@ -654,73 +654,6 @@ export {
   // createIndexMap,
 
   instructionComposer,
-  ensureExpression,
-
-  // CompiledTemplate,
-  // ChildrenObserver,
-  // IInstructionComposer,
-  // IInstructionTypeClassifier,
-  // IComposer,
-  // IRenderingEngine,
-  // ITemplate,
-  // ITemplateCompiler,
-  // ITemplateFactory,
-
-  // RenderContext
-
-  // AttrSyntax,
-
-  // IAttributeParser,
-
-  attributePattern,
-  // AttributePatternDefinition,
-  IAttributePattern,
-  // IAttributePatternHandler,
-  // Interpretation,
-  // ISyntaxInterpreter,
-
-  // AtPrefixedTriggerAttributePattern,
-  // ColonPrefixedBindAttributePattern,
-  // DotSeparatedAttributePattern,
-  // RefAttributePattern,
-
-  bindingCommand,
-  // BindingCommand,
-  BindingCommandInstance,
-  // BindingCommandDefinition,
-  // BindingCommandKind,
-  // BindingCommandType,
-  getTarget,
-
-  // CallBindingCommand,
-  // DefaultBindingCommand,
-  // ForBindingCommand,
-  // FromViewBindingCommand,
-  // OneTimeBindingCommand,
-  // ToViewBindingCommand,
-  // TwoWayBindingCommand,
-
-  // IExpressionParserRegistration,
-
-  // DefaultComponents as JitDefaultComponents,
-
-  // RefAttributePatternRegistration,
-  // DotSeparatedAttributePatternRegistration,
-
-  // DefaultBindingSyntax,
-
-  // AtPrefixedTriggerAttributePatternRegistration,
-  // ColonPrefixedBindAttributePatternRegistration,
-
-  ShortHandBindingSyntax,
-
-  // CallBindingCommandRegistration,
-  // DefaultBindingCommandRegistration,
-  // ForBindingCommandRegistration,
-  // FromViewBindingCommandRegistration,
-  // OneTimeBindingCommandRegistration,
-  // ToViewBindingCommandRegistration,
-  // TwoWayBindingCommandRegistration,
 
   // DefaultBindingLanguage as JitDefaultBindingLanguage,
 
@@ -829,6 +762,72 @@ export {
 
   // DefaultComponents as RuntimeHtmlDefaultComponents,
 
+  // CompiledTemplate,
+  // ChildrenObserver,
+  // IInstructionComposer,
+  // IInstructionTypeClassifier,
+  // IComposer,
+  // IRenderingEngine,
+  // ITemplate,
+  // ITemplateCompiler,
+  // ITemplateFactory,
+
+  // RenderContext
+
+  // AttrSyntax,
+
+  // IAttributeParser,
+
+  attributePattern,
+  // AttributePatternDefinition,
+  IAttributePattern,
+  // IAttributePatternHandler,
+  // Interpretation,
+  // ISyntaxInterpreter,
+
+  // AtPrefixedTriggerAttributePattern,
+  // ColonPrefixedBindAttributePattern,
+  // DotSeparatedAttributePattern,
+  // RefAttributePattern,
+
+  bindingCommand,
+  // BindingCommand,
+  BindingCommandInstance,
+  // BindingCommandDefinition,
+  // BindingCommandKind,
+  // BindingCommandType,
+  getTarget,
+
+  // CallBindingCommand,
+  // DefaultBindingCommand,
+  // ForBindingCommand,
+  // FromViewBindingCommand,
+  // OneTimeBindingCommand,
+  // ToViewBindingCommand,
+  // TwoWayBindingCommand,
+
+  // IExpressionParserRegistration,
+
+  // DefaultComponents as JitDefaultComponents,
+
+  // RefAttributePatternRegistration,
+  // DotSeparatedAttributePatternRegistration,
+
+  // DefaultBindingSyntax,
+
+  // AtPrefixedTriggerAttributePatternRegistration,
+  // ColonPrefixedBindAttributePatternRegistration,
+
+  ShortHandBindingSyntax,
+
+  // CallBindingCommandRegistration,
+  // DefaultBindingCommandRegistration,
+  // ForBindingCommandRegistration,
+  // FromViewBindingCommandRegistration,
+  // OneTimeBindingCommandRegistration,
+  // ToViewBindingCommandRegistration,
+  // TwoWayBindingCommandRegistration,
+
   // AttrBindingBehaviorRegistration,
   // SelfBindingBehaviorRegistration,
   // UpdateTriggerBindingBehaviorRegistration,
@@ -851,15 +850,15 @@ export {
   createElement,
   // RenderPlan,
 
-  // HTMLAttributeInstruction,
-  // HTMLInstructionRow,
-  // HTMLNodeInstruction,
-  // HTMLTargetedInstruction,
-  // HTMLTargetedInstructionType,
+  // AttributeInstruction,
+  // InstructionRow,
+  // NodeInstruction,
+  // TargetedInstruction,
+  // TargetedInstructionType,
   // IAttributeBindingInstruction,
   // IListenerBindingInstruction,
   // ISetAttributeInstruction,
-  // isHTMLTargetedInstruction,
+  // isTargetedInstruction,
   // IStylePropertyBindingInstruction,
   // ITextBindingInstruction,
 

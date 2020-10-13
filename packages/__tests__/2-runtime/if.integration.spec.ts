@@ -11,9 +11,11 @@ import {
   ViewFactory,
   Controller,
   CustomElementDefinition,
-  ToViewBindingInstruction,
   getRenderContext,
 } from '@aurelia/runtime';
+import {
+  ToViewBindingInstruction,
+} from '@aurelia/runtime-html';
 import {
   AuDOMConfiguration,
   AuNode,

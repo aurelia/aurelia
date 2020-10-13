@@ -11,6 +11,7 @@ import {
 import {
   AccessScopeExpression,
   bindable,
+  BindableDefinition,
   BindingIdentifier,
   BindingMode,
   BindingType,
@@ -20,36 +21,33 @@ import {
   CustomElement,
   DelegationStrategy,
   ForOfStatement,
-  HydrateTemplateController,
-  BindableDefinition,
-  IHydrateElementInstruction,
-  IHydrateTemplateController,
   ITemplateCompiler,
   PartialCustomElementDefinition,
   PrimitiveLiteralExpression,
-  TargetedInstructionType as TT,
-  IHydrateLetElementInstruction,
   PartialCustomAttributeDefinition,
   HooksDefinition,
   CustomElementDefinition,
-  HydrateElementInstruction,
   Aurelia,
   IProjections,
   ITargetedInstruction,
   CustomElementType,
   AuSlot,
   RegisteredProjections,
-  TargetedInstructionType,
   AuSlotContentType,
   Scope,
   parseExpression,
+} from '@aurelia/runtime';
+import {
+  HydrateElementInstruction,
+  HydrateTemplateController,
+  TargetedInstructionType as HTT,
+  ITemplateElementFactory,
+  TargetedInstructionType as TT,
+  HydrateLetElementInstruction,
+  TargetedInstructionType,
   ResourceModel,
   ElementInfo,
   BindableInfo,
-} from '@aurelia/runtime';
-import {
-  HTMLTargetedInstructionType as HTT,
-  ITemplateElementFactory,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -198,7 +196,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         const expectedElInstructions = [
           { toVerify: ['type', 'to', 'value'], type: TT.setProperty, to: 'name', value: 'name' }
         ];
-        verifyInstructions((rootInstructions[0] as IHydrateElementInstruction).instructions, expectedElInstructions);
+        verifyInstructions((rootInstructions[0] as HydrateElementInstruction).instructions, expectedElInstructions);
       });
 
       it('understands element property casing', function () {
@@ -220,7 +218,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         const expectedElInstructions = [
           { toVerify: ['type', 'value', 'to'], type: TT.setProperty, value: 'label', to: 'backgroundColor' },
         ];
-        verifyInstructions((rootInstructions[0] as IHydrateElementInstruction).instructions, expectedElInstructions);
+        verifyInstructions((rootInstructions[0] as HydrateElementInstruction).instructions, expectedElInstructions);
       });
 
       it('understands binding commands', function () {
@@ -256,7 +254,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
           e.type = TT.propertyBinding;
           return e;
         });
-        verifyInstructions((rootInstructions[0] as IHydrateElementInstruction).instructions, expectedElInstructions);
+        verifyInstructions((rootInstructions[0] as HydrateElementInstruction).instructions, expectedElInstructions);
       });
 
       describe('with template controller', function () {
@@ -332,12 +330,12 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
                 { toVerify: ['type', 'res', 'to'],
                   type: TT.hydrateTemplateController, res: 'if' }
               ]);
-              const templateControllerInst = instructions[0][0] as IHydrateTemplateController;
+              const templateControllerInst = instructions[0][0] as HydrateTemplateController;
               verifyInstructions(templateControllerInst.instructions, [
                 { toVerify: ['type', 'to', 'from'],
                   type: TT.propertyBinding, to: 'value', from: new AccessScopeExpression('value') }
               ]);
-              const [hydrateNotDivInstruction] = templateControllerInst.def.instructions[0] as [IHydrateElementInstruction];
+              const [hydrateNotDivInstruction] = templateControllerInst.def.instructions[0] as [HydrateElementInstruction];
               verifyInstructions([hydrateNotDivInstruction], [
                 { toVerify: ['type', 'res'],
                   type: TT.hydrateElement, res: 'not-div' }
@@ -357,7 +355,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
 
         it('does not generate instructions when there is no bindings', function () {
           const { instructions } = compileWith(`<template><let></let></template>`);
-          assert.strictEqual((instructions[0][0] as IHydrateLetElementInstruction).instructions.length, 0, `(instructions[0][0]).instructions.length`);
+          assert.strictEqual((instructions[0][0] as HydrateLetElementInstruction).instructions.length, 0, `(instructions[0][0]).instructions.length`);
         });
 
         it('ignores custom element resource', function () {
@@ -375,7 +373,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
 
         it('compiles with attributes', function () {
           const { instructions } = compileWith(`<let a.bind="b" c="\${d}"></let>`);
-          verifyInstructions((instructions[0][0] as IHydrateLetElementInstruction).instructions, [
+          verifyInstructions((instructions[0][0] as HydrateLetElementInstruction).instructions, [
             { toVerify: ['type', 'to', 'srcOrExp'],
               type: TT.letBinding, to: 'a', from: 'b' },
             { toVerify: ['type', 'to'],
@@ -386,7 +384,7 @@ describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
         describe('[to-binding-context]', function () {
           it('understands [to-binding-context]', function () {
             const { instructions } = compileWith(`<template><let to-binding-context></let></template>`);
-            assert.strictEqual((instructions[0][0] as IHydrateLetElementInstruction).toBindingContext, true, `(instructions[0][0]).toBindingContext`);
+            assert.strictEqual((instructions[0][0] as HydrateLetElementInstruction).toBindingContext, true, `(instructions[0][0]).toBindingContext`);
           });
 
           it('ignores [to-binding-context] order', function () {

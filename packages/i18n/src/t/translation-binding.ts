@@ -5,9 +5,7 @@ import {
   CustomElement,
   CustomExpression,
   DOM,
-  ensureExpression,
   IBindingTargetAccessor,
-  ICallBindingInstruction,
   IConnectableBinding,
   IExpressionParser,
   Interpolation,
@@ -17,12 +15,14 @@ import {
   LifecycleFlags,
   INode,
   IRenderableController,
+  IsBindingBehavior,
 } from '@aurelia/runtime';
 import i18next from 'i18next';
 import { I18N } from '../i18n';
 import { Signals } from '../utils';
 
 import type { Scope } from '@aurelia/runtime';
+import type { CallBindingInstruction } from '@aurelia/runtime-html';
 
 interface TranslationBindingCreationContext {
   parser: IExpressionParser;
@@ -30,7 +30,7 @@ interface TranslationBindingCreationContext {
   context: IContainer;
   controller: IRenderableController;
   target: HTMLElement;
-  instruction: ICallBindingInstruction;
+  instruction: CallBindingInstruction;
   isParameterContext?: boolean;
 }
 const contentAttributes = ['textContent', 'innerHTML', 'prepend', 'append'] as const;
@@ -88,7 +88,9 @@ export class TranslationBinding implements IPartialConnectableBinding {
     isParameterContext,
   }: TranslationBindingCreationContext) {
     const binding = this.getBinding({ observerLocator, context, controller, target });
-    const expr = ensureExpression(parser, instruction.from, BindingType.BindCommand);
+    const expr = typeof instruction.from === 'string'
+      ? parser.parse(instruction.from, BindingType.BindCommand)
+      : instruction.from as IsBindingBehavior;
     if (!isParameterContext) {
       const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value, BindingType.Interpolation) : undefined;
       binding.expr = interpolation || expr;

@@ -2,7 +2,6 @@ import { IContainer } from '@aurelia/kernel';
 import {
   BindingMode,
   BindingType,
-  ICallBindingInstruction,
   IRenderableController,
   IExpressionParser,
   IInstructionComposer,
@@ -10,15 +9,21 @@ import {
   IObserverLocator,
   IsBindingBehavior,
   LifecycleFlags,
+} from '@aurelia/runtime';
+import { TranslationBinding } from './translation-binding';
+import {
   attributePattern,
   AttrSyntax,
   bindingCommand,
-  BindingSymbol,
   getTarget,
+} from '@aurelia/runtime-html';
+
+import type {
+  CallBindingInstruction,
+  BindingSymbol,
   BindingCommandInstance,
   PlainAttributeSymbol,
-} from '@aurelia/runtime';
-import { TranslationBinding } from './translation-binding';
+} from '@aurelia/runtime-html';
 
 export const TranslationParametersInstructionType = 'tpt';
 // `.bind` part is needed here only for vCurrent compliance
@@ -62,7 +67,7 @@ export class TranslationParametersBindingComposer implements IInstructionCompose
     context: IContainer,
     controller: IRenderableController,
     target: HTMLElement,
-    instruction: ICallBindingInstruction,
+    instruction: CallBindingInstruction,
   ): void {
     TranslationBinding.create({ parser: this.parser, observerLocator: this.observerLocator, context, controller: controller, target, instruction, isParameterContext: true });
   }

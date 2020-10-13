@@ -13,8 +13,6 @@ import {
   BindingMode,
   BindingType,
   CustomElementHost,
-  HydrateElementInstruction,
-  HydrateTemplateController,
   IBindingTargetAccessor,
   IBindingTargetObserver,
   IDOM,
@@ -35,21 +33,44 @@ import {
   ITargetedInstruction,
   ITargetObserverLocator,
   PartialCustomElementDefinition,
-  IteratorBindingInstruction,
-  LetBindingInstruction,
-  LetElementInstruction,
   LifecycleFlags,
   PropertyBinding,
   RuntimeConfiguration,
-  TargetedInstruction,
   CustomElementDefinition,
-  ToViewBindingInstruction,
   ITemplateCompiler,
   IScheduler,
   CustomElement,
   ICustomElementController,
   parseExpression,
 } from '@aurelia/runtime';
+import {
+  HydrateElementInstruction,
+  HydrateLetElementInstruction,
+  HydrateTemplateController,
+  IComposerRegistration,
+  IteratorBindingInstruction,
+  LetBindingInstruction,
+  TargetedInstruction,
+  ToViewBindingInstruction,
+  DefaultBindingCommandRegistration,
+  OneTimeBindingCommandRegistration,
+  FromViewBindingCommandRegistration,
+  ToViewBindingCommandRegistration,
+  TwoWayBindingCommandRegistration,
+  CallBindingCommandRegistration,
+  ForBindingCommandRegistration,
+  RefBindingCommandRegistration,
+  PropertyBindingRendererRegistration,
+  IteratorBindingRendererRegistration,
+  CallBindingRendererRegistration,
+  RefBindingRendererRegistration,
+  InterpolationBindingRendererRegistration,
+  SetPropertyRendererRegistration,
+  CustomElementRendererRegistration,
+  CustomAttributeRendererRegistration,
+  TemplateControllerRendererRegistration,
+  LetElementRendererRegistration,
+} from '@aurelia/runtime-html';
 import { TestContext } from './html-test-context';
 
 export class AuNode implements INode {
@@ -675,6 +696,25 @@ export const AuDOMConfiguration = {
   register(container: IContainer): void {
     container.register(
       RuntimeConfiguration,
+      IComposerRegistration,
+      DefaultBindingCommandRegistration,
+      OneTimeBindingCommandRegistration,
+      FromViewBindingCommandRegistration,
+      ToViewBindingCommandRegistration,
+      TwoWayBindingCommandRegistration,
+      CallBindingCommandRegistration,
+      ForBindingCommandRegistration,
+      RefBindingCommandRegistration,
+      PropertyBindingRendererRegistration,
+      IteratorBindingRendererRegistration,
+      CallBindingRendererRegistration,
+      RefBindingRendererRegistration,
+      InterpolationBindingRendererRegistration,
+      SetPropertyRendererRegistration,
+      CustomElementRendererRegistration,
+      CustomAttributeRendererRegistration,
+      TemplateControllerRendererRegistration,
+      LetElementRendererRegistration,
       AuTextComposer as unknown as IRegistry,
       Registration.singleton(IDOM, AuDOM),
       Registration.singleton(IDOMInitializer, AuDOMInitializer),
@@ -760,8 +800,8 @@ export const AuDOMTest = {
       null,
     );
   },
-  createLetInstruction(bindings: [string, string][], toBindingContext: boolean = false): LetElementInstruction {
-    return new LetElementInstruction(
+  createLetInstruction(bindings: [string, string][], toBindingContext: boolean = false): HydrateLetElementInstruction {
+    return new HydrateLetElementInstruction(
       bindings.map(([from, to]) => new LetBindingInstruction(parseExpression(from), to)),
       toBindingContext
     );

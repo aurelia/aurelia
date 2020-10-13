@@ -1,0 +1,733 @@
+import { all, Metadata, IServiceLocator, IResolver, IContainer, Registration } from '@aurelia/kernel';
+import {
+  BindingMode,
+  BindingType,
+  ContentBinding,
+  ICompiledRenderContext,
+  IExpressionParser,
+  IObserverLocator,
+  IRenderableController,
+  IScheduler,
+  Interpolation,
+  IsBindingBehavior,
+  LifecycleFlags,
+  InterpolationBinding,
+  PropertyBinding,
+  AnyBindingExpression,
+  BindingBehaviorExpression,
+  BindingBehaviorInstance,
+  CallBinding,
+  Controller,
+  CustomAttribute,
+  CustomElement,
+  CustomElementDefinition,
+  getRenderContext,
+  IController,
+  ICustomAttributeViewModel,
+  ICustomElementViewModel,
+  IInstructionComposer,
+  IInterceptableBinding,
+  ILifecycle,
+  INode,
+  instructionComposer,
+  InstructionTypeName,
+  IObservable,
+  IViewFactory,
+  LetBinding,
+  RefBinding,
+  IComposer,
+  BindingBehaviorFactory,
+} from '@aurelia/runtime';
+import { AttributeBinding } from './binding/attribute';
+import { Listener } from './binding/listener';
+import { IEventManager } from './observation/event-manager';
+import {
+  AttributeBindingInstruction,
+  CallBindingInstruction,
+  HydrateAttributeInstruction,
+  HydrateElementInstruction,
+  HydrateLetElementInstruction,
+  HydrateTemplateController,
+  InterpolationInstruction,
+  IteratorBindingInstruction,
+  LetBindingInstruction,
+  ListenerBindingInstruction,
+  PropertyBindingInstruction,
+  RefBindingInstruction,
+  SetAttributeInstruction,
+  SetClassAttributeInstruction,
+  SetPropertyInstruction,
+  SetStyleAttributeInstruction,
+  StylePropertyBindingInstruction,
+  TargetedInstruction,
+  TargetedInstructionType,
+  TextBindingInstruction,
+} from './instructions';
+
+export class Composer implements IComposer {
+  private readonly instructionRenderers: Record<InstructionTypeName, IInstructionComposer['render']>;
+
+  public static register(container: IContainer): IResolver<IComposer> {
+    return Registration.singleton(IComposer, this).register(container);
+  }
+
+  public constructor(@all(IInstructionComposer) instructionRenderers: IInstructionComposer[]) {
+    const record: Record<InstructionTypeName, IInstructionComposer['render']> = this.instructionRenderers = {};
+    instructionRenderers.forEach(item => {
+      // Binding the functions to the composer instances and calling the functions directly,
+      // prevents the `render` call sites from going megamorphic.
+      // Consumes slightly more memory but significantly less CPU.
+      record[item.instructionType as string] = item.render.bind(item);
+    });
+  }
+
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    targets: ArrayLike<INode>,
+    definition: CustomElementDefinition,
+    host: INode | null | undefined,
+  ): void {
+    const targetInstructions = definition.instructions;
+
+    if (targets.length !== targetInstructions.length) {
+      throw new Error(`The compiled template is not aligned with the render instructions. There are ${targets.length} targets and ${targetInstructions.length} instructions.`);
+    }
+
+    for (let i = 0, ii = targets.length; i < ii; ++i) {
+      this.renderInstructions(
+        /* flags        */flags,
+        /* context      */context,
+        /* instructions */targetInstructions[i] as readonly TargetedInstruction[],
+        /* controller   */controller,
+        /* target       */targets[i],
+      );
+    }
+
+    if (host !== void 0 && host !== null) {
+      this.renderInstructions(
+        /* flags        */flags,
+        /* context      */context,
+        /* instructions */definition.surrogates as readonly TargetedInstruction[],
+        /* controller   */controller,
+        /* target       */host,
+      );
+    }
+  }
+
+  public renderInstructions(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    instructions: readonly TargetedInstruction[],
+    controller: IRenderableController,
+    target: unknown,
+  ): void {
+    const instructionRenderers = this.instructionRenderers;
+    let current: TargetedInstruction;
+    for (let i = 0, ii = instructions.length; i < ii; ++i) {
+      current = instructions[i];
+      instructionRenderers[current.type](flags, context, controller, target, current);
+    }
+  }
+}
+
+function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, bindingType: BindingType): Exclude<TFrom, string> {
+  if (typeof srcOrExpr === 'string') {
+    return parser.parse(srcOrExpr, bindingType) as unknown as Exclude<TFrom, string>;
+  }
+  return srcOrExpr as Exclude<TFrom, string>;
+}
+
+function getTarget(potentialTarget: object): object {
+  if ((potentialTarget as { bindingContext?: object }).bindingContext !== void 0) {
+    return (potentialTarget as { bindingContext: object }).bindingContext;
+  }
+  return potentialTarget;
+}
+
+function getRefTarget(refHost: INode, refTargetName: string): object {
+  if (refTargetName === 'element') {
+    return refHost;
+  }
+  switch (refTargetName) {
+    case 'controller':
+      // this means it supports returning undefined
+      return CustomElement.for(refHost)!;
+    case 'view':
+      // todo: returns node sequences for fun?
+      throw new Error('Not supported API');
+    case 'view-model':
+      // this means it supports returning undefined
+      return CustomElement.for(refHost)!.viewModel!;
+    default: {
+      const caController = CustomAttribute.for(refHost, refTargetName);
+      if (caController !== void 0) {
+        return caController.viewModel!;
+      }
+      const ceController = CustomElement.for(refHost, { name: refTargetName });
+      if (ceController === void 0) {
+        throw new Error(`Attempted to reference "${refTargetName}", but it was not found amongst the target's API.`);
+      }
+      return ceController.viewModel!;
+    }
+  }
+}
+
+@instructionComposer(TargetedInstructionType.setProperty)
+/** @internal */
+export class SetPropertyComposer implements IInstructionComposer {
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: IController,
+    instruction: SetPropertyInstruction,
+  ): void {
+    const obj = getTarget(target) as IObservable;
+    if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
+      obj.$observers[instruction.to].setValue(instruction.value, LifecycleFlags.fromBind);
+    } else {
+      obj[instruction.to] = instruction.value;
+    }
+  }
+}
+
+@instructionComposer(TargetedInstructionType.hydrateElement)
+/** @internal */
+export class CustomElementComposer implements IInstructionComposer {
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: INode,
+    instruction: HydrateElementInstruction,
+  ): void {
+
+    let viewFactory: IViewFactory | undefined;
+
+    const slotInfo = instruction.slotInfo;
+    if (slotInfo!==null) {
+      const projectionCtx = slotInfo.projectionContext;
+      viewFactory = getRenderContext(projectionCtx.content, context).getViewFactory(void 0, slotInfo.type, projectionCtx.scope);
+    }
+
+    const factory = context.getComponentFactory(
+      /* parentController */controller,
+      /* host             */target,
+      /* instruction      */instruction,
+      /* viewFactory      */viewFactory,
+      /* location         */target,
+    );
+
+    const key = CustomElement.keyFrom(instruction.res);
+    const component = factory.createComponent<ICustomElementViewModel>(key);
+
+    const lifecycle = context.get(ILifecycle);
+    const childController = Controller.forCustomElement(
+      /* root                */controller.root,
+      /* container           */context,
+      /* viewModel           */component,
+      /* lifecycle           */lifecycle,
+      /* host                */target,
+      /* targetedProjections */context.getProjectionFor(instruction),
+      /* flags               */flags,
+    );
+
+    flags = childController.flags;
+    Metadata.define(key, childController, target);
+
+    context.renderInstructions(
+      /* flags        */flags,
+      /* instructions */instruction.instructions,
+      /* controller   */controller,
+      /* target       */childController,
+    );
+
+    controller.addController(childController);
+
+    factory.dispose();
+  }
+}
+
+@instructionComposer(TargetedInstructionType.hydrateAttribute)
+/** @internal */
+export class CustomAttributeComposer implements IInstructionComposer {
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: INode,
+    instruction: HydrateAttributeInstruction,
+  ): void {
+    const factory = context.getComponentFactory(
+      /* parentController */controller,
+      /* host             */target,
+      /* instruction      */instruction,
+      /* viewFactory      */void 0,
+      /* location         */void 0,
+    );
+
+    const key = CustomAttribute.keyFrom(instruction.res);
+    const component = factory.createComponent<ICustomAttributeViewModel>(key);
+
+    const lifecycle = context.get(ILifecycle);
+    const childController = Controller.forCustomAttribute(
+      /* root      */controller.root,
+      /* container */context,
+      /* viewModel */component,
+      /* lifecycle */lifecycle,
+      /* host      */target,
+      /* flags     */flags,
+    );
+
+    Metadata.define(key, childController, target);
+
+    context.renderInstructions(
+      /* flags        */flags,
+      /* instructions */instruction.instructions,
+      /* controller   */controller,
+      /* target       */childController,
+    );
+
+    controller.addController(childController);
+
+    factory.dispose();
+  }
+}
+
+@instructionComposer(TargetedInstructionType.hydrateTemplateController)
+/** @internal */
+export class TemplateControllerComposer implements IInstructionComposer {
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: INode,
+    instruction: HydrateTemplateController,
+  ): void {
+
+    const viewFactory = getRenderContext(instruction.def, context).getViewFactory();
+    const renderLocation = context.dom.convertToRenderLocation(target);
+
+    const componentFactory = context.getComponentFactory(
+      /* parentController */controller,
+      /* host             */target,
+      /* instruction      */instruction,
+      /* viewFactory      */viewFactory,
+      /* location         */renderLocation,
+    );
+
+    const key = CustomAttribute.keyFrom(instruction.res);
+    const component = componentFactory.createComponent<ICustomAttributeViewModel>(key);
+
+    const lifecycle = context.get(ILifecycle);
+    const childController = Controller.forCustomAttribute(
+      /* root      */controller.root,
+      /* container */context,
+      /* viewModel */component,
+      /* lifecycle */lifecycle,
+      /* host      */target,
+      /* flags     */flags,
+    );
+
+    Metadata.define(key, childController, renderLocation);
+
+    if (instruction.link) {
+      const children = controller.children!;
+      (component as { link(componentTail: IController): void}).link(children[children.length - 1]);
+    }
+
+    context.renderInstructions(
+      /* flags        */flags,
+      /* instructions */instruction.instructions,
+      /* controller   */controller,
+      /* target       */childController,
+    );
+
+    controller.addController(childController);
+
+    componentFactory.dispose();
+  }
+}
+
+@instructionComposer(TargetedInstructionType.hydrateLetElement)
+/** @internal */
+export class LetElementComposer implements IInstructionComposer {
+  public constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+  ) {}
+
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: INode,
+    instruction: HydrateLetElementInstruction,
+  ): void {
+    context.dom.remove(target);
+    const childInstructions = instruction.instructions;
+    const toBindingContext = instruction.toBindingContext;
+
+    let childInstruction: LetBindingInstruction;
+    let expr: AnyBindingExpression;
+    let binding: LetBinding;
+    for (let i = 0, ii = childInstructions.length; i < ii; ++i) {
+      childInstruction = childInstructions[i];
+      expr = ensureExpression(this.parser, childInstruction.from, BindingType.IsPropertyCommand);
+      binding = applyBindingBehavior(
+        new LetBinding(expr, childInstruction.to, this.observerLocator, context, toBindingContext),
+        expr as unknown as IsBindingBehavior,
+        context,
+      ) as LetBinding;
+      controller.addBinding(binding);
+    }
+  }
+}
+
+@instructionComposer(TargetedInstructionType.callBinding)
+/** @internal */
+export class CallBindingComposer implements IInstructionComposer {
+  public constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+  ) {}
+
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: IController,
+    instruction: CallBindingInstruction,
+  ): void {
+    const expr = ensureExpression(this.parser, instruction.from, BindingType.CallCommand);
+    const binding = applyBindingBehavior(
+      new CallBinding(expr, getTarget(target), instruction.to, this.observerLocator, context),
+      expr,
+      context,
+    );
+    controller.addBinding(binding);
+  }
+}
+
+@instructionComposer(TargetedInstructionType.refBinding)
+/** @internal */
+export class RefBindingComposer implements IInstructionComposer {
+  public constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+  ) {}
+
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: INode,
+    instruction: RefBindingInstruction,
+  ): void {
+    const expr = ensureExpression(this.parser, instruction.from, BindingType.IsRef);
+    const binding = applyBindingBehavior(
+      new RefBinding(expr, getRefTarget(target, instruction.to), context),
+      expr,
+      context,
+    );
+    controller.addBinding(binding);
+  }
+}
+
+@instructionComposer(TargetedInstructionType.interpolation)
+/** @internal */
+export class InterpolationBindingComposer implements IInstructionComposer {
+  public constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IScheduler private readonly scheduler: IScheduler,
+  ) {}
+
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: IController,
+    instruction: InterpolationInstruction,
+  ): void {
+    const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation) as Interpolation;
+    const binding = new InterpolationBinding(
+      this.observerLocator,
+      expr,
+      getTarget(target),
+      instruction.to,
+      BindingMode.toView,
+      context,
+      this.scheduler,
+    );
+    const partBindings = binding.partBindings;
+    let partBinding: ContentBinding;
+    for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+      partBinding = partBindings[i];
+      partBindings[i] = applyBindingBehavior(
+        partBinding,
+        partBinding.sourceExpression as unknown as IsBindingBehavior,
+        context
+      ) as ContentBinding;
+    }
+    controller.addBinding(binding);
+  }
+}
+
+@instructionComposer(TargetedInstructionType.propertyBinding)
+/** @internal */
+export class PropertyBindingComposer implements IInstructionComposer {
+  public constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+  ) {}
+
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: IController,
+    instruction: PropertyBindingInstruction,
+  ): void {
+    const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | instruction.mode);
+    const binding = applyBindingBehavior(
+      new PropertyBinding(expr, getTarget(target), instruction.to, instruction.mode, this.observerLocator, context),
+      expr,
+      context,
+    );
+    controller.addBinding(binding);
+  }
+}
+
+@instructionComposer(TargetedInstructionType.iteratorBinding)
+/** @internal */
+export class IteratorBindingComposer implements IInstructionComposer {
+  public constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+  ) {}
+
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: IController,
+    instruction: IteratorBindingInstruction,
+  ): void {
+    const expr = ensureExpression(this.parser, instruction.from, BindingType.ForCommand);
+    const binding = applyBindingBehavior(
+      new PropertyBinding(expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context),
+      expr as unknown as IsBindingBehavior,
+      context,
+    );
+    controller.addBinding(binding);
+  }
+}
+
+let behaviorExpressionIndex = 0;
+const behaviorExpressions: BindingBehaviorExpression[] = [];
+
+export function applyBindingBehavior(
+  binding: IInterceptableBinding,
+  expression: IsBindingBehavior,
+  locator: IServiceLocator,
+): IInterceptableBinding {
+  while (expression instanceof BindingBehaviorExpression) {
+    behaviorExpressions[behaviorExpressionIndex++] = expression;
+    expression = expression.expression;
+  }
+  while (behaviorExpressionIndex > 0) {
+    const behaviorExpression = behaviorExpressions[--behaviorExpressionIndex];
+    const behaviorOrFactory = locator.get<BindingBehaviorFactory | BindingBehaviorInstance>(behaviorExpression.behaviorKey);
+    if (behaviorOrFactory instanceof BindingBehaviorFactory) {
+      binding = behaviorOrFactory.construct(binding, behaviorExpression);
+    }
+  }
+  behaviorExpressions.length = 0;
+  return binding;
+}
+
+@instructionComposer(TargetedInstructionType.textBinding)
+/** @internal */
+export class TextBindingComposer implements IInstructionComposer {
+  public constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IScheduler private readonly scheduler: IScheduler,
+  ) {}
+
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: ChildNode,
+    instruction: TextBindingInstruction,
+  ): void {
+    const next = target.nextSibling;
+    if (context.dom.isMarker(target)) {
+      context.dom.remove(target);
+    }
+    const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation) as Interpolation;
+    const binding = new InterpolationBinding(
+      this.observerLocator,
+      expr,
+      next!,
+      'textContent',
+      BindingMode.toView,
+      context,
+      this.scheduler,
+    );
+    const partBindings = binding.partBindings;
+    let partBinding: ContentBinding;
+    for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+      partBinding = partBindings[i];
+      partBindings[i] = applyBindingBehavior(
+        partBinding,
+        partBinding.sourceExpression as unknown as IsBindingBehavior,
+        context
+      ) as ContentBinding;
+    }
+    controller.addBinding(binding);
+  }
+}
+
+@instructionComposer(TargetedInstructionType.listenerBinding)
+/** @internal */
+export class ListenerBindingComposer implements IInstructionComposer {
+  public constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IEventManager private readonly eventManager: IEventManager,
+  ) {}
+
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: HTMLElement,
+    instruction: ListenerBindingInstruction,
+  ): void {
+    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+    const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
+    const binding = applyBindingBehavior(
+      new Listener(context.dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context),
+      expr,
+      context,
+    );
+    controller.addBinding(binding);
+  }
+}
+
+@instructionComposer(TargetedInstructionType.setAttribute)
+/** @internal */
+export class SetAttributeComposer implements IInstructionComposer {
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: HTMLElement,
+    instruction: SetAttributeInstruction,
+  ): void {
+    target.setAttribute(instruction.to, instruction.value);
+  }
+}
+
+@instructionComposer(TargetedInstructionType.setClassAttribute)
+export class SetClassAttributeComposer implements IInstructionComposer {
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: HTMLElement,
+    instruction: SetClassAttributeInstruction,
+  ): void {
+    addClasses(target.classList, instruction.value);
+  }
+}
+
+@instructionComposer(TargetedInstructionType.setStyleAttribute)
+export class SetStyleAttributeComposer implements IInstructionComposer {
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: HTMLElement,
+    instruction: SetStyleAttributeInstruction,
+  ): void {
+    target.style.cssText += instruction.value;
+  }
+}
+
+@instructionComposer(TargetedInstructionType.stylePropertyBinding)
+/** @internal */
+export class StylePropertyBindingComposer implements IInstructionComposer {
+  public constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+  ) {}
+
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: HTMLElement,
+    instruction: StylePropertyBindingInstruction,
+  ): void {
+    const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
+    const binding = applyBindingBehavior(
+      new PropertyBinding(expr, target.style, instruction.to, BindingMode.toView, this.observerLocator, context),
+      expr,
+      context,
+    );
+    controller.addBinding(binding);
+  }
+}
+
+@instructionComposer(TargetedInstructionType.attributeBinding)
+/** @internal */
+export class AttributeBindingComposer implements IInstructionComposer {
+  public constructor(
+    @IExpressionParser private readonly parser: IExpressionParser,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+  ) {}
+
+  public render(
+    flags: LifecycleFlags,
+    context: ICompiledRenderContext,
+    controller: IRenderableController,
+    target: HTMLElement,
+    instruction: AttributeBindingInstruction,
+  ): void {
+    const expr = ensureExpression(this.parser, instruction.from, BindingType.IsPropertyCommand | BindingMode.toView);
+    const binding = applyBindingBehavior(
+      new AttributeBinding(
+        expr,
+        target,
+        instruction.attr/* targetAttribute */,
+        instruction.to/* targetKey */,
+        BindingMode.toView,
+        this.observerLocator,
+        context
+      ),
+      expr,
+      context,
+    );
+    controller.addBinding(binding);
+  }
+}
+
+// http://jsben.ch/7n5Kt
+function addClasses(classList: DOMTokenList, className: string): void {
+  const len = className.length;
+  let start = 0;
+  for (let i = 0; i < len; ++i) {
+    if (className.charCodeAt(i) === 0x20) {
+      if (i !== start) {
+        classList.add(className.slice(start, i));
+      }
+      start = i + 1;
+    } else if (i + 1 === len) {
+      classList.add(className.slice(start));
+    }
+  }
+}

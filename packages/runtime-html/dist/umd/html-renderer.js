@@ -29,22 +29,23 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     let TextBindingRenderer = 
     /** @internal */
     class TextBindingRenderer {
-        constructor(parser, observerLocator) {
+        constructor(parser, observerLocator, scheduler) {
             this.parser = parser;
             this.observerLocator = observerLocator;
+            this.scheduler = scheduler;
         }
         render(flags, context, controller, target, instruction) {
             const next = target.nextSibling;
             if (context.dom.isMarker(target)) {
                 context.dom.remove(target);
             }
-            let binding;
             const expr = runtime_1.ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
-            if (expr.isMulti) {
-                binding = runtime_1.applyBindingBehavior(new runtime_1.MultiInterpolationBinding(this.observerLocator, expr, next, 'textContent', runtime_1.BindingMode.toView, context), expr, context);
-            }
-            else {
-                binding = runtime_1.applyBindingBehavior(new runtime_1.InterpolationBinding(expr.firstExpression, expr, next, 'textContent', runtime_1.BindingMode.toView, this.observerLocator, context, true), expr, context);
+            const binding = new runtime_1.InterpolationBinding(this.observerLocator, expr, next, 'textContent', runtime_1.BindingMode.toView, context, this.scheduler);
+            const partBindings = binding.partBindings;
+            let partBinding;
+            for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+                partBinding = partBindings[i];
+                partBindings[i] = runtime_1.applyBindingBehavior(partBinding, partBinding.sourceExpression, context);
             }
             controller.addBinding(binding);
         }
@@ -55,7 +56,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         ,
         __param(0, runtime_1.IExpressionParser),
         __param(1, runtime_1.IObserverLocator),
-        __metadata("design:paramtypes", [Object, Object])
+        __param(2, runtime_1.IScheduler),
+        __metadata("design:paramtypes", [Object, Object, Object])
     ], TextBindingRenderer);
     exports.TextBindingRenderer = TextBindingRenderer;
     let ListenerBindingRenderer = 

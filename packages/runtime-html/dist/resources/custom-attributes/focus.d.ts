@@ -36,5 +36,6 @@ export declare class Focus implements ICustomAttributeViewModel<HTMLElement> {
      * Focus/blur based on current value
      */
     private apply;
+    private get isElFocused();
 }
 //# sourceMappingURL=focus.d.ts.map

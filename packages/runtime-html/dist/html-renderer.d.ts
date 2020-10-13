@@ -1,10 +1,11 @@
-import { IRenderableController, IExpressionParser, IInstructionRenderer, IObserverLocator, ICompiledRenderContext, LifecycleFlags } from '@aurelia/runtime';
+import { ICompiledRenderContext, IExpressionParser, IInstructionRenderer, IObserverLocator, IRenderableController, IScheduler, LifecycleFlags } from '@aurelia/runtime';
 import { IAttributeBindingInstruction, IListenerBindingInstruction, ISetAttributeInstruction, IStylePropertyBindingInstruction, ITextBindingInstruction, ISetClassAttributeInstruction, ISetStyleAttributeInstruction } from './definitions';
 import { IEventManager } from './observation/event-manager';
 export declare class TextBindingRenderer implements IInstructionRenderer {
     private readonly parser;
     private readonly observerLocator;
-    constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
+    private readonly scheduler;
+    constructor(parser: IExpressionParser, observerLocator: IObserverLocator, scheduler: IScheduler);
     render(flags: LifecycleFlags, context: ICompiledRenderContext, controller: IRenderableController, target: ChildNode, instruction: ITextBindingInstruction): void;
 }
 export declare class ListenerBindingRenderer implements IInstructionRenderer {

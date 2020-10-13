@@ -8,7 +8,7 @@ export { PropertyBinding } from './binding/property-binding';
 export { CallBinding } from './binding/call-binding';
 export { IPartialConnectableBinding, IConnectableBinding, connectable, BindingMediator, MediatedBinding } from './binding/connectable';
 export { IExpressionParser, BindingType, parseExpression, Char, Access, Precedence, parse, ParserState, } from './binding/expression-parser';
-export { MultiInterpolationBinding, InterpolationBinding } from './binding/interpolation-binding';
+export { ContentBinding, InterpolationBinding, } from './binding/interpolation-binding';
 export { LetBinding } from './binding/let-binding';
 export { RefBinding } from './binding/ref-binding';
 export { ArrayObserver, ArrayIndexObserver, enableArrayObservation, disableArrayObservation, applyMutationsToIndices, synchronizeIndices, } from './observation/array-observer';

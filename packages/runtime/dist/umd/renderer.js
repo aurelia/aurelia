@@ -16,7 +16,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./binding/call-binding", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/property-binding", "./binding/ref-binding", "./flags", "./lifecycle", "./observation/observer-locator", "./resources/custom-attribute", "./resources/custom-element", "./templating/controller", "./templating/render-context", "./binding/ast", "./resources/binding-behavior"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./binding/call-binding", "./binding/expression-parser", "./binding/interpolation-binding", "./binding/let-binding", "./binding/property-binding", "./binding/ref-binding", "./flags", "./lifecycle", "./observation/observer-locator", "./resources/custom-attribute", "./resources/custom-element", "./templating/controller", "./templating/render-context", "./binding/ast", "./resources/binding-behavior", "@aurelia/scheduler"], factory);
     }
 })(function (require, exports) {
     "use strict";
@@ -38,6 +38,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     const render_context_1 = require("./templating/render-context");
     const ast_1 = require("./binding/ast");
     const binding_behavior_1 = require("./resources/binding-behavior");
+    const scheduler_1 = require("@aurelia/scheduler");
     exports.ITemplateCompiler = kernel_1.DI.createInterface('ITemplateCompiler').noDefault();
     exports.IInstructionRenderer = kernel_1.DI.createInterface('IInstructionRenderer').noDefault();
     function instructionRenderer(instructionType) {
@@ -370,18 +371,19 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     let InterpolationBindingRenderer = 
     /** @internal */
     class InterpolationBindingRenderer {
-        constructor(parser, observerLocator) {
+        constructor(parser, observerLocator, scheduler) {
             this.parser = parser;
             this.observerLocator = observerLocator;
+            this.scheduler = scheduler;
         }
         render(flags, context, controller, target, instruction) {
-            let binding;
             const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
-            if (expr.isMulti) {
-                binding = applyBindingBehavior(new interpolation_binding_1.MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, flags_1.BindingMode.toView, context), expr, context);
-            }
-            else {
-                binding = applyBindingBehavior(new interpolation_binding_1.InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, flags_1.BindingMode.toView, this.observerLocator, context, true), expr, context);
+            const binding = new interpolation_binding_1.InterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, flags_1.BindingMode.toView, context, this.scheduler);
+            const partBindings = binding.partBindings;
+            let partBinding;
+            for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+                partBinding = partBindings[i];
+                partBindings[i] = applyBindingBehavior(partBinding, partBinding.sourceExpression, context);
             }
             controller.addBinding(binding);
         }
@@ -392,7 +394,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         ,
         __param(0, expression_parser_1.IExpressionParser),
         __param(1, observer_locator_1.IObserverLocator),
-        __metadata("design:paramtypes", [Object, Object])
+        __param(2, scheduler_1.IScheduler),
+        __metadata("design:paramtypes", [Object, Object, Object])
     ], InterpolationBindingRenderer);
     exports.InterpolationBindingRenderer = InterpolationBindingRenderer;
     let PropertyBindingRenderer = 

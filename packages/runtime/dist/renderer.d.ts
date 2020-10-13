@@ -10,6 +10,7 @@ import { ICompiledRenderContext } from './templating/render-context';
 import { IsBindingBehavior } from './binding/ast';
 import { IInterceptableBinding } from './resources/binding-behavior';
 import { RegisteredProjections } from './resources/custom-elements/au-slot';
+import { IScheduler } from '@aurelia/scheduler';
 export interface ITemplateCompiler {
     compile(partialDefinition: PartialCustomElementDefinition, context: IContainer, targetedProjections: RegisteredProjections | null): CustomElementDefinition;
 }
@@ -63,7 +64,8 @@ export declare class RefBindingRenderer implements IInstructionRenderer {
 export declare class InterpolationBindingRenderer implements IInstructionRenderer {
     private readonly parser;
     private readonly observerLocator;
-    constructor(parser: IExpressionParser, observerLocator: IObserverLocator);
+    private readonly scheduler;
+    constructor(parser: IExpressionParser, observerLocator: IObserverLocator, scheduler: IScheduler);
     render(flags: LifecycleFlags, context: ICompiledRenderContext, controller: IRenderableController, target: IController, instruction: IInterpolationInstruction): void;
 }
 export declare class PropertyBindingRenderer implements IInstructionRenderer {

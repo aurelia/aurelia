@@ -10,29 +10,30 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { BindingMode, ensureExpression, IExpressionParser, instructionRenderer, InterpolationBinding, IObserverLocator, MultiInterpolationBinding, PropertyBinding, applyBindingBehavior, } from '@aurelia/runtime';
+import { BindingMode, IExpressionParser, IObserverLocator, IScheduler, InterpolationBinding, PropertyBinding, applyBindingBehavior, ensureExpression, instructionRenderer, } from '@aurelia/runtime';
 import { AttributeBinding } from './binding/attribute';
 import { Listener } from './binding/listener';
 import { IEventManager } from './observation/event-manager';
 let TextBindingRenderer = 
 /** @internal */
 class TextBindingRenderer {
-    constructor(parser, observerLocator) {
+    constructor(parser, observerLocator, scheduler) {
         this.parser = parser;
         this.observerLocator = observerLocator;
+        this.scheduler = scheduler;
     }
     render(flags, context, controller, target, instruction) {
         const next = target.nextSibling;
         if (context.dom.isMarker(target)) {
             context.dom.remove(target);
         }
-        let binding;
         const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
-        if (expr.isMulti) {
-            binding = applyBindingBehavior(new MultiInterpolationBinding(this.observerLocator, expr, next, 'textContent', BindingMode.toView, context), expr, context);
-        }
-        else {
-            binding = applyBindingBehavior(new InterpolationBinding(expr.firstExpression, expr, next, 'textContent', BindingMode.toView, this.observerLocator, context, true), expr, context);
+        const binding = new InterpolationBinding(this.observerLocator, expr, next, 'textContent', BindingMode.toView, context, this.scheduler);
+        const partBindings = binding.partBindings;
+        let partBinding;
+        for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+            partBinding = partBindings[i];
+            partBindings[i] = applyBindingBehavior(partBinding, partBinding.sourceExpression, context);
         }
         controller.addBinding(binding);
     }
@@ -43,7 +44,8 @@ TextBindingRenderer = __decorate([
     ,
     __param(0, IExpressionParser),
     __param(1, IObserverLocator),
-    __metadata("design:paramtypes", [Object, Object])
+    __param(2, IScheduler),
+    __metadata("design:paramtypes", [Object, Object, Object])
 ], TextBindingRenderer);
 export { TextBindingRenderer };
 let ListenerBindingRenderer = 

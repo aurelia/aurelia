@@ -2,49 +2,54 @@ import { IServiceLocator } from '@aurelia/kernel';
 import { IScheduler, ITask } from '@aurelia/scheduler';
 import { BindingMode, LifecycleFlags } from '../flags';
 import { IBinding } from '../lifecycle';
-import { IBindingTargetAccessor } from '../observation';
+import { ICollectionSubscriber, IndexMap } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { Interpolation, IsExpression } from './ast';
-import { IConnectableBinding, IPartialConnectableBinding } from './connectable';
+import { IConnectableBinding } from './connectable';
 import type { Scope } from '../observation/binding-context';
-export declare class MultiInterpolationBinding implements IBinding {
+export declare class InterpolationBinding implements IBinding {
     observerLocator: IObserverLocator;
     interpolation: Interpolation;
     target: object;
     targetProperty: string;
     mode: BindingMode;
     locator: IServiceLocator;
+    $scheduler: IScheduler;
     interceptor: this;
     isBound: boolean;
     $scope?: Scope;
-    parts: InterpolationBinding[];
-    constructor(observerLocator: IObserverLocator, interpolation: Interpolation, target: object, targetProperty: string, mode: BindingMode, locator: IServiceLocator);
+    partBindings: ContentBinding[];
+    private readonly targetObserver;
+    private task;
+    constructor(observerLocator: IObserverLocator, interpolation: Interpolation, target: object, targetProperty: string, mode: BindingMode, locator: IServiceLocator, $scheduler: IScheduler);
+    updateTarget(value: unknown, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
 }
-export interface InterpolationBinding extends IConnectableBinding {
+export interface ContentBinding extends IConnectableBinding {
 }
-export declare class InterpolationBinding implements IPartialConnectableBinding {
-    sourceExpression: IsExpression;
-    interpolation: Interpolation;
-    target: object;
-    targetProperty: string;
-    mode: BindingMode;
-    observerLocator: IObserverLocator;
-    locator: IServiceLocator;
-    isFirst: boolean;
+export declare class ContentBinding implements ContentBinding, ICollectionSubscriber {
+    readonly sourceExpression: IsExpression;
+    readonly target: object;
+    readonly targetProperty: string;
+    readonly locator: IServiceLocator;
+    readonly observerLocator: IObserverLocator;
+    readonly owner: InterpolationBinding;
     interceptor: this;
+    readonly mode: BindingMode;
+    value: unknown;
     id: number;
     $scope?: Scope;
     $hostScope: Scope | null;
-    $scheduler: IScheduler;
     task: ITask | null;
     isBound: boolean;
-    targetObserver: IBindingTargetAccessor;
-    constructor(sourceExpression: IsExpression, interpolation: Interpolation, target: object, targetProperty: string, mode: BindingMode, observerLocator: IObserverLocator, locator: IServiceLocator, isFirst: boolean);
-    updateTarget(value: unknown, flags: LifecycleFlags): void;
-    handleChange(_newValue: unknown, _previousValue: unknown, flags: LifecycleFlags): void;
+    private arrayObserver?;
+    constructor(sourceExpression: IsExpression, target: object, targetProperty: string, locator: IServiceLocator, observerLocator: IObserverLocator, owner: InterpolationBinding);
+    handleChange(newValue: unknown, oldValue: unknown, flags: LifecycleFlags): void;
+    handleCollectionChange(indexMap: IndexMap, flags: LifecycleFlags): void;
     $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
     $unbind(flags: LifecycleFlags): void;
+    private observeArray;
+    private unobserveArray;
 }
 //# sourceMappingURL=interpolation-binding.d.ts.map

@@ -53,6 +53,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 opts.delay = nextDelay;
                 this.task = this.taskQueue.queueTask(() => {
                     this.lastCall = now();
+                    this.task = null;
                     callback();
                 }, opts);
             }
@@ -69,6 +70,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 }
             }
             this.binding.$bind(flags, scope, hostScope);
+        }
+        $unbind(flags) {
+            var _a;
+            (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
+            this.task = null;
+            super.$unbind(flags);
         }
     };
     ThrottleBindingBehavior = __decorate([

@@ -41,6 +41,7 @@ let ThrottleBindingBehavior = class ThrottleBindingBehavior extends BindingInter
             opts.delay = nextDelay;
             this.task = this.taskQueue.queueTask(() => {
                 this.lastCall = now();
+                this.task = null;
                 callback();
             }, opts);
         }
@@ -57,6 +58,12 @@ let ThrottleBindingBehavior = class ThrottleBindingBehavior extends BindingInter
             }
         }
         this.binding.$bind(flags, scope, hostScope);
+    }
+    $unbind(flags) {
+        var _a;
+        (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
+        this.task = null;
+        super.$unbind(flags);
     }
 };
 ThrottleBindingBehavior = __decorate([

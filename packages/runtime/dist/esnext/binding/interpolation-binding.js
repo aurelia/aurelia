@@ -8,36 +8,71 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { IServiceLocator } from '@aurelia/kernel';
-import { IScheduler, } from '@aurelia/scheduler';
 import { BindingMode, } from '../flags';
 import { IObserverLocator } from '../observation/observer-locator';
-import { Interpolation } from './ast';
 import { connectable, } from './connectable';
-const { toView, oneTime } = BindingMode;
+const { toView } = BindingMode;
 const queueTaskOptions = {
     reusable: false,
     preempt: true,
 };
-export class MultiInterpolationBinding {
-    constructor(observerLocator, interpolation, target, targetProperty, mode, locator) {
+// a pseudo binding to manage multiple InterpolationBinding s
+// ========
+// Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
+// value converters and binding behaviors.
+// Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
+// in which case the renderer will create the TextBinding directly
+export class InterpolationBinding {
+    constructor(observerLocator, interpolation, target, targetProperty, mode, locator, $scheduler) {
         this.observerLocator = observerLocator;
         this.interpolation = interpolation;
         this.target = target;
         this.targetProperty = targetProperty;
         this.mode = mode;
         this.locator = locator;
+        this.$scheduler = $scheduler;
         this.interceptor = this;
         this.isBound = false;
         this.$scope = void 0;
-        // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
-        // value converters and binding behaviors.
-        // Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
-        // in which case the renderer will create the TextBinding directly
+        this.task = null;
+        this.targetObserver = observerLocator.getAccessor(0 /* none */, target, targetProperty);
         const expressions = interpolation.expressions;
-        const parts = this.parts = Array(expressions.length);
+        const partBindings = this.partBindings = Array(expressions.length);
         for (let i = 0, ii = expressions.length; i < ii; ++i) {
-            parts[i] = new InterpolationBinding(expressions[i], interpolation, target, targetProperty, mode, observerLocator, locator, i === 0);
+            partBindings[i] = new ContentBinding(expressions[i], target, targetProperty, locator, observerLocator, this);
         }
+    }
+    updateTarget(value, flags) {
+        var _a;
+        const partBindings = this.partBindings;
+        const staticParts = this.interpolation.parts;
+        const ii = partBindings.length;
+        let result = '';
+        if (ii === 1) {
+            result = staticParts[0] + partBindings[0].value + staticParts[1];
+        }
+        else {
+            result = staticParts[0];
+            for (let i = 0; ii > i; ++i) {
+                result += partBindings[i].value + staticParts[i + 1];
+            }
+        }
+        const targetObserver = this.targetObserver;
+        // Alpha: during bind a simple strategy for bind is always flush immediately
+        // todo:
+        //  (1). determine whether this should be the behavior
+        //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start().wait()
+        const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
+        if (shouldQueueFlush) {
+            flags |= 4096 /* noTargetObserverQueue */;
+            (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
+            this.task = this.$scheduler.queueRenderTask(() => {
+                var _a, _b;
+                (_b = (_a = targetObserver).flushChanges) === null || _b === void 0 ? void 0 : _b.call(_a, flags);
+                this.task = null;
+            }, queueTaskOptions);
+        }
+        targetObserver.setValue(result, flags, this.target, this.targetProperty);
     }
     $bind(flags, scope, hostScope) {
         if (this.isBound) {
@@ -48,10 +83,11 @@ export class MultiInterpolationBinding {
         }
         this.isBound = true;
         this.$scope = scope;
-        const parts = this.parts;
-        for (let i = 0, ii = parts.length; i < ii; ++i) {
-            parts[i].interceptor.$bind(flags, scope, hostScope);
+        const partBindings = this.partBindings;
+        for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+            partBindings[i].$bind(flags, scope, hostScope);
         }
+        this.updateTarget(void 0, flags);
     }
     $unbind(flags) {
         if (!this.isBound) {
@@ -59,67 +95,62 @@ export class MultiInterpolationBinding {
         }
         this.isBound = false;
         this.$scope = void 0;
-        const parts = this.parts;
-        for (let i = 0, ii = parts.length; i < ii; ++i) {
-            parts[i].interceptor.$unbind(flags);
+        const task = this.task;
+        const partBindings = this.partBindings;
+        for (let i = 0, ii = partBindings.length; i < ii; ++i) {
+            partBindings[i].interceptor.$unbind(flags);
+        }
+        if (task != null) {
+            task.cancel();
+            this.task = null;
         }
     }
 }
-let InterpolationBinding = class InterpolationBinding {
-    constructor(sourceExpression, interpolation, target, targetProperty, mode, observerLocator, locator, isFirst) {
+let ContentBinding = class ContentBinding {
+    constructor(sourceExpression, target, targetProperty, locator, observerLocator, owner) {
         this.sourceExpression = sourceExpression;
-        this.interpolation = interpolation;
         this.target = target;
         this.targetProperty = targetProperty;
-        this.mode = mode;
-        this.observerLocator = observerLocator;
         this.locator = locator;
-        this.isFirst = isFirst;
+        this.observerLocator = observerLocator;
+        this.owner = owner;
         this.interceptor = this;
+        // at runtime, mode may be overriden by binding behavior
+        // but it wouldn't matter here, just start with something for later check
+        this.mode = BindingMode.toView;
+        this.value = '';
         this.$hostScope = null;
         this.task = null;
         this.isBound = false;
-        connectable.assignIdTo(this);
-        this.$scheduler = locator.get(IScheduler);
-        this.targetObserver = observerLocator.getAccessor(0 /* none */, target, targetProperty);
+        this.arrayObserver = void 0;
     }
-    updateTarget(value, flags) {
-        this.targetObserver.setValue(value, flags | 8 /* updateTargetInstance */, this.target, this.targetProperty);
-    }
-    handleChange(_newValue, _previousValue, flags) {
-        var _a, _b;
+    handleChange(newValue, oldValue, flags) {
         if (!this.isBound) {
             return;
         }
-        const targetObserver = this.targetObserver;
-        // Alpha: during bind a simple strategy for bind is always flush immediately
-        // todo:
-        //  (1). determine whether this should be the behavior
-        //  (2). if not, then fix tests to reflect the changes/scheduler to properly yield all with aurelia.start()
-        const shouldQueueFlush = (flags & 32 /* fromBind */) === 0 && (targetObserver.type & 64 /* Layout */) > 0;
-        const newValue = this.interpolation.evaluate(flags, this.$scope, this.$hostScope, this.locator, null);
-        const oldValue = targetObserver.getValue(this.target, this.targetProperty);
-        const interceptor = this.interceptor;
-        // todo(fred): maybe let the observer decides whether it updates
-        if (newValue !== oldValue) {
-            if (shouldQueueFlush) {
-                flags |= 4096 /* noTargetObserverQueue */;
-                (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
-                (_b = targetObserver.task) === null || _b === void 0 ? void 0 : _b.cancel();
-                targetObserver.task = this.task = this.$scheduler.queueRenderTask(() => {
-                    var _a, _b;
-                    (_b = (_a = targetObserver).flushChanges) === null || _b === void 0 ? void 0 : _b.call(_a, flags);
-                    this.task = targetObserver.task = null;
-                }, queueTaskOptions);
+        const sourceExpression = this.sourceExpression;
+        const canOptimize = sourceExpression.$kind === 10082 /* AccessScope */ && this.observerSlots > 1;
+        if (!canOptimize) {
+            const shouldConnect = (this.mode & toView) > 0;
+            if (shouldConnect) {
+                this.version++;
             }
-            interceptor.updateTarget(newValue, flags);
+            newValue = sourceExpression.evaluate(flags, this.$scope, this.$hostScope, this.locator, shouldConnect ? this.interceptor : null);
+            if (shouldConnect) {
+                this.interceptor.unobserve(false);
+            }
         }
-        // todo: merge this with evaluate above
-        if ((this.mode & oneTime) === 0) {
-            this.version++;
-            this.sourceExpression.connect(flags, this.$scope, this.$hostScope, interceptor);
-            interceptor.unobserve(false);
+        if (newValue != this.value) {
+            this.value = newValue;
+            this.unobserveArray();
+            if (newValue instanceof Array) {
+                this.observeArray(flags, newValue);
+            }
+            this.owner.updateTarget(newValue, flags);
         }
+    }
+    handleCollectionChange(indexMap, flags) {
+        this.owner.updateTarget(void 0, flags);
     }
     $bind(flags, scope, hostScope) {
         if (this.isBound) {
@@ -131,22 +162,12 @@ let InterpolationBinding = class InterpolationBinding {
         this.isBound = true;
         this.$scope = scope;
         this.$hostScope = hostScope;
-        const sourceExpression = this.sourceExpression;
-        if (sourceExpression.hasBind) {
-            sourceExpression.bind(flags, scope, hostScope, this.interceptor);
+        if (this.sourceExpression.hasBind) {
+            this.sourceExpression.bind(flags, scope, hostScope, this.interceptor);
         }
-        const targetObserver = this.targetObserver;
-        const mode = this.mode;
-        if (mode !== BindingMode.oneTime && targetObserver.bind) {
-            targetObserver.bind(flags);
-        }
-        // since the interpolation already gets the whole value, we only need to let the first
-        // text binding do the update if there are multiple
-        if (this.isFirst) {
-            this.interceptor.updateTarget(this.interpolation.evaluate(flags, scope, hostScope, this.locator, null), flags);
-        }
-        if ((mode & toView) > 0) {
-            sourceExpression.connect(flags, scope, hostScope, this.interceptor);
+        const v = this.value = this.sourceExpression.evaluate(flags, scope, hostScope, this.locator, (this.mode & toView) > 0 ? this.interceptor : null);
+        if (v instanceof Array) {
+            this.observeArray(flags, v);
         }
     }
     $unbind(flags) {
@@ -154,29 +175,27 @@ let InterpolationBinding = class InterpolationBinding {
             return;
         }
         this.isBound = false;
-        const sourceExpression = this.sourceExpression;
-        if (sourceExpression.hasUnbind) {
-            sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
-        }
-        const targetObserver = this.targetObserver;
-        const task = this.task;
-        if (targetObserver.unbind) {
-            targetObserver.unbind(flags);
-        }
-        if (task != null) {
-            task.cancel();
-            if (task === targetObserver.task) {
-                targetObserver.task = null;
-            }
-            this.task = null;
+        if (this.sourceExpression.hasUnbind) {
+            this.sourceExpression.unbind(flags, this.$scope, this.$hostScope, this.interceptor);
         }
         this.$scope = void 0;
+        this.$hostScope = null;
         this.interceptor.unobserve(true);
+        this.unobserveArray();
+    }
+    observeArray(flags, arr) {
+        const newObserver = this.arrayObserver = this.observerLocator.getArrayObserver(flags, arr);
+        newObserver.addCollectionSubscriber(this.interceptor);
+    }
+    unobserveArray() {
+        var _a;
+        (_a = this.arrayObserver) === null || _a === void 0 ? void 0 : _a.removeCollectionSubscriber(this.interceptor);
+        this.arrayObserver = void 0;
     }
 };
-InterpolationBinding = __decorate([
+ContentBinding = __decorate([
     connectable(),
-    __metadata("design:paramtypes", [Object, Interpolation, Object, String, Number, Object, Object, Boolean])
-], InterpolationBinding);
-export { InterpolationBinding };
+    __metadata("design:paramtypes", [Object, Object, String, Object, Object, InterpolationBinding])
+], ContentBinding);
+export { ContentBinding };
 //# sourceMappingURL=interpolation-binding.js.map

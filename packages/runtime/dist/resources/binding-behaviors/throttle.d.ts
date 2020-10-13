@@ -14,5 +14,6 @@ export declare class ThrottleBindingBehavior extends BindingInterceptor {
     handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void;
     private queueTask;
     $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
+    $unbind(flags: LifecycleFlags): void;
 }
 //# sourceMappingURL=throttle.d.ts.map

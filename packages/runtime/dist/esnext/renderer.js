@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 import { all, Registration, Metadata, DI, } from '@aurelia/kernel';
 import { CallBinding } from './binding/call-binding';
 import { IExpressionParser } from './binding/expression-parser';
-import { InterpolationBinding, MultiInterpolationBinding } from './binding/interpolation-binding';
+import { InterpolationBinding } from './binding/interpolation-binding';
 import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
@@ -26,6 +26,7 @@ import { Controller } from './templating/controller';
 import { getRenderContext } from './templating/render-context';
 import { BindingBehaviorExpression } from './binding/ast';
 import { BindingBehaviorFactory } from './resources/binding-behavior';
+import { IScheduler } from '@aurelia/scheduler';
 export const ITemplateCompiler = DI.createInterface('ITemplateCompiler').noDefault();
 export const IInstructionRenderer = DI.createInterface('IInstructionRenderer').noDefault();
 export function instructionRenderer(instructionType) {
@@ -354,18 +355,19 @@ export { RefBindingRenderer };
 let InterpolationBindingRenderer = 
 /** @internal */
 class InterpolationBindingRenderer {
-    constructor(parser, observerLocator) {
+    constructor(parser, observerLocator, scheduler) {
         this.parser = parser;
         this.observerLocator = observerLocator;
+        this.scheduler = scheduler;
     }
     render(flags, context, controller, target, instruction) {
-        let binding;
         const expr = ensureExpression(this.parser, instruction.from, 2048 /* Interpolation */);
-        if (expr.isMulti) {
-            binding = applyBindingBehavior(new MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context), expr, context);
-        }
-        else {
-            binding = applyBindingBehavior(new InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, true), expr, context);
+        const binding = new InterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context, this.scheduler);
+        const partBindings = binding.partBindings;
+        let partBinding;
+        for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+            partBinding = partBindings[i];
+            partBindings[i] = applyBindingBehavior(partBinding, partBinding.sourceExpression, context);
         }
         controller.addBinding(binding);
     }
@@ -376,7 +378,8 @@ InterpolationBindingRenderer = __decorate([
     ,
     __param(0, IExpressionParser),
     __param(1, IObserverLocator),
-    __metadata("design:paramtypes", [Object, Object])
+    __param(2, IScheduler),
+    __metadata("design:paramtypes", [Object, Object, Object])
 ], InterpolationBindingRenderer);
 export { InterpolationBindingRenderer };
 let PropertyBindingRenderer = 

@@ -44,7 +44,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             if (this.task !== null) {
                 this.task.cancel();
             }
-            this.task = this.taskQueue.queueTask(callback, this.opts);
+            this.task = this.taskQueue.queueTask(() => {
+                this.task = null;
+                return callback();
+            }, this.opts);
         }
         $bind(flags, scope, hostScope) {
             if (this.firstArg !== null) {
@@ -54,6 +57,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
                 }
             }
             this.binding.$bind(flags, scope, hostScope);
+        }
+        $unbind(flags) {
+            var _a;
+            (_a = this.task) === null || _a === void 0 ? void 0 : _a.cancel();
+            this.task = null;
+            this.binding.$unbind(flags);
         }
     };
     DebounceBindingBehavior = __decorate([

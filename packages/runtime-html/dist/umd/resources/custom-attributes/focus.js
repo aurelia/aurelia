@@ -90,7 +90,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             if (e.type === 'focus') {
                 this.value = true;
             }
-            else if (this.dom.document.activeElement !== this.element) {
+            else if (!this.isElFocused) {
                 // else, it's blur event
                 // when a blur event happens, there are two situations
                 // 1. the element itself lost the focus
@@ -106,12 +106,17 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
          */
         apply() {
             const el = this.element;
-            if (this.value) {
+            const isFocused = this.isElFocused;
+            const shouldFocus = this.value;
+            if (shouldFocus && !isFocused) {
                 el.focus();
             }
-            else {
+            else if (!shouldFocus && isFocused) {
                 el.blur();
             }
+        }
+        get isElFocused() {
+            return this.element === this.dom.document.activeElement;
         }
     };
     __decorate([

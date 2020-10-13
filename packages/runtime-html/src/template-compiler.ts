@@ -12,7 +12,7 @@ import {
   IExpressionParser,
   Interpolation,
   IsBindingBehavior,
-  ITargetedInstruction,
+  IInstruction,
   ITemplateCompiler,
   PartialCustomElementDefinition,
   CustomElementDefinition,
@@ -63,9 +63,9 @@ import { IAttributeParser } from './attribute-parser';
 import { ResourceModel } from './resource-model';
 
 class CustomElementCompilationUnit {
-  public readonly instructions: ITargetedInstruction[][] = [];
-  public readonly surrogates: ITargetedInstruction[] = [];
-  public readonly projectionsMap: Map<ITargetedInstruction, IProjections> = new Map<ITargetedInstruction, IProjections>();
+  public readonly instructions: IInstruction[][] = [];
+  public readonly surrogates: IInstruction[] = [];
+  public readonly projectionsMap: Map<IInstruction, IProjections> = new Map<IInstruction, IProjections>();
 
   public constructor(
     public readonly partialDefinition: PartialCustomElementDefinition,
@@ -180,8 +180,8 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileChildNodes(
     parent: ElementSymbol,
-    instructionRows: ITargetedInstruction[][],
-    projections: WeakMap<ITargetedInstruction, IProjections>,
+    instructionRows: IInstruction[][],
+    projections: WeakMap<IInstruction, IProjections>,
     targetedProjections: RegisteredProjections | null,
   ): void {
     if ((parent.flags & SymbolFlags.hasChildNodes) > 0) {
@@ -211,8 +211,8 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileCustomElement(
     symbol: CustomElementSymbol,
-    instructionRows: ITargetedInstruction[][],
-    projections: WeakMap<ITargetedInstruction, IProjections>,
+    instructionRows: IInstruction[][],
+    projections: WeakMap<IInstruction, IProjections>,
     targetedProjections: RegisteredProjections | null,
   ): void {
     const isAuSlot = (symbol.flags & SymbolFlags.isAuSlot) > 0;
@@ -246,8 +246,8 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compilePlainElement(
     symbol: PlainElementSymbol,
-    instructionRows: ITargetedInstruction[][],
-    projections: WeakMap<ITargetedInstruction, IProjections>,
+    instructionRows: IInstruction[][],
+    projections: WeakMap<IInstruction, IProjections>,
     targetedProjections: RegisteredProjections | null,
   ): void {
     const attributes = this.compileAttributes(symbol, 0);
@@ -260,8 +260,8 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileParentNode(
     symbol: ParentNodeSymbol,
-    instructionRows: ITargetedInstruction[][],
-    projections: WeakMap<ITargetedInstruction, IProjections>,
+    instructionRows: IInstruction[][],
+    projections: WeakMap<IInstruction, IProjections>,
     targetedProjections: RegisteredProjections | null,
   ): void {
     switch (symbol.flags & SymbolFlags.type) {
@@ -279,13 +279,13 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileTemplateController(
     symbol: TemplateControllerSymbol,
-    instructionRows: ITargetedInstruction[][],
-    projections: WeakMap<ITargetedInstruction, IProjections>,
+    instructionRows: IInstruction[][],
+    projections: WeakMap<IInstruction, IProjections>,
     targetedProjections: RegisteredProjections | null,
   ): void {
     const bindings = this.compileBindings(symbol);
 
-    const controllerInstructionRows: ITargetedInstruction[][] = [];
+    const controllerInstructionRows: IInstruction[][] = [];
 
     this.compileParentNode(symbol.template!, controllerInstructionRows, projections, targetedProjections);
 
@@ -417,7 +417,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileProjections(
     symbol: CustomElementSymbol,
-    projectionMap: WeakMap<ITargetedInstruction, IProjections>,
+    projectionMap: WeakMap<IInstruction, IProjections>,
     targetedProjections: RegisteredProjections | null,
   ): IProjections | null {
 
@@ -432,7 +432,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       const projection = $projections[i];
       const name = projection.name;
 
-      const instructions: ITargetedInstruction[][] = [];
+      const instructions: IInstruction[][] = [];
 
       this.compileParentNode(projection.template!, instructions, projectionMap, targetedProjections);
 
@@ -448,7 +448,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       } else {
         // consolidate the projections to same slot
         dom.appendChild((definition.template as HTMLTemplateElement).content, projection.template!.physicalNode!);
-        (definition.instructions as ITargetedInstruction[][]).push(...instructions);
+        (definition.instructions as IInstruction[][]).push(...instructions);
       }
     }
     return projections;
@@ -456,10 +456,10 @@ export class TemplateCompiler implements ITemplateCompiler {
 
   private compileProjectionFallback(
     symbol: CustomElementSymbol,
-    projections: WeakMap<ITargetedInstruction, IProjections>,
+    projections: WeakMap<IInstruction, IProjections>,
     targetedProjections: RegisteredProjections | null,
   ): CustomElementDefinition {
-    const instructions: ITargetedInstruction[][] = [];
+    const instructions: IInstruction[][] = [];
     this.compileChildNodes(symbol, instructions, projections, targetedProjections);
     const template = this.dom.createTemplate() as HTMLTemplateElement;
     template.content.append(...toArray(symbol.physicalNode.childNodes));

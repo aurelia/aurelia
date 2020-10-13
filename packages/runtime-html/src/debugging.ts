@@ -1,6 +1,6 @@
 import { PartialCustomElementDefinition } from '@aurelia/runtime';
 import { NodeType } from './dom';
-import { TargetedInstruction, InstructionType } from './instructions';
+import { Instruction, InstructionType } from './instructions';
 
 export function stringifyDOM(node: Node, depth: number): string {
   const indent = ' '.repeat(depth);
@@ -39,7 +39,7 @@ export function stringifyDOM(node: Node, depth: number): string {
   return output;
 }
 
-export function stringifyInstructions(instruction: TargetedInstruction, depth: number): string {
+export function stringifyInstructions(instruction: Instruction, depth: number): string {
   const indent = ' '.repeat(depth);
   let output = indent;
   switch (instruction.type) {
@@ -82,20 +82,20 @@ export function stringifyInstructions(instruction: TargetedInstruction, depth: n
     case InstructionType.hydrateAttribute:
       output += `hydrateAttribute: ${instruction.res}\n`;
       instruction.instructions.forEach(i => {
-        output += stringifyInstructions(i as TargetedInstruction, depth + 1);
+        output += stringifyInstructions(i as Instruction, depth + 1);
       });
       break;
     case InstructionType.hydrateElement:
       output += `hydrateElement: ${instruction.res}\n`;
       instruction.instructions.forEach(i => {
-        output += stringifyInstructions(i as TargetedInstruction, depth + 1);
+        output += stringifyInstructions(i as Instruction, depth + 1);
       });
       break;
     case InstructionType.hydrateTemplateController:
       output += `hydrateTemplateController: ${instruction.res}\n`;
       output += stringifyTemplateDefinition(instruction.def, depth + 1);
       instruction.instructions.forEach(i => {
-        output += stringifyInstructions(i as TargetedInstruction, depth + 1);
+        output += stringifyInstructions(i as Instruction, depth + 1);
       });
   }
   return output;
@@ -111,7 +111,7 @@ export function stringifyTemplateDefinition(def: PartialCustomElementDefinition,
   def.instructions!.forEach(row => {
     output += `${indent}  Row:\n`;
     row.forEach(i => {
-      output += stringifyInstructions(i as TargetedInstruction, depth + 3);
+      output += stringifyInstructions(i as Instruction, depth + 3);
     });
   });
 

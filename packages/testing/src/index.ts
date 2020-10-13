@@ -73,7 +73,7 @@ export {
   verifyBindingInstructionsEqual,
   verifyEqual,
   getVisibleText,
-  targetedInstructionTypeName,
+  instructionTypeName,
 } from './specialized-assertions';
 export {
   _,

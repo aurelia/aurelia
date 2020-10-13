@@ -20,7 +20,7 @@ import {
 } from '@aurelia/kernel';
 import {
   registerAliases,
-  ITargetedInstruction,
+  IInstruction,
   HooksDefinition,
 } from '../definitions';
 import {
@@ -43,11 +43,11 @@ import { Controller } from '../templating/controller';
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
   readonly template?: unknown;
-  readonly instructions?: readonly (readonly ITargetedInstruction[])[];
+  readonly instructions?: readonly (readonly IInstruction[])[];
   readonly dependencies?: readonly Key[];
   readonly injectable?: InjectableToken | null;
   readonly needsCompile?: boolean;
-  readonly surrogates?: readonly ITargetedInstruction[];
+  readonly surrogates?: readonly IInstruction[];
   readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
   readonly childrenObservers?: Record<string, PartialChildrenDefinition>;
   readonly containerless?: boolean;
@@ -57,7 +57,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly strategy?: BindingStrategy;
   readonly hooks?: Readonly<HooksDefinition>;
   readonly enhance?: boolean;
-  readonly projectionsMap?: Map<ITargetedInstruction, IProjections>;
+  readonly projectionsMap?: Map<IInstruction, IProjections>;
 }>;
 
 export type CustomElementType<
@@ -217,11 +217,11 @@ export class CustomElementDefinition<
     public readonly key: string,
     public readonly cache: '*' | number,
     public readonly template: unknown,
-    public readonly instructions: readonly (readonly ITargetedInstruction[])[],
+    public readonly instructions: readonly (readonly IInstruction[])[],
     public readonly dependencies: readonly Key[],
     public readonly injectable: InjectableToken<C> | null,
     public readonly needsCompile: boolean,
-    public readonly surrogates: readonly ITargetedInstruction[],
+    public readonly surrogates: readonly IInstruction[],
     public readonly bindables: Record<string, BindableDefinition>,
     public readonly childrenObservers: Record<string, ChildrenDefinition>,
     public readonly containerless: boolean,
@@ -231,7 +231,7 @@ export class CustomElementDefinition<
     public readonly strategy: BindingStrategy,
     public readonly hooks: Readonly<HooksDefinition>,
     public readonly enhance: boolean,
-    public readonly projectionsMap: Map<ITargetedInstruction, IProjections>,
+    public readonly projectionsMap: Map<IInstruction, IProjections>,
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -289,7 +289,7 @@ export class CustomElementDefinition<
         fromDefinitionOrDefault('strategy', def, () => BindingStrategy.getterSetter),
         fromDefinitionOrDefault('hooks', def, () => HooksDefinition.none),
         fromDefinitionOrDefault('enhance', def, () => false),
-        fromDefinitionOrDefault('projectionsMap', def as CustomElementDefinition, () => new Map<ITargetedInstruction, IProjections>()),
+        fromDefinitionOrDefault('projectionsMap', def as CustomElementDefinition, () => new Map<IInstruction, IProjections>()),
       );
     }
 
@@ -327,7 +327,7 @@ export class CustomElementDefinition<
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
         fromAnnotationOrTypeOrDefault('enhance', Type, () => false),
-        fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => new Map<ITargetedInstruction, IProjections>()),
+        fromAnnotationOrTypeOrDefault('projectionsMap', Type, () => new Map<IInstruction, IProjections>()),
       );
     }
 
@@ -370,7 +370,7 @@ export class CustomElementDefinition<
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       fromAnnotationOrTypeOrDefault('hooks', Type, () => new HooksDefinition(Type!.prototype)),
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, () => false),
-      fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => new Map<ITargetedInstruction, IProjections>()),
+      fromAnnotationOrDefinitionOrTypeOrDefault('projectionsMap', nameOrDef, Type, () => new Map<IInstruction, IProjections>()),
     );
   }
 

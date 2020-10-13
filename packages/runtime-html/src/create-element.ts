@@ -17,16 +17,16 @@ import {
 } from '@aurelia/runtime';
 import {
   HydrateElementInstruction,
-  isTargetedInstruction,
+  isInstruction,
   SetAttributeInstruction,
-  TargetedInstruction,
+  Instruction,
   InstructionType,
 } from './instructions';
 
 export function createElement<T extends INode = Node, C extends Constructable = Constructable>(
   dom: IDOM<T>,
   tagOrType: string | C,
-  props?: Record<string, string | TargetedInstruction>,
+  props?: Record<string, string | Instruction>,
   children?: ArrayLike<unknown>
 ): CompositionPlan<T> {
   if (typeof tagOrType === 'string') {
@@ -47,7 +47,7 @@ export class CompositionPlan<T extends INode = Node> {
   public constructor(
     private readonly dom: IDOM<T>,
     private readonly node: T,
-    private readonly instructions: TargetedInstruction[][],
+    private readonly instructions: Instruction[][],
     private readonly dependencies: Key[]
   ) {}
 
@@ -77,16 +77,16 @@ export class CompositionPlan<T extends INode = Node> {
   }
 
   /** @internal */
-  public mergeInto(parent: T, instructions: TargetedInstruction[][], dependencies: Key[]): void {
+  public mergeInto(parent: T, instructions: Instruction[][], dependencies: Key[]): void {
     this.dom.appendChild(parent, this.node);
     instructions.push(...this.instructions);
     dependencies.push(...this.dependencies);
   }
 }
 
-function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, props?: Record<string, string | TargetedInstruction>, children?: ArrayLike<unknown>): CompositionPlan<T> {
-  const instructions: TargetedInstruction[] = [];
-  const allInstructions: TargetedInstruction[][] = [];
+function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, props?: Record<string, string | Instruction>, children?: ArrayLike<unknown>): CompositionPlan<T> {
+  const instructions: Instruction[] = [];
+  const allInstructions: Instruction[][] = [];
   const dependencies: IRegistry[] = [];
   const element = dom.createElement(tagName);
   let hasInstructions = false;
@@ -96,7 +96,7 @@ function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, pro
       .forEach(to => {
         const value = props[to];
 
-        if (isTargetedInstruction(value)) {
+        if (isInstruction(value)) {
           hasInstructions = true;
           instructions.push(value);
         } else {
@@ -125,10 +125,10 @@ function createElementForType<T extends INode>(
 ): CompositionPlan<T> {
   const definition = CustomElement.getDefinition(Type);
   const tagName = definition.name;
-  const instructions: TargetedInstruction[] = [];
+  const instructions: Instruction[] = [];
   const allInstructions = [instructions];
   const dependencies: Key[] = [];
-  const childInstructions: TargetedInstruction[] = [];
+  const childInstructions: Instruction[] = [];
   const bindables = definition.bindables;
   const element = dom.createElement(tagName);
 
@@ -143,9 +143,9 @@ function createElementForType<T extends INode>(
   if (props) {
     Object.keys(props)
       .forEach(to => {
-        const value = props[to] as TargetedInstruction | string;
+        const value = props[to] as Instruction | string;
 
-        if (isTargetedInstruction(value)) {
+        if (isInstruction(value)) {
           childInstructions.push(value);
         } else {
           const bindable = bindables[to];
@@ -174,7 +174,7 @@ function addChildren<T extends INode>(
   dom: IDOM<T>,
   parent: T,
   children: ArrayLike<unknown>,
-  allInstructions: TargetedInstruction[][],
+  allInstructions: Instruction[][],
   dependencies: Key[],
 ): void {
   for (let i = 0, ii = children.length; i < ii; ++i) {

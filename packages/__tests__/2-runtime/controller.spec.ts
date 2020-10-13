@@ -4,7 +4,7 @@
 //   Interpolation,
 //   AccessScopeExpression,
 //   CustomElement,
-//   ITargetedInstruction,
+//   IInstruction,
 //   HooksDefinition,
 //   BindingMode,
 //   BindingBehaviorExpression,
@@ -105,7 +105,7 @@
 //     name: string,
 //     template: unknown,
 //     bindables: string[],
-//     instructions: ITargetedInstruction[][],
+//     instructions: IInstruction[][],
 //     hooks: Readonly<HooksDefinition>,
 //   ) {
 //     return CustomElementDefinition.create({
@@ -127,7 +127,7 @@
 //   function createViewModel(
 //     template: unknown,
 //     bindables: string[],
-//     instructions: ITargetedInstruction[][],
+//     instructions: IInstruction[][],
 //   ) {
 //     const description = createDescription(
 //       'view-model',

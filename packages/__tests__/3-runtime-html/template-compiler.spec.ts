@@ -29,7 +29,7 @@ import {
   CustomElementDefinition,
   Aurelia,
   IProjections,
-  ITargetedInstruction,
+  IInstruction,
   CustomElementType,
   AuSlot,
   RegisteredProjections,
@@ -517,7 +517,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         instructions: [[childInstr]],
         needsCompile: false,
         enhance: false,
-        projectionsMap: new Map<ITargetedInstruction, IProjections>(),
+        projectionsMap: new Map<IInstruction, IProjections>(),
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -532,7 +532,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       instructions: [[instruction]],
       needsCompile: false,
       enhance: false,
-      projectionsMap: new Map<ITargetedInstruction, IProjections>(),
+      projectionsMap: new Map<IInstruction, IProjections>(),
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   } else {
@@ -556,7 +556,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
         instructions,
         needsCompile: false,
         enhance: false,
-        projectionsMap: new Map<ITargetedInstruction, IProjections>(),
+        projectionsMap: new Map<IInstruction, IProjections>(),
       },
       instructions: createTplCtrlAttributeInstruction(attr, value),
       link: attr === 'else'
@@ -572,7 +572,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
       instructions: [[instruction]],
       needsCompile: false,
       enhance: false,
-      projectionsMap: new Map<ITargetedInstruction, IProjections>(),
+      projectionsMap: new Map<IInstruction, IProjections>(),
     } as unknown as PartialCustomElementDefinition;
     return [input, output];
   }
@@ -612,7 +612,7 @@ function createCustomElement(
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
     enhance: false,
-    projectionsMap: new Map<ITargetedInstruction, IProjections>(),
+    projectionsMap: new Map<IInstruction, IProjections>(),
   };
   return [input, output];
 }
@@ -650,7 +650,7 @@ function createCustomAttribute(
     instructions: [[instruction, ...siblingInstructions], ...nestedElInstructions],
     needsCompile: false,
     enhance: false,
-    projectionsMap: new Map<ITargetedInstruction, IProjections>(),
+    projectionsMap: new Map<IInstruction, IProjections>(),
   };
   return [input, output];
 }
@@ -768,7 +768,7 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
           needsCompile: false,
           enhance: false,
-          projectionsMap: new Map<ITargetedInstruction, IProjections>(),
+          projectionsMap: new Map<IInstruction, IProjections>(),
         };
 
         const { sut, container } = createFixture(ctx);
@@ -841,7 +841,7 @@ describe(`TemplateCompiler - combinations`, function () {
           surrogates: [],
           needsCompile: false,
           enhance: false,
-          projectionsMap: new Map<ITargetedInstruction, IProjections>(),
+          projectionsMap: new Map<IInstruction, IProjections>(),
         };
 
         const $def = CustomAttribute.define(def, ctor);
@@ -1107,7 +1107,7 @@ describe(`TemplateCompiler - combinations`, function () {
           instructions: [output1.instructions[0], output2.instructions[0], output3.instructions[0]],
           needsCompile: false,
           enhance: false,
-          projectionsMap: new Map<ITargetedInstruction, IProjections>(),
+          projectionsMap: new Map<IInstruction, IProjections>(),
         };
         // enableTracing();
         // Tracer.enableLiveLogging(SymbolTraceWriter);
@@ -1625,7 +1625,7 @@ describe('TemplateCompiler - au-slot', function () {
   function $createCustomElement(template: string, name: string = 'my-element') {
     return CustomElement.define({ name, isStrictBinding: true, template, bindables: { people: { mode: BindingMode.default } }, }, class MyElement { });
   }
-  type ProjectionMap = Map<ITargetedInstruction, Record<string, CustomElementDefinition>>;
+  type ProjectionMap = Map<IInstruction, Record<string, CustomElementDefinition>>;
 
   class ExpectedSlotInfo {
     public constructor(

@@ -329,7 +329,7 @@ export {
 export {
   HooksDefinition,
   InstructionTypeName,
-  ITargetedInstruction,
+  IInstruction,
   alias,
   registerAliases
 } from './definitions';

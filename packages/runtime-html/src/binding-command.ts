@@ -12,7 +12,7 @@ import {
   firstDefined,
   Metadata
 } from '@aurelia/kernel';
-import { BindingType, ITargetedInstruction, registerAliases } from '@aurelia/runtime';
+import { BindingType, IInstruction, registerAliases } from '@aurelia/runtime';
 import { BindingSymbol, PlainAttributeSymbol, SymbolFlags } from './semantic-model';
 
 export type PartialBindingCommandDefinition = PartialResourceDefinition<{
@@ -21,7 +21,7 @@ export type PartialBindingCommandDefinition = PartialResourceDefinition<{
 
 export type BindingCommandInstance<T extends {} = {}> = {
   bindingType: BindingType;
-  compile(binding: PlainAttributeSymbol | BindingSymbol): ITargetedInstruction;
+  compile(binding: PlainAttributeSymbol | BindingSymbol): IInstruction;
 } & T;
 
 export type BindingCommandType<T extends Constructable = Constructable> = ResourceType<T, BindingCommandInstance, PartialBindingCommandDefinition>;

@@ -30,7 +30,7 @@ import {
   IsBindingBehavior,
   ISinglePageApp,
   ITargetAccessorLocator,
-  ITargetedInstruction,
+  IInstruction,
   ITargetObserverLocator,
   PartialCustomElementDefinition,
   LifecycleFlags,
@@ -50,7 +50,7 @@ import {
   IComposerRegistration,
   IteratorBindingInstruction,
   LetBindingInstruction,
-  TargetedInstruction,
+  Instruction,
   ToViewBindingInstruction,
   DefaultBindingCommandRegistration,
   OneTimeBindingCommandRegistration,
@@ -653,7 +653,7 @@ export class AuObserverLocator implements ITargetAccessorLocator, ITargetObserve
   }
 }
 
-export class AuTextInstruction implements ITargetedInstruction {
+export class AuTextInstruction implements IInstruction {
   public readonly type: 'au';
   public readonly from: IsBindingBehavior;
 
@@ -757,7 +757,7 @@ export const AuDOMTest = {
       instructions: [[instruction]]
     };
   },
-  createElementDefinition(instructions: TargetedInstruction[][], name: string): PartialCustomElementDefinition {
+  createElementDefinition(instructions: Instruction[][], name: string): PartialCustomElementDefinition {
     const template = AuNode.createTemplate();
     instructions.forEach(row => {
       template.appendChild(AuNode.createMarker());

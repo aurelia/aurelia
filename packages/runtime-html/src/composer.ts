@@ -59,7 +59,7 @@ import {
   SetPropertyInstruction,
   SetStyleAttributeInstruction,
   StylePropertyBindingInstruction,
-  TargetedInstruction,
+  Instruction,
   InstructionType,
   TextBindingInstruction,
 } from './instructions';
@@ -99,7 +99,7 @@ export class Composer implements IComposer {
       this.composeChildren(
         /* flags        */flags,
         /* context      */context,
-        /* instructions */targetInstructions[i] as readonly TargetedInstruction[],
+        /* instructions */targetInstructions[i] as readonly Instruction[],
         /* controller   */controller,
         /* target       */targets[i],
       );
@@ -109,7 +109,7 @@ export class Composer implements IComposer {
       this.composeChildren(
         /* flags        */flags,
         /* context      */context,
-        /* instructions */definition.surrogates as readonly TargetedInstruction[],
+        /* instructions */definition.surrogates as readonly Instruction[],
         /* controller   */controller,
         /* target       */host,
       );
@@ -119,12 +119,12 @@ export class Composer implements IComposer {
   public composeChildren(
     flags: LifecycleFlags,
     context: ICompiledCompositionContext,
-    instructions: readonly TargetedInstruction[],
+    instructions: readonly Instruction[],
     controller: IComposableController,
     target: unknown,
   ): void {
     const instructionComposers = this.instructionComposers;
-    let current: TargetedInstruction;
+    let current: Instruction;
     for (let i = 0, ii = instructions.length; i < ii; ++i) {
       current = instructions[i];
       instructionComposers[current.type](flags, context, controller, target, current);

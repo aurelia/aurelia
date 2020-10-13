@@ -18,7 +18,7 @@ import {
   customElement,
   CustomElementDefinition
 } from '../custom-element';
-import { ITargetedInstruction } from '../../definitions';
+import { IInstruction } from '../../definitions';
 
 import type { Scope } from '../../observation/binding-context';
 
@@ -55,15 +55,15 @@ export class RegisteredProjections {
 export interface IProjectionProvider extends ProjectionProvider {}
 export const IProjectionProvider = DI.createInterface<IProjectionProvider>('IProjectionProvider').withDefault(x => x.singleton(ProjectionProvider));
 
-const projectionMap: WeakMap<ITargetedInstruction, RegisteredProjections> = new WeakMap<ITargetedInstruction, RegisteredProjections>();
+const projectionMap: WeakMap<IInstruction, RegisteredProjections> = new WeakMap<IInstruction, RegisteredProjections>();
 export class ProjectionProvider {
-  public registerProjections(projections: Map<ITargetedInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
+  public registerProjections(projections: Map<IInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
     for (const [instruction, $projections] of projections) {
       projectionMap.set(instruction, new RegisteredProjections(scope, $projections));
     }
   }
 
-  public getProjectionFor(instruction: ITargetedInstruction): RegisteredProjections | null {
+  public getProjectionFor(instruction: IInstruction): RegisteredProjections | null {
     return projectionMap.get(instruction) ?? null;
   }
 }

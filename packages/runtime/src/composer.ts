@@ -1,5 +1,5 @@
 import { IContainer, DI, Class, IRegistry, Metadata, Registration } from '@aurelia/kernel';
-import { InstructionTypeName, ITargetedInstruction } from './definitions';
+import { InstructionTypeName, IInstruction } from './definitions';
 import { INode } from './dom';
 import { LifecycleFlags } from './flags';
 import { IComposableController } from './lifecycle';
@@ -30,7 +30,7 @@ export interface IComposer {
   composeChildren(
     flags: LifecycleFlags,
     context: ICompiledCompositionContext,
-    instructions: readonly ITargetedInstruction[],
+    instructions: readonly IInstruction[],
     controller: IComposableController,
     target: unknown,
   ): void ;
@@ -48,7 +48,7 @@ export interface IInstructionComposer<
     context: ICompiledCompositionContext,
     controller: IComposableController,
     target: unknown,
-    instruction: ITargetedInstruction,
+    instruction: IInstruction,
   ): void;
 }
 

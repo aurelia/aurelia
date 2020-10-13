@@ -16,7 +16,7 @@ import {
   IScheduler,
 } from '@aurelia/runtime';
 // import {
-//   TargetedInstruction,
+//   Instruction,
 //   NodeSequenceFactory,
 //   TextBindingInstruction,
 // } from '@aurelia/runtime-html';
@@ -73,7 +73,7 @@ import {
 // }
 
 // export class InstructionBuilder {
-//   private instructions: TargetedInstruction[];
+//   private instructions: Instruction[];
 
 //   constructor() {
 //     this.instructions = [];
@@ -140,7 +140,7 @@ import {
 //     insCbOrBuilder: InstructionCb | InstructionBuilder,
 //     defCbOrBuilder: DefinitionCb | DefinitionBuilder
 //   ): InstructionBuilder {
-//     let childInstructions: TargetedInstruction[];
+//     let childInstructions: Instruction[];
 //     let definition: PartialCustomElementDefinition;
 //     if (insCbOrBuilder instanceof InstructionBuilder) {
 //       childInstructions = insCbOrBuilder.build();
@@ -171,7 +171,7 @@ import {
 //     return this;
 //   }
 
-//   public build(): TargetedInstruction[] {
+//   public build(): Instruction[] {
 //     const { instructions } = this;
 //     this.instructions = null!;
 //     return instructions;
@@ -183,7 +183,7 @@ import {
 //   private name: string;
 //   private templateBuilder: TemplateBuilder;
 //   private instructionBuilder: InstructionBuilder;
-//   private instructions: TargetedInstruction[][];
+//   private instructions: Instruction[][];
 
 //   constructor(name?: string) {
 //     // eslint-disable-next-line prefer-template
@@ -530,7 +530,7 @@ export function createScopeForTest(bindingContext: any = {}, parentBindingContex
 
 //   const composableProvider = new InstanceProvider();
 //   const elementProvider = new InstanceProvider();
-//   const instructionProvider = new InstanceProvider<ITargetedInstruction>();
+//   const instructionProvider = new InstanceProvider<IInstruction>();
 
 //   composableProvider.prepare(composable);
 //   elementProvider.prepare(host);
@@ -538,7 +538,7 @@ export function createScopeForTest(bindingContext: any = {}, parentBindingContex
 
 //   container.register(ElementType);
 //   container.registerResolver(IController, composableProvider);
-//   container.registerResolver(ITargetedInstruction, instructionProvider);
+//   container.registerResolver(IInstruction, instructionProvider);
 //   dom.registerElementResolver(container, elementProvider);
 
 //   const element = container.get<T & IViewModel>(

@@ -10,7 +10,7 @@ import {
   Transformer,
 } from '@aurelia/kernel';
 import {
-  ITargetedInstruction,
+  IInstruction,
 } from '../definitions';
 import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
 import { LifecycleFlags } from '../flags';
@@ -117,7 +117,7 @@ export interface ICompiledCompositionContext<T extends INode = INode> extends IC
   getComponentFactory(
     parentController?: IController,
     host?: INode,
-    instruction?: ITargetedInstruction,
+    instruction?: IInstruction,
     viewFactory?: IViewFactory,
     location?: IRenderLocation,
   ): IComponentFactory<T>;
@@ -132,7 +132,7 @@ export interface ICompiledCompositionContext<T extends INode = INode> extends IC
 
   composeChildren(
     flags: LifecycleFlags,
-    instructions: readonly ITargetedInstruction[],
+    instructions: readonly IInstruction[],
     controller: IController,
     target: unknown,
   ): void;
@@ -236,7 +236,7 @@ export class CompositionContext<T extends INode = INode> implements IComponentFa
 
   private readonly parentControllerProvider: InstanceProvider<IController<T>>;
   private readonly elementProvider: InstanceProvider<T>;
-  private readonly instructionProvider: InstanceProvider<ITargetedInstruction>;
+  private readonly instructionProvider: InstanceProvider<IInstruction>;
   private readonly factoryProvider: ViewFactoryProvider<T>;
   private readonly renderLocationProvider: InstanceProvider<IRenderLocation<T>>;
 
@@ -270,8 +270,8 @@ export class CompositionContext<T extends INode = INode> implements IComponentFa
       true,
     );
     container.registerResolver(
-      ITargetedInstruction,
-      this.instructionProvider = new InstanceProvider<ITargetedInstruction>('ITargetedInstruction'),
+      IInstruction,
+      this.instructionProvider = new InstanceProvider<IInstruction>('IInstruction'),
       true,
     );
     container.registerResolver(
@@ -416,7 +416,7 @@ export class CompositionContext<T extends INode = INode> implements IComponentFa
   public getComponentFactory(
     parentController?: IController,
     host?: INode,
-    instruction?: ITargetedInstruction,
+    instruction?: IInstruction,
     viewFactory?: IViewFactory,
     location?: IRenderLocation,
   ): IComponentFactory<T> {
@@ -459,7 +459,7 @@ export class CompositionContext<T extends INode = INode> implements IComponentFa
 
   public composeChildren(
     flags: LifecycleFlags,
-    instructions: readonly ITargetedInstruction[],
+    instructions: readonly IInstruction[],
     controller: IComposableController,
     target: unknown,
   ): void {
@@ -472,11 +472,11 @@ export class CompositionContext<T extends INode = INode> implements IComponentFa
   // #endregion
 
   // #region IProjectionProvider api
-  public registerProjections(projections: Map<ITargetedInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
+  public registerProjections(projections: Map<IInstruction, Record<string, CustomElementDefinition>>, scope: Scope): void {
     this.projectionProvider.registerProjections(projections, scope);
   }
 
-  public getProjectionFor(instruction: ITargetedInstruction): RegisteredProjections | null {
+  public getProjectionFor(instruction: IInstruction): RegisteredProjections | null {
     return this.projectionProvider.getProjectionFor(instruction);
   }
   // #endregion

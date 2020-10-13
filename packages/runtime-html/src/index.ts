@@ -247,9 +247,9 @@ export {
   TriggerBindingInstruction,
   AttributeInstruction,
   InstructionRow,
-  isTargetedInstruction,
+  isInstruction,
   NodeInstruction,
-  TargetedInstruction,
+  Instruction,
   InstructionType,
 } from './instructions';
 export {

@@ -8,7 +8,7 @@ import {
   BindingMode,
   IDOM,
   INode,
-  ITargetedInstruction,
+  IInstruction,
   IViewFactory,
   LifecycleFlags,
   CustomElementDefinition,
@@ -24,18 +24,18 @@ import {
   ControllerVisitor,
 } from '@aurelia/runtime';
 import { createElement, CompositionPlan } from '../../create-element';
-import { HydrateElementInstruction, TargetedInstruction } from '../../instructions';
+import { HydrateElementInstruction, Instruction } from '../../instructions';
 
 export type Subject<T extends INode = Node> = IViewFactory<T> | ISyntheticView<T> | CompositionPlan<T> | Constructable | CustomElementDefinition;
 export type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | undefined;
 
 function toLookup(
-  acc: Record<string, TargetedInstruction>,
-  item: ITargetedInstruction & { to?: string },
-): Record<string, TargetedInstruction> {
+  acc: Record<string, Instruction>,
+  item: IInstruction & { to?: string },
+): Record<string, Instruction> {
   const to = item.to;
   if (to !== void 0 && to !== 'subject' && to !== 'composing') {
-    acc[to] = item as TargetedInstruction;
+    acc[to] = item as Instruction;
   }
 
   return acc;
@@ -50,7 +50,7 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
 
   public view?: ISyntheticView<T> = void 0;
 
-  private readonly properties: Record<string, TargetedInstruction>;
+  private readonly properties: Record<string, Instruction>;
 
   private lastSubject?: MaybeSubjectPromise<T> = void 0;
 
@@ -58,7 +58,7 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
 
   public constructor(
     @IDOM private readonly dom: IDOM<T>,
-    @ITargetedInstruction instruction: HydrateElementInstruction,
+    @IInstruction instruction: HydrateElementInstruction,
   ) {
     this.properties = instruction.instructions.reduce(toLookup, {});
   }

@@ -4,7 +4,7 @@ import {
   ForOfStatement,
   Interpolation,
   IsBindingBehavior,
-  ITargetedInstruction,
+  IInstruction,
   PartialCustomElementDefinition,
   SlotInfo,
 } from '@aurelia/runtime';
@@ -74,10 +74,10 @@ export type AttributeInstruction =
   SetClassAttributeInstruction |
   SetStyleAttributeInstruction;
 
-export type TargetedInstruction = NodeInstruction | AttributeInstruction;
-export type InstructionRow = [TargetedInstruction, ...AttributeInstruction[]];
+export type Instruction = NodeInstruction | AttributeInstruction;
+export type InstructionRow = [Instruction, ...AttributeInstruction[]];
 
-export function isTargetedInstruction(value: unknown): value is TargetedInstruction {
+export function isInstruction(value: unknown): value is Instruction {
   const type = (value as { type?: string }).type;
   return typeof type === 'string' && type.length === 2;
 }
@@ -182,7 +182,7 @@ export class HydrateElementInstruction {
 
   public constructor(
     public res: string,
-    public instructions: ITargetedInstruction[],
+    public instructions: IInstruction[],
     public slotInfo: SlotInfo | null,
   ) {}
 }
@@ -192,7 +192,7 @@ export class HydrateAttributeInstruction {
 
   public constructor(
     public res: string,
-    public instructions: ITargetedInstruction[],
+    public instructions: IInstruction[],
   ) {}
 }
 
@@ -202,7 +202,7 @@ export class HydrateTemplateController {
   public constructor(
     public def: PartialCustomElementDefinition,
     public res: string,
-    public instructions: ITargetedInstruction[],
+    public instructions: IInstruction[],
     public link?: boolean,
   ) {}
 }

@@ -11,8 +11,8 @@ import {
 
 export type InstructionTypeName = string;
 
-export const ITargetedInstruction = DI.createInterface<ITargetedInstruction>('ITargetedInstruction').noDefault();
-export interface ITargetedInstruction {
+export const IInstruction = DI.createInterface<IInstruction>('IInstruction').noDefault();
+export interface IInstruction {
   type: InstructionTypeName;
 }
 

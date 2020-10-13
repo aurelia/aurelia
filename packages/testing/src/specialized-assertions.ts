@@ -112,7 +112,7 @@ function $getVisibleText(root: ICustomElementController | ISyntheticView, contex
   }
 }
 
-export function targetedInstructionTypeName(type: string): string {
+export function instructionTypeName(type: string): string {
   switch (type) {
     case InstructionType.textBinding:
       return 'textBinding';
@@ -176,8 +176,8 @@ export function verifyBindingInstructionsEqual(actual: any, expected: any, error
           actual = JSON.stringify(actual);
         }
         if (path.endsWith('type')) {
-          expected = targetedInstructionTypeName(expected);
-          actual = targetedInstructionTypeName(actual);
+          expected = instructionTypeName(expected);
+          actual = instructionTypeName(actual);
         }
         errors.push(`WRONG: ${path} === ${actual} (expected: ${expected})`);
       }

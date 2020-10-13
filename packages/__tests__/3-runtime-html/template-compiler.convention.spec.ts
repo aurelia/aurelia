@@ -1,7 +1,7 @@
 import {
   BindingMode,
   ITemplateCompiler,
-  ITargetedInstruction,
+  IInstruction,
 } from '@aurelia/runtime';
 import {
   InstructionType as TT,
@@ -107,7 +107,7 @@ interface IExpectedInstruction {
   toVerify: string[];
 }
 
-function verifyInstructions(actual: readonly ITargetedInstruction[], expectation: IExpectedInstruction[], type?: string) {
+function verifyInstructions(actual: readonly IInstruction[], expectation: IExpectedInstruction[], type?: string) {
   assert.strictEqual(actual.length, expectation.length, `Expected to have ${expectation.length} ${type ? type : ''} instructions. Received: ${actual.length}`);
   for (let i = 0, ii = actual.length; i < ii; ++i) {
     const actualInst = actual[i];

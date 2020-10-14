@@ -141,6 +141,9 @@ export const IfRegistration = If as unknown as IRegistry;
 export const ElseRegistration = Else as unknown as IRegistry;
 export const RepeatRegistration = Repeat as unknown as IRegistry;
 export const WithRegistration = With as unknown as IRegistry;
+export const SwitchRegistration = Switch as unknown as IRegistry;
+export const CaseRegistration = Case as unknown as IRegistry;
+export const DefaultCaseRegistration = DefaultCase as unknown as IRegistry;
 export const SanitizeValueConverterRegistration = SanitizeValueConverter as unknown as IRegistry;
 export const ViewValueConverterRegistration = ViewValueConverter as unknown as IRegistry;
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
@@ -166,9 +169,9 @@ export const DefaultResources = [
   ElseRegistration,
   RepeatRegistration,
   WithRegistration,
-  Switch,
-  Case,
-  DefaultCase,
+  SwitchRegistration,
+  CaseRegistration,
+  DefaultCaseRegistration,
 
   SanitizeValueConverterRegistration,
 

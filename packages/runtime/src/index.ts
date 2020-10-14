@@ -193,6 +193,9 @@ export {
   collectionSubscriberCollection,
   proxySubscriberCollection,
 } from './observation/subscriber-collection';
+export {
+  IWatcher,
+} from './observation/subscriber-switcher';
 
 export {
   bindingBehavior,

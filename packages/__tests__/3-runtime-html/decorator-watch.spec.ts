@@ -2,6 +2,38 @@ import { watch } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/decorator-watch.spec.ts', function () {
+  it('typings work', function () {
+    const symbolMethod = Symbol();
+    @watch<App>(app => app.col.has(Symbol), 5)
+    @watch<App>(app => app.col.has(Symbol), 'someMethod')
+    @watch<App>(app => app.col.has(Symbol), symbolMethod)
+    @watch<App>(app => app.col.has(Symbol), (value, oldValue, app) => {})
+    @watch<App>('some.expression', 5)
+    @watch<App>('some.expression', 'someMethod')
+    @watch<App>('some.expression', symbolMethod)
+    @watch<App>('some.expression', (v, o, a) => {/* empty */})
+    @watch<App>('some.expression', function(v, o, a) {/* some callback */})
+    @watch<App>(Symbol(), 5)
+    @watch<App>(Symbol(), 'someMethod')
+    @watch<App>(Symbol(), symbolMethod)
+    @watch<App>(Symbol(), (v, o, a) => {})
+    @watch<App>(Symbol(), function(v, o, a) {/* some callback */})
+    class App {
+      public col: Map<unknown, unknown>
+
+      @watch<App>(app => app.col.has(Symbol))
+      @watch('some.expression')
+      @watch(Symbol())
+      @watch(5)
+      public someMethod(n: unknown, o: unknown, app: App) {/* empty */}
+      public [symbolMethod](n: unknown, o: unknown, app: App) {/* empty */}
+      public [5](n: unknown, o: unknown, app: App) {/* empty */}
+    }
+
+    const app = new App();
+    assert.strictEqual(app.col, undefined);
+  });
+
   it('works in basic scenario', function () {
     let callCount = 0;
     class App {
@@ -239,5 +271,75 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     assert.strictEqual(callCount, 1);
     ctx.scheduler.getRenderTaskQueue().flush();
     assert.strictEqual(textNode.textContent, '1');
+  });
+
+  describe('Map/Set', function () {
+    const symbol = Symbol();
+    interface IApp {
+      col: Map<unknown, unknown>;
+      symbols: number;
+    }
+
+    for (const [fn] of [
+      [(app: IApp) => Array.from(app.col.values()).filter(v => v === symbol).length],
+      // [(app: IApp) => app.col.has(symbol) ? app.symbols++ : 0]
+    ]) {
+      it('observes when declared on method', function () {
+        let callCount = 0;
+        class App implements IApp {
+          public col: Map<unknown, unknown> = new Map();
+          public symbols: number = 0;
+  
+          @watch(fn as any)
+          public log(symbols: number) {
+            callCount++;
+            this.symbols = symbols;
+          }
+        }
+
+        const { component, tearDown } = createFixture('', App);
+
+        assert.strictEqual(callCount, 0);
+        component.col.set('a', 1);
+        assert.strictEqual(callCount, 0);
+        component.col.set('b', symbol);
+        assert.strictEqual(callCount, 1);
+        component.col.set('a', 2);
+        assert.strictEqual(callCount, 1);
+  
+        tearDown();
+        component.col.set('a', symbol);
+        assert.strictEqual(callCount, 1);
+      });
+    }
+
+    it('observes', function () {
+      let callCount = 0;
+      const symbol = Symbol();
+      class App {
+        public col: Map<unknown, unknown> = new Map();
+        public symbols: number = 0;
+
+        @watch((app: App) => Array.from(app.col.values()).filter(v => v === symbol).length)
+        public log(symbols: number) {
+          callCount++;
+          this.symbols = symbols;
+        }
+      }
+
+      const { component, tearDown } = createFixture('', App);
+
+      assert.strictEqual(callCount, 0);
+      component.col.set('a', 1);
+      assert.strictEqual(callCount, 0);
+      component.col.set('b', symbol);
+      assert.strictEqual(callCount, 1);
+      component.col.set('a', 2);
+      assert.strictEqual(callCount, 1);
+
+      tearDown();
+      component.col.set('a', symbol);
+      assert.strictEqual(callCount, 1);
+    });
   });
 });

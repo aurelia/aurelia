@@ -26,7 +26,7 @@ type WatchMethodDecorator<T> = <R, K extends AnyMethod<R> = AnyMethod<R>>(target
 //    }
 export function watch<T extends object = object, D = unknown>(
   expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<T, D>,
-  changeHandlerOrCallback: string | IWatcherCallback<T, D>,
+  changeHandlerOrCallback: PropertyKey | IWatcherCallback<T, D>,
 ): WatchClassDecorator<T>;
 
 // for
@@ -42,7 +42,7 @@ export function watch<T extends object = object, D = unknown>(
 
 export function watch<T extends object = object>(
   expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<T>,
-  changeHandlerOrCallback?: string | IWatcherCallback<T>,
+  changeHandlerOrCallback?: PropertyKey | IWatcherCallback<T>,
 ): WatchClassDecorator<T> | WatchMethodDecorator<T> {
   if (!expressionOrPropertyAccessFn) {
     throw new Error('Invalid watch config. Expected an expression or a fn');
@@ -58,7 +58,7 @@ export function watch<T extends object = object>(
 
     // basic validation
     if (typeof changeHandlerOrCallback === 'string' && !(changeHandlerOrCallback in Type.prototype)) {
-      throw new Error(`Invalid change handler config. Method not found in class ${Type.name}`);
+      throw new Error(`Invalid change handler config. Method "${String(changeHandlerOrCallback)}" not found in class ${Type.name}`);
     }
 
     if (!isClassDecorator && typeof descriptor?.value !== 'function') {

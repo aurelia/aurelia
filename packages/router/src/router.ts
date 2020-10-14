@@ -583,7 +583,10 @@ export class Router implements IRouter {
         if (!this.isRestrictedNavigation) {
           // await Promise.resolve();
           // console.log('Awaiting swapped');
-          await coordinator.syncState('swapped');
+          const waitForSwapped = coordinator.syncState('swapped');
+          if (waitForSwapped instanceof Promise) {
+            await waitForSwapped;
+          }
           // console.log('Awaited swapped');
           // console.log('pendingConnects before find new', [...this.pendingConnects]);
           // const pending = [...this.pendingConnects.values()].filter(connect => connect.isPending);

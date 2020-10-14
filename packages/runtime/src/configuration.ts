@@ -48,7 +48,6 @@ import { ViewValueConverter } from './resources/value-converters/view';
 import { Now } from '@aurelia/scheduler';
 import { AuSlot } from './resources/custom-elements/au-slot';
 import { Switch, Case, DefaultCase } from './resources/custom-attributes/switch';
-import { ExpressionParser } from './binding/expression-parser';
 
 export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern as unknown as IRegistry;
 export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern as unknown as IRegistry;

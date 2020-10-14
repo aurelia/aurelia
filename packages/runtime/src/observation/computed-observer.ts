@@ -110,7 +110,7 @@ export class CustomSetterObserver implements CustomSetterObserver {
     public readonly obj: IObservable & IIndexable,
     public readonly propertyKey: string,
     private readonly descriptor: PropertyDescriptor,
-  ) {}
+  ) { }
 
   public setValue(newValue: unknown): void {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unnecessary-type-assertion
@@ -313,17 +313,17 @@ function proxyOrValue(flags: LifecycleFlags, target: object, key: PropertyKey, o
 // watchers (Computed & Expression) are basically binding,
 // they are treated as special and setup before all other bindings
 
-export interface ComputedWatcher extends IConnectableBinding {}
+export interface ComputedWatcher extends IConnectableBinding { }
 
 @connectable()
 @subscriberCollection()
 @collectionSubscriberCollection()
 export class ComputedWatcher implements IWatcher {
-  
+
   private readonly observers: Map<ICollectionObserver<CollectionKind>, number> = new Map();
 
   private runId: number = 0;
-  private oV: unknown = void 0;
+  private v: unknown = void 0;
 
   public isBound: boolean = false;
 
@@ -375,7 +375,7 @@ export class ComputedWatcher implements IWatcher {
 
   private run(runId: number): void {
     const obj = this.obj;
-    const oldValue = this.oV;
+    const oldValue = this.v;
     const newValue = this.compute();
 
     if (runId === this.runId && !Object.is(newValue, oldValue)) {
@@ -388,13 +388,13 @@ export class ComputedWatcher implements IWatcher {
     this.version++;
     enterWatcher(this);
     try {
-      this.oV = getRawOrSelf(this.get(getProxyOrSelf(this.obj), this));
+      this.v = getRawOrSelf(this.get(getProxyOrSelf(this.obj), this));
     } finally {
       exitWatcher(this);
       this.unobserve(false);
       this.unobserveCollection(false);
     }
-    return this.oV;
+    return this.v;
   }
 
   private forCollection(collection: Collection): ICollectionObserver<CollectionKind> {
@@ -408,10 +408,6 @@ export class ComputedWatcher implements IWatcher {
       observer = obsLocator.getMapObserver(LifecycleFlags.none, collection);
     }
     return observer;
-  }
-
-  private isObserved(collection: Collection): boolean {
-    return this.observers.get(this.forCollection(collection)) === this.version;
   }
 
   private unobserveCollection(all: boolean): void {
@@ -429,14 +425,14 @@ export class ComputedWatcher implements IWatcher {
 /**
  * @internal The interface describes methods added by `connectable` & `subscriberCollection` decorators
  */
-export interface ExpressionWatcher extends IConnectableBinding {}
+export interface ExpressionWatcher extends IConnectableBinding { }
 
 @connectable()
 export class ExpressionWatcher implements ExpressionWatcher {
   /**
    * @internal
    */
-  private oV: any;
+  private v: any;
   /**
    * @internal
    */
@@ -458,7 +454,7 @@ export class ExpressionWatcher implements ExpressionWatcher {
   public handleChange(value: unknown): void {
     const expr = this.expr;
     const obj = this.obj;
-    const oldValue = this.oV;
+    const oldValue = this.v;
     const canOptimize = expr.$kind === ExpressionKind.AccessScope && this.observerSlots === 1;
     if (!canOptimize) {
       this.version++;
@@ -466,7 +462,7 @@ export class ExpressionWatcher implements ExpressionWatcher {
       this.unobserve(false);
     }
     if (!Object.is(value, oldValue)) {
-      this.oV = value;
+      this.v = value;
       // should optionally queue for batch synchronous
       this.cb.call(obj, value, oldValue, obj);
     }
@@ -478,7 +474,7 @@ export class ExpressionWatcher implements ExpressionWatcher {
     }
     this.isBound = true;
     this.version++;
-    this.oV = this.expr.evaluate(0, this.scope, null, this.locator, this);
+    this.v = this.expr.evaluate(0, this.scope, null, this.locator, this);
     this.unobserve(false);
   }
 
@@ -488,7 +484,7 @@ export class ExpressionWatcher implements ExpressionWatcher {
     }
     this.isBound = false;
     this.unobserve(true);
-    this.oV = void 0;
+    this.v = void 0;
   }
 }
 

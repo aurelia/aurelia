@@ -256,6 +256,11 @@ const collectionHandler: ProxyHandler<$MapOrSet> = {
           return wrappedAdd;
         }
         break;
+      case 'get':
+        if (isMap(target)) {
+          return wrappedGet;
+        }
+        break;
       case 'set':
         if (isMap(target)) {
           return wrappedSet;
@@ -293,10 +298,16 @@ function wrappedHas(this: $MapOrSet, v: unknown): boolean {
   return raw.has(v);
 }
 
+function wrappedGet(this: Map<unknown, unknown>, k: unknown): unknown {
+  const raw = getRaw(this);
+  currentWatcher()?.observeCollection(raw);
+  return getProxyOrSelf(raw.get(k));
+}
 function wrappedSet(this: Map<unknown, unknown>, k: unknown, v: unknown): Map<unknown, unknown> {
   const raw = getRaw(this);
   currentWatcher()?.observeCollection(raw);
-  return raw.set(k, v);
+  raw.set(k, v);
+  return this;
 }
 
 function wrappedAdd(this: Set<unknown>, v: unknown): Set<unknown> {

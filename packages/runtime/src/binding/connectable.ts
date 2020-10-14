@@ -95,7 +95,7 @@ export function observeProperty(this: IConnectableBinding, flags: LifecycleFlags
 
 /** @internal */
 export function unobserve(this: IConnectableBinding & { [key: string]: unknown }, all?: boolean): void {
-  const slots = this.observerSlots;
+  let slots = this.observerSlots;
   let slotName: string;
   let observer: IBindingTargetObserver & { [key: string]: number };
   if (all === true) {
@@ -108,6 +108,7 @@ export function unobserve(this: IConnectableBinding & { [key: string]: unknown }
         observer[this.id] &= ~LifecycleFlags.updateTargetInstance;
       }
     }
+    this.observerSlots = 0;
   } else {
     const version = this.version;
     for (let i = 0; i < slots; ++i) {
@@ -118,20 +119,29 @@ export function unobserve(this: IConnectableBinding & { [key: string]: unknown }
           this[slotName] = void 0;
           observer.unsubscribe(this);
           observer[this.id] &= ~LifecycleFlags.updateTargetInstance;
+          slots--;
         }
       }
     }
+    this.observerSlots = slots;
   }
 }
 
 type DecoratableConnectable<TProto, TClass> = Class<TProto & Partial<IConnectableBinding> & IPartialConnectableBinding, TClass>;
 type DecoratedConnectable<TProto, TClass> = Class<TProto & IConnectableBinding, TClass>;
 
+function ensureProto<T extends object, K extends keyof T>(proto: T, key: K, defaultValue: unknown): T {
+  if (!Object.prototype.hasOwnProperty.call(proto, key)) {
+    Reflect.set(proto, key, defaultValue);
+  }
+  return proto;
+}
 function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> {
   const proto = target.prototype;
-  if (!Object.prototype.hasOwnProperty.call(proto, 'observeProperty')) proto.observeProperty = observeProperty;
-  if (!Object.prototype.hasOwnProperty.call(proto, 'unobserve')) proto.unobserve = unobserve;
-  if (!Object.prototype.hasOwnProperty.call(proto, 'addObserver')) proto.addObserver = addObserver;
+  ensureProto(proto, 'version', 0);
+  ensureProto(proto, 'observeProperty', observeProperty);
+  ensureProto(proto, 'unobserve', unobserve);
+  ensureProto(proto, 'addObserver', addObserver);
   return target as DecoratedConnectable<TProto, TClass>;
 }
 

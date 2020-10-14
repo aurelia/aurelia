@@ -64,7 +64,9 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         this.name = strName;
       }
     }
-    const { ctx, component, appHost, tearDown } = createFixture(`\${name}`, App);
+    const { ctx, component, appHost, tearDown } = createFixture(`<div>\${name}</div>`, App);
+
+    const textNode = appHost.querySelector('div');
 
     // with TS, initialization of class field are in constructor
     assert.strictEqual(callCount, 0);
@@ -72,10 +74,170 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     assert.strictEqual(callCount, 0);
     component.person.addresses[1].strName = '3cp';
     assert.strictEqual(callCount, 1);
-    assert.strictEqual(appHost.textContent, '');
+    assert.strictEqual(textNode.textContent, '');
     ctx.scheduler.getRenderTaskQueue().flush();
-    assert.strictEqual(appHost.textContent, '3cp');
+    assert.strictEqual(textNode.textContent, '3cp');
 
     tearDown();
+
+    component.person.addresses[1].strName = 'Chunpeng Huo';
+    assert.strictEqual(textNode.textContent, '3cp');
+    ctx.scheduler.getRenderTaskQueue().flush();
+    assert.strictEqual(textNode.textContent, '3cp');
+  });
+
+  it('observes collection', function () {
+    let callCount = 0;
+    let latestDelivered: IDelivery[] = [];
+    interface IDelivery {
+      id: number; name: string; delivered: boolean;
+    }
+    class PostOffice {
+      public storage: IDelivery[] = [
+        { id: 1, name: 'box', delivered: false },
+        { id: 2, name: 'toy', delivered: true },
+        { id: 3, name: 'letter', delivered: false },
+      ];
+
+      public deliveries: IDelivery[];
+
+      public constructor() {
+        (this.deliveries = [this.storage[1]]).toString = function() {
+          return JSON.stringify(this);
+        };
+      }
+
+      public newDelivery(delivery: IDelivery) {
+        this.storage.push(delivery);
+      }
+
+      public delivered(id: number): void {
+        const delivery = this.storage.find(delivery => delivery.id === id);
+        if (delivery != null) {
+          delivery.delivered = true;
+        }
+      }
+
+      @watch((postOffice: PostOffice) => postOffice.storage.filter(d => d.delivered))
+      public onDelivered(deliveries: IDelivery[]) {
+        callCount++;
+        deliveries.toString = function() {
+          return JSON.stringify(this);
+        };
+        latestDelivered = this.deliveries = deliveries;
+      }
+    }
+
+    const { ctx, component, appHost, tearDown } = createFixture(`<div>\${deliveries}</div>`, PostOffice);
+
+    const textNode = appHost.querySelector('div');
+    assert.strictEqual(callCount, 0);
+    assert.strictEqual(textNode.textContent, JSON.stringify([{ id: 2, name: 'toy', delivered: true }]));
+
+    component.newDelivery({ id: 4, name: 'cookware', delivered: false });
+    assert.strictEqual(callCount, 1);
+    ctx.scheduler.getRenderTaskQueue().flush();
+    assert.strictEqual(textNode.textContent, JSON.stringify([{ id: 2, name: 'toy', delivered: true }]));
+
+    component.delivered(1);
+    assert.strictEqual(callCount, 2);
+    assert.strictEqual(textNode.textContent, JSON.stringify([{ id: 2, name: 'toy', delivered: true }]));
+    ctx.scheduler.getRenderTaskQueue().flush();
+    assert.strictEqual(
+      textNode.textContent,
+      JSON.stringify([
+        { id: 1, name: 'box', delivered: true },
+        { id: 2, name: 'toy', delivered: true }
+      ])
+    );
+
+    tearDown();
+    component.newDelivery({ id: 5, name: 'gardenware', delivered: true });
+    component.delivered(3);
+    assert.strictEqual(
+      textNode.textContent,
+      JSON.stringify([
+        { id: 1, name: 'box', delivered: true },
+        { id: 2, name: 'toy', delivered: true }
+      ])
+    );
+    ctx.scheduler.getRenderTaskQueue().flush();
+    assert.strictEqual(
+      textNode.textContent,
+      JSON.stringify([
+        { id: 1, name: 'box', delivered: true },
+        { id: 2, name: 'toy', delivered: true }
+      ])
+    );
+  });
+
+  it('observes chain lighting', function () {
+    let callCount = 0;
+    let latestDelivered: IDelivery[] = [];
+    interface IDelivery {
+      id: number; name: string; delivered: boolean;
+    }
+    class PostOffice {
+      public storage: IDelivery[] = [
+        { id: 1, name: 'box', delivered: false },
+        { id: 2, name: 'toy', delivered: true },
+        { id: 3, name: 'letter', delivered: false },
+      ];
+
+      public deliveries: number;
+
+      public constructor() {
+        this.deliveries = 0;
+      }
+
+      public newDelivery(delivery: IDelivery) {
+        this.storage.push(delivery);
+      }
+
+      public delivered(id: number): void {
+        const delivery = this.storage.find(delivery => delivery.id === id);
+        if (delivery != null) {
+          delivery.delivered = true;
+        }
+      }
+
+      @watch((postOffice: PostOffice) =>
+        postOffice
+          .storage
+          .filter(d => d.delivered)
+          .filter(d => d.name === 'box')
+          .length
+      )
+      public boxDelivered(deliveries: number) {
+        callCount++;
+        this.deliveries = deliveries;
+      }
+    }
+
+    const { ctx, component, appHost, tearDown } = createFixture(`<div>\${deliveries}</div>`, PostOffice);
+
+    const textNode = appHost.querySelector('div');
+    assert.strictEqual(callCount, 0);
+    assert.strictEqual(textNode.textContent, '0');
+
+    component.newDelivery({ id: 4, name: 'cookware', delivered: false });
+    assert.strictEqual(callCount, 0);
+    ctx.scheduler.getRenderTaskQueue().flush();
+    assert.strictEqual(textNode.textContent, '0');
+
+    component.delivered(1);
+    assert.strictEqual(callCount, 1);
+    assert.strictEqual(textNode.textContent, '0');
+    ctx.scheduler.getRenderTaskQueue().flush();
+    assert.strictEqual(textNode.textContent, '1');
+
+    tearDown();
+
+    component.newDelivery({ id: 5, name: 'gardenware', delivered: true });
+    component.delivered(3);
+    assert.strictEqual(textNode.textContent, '1');
+    assert.strictEqual(callCount, 1);
+    ctx.scheduler.getRenderTaskQueue().flush();
+    assert.strictEqual(textNode.textContent, '1');
   });
 });

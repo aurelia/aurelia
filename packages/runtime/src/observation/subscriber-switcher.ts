@@ -1,15 +1,15 @@
-import { IConnectableBinding } from '../binding/connectable';
-import { Collection, ICollectionSubscriber } from '../observation';
+import { LifecycleFlags } from '../flags';
+import { Collection } from '../observation';
 
 // todo:
 // merge collection subscription to property subscription
 // and make IWatcher simpler, so observers in static observation won't have to implement many methods
 // An alternative way is to make collection observation manual & user controllable
 // so it works even without proxy
-export interface IWatcher extends IConnectableBinding, ICollectionSubscriber {
+export interface IWatcher {
+  observeProperty(flags: LifecycleFlags, obj: object, property: PropertyKey): void;
   observeCollection<T extends Collection>(collection: T): T;
   observeLength<T extends Collection>(collection: T): T;
-  observeIndex(arr: unknown[], index: number): void;
 }
 
 /**

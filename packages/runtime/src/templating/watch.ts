@@ -1,6 +1,7 @@
 import { Constructable, Protocol, Metadata, PLATFORM } from '@aurelia/kernel';
+import type { IWatcher } from '../observation/subscriber-switcher';
 
-export type IPropertyAccessFn<T extends object = object, R = unknown> = (vm: T) => R;
+export type IDepCollectionFn<T extends object = object, R = unknown> = (vm: T, watcher: IWatcher) => R;
 export type IWatcherCallback<T extends object, TValue = unknown>
   = (this: T, newValue: TValue, oldValue: TValue, vm: T) => unknown;
 
@@ -24,7 +25,7 @@ type WatchMethodDecorator<T> = <R, K extends AnyMethod<R> = AnyMethod<R>>(target
 //      method() {...}
 //    }
 export function watch<T extends object = object, D = unknown>(
-  expressionOrPropertyAccessFn: PropertyKey | IPropertyAccessFn<T, D>,
+  expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<T, D>,
   changeHandlerOrCallback: string | IWatcherCallback<T, D>,
 ): WatchClassDecorator<T>;
 
@@ -36,11 +37,11 @@ export function watch<T extends object = object, D = unknown>(
 //    method() {...}
 // }
 export function watch<T extends object = object, D = unknown>(
-  expressionOrPropertyAccessFn: PropertyKey | IPropertyAccessFn<T, D>
+  expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<T, D>
 ): WatchMethodDecorator<T>;
 
 export function watch<T extends object = object>(
-  expressionOrPropertyAccessFn: PropertyKey | IPropertyAccessFn<T>,
+  expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<T>,
   changeHandlerOrCallback?: string | IWatcherCallback<T>,
 ): WatchClassDecorator<T> | WatchMethodDecorator<T> {
   if (!expressionOrPropertyAccessFn) {

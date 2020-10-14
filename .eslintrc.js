@@ -24,6 +24,7 @@ module.exports = {
     SharedArrayBuffer: 'readonly'
   },
   plugins: [
+    '@typescript-eslint',
     'compat',
     'import',
     'jsdoc',
@@ -267,16 +268,4 @@ module.exports = {
       '@typescript-eslint/require-await': 'off'
     }
   }],
-  settings: {
-    polyfills: [
-      'fetch',
-      'Reflect',
-      'Promise',
-      'Map',
-      'Set',
-      'Object.assign',
-      'WeakMap',
-      'WeakSet'
-    ]
-  }
 };

@@ -1115,7 +1115,7 @@ describe(`The Container class`, function () {
     for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
         const { sut } = createFixture();
-        assert.throws(() => sut.registerTransformer(key, null as any), /5/, `() => sut.registerTransformer(key, null as any)`);
+        assert.throws(() => sut.registerTransformer(key, null as any), /key\/value cannot be null or undefined/, `() => sut.registerTransformer(key, null as any)`);
       });
     }
 
@@ -1132,7 +1132,7 @@ describe(`The Container class`, function () {
     for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
         const { sut } = createFixture();
-        assert.throws(() => sut.getResolver(key, null as any), /5/, `() => sut.getResolver(key, null as any)`);
+        assert.throws(() => sut.getResolver(key, null as any), /key\/value cannot be null or undefined/, `() => sut.getResolver(key, null as any)`);
       });
     }
 
@@ -1155,7 +1155,7 @@ describe(`The Container class`, function () {
     for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
         const { sut } = createFixture();
-        assert.throws(() => sut.get(key), /5/, `() => sut.get(key)`);
+        assert.throws(() => sut.get(key), /key\/value cannot be null or undefined/, `() => sut.get(key)`);
       });
     }
 
@@ -1165,7 +1165,7 @@ describe(`The Container class`, function () {
     for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
         const { sut } = createFixture();
-        assert.throws(() => sut.getAll(key), /5/, `() => sut.getAll(key)`);
+        assert.throws(() => sut.getAll(key), /key\/value cannot be null or undefined/, `() => sut.getAll(key)`);
       });
     }
 

@@ -53,7 +53,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         <div></div>
       </template>`,
       browserOnly: true,
-      assertFn: async (ctx, host, comp: { hasFocus: boolean; focus: number; blur: number }) => {
+      assertFn: (ctx, host, comp: { hasFocus: boolean; focus: number; blur: number }) => {
         assert.equal(comp.hasFocus, undefined, 'comp.hasFocus === undefined');
         assert.equal(comp.focus, undefined);
         assert.equal(comp.blur, undefined);
@@ -70,7 +70,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         assert.equal(comp.blur, 1);
 
         comp.hasFocus = true;
-        await ctx.scheduler.yieldRenderTask();
+        ctx.scheduler.getRenderTaskQueue().flush();
         assert.strictEqual(ctx.doc.activeElement, host);
         assert.equal(comp.focus, 2);
         const div = host.querySelector('div');
@@ -162,13 +162,11 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
       template: `<input blur.bind="hasFocus" blur.trigger="hasFocus = true">`,
       resources: [],
       browserOnly: true,
-      assertFn: async (ctx, host, comp: { hasFocus: boolean }) => {
+      assertFn: (ctx, host, comp: { hasFocus: boolean }) => {
         assert.equal(comp.hasFocus, undefined, 'should have worked and had focus===undefined initially');
         host.querySelector('input').focus();
-        await ctx.scheduler.yieldRenderTask();
         assert.equal(comp.hasFocus, undefined, 'focusing input should not have changed "hasFocus"');
         host.querySelector('input').blur();
-        await ctx.scheduler.yieldRenderTask();
         assert.equal(comp.hasFocus, true, 'should have worked and had focus===true after blurred');
       }
     },
@@ -177,12 +175,12 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
       template: `<input focus.bind="hasFocus" focus.trigger="focusCount = (focusCount || 0) + 1" blur.trigger="blurCount = (blurCount || 0) + 1" >`,
       resources: [],
       browserOnly: true,
-      assertFn: async (ctx, host, comp: { hasFocus: boolean; focusCount: number; blurCount: number }) => {
+      assertFn: (ctx, host, comp: { hasFocus: boolean; focusCount: number; blurCount: number }) => {
         assert.equal(comp.hasFocus, undefined, 'should have worked and had focus===undefined initially');
         assert.equal(comp.focusCount, undefined);
         assert.equal(comp.blurCount, undefined);
         host.querySelector('input').focus();
-        await ctx.scheduler.yieldRenderTask();
+        // await ctx.scheduler.yieldRenderTask();
         assert.equal(comp.hasFocus, true, 'focusing input should have changed "hasFocus"');
         assert.equal(comp.focusCount, 1);
         assert.equal(comp.blurCount, undefined);
@@ -226,12 +224,11 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
       title: 'random template controller attr + listening to event with the same name',
       template: '<div if.bind="!hello" if.trigger="hello = true"></div>',
       resources: [],
-      assertFn: async (ctx, host, comp: { hello: number }) => {
+      assertFn: (ctx, host, comp: { hello: number }) => {
         const div = host.querySelector('div');
         assert.notStrictEqual(div, null);
         div.dispatchEvent(new ctx.CustomEvent('if'));
         assert.strictEqual(comp.hello, true);
-        await ctx.scheduler.yieldRenderTask();
         assert.strictEqual(host.querySelector('div'), null);
       }
     },
@@ -335,11 +332,11 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         ctx.container.register(...resources);
         const au = new Aurelia(ctx.container);
         au.app({ host, component: comp });
-        await au.start().wait();
+        await au.start();
 
         await assertFn(ctx, host, comp);
 
-        await au.stop().wait();
+        await au.stop();
 
         au.dispose();
       } finally {

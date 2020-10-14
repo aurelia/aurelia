@@ -28,11 +28,11 @@ describe('Viewport', function () {
 
     const router = container.get(IRouter);
 
-    await au.start().wait();
+    await au.start();
 
     async function tearDown() {
       RouterConfiguration.customize();
-      await au.stop().wait();
+      await au.stop();
 
       au.dispose();
     }

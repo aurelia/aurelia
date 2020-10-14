@@ -3,9 +3,6 @@ import {
   IContainer,
   IRegistry
 } from '@aurelia/kernel';
-import { Lifecycle } from './lifecycle';
-import { StartTaskManager } from './lifecycle-task';
-import { ObserverLocator } from './observation/observer-locator';
 import {
   CallBindingRenderer,
   CustomAttributeRenderer,
@@ -15,7 +12,6 @@ import {
   LetElementRenderer,
   PropertyBindingRenderer,
   RefBindingRenderer,
-  Renderer,
   SetPropertyRenderer,
   TemplateControllerRenderer
 } from './renderer';
@@ -49,9 +45,8 @@ import { Repeat } from './resources/custom-attributes/repeat';
 import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
-import { ViewLocator } from './templating/view';
 import { Now } from '@aurelia/scheduler';
-import { AuSlot, ProjectionProvider } from './resources/custom-elements/au-slot';
+import { AuSlot } from './resources/custom-elements/au-slot';
 import { Switch, Case, DefaultCase } from './resources/custom-attributes/switch';
 import { ExpressionParser } from './binding/expression-parser';
 
@@ -59,14 +54,6 @@ export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAt
 export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern as unknown as IRegistry;
 export const RefAttributePatternRegistration = RefAttributePattern as unknown as IRegistry;
 export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern as unknown as IRegistry;
-
-export const IExpressionParserRegistration = ExpressionParser as IRegistry;
-export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
-export const ILifecycleRegistration = Lifecycle as IRegistry;
-export const IRendererRegistration = Renderer as IRegistry;
-export const IStartTaskManagerRegistration = StartTaskManager as IRegistry;
-export const IViewLocatorRegistration = ViewLocator as IRegistry;
-export const IProjectionProviderRegistration = ProjectionProvider as IRegistry;
 
 /**
  * Default binding syntax for the following attribute name patterns:
@@ -118,20 +105,13 @@ export const DefaultBindingLanguage = [
  * - `IObserverLocator`
  * - `ILifecycle`
  * - `IRenderer`
- * - `IStartTaskManager`
+ * - `IAppTaskManager`
  * - `IViewLocator`
  * - `IClockRegistration`
  * - `ISchedulerRegistration`
  */
 export const DefaultComponents = [
-  IExpressionParserRegistration,
-  IObserverLocatorRegistration,
-  ILifecycleRegistration,
-  IRendererRegistration,
-  IStartTaskManagerRegistration,
-  IViewLocatorRegistration,
   Now,
-  IProjectionProviderRegistration,
 ];
 
 export const FrequentMutationsRegistration = FrequentMutations as unknown as IRegistry;

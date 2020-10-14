@@ -5,7 +5,6 @@ export {
 
 export {
   DebugConfiguration,
-  TraceConfiguration,
 
   // DebugTracer,
   // stringifyLifecycleFlags,
@@ -63,7 +62,6 @@ export {
   Constructable,
   ConstructableClass,
   // Diff,
-  ICallable,
   IDisposable,
   // IFrameRequestCallback,
   IIndexable,
@@ -122,8 +120,6 @@ export {
   // ITraceInfo,
   // ITraceWriter,
   // ILiveLoggingOptions,
-  Reporter,
-  Tracer,
   LogLevel,
 
   Profiler,
@@ -249,6 +245,7 @@ export {
 } from '@aurelia/router';
 
 export {
+  IAurelia,
   // CallFunctionExpression,
   // connects,
   // observes,
@@ -371,7 +368,6 @@ export {
   // disableSetObservation,
 
   // BindingContext,
-  // Scope,
   // OverrideContext,
 
   // CollectionLengthObserver,
@@ -520,7 +516,7 @@ export {
   // Aurelia, // Replaced by quick-start wrapper
   // IDOMInitializer,
   // ISinglePageApp,
-  CompositionRoot,
+  ICompositionRoot,
 
   // IfRegistration,
   // ElseRegistration,
@@ -638,11 +634,10 @@ export {
   // IOverrideContext,
   // IPropertyChangeTracker,
   // IPropertyObserver,
-  // IScope,
+  // Scope,
   // ISubscribable,
   // ISubscriberCollection,
   // ObservedCollection,
-  // ObserversLookup,
   // PropertyObserver,
   // CollectionObserver,
   // ICollectionSubscriberCollection,

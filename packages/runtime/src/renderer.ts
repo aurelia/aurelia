@@ -3,16 +3,14 @@ import {
   Class,
   IContainer,
   IRegistry,
-  IResolver,
   Registration,
   Metadata,
-  IIndexable,
   DI,
   IServiceLocator,
 } from '@aurelia/kernel';
 import { CallBinding } from './binding/call-binding';
 import { BindingType, IExpressionParser } from './binding/expression-parser';
-import { InterpolationBinding, MultiInterpolationBinding } from './binding/interpolation-binding';
+import { InterpolationBinding, ContentBinding } from './binding/interpolation-binding';
 import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
@@ -50,11 +48,12 @@ import {
   CustomElement, CustomElementDefinition, PartialCustomElementDefinition,
 } from './resources/custom-element';
 import { Controller } from './templating/controller';
-import { ObserversLookup } from './observation';
+import { IObservable } from './observation';
 import { ICompiledRenderContext, getRenderContext } from './templating/render-context';
-import { AnyBindingExpression, BindingBehaviorExpression, IsBindingBehavior } from './binding/ast';
+import { AnyBindingExpression, BindingBehaviorExpression, IsBindingBehavior, Interpolation } from './binding/ast';
 import { BindingBehaviorFactory, BindingBehaviorInstance, IInterceptableBinding } from './resources/binding-behavior';
 import { RegisteredProjections } from './resources/custom-elements/au-slot';
+import { IScheduler } from '@aurelia/scheduler';
 
 export interface ITemplateCompiler {
   compile(partialDefinition: PartialCustomElementDefinition, context: IContainer, targetedProjections: RegisteredProjections | null): CustomElementDefinition;
@@ -79,27 +78,6 @@ export interface IInstructionRenderer<
 }
 
 export const IInstructionRenderer = DI.createInterface<IInstructionRenderer>('IInstructionRenderer').noDefault();
-
-export interface IRenderer {
-  render(
-    flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    controller: IRenderableController,
-    targets: ArrayLike<INode>,
-    templateDefinition: CustomElementDefinition,
-    host: INode | null | undefined,
-  ): void;
-
-  renderInstructions(
-    flags: LifecycleFlags,
-    context: ICompiledRenderContext,
-    instructions: readonly ITargetedInstruction[],
-    controller: IRenderableController,
-    target: unknown,
-  ): void;
-}
-
-export const IRenderer = DI.createInterface<IRenderer>('IRenderer').noDefault();
 
 type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>>, TClass> & Partial<IRegistry>;
 type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IInstructionRenderer, 'render'>, TClass> & IRegistry;
@@ -133,9 +111,12 @@ export function instructionRenderer<TType extends string>(instructionType: TType
   };
 }
 
+export interface IRenderer extends Renderer {}
+export const IRenderer = DI.createInterface<IRenderer>('IRenderer').withDefault(x => x.singleton(Renderer));
+
 /* @internal */
-export class Renderer implements IRenderer {
-  public instructionRenderers: Record<InstructionTypeName, IInstructionRenderer['render']>;
+export class Renderer {
+  private readonly instructionRenderers: Record<InstructionTypeName, IInstructionRenderer['render']>;
 
   public constructor(@all(IInstructionRenderer) instructionRenderers: IInstructionRenderer[]) {
     const record: Record<InstructionTypeName, IInstructionRenderer['render']> = this.instructionRenderers = {};
@@ -145,10 +126,6 @@ export class Renderer implements IRenderer {
       // Consumes slightly more memory but significantly less CPU.
       record[item.instructionType as string] = item.render.bind(item);
     });
-  }
-
-  public static register(container: IContainer): IResolver<IRenderer> {
-    return Registration.singleton(IRenderer, this).register(container);
   }
 
   public render(
@@ -254,7 +231,7 @@ export class SetPropertyRenderer implements IInstructionRenderer {
     target: IController,
     instruction: ISetPropertyInstruction,
   ): void {
-    const obj = getTarget(target) as IIndexable & { $observers: ObserversLookup };
+    const obj = getTarget(target) as IObservable;
     if (obj.$observers !== void 0 && obj.$observers[instruction.to] !== void 0) {
       obj.$observers[instruction.to].setValue(instruction.value, LifecycleFlags.fromBind);
     } else {
@@ -295,10 +272,11 @@ export class CustomElementRenderer implements IInstructionRenderer {
 
     const lifecycle = context.get(ILifecycle);
     const childController = Controller.forCustomElement(
+      /* root                */controller.root,
+      /* container           */context,
       /* viewModel           */component,
       /* lifecycle           */lifecycle,
       /* host                */target,
-      /* parentContainer     */context,
       /* targetedProjections */context.getProjectionFor(instruction),
       /* flags               */flags,
     );
@@ -342,6 +320,8 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 
     const lifecycle = context.get(ILifecycle);
     const childController = Controller.forCustomAttribute(
+      /* root      */controller.root,
+      /* container */context,
       /* viewModel */component,
       /* lifecycle */lifecycle,
       /* host      */target,
@@ -368,16 +348,16 @@ export class CustomAttributeRenderer implements IInstructionRenderer {
 export class TemplateControllerRenderer implements IInstructionRenderer {
   public render(
     flags: LifecycleFlags,
-    parentContext: ICompiledRenderContext,
+    context: ICompiledRenderContext,
     controller: IRenderableController,
     target: INode,
     instruction: IHydrateTemplateController,
   ): void {
 
-    const viewFactory = getRenderContext(instruction.def, parentContext).getViewFactory();
-    const renderLocation = parentContext.dom.convertToRenderLocation(target);
+    const viewFactory = getRenderContext(instruction.def, context).getViewFactory();
+    const renderLocation = context.dom.convertToRenderLocation(target);
 
-    const componentFactory = parentContext.getComponentFactory(
+    const componentFactory = context.getComponentFactory(
       /* parentController */controller,
       /* host             */target,
       /* instruction      */instruction,
@@ -388,8 +368,10 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
     const key = CustomAttribute.keyFrom(instruction.res);
     const component = componentFactory.createComponent<ICustomAttributeViewModel>(key);
 
-    const lifecycle = parentContext.get(ILifecycle);
+    const lifecycle = context.get(ILifecycle);
     const childController = Controller.forCustomAttribute(
+      /* root      */controller.root,
+      /* container */context,
       /* viewModel */component,
       /* lifecycle */lifecycle,
       /* host      */target,
@@ -400,7 +382,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
 
     component.link?.(flags, parentContext, controller, childController, target, instruction);
 
-    parentContext.renderInstructions(
+    context.renderInstructions(
       /* flags        */flags,
       /* instructions */instruction.instructions,
       /* controller   */controller,
@@ -503,6 +485,7 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
     @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IScheduler private readonly scheduler: IScheduler,
   ) {}
 
   public render(
@@ -512,20 +495,25 @@ export class InterpolationBindingRenderer implements IInstructionRenderer {
     target: IController,
     instruction: IInterpolationInstruction,
   ): void {
-    let binding: MultiInterpolationBinding | InterpolationBinding;
-    const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation);
-    if (expr.isMulti) {
-      binding = applyBindingBehavior(
-        new MultiInterpolationBinding(this.observerLocator, expr, getTarget(target), instruction.to, BindingMode.toView, context),
-        expr as unknown as IsBindingBehavior,
-        context,
-      ) as MultiInterpolationBinding;
-    } else {
-      binding = applyBindingBehavior(
-        new InterpolationBinding(expr.firstExpression, expr, getTarget(target), instruction.to, BindingMode.toView, this.observerLocator, context, true),
-        expr as unknown as IsBindingBehavior,
-        context,
-      ) as InterpolationBinding;
+    const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation) as Interpolation;
+    const binding = new InterpolationBinding(
+      this.observerLocator,
+      expr,
+      getTarget(target),
+      instruction.to,
+      BindingMode.toView,
+      context,
+      this.scheduler,
+    );
+    const partBindings = binding.partBindings;
+    let partBinding: ContentBinding;
+    for (let i = 0, ii = partBindings.length; ii > i; ++i) {
+      partBinding = partBindings[i];
+      partBindings[i] = applyBindingBehavior(
+        partBinding,
+        partBinding.sourceExpression as unknown as IsBindingBehavior,
+        context
+      ) as ContentBinding;
     }
     controller.addBinding(binding);
   }

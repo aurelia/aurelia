@@ -246,7 +246,7 @@ describe('template-compiler.binding-commands.style', function () {
           const em = ctx.container.get(IEventManager);
           em.dispose();
           tearDown();
-          await au.stop().wait();
+          await au.stop();
 
           au.dispose();
         }

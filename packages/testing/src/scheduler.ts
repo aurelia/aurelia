@@ -24,8 +24,4 @@ export function ensureSchedulerEmpty(scheduler?: IScheduler): void {
   const postRenderQueue = $scheduler['postRender'] as TaskQueue;
   postRenderQueue.flush();
   postRenderQueue['pendingHead']?.cancel();
-
-  const idleQueue = $scheduler['idle'] as TaskQueue;
-  idleQueue.flush();
-  idleQueue['pendingHead']?.cancel();
 }

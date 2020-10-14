@@ -1,9 +1,10 @@
 import { IConnectableBinding } from '../../binding/connectable';
 import { LifecycleFlags } from '../../flags';
 import { IBinding } from '../../lifecycle';
-import { IScope } from '../../observation';
 import { ISignaler } from '../../observation/signaler';
 import { bindingBehavior, BindingBehaviorInstance } from '../binding-behavior';
+
+import type { Scope } from '../../observation/binding-context';
 
 @bindingBehavior('signal')
 export class SignalBindingBehavior implements BindingBehaviorInstance {
@@ -13,7 +14,7 @@ export class SignalBindingBehavior implements BindingBehaviorInstance {
     @ISignaler private readonly signaler: ISignaler,
   ) {}
 
-  public bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding, ...names: string[]): void {
+  public bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, binding: IConnectableBinding, ...names: string[]): void {
     if (!('handleChange' in binding)) {
       throw new Error(`The signal behavior can only be used with bindings that have a 'handleChange' method`);
     }
@@ -27,7 +28,7 @@ export class SignalBindingBehavior implements BindingBehaviorInstance {
     }
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null, binding: IConnectableBinding): void {
+  public unbind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null, binding: IConnectableBinding): void {
     const names = this.lookup.get(binding)!;
     this.lookup.delete(binding);
     for (const name of names) {

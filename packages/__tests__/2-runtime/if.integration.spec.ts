@@ -5,10 +5,9 @@ import {
   Else,
   If,
   ILifecycle,
-  IScope,
+  Scope,
   LifecycleFlags,
   ProxyObserver,
-  Scope,
   ViewFactory,
   Controller,
   CustomElementDefinition,
@@ -25,7 +24,7 @@ import {
 import { Writable } from '@aurelia/kernel';
 
 describe(`If/Else`, function () {
-  function runActivateLifecycle(sut: If<AuNode>, flags: LifecycleFlags, scope: IScope): void {
+  function runActivateLifecycle(sut: If<AuNode>, flags: LifecycleFlags, scope: Scope): void {
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     sut.$controller.activate(sut.$controller, null, flags, scope);
   }
@@ -158,7 +157,7 @@ describe(`If/Else`, function () {
           sut = new If<AuNode>(ifFactory, location);
           elseSut = new Else<AuNode>(elseFactory);
         }
-        const ifController = (sut as Writable<If>).$controller = Controller.forCustomAttribute(sut, lifecycle, (void 0)!);
+        const ifController = (sut as Writable<If>).$controller = Controller.forCustomAttribute(null, container, sut, lifecycle, (void 0)!);
         elseSut.link(LifecycleFlags.none, void 0!, { children: [ifController] } as unknown as IRenderableController, void 0!, void 0!, void 0!);
 
         const firstBindInitialNodesText: string = value1 ? ifText : elseText;

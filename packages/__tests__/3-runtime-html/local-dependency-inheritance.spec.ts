@@ -11,16 +11,16 @@ describe('local dependency inheritance', function () {
   }
   async function verifyHostText(au: Aurelia, host: Element, expected: string) {
     const root = au.root;
-    await au.start().wait();
+    await au.start();
     const outerHtmlAfterStart1 = host.outerHTML;
     assert.visibleTextEqual(root, expected, 'after start #1');
-    await au.stop().wait();
+    await au.stop();
     const outerHtmlAfterStop1 = host.outerHTML;
     assert.visibleTextEqual(root, '', 'after stop #1');
-    await au.start().wait();
+    await au.start();
     const outerHtmlAfterStart2 = host.outerHTML;
     assert.visibleTextEqual(root, expected, 'after start #2');
-    await au.stop().wait();
+    await au.stop();
     const outerHtmlAfterStop2 = host.outerHTML;
     assert.visibleTextEqual(root, '', 'after stop #2');
     assert.strictEqual(outerHtmlAfterStart1, outerHtmlAfterStart2, 'outerHTML after start #1 / #2');

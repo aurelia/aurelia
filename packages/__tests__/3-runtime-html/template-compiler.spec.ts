@@ -41,7 +41,6 @@ import {
   RegisteredProjections,
   TargetedInstructionType,
   AuSlotContentType,
-  IScope,
   Scope,
   parseExpression,
   ResourceModel,
@@ -1386,11 +1385,11 @@ describe('TemplateCompiler - local templates', function () {
       const au = new Aurelia(container)
         .app({ host, component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) });
 
-      await au.start().wait();
+      await au.start();
 
       assert.html.textContent(host, expectedContent);
 
-      await au.stop().wait();
+      await au.stop();
       ctx.doc.body.removeChild(host);
       au.dispose();
     });
@@ -1411,11 +1410,11 @@ describe('TemplateCompiler - local templates', function () {
     const au = new Aurelia(container)
       .app({ host, component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) });
 
-    await au.start().wait();
+    await au.start();
 
     assert.html.textContent(host, expectedContent);
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
     au.dispose();
   });
@@ -1434,11 +1433,11 @@ describe('TemplateCompiler - local templates', function () {
     const au = new Aurelia(container)
       .app({ host, component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) });
 
-    await au.start().wait();
+    await au.start();
 
     assert.html.textContent(host, expectedContent);
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
     au.dispose();
   });
@@ -1471,11 +1470,11 @@ describe('TemplateCompiler - local templates', function () {
       .register(LevelOne, LevelTwo)
       .app({ host, component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) });
 
-    await au.start().wait();
+    await au.start();
 
     assert.html.textContent(host, expectedContent);
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
     au.dispose();
   });
@@ -1507,11 +1506,11 @@ describe('TemplateCompiler - local templates', function () {
     const au = new Aurelia(container)
       .app({ host, component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) });
 
-    await au.start().wait();
+    await au.start();
 
     assert.html.textContent(host, expectedContent);
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
     au.dispose();
   });
@@ -1633,7 +1632,7 @@ describe('TemplateCompiler - au-slot', function () {
       public readonly slotName: string,
       public readonly contentType: AuSlotContentType,
       public readonly content: string,
-      public readonly scope: IScope | null = null,
+      public readonly scope: Scope | null = null,
     ) { }
   }
   class TestData {

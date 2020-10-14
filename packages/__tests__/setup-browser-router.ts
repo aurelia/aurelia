@@ -5,12 +5,6 @@ import {
 import {
   RuntimeHtmlBrowserConfiguration
 } from '@aurelia/runtime-html-browser';
-import {
-  Reporter,
-  LogLevel,
-} from '@aurelia/kernel';
-
-Reporter.level = LogLevel.error;
 
 function createBrowserTestContext(): HTMLTestContext {
   return HTMLTestContext.create(

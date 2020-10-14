@@ -28,19 +28,11 @@ describe('PrimitiveObserver', function () {
         const propName = typeof propertyName === 'string' ? `'${propertyName}'` : typeof propertyName;
         it(`should correctly handle ${typeof primitive}[${propName}]`, function () {
           const { sut } = createFixture(primitive, propertyName);
-          if (propertyName === 'length') {
-            if (typeof primitive === 'string') {
-              const actual = sut.getValue();
-              assert.strictEqual(actual, primitive.length, `actual`);
-            } else if (primitive != null) {
-              const actual = sut.getValue();
-              assert.strictEqual(actual, void 0, `actual`);
-            } else {
-              assert.throws(() => sut.getValue());
-            }
-          } else {
+          if (primitive != null) {
             const actual = sut.getValue();
-            assert.strictEqual(actual, undefined, `actual`);
+            assert.strictEqual(actual, primitive[propertyName], `actual`);
+          } else {
+            assert.throws(() => sut.getValue());
           }
         });
       }
@@ -49,19 +41,19 @@ describe('PrimitiveObserver', function () {
 
   describe('setValue()', function () {
     it('is a no-op', function () {
-      assert.strictEqual(new PrimitiveObserver(null, 0).setValue === PLATFORM.noop, true, `new PrimitiveObserver(null, 0).setValue === PLATFORM.noop`);
+      new PrimitiveObserver(null, 0).setValue();
     });
   });
 
   describe('subscribe()', function () {
     it('is a no-op', function () {
-      assert.strictEqual(new PrimitiveObserver(null, 0).subscribe === PLATFORM.noop, true, `new PrimitiveObserver(null, 0).subscribe === PLATFORM.noop`);
+      new PrimitiveObserver(null, 0).subscribe();
     });
   });
 
   describe('unsubscribe()', function () {
     it('is a no-op', function () {
-      assert.strictEqual(new PrimitiveObserver(null, 0).unsubscribe === PLATFORM.noop, true, `new PrimitiveObserver(null, 0).unsubscribe === PLATFORM.noop`);
+      new PrimitiveObserver(null, 0).unsubscribe();
     });
   });
 

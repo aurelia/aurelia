@@ -496,14 +496,14 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
         let component: any;
         try {
           au.app({ host, component: App });
-          await au.start().wait();
-          component = au.root.viewModel;
+          await au.start();
+          component = au.root.controller.viewModel;
         } catch (ex) {
           if (testWillThrow) {
             // dont try to assert anything on throw
             // just bails
             try {
-              await au.stop().wait();
+              await au.stop();
             } catch {/* and ignore all errors trying to stop */}
             return;
           }
@@ -516,7 +516,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
 
         await assertFn(ctx, host, component, attrs);
 
-        await au.stop().wait();
+        await au.stop();
         au.dispose();
         // await assertFn_AfterDestroy(ctx, host, component);
       } finally {
@@ -599,7 +599,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
       ctx.container.register(RouteHref);
 
       au.app({ component: App, host });
-      await au.start().wait();
+      await au.start();
 
       if (PLATFORM.isBrowserLike) {
         assert.includes(host.querySelector('a').search, `?route=home.main`);
@@ -607,7 +607,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
         assert.strictEqual(host.querySelector('a').href, `/?route=home.main`);
       }
 
-      await au.stop().wait();
+      await au.stop();
       au.dispose();
       host.remove();
     });
@@ -626,7 +626,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
       ctx.container.register(RouteHref, DotConverter);
 
       au.app({ component: App, host });
-      await au.start().wait();
+      await au.start();
 
       if (PLATFORM.isBrowserLike) {
         assert.strictEqual(host.querySelector('a').search, '?route=home--main');
@@ -634,7 +634,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
         assert.strictEqual(host.querySelector('a').href, '/?route=home--main');
       }
 
-      await au.stop().wait();
+      await au.stop();
       au.dispose();
       host.remove();
     });
@@ -660,7 +660,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
       ctx.container.register(RouteHref);
 
       au.app({ component: App, host });
-      await au.start().wait();
+      await au.start();
 
       const anchorEl = host.querySelector('a');
 
@@ -679,7 +679,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
         assert.strictEqual(anchorEl.href, '/?params=[object Object]');
       }
 
-      await au.stop().wait();
+      await au.stop();
       au.dispose();
       host.remove();
     });

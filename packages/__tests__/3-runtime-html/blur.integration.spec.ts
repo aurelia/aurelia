@@ -345,7 +345,7 @@ describe('blur.integration.spec.ts', function () {
     const component = new App();
 
     au.app({ host: appHost, component });
-    await au.start().wait();
+    await au.start();
 
     return {
       ctx: ctx,
@@ -357,7 +357,7 @@ describe('blur.integration.spec.ts', function () {
       component: component as T,
       observerLocator,
       dispose: async () => {
-        await au.stop().wait();
+        await au.stop();
         testHost.remove();
 
         au.dispose();

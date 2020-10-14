@@ -51,6 +51,7 @@ export interface ProxyObserver<TObj extends object = object> extends IProxyObser
 
 @proxySubscriberCollection()
 export class ProxyObserver<TObj extends object = object> implements ProxyObserver<TObj> {
+  public get doNotCache(): true { return true; }
   public readonly proxy: IProxy<TObj>;
   public readonly raw: TObj;
   private readonly subscribers: Record<string | number, ProxySubscriberCollection<TObj>>;

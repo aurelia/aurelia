@@ -582,13 +582,13 @@ describe(spec, function () {
           .app({ host, component: Component, strategy })
           .start();
         const component = au.root.controller.bindingContext;
-        await task.wait();
+        await task;
 
         assert.strictEqual(trimFull(host.textContent), elseText.repeat(count), `trimFull(host.textContent) === elseText.repeat(count)`);
 
         execute(component as any, ctx.scheduler, host, count, ifText, elseText);
 
-        await au.stop().wait();
+        await au.stop();
         assert.strictEqual(trimFull(host.textContent), '', `trimFull(host.textContent) === ''`);
 
         au.dispose();

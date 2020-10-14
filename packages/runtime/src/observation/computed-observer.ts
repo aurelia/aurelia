@@ -373,10 +373,6 @@ export class ComputedWatcher implements IWatcher {
     return collection;
   }
 
-  public observeIndex(arr: unknown[], index: number): void {
-    this.forCollection(arr).getIndexObserver(index).subscribe(this);
-  }
-
   private run(runId: number): void {
     const obj = this.obj;
     const oldValue = this.oV;

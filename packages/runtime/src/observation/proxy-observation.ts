@@ -20,6 +20,9 @@ export function getRaw<T extends object>(obj: T): T {
   // todo: get in a weakmap if null/undef
   return (obj as IIndexable)[rawKey] as T ?? obj;
 }
+export function getRawOrSelf<T extends unknown>(v: T): T {
+  return isObject(v) ? (v as IIndexable)[rawKey] as T : v;
+}
 
 function doNotCollect(obj: object, key: PropertyKey): boolean {
   return key === 'constructor'
@@ -61,7 +64,7 @@ const objectHandler: ProxyHandler<object> = {
 
     return getProxyOrSelf(R$get(target, key, receiver));
   },
-}
+};
 
 const arrayHandler: ProxyHandler<unknown[]> = {
   get(target: unknown[], key: PropertyKey, receiver?): unknown {
@@ -76,18 +79,151 @@ const arrayHandler: ProxyHandler<unknown[]> = {
       return R$get(target, key, receiver);
     }
 
-    if (key === 'length') {
-      connectable.observeLength(target);
-      return target.length;
-    } else if (key in Array.prototype) {
-      // assume that all method in the prototype requires subscription to the array itself
-      connectable.observeCollection(target);
-    } else if (isArrayIndex(key)) {
-      connectable.observeIndex(target, key as number);
+    switch (key) {
+      case 'length':
+        connectable.observeLength(target);
+        return target.length;
+      case 'map':
+        return wrappedArrayMap;
+      case 'indexOf':
+        return wrappedArrayIndexOf;
+      case 'lastIndexOf':
+        return wrappedArrayLastIndexOf;
+      case 'filter':
+        return wrappedArrayFilter;
+      case 'findIndex':
+        return wrappedArrayFindIndex;
+      case 'push':
+        return wrappedArrayPush;
+      case 'pop':
+        return wrappedArrayPop;
+      case 'flat':
+        return wrappedArrayFlat;
+      case 'flatMap':
+        return wrappedArrayFlatMap;
+      case 'reduce':
+        return wrappedReduce;
+      case 'reduceRight':
+        return wrappedReduceRight;
+      case 'shift':
+        return wrappedArrayShift;
+      case 'unshift':
+        return wrappedArrayUnshift;
+      case 'slice':
+        return wrappedArraySlice;
+      case 'splice':
+        return wrappedArraySplice;
+      case 'some':
+        return wrappedArraySome;
+      case 'keys':
+        return wrappedKeys;
+      case 'values':
+        return wrappedValues;
+      case 'entries':
+      case Symbol.iterator:
+        return wrappedEntries;
     }
+
+    connectable.observeProperty(LifecycleFlags.none, target, key as string);
 
     return getProxyOrSelf(R$get(target, key, receiver));
   },
+};
+
+function wrappedArrayMap(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => unknown, thisArg?: unknown): unknown {
+  const arr = this;
+  const raw = getRaw(this);
+  const res = raw.map((v, i) =>
+    // do we wrap `thisArg`?
+    getRawOrSelf(cb.call(thisArg, getProxyOrSelf(v), i, arr))
+  );
+  currentWatcher()?.observeCollection(raw);
+  return getProxyOrSelf(res);
+}
+
+function wrappedArrayFilter(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => boolean, thisArg?: unknown): unknown[] {
+  const raw = getRaw(this);
+  const res = raw.filter((v, i) =>
+    // do we wrap `thisArg`?
+    getRawOrSelf(cb.call(thisArg, getProxyOrSelf(v), i, this))
+  );
+  currentWatcher()?.observeCollection(raw);
+  return getProxyOrSelf(res);
+}
+
+function wrappedArrayIndexOf(this: unknown[], v: unknown): number {
+  const raw = getRaw(this);
+  const res = raw.indexOf(getRawOrSelf(v));
+  currentWatcher()?.observeCollection(raw);
+  return res;
+}
+function wrappedArrayLastIndexOf(this: unknown[], v: unknown): number {
+  const raw = getRaw(this);
+  const res = raw.lastIndexOf(getRawOrSelf(v));
+  currentWatcher()?.observeCollection(raw);
+  return res;
+}
+function wrappedArrayFindIndex(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => boolean, thisArg?: unknown): number {
+  const raw = getRaw(this);
+  const res = raw.findIndex((v, i) => getRawOrSelf(cb.call(thisArg, getProxyOrSelf(v), i, this)));
+  currentWatcher()?.observeCollection(raw);
+  return res;
+}
+
+function wrappedArrayFlat(this: unknown[]): unknown[] {
+  const raw = getRaw(this);
+  currentWatcher()?.observeCollection(raw);
+  return getProxyOrSelf(raw.flat());
+}
+function wrappedArrayFlatMap(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => unknown, thisArg?: unknown): unknown[] {
+  const raw = getRaw(this);
+  currentWatcher()?.observeCollection(raw);
+  return getProxy(raw.flatMap((v, i) =>
+    getProxyOrSelf(cb.call(thisArg, getProxyOrSelf(v), i, this)))
+  );
+}
+
+function wrappedArrayPop(this: unknown[]): unknown {
+  return getProxyOrSelf(getRaw(this).pop());
+}
+function wrappedArrayPush(this: unknown[], ...args: unknown[]): number {
+  return getRaw(this).push(...args);
+}
+function wrappedArrayShift(this: unknown[]): unknown {
+  return getProxyOrSelf(getRaw(this).shift());
+}
+function wrappedArrayUnshift(this: unknown[], ...args: unknown[]): unknown {
+  return getRaw(this).unshift(...args);
+}
+function wrappedArraySplice(this: unknown[], ...args: [number, number, ...unknown[]]): unknown {
+  return getProxyOrSelf(getRaw(this).splice(...args));
+}
+
+function wrappedArraySome(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => boolean, thisArg?: unknown): boolean {
+  const raw = getRaw(this);
+  const res = raw.some((v, i) => getRawOrSelf(cb.call(thisArg, v, i, this)));
+  currentWatcher()?.observeCollection(raw);
+  return res;
+}
+
+function wrappedArraySlice(this: unknown[], start?: number, end?: number): unknown[] {
+  const raw = getRaw(this);
+  currentWatcher()?.observeCollection(raw);
+  return getProxy(raw.slice(start, end));
+}
+
+function wrappedReduce(this: unknown[], cb: (curr: unknown, v: unknown, i: number, arr: unknown[]) => unknown, initValue: unknown): unknown {
+  const raw = getRaw(this);
+  const res = raw.reduce((curr, v, i) => cb(curr, getProxyOrSelf(v), i, this), initValue);
+  currentWatcher()?.observeCollection(raw);
+  return getProxyOrSelf(res);
+}
+
+function wrappedReduceRight(this: unknown[], cb: (curr: unknown, v: unknown, i: number, arr: unknown[]) => unknown, initValue: unknown): unknown {
+  const raw = getRaw(this);
+  const res = raw.reduceRight((curr, v, i) => cb(curr, getProxyOrSelf(v), i, this), initValue);
+  currentWatcher()?.observeCollection(raw);
+  return getProxyOrSelf(res);
 }
 
 // the below logic takes inspiration from Vue, Mobx
@@ -138,7 +274,7 @@ const collectionHandler: ProxyHandler<$MapOrSet> = {
 
     return getProxyOrSelf(R$get(target, key, receiver));
   },
-}
+};
 
 type $MapOrSet = Map<unknown, unknown> | Set<unknown>;
 type CollectionMethod = (this: unknown, ...args: unknown[]) => unknown;

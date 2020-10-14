@@ -1,236 +1,48 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
+  DefaultLogEvent,
   DI,
   IContainer,
+  ILogger,
+  ISink,
+  LoggerConfiguration,
+  LogLevel,
+  pascalCase,
   Registration,
+  sink,
 } from '@aurelia/kernel';
 import {
   Aurelia,
   AuSlot,
-  bindable,
   bindingBehavior,
   BindingBehaviorInstance,
   Case,
   Controller,
-  CustomAttribute,
   customElement,
   CustomElement,
-  DefaultCase,
   IBinding,
-  INode,
   IObserverLocator,
-  IRenderLocation,
+  IScheduler,
   IScope,
-  IViewFactory,
   LifecycleFlags,
   Repeat,
   Switch,
-  templateController,
   valueConverter,
-  IScheduler,
 } from '@aurelia/runtime';
 import {
   assert,
   createSpy,
   HTMLTestContext,
-  ISpy,
-  TestContext
+  TestContext,
 } from '@aurelia/testing';
 import {
   createSpecFunction,
   TestExecutionContext,
-  TestFunction
+  TestFunction,
 } from '../util';
 
 describe('switch', function () {
-
-  @templateController('switch')
-  class SwitchTestDouble extends Switch {
-    public clearCalls() {
-      for (const $case of this['cases']) {
-        $case.clearCalls();
-      }
-      this['defaultCase']?.clearCalls();
-    }
-    public async wait(): Promise<void> {
-      const promise = this.promise;
-      await promise;
-      if (this.promise !== promise) {
-        await this.wait();
-      }
-    }
-  }
-
-  @templateController('case')
-  class CaseTestDouble<T extends INode = Node> extends Case<T> {
-    public isMatchCallCount: number = 0;
-    public activateSpy: ISpy;
-    public deactivateSpy: ISpy;
-
-    public constructor(
-      @IViewFactory factory: IViewFactory<T>,
-      @IObserverLocator locator: IObserverLocator,
-      @IRenderLocation location: IRenderLocation<T>,
-    ) {
-      super(factory, locator, location);
-      const view = this['view'];
-      this.activateSpy = createSpy(view, 'activate', true);
-      this.deactivateSpy = createSpy(view, 'deactivate', true);
-    }
-
-    public isMatch(value: any, flags: LifecycleFlags): boolean {
-      this.isMatchCallCount++;
-      return super.isMatch(value, flags);
-    }
-
-    public clearCalls() {
-      this.isMatchCallCount = 0;
-      this.activateSpy.reset();
-      this.deactivateSpy.reset();
-    }
-  }
-
-  @templateController('default-case')
-  class DefaultCaseTestDouble<T extends INode = Node> extends DefaultCase<T> {
-    public activateSpy: ISpy;
-    public deactivateSpy: ISpy;
-
-    public constructor(
-      @IViewFactory factory: IViewFactory<T>,
-      @IObserverLocator locator: IObserverLocator,
-      @IRenderLocation location: IRenderLocation<T>,
-    ) {
-      super(factory, locator, location);
-      const view = this['view'];
-      this.activateSpy = createSpy(view, 'activate', true);
-      this.deactivateSpy = createSpy(view, 'deactivate', true);
-    }
-
-    public clearCalls() {
-      this.activateSpy.reset();
-      this.deactivateSpy.reset();
-    }
-  }
-
-  interface TestSetupContext {
-    template: string;
-    registrations: any[];
-    initialStatus: Status;
-    initialStatusNum: StatusNum;
-  }
-  class SwitchTestExecutionContext implements TestExecutionContext<any> {
-    private _scheduler: IScheduler;
-    public constructor(
-      public ctx: HTMLTestContext,
-      public container: IContainer,
-      public host: HTMLElement,
-      public app: App | null,
-      public controller: Controller,
-      public error: Error | null,
-    ) { }
-    public get scheduler(): IScheduler { return this._scheduler ?? (this._scheduler = this.container.get(IScheduler)); }
-    public getSwitchTestDoubles(controller = this.controller) {
-      return controller.children
-        .reduce((acc: SwitchTestDouble[], c) => {
-          const vm = c.viewModel;
-          if (vm instanceof SwitchTestDouble) {
-            acc.push(vm);
-          }
-          return acc;
-        }, []);
-    }
-
-    public assertCalls($switch: SwitchTestDouble, expected: SwitchCallsExpectation, message: string = '') {
-      const cases: CaseTestDouble[] = $switch['cases'];
-      assert.strictEqual(cases.every((c) => c instanceof CaseTestDouble), true);
-      assert.deepStrictEqual(cases.map((c) => c.isMatchCallCount), expected.isMatchCallCount, `${message} - isMatch`);
-      assert.deepStrictEqual(cases.map((c) => c.activateSpy.calls.length), expected.activateCallCount, `${message} - activate`);
-      assert.deepStrictEqual(cases.map((c) => c.deactivateSpy.calls.length), expected.deactivateCallCount, `${message} - deactivate`);
-
-      const defaultCaseExpectation = expected.defaultCase;
-      if (defaultCaseExpectation !== void 0) {
-        const actual = $switch['defaultCase'] as DefaultCaseTestDouble;
-        assert.instanceOf(actual, DefaultCaseTestDouble);
-        assert.deepEqual(
-          {
-            activateCallCount: actual.activateSpy.calls.length,
-            deactivateCallCount: actual.deactivateSpy.calls.length,
-          },
-          defaultCaseExpectation
-        );
-      } else {
-        assert.strictEqual($switch['defaultCase'], void 0);
-      }
-    }
-  }
-
-  async function testSwitch(
-    testFunction: TestFunction<SwitchTestExecutionContext>,
-    {
-      template,
-      registrations = [],
-      initialStatus = Status.unknown,
-      initialStatusNum = StatusNum.unknown,
-    }: Partial<TestSetupContext> = {}
-  ) {
-    const ctx = TestContext.createHTMLTestContext();
-
-    const host = ctx.dom.createElement('div');
-    ctx.doc.body.appendChild(host);
-
-    const container = ctx.container;
-
-    // cleanup the OOTB registrations in favor of the test doubles
-    const resolvers = container["resolvers"];
-    const resourceResolvers = container["resourceResolvers"];
-    const switchKey = CustomAttribute.keyFrom('switch');
-    const caseKey = CustomAttribute.keyFrom('case');
-    const dCaseKey = CustomAttribute.keyFrom('default-case');
-    /* eslint-disable @typescript-eslint/no-dynamic-delete */
-    delete resourceResolvers[switchKey];
-    delete resourceResolvers[caseKey];
-    delete resourceResolvers[dCaseKey];
-    /* eslint-enable @typescript-eslint/no-dynamic-delete */
-    resolvers.delete(switchKey);
-    resolvers.delete(caseKey);
-    resolvers.delete(dCaseKey);
-
-    const au = new Aurelia(container);
-    let error: Error | null = null;
-    let app: App | null = null;
-    let controller: Controller = null!;
-    try {
-      await au
-        .register(
-          SwitchTestDouble,
-          CaseTestDouble,
-          DefaultCaseTestDouble,
-          ...registrations,
-          Registration.instance(InitialStatus, initialStatus),
-          Registration.instance(InitialStatusNum, initialStatusNum),
-          ToStatusStringValueConverter,
-          NoopBindingBehavior,
-        )
-        .app({
-          host,
-          component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
-        })
-        .start()
-        .wait();
-      app = au.root.viewModel as App;
-      controller = au.root.controller! as unknown as Controller;
-    } catch (e) {
-      error = e;
-    }
-
-    await testFunction(new SwitchTestExecutionContext(ctx, container, host, app, controller, error));
-
-    if (error === null) {
-      await au.stop().wait();
-      assert.html.innerEqual(host, '', 'post-detach innerHTML');
-    }
-    ctx.doc.body.removeChild(host);
-  }
-  const $it = createSpecFunction(testSwitch);
 
   const enum Status {
     unknown = 'unknown',
@@ -250,6 +62,254 @@ describe('switch', function () {
 
   const InitialStatus = DI.createInterface<Status>('InitialStatus').noDefault();
   const InitialStatusNum = DI.createInterface<StatusNum>('InitialStatusNum').noDefault();
+
+  class Config {
+    public constructor(
+      public hasPromise: boolean,
+      public hasTimeout: boolean,
+      public wait: () => Promise<void>,
+    ) { }
+
+    public toString(): string {
+      return `{${this.hasPromise ? this.wait.toString() : 'noWait'}}`;
+    }
+  }
+
+  let nameIdMap: Map<string, number>;
+  function createComponentType(name: string, template: string, bindables: string[] = []) {
+    @customElement({ name, template, bindables })
+    class Component {
+      private readonly logger: ILogger;
+      public constructor(
+        private readonly config: Config,
+        @ILogger logger: ILogger,
+      ) {
+        let id = nameIdMap.get(name) ?? 1;
+        this.logger = logger.scopeTo(`${name}-${id}`);
+        nameIdMap.set(name, ++id);
+      }
+
+      public async beforeBind(): Promise<void> {
+        if (this.config.hasPromise) {
+          await this.config.wait();
+        }
+
+        this.logger.debug('beforeBind');
+      }
+
+      public async afterBind(): Promise<void> {
+        if (this.config.hasPromise) {
+          await this.config.wait();
+        }
+
+        this.logger.debug('afterBind');
+      }
+
+      public async afterAttach(): Promise<void> {
+        if (this.config.hasPromise) {
+          await this.config.wait();
+        }
+
+        this.logger.debug('afterAttach');
+      }
+
+      public async afterAttachChildren(): Promise<void> {
+        if (this.config.hasPromise) {
+          await this.config.wait();
+        }
+
+        this.logger.debug('afterAttachChildren');
+      }
+
+      public async beforeDetach(): Promise<void> {
+        if (this.config.hasPromise) {
+          await this.config.wait();
+        }
+
+        this.logger.debug('beforeDetach');
+      }
+
+      public async beforeUnbind(): Promise<void> {
+        if (this.config.hasPromise) {
+          await this.config.wait();
+        }
+
+        this.logger.debug('beforeUnbind');
+      }
+
+      public async afterUnbind(): Promise<void> {
+        if (this.config.hasPromise) {
+          await this.config.wait();
+        }
+
+        this.logger.debug('afterUnbind');
+      }
+
+      public async afterUnbindChildren(): Promise<void> {
+        if (this.config.hasPromise) {
+          await this.config.wait();
+        }
+
+        this.logger.debug('afterUnbindChildren');
+      }
+    }
+
+    Reflect.defineProperty(Component, 'name', {
+      writable: false,
+      enumerable: false,
+      configurable: true,
+      value: pascalCase(name),
+    });
+
+    return Component;
+  }
+
+  @sink({ handles: [LogLevel.debug] })
+  class DebugLog implements ISink {
+    public readonly log: string[] = [];
+    public handleEvent(event: DefaultLogEvent): void {
+      this.log.push(`${event.scope.join('.')}.${event.message}`);
+    }
+    public clear() {
+      this.log.length = 0;
+    }
+  }
+
+  interface TestSetupContext {
+    template: string;
+    registrations: any[];
+    initialStatus: Status;
+    initialStatusNum: StatusNum;
+    expectedStopLog: string[];
+    verifyStopCallsAsSet: boolean;
+  }
+  class SwitchTestExecutionContext implements TestExecutionContext<any> {
+    private _scheduler: IScheduler;
+    private readonly _log: DebugLog;
+    private changeId: number = 0;
+    public constructor(
+      public ctx: HTMLTestContext,
+      public container: IContainer,
+      public host: HTMLElement,
+      public app: App | null,
+      public controller: Controller,
+      public error: Error | null,
+    ) {
+      this._log = (container.get(ILogger)['debugSinks'] as ISink[]).find((s) => s instanceof DebugLog) as DebugLog;
+    }
+    public get scheduler(): IScheduler { return this._scheduler ?? (this._scheduler = this.container.get(IScheduler)); }
+    public get log() {
+      return this._log.log;
+    }
+    public getSwitches(controller = this.controller) {
+      return controller.children
+        .reduce((acc: Switch[], c) => {
+          const vm = c.viewModel;
+          if (vm instanceof Switch) {
+            acc.push(vm);
+          }
+          return acc;
+        }, []);
+    }
+    public clear() {
+      this._log.clear();
+    }
+    public async wait($switch: Switch): Promise<void> {
+      const promise = $switch.promise;
+      await promise;
+      if ($switch.promise !== promise) {
+        await this.wait($switch);
+      }
+    }
+
+    public assertCalls(expected: (string | number)[], message: string = '') {
+      assert.deepStrictEqual(this.log, this.transformCalls(expected), message);
+    }
+
+    public assertCallSet(expected: (string | number)[], message: string = '') {
+      expected = this.transformCalls(expected);
+      const actual = this.log;
+      assert.strictEqual(actual.length, expected.length, `${message} - calls.length`);
+      assert.strictEqual(actual.filter((c) => !expected.includes(c)).length, 0, `${message} - calls set equality`);
+    }
+
+    public async assertChange($switch: Switch, act: () => void, expectedHtml: string, expectedLog: (string | number)[]) {
+      this.clear();
+      act();
+      await this.wait($switch);
+      const change = `change${++this.changeId}`;
+      assert.html.innerEqual(this.host, expectedHtml, `${change} innerHTML`);
+      this.assertCalls(expectedLog, change);
+    }
+
+    private transformCalls(calls: (string | number)[]) {
+      let cases: Case[];
+      const getCases = () => cases ?? (cases = this.getSwitches().flatMap((s) => s['cases']));
+      return calls.map((item) => typeof item === 'string' ? item : `Case-#${getCases()[item - 1].id}.isMatch()`);
+    }
+  }
+
+  async function testSwitch(
+    testFunction: TestFunction<SwitchTestExecutionContext>,
+    {
+      template,
+      registrations = [],
+      initialStatus = Status.unknown,
+      initialStatusNum = StatusNum.unknown,
+      expectedStopLog,
+      verifyStopCallsAsSet = false,
+    }: Partial<TestSetupContext> = {}
+  ) {
+    nameIdMap = new Map<string, number>();
+    const ctx = TestContext.createHTMLTestContext();
+
+    const host = ctx.dom.createElement('div');
+    ctx.doc.body.appendChild(host);
+
+    const container = ctx.container;
+
+    const au = new Aurelia(container);
+    let error: Error | null = null;
+    let app: App | null = null;
+    let controller: Controller = null!;
+    try {
+      await au
+        .register(
+          LoggerConfiguration.create({ $console: null, level: LogLevel.trace, sinks: [DebugLog] }),
+          ...registrations,
+          Registration.instance(InitialStatus, initialStatus),
+          Registration.instance(InitialStatusNum, initialStatusNum),
+          ToStatusStringValueConverter,
+          NoopBindingBehavior,
+        )
+        .app({
+          host,
+          component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
+        })
+        .start()
+        .wait();
+      app = au.root.viewModel as App;
+      controller = au.root.controller! as unknown as Controller;
+    } catch (e) {
+      error = e;
+    }
+
+    const testCtx = new SwitchTestExecutionContext(ctx, container, host, app, controller, error);
+    await testFunction(testCtx);
+
+    if (error === null) {
+      testCtx.clear();
+      await au.stop().wait();
+      assert.html.innerEqual(host, '', 'post-detach innerHTML');
+      if (verifyStopCallsAsSet) {
+        testCtx.assertCallSet(expectedStopLog);
+      } else {
+        testCtx.assertCalls(expectedStopLog, 'stop lifecycle calls');
+      }
+    }
+    ctx.doc.body.removeChild(host);
+  }
+  const $it = createSpecFunction(testSwitch);
 
   @valueConverter('toStatusString')
   class ToStatusStringValueConverter {
@@ -289,24 +349,15 @@ describe('switch', function () {
     ) { }
   }
 
-  class SwitchCallsExpectation {
-    public constructor(
-      public readonly isMatchCallCount: number[],
-      public readonly activateCallCount: number[],
-      public readonly deactivateCallCount?: number[],
-      public readonly defaultCase?: DefaultCaseCallsExpectation,
-    ) {
-      if (deactivateCallCount === void 0) {
-        this.deactivateCallCount = new Array(activateCallCount.length).fill(0);
-      }
-    }
+  function getActivationSequenceFor(name: string | string[]) {
+    return typeof name === 'string'
+      ? [`${name}.beforeBind`, `${name}.afterBind`, `${name}.afterAttach`, `${name}.afterAttachChildren`]
+      : ['beforeBind', 'afterBind', 'afterAttach', 'afterAttachChildren'].flatMap(x => name.map(n => `${n}.${x}`));
   }
-
-  class DefaultCaseCallsExpectation {
-    public constructor(
-      public readonly activateCallCount: number,
-      public readonly deactivateCallCount: number,
-    ) { }
+  function getDeactivationSequenceFor(name: string | string[]) {
+    return typeof name === 'string'
+      ? [`${name}.beforeDetach`, `${name}.beforeUnbind`, `${name}.afterUnbind`, `${name}.afterUnbindChildren`]
+      : ['beforeDetach', 'beforeUnbind', 'afterUnbind', 'afterUnbindChildren'].flatMap(x => name.map(n => `${n}.${x}`));
   }
 
   class TestData implements TestSetupContext {
@@ -314,6 +365,7 @@ describe('switch', function () {
     public readonly template: string;
     public readonly registrations: any[];
     public readonly initialStatusNum: StatusNum;
+    public readonly verifyStopCallsAsSet: boolean;
     public constructor(
       public readonly name: string,
       {
@@ -321,757 +373,546 @@ describe('switch', function () {
         initialStatusNum = StatusNum.unknown,
         registrations = [],
         template,
+        verifyStopCallsAsSet = false,
       }: Partial<TestSetupContext>,
+      public readonly config: Config | null = null,
       public readonly expectedInnerHtml: string = '',
-      public readonly switchExpectations: SwitchCallsExpectation[] = [],
+      public readonly expectedStartLog: (string | number)[],
+      public readonly expectedStopLog: string[],
       public readonly additionalAssertions: ((ctx: SwitchTestExecutionContext) => Promise<void> | void) | null = null,
     ) {
       this.initialStatus = initialStatus;
       this.initialStatusNum = initialStatusNum;
-      this.registrations = registrations;
+      this.registrations = [
+        Registration.instance(Config, config),
+        createComponentType('case-host', ''),
+        createComponentType('default-case-host', ''),
+        ...registrations,
+      ];
       this.template = template;
+      this.verifyStopCallsAsSet = verifyStopCallsAsSet;
     }
   }
 
-  function* getTestData() {
-
-    @customElement({ name: 'my-echo', template: `Echoed '\${message}'` })
-    class MyEcho {
-      @bindable public message: string;
+  function createWaiter(ms: number): () => Promise<void> {
+    function wait(): Promise<void> {
+      return new Promise(function (resolve) {
+        setTimeout(function () {
+          resolve();
+        }, ms);
+      });
     }
 
-    const enumTemplate = `
+    wait.toString = function () {
+      return `setTimeout(cb,${ms})`;
+    };
+
+    return wait;
+  }
+  function noop(): Promise<void> {
+    return;
+  }
+
+  noop.toString = function () {
+    return 'Promise.resolve()';
+  };
+
+  const configFactories = [
+    function () {
+      return new Config(false, false, noop);
+    },
+    function () {
+      return new Config(true, false, noop);
+    },
+    function () {
+      return new Config(true, true, createWaiter(0));
+    },
+    function () {
+      return new Config(true, true, createWaiter(5));
+    },
+  ];
+
+  function* getTestData() {
+    function wrap(content: string, isDefault: boolean = false) {
+      const host = isDefault ? 'default-case-host' : 'case-host';
+      return `<${host} class="au">${content}</${host}>`;
+    }
+    for (const config of configFactories) {
+      const MyEcho = createComponentType('my-echo', `Echoed '\${message}'`, ['message']);
+
+      const enumTemplate = `
     <template>
       <template switch.bind="status">
-        <span case="received">Order received.</span>
-        <span case="dispatched">On the way.</span>
-        <span case="processing">Processing your order.</span>
-        <span case="delivered">Delivered.</span>
+        <case-host case="received">Order received.</case-host>
+        <case-host case="dispatched">On the way.</case-host>
+        <case-host case="processing">Processing your order.</case-host>
+        <case-host case="delivered">Delivered.</case-host>
       </template>
     </template>`;
 
-    yield new TestData(
-      'works for simple switch-case',
-      {
-        initialStatus: Status.processing,
-        template: enumTemplate,
-      },
-      '<span>Processing your order.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 1, 0],
-          [0, 0, 1, 0],
-        )
-      ],
-    );
+      yield new TestData(
+        'works for simple switch-case',
+        {
+          initialStatus: Status.processing,
+          template: enumTemplate,
+        },
+        config(),
+        wrap('Processing your order.'),
+        [1, 2, 3, ...getActivationSequenceFor('case-host-3')],
+        getDeactivationSequenceFor('case-host-3'),
+      );
 
-    yield new TestData(
-      'reacts to switch value change',
-      {
-        initialStatus: Status.dispatched,
-        template: enumTemplate
-      },
-      '<span>On the way.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 0, 0],
-          [0, 1, 0, 0],
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+      yield new TestData(
+        'reacts to switch value change',
+        {
+          initialStatus: Status.dispatched,
+          template: enumTemplate
+        },
+        config(),
+        wrap('On the way.'),
+        [1, 2, ...getActivationSequenceFor('case-host-2')],
+        getDeactivationSequenceFor('case-host-1'),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.delivered; },
+            wrap('Delivered.'),
+            [1, 2, 3, 4, ...getDeactivationSequenceFor('case-host-2'), ...getActivationSequenceFor('case-host-4')]
+          );
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.unknown; },
+            '',
+            [1, 2, 3, 4, ...getDeactivationSequenceFor('case-host-4')]
+          );
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.received; },
+            wrap('Order received.'),
+            [1, ...getActivationSequenceFor('case-host-1')]
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.app.status = Status.delivered;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Delivered.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 1],
-            [0, 0, 0, 1],
-            [0, 1, 0, 0],
-          ),
-          'change1'
-        );
-
-        $switch.clearCalls();
-        ctx.app.status = Status.unknown;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '', 'change innerHTML2');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 1],
-            [0, 0, 0, 0],
-            [0, 0, 0, 1],
-          ),
-          'change2'
-        );
-
-        $switch.clearCalls();
-        ctx.app.status = Status.received;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Order received.</span>', 'change innerHTML3');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 0, 0, 0],
-            [1, 0, 0, 0],
-            [0, 0, 0, 0],
-          ),
-          'change3'
-        );
-      }
-    );
-
-    const templateWithDefaultCase = `
+      const templateWithDefaultCase = `
     <template>
       <template switch.bind="status">
-        <span case="received">Order received.</span>
-        <span case="dispatched">On the way.</span>
-        <span case="processing">Processing your order.</span>
-        <span case="delivered">Delivered.</span>
-        <span default-case>Not found.</span>
+        <case-host case="received">Order received.</case-host>
+        <case-host case="dispatched">On the way.</case-host>
+        <case-host case="processing">Processing your order.</case-host>
+        <case-host case="delivered">Delivered.</case-host>
+        <default-case-host default-case>Not found.</default-case-host>
       </template>
     </template>`;
 
-    yield new TestData(
-      'supports default-case',
-      {
-        initialStatus: Status.unknown,
-        template: templateWithDefaultCase
-      },
-      '<span>Not found.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 1, 1],
-          [0, 0, 0, 0],
-          [0, 0, 0, 0],
-          new DefaultCaseCallsExpectation(1, 0)
-        )
-      ],
-    );
+      yield new TestData(
+        'supports default-case',
+        {
+          initialStatus: Status.unknown,
+          template: templateWithDefaultCase
+        },
+        config(),
+        wrap('Not found.', true),
+        [1, 2, 3, 4, ...getActivationSequenceFor('default-case-host-1')],
+        getDeactivationSequenceFor('default-case-host-1'),
+      );
 
-    yield new TestData(
-      'reacts to switch value change - default case',
-      {
-        initialStatus: Status.dispatched,
-        template: templateWithDefaultCase,
-      },
-      '<span>On the way.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 0, 0],
-          [0, 1, 0, 0],
-          [0, 0, 0, 0],
-          new DefaultCaseCallsExpectation(0, 0)
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+      yield new TestData(
+        'reacts to switch value change - default case',
+        {
+          initialStatus: Status.dispatched,
+          template: templateWithDefaultCase,
+        },
+        config(),
+        wrap('On the way.'),
+        [1, 2, ...getActivationSequenceFor('case-host-2')],
+        getDeactivationSequenceFor('case-host-4'),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.unknown; },
+            wrap('Not found.', true),
+            [1, 2, 3, 4, ...getDeactivationSequenceFor('case-host-2'), ...getActivationSequenceFor('default-case-host-1')]
+          );
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.delivered; },
+            wrap('Delivered.'),
+            [1, 2, 3, 4, ...getDeactivationSequenceFor('default-case-host-1'), ...getActivationSequenceFor('case-host-4')]
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.app.status = Status.unknown;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Not found.</span>', 'change1 innerHTML');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 1],
-            [0, 0, 0, 0],
-            [0, 1, 0, 0],
-            new DefaultCaseCallsExpectation(1, 0)
-          ),
-          'change1'
-        );
-
-        $switch.clearCalls();
-        ctx.app.status = Status.delivered;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Delivered.</span>', 'change2 innerHTML');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 1],
-            [0, 0, 0, 1],
-            [0, 0, 0, 0],
-            new DefaultCaseCallsExpectation(0, 1)
-          ),
-          'change2'
-        );
-      }
-    );
-
-    yield new TestData(
-      'supports case.bind - #1',
-      {
-        initialStatus: Status.processing,
-        template: `
+      yield new TestData(
+        'supports case.bind - #1',
+        {
+          initialStatus: Status.processing,
+          template: `
     <template>
       <template switch.bind="true">
-        <span case.bind="status === 'received'">Order received.</span>
-        <span case.bind="status === 'processing'">Processing your order.</span>
-        <span case.bind="status === 'dispatched'">On the way.</span>
-        <span case.bind="status === 'delivered'">Delivered.</span>
+        <case-host case.bind="status === 'received'">Order received.</case-host>
+        <case-host case.bind="status === 'processing'">Processing your order.</case-host>
+        <case-host case.bind="status === 'dispatched'">On the way.</case-host>
+        <case-host case.bind="status === 'delivered'">Delivered.</case-host>
       </template>
     </template>`,
-      },
-      '<span>Processing your order.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 0, 0],
-          [0, 1, 0, 0],
-          [0, 0, 0, 0],
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+        },
+        config(),
+        wrap('Processing your order.'),
+        [1, 2, ...getActivationSequenceFor('case-host-2')],
+        getDeactivationSequenceFor('case-host-3'),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.dispatched; },
+            wrap('On the way.'),
+            [2, ...getDeactivationSequenceFor('case-host-2'), 3, ...getActivationSequenceFor('case-host-3')]
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.app.status = Status.dispatched;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>On the way.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [0, 1, 1, 0],
-            [0, 0, 1, 0],
-            [0, 1, 0, 0],
-          ),
-          'change'
-        );
-      }
-    );
-
-    yield new TestData(
-      'supports case.bind - #2',
-      {
-        initialStatus: Status.processing,
-        template: `
+      yield new TestData(
+        'supports case.bind - #2',
+        {
+          initialStatus: Status.processing,
+          template: `
     <template>
       <template switch.bind="status">
-        <span case.bind="status1">Order received.</span>
-        <span case.bind="status2">Processing your order.</span>
-        <span case="dispatched">On the way.</span>
-        <span case="delivered">Delivered.</span>
+        <case-host case.bind="status1">Order received.</case-host>
+        <case-host case.bind="status2">Processing your order.</case-host>
+        <case-host case="dispatched">On the way.</case-host>
+        <case-host case="delivered">Delivered.</case-host>
       </template>
     </template>`,
-      },
-      '<span>Processing your order.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 0, 0],
-          [0, 1, 0, 0],
-          [0, 0, 0, 0],
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+        },
+        config(),
+        wrap('Processing your order.'),
+        [1, 2, ...getActivationSequenceFor('case-host-2')],
+        getDeactivationSequenceFor('case-host-1'),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.dispatched; },
+            wrap('On the way.'),
+            [1, 2, 3, ...getDeactivationSequenceFor('case-host-2'), ...getActivationSequenceFor('case-host-3')]
+          );
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status1 = Status.processing; },
+            wrap('On the way.'),
+            [1]
+          );
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.processing; },
+            wrap('Order received.'),
+            [1, ...getDeactivationSequenceFor('case-host-3'), ...getActivationSequenceFor('case-host-1')]
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.app.status = Status.dispatched;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>On the way.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 0],
-            [0, 0, 1, 0],
-            [0, 1, 0, 0],
-          )
-        );
-
-        $switch.clearCalls();
-        ctx.app.status1 = Status.processing;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>On the way.</span>', 'no-change innerHTML2');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-          )
-        );
-
-        $switch.clearCalls();
-        ctx.app.status = Status.processing;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Order received.</span>', 'no-change innerHTML3');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 0, 0, 0],
-            [1, 0, 0, 0],
-            [0, 0, 1, 0],
-          )
-        );
-      }
-    );
-
-    yield new TestData(
-      'supports case.bind - #3',
-      {
-        template: `
+      yield new TestData(
+        'supports case.bind - #3',
+        {
+          template: `
     <template>
       <let num.bind="9"></let>
       <template switch.bind="true">
-        <span case.bind="num % 3 === 0 && num % 5 === 0">FizzBuzz</span>
-        <span case.bind="num % 3 === 0">Fizz</span>
-        <span case.bind="num % 5 === 0">Buzz</span>
+        <case-host case.bind="num % 3 === 0 && num % 5 === 0">FizzBuzz</case-host>
+        <case-host case.bind="num % 3 === 0">Fizz</case-host>
+        <case-host case.bind="num % 5 === 0">Buzz</case-host>
       </template>
     </template>`,
-      },
-      '<span>Fizz</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 0],
-          [0, 1, 0],
-          [0, 0, 0],
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+        },
+        config(),
+        wrap('Fizz'),
+        [1, 2, ...getActivationSequenceFor('case-host-2')],
+        getDeactivationSequenceFor('case-host-1'),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.controller.scope.overrideContext.num = 49; },
+            '',
+            [2, ...getDeactivationSequenceFor('case-host-2')]
+          );
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.controller.scope.overrideContext.num = 15; },
+            wrap('FizzBuzz'),
+            [1, ...getActivationSequenceFor('case-host-1'), 2, 3]
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.controller.scope.overrideContext.num = 49;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [0, 1, 0],
-            [0, 0, 0],
-            [0, 1, 0],
-          ),
-          'change1'
-        );
-
-        $switch.clearCalls();
-        ctx.controller.scope.overrideContext.num = 15;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>FizzBuzz</span>', 'change innerHTML2');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1],
-            [1, 0, 0],
-            [0, 0, 0],
-          ),
-          'change2'
-        );
-      }
-    );
-
-    yield new TestData(
-      'supports multi-case',
-      {
-        initialStatus: Status.processing,
-        template: `
+      yield new TestData(
+        'supports multi-case',
+        {
+          initialStatus: Status.processing,
+          template: `
     <template>
       <template switch.bind="status">
-        <span case.bind="['received', 'processing']">Processing.</span>
-        <span case="dispatched">On the way.</span>
-        <span case="delivered">Delivered.</span>
+        <case-host case.bind="['received', 'processing']">Processing.</case-host>
+        <case-host case="dispatched">On the way.</case-host>
+        <case-host case="delivered">Delivered.</case-host>
       </template>
     </template>`,
-      },
-      '<span>Processing.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 0, 0],
-          [1, 0, 0],
-          [0, 0, 0],
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+        },
+        config(),
+        wrap('Processing.'),
+        [1, ...getActivationSequenceFor('case-host-1')],
+        getDeactivationSequenceFor('case-host-1'),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.dispatched; },
+            wrap('On the way.'),
+            [1, 2, ...getDeactivationSequenceFor('case-host-1'), ...getActivationSequenceFor('case-host-2')]
+          );
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.received; },
+            wrap('Processing.'),
+            [1, ...getDeactivationSequenceFor('case-host-2'), ...getActivationSequenceFor('case-host-1')]
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.app.status = Status.dispatched;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>On the way.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 0],
-            [0, 1, 0],
-            [1, 0, 0],
-          ),
-          'change1'
-        );
-
-        $switch.clearCalls();
-        ctx.app.status = Status.received;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML2');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 0, 0],
-            [1, 0, 0],
-            [0, 1, 0],
-          ),
-          'change2'
-        );
-      }
-    );
-
-    yield new TestData(
-      'supports multi-case collection change - #1',
-      {
-        initialStatus: Status.received,
-        template: `
+      yield new TestData(
+        'supports multi-case collection change - #1',
+        {
+          initialStatus: Status.received,
+          template: `
     <template>
       <template switch.bind="status">
-        <span case.bind="statuses">Processing.</span>
-        <span case="dispatched">On the way.</span>
-        <span case="delivered">Delivered.</span>
+        <case-host case.bind="statuses">Processing.</case-host>
+        <case-host case="dispatched">On the way.</case-host>
+        <case-host case="delivered">Delivered.</case-host>
       </template>
     </template>`,
-      },
-      '<span>Processing.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 0, 0],
-          [1, 0, 0],
-          [0, 0, 0],
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+        },
+        config(),
+        wrap('Processing.'),
+        [1, ...getActivationSequenceFor('case-host-1')],
+        getDeactivationSequenceFor('case-host-1'),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.dispatched; },
+            wrap('On the way.'),
+            [1, 2, ...getDeactivationSequenceFor('case-host-1'), ...getActivationSequenceFor('case-host-2')]
+          );
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.statuses = [Status.dispatched]; },
+            wrap('Processing.'),
+            [1, ...getDeactivationSequenceFor('case-host-2'), ...getActivationSequenceFor('case-host-1')]
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.app.status = Status.dispatched;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>On the way.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 0],
-            [0, 1, 0],
-            [1, 0, 0],
-          ),
-          'change1'
-        );
-
-        $switch.clearCalls();
-        ctx.app.statuses = [Status.dispatched];
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML2');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 0, 0],
-            [1, 0, 0],
-            [0, 1, 0],
-          ),
-          'change2'
-        );
-      }
-    );
-
-    yield new TestData(
-      'supports multi-case collection change - #2',
-      {
-        initialStatus: Status.dispatched,
-        template: `
+      yield new TestData(
+        'supports multi-case collection change - #2',
+        {
+          initialStatus: Status.dispatched,
+          template: `
     <template>
       <template switch.bind="status">
-        <span case.bind="statuses">Processing.</span>
-        <span case="dispatched">On the way.</span>
-        <span case="delivered">Delivered.</span>
-        <span default-case>Unknown.</span>
+        <case-host case.bind="statuses">Processing.</case-host>
+        <case-host case="dispatched">On the way.</case-host>
+        <case-host case="delivered">Delivered.</case-host>
+        <default-case-host default-case>Unknown.</default-case-host>
       </template>
     </template>`,
-      },
-      '<span>On the way.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 0],
-          [0, 1, 0],
-          [0, 0, 0],
-          new DefaultCaseCallsExpectation(0, 0),
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+        },
+        config(),
+        wrap('On the way.'),
+        [1, 2, ...getActivationSequenceFor('case-host-2')],
+        getDeactivationSequenceFor('case-host-1'),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.statuses = [Status.dispatched]; },
+            wrap('Processing.'),
+            [1, ...getDeactivationSequenceFor('case-host-2'), ...getActivationSequenceFor('case-host-1')]
+          );
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.unknown; },
+            wrap('Unknown.', true),
+            [1, 2, 3, ...getDeactivationSequenceFor('case-host-1'), ...getActivationSequenceFor('default-case-host-1')]
+          );
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.statuses = [ctx.app.status = Status.delivered]; },
+            wrap('Processing.'),
+            [1, 2, 3, ...getDeactivationSequenceFor('default-case-host-1'), ...getActivationSequenceFor('case-host-3'), 1, ...getDeactivationSequenceFor('case-host-3'), ...getActivationSequenceFor('case-host-1')]
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.app.statuses = [Status.dispatched];
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 0, 0],
-            [1, 0, 0],
-            [0, 1, 0],
-            new DefaultCaseCallsExpectation(0, 0),
-          ),
-          'change1'
-        );
-
-        $switch.clearCalls();
-        ctx.app.status = Status.unknown;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Unknown.</span>', 'change innerHTML2');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1],
-            [0, 0, 0],
-            [1, 0, 0],
-            new DefaultCaseCallsExpectation(1, 0),
-          ),
-          'change2'
-        );
-
-        $switch.clearCalls();
-        ctx.app.statuses = [ctx.app.status = Status.delivered];
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML2');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [2, 1, 1],
-            [1, 0, 1],
-            [0, 0, 1],
-            new DefaultCaseCallsExpectation(0, 1),
-          ),
-          'change3'
-        );
-      }
-    );
-
-    yield new TestData(
-      'supports multi-case collection mutation',
-      {
-        initialStatus: Status.dispatched,
-        template: `
+      yield new TestData(
+        'supports multi-case collection mutation',
+        {
+          initialStatus: Status.dispatched,
+          template: `
     <template>
       <template switch.bind="status">
-        <span case.bind="statuses">Processing.</span>
-        <span case="dispatched">On the way.</span>
-        <span case="delivered">Delivered.</span>
-        <span default-case>Unknown.</span>
+        <case-host case.bind="statuses">Processing.</case-host>
+        <case-host case="dispatched">On the way.</case-host>
+        <case-host case="delivered">Delivered.</case-host>
+        <default-case-host default-case>Unknown.</default-case-host>
       </template>
     </template>`,
-      },
-      '<span>On the way.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 0],
-          [0, 1, 0],
-          [0, 0, 0],
-          new DefaultCaseCallsExpectation(0, 0),
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+        },
+        config(),
+        wrap('On the way.'),
+        [1, 2, ...getActivationSequenceFor('case-host-2')],
+        getDeactivationSequenceFor('case-host-1'),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.statuses.push(Status.dispatched); },
+            wrap('Processing.'),
+            [1, ...getDeactivationSequenceFor('case-host-2'), ...getActivationSequenceFor('case-host-1')]
+          );
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.unknown; },
+            wrap('Unknown.', true),
+            [1, 2, 3, ...getDeactivationSequenceFor('case-host-1'), ...getActivationSequenceFor('default-case-host-1')]
+          );
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.statuses.push(ctx.app.status = Status.delivered); },
+            wrap('Processing.'),
+            [1, 2, 3, ...getDeactivationSequenceFor('default-case-host-1'), ...getActivationSequenceFor('case-host-3'), 1, ...getDeactivationSequenceFor('case-host-3'), ...getActivationSequenceFor('case-host-1')]
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.app.statuses.push(Status.dispatched);
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 0, 0],
-            [1, 0, 0],
-            [0, 1, 0],
-            new DefaultCaseCallsExpectation(0, 0),
-          ),
-          'change1'
-        );
-
-        $switch.clearCalls();
-        ctx.app.status = Status.unknown;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Unknown.</span>', 'change innerHTML2');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1],
-            [0, 0, 0],
-            [1, 0, 0],
-            new DefaultCaseCallsExpectation(1, 0),
-          ),
-          'change2'
-        );
-
-        $switch.clearCalls();
-        ctx.app.statuses.push(ctx.app.status = Status.delivered);
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Processing.</span>', 'change innerHTML2');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [2, 1, 1],
-            [1, 0, 1],
-            [0, 0, 1],
-            new DefaultCaseCallsExpectation(0, 1),
-          ),
-          'change3'
-        );
-      }
-    );
-
-    const fallThroughTemplate = `
+      const fallThroughTemplate = `
       <template>
         <template switch.bind="status">
-          <span case="received">Order received.</span>
-          <span case="value:dispatched; fall-through.bind:true">On the way.</span>
-          <span case="value.bind:'processing'; fall-through:true">Processing your order.</span>
-          <span case="delivered">Delivered.</span>
+          <case-host case="received">Order received.</case-host>
+          <case-host case="value:dispatched; fall-through.bind:true">On the way.</case-host>
+          <case-host case="value.bind:'processing'; fall-through:true">Processing your order.</case-host>
+          <case-host case="delivered">Delivered.</case-host>
         </template>
       </template>`;
 
-    yield new TestData(
-      'supports fall-through #1',
-      {
-        initialStatus: Status.dispatched,
-        template: fallThroughTemplate,
-      },
-      '<span>On the way.</span> <span>Processing your order.</span> <span>Delivered.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 0, 0],
-          [0, 1, 1, 1],
-          [0, 0, 0, 0],
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+      yield new TestData(
+        'supports fall-through #1',
+        {
+          initialStatus: Status.dispatched,
+          template: fallThroughTemplate,
+        },
+        config(),
+        `${wrap('On the way.')} ${wrap('Processing your order.')} ${wrap('Delivered.')}`,
+        [1, 2, ...getActivationSequenceFor(['case-host-2', 'case-host-3', 'case-host-4'])],
+        getDeactivationSequenceFor('case-host-4'),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.delivered; },
+            wrap('Delivered.'),
+            [1, 2, 3, 4, ...getDeactivationSequenceFor(['case-host-2', 'case-host-3'])]
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.app.status = Status.delivered;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Delivered.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 1],
-            [0, 0, 0, 0], // already activated; nothing to do.
-            [0, 1, 1, 0],
-          ),
-          'change'
-        );
-      }
-    );
+      yield new TestData(
+        'supports fall-through #2',
+        {
+          initialStatus: Status.delivered,
+          template: fallThroughTemplate,
+        },
+        config(),
+        wrap('Delivered.'),
+        [1, 2, 3, 4, ...getActivationSequenceFor('case-host-4')],
+        getDeactivationSequenceFor(['case-host-3', 'case-host-4']),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.processing; },
+            `${wrap('Processing your order.')} ${wrap('Delivered.')}`,
+            [1, 2, 3, ...getActivationSequenceFor('case-host-3')],
+          );
+        }
+      );
 
-    yield new TestData(
-      'supports fall-through #2',
-      {
-        initialStatus: Status.delivered,
-        template: fallThroughTemplate,
-      },
-      '<span>Delivered.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 1, 1],
-          [0, 0, 0, 1],
-          [0, 0, 0, 0],
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
-
-        $switch.clearCalls();
-        ctx.app.status = Status.processing;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Processing your order.</span> <span>Delivered.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 0],
-            [0, 0, 1, 0],
-            [0, 0, 0, 0],
-          ),
-          'change'
-        );
-      }
-    );
-
-    yield new TestData(
-      'supports fall-through #3',
-      {
-        initialStatus: Status.delivered,
-        template: `
+      yield new TestData(
+        'supports fall-through #3',
+        {
+          initialStatus: Status.delivered,
+          template: `
     <template>
       <template switch.bind="true">
-        <span case.bind="status === 'received'">Order received.</span>
-        <span case="value.bind:status === 'processing'; fall-through:true">Processing your order.</span>
-        <span case="value.bind:status === 'dispatched'; fall-through.bind:true">On the way.</span>
-        <span case.bind="status === 'delivered'">Delivered.</span>
+        <case-host case.bind="status === 'received'">Order received.</case-host>
+        <case-host case="value.bind:status === 'processing'; fall-through:true">Processing your order.</case-host>
+        <case-host case="value.bind:status === 'dispatched'; fall-through.bind:true">On the way.</case-host>
+        <case-host case.bind="status === 'delivered'">Delivered.</case-host>
       </template>
     </template>`,
-      },
-      '<span>Delivered.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 1, 1],
-          [0, 0, 0, 1],
-          [0, 0, 0, 0],
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+        },
+        config(),
+        wrap('Delivered.'),
+        [1, 2, 3, 4, ...getActivationSequenceFor('case-host-4')],
+        getDeactivationSequenceFor(['case-host-2', 'case-host-3', 'case-host-4']),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.processing; },
+            `${wrap('Processing your order.')} ${wrap('On the way.')} ${wrap('Delivered.')}`,
+            [2, ...getActivationSequenceFor(['case-host-2', 'case-host-3']), 4]
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.app.status = Status.processing;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Processing your order.</span> <span>On the way.</span> <span>Delivered.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [0, 1, 0, 1],
-            [0, 1, 1, 0],
-            [0, 0, 0, 0],
-          ),
-          'change'
-        );
-      }
-    );
-
-    yield new TestData(
-      'works without case',
-      {
-        initialStatus: Status.processing,
-        template: `
+      yield new TestData(
+        'works without case',
+        {
+          initialStatus: Status.processing,
+          template: `
         <template>
           <div switch.bind="status">
             the curious case of \${status}
           </div>
         </template>`,
-      },
-      '<div> the curious case of processing </div>',
-      [
-        new SwitchCallsExpectation(
-          [],
-          [],
-          [],
-        )
-      ],
-      async (ctx) => {
-        ctx.app.status = Status.delivered;
-        await ctx.scheduler.yieldAll();
-        assert.html.innerEqual(ctx.host, '<div> the curious case of delivered </div>', 'change innerHTML1');
-      }
-    );
+        },
+        config(),
+        '<div> the curious case of processing </div>',
+        [],
+        [],
+        async (ctx) => {
+          ctx.app.status = Status.delivered;
+          await ctx.scheduler.yieldAll();
+          assert.html.innerEqual(ctx.host, '<div> the curious case of delivered </div>', 'change innerHTML1');
+        }
+      );
 
-    yield new TestData(
-      'supports non-case elements',
-      {
-        initialStatus: Status.delivered,
-        template: `
+      yield new TestData(
+        'supports non-case elements',
+        {
+          initialStatus: Status.delivered,
+          template: `
       <template>
         <template switch.bind="status">
-          <span case="received">Order received.</span>
-          <span case="dispatched">On the way.</span>
-          <span case="processing">Processing your order.</span>
-          <span case="delivered">Delivered.</span>
+          <case-host case="received">Order received.</case-host>
+          <case-host case="dispatched">On the way.</case-host>
+          <case-host case="processing">Processing your order.</case-host>
+          <case-host case="delivered">Delivered.</case-host>
           <span>foobar</span>
           <span if.bind="true">foo</span><span else>bar</span>
           <span if.bind="false">foo</span><span else>bar</span>
@@ -1079,485 +920,385 @@ describe('switch', function () {
           <my-echo message="awesome possum"></my-echo>
         </template>
       </template>`,
-        registrations: [MyEcho],
-      },
-      '<span>Delivered.</span> <span>foobar</span> <span>foo</span> <span>bar</span> <span>0</span><span>1</span><span>2</span> <my-echo message="awesome possum" class="au">Echoed \'awesome possum\'</my-echo>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 1, 1],
-          [0, 0, 0, 1],
-          [0, 0, 0, 0],
-        )
-      ],
-    );
+          registrations: [MyEcho],
+        },
+        config(),
+        `${wrap('Delivered.')} <span>foobar</span> <span>foo</span> <span>bar</span> <span>0</span><span>1</span><span>2</span> <my-echo message="awesome possum" class="au">Echoed 'awesome possum'</my-echo>`,
+        [...getActivationSequenceFor('my-echo-1'), 1, 2, 3, 4, ...getActivationSequenceFor('case-host-4')],
+        getDeactivationSequenceFor(['case-host-4', 'my-echo-1']),
+      );
 
-    yield new TestData(
-      'works with value converter for switch expression',
-      {
-        initialStatusNum: StatusNum.delivered,
-        template: `
+      yield new TestData(
+        'works with value converter for switch expression',
+        {
+          initialStatusNum: StatusNum.delivered,
+          template: `
       <template>
         <template switch.bind="statusNum | toStatusString">
-          <span case="received">Order received.</span>
-          <span case="dispatched">On the way.</span>
-          <span case="processing">Processing your order.</span>
-          <span case="delivered">Delivered.</span>
+          <case-host case="received">Order received.</case-host>
+          <case-host case="dispatched">On the way.</case-host>
+          <case-host case="processing">Processing your order.</case-host>
+          <case-host case="delivered">Delivered.</case-host>
         </template>
       </template>`,
-      },
-      '<span>Delivered.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 1, 1],
-          [0, 0, 0, 1],
-          [0, 0, 0, 0],
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+        },
+        config(),
+        wrap('Delivered.'),
+        [1, 2, 3, 4, ...getActivationSequenceFor('case-host-4')],
+        getDeactivationSequenceFor('case-host-3'),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.statusNum = StatusNum.processing; },
+            wrap('Processing your order.'),
+            [1, 2, 3, ...getDeactivationSequenceFor('case-host-4'), ...getActivationSequenceFor('case-host-3')]
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.app.statusNum = StatusNum.processing;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Processing your order.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 0],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1],
-          ),
-          'change'
-        );
-      }
-    );
-
-    yield new TestData(
-      'works with value converter for case expression',
-      {
-        initialStatus: Status.delivered,
-        template: `
+      yield new TestData(
+        'works with value converter for case expression',
+        {
+          initialStatus: Status.delivered,
+          template: `
       <template>
         <template switch.bind="status">
-          <span case.bind="1 | toStatusString">Order received.</span>
-          <span case.bind="3 | toStatusString">On the way.</span>
-          <span case.bind="2 | toStatusString">Processing your order.</span>
-          <span case.bind="4 | toStatusString">Delivered.</span>
+          <case-host case.bind="1 | toStatusString">Order received.</case-host>
+          <case-host case.bind="3 | toStatusString">On the way.</case-host>
+          <case-host case.bind="2 | toStatusString">Processing your order.</case-host>
+          <case-host case.bind="4 | toStatusString">Delivered.</case-host>
         </template>
       </template>`,
-      },
-      '<span>Delivered.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 1, 1],
-          [0, 0, 0, 1],
-          [0, 0, 0, 0],
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+        },
+        config(),
+        wrap('Delivered.'),
+        [1, 2, 3, 4, ...getActivationSequenceFor('case-host-4')],
+        getDeactivationSequenceFor('case-host-3'),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.processing; },
+            wrap('Processing your order.'),
+            [1, 2, 3, ...getDeactivationSequenceFor('case-host-4'), ...getActivationSequenceFor('case-host-3')]
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.app.status = Status.processing;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Processing your order.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 0],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1],
-          ),
-          'change'
-        );
-      }
-    );
-
-    yield new TestData(
-      'works with bindingBehavior for switch expression',
-      {
-        initialStatus: Status.delivered,
-        template: `
+      yield new TestData(
+        'works with bindingBehavior for switch expression',
+        {
+          initialStatus: Status.delivered,
+          template: `
       <template>
         <template switch.bind="status & noop">
-          <span case="received">Order received.</span>
-          <span case="dispatched">On the way.</span>
-          <span case="processing">Processing your order.</span>
-          <span case="delivered">Delivered.</span>
+          <case-host case="received">Order received.</case-host>
+          <case-host case="dispatched">On the way.</case-host>
+          <case-host case="processing">Processing your order.</case-host>
+          <case-host case="delivered">Delivered.</case-host>
         </template>
       </template>`,
-      },
-      '<span>Delivered.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 1, 1],
-          [0, 0, 0, 1],
-          [0, 0, 0, 0],
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+        },
+        config(),
+        wrap('Delivered.'),
+        [1, 2, 3, 4, ...getActivationSequenceFor('case-host-4')],
+        getDeactivationSequenceFor('case-host-3'),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.processing; },
+            wrap('Processing your order.'),
+            [1, 2, 3, ...getDeactivationSequenceFor('case-host-4'), ...getActivationSequenceFor('case-host-3')]
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.app.status = Status.processing;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Processing your order.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 0],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1],
-          ),
-          'change'
-        );
-      }
-    );
-
-    yield new TestData(
-      'works with bindingBehavior for case expression',
-      {
-        initialStatus: Status.delivered,
-        template: `
+      yield new TestData(
+        'works with bindingBehavior for case expression',
+        {
+          initialStatus: Status.delivered,
+          template: `
       <template>
         <template switch.bind="status">
-          <span case.bind="'received' & noop">Order received.</span>
-          <span case.bind="'dispatched' & noop">On the way.</span>
-          <span case.bind="'processing' & noop">Processing your order.</span>
-          <span case.bind="'delivered' & noop">Delivered.</span>
+          <case-host case.bind="'received' & noop">Order received.</case-host>
+          <case-host case.bind="'dispatched' & noop">On the way.</case-host>
+          <case-host case.bind="'processing' & noop">Processing your order.</case-host>
+          <case-host case.bind="'delivered' & noop">Delivered.</case-host>
         </template>
       </template>`,
-      },
-      '<span>Delivered.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 1, 1],
-          [0, 0, 0, 1],
-          [0, 0, 0, 0],
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+        },
+        config(),
+        wrap('Delivered.'),
+        [1, 2, 3, 4, ...getActivationSequenceFor('case-host-4')],
+        getDeactivationSequenceFor('case-host-3'),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.processing; },
+            wrap('Processing your order.'),
+            [1, 2, 3, ...getDeactivationSequenceFor('case-host-4'), ...getActivationSequenceFor('case-host-3')]
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.app.status = Status.processing;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Processing your order.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 0],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1],
-          ),
-          'change'
-        );
-      }
-    );
-
-    yield new TestData(
-      'works with repeater - switch expression',
-      {
-        initialStatus: Status.delivered,
-        template: `
+      yield new TestData(
+        'works with repeater - switch expression',
+        {
+          initialStatus: Status.delivered,
+          template: `
       <template>
         <div repeat.for="s of ['received', 'dispatched']">
           <template switch.bind="s">
-            <span case="received">Order received.</span>
-            <span case="dispatched">On the way.</span>
-            <span case="processing">Processing your order.</span>
-            <span case="delivered">Delivered.</span>
+            <case-host case="received">Order received.</case-host>
+            <case-host case="dispatched">On the way.</case-host>
+            <case-host case="processing">Processing your order.</case-host>
+            <case-host case="delivered">Delivered.</case-host>
           </template>
         </div>
       </template>`,
-      },
-      '<div> <span>Order received.</span> </div><div> <span>On the way.</span> </div>',
-      [],
-      (ctx) => {
-        const switches = (ctx.controller.children[0].viewModel as Repeat)
-          .views
-          .map((v) => v.children[0].viewModel as SwitchTestDouble);
-        const ii = switches.length;
-        const switchExpectations = [
-          new SwitchCallsExpectation(
-            [1, 0, 0, 0],
-            [1, 0, 0, 0],
-            [0, 0, 0, 0],
-          ),
-          new SwitchCallsExpectation(
-            [1, 1, 0, 0],
-            [0, 1, 0, 0],
-            [0, 0, 0, 0],
-          ),
-        ];
-        assert.strictEqual(ii, switchExpectations.length);
-        for (let i = 0; i < ii; i++) {
-          ctx.assertCalls(switches[i], switchExpectations[i]);
+        },
+        config(),
+        `<div> ${wrap('Order received.')} </div><div> ${wrap('On the way.')} </div>`,
+        null,
+        getDeactivationSequenceFor(['case-host-1', 'case-host-6']),
+        (ctx) => {
+          const switches = (ctx.controller.children[0].viewModel as Repeat)
+            .views
+            .map((v) => v.children[0].viewModel as Switch);
+          ctx.assertCallSet([
+            `Case-#${switches[0]['cases'][0].id}.isMatch()`,
+            ...getActivationSequenceFor('case-host-1'),
+            `Case-#${switches[1]['cases'][0].id}.isMatch()`,
+            `Case-#${switches[1]['cases'][1].id}.isMatch()`,
+            ...getActivationSequenceFor('case-host-6')
+          ], 'post-start lifecycle calls');
         }
-      }
-    );
+      );
 
-    yield new TestData(
-      '*[switch][repeat.for] works',
-      {
-        initialStatus: Status.delivered,
-        template: `
+      yield new TestData(
+        '*[switch][repeat.for] works',
+        {
+          initialStatus: Status.delivered,
+          template: `
       <template>
         <div repeat.for="s of ['received', 'dispatched']" switch.bind="s">
-          <span case="received">Order received.</span>
-          <span case="dispatched">On the way.</span>
-          <span case="processing">Processing your order.</span>
-          <span case="delivered">Delivered.</span>
+          <case-host case="received">Order received.</case-host>
+          <case-host case="dispatched">On the way.</case-host>
+          <case-host case="processing">Processing your order.</case-host>
+          <case-host case="delivered">Delivered.</case-host>
         </div>
       </template>`,
-      },
-      '<div> <span>Order received.</span> </div><div> <span>On the way.</span> </div>',
-      [],
-      (ctx) => {
-        const switches = (ctx.controller.children[0].viewModel as Repeat)
-          .views
-          .map((v) => v.children[0].viewModel as SwitchTestDouble);
-        const ii = switches.length;
-        const switchExpectations = [
-          new SwitchCallsExpectation(
-            [1, 0, 0, 0],
-            [1, 0, 0, 0],
-            [0, 0, 0, 0],
-          ),
-          new SwitchCallsExpectation(
-            [1, 1, 0, 0],
-            [0, 1, 0, 0],
-            [0, 0, 0, 0],
-          ),
-        ];
-        assert.strictEqual(ii, switchExpectations.length);
-        for (let i = 0; i < ii; i++) {
-          ctx.assertCalls(switches[i], switchExpectations[i]);
+        },
+        config(),
+        `<div> ${wrap('Order received.')} </div><div> ${wrap('On the way.')} </div>`,
+        null,
+        getDeactivationSequenceFor(['case-host-1', 'case-host-6']),
+        (ctx) => {
+          const switches = (ctx.controller.children[0].viewModel as Repeat)
+            .views
+            .map((v) => v.children[0].viewModel as Switch);
+          ctx.assertCallSet([
+            `Case-#${switches[0]['cases'][0].id}.isMatch()`,
+            ...getActivationSequenceFor('case-host-1'),
+            `Case-#${switches[1]['cases'][0].id}.isMatch()`,
+            `Case-#${switches[1]['cases'][1].id}.isMatch()`,
+            ...getActivationSequenceFor('case-host-6')
+          ], 'post-start lifecycle calls');
         }
-      }
-    );
+      );
 
-    // tag: nonsense example
-    yield new TestData(
-      '*[switch][if] works',
-      {
-        initialStatus: Status.delivered,
-        template: `
+      // tag: nonsense example
+      yield new TestData(
+        '*[switch][if] works',
+        {
+          initialStatus: Status.delivered,
+          template: `
         <div if.bind="true" switch.bind="status">
-          <span case="received">Order received.</span>
-          <span case="dispatched">On the way.</span>
-          <span case="processing">Processing your order.</span>
-          <span case="delivered">Delivered.</span>
+          <case-host case="received">Order received.</case-host>
+          <case-host case="dispatched">On the way.</case-host>
+          <case-host case="processing">Processing your order.</case-host>
+          <case-host case="delivered">Delivered.</case-host>
         </div>
         <div if.bind="false" switch.bind="status">
-          <span case="received">Order received.</span>
-          <span case="dispatched">On the way.</span>
-          <span case="processing">Processing your order.</span>
-          <span case="delivered">Delivered.</span>
+          <case-host case="received">Order received.</case-host>
+          <case-host case="dispatched">On the way.</case-host>
+          <case-host case="processing">Processing your order.</case-host>
+          <case-host case="delivered">Delivered.</case-host>
         </div>
       `,
-      },
-      '<div> <span>Delivered.</span> </div>',
-    );
+        },
+        config(),
+        `<div> ${wrap('Delivered.')} </div>`,
+        null,
+        getDeactivationSequenceFor('case-host-4'),
+      );
 
-    // tag: nonsense example
-    yield new TestData(
-      '*[case][if=true]',
-      {
-        initialStatus: Status.delivered,
-        template: `
+      // tag: nonsense example
+      yield new TestData(
+        '*[case][if=true]',
+        {
+          initialStatus: Status.delivered,
+          template: `
         <div switch.bind="status">
-          <span case="processing">Processing your order.</span>
-          <span case="delivered" if.bind="true">Delivered.</span>
+          <case-host case="processing">Processing your order.</case-host>
+          <case-host case="delivered" if.bind="true">Delivered.</case-host>
         </div>`,
-      },
-      '<div> <span>Delivered.</span> </div>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1],
-          [0, 1],
-          [0, 0],
-        ),
-      ]
-    );
+        },
+        config(),
+        `<div> ${wrap('Delivered.')} </div>`,
+        [1, 2, ...getActivationSequenceFor('case-host-2')],
+        getDeactivationSequenceFor('case-host-2')
+      );
 
-    // tag: nonsense example
-    yield new TestData(
-      '*[case][if=false] leads to unexpected result',
-      {
-        initialStatus: Status.delivered,
-        template: `
+      // tag: nonsense example
+      yield new TestData(
+        '*[case][if=false] leads to unexpected result',
+        {
+          initialStatus: Status.delivered,
+          template: `
         <div switch.bind="status">
-          <span case="processing">Processing your order.</span>
+          <case-host case="processing">Processing your order.</case-host>
           <span if.bind="false" case="delivered">Delivered.</span>
         </div>`,
-      },
-      '<div> </div>',
-      [
-        new SwitchCallsExpectation(
-          [1],
-          [0],
-          [0],
-        ),
-      ]
-    );
+        },
+        config(),
+        '<div> </div>',
+        [1],
+        []
+      );
 
-    // tag: nonsense example
-    yield new TestData(
-      '*[if=false][case] leads to unexpected result',
-      {
-        initialStatus: Status.delivered,
-        template: `
+      // tag: nonsense example
+      yield new TestData(
+        '*[if=false][case] leads to unexpected result',
+        {
+          initialStatus: Status.delivered,
+          template: `
         <div switch.bind="status">
-          <span case="processing">Processing your order.</span>
-          <span case="delivered" if.bind="false">Delivered.</span>
+          <case-host case="processing">Processing your order.</case-host>
+          <case-host case="delivered" if.bind="false">Delivered.</case-host>
         </div>`,
-      },
-      '<div> </div>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1],
-          [0, 1],
-          [0, 0],
-        ),
-      ]
-    );
+        },
+        config(),
+        '<div> </div>',
+        [1, 2],
+        []
+      );
 
-    // tag: nonsense example
-    yield new TestData(
-      '*[switch]>*[case][repeat.for] leads to unexpected result',
-      {
-        initialStatus: Status.delivered,
-        template: `
+      // tag: nonsense example
+      yield new TestData(
+        '*[switch]>*[case][repeat.for] leads to unexpected result',
+        {
+          initialStatus: Status.delivered,
+          template: `
       <template>
         <template switch.bind="status">
-          <span case.bind="s" repeat.for="s of ['received','dispatched','processing','delivered',]">\${s}</span>
+          <case-host case.bind="s" repeat.for="s of ['received','dispatched','processing','delivered',]">\${s}</case-host>
         </template>
         <template switch.bind="status">
-          <span case.bind="s" repeat.for="s of ['delivered','received','dispatched','processing',]">\${s}</span>
+          <case-host case.bind="s" repeat.for="s of ['delivered','received','dispatched','processing',]">\${s}</case-host>
         </template>
       </template>`,
-      },
-      '',
-      [
-        new SwitchCallsExpectation(
-          [1],
-          [0],
-          [0],
-        ),
-        new SwitchCallsExpectation(
-          [1],
-          [0],
-          [0],
-        ),
-      ]
-    );
+        },
+        config(),
+        '',
+        [1, 2],
+        []
+      );
 
-    // tag: nonsense example
-    yield new TestData(
-      '*[switch]>*[case][repeat.for] - static case - leads to unexpected result',
-      {
-        initialStatus: Status.received,
-        template: `
+      // tag: nonsense example
+      yield new TestData(
+        '*[switch]>*[case][repeat.for] - static case - leads to unexpected result',
+        {
+          initialStatus: Status.received,
+          template: `
       <template>
         <template switch.bind="status">
-          <span case="processing">Processing your order.</span>
-          <span case="received" repeat.for="i of 3">\${i}</span>
+          <case-host case="processing">Processing your order.</case-host>
+          <case-host case="received" repeat.for="i of 3">\${i}</case-host>
         </template>
       </template>`,
-      },
-      '<span>0</span><span>1</span><span>2</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1],
-          [0, 1],
-          [0, 0],
-        ),
-      ]
-    );
+        },
+        config(),
+        `${wrap('0')}${wrap('1')}${wrap('2')}`,
+        [1, 2, ...getActivationSequenceFor(['case-host-2', 'case-host-3', 'case-host-4'])],
+        getDeactivationSequenceFor(['case-host-2', 'case-host-3', 'case-host-4'])
+      );
 
-    yield new TestData(
-      'supports nested switch',
-      {
-        initialStatus: Status.delivered,
-        template: `
+      yield new TestData(
+        'supports nested switch',
+        {
+          initialStatus: Status.delivered,
+          template: `
       <template>
         <let day.bind="2"></let>
         <template switch.bind="status">
-          <span case="received">Order received.</span>
-          <span case="dispatched">On the way.</span>
-          <span case="processing">Processing your order.</span>
-          <span case="delivered" switch.bind="day">
+          <case-host case="received">Order received.</case-host>
+          <case-host case="dispatched">On the way.</case-host>
+          <case-host case="processing">Processing your order.</case-host>
+          <case-host case="delivered" switch.bind="day">
             Expected to be delivered
-            <template case.bind="1">tomorrow.</template>
-            <template case.bind="2">in 2 days.</template>
-            <template default-case>in few days.</template>
-          </span>
+            <case-host case.bind="1">tomorrow.</case-host>
+            <case-host case.bind="2">in 2 days.</case-host>
+            <case-host default-case>in few days.</case-host>
+          </case-host>
         </template>
       </template>`,
-      },
-      '<span> Expected to be delivered in 2 days. </span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 1, 1, 1],
-          [0, 0, 0, 1],
-          [0, 0, 0, 0],
-        )
-      ],
-      (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
-        const $switch2 = ctx.getSwitchTestDoubles(($switch['cases'][3] as CaseTestDouble).view as unknown as Controller)[0];
-        ctx.assertCalls(
-          $switch2,
-          new SwitchCallsExpectation(
-            [1, 1],
-            [0, 1],
-            [0, 0],
-            new DefaultCaseCallsExpectation(0, 0)
-          )
-        );
-      }
-    );
+          verifyStopCallsAsSet: true,
+        },
+        config(),
+        wrap(` Expected to be delivered ${wrap('in 2 days.')} `),
+        null,
+        getDeactivationSequenceFor(['case-host-4', 'case-host-6']),
+        (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          const $switch2 = ctx.getSwitches(($switch['cases'][3] as Case).view as unknown as Controller)[0];
+          ctx.assertCalls([
+            1, 2, 3, 4, ...getActivationSequenceFor('case-host-4'),
+            `Case-#${$switch2['cases'][0].id}.isMatch()`, `Case-#${$switch2['cases'][1].id}.isMatch()`, ...getActivationSequenceFor('case-host-6')
+          ]);
+        }
+      );
 
-    yield new TestData(
-      'works with local template',
-      {
-        initialStatus: Status.delivered,
-        template: `
+      yield new TestData(
+        'works with local template',
+        {
+          initialStatus: Status.delivered,
+          template: `
       <template as-custom-element="foo-bar">
         <bindable property="status"></bindable>
         <div switch.bind="status">
-          <span case="received">Order received.</span>
-          <span case="dispatched">On the way.</span>
-          <span case="processing">Processing your order.</span>
-          <span case="delivered">Delivered.</span>
+          <case-host case="received">Order received.</case-host>
+          <case-host case="dispatched">On the way.</case-host>
+          <case-host case="processing">Processing your order.</case-host>
+          <case-host case="delivered">Delivered.</case-host>
         </div>
       </template>
 
       <foo-bar status.bind="status"></foo-bar>
       `,
-      },
-      '<foo-bar status.bind="status" class="au"> <div> <span>Delivered.</span> </div> </foo-bar>',
-      [],
-      (ctx) => {
-        const fooBarController = ctx.controller.children[0];
-        const $switch = ctx.getSwitchTestDoubles(fooBarController)[0];
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 1],
-            [0, 0, 0, 1],
-            [0, 0, 0, 0],
-          )
-        );
-      }
-    );
+        },
+        config(),
+        `<foo-bar status.bind="status" class="au"> <div> ${wrap('Delivered.')} </div> </foo-bar>`,
+        null,
+        getDeactivationSequenceFor('case-host-4'),
+        (ctx) => {
+          const fooBarController = ctx.controller.children[0];
+          const $switch = ctx.getSwitches(fooBarController)[0];
+          ctx.assertCalls([
+            ...new Array(4).fill(0).map((_, i) => `Case-#${$switch['cases'][i].id}.isMatch()`),
+            ...getActivationSequenceFor('case-host-4')
+          ]);
+        }
+      );
 
-    yield new TestData(
-      'works with au-slot[case]',
-      {
-        initialStatus: Status.received,
-        template: `
+      yield new TestData(
+        'works with au-slot[case]',
+        {
+          initialStatus: Status.received,
+          template: `
       <template as-custom-element="foo-bar">
         <bindable property="status"></bindable>
         <div switch.bind="status">
@@ -1572,83 +1313,60 @@ describe('switch', function () {
         <span au-slot="s1">Projection</span>
       </foo-bar>
       `,
-      },
-      '<foo-bar status.bind="status" class="au"> <div> <span>Projection</span> </div> </foo-bar>',
-      [],
-      async (ctx) => {
-        const fooBarController = ctx.controller.children[0];
-        const $switch = ctx.getSwitchTestDoubles(fooBarController)[0];
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 0, 0, 0],
-            [1, 0, 0, 0],
-            [0, 0, 0, 0],
-          )
-        );
+        },
+        config(),
+        '<foo-bar status.bind="status" class="au"> <div> <span>Projection</span> </div> </foo-bar>',
+        null,
+        [],
+        async (ctx) => {
+          const fooBarController = ctx.controller.children[0];
+          const $switch = ctx.getSwitches(fooBarController)[0];
+          ctx.assertCalls([`Case-#${$switch['cases'][0].id}.isMatch()`]);
 
-        $switch.clearCalls();
-        ctx.app.status = Status.delivered;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<foo-bar status.bind="status" class="au"> <div> Delivered. </div> </foo-bar>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 1],
-            [0, 0, 0, 1],
-            [1, 0, 0, 0],
-          )
-        );
-      }
-    );
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.delivered; },
+            '<foo-bar status.bind="status" class="au"> <div> Delivered. </div> </foo-bar>',
+            new Array(4).fill(0).map((_, i) => `Case-#${$switch['cases'][i].id}.isMatch()`),
+          );
+        }
+      );
 
-    yield new TestData(
-      'works with case on CE',
-      {
-        initialStatus: Status.received,
-        template: `
+      yield new TestData(
+        'works with case on CE',
+        {
+          initialStatus: Status.received,
+          template: `
       <template>
         <template switch.bind="status">
-          <span case="received">Order received.</span>
-          <span case="dispatched">On the way.</span>
-          <span case="processing">Processing your order.</span>
+          <case-host case="received">Order received.</case-host>
+          <case-host case="dispatched">On the way.</case-host>
+          <case-host case="processing">Processing your order.</case-host>
           <my-echo case="delivered" message="Delivered."></my-echo>
         </template>
       </template>`,
-        registrations: [MyEcho]
-      },
-      '<span>Order received.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 0, 0, 0],
-          [1, 0, 0, 0],
-          [0, 0, 0, 0],
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+          registrations: [MyEcho]
+        },
+        config(),
+        wrap('Order received.'),
+        [1, ...getActivationSequenceFor('case-host-1')],
+        getDeactivationSequenceFor('my-echo-1'),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.delivered; },
+            '<my-echo message="Delivered." class="au">Echoed \'Delivered.\'</my-echo>',
+            [1, 2, 3, 4, ...getDeactivationSequenceFor('case-host-1'), ...getActivationSequenceFor('my-echo-1')]
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.app.status = Status.delivered;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<my-echo message="Delivered." class="au">Echoed \'Delivered.\'</my-echo>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 1],
-            [0, 0, 0, 1],
-            [1, 0, 0, 0],
-          ),
-          'change'
-        );
-      }
-    );
-
-    yield new TestData(
-      'slot integration - switch wrapped with au-slot',
-      {
-        initialStatus: Status.received,
-        template: `
+      yield new TestData(
+        'slot integration - switch wrapped with au-slot',
+        {
+          initialStatus: Status.received,
+          template: `
       <template as-custom-element="foo-bar">
         <au-slot name="s1"></au-slot>
       </template>
@@ -1656,105 +1374,85 @@ describe('switch', function () {
       <foo-bar>
         <template au-slot="s1">
           <template switch.bind="status">
-            <span case="received">Order received.</span>
-            <span case="dispatched">On the way.</span>
-            <span case="processing">Processing your order.</span>
-            <span case="delivered">Delivered.</span>
+            <case-host case="received">Order received.</case-host>
+            <case-host case="dispatched">On the way.</case-host>
+            <case-host case="processing">Processing your order.</case-host>
+            <case-host case="delivered">Delivered.</case-host>
           </template>
         </template>
       </foo-bar>
       `,
-      },
-      '<foo-bar class="au"> <span>Order received.</span> </foo-bar>',
-      [],
-      async (ctx) => {
-        const fooBarController = ctx.controller.children[0];
-        const auSlot: AuSlot = fooBarController.children[0].viewModel as AuSlot;
-        const $switch = ctx.getSwitchTestDoubles(auSlot.view as unknown as Controller)[0];
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 0, 0, 0],
-            [1, 0, 0, 0],
-            [0, 0, 0, 0],
-          )
-        );
+        },
+        config(),
+        `<foo-bar class="au"> ${wrap('Order received.')} </foo-bar>`,
+        null,
+        getDeactivationSequenceFor('case-host-4'),
+        async (ctx) => {
+          const fooBarController = ctx.controller.children[0];
+          const auSlot: AuSlot = fooBarController.children[0].viewModel as AuSlot;
+          const $switch = ctx.getSwitches(auSlot.view as unknown as Controller)[0];
+          ctx.assertCalls([`Case-#${$switch['cases'][0].id}.isMatch()`, ...getActivationSequenceFor('case-host-1')]);
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.delivered; },
+            `<foo-bar class="au"> ${wrap('Delivered.')} </foo-bar>`,
+            [...new Array(4).fill(0).map((_, i) => `Case-#${$switch['cases'][i].id}.isMatch()`), ...getDeactivationSequenceFor('case-host-1'), ...getActivationSequenceFor('case-host-4')],
+          );
+        }
+      );
 
-        $switch.clearCalls();
-        ctx.app.status = Status.delivered;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<foo-bar class="au"> <span>Delivered.</span> </foo-bar>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 1],
-            [0, 0, 0, 1],
-            [1, 0, 0, 0],
-          ),
-          'change'
-        );
-      }
-    );
-
-    yield new TestData(
-      '*[switch] native-html-element *[case] works',
-      {
-        initialStatus: Status.received,
-        template: `
+      yield new TestData(
+        '*[switch] native-html-element *[case] works',
+        {
+          initialStatus: Status.received,
+          template: `
       <template>
         <template switch.bind="status">
           <div>
             <div>
-              <span case="received">Order received.</span>
-              <span case="dispatched">On the way.</span>
-              <span case="processing">Processing your order.</span>
-              <span case="delivered">Delivered.</span>
+              <case-host case="received">Order received.</case-host>
+              <case-host case="dispatched">On the way.</case-host>
+              <case-host case="processing">Processing your order.</case-host>
+              <case-host case="delivered">Delivered.</case-host>
             </div>
           </div>
         </template>
       </template>`,
-      },
-      `<div> <div> <span>Order received.</span> </div> </div>`,
-      [
-        new SwitchCallsExpectation(
-          [1, 0, 0, 0],
-          [1, 0, 0, 0],
-          [0, 0, 0, 0],
-        )
-      ]
-    );
+        },
+        config(),
+        `<div> <div> ${wrap('Order received.')} </div> </div>`,
+        [1, ...getActivationSequenceFor('case-host-1')],
+        getDeactivationSequenceFor('case-host-1')
+      );
 
-    yield new TestData(
-      '*[switch]>CE>*[case] works',
-      {
-        initialStatus: Status.dispatched,
-        template: `
+      // tag: not supported
+      yield new TestData(
+        '*[switch]>CE>*[case] produces some output',
+        {
+          initialStatus: Status.dispatched,
+          template: `
       <template as-custom-element="foo-bar">
         foo bar
       </template>
 
       <template switch.bind="status">
         <foo-bar>
-          <span case="dispatched">On the way.</span>
-          <span case="delivered">Delivered.</span>
+          <case-host case="dispatched">On the way.</case-host>
+          <case-host case="delivered">Delivered.</case-host>
         </foo-bar>
       </template>`,
-      },
-      '<foo-bar class="au"> <span>On the way.</span> foo bar </foo-bar>',
-      [
-        new SwitchCallsExpectation(
-          [1, 0],
-          [1, 0],
-          [0, 0],
-        )
-      ]
-    );
+        },
+        config(),
+        `<foo-bar class="au"> ${wrap('On the way.')} foo bar </foo-bar>`,
+        [1, ...getActivationSequenceFor('case-host-1')],
+        getDeactivationSequenceFor('case-host-1')
+      );
 
-    yield new TestData(
-      '*[switch]>CE>CE>*[case] works',
-      {
-        initialStatus: Status.dispatched,
-        template: `
+      yield new TestData(
+        '*[switch]>CE>CE>*[case] works',
+        {
+          initialStatus: Status.dispatched,
+          template: `
       <template as-custom-element="foo-bar">
         foo bar
       </template>
@@ -1765,151 +1463,103 @@ describe('switch', function () {
       <template switch.bind="status">
         <foo-bar>
           <fiz-baz>
-            <span case="dispatched">On the way.</span>
-            <span case="delivered">Delivered.</span>
+            <case-host case="dispatched">On the way.</case-host>
+            <case-host case="delivered">Delivered.</case-host>
           </fiz-baz>
         </foo-bar>
       </template>`,
-      },
-      '<foo-bar class="au"> <fiz-baz class="au"> <span>On the way.</span> fiz baz </fiz-baz> foo bar </foo-bar>',
-      [
-        new SwitchCallsExpectation(
-          [1, 0],
-          [1, 0],
-          [0, 0],
-        )
-      ]
-    );
+        },
+        config(),
+        `<foo-bar class="au"> <fiz-baz class="au"> ${wrap('On the way.')} fiz baz </fiz-baz> foo bar </foo-bar>`,
+        [1, ...getActivationSequenceFor('case-host-1')],
+        getDeactivationSequenceFor('case-host-1')
+      );
 
-    yield new TestData(
-      'works with case binding changed to array and back',
-      {
-        initialStatus: Status.received,
-        template: `
+      yield new TestData(
+        'works with case binding changed to array and back',
+        {
+          initialStatus: Status.received,
+          template: `
       <template>
         <let s.bind="'received'"></let>
         <template switch.bind="status">
-          <span case.bind="s">Order received.</span>
-          <span case="dispatched">On the way.</span>
-          <span case="processing">Processing your order.</span>
-          <span case="delivered">Delivered.</span>
+          <case-host case.bind="s">Order received.</case-host>
+          <case-host case="dispatched">On the way.</case-host>
+          <case-host case="processing">Processing your order.</case-host>
+          <case-host case="delivered">Delivered.</case-host>
         </template>
       </template>`,
-      },
-      '<span>Order received.</span>',
-      [
-        new SwitchCallsExpectation(
-          [1, 0, 0, 0],
-          [1, 0, 0, 0],
-          [0, 0, 0, 0],
-        )
-      ],
-      async (ctx) => {
-        const $switch = ctx.getSwitchTestDoubles()[0];
+        },
+        config(),
+        wrap('Order received.'),
+        [1, ...getActivationSequenceFor('case-host-1')],
+        getDeactivationSequenceFor('case-host-1'),
+        async (ctx) => {
+          const $switch = ctx.getSwitches()[0];
 
-        $switch.clearCalls();
-        ctx.app.status = Status.delivered;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Delivered.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 1],
-            [0, 0, 0, 1],
-            [1, 0, 0, 0],
-          ),
-          'change1'
-        );
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.delivered; },
+            wrap('Delivered.'),
+            [1, 2, 3, 4, ...getDeactivationSequenceFor('case-host-1'), ...getActivationSequenceFor('case-host-4')]
+          );
 
-        const arr = [Status.received, Status.delivered];
-        const observer = ctx.container.get(IObserverLocator).getArrayObserver(LifecycleFlags.none, arr);
-        const addSpy = createSpy(observer, "addCollectionSubscriber", true);
-        const removeSpy = createSpy(observer, "removeCollectionSubscriber", true);
+          const arr = [Status.received, Status.delivered];
+          const observer = ctx.container.get(IObserverLocator).getArrayObserver(LifecycleFlags.none, arr);
+          const addSpy = createSpy(observer, "addCollectionSubscriber", true);
+          const removeSpy = createSpy(observer, "removeCollectionSubscriber", true);
 
-        $switch.clearCalls();
-        ctx.controller.scope.overrideContext.s = arr;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Order received.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 0, 0, 0],
-            [1, 0, 0, 0],
-            [0, 0, 0, 1],
-          ),
-          'change2'
-        );
-        assert.strictEqual(addSpy.calls.length, 1, 'addCollectionSubscriber count');
-        assert.strictEqual(addSpy.calls[0][0], $switch['cases'][0], 'addCollectionSubscriber arg');
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.controller.scope.overrideContext.s = arr; },
+            wrap('Order received.'),
+            [1, ...getDeactivationSequenceFor('case-host-4'), ...getActivationSequenceFor('case-host-1')]
+          );
 
-        $switch.clearCalls();
-        ctx.app.status = Status.dispatched;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>On the way.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 0, 0],
-            [0, 1, 0, 0],
-            [1, 0, 0, 0],
-          ),
-          'change3'
-        );
+          assert.strictEqual(addSpy.calls.length, 1, 'addCollectionSubscriber count');
+          assert.strictEqual(addSpy.calls[0][0], $switch['cases'][0], 'addCollectionSubscriber arg');
 
-        const arr2 = [Status.received, Status.dispatched];
-        const observer2 = ctx.container.get(IObserverLocator).getArrayObserver(LifecycleFlags.none, arr2);
-        const addSpy2 = createSpy(observer2, "addCollectionSubscriber", true);
-        const removeSpy2 = createSpy(observer2, "removeCollectionSubscriber", true);
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.dispatched; },
+            wrap('On the way.'),
+            [1, 2, ...getDeactivationSequenceFor('case-host-1'), ...getActivationSequenceFor('case-host-2')]
+          );
 
-        $switch.clearCalls();
-        ctx.controller.scope.overrideContext.s = arr2;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Order received.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 0, 0, 0],
-            [1, 0, 0, 0],
-            [0, 1, 0, 0],
-          ),
-          'change4'
-        );
-        assert.strictEqual(removeSpy.calls.length, 1, 'addCollectionSubscriber count');
-        assert.strictEqual(removeSpy.calls[0][0], $switch['cases'][0], 'addCollectionSubscriber arg');
-        assert.strictEqual(addSpy2.calls.length, 1, 'addCollectionSubscriber count #2');
-        assert.strictEqual(addSpy2.calls[0][0], $switch['cases'][0], 'addCollectionSubscriber arg #2');
+          const arr2 = [Status.received, Status.dispatched];
+          const observer2 = ctx.container.get(IObserverLocator).getArrayObserver(LifecycleFlags.none, arr2);
+          const addSpy2 = createSpy(observer2, "addCollectionSubscriber", true);
+          const removeSpy2 = createSpy(observer2, "removeCollectionSubscriber", true);
 
-        $switch.clearCalls();
-        ctx.app.status = Status.delivered;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Delivered.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 1, 1, 1],
-            [0, 0, 0, 1],
-            [1, 0, 0, 0],
-          ),
-          'change5'
-        );
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.controller.scope.overrideContext.s = arr2; },
+            wrap('Order received.'),
+            [1, ...getDeactivationSequenceFor('case-host-2'), ...getActivationSequenceFor('case-host-1')]
+          );
+          assert.strictEqual(removeSpy.calls.length, 1, 'addCollectionSubscriber count');
+          assert.strictEqual(removeSpy.calls[0][0], $switch['cases'][0], 'addCollectionSubscriber arg');
+          assert.strictEqual(addSpy2.calls.length, 1, 'addCollectionSubscriber count #2');
+          assert.strictEqual(addSpy2.calls[0][0], $switch['cases'][0], 'addCollectionSubscriber arg #2');
 
-        $switch.clearCalls();
-        ctx.controller.scope.overrideContext.s = Status.delivered;
-        await $switch.wait();
-        assert.html.innerEqual(ctx.host, '<span>Order received.</span>', 'change innerHTML1');
-        ctx.assertCalls(
-          $switch,
-          new SwitchCallsExpectation(
-            [1, 0, 0, 0],
-            [1, 0, 0, 0],
-            [0, 0, 0, 1],
-          ),
-          'change6'
-        );
-        assert.strictEqual(removeSpy2.calls.length, 1, 'addCollectionSubscriber count #2');
-        assert.strictEqual(removeSpy2.calls[0][0], $switch['cases'][0], 'addCollectionSubscriber arg #2');
-      }
-    );
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.app.status = Status.delivered; },
+            wrap('Delivered.'),
+            [1, 2, 3, 4, ...getDeactivationSequenceFor('case-host-1'), ...getActivationSequenceFor('case-host-4')]
+          );
+
+          await ctx.assertChange(
+            $switch,
+            () => { ctx.controller.scope.overrideContext.s = Status.delivered; },
+            wrap('Order received.'),
+            [1, ...getDeactivationSequenceFor('case-host-4'), ...getActivationSequenceFor('case-host-1')]
+          );
+          assert.strictEqual(removeSpy2.calls.length, 1, 'addCollectionSubscriber count #2');
+          assert.strictEqual(removeSpy2.calls[0][0], $switch['cases'][0], 'addCollectionSubscriber arg #2');
+        }
+      );
+    }
   }
 
   for (const data of getTestData()) {
@@ -1919,12 +1569,8 @@ describe('switch', function () {
         assert.strictEqual(ctx.error, null);
         assert.html.innerEqual(ctx.host, data.expectedInnerHtml, 'innerHTML');
 
-        const switches = ctx.getSwitchTestDoubles();
-        const ii = switches.length;
-        const switchExpectations = data.switchExpectations;
-        assert.strictEqual(ii, switchExpectations.length);
-        for (let i = 0; i < ii; i++) {
-          ctx.assertCalls(switches[i], switchExpectations[i]);
+        if (data.expectedStartLog !== null) {
+          ctx.assertCalls(data.expectedStartLog, 'start lifecycle calls');
         }
 
         const additionalAssertions = data.additionalAssertions;
@@ -1941,11 +1587,15 @@ describe('switch', function () {
       {
         template: `
         <template as-custom-element="foo-bar">
-          <span case="delivered">delivered</span>
+          <case-host case="delivered">delivered</case-host>
         </template>
         <foo-bar></foo-bar>
         `,
-      }
+      },
+      new Config(false, false, noop),
+      null!,
+      null,
+      null
     );
     yield new TestData(
       '*[switch]>*[if]>*[case]',
@@ -1954,11 +1604,15 @@ describe('switch', function () {
       <template>
         <template switch.bind="status">
           <template if.bind="true">
-            <span case="delivered">delivered</span>
+            <case-host case="delivered">delivered</case-host>
           </template>
         </template>
       </template>`,
-      }
+      },
+      new Config(false, false, noop),
+      null!,
+      null,
+      null,
     );
 
     yield new TestData(
@@ -1968,11 +1622,15 @@ describe('switch', function () {
       <template>
         <template switch.bind="status">
           <template repeat.for="s of ['received','dispatched','processing','delivered',]">
-            <span case.bind="s">\${s}</span>
+            <case-host case.bind="s">\${s}</case-host>
           </template>
         </template>
       </template>`,
       },
+      new Config(false, false, noop),
+      null!,
+      null,
+      null,
     );
 
     yield new TestData(
@@ -1985,6 +1643,10 @@ describe('switch', function () {
         </template>
       </template>`,
       },
+      new Config(false, false, noop),
+      null!,
+      null,
+      null,
     );
 
     yield new TestData(
@@ -1997,11 +1659,15 @@ describe('switch', function () {
 
       <foo-bar switch.bind="status">
         <template au-slot="s1">
-          <span case="dispatched">On the way.</span>
-          <span case="delivered">Delivered.</span>
+          <case-host case="dispatched">On the way.</case-host>
+          <case-host case="delivered">Delivered.</case-host>
         </template>
       </foo-bar>`,
       },
+      new Config(false, false, noop),
+      null!,
+      null,
+      null,
     );
 
     yield new TestData(
@@ -2009,10 +1675,14 @@ describe('switch', function () {
       {
         template: `
         <div switch.bind="status">
-          <span case="processing">Processing your order.</span>
+          <case-host case="processing">Processing your order.</case-host>
           <span if.bind="true" case="delivered">Delivered.</span>
         </div>`,
-      }
+      },
+      new Config(false, false, noop),
+      null!,
+      null,
+      null
     );
 
     yield new TestData(
@@ -2024,7 +1694,11 @@ describe('switch', function () {
           <span if.bind="false" case="processing">Processing your order.</span>
           <span else case="delivered">Delivered.</span>
         </div>`,
-      }
+      },
+      new Config(false, false, noop),
+      null!,
+      null,
+      null
     );
   }
   for (const data of getNegativeTestData()) {
@@ -2043,10 +1717,10 @@ describe('switch', function () {
       template: `
   <template>
     <template switch.bind="status">
-      <span case.bind="statuses">Processing.</span>
-      <span case="dispatched">On the way.</span>
-      <span default-case>dc1.</span>
-      <span default-case>dc2.</span>
+      <case-host case.bind="statuses">Processing.</case-host>
+      <case-host case="dispatched">On the way.</case-host>
+      <default-case-host default-case>dc1.</default-case-host>
+      <default-case-host default-case>dc2.</default-case-host>
     </template>
   </template>`
     });
@@ -2064,7 +1738,7 @@ describe('switch', function () {
       template: `
         <div switch.bind="status">
           <span if.bind="false" case="processing">Processing your order.</span>
-          <span case="delivered" else>Delivered.</span>
+          <case-host case="delivered" else>Delivered.</case-host>
         </div>`
     });
 });

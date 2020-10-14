@@ -1,4 +1,6 @@
 import {
+  ILogger,
+  LogLevel,
   nextId,
   onResolve,
   resolveAll,
@@ -80,10 +82,8 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     const view = this.view;
     const $controller = this.$controller;
 
-    this.queue(() => onResolve(
-      view.activate(view, $controller, flags, $controller.scope, $controller.hostScope),
-      () => this.swap(flags, this.value)
-    ));
+    this.queue(() => view.activate(view, $controller, flags, $controller.scope, $controller.hostScope));
+    this.queue(() => this.swap(flags, this.value));
     return this.promise;
   }
 
@@ -118,7 +118,7 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     if (!isMatch) {
       /** The previous match started with this; thus clear. */
       if (numActiveCases > 0 && activeCases[0].id === $case.id) {
-        this.queue(() => this.clearActiveCases(flags));
+        await this.clearActiveCases(flags);
       }
       /**
        * There are 2 different scenarios here:
@@ -231,12 +231,10 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
   }
 
   private queue(action: () => void | Promise<void>): void {
+    const previousPromise = this.promise;
     let promise: void | Promise<void> = void 0;
     promise = (this as Writable<Switch<T>>).promise = onResolve(
-      onResolve(
-        this.promise,
-        action
-      ),
+      onResolve(previousPromise, action),
       () => {
         if (this.promise === promise) {
           (this as Writable<Switch<T>>).promise = void 0;
@@ -267,13 +265,18 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
 
   public view: ISyntheticView<T>;
   private $switch!: Switch<T>;
+  private readonly debug: boolean;
+  private readonly logger: ILogger;
   private observer: ICollectionObserver<CollectionKind.array> | undefined;
 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory<T>,
     @IObserverLocator private readonly locator: IObserverLocator,
     @IRenderLocation location: IRenderLocation<T>,
+    @ILogger logger: ILogger,
   ) {
+    this.debug = logger.config.level <= LogLevel.debug;
+    this.logger = logger.scopeTo(`${this.constructor.name}-#${this.id}`);
     (this.view = this.factory.create()).setLocation(location, MountStrategy.insertBefore);
   }
 
@@ -289,7 +292,6 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
     const $switch = switchController?.viewModel;
     if ($switch instanceof Switch) {
       this.$switch = $switch;
-      this.$controller.parent = switchController;
       this.linkToSwitch($switch);
     } else {
       throw new Error('The parent switch not found; only `*[switch] > *[case|default-case]` relation is supported.');
@@ -301,6 +303,9 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
   }
 
   public isMatch(value: unknown, flags: LifecycleFlags): boolean {
+    if (this.debug) {
+      this.logger.debug('isMatch()');
+    }
     const $value = this.value;
     if (Array.isArray($value)) {
       if (this.observer === void 0) {

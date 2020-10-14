@@ -27,7 +27,7 @@ import { IWatcher, enterWatcher, exitWatcher } from './subscriber-switcher';
 import { connectable, IConnectableBinding } from '../binding/connectable';
 import { IWatcherCallback } from '../templating/watch';
 import { IsBindingBehavior } from '../binding/ast';
-import { getProxyOrSelf } from './proxy-observation';
+import { getProxyOrSelf, getRawOrSelf } from './proxy-observation';
 import { Scope } from './binding-context';
 
 export interface ComputedOverrides {
@@ -330,16 +330,17 @@ export class ComputedWatcher implements IWatcher {
   public constructor(
     public readonly obj: IObservable,
     public readonly observerLocator: IObserverLocator,
-    public readonly get: (obj: object) => unknown,
+    public readonly get: (obj: object, watcher: IWatcher) => unknown,
     private readonly cb: IWatcherCallback<object>,
   ) {
+    connectable.assignIdTo(this);
   }
 
-  public handleChange(_newValue: unknown, _previousValue: unknown, _flags: LifecycleFlags): void {
+  public handleChange(): void {
     this.run(++this.runId);
   }
 
-  public handleCollectionChange(_indexMap: IndexMap, _flags: LifecycleFlags): void {
+  public handleCollectionChange(): void {
     this.run(++this.runId);
   }
 
@@ -361,7 +362,9 @@ export class ComputedWatcher implements IWatcher {
   }
 
   public observeCollection<T extends Collection>(collection: T): T {
-    this.forCollection(collection).subscribeToCollection(this);
+    const obs = this.forCollection(collection);
+    this.observers.set(obs, this.version);
+    obs.subscribeToCollection(this);
     return collection;
   }
 
@@ -388,10 +391,13 @@ export class ComputedWatcher implements IWatcher {
   private compute(): unknown {
     this.version++;
     enterWatcher(this);
-    this.oV = this.get(getProxyOrSelf(this.obj));
-    exitWatcher(this);
-    this.unobserve(false);
-    this.unobserveCollection(false);
+    try {
+      this.oV = getRawOrSelf(this.get(getProxyOrSelf(this.obj), this));
+    } finally {
+      exitWatcher(this);
+      this.unobserve(false);
+      this.unobserveCollection(false);
+    }
     return this.oV;
   }
 
@@ -405,8 +411,11 @@ export class ComputedWatcher implements IWatcher {
     } else {
       observer = obsLocator.getMapObserver(LifecycleFlags.none, collection);
     }
-    this.observers.set(observer, this.version);
     return observer;
+  }
+
+  private isObserved(collection: Collection): boolean {
+    return this.observers.get(this.forCollection(collection)) === this.version;
   }
 
   private unobserveCollection(all: boolean): void {
@@ -447,6 +456,7 @@ export class ExpressionWatcher implements ExpressionWatcher {
     private readonly cb: IWatcherCallback<object>,
   ) {
     this.obj = scope.bindingContext;
+    connectable.assignIdTo(this);
   }
 
   public handleChange(value: unknown): void {

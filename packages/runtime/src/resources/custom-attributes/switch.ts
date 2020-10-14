@@ -31,7 +31,6 @@ import {
   CollectionKind,
   ICollectionObserver,
   IndexMap,
-  IScope,
 } from '../../observation';
 import {
   IObserverLocator,
@@ -48,6 +47,9 @@ import {
 import {
   ICompiledRenderContext,
 } from '../../templating/render-context';
+import {
+  Scope,
+} from '../../observation/binding-context';
 
 @templateController('switch')
 export class Switch<T extends INode = Node> implements ICustomAttributeViewModel<T> {
@@ -330,7 +332,7 @@ export class Case<T extends INode = Node> implements ICustomAttributeViewModel<T
     this.$switch.caseChanged(this, flags);
   }
 
-  public activate(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void | Promise<void> {
+  public activate(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void | Promise<void> {
     const view = this.view;
     if (view.isActive) { return; }
     return view.activate(view, this.$controller, flags, scope, hostScope);

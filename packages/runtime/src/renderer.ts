@@ -380,7 +380,7 @@ export class TemplateControllerRenderer implements IInstructionRenderer {
 
     Metadata.define(key, childController, renderLocation);
 
-    component.link?.(flags, parentContext, controller, childController, target, instruction);
+    component.link?.(flags, context, controller, childController, target, instruction);
 
     context.renderInstructions(
       /* flags        */flags,

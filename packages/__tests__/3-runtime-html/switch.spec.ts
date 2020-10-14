@@ -24,7 +24,7 @@ import {
   IBinding,
   IObserverLocator,
   IScheduler,
-  IScope,
+  Scope,
   LifecycleFlags,
   Repeat,
   Switch,
@@ -286,9 +286,8 @@ describe('switch', function () {
           host,
           component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
         })
-        .start()
-        .wait();
-      app = au.root.viewModel as App;
+        .start();
+      app = au.root.controller.viewModel as App;
       controller = au.root.controller! as unknown as Controller;
     } catch (e) {
       error = e;
@@ -299,7 +298,7 @@ describe('switch', function () {
 
     if (error === null) {
       testCtx.clear();
-      await au.stop().wait();
+      await au.stop();
       assert.html.innerEqual(host, '', 'post-detach innerHTML');
       if (verifyStopCallsAsSet) {
         testCtx.assertCallSet(expectedStopLog);
@@ -331,10 +330,10 @@ describe('switch', function () {
 
   @bindingBehavior('noop')
   class NoopBindingBehavior implements BindingBehaviorInstance {
-    public bind(_flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, _binding: IBinding): void {
+    public bind(_flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, _binding: IBinding): void {
       return;
     }
-    public unbind(_flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, _binding: IBinding): void {
+    public unbind(_flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, _binding: IBinding): void {
       return;
     }
   }

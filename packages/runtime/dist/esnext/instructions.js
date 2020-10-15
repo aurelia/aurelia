@@ -87,11 +87,10 @@ export class HydrateAttributeInstruction {
     }
 }
 export class HydrateTemplateController {
-    constructor(def, res, instructions, link) {
+    constructor(def, res, instructions) {
         this.def = def;
         this.res = res;
         this.instructions = instructions;
-        this.link = link;
         this.type = "rc" /* hydrateTemplateController */;
     }
 }

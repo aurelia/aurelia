@@ -82,9 +82,8 @@ export declare class HydrateTemplateController implements IHydrateTemplateContro
     def: PartialCustomElementDefinition;
     res: string;
     instructions: ITargetedInstruction[];
-    link?: boolean | undefined;
     type: TargetedInstructionType.hydrateTemplateController;
-    constructor(def: PartialCustomElementDefinition, res: string, instructions: ITargetedInstruction[], link?: boolean | undefined);
+    constructor(def: PartialCustomElementDefinition, res: string, instructions: ITargetedInstruction[]);
 }
 export declare class LetElementInstruction implements IHydrateLetElementInstruction {
     instructions: ILetBindingInstruction[];

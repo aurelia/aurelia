@@ -198,7 +198,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
                 instructions: controllerInstructionRows,
                 needsCompile: false,
             });
-            instructionRows.push([new runtime_1.HydrateTemplateController(def, symbol.res, bindings, symbol.res === 'else')]);
+            instructionRows.push([new runtime_1.HydrateTemplateController(def, symbol.res, bindings)]);
         }
         compileBindings(symbol) {
             let bindingInstructions;

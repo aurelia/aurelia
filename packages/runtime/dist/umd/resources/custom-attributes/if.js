@@ -123,7 +123,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             this.factory = factory;
             this.id = kernel_1.nextId('au$component');
         }
-        link(ifBehavior) {
+        link(flags, parentContext, controller, _childController, _target, _instruction) {
+            const children = controller.children;
+            const ifBehavior = children[children.length - 1];
             if (ifBehavior instanceof If) {
                 ifBehavior.elseFactory = this.factory;
             }
@@ -136,7 +138,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
         }
     };
     Else = __decorate([
-        custom_attribute_1.templateController('else'),
+        custom_attribute_1.templateController({ name: 'else' }),
         __param(0, lifecycle_1.IViewFactory),
         __metadata("design:paramtypes", [Object])
     ], Else);

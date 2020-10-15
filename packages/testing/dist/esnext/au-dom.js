@@ -574,7 +574,7 @@ export const AuDOMTest = {
         return new HydrateTemplateController(def, 'if', [new ToViewBindingInstruction(parseExpression(expression), 'value')]);
     },
     createElseInstruction(def) {
-        return new HydrateTemplateController(def, 'else', [], true);
+        return new HydrateTemplateController(def, 'else', []);
     },
     createRepeatInstruction(expression, def) {
         return new HydrateTemplateController(def, 'repeat', [new IteratorBindingInstruction(parseExpression(expression, 539 /* ForCommand */), 'items')]);

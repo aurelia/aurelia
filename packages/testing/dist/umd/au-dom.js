@@ -595,7 +595,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
             return new runtime_1.HydrateTemplateController(def, 'if', [new runtime_1.ToViewBindingInstruction(runtime_1.parseExpression(expression), 'value')]);
         },
         createElseInstruction(def) {
-            return new runtime_1.HydrateTemplateController(def, 'else', [], true);
+            return new runtime_1.HydrateTemplateController(def, 'else', []);
         },
         createRepeatInstruction(expression, def) {
             return new runtime_1.HydrateTemplateController(def, 'repeat', [new runtime_1.IteratorBindingInstruction(runtime_1.parseExpression(expression, 539 /* ForCommand */), 'items')]);

@@ -258,6 +258,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     /** @internal */
     class TemplateControllerRenderer {
         render(flags, context, controller, target, instruction) {
+            var _a;
             const viewFactory = render_context_1.getRenderContext(instruction.def, context).getViewFactory();
             const renderLocation = context.dom.convertToRenderLocation(target);
             const componentFactory = context.getComponentFactory(
@@ -277,10 +278,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
             /* host      */ target, 
             /* flags     */ flags);
             kernel_1.Metadata.define(key, childController, renderLocation);
-            if (instruction.link) {
-                const children = controller.children;
-                component.link(children[children.length - 1]);
-            }
+            (_a = component.link) === null || _a === void 0 ? void 0 : _a.call(component, flags, context, controller, childController, target, instruction);
             context.renderInstructions(
             /* flags        */ flags, 
             /* instructions */ instruction.instructions, 

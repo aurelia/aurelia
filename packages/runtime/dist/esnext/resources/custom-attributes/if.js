@@ -111,7 +111,9 @@ let Else = class Else {
         this.factory = factory;
         this.id = nextId('au$component');
     }
-    link(ifBehavior) {
+    link(flags, parentContext, controller, _childController, _target, _instruction) {
+        const children = controller.children;
+        const ifBehavior = children[children.length - 1];
         if (ifBehavior instanceof If) {
             ifBehavior.elseFactory = this.factory;
         }
@@ -124,7 +126,7 @@ let Else = class Else {
     }
 };
 Else = __decorate([
-    templateController('else'),
+    templateController({ name: 'else' }),
     __param(0, IViewFactory),
     __metadata("design:paramtypes", [Object])
 ], Else);

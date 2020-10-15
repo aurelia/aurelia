@@ -4,12 +4,12 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@aurelia/kernel", "./renderer", "./resources/binding-behaviors/binding-mode", "./attribute-patterns", "./binding-commands", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/with", "./resources/value-converters/sanitize", "./resources/value-converters/view", "@aurelia/scheduler", "./resources/custom-elements/au-slot"], factory);
+        define(["require", "exports", "@aurelia/kernel", "./renderer", "./resources/binding-behaviors/binding-mode", "./attribute-patterns", "./binding-commands", "./resources/binding-behaviors/debounce", "./resources/binding-behaviors/signals", "./resources/binding-behaviors/throttle", "./resources/custom-attributes/flags", "./resources/custom-attributes/if", "./resources/custom-attributes/repeat", "./resources/custom-attributes/with", "./resources/value-converters/sanitize", "./resources/value-converters/view", "@aurelia/scheduler", "./resources/custom-elements/au-slot", "./resources/custom-attributes/switch"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.RuntimeConfiguration = exports.DefaultRenderers = exports.TemplateControllerRendererRegistration = exports.SetPropertyRendererRegistration = exports.RefBindingRendererRegistration = exports.PropertyBindingRendererRegistration = exports.LetElementRendererRegistration = exports.IteratorBindingRendererRegistration = exports.InterpolationBindingRendererRegistration = exports.CustomElementRendererRegistration = exports.CustomAttributeRendererRegistration = exports.CallBindingRendererRegistration = exports.DefaultResources = exports.TwoWayBindingBehaviorRegistration = exports.ThrottleBindingBehaviorRegistration = exports.SignalBindingBehaviorRegistration = exports.FromViewBindingBehaviorRegistration = exports.ToViewBindingBehaviorRegistration = exports.OneTimeBindingBehaviorRegistration = exports.DebounceBindingBehaviorRegistration = exports.ViewValueConverterRegistration = exports.SanitizeValueConverterRegistration = exports.WithRegistration = exports.RepeatRegistration = exports.ElseRegistration = exports.IfRegistration = exports.ObserveShallowRegistration = exports.InfrequentMutationsRegistration = exports.FrequentMutationsRegistration = exports.DefaultComponents = exports.DefaultBindingLanguage = exports.TwoWayBindingCommandRegistration = exports.ToViewBindingCommandRegistration = exports.OneTimeBindingCommandRegistration = exports.FromViewBindingCommandRegistration = exports.ForBindingCommandRegistration = exports.DefaultBindingCommandRegistration = exports.CallBindingCommandRegistration = exports.ShortHandBindingSyntax = exports.DefaultBindingSyntax = exports.DotSeparatedAttributePatternRegistration = exports.RefAttributePatternRegistration = exports.ColonPrefixedBindAttributePatternRegistration = exports.AtPrefixedTriggerAttributePatternRegistration = void 0;
+    exports.RuntimeConfiguration = exports.DefaultRenderers = exports.TemplateControllerRendererRegistration = exports.SetPropertyRendererRegistration = exports.RefBindingRendererRegistration = exports.PropertyBindingRendererRegistration = exports.LetElementRendererRegistration = exports.IteratorBindingRendererRegistration = exports.InterpolationBindingRendererRegistration = exports.CustomElementRendererRegistration = exports.CustomAttributeRendererRegistration = exports.CallBindingRendererRegistration = exports.DefaultResources = exports.TwoWayBindingBehaviorRegistration = exports.ThrottleBindingBehaviorRegistration = exports.SignalBindingBehaviorRegistration = exports.FromViewBindingBehaviorRegistration = exports.ToViewBindingBehaviorRegistration = exports.OneTimeBindingBehaviorRegistration = exports.DebounceBindingBehaviorRegistration = exports.ViewValueConverterRegistration = exports.SanitizeValueConverterRegistration = exports.DefaultCaseRegistration = exports.CaseRegistration = exports.SwitchRegistration = exports.WithRegistration = exports.RepeatRegistration = exports.ElseRegistration = exports.IfRegistration = exports.ObserveShallowRegistration = exports.InfrequentMutationsRegistration = exports.FrequentMutationsRegistration = exports.DefaultComponents = exports.DefaultBindingLanguage = exports.TwoWayBindingCommandRegistration = exports.ToViewBindingCommandRegistration = exports.OneTimeBindingCommandRegistration = exports.FromViewBindingCommandRegistration = exports.ForBindingCommandRegistration = exports.DefaultBindingCommandRegistration = exports.CallBindingCommandRegistration = exports.ShortHandBindingSyntax = exports.DefaultBindingSyntax = exports.DotSeparatedAttributePatternRegistration = exports.RefAttributePatternRegistration = exports.ColonPrefixedBindAttributePatternRegistration = exports.AtPrefixedTriggerAttributePatternRegistration = void 0;
     const kernel_1 = require("@aurelia/kernel");
     const renderer_1 = require("./renderer");
     const binding_mode_1 = require("./resources/binding-behaviors/binding-mode");
@@ -26,6 +26,7 @@
     const view_1 = require("./resources/value-converters/view");
     const scheduler_1 = require("@aurelia/scheduler");
     const au_slot_1 = require("./resources/custom-elements/au-slot");
+    const switch_1 = require("./resources/custom-attributes/switch");
     exports.AtPrefixedTriggerAttributePatternRegistration = attribute_patterns_1.AtPrefixedTriggerAttributePattern;
     exports.ColonPrefixedBindAttributePatternRegistration = attribute_patterns_1.ColonPrefixedBindAttributePattern;
     exports.RefAttributePatternRegistration = attribute_patterns_1.RefAttributePattern;
@@ -91,6 +92,9 @@
     exports.ElseRegistration = if_1.Else;
     exports.RepeatRegistration = repeat_1.Repeat;
     exports.WithRegistration = with_1.With;
+    exports.SwitchRegistration = switch_1.Switch;
+    exports.CaseRegistration = switch_1.Case;
+    exports.DefaultCaseRegistration = switch_1.DefaultCase;
     exports.SanitizeValueConverterRegistration = sanitize_1.SanitizeValueConverter;
     exports.ViewValueConverterRegistration = view_1.ViewValueConverter;
     exports.DebounceBindingBehaviorRegistration = debounce_1.DebounceBindingBehavior;
@@ -115,6 +119,9 @@
         exports.ElseRegistration,
         exports.RepeatRegistration,
         exports.WithRegistration,
+        exports.SwitchRegistration,
+        exports.CaseRegistration,
+        exports.DefaultCaseRegistration,
         exports.SanitizeValueConverterRegistration,
         exports.ViewValueConverterRegistration,
         exports.DebounceBindingBehaviorRegistration,

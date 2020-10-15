@@ -55,14 +55,14 @@
             }
             return false;
         }
-        create(flags) {
+        create(flags, parentController) {
             const cache = this.cache;
             let controller;
             if (cache != null && cache.length > 0) {
                 controller = cache.pop();
                 return controller;
             }
-            controller = controller_1.Controller.forSyntheticView(null, this.context, this, this.lifecycle, flags);
+            controller = controller_1.Controller.forSyntheticView(null, this.context, this, this.lifecycle, flags, parentController);
             return controller;
         }
     }

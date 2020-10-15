@@ -186,7 +186,7 @@ let TemplateCompiler = class TemplateCompiler {
             instructions: controllerInstructionRows,
             needsCompile: false,
         });
-        instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings, symbol.res === 'else')]);
+        instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings)]);
     }
     compileBindings(symbol) {
         let bindingInstructions;

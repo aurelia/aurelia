@@ -157,7 +157,8 @@
             controller.hydrateCustomAttribute();
             return controller;
         }
-        static forSyntheticView(root, context, viewFactory, lifecycle, flags = 0 /* none */) {
+        static forSyntheticView(root, context, viewFactory, lifecycle, flags = 0 /* none */, parentController = void 0) {
+            var _a;
             const controller = new Controller(
             /* root           */ root, 
             /* container      */ context, 2 /* synthetic */, 
@@ -169,6 +170,8 @@
             /* viewModel      */ void 0, 
             /* bindingContext */ void 0, 
             /* host           */ void 0);
+            // deepscan-disable-next-line
+            controller.parent = (_a = parentController) !== null && _a !== void 0 ? _a : null;
             controller.hydrateSynthetic(context);
             return controller;
         }

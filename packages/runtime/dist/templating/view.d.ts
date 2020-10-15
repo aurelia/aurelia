@@ -1,7 +1,7 @@
 import { Constructable, ConstructableClass } from '@aurelia/kernel';
 import { INode } from '../dom';
 import { LifecycleFlags } from '../flags';
-import { ILifecycle, IViewFactory, ICustomElementViewModel, ISyntheticView } from '../lifecycle';
+import { ILifecycle, IViewFactory, ICustomElementViewModel, ISyntheticView, ICustomElementController, ICustomAttributeController } from '../lifecycle';
 import { Scope } from '../observation/binding-context';
 import { PartialCustomElementDefinition, CustomElementDefinition } from '../resources/custom-element';
 import { IRenderContext } from './render-context';
@@ -20,7 +20,7 @@ export declare class ViewFactory<T extends INode = INode> implements IViewFactor
     setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void;
     canReturnToCache(controller: ISyntheticView<T>): boolean;
     tryReturnToCache(controller: ISyntheticView<T>): boolean;
-    create(flags?: LifecycleFlags): ISyntheticView<T>;
+    create(flags?: LifecycleFlags, parentController?: ISyntheticView<T> | ICustomElementController<T> | ICustomAttributeController<T> | undefined): ISyntheticView<T>;
 }
 export declare const Views: {
     name: string;

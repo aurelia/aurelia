@@ -43,14 +43,14 @@ export class ViewFactory {
         }
         return false;
     }
-    create(flags) {
+    create(flags, parentController) {
         const cache = this.cache;
         let controller;
         if (cache != null && cache.length > 0) {
             controller = cache.pop();
             return controller;
         }
-        controller = Controller.forSyntheticView(null, this.context, this, this.lifecycle, flags);
+        controller = Controller.forSyntheticView(null, this.context, this, this.lifecycle, flags, parentController);
         return controller;
     }
 }

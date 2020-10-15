@@ -81,7 +81,7 @@ export declare class Controller<T extends INode = INode, C extends IViewModel<T>
     static getCachedOrThrow<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(viewModel: C): ICustomElementController<T, C>;
     static forCustomElement<T extends INode = INode, C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>>(root: ICompositionRoot<T> | null, container: IContainer, viewModel: C, lifecycle: ILifecycle, host: T, targetedProjections: RegisteredProjections | null, flags?: LifecycleFlags, hydrate?: boolean, definition?: CustomElementDefinition | undefined): ICustomElementController<T, C>;
     static forCustomAttribute<T extends INode = INode, C extends ICustomAttributeViewModel<T> = ICustomAttributeViewModel<T>>(root: ICompositionRoot<T> | null, container: IContainer, viewModel: C, lifecycle: ILifecycle, host: T, flags?: LifecycleFlags): ICustomAttributeController<T, C>;
-    static forSyntheticView<T extends INode = INode>(root: ICompositionRoot<T> | null, context: IRenderContext<T>, viewFactory: IViewFactory<T>, lifecycle: ILifecycle, flags?: LifecycleFlags): ISyntheticView<T>;
+    static forSyntheticView<T extends INode = INode>(root: ICompositionRoot<T> | null, context: IRenderContext<T>, viewFactory: IViewFactory<T>, lifecycle: ILifecycle, flags?: LifecycleFlags, parentController?: ISyntheticView<T> | ICustomElementController<T> | ICustomAttributeController<T> | undefined): ISyntheticView<T>;
     private hydrateCustomAttribute;
     private hydrateSynthetic;
     private canceling;

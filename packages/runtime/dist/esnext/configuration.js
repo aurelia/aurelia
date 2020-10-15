@@ -14,6 +14,7 @@ import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
 import { Now } from '@aurelia/scheduler';
 import { AuSlot } from './resources/custom-elements/au-slot';
+import { Switch, Case, DefaultCase } from './resources/custom-attributes/switch';
 export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern;
 export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern;
 export const RefAttributePatternRegistration = RefAttributePattern;
@@ -79,6 +80,9 @@ export const IfRegistration = If;
 export const ElseRegistration = Else;
 export const RepeatRegistration = Repeat;
 export const WithRegistration = With;
+export const SwitchRegistration = Switch;
+export const CaseRegistration = Case;
+export const DefaultCaseRegistration = DefaultCase;
 export const SanitizeValueConverterRegistration = SanitizeValueConverter;
 export const ViewValueConverterRegistration = ViewValueConverter;
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior;
@@ -103,6 +107,9 @@ export const DefaultResources = [
     ElseRegistration,
     RepeatRegistration,
     WithRegistration,
+    SwitchRegistration,
+    CaseRegistration,
+    DefaultCaseRegistration,
     SanitizeValueConverterRegistration,
     ViewValueConverterRegistration,
     DebounceBindingBehaviorRegistration,

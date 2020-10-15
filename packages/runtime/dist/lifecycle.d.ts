@@ -1,5 +1,5 @@
 import { IContainer, IIndexable, IServiceLocator, IDisposable } from '@aurelia/kernel';
-import { HooksDefinition } from './definitions';
+import { HooksDefinition, IHydrateTemplateController } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
 import { LifecycleFlags } from './flags';
 import { IBatchable, IBindingTargetAccessor } from './observation';
@@ -304,7 +304,7 @@ export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
     readonly context: IRenderContext<T>;
     readonly contentType: AuSlotContentType | undefined;
     readonly projectionScope: Scope | null;
-    create(flags?: LifecycleFlags): ISyntheticView<T>;
+    create(flags?: LifecycleFlags, parentController?: ISyntheticView<T> | ICustomElementController<T> | ICustomAttributeController<T> | undefined): ISyntheticView<T>;
 }
 export declare const IViewFactory: import("@aurelia/kernel").InterfaceSymbol<IViewFactory<INode>>;
 export interface IActivationHooks<TParent, T extends INode = INode> {
@@ -344,6 +344,7 @@ export interface ICustomElementViewModel<T extends INode = INode> extends IViewM
 }
 export interface ICustomAttributeViewModel<T extends INode = INode> extends IViewModel<T>, IActivationHooks<IHydratedParentController<T>, T> {
     readonly $controller?: ICustomAttributeController<T, this>;
+    link?(flags: LifecycleFlags, parentContext: ICompiledRenderContext, controller: IRenderableController, childController: ICustomAttributeController, target: INode, instruction: IHydrateTemplateController): void;
 }
 export interface IHydratedCustomElementViewModel<T extends INode = INode> extends ICustomElementViewModel<T> {
     readonly $controller: ICustomElementController<T, this>;

@@ -38,6 +38,7 @@ export { FrequentMutations, InfrequentMutations, ObserveShallow, } from './resou
 export { If, Else } from './resources/custom-attributes/if';
 export { Repeat } from './resources/custom-attributes/repeat';
 export { With } from './resources/custom-attributes/with';
+export { Switch, Case, DefaultCase, } from './resources/custom-attributes/switch';
 export { AuSlot, IProjections, SlotInfo, AuSlotContentType, RegisteredProjections, IProjectionProvider, ProjectionContext, } from './resources/custom-elements/au-slot';
 export { containerless, customElement, CustomElement, CustomElementDefinition, IProjectorLocator, useShadowDOM } from './resources/custom-element';
 export { ValueConverter, ValueConverterDefinition, valueConverter, } from './resources/value-converter';
@@ -51,7 +52,7 @@ export { Controller, isCustomElementController, isCustomElementViewModel, } from
 export { ViewFactory, IViewLocator, ViewLocator, view, Views, } from './templating/view';
 export { Aurelia, IAurelia, IDOMInitializer, CompositionRoot, ICompositionRoot, } from './aurelia';
 export { RefAttributePatternRegistration, DotSeparatedAttributePatternRegistration, DefaultBindingSyntax, AtPrefixedTriggerAttributePatternRegistration, ColonPrefixedBindAttributePatternRegistration, ShortHandBindingSyntax, CallBindingCommandRegistration, DefaultBindingCommandRegistration, ForBindingCommandRegistration, FromViewBindingCommandRegistration, OneTimeBindingCommandRegistration, ToViewBindingCommandRegistration, TwoWayBindingCommandRegistration, DefaultBindingLanguage, IfRegistration, ElseRegistration, RepeatRegistration, WithRegistration, SanitizeValueConverterRegistration, DebounceBindingBehaviorRegistration, OneTimeBindingBehaviorRegistration, ToViewBindingBehaviorRegistration, FromViewBindingBehaviorRegistration, SignalBindingBehaviorRegistration, ThrottleBindingBehaviorRegistration, TwoWayBindingBehaviorRegistration, RefBindingRendererRegistration, CallBindingRendererRegistration, CustomAttributeRendererRegistration, CustomElementRendererRegistration, InterpolationBindingRendererRegistration, IteratorBindingRendererRegistration, LetElementRendererRegistration, PropertyBindingRendererRegistration, SetPropertyRendererRegistration, TemplateControllerRendererRegistration, DefaultResources, RuntimeConfiguration } from './configuration';
-export { HooksDefinition, isTargetedInstruction, ITargetedInstruction, TargetedInstructionType, alias, registerAliases } from './definitions';
+export { HooksDefinition, isTargetedInstruction, ITargetedInstruction, TargetedInstructionType, alias, registerAliases, } from './definitions';
 export { DOM, INode, IRenderLocation, IDOM, NodeSequence } from './dom';
 export { BindingMode, BindingStrategy, ExpressionKind, LifecycleFlags, } from './flags';
 export { CallBindingInstruction, FromViewBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateTemplateController, InterpolationInstruction, IteratorBindingInstruction, LetBindingInstruction, LetElementInstruction, OneTimeBindingInstruction, RefBindingInstruction, SetPropertyInstruction, ToViewBindingInstruction, TwoWayBindingInstruction } from './instructions';

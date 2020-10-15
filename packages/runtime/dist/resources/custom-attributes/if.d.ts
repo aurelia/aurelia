@@ -1,6 +1,8 @@
+import { IHydrateTemplateController } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { ISyntheticView, IViewFactory, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../lifecycle';
+import { ISyntheticView, IViewFactory, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IRenderableController } from '../../lifecycle';
+import { ICompiledRenderContext } from '../../templating/render-context';
 export declare class If<T extends INode = INode> implements ICustomAttributeViewModel<T> {
     private readonly ifFactory;
     private readonly location;
@@ -23,6 +25,6 @@ export declare class Else<T extends INode = INode> {
     private readonly factory;
     readonly id: number;
     constructor(factory: IViewFactory<T>);
-    link(ifBehavior: If<T> | ICustomAttributeController<T>): void;
+    link(flags: LifecycleFlags, parentContext: ICompiledRenderContext, controller: IRenderableController, _childController: ICustomAttributeController, _target: INode, _instruction: IHydrateTemplateController): void;
 }
 //# sourceMappingURL=if.d.ts.map

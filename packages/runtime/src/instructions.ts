@@ -143,7 +143,6 @@ export class HydrateTemplateController implements IHydrateTemplateController {
     public def: PartialCustomElementDefinition,
     public res: string,
     public instructions: ITargetedInstruction[],
-    public link?: boolean,
   ) {}
 }
 

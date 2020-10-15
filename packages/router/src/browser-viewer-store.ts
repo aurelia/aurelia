@@ -59,6 +59,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
       this.options.useUrlFragmentHash = options.useUrlFragmentHash;
     }
     this.pendingCalls.start({ scheduler: this.scheduler, allowedExecutionCostWithinTick: this.allowedExecutionCostWithinTick });
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     this.window.addEventListener('popstate', this.handlePopstate);
   }
 
@@ -66,6 +67,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer {
     if (!this.isActive) {
       throw new Error('Browser navigation has not been started');
     }
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     this.window.removeEventListener('popstate', this.handlePopstate);
     this.pendingCalls.stop();
     this.options = { useUrlFragmentHash: true, callback: () => { return; } };

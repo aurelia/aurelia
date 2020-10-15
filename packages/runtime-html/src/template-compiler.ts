@@ -291,7 +291,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       needsCompile: false,
     });
 
-    instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings, symbol.res === 'else')]);
+    instructionRows.push([new HydrateTemplateController(def, symbol.res, bindings)]);
   }
 
   private compileBindings(

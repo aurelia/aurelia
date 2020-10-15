@@ -75,7 +75,14 @@ export class Switch<T extends INode = Node> implements ICustomAttributeViewModel
     @IRenderLocation private readonly location: IRenderLocation<T>,
   ) { }
 
-  public beforeBind(initiator: IHydratedController<T>, parent: IHydratedParentController<T>, flags: LifecycleFlags): void | Promise<void> {
+  public link(
+    flags: LifecycleFlags,
+    parentContext: ICompiledRenderContext,
+    controller: IRenderableController,
+    childController: ICustomAttributeController,
+    target: INode,
+    instruction: IHydrateTemplateController,
+  ): void {
     const view = this.view = this.factory.create(flags, this.$controller);
     view.setLocation(this.location, MountStrategy.insertBefore);
   }

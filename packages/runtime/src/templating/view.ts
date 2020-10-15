@@ -10,6 +10,7 @@ import {
   IContextualCustomElementController,
   ICompiledCustomElementController,
   ICustomElementController,
+  ICustomAttributeController,
   IHydratedController,
   IHydratedParentController,
 } from '../lifecycle';
@@ -70,7 +71,10 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
     return false;
   }
 
-  public create(flags?: LifecycleFlags): ISyntheticView<T> {
+  public create(
+    flags?: LifecycleFlags,
+    parentController?: ISyntheticView<T> | ICustomElementController<T> | ICustomAttributeController<T> | undefined,
+  ): ISyntheticView<T> {
     const cache = this.cache;
     let controller: ISyntheticView<T>;
 
@@ -79,7 +83,7 @@ export class ViewFactory<T extends INode = INode> implements IViewFactory<T> {
       return controller;
     }
 
-    controller = Controller.forSyntheticView(null, this.context, this, this.lifecycle, flags);
+    controller = Controller.forSyntheticView(null, this.context, this, this.lifecycle, flags, parentController);
     return controller;
   }
 }

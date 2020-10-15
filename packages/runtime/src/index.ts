@@ -341,7 +341,10 @@ export {
 
 export {
   watch,
-  Watch
+  Watch,
+  IWatchDefinition,
+  IWatcherCallback,
+  IDepCollectionFn,
 } from './templating/watch';
 
 export {

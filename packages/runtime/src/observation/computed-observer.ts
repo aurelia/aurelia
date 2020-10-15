@@ -321,8 +321,8 @@ export interface ComputedWatcher extends IConnectableBinding { }
 export class ComputedWatcher implements IWatcher {
 
   private readonly observers: Map<ICollectionObserver<CollectionKind>, number> = new Map();
-
-  private runId: number = 0;
+  // todo: maybe use a counter allow recursive call to a certain level
+  private running: boolean = false;
   private v: unknown = void 0;
 
   public isBound: boolean = false;
@@ -337,11 +337,11 @@ export class ComputedWatcher implements IWatcher {
   }
 
   public handleChange(): void {
-    this.run(++this.runId);
+    this.run();
   }
 
   public handleCollectionChange(): void {
-    this.run(++this.runId);
+    this.run();
   }
 
   public $bind(): void {
@@ -373,18 +373,22 @@ export class ComputedWatcher implements IWatcher {
     return collection;
   }
 
-  private run(runId: number): void {
+  private run(): void {
+    if (this.running) {
+      return;
+    }
     const obj = this.obj;
     const oldValue = this.v;
     const newValue = this.compute();
 
-    if (runId === this.runId && !Object.is(newValue, oldValue)) {
+    if (!Object.is(newValue, oldValue)) {
       // should optionally queue
       this.cb.call(obj, newValue, oldValue, obj);
     }
   }
 
   private compute(): unknown {
+    this.running = true;
     this.version++;
     enterWatcher(this);
     try {
@@ -394,6 +398,7 @@ export class ComputedWatcher implements IWatcher {
       this.unobserve(false);
       this.unobserveCollection(false);
     }
+    this.running = false;
     return this.v;
   }
 

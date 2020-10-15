@@ -1,12 +1,12 @@
 import { Constructable, Protocol, Metadata, PLATFORM } from '@aurelia/kernel';
 import type { IWatcher } from '../observation/subscriber-switcher';
 
-export type IDepCollectionFn<T extends object = object, R = unknown> = (vm: T, watcher: IWatcher) => R;
+export type IDepCollectionFn<T extends object, R = unknown> = (vm: T, watcher: IWatcher) => R;
 export type IWatcherCallback<T extends object, TValue = unknown>
   = (this: T, newValue: TValue, oldValue: TValue, vm: T) => unknown;
 
 export interface IWatchDefinition<T extends object = object> {
-  expression: PropertyKey | ((vm: object) => any);
+  expression: PropertyKey | IDepCollectionFn<T>
   callback: PropertyKey | IWatcherCallback<T>;
 }
 
@@ -41,7 +41,7 @@ export function watch<T extends object = object, D = unknown>(
 ): WatchMethodDecorator<T>;
 
 export function watch<T extends object = object>(
-  expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<T>,
+  expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<object>,
   changeHandlerOrCallback?: PropertyKey | IWatcherCallback<T>,
 ): WatchClassDecorator<T> | WatchMethodDecorator<T> {
   if (!expressionOrPropertyAccessFn) {
@@ -57,16 +57,17 @@ export function watch<T extends object = object>(
     const Type = isClassDecorator ? target : target.constructor;
 
     // basic validation
-    if (typeof changeHandlerOrCallback === 'string' && !(changeHandlerOrCallback in Type.prototype)) {
-      throw new Error(`Invalid change handler config. Method "${String(changeHandlerOrCallback)}" not found in class ${Type.name}`);
-    }
-
-    if (!isClassDecorator && typeof descriptor?.value !== 'function') {
+    if (isClassDecorator) {
+      if (typeof changeHandlerOrCallback !== 'function'
+        && (changeHandlerOrCallback == null || !(changeHandlerOrCallback in Type.prototype))
+      ) {
+        throw new Error(`Invalid change handler config. Method "${String(changeHandlerOrCallback)}" not found in class ${Type.name}`);
+      }
+    } else if (typeof descriptor?.value !== 'function') {
       throw new Error(`decorated target ${String(key)} is not a class method.`);
     }
 
     Watch.add(Type, {
-      // @ts-ignore
       expression: expressionOrPropertyAccessFn,
       callback: isClassDecorator ? changeHandlerOrCallback : descriptor!.value,
     });

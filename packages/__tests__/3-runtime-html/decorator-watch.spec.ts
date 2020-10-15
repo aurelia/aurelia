@@ -1,5 +1,5 @@
-import { watch } from '@aurelia/runtime';
-import { assert, createFixture } from '@aurelia/testing';
+import { watch, IDepCollectionFn } from '@aurelia/runtime';
+import { assert, createFixture, HTMLTestContext } from '@aurelia/testing';
 
 describe('3-runtime-html/decorator-watch.spec.ts', function () {
   it('typings work', function () {
@@ -33,6 +33,17 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     const app = new App();
     assert.strictEqual(app.col, undefined);
   });
+
+  for (const methodName of [Symbol('method'), 'bla', 5]) {
+    it(`validates method "${String(methodName)}" not found when decorating on class`, function () {
+      assert.throws(() => {
+        @watch('..', methodName)
+        class App {}
+
+        return new App();
+      }, /Invalid change handler config/);
+    });
+  }
 
   it('works in basic scenario', function () {
     let callCount = 0;
@@ -275,71 +286,110 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
 
   describe('Map/Set', function () {
     const symbol = Symbol();
-    interface IApp {
-      col: Map<unknown, unknown>;
-      symbols: number;
-    }
 
-    for (const [fn] of [
-      [(app: IApp) => Array.from(app.col.values()).filter(v => v === symbol).length],
-      // [(app: IApp) => app.col.has(symbol) ? app.symbols++ : 0]
-    ]) {
-      it('observes when declared on method', function () {
-        let callCount = 0;
+    const testCases: ITestCase[] = [
+      {
+        title: 'observes .values()',
+        get: (app) => Array.from(app.map.values()).filter(v => v === symbol).length,
+        created: (app) => {
+          assert.strictEqual(app.callCount, 0);
+          app.map.set('a', 1);
+          assert.strictEqual(app.callCount, 0);
+          app.map.set('b', symbol);
+          assert.strictEqual(app.callCount, 1);
+          app.map.set('a', 2);
+          assert.strictEqual(app.callCount, 1);
+          app.map.set('a', symbol);
+          assert.strictEqual(app.callCount, 2);
+        },
+        disposed: (app, { }) => {
+          app.map.set('a', symbol);
+          assert.strictEqual(app.callCount, 2, 'after disposed');
+        }
+      },
+      {
+        title: 'observes .has()',
+        get: app => app.map.has(symbol) ? ++app.symbols : 0,
+        created: (app) => {
+          assert.strictEqual(app.symbols, 0);
+          assert.strictEqual(app.callCount, 0);
+          app.map.set(symbol, '');
+          assert.strictEqual(app.symbols, 1);
+          assert.strictEqual(app.callCount, 1);
+        },
+        disposed: (app) => {
+          assert.strictEqual(app.symbols, 1);
+          assert.strictEqual(app.callCount, 1);
+          app.map.set(symbol, '');
+          assert.strictEqual(app.symbols, 1);
+          assert.strictEqual(app.callCount, 1);
+        },
+      },
+      {
+        title: 'observes .keys()',
+        get: app => Array.from(app.map.keys()).filter(k => k === symbol).length,
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          app.map.set('a', 2);
+          assert.strictEqual(app.callCount, 0);
+          app.map.set(symbol, '1');
+          assert.strictEqual(app.callCount, 1);
+        },
+      },
+    ];
+
+    for (const { title, only = false, get, created, disposed } of testCases) {
+      const $it = only ? it.only : it;
+      $it(`${title} on method`, function () {
         class App implements IApp {
-          public col: Map<unknown, unknown> = new Map();
+          public map: Map<unknown, unknown> = new Map();
           public symbols: number = 0;
-  
-          @watch(fn as any)
-          public log(symbols: number) {
-            callCount++;
-            this.symbols = symbols;
+          public callCount = 0;
+
+          @watch(get)
+          public log() {
+            this.callCount++;
           }
         }
 
-        const { component, tearDown } = createFixture('', App);
-
-        assert.strictEqual(callCount, 0);
-        component.col.set('a', 1);
-        assert.strictEqual(callCount, 0);
-        component.col.set('b', symbol);
-        assert.strictEqual(callCount, 1);
-        component.col.set('a', 2);
-        assert.strictEqual(callCount, 1);
-  
+        const { ctx, component, tearDown } = createFixture('', App);
+        created(component, ctx);
         tearDown();
-        component.col.set('a', symbol);
-        assert.strictEqual(callCount, 1);
+        disposed?.(component, ctx);
       });
+
+      $it(`${title} on class`, function () {
+        @watch(get, (v, o, a) => a.log())
+        class App implements IApp {
+          public map: Map<unknown, unknown> = new Map();
+          public symbols: number = 0;
+          public callCount = 0;
+
+          public log() {
+            this.callCount++;
+          }
+        }
+
+        const { ctx, component, tearDown } = createFixture('', App);
+        created(component, ctx);
+        tearDown();
+        disposed?.(component, ctx);
+      })
     }
 
-    it('observes', function () {
-      let callCount = 0;
-      const symbol = Symbol();
-      class App {
-        public col: Map<unknown, unknown> = new Map();
-        public symbols: number = 0;
+    interface IApp {
+      map: Map<unknown, unknown>;
+      symbols: number;
+      callCount: number;
+      log(): void;
+    }
 
-        @watch((app: App) => Array.from(app.col.values()).filter(v => v === symbol).length)
-        public log(symbols: number) {
-          callCount++;
-          this.symbols = symbols;
-        }
-      }
-
-      const { component, tearDown } = createFixture('', App);
-
-      assert.strictEqual(callCount, 0);
-      component.col.set('a', 1);
-      assert.strictEqual(callCount, 0);
-      component.col.set('b', symbol);
-      assert.strictEqual(callCount, 1);
-      component.col.set('a', 2);
-      assert.strictEqual(callCount, 1);
-
-      tearDown();
-      component.col.set('a', symbol);
-      assert.strictEqual(callCount, 1);
-    });
+    interface ITestCase {
+      title: string;
+      only?: boolean;
+      get: IDepCollectionFn<IApp>,
+      created: (app: IApp, ctx: HTMLTestContext) => any,
+      disposed?: (app: IApp, ctx: HTMLTestContext) => any,
+    }
   });
 });

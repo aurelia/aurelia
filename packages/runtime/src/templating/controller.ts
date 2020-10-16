@@ -85,7 +85,7 @@ import { IObserverLocator } from '../observation/observer-locator';
 import { IExpressionParser, BindingType } from '../binding/expression-parser';
 import { AccessScopeExpression } from '../binding/ast';
 import { ICompositionRoot } from '../aurelia';
-import { IWatcherCallback } from './watch';
+import { IWatchDefinition, IWatcherCallback } from './watch';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -241,7 +241,6 @@ export class Controller<
       controller.hydrateCustomElement(container, targetedProjections);
     }
 
-
     return controller as unknown as ICustomElementController<T, C>;
   }
 
@@ -331,7 +330,9 @@ export class Controller<
     const instance = this.viewModel as BindingContext<T, C>;
     this.scope = Scope.create(flags, this.bindingContext!, null);
 
-    createWatchers(this, this.container, definition, instance);
+    if (definition.watches.length > 0) {
+      createWatchers(this, this.container, definition, instance);
+    }
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this as Controller, definition, flags, instance);
 
@@ -432,7 +433,9 @@ export class Controller<
     const flags = this.flags | definition.strategy;
     const instance = this.viewModel!;
 
-    createWatchers(this, this.container, definition, instance);
+    if (definition.watches.length > 0) {
+      createWatchers(this, this.container, definition, instance);
+    }
     createObservers(this.lifecycle, definition, flags, instance);
 
     (instance as Writable<C>).$controller = this;
@@ -1380,8 +1383,12 @@ function createWatchers(
 ) {
   const observerLocator = context!.get(IObserverLocator);
   const expressionParser = context.get(IExpressionParser);
+  const watches = definition.watches;
+  let expression: IWatchDefinition['expression'];
+  let callback: IWatchDefinition['callback'];
 
-  definition.watches.map(({ expression, callback }) => {
+  for (let i = 0, ii = watches.length; ii > i; ++i) {
+    ({ expression, callback } = watches[i]);
     callback = typeof callback === 'function'
       ? callback
       : Reflect.get(instance, callback) as IWatcherCallback<object>;
@@ -1395,10 +1402,9 @@ function createWatchers(
         ? expressionParser.parse(expression, BindingType.BindCommand)
         : AccessScopeAst.for(expression);
 
-        debugger;
       controller.addBinding(new ExpressionWatcher(controller.scope!, context, observerLocator, ast, callback));
     }
-  });
+  }
 }
 
 function clearLinks<T extends INode>(initiator: Controller<T>): void {

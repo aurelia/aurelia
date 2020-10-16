@@ -18,9 +18,9 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
         assert.strictEqual(post.deliveryCount, 3);
       },
       disposed: post => {
-        post.runner = null
+        post.runner = null;
         assert.strictEqual(post.deliveryCount, 3);
-      }
+      },
     },
     {
       title: 'observes property access expression containing array indices',
@@ -40,8 +40,8 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
       disposed: post => {
         post.deliveries[0].done = false;
         assert.strictEqual(post.deliveryCount, 4);
-      }
-    }
+      },
+    },
   ];
 
   for (const { title, only = false, get, created, disposed } of testCases) {

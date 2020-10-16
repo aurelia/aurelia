@@ -296,10 +296,10 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           app.map.delete(symbol);
           assert.strictEqual(app.callCount, 2);
         },
-        disposed: (app, { }) => {
+        disposed: (app) => {
           app.map.set(symbol, 'a');
           assert.strictEqual(app.callCount, 2, 'after disposed');
-        }
+        },
       },
       {
         title: 'observes .values()',
@@ -399,7 +399,6 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         created: app => {
           assert.strictEqual(app.callCount, 0);
           app.map.set(symbol, 2);
-          app.map.set(1, 2);
           app.map.set(1, symbol);
           assert.strictEqual(app.callCount, 0);
         },
@@ -428,7 +427,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         title: 'works when getter throws error',
         get: app => {
           if (app.counter++ === 0) {
-            return 0; 
+            return 0;
           }
           throw new Error('err');
         },

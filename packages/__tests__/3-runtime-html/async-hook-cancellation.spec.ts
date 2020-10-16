@@ -5,7 +5,6 @@
 // Thus, due to the nature of these tests, we just don't want any squiggles here suggesting that anything needs fixing here,
 // because it doesn't. Please leave these two rules disabled even if it so happens that one of them doesn't even apply.
 
-/* eslint-disable @typescript-eslint/promise-function-async */
 /* eslint-disable @typescript-eslint/require-await */
 import {
   Registration,

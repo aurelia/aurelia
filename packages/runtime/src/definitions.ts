@@ -136,7 +136,6 @@ export interface IHydrateTemplateController extends IHydrateInstruction {
   res: string;
   instructions: ITargetedInstruction[];
   def: PartialCustomElementDefinition;
-  link?: boolean;
 }
 
 export interface IHydrateLetElementInstruction extends IHydrateInstruction {

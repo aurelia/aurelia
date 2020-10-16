@@ -1,8 +1,10 @@
 import { nextId, onResolve } from '@aurelia/kernel';
+import { IHydrateTemplateController } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
 import { LifecycleFlags } from '../../flags';
-import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../lifecycle';
+import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IRenderableController } from '../../lifecycle';
 import { bindable } from '../../templating/bindable';
+import { ICompiledRenderContext } from '../../templating/render-context';
 import { templateController } from '../custom-attribute';
 
 @templateController('if')
@@ -127,7 +129,7 @@ export class If<T extends INode = INode> implements ICustomAttributeViewModel<T>
   }
 }
 
-@templateController('else')
+@templateController({ name: 'else' })
 export class Else<T extends INode = INode> {
   public readonly id: number = nextId('au$component');
 
@@ -135,7 +137,16 @@ export class Else<T extends INode = INode> {
     @IViewFactory private readonly factory: IViewFactory<T>,
   ) {}
 
-  public link(ifBehavior: If<T> | ICustomAttributeController<T>): void {
+  public link(
+    flags: LifecycleFlags,
+    parentContext: ICompiledRenderContext,
+    controller: IRenderableController,
+    _childController: ICustomAttributeController,
+    _target: INode,
+    _instruction: IHydrateTemplateController,
+  ): void {
+    const children = controller.children!;
+    const ifBehavior: If<T> | ICustomAttributeController<T> = children[children.length - 1] as If<T> | ICustomAttributeController<T>;
     if (ifBehavior instanceof If) {
       ifBehavior.elseFactory = this.factory;
     } else if (ifBehavior.viewModel instanceof If) {

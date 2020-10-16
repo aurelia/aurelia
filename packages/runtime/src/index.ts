@@ -251,6 +251,11 @@ export {
 export {
   With
 } from './resources/custom-attributes/with';
+export {
+  Switch,
+  Case,
+  DefaultCase,
+} from './resources/custom-attributes/switch';
 
 export {
   AuSlot,
@@ -427,7 +432,7 @@ export {
   TargetedInstruction,
   TargetedInstructionType,
   alias,
-  registerAliases
+  registerAliases,
 } from './definitions';
 export {
   DOM,

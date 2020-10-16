@@ -18,7 +18,6 @@ import {
   Collection,
   ICollectionObserver,
   CollectionKind,
-  IndexMap,
 } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
 import { IObserverLocator } from './observer-locator';

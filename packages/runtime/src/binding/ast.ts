@@ -356,20 +356,17 @@ export class AccessScopeExpression {
   public get hasUnbind(): false { return false; }
 
   public constructor(
-    // property key instead of string
-    // so that it can support manual ast construction
     public readonly name: string,
     public readonly ancestor: number = 0,
     public readonly accessHostScope: boolean = false,
   ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator, c: IConnectable | null): IBindingContext | IOverrideContext {
-    const n = this.name as string;
-    const obj = BindingContext.get(chooseScope(this.accessHostScope, s, hs), n, this.ancestor, f, hs) as IBindingContext;
+    const obj = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs) as IBindingContext;
     if (c !== null) {
-      c.observeProperty(f, obj, n);
+      c.observeProperty(f, obj, this.name);
     }
-    const evaluatedValue = obj[n] as ReturnType<AccessScopeExpression['evaluate']>;
+    const evaluatedValue = obj[this.name] as ReturnType<AccessScopeExpression['evaluate']>;
     if (f & LF.isStrictBindingStrategy) {
       return evaluatedValue;
     }
@@ -377,22 +374,21 @@ export class AccessScopeExpression {
   }
 
   public assign(f: LF, s: Scope, hs: Scope | null, _l: IServiceLocator, val: unknown): unknown {
-    const n = this.name as string;
-    const obj = BindingContext.get(chooseScope(this.accessHostScope, s, hs), n, this.ancestor, f, hs) as IObservable;
+    const obj = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs) as IObservable;
     if (obj instanceof Object) {
-      if (obj.$observers?.[n] !== void 0) {
-        obj.$observers[n].setValue(val, f);
+      if (obj.$observers?.[this.name] !== void 0) {
+        obj.$observers[this.name].setValue(val, f);
         return val;
       } else {
-        return obj[n] = val;
+        return obj[this.name] = val;
       }
     }
     return void 0;
   }
 
   public connect(f: LF, s: Scope, hs: Scope | null, b: IConnectableBinding): void {
-    const context = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name as string, this.ancestor, f, hs)!;
-    b.observeProperty(f, context, this.name as string);
+    const context = BindingContext.get(chooseScope(this.accessHostScope, s, hs), this.name, this.ancestor, f, hs)!;
+    b.observeProperty(f, context, this.name);
   }
 
   public accept<T>(visitor: IVisitor<T>): T {

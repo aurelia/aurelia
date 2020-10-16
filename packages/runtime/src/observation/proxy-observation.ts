@@ -1,5 +1,5 @@
-import { IIndexable, isArrayIndex } from '@aurelia/kernel';
-import { watching, currentWatcher } from './subscriber-switcher';
+import { IIndexable } from '@aurelia/kernel';
+import { watching, currentWatcher } from './watcher-switcher';
 import { LifecycleFlags } from '../flags';
 import { isMap, isSet, isObject, isArray } from './utilities-objects';
 

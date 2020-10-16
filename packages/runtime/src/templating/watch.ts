@@ -1,5 +1,5 @@
 import { Constructable, Protocol, Metadata, PLATFORM } from '@aurelia/kernel';
-import type { IWatcher } from '../observation/subscriber-switcher';
+import type { IWatcher } from '../observation/watcher-switcher';
 
 export type IDepCollectionFn<T extends object, R = unknown> = (vm: T, watcher: IWatcher) => R;
 export type IWatcherCallback<T extends object, TValue = unknown>

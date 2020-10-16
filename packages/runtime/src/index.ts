@@ -195,7 +195,7 @@ export {
 } from './observation/subscriber-collection';
 export {
   IWatcher,
-} from './observation/subscriber-switcher';
+} from './observation/watcher-switcher';
 
 export {
   bindingBehavior,

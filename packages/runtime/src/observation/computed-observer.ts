@@ -22,7 +22,7 @@ import {
 import { IDirtyChecker } from './dirty-checker';
 import { IObserverLocator } from './observer-locator';
 import { subscriberCollection, collectionSubscriberCollection } from './subscriber-collection';
-import { IWatcher, enterWatcher, exitWatcher } from './subscriber-switcher';
+import { IWatcher, enterWatcher, exitWatcher } from './watcher-switcher';
 import { connectable, IConnectableBinding } from '../binding/connectable';
 import { IWatcherCallback } from '../templating/watch';
 import { IsBindingBehavior } from '../binding/ast';

@@ -75,7 +75,7 @@ export class Unparser implements AST.IVisitor<void> {
     while (i--) {
       this.text += '$parent.';
     }
-    this.text += String(expr.name);
+    this.text += expr.name;
   }
 
   public visitArrayLiteral(expr: AST.ArrayLiteralExpression): void {

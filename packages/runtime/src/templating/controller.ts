@@ -241,8 +241,6 @@ export class Controller<
       controller.hydrateCustomElement(container, targetedProjections);
     }
 
-    // timing?
-    createWatchers(controller as Controller, container, definition, viewModel);
 
     return controller as unknown as ICustomElementController<T, C>;
   }
@@ -282,8 +280,6 @@ export class Controller<
     controllerLookup.set(viewModel, controller as Controller);
 
     controller.hydrateCustomAttribute();
-
-    createWatchers(controller as Controller, container, definition, viewModel);
 
     return controller as unknown as ICustomAttributeController<T, C>;
   }
@@ -332,6 +328,7 @@ export class Controller<
     const instance = this.viewModel as BindingContext<T, C>;
     this.scope = Scope.create(flags, this.bindingContext!, null);
 
+    createWatchers(this, this.container, definition, instance);
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this as Controller, definition, flags, instance);
 
@@ -431,6 +428,8 @@ export class Controller<
     const definition = this.definition as CustomElementDefinition;
     const flags = this.flags | definition.strategy;
     const instance = this.viewModel!;
+
+    createWatchers(this, this.container, definition, instance);
     createObservers(this.lifecycle, definition, flags, instance);
 
     (instance as Writable<C>).$controller = this;
@@ -1393,6 +1392,7 @@ function createWatchers(
         ? expressionParser.parse(expression, BindingType.BindCommand)
         : AccessScopeAst.for(expression);
 
+        debugger;
       controller.addBinding(new ExpressionWatcher(controller.scope!, context, observerLocator, ast, callback));
     }
   });

@@ -48,7 +48,7 @@ function createProxy<T extends object>(obj: T): T {
 const objectHandler: ProxyHandler<object> = {
   get(target: IIndexable, key: PropertyKey, receiver: object): unknown {
     // maybe use symbol?
-    if (key === rawKey && getProxy(receiver) === target) {
+    if (key === rawKey) {
       return target;
     }
 
@@ -67,7 +67,7 @@ const objectHandler: ProxyHandler<object> = {
 };
 
 const arrayHandler: ProxyHandler<unknown[]> = {
-  get(target: unknown[], key: PropertyKey, receiver?): unknown {
+  get(target: unknown[], key: PropertyKey, receiver: unknown): unknown {
     // maybe use symbol?
     if (key === rawKey) {
       return target;
@@ -295,25 +295,20 @@ function wrappedForEach(this: $MapOrSet, cb: CollectionMethod, thisArg?: unknown
 function wrappedHas(this: $MapOrSet, v: unknown): boolean {
   const raw = getRaw(this);
   currentWatcher()?.observeCollection(raw);
-  return raw.has(v);
+  return raw.has(getRawOrSelf(v));
 }
 
 function wrappedGet(this: Map<unknown, unknown>, k: unknown): unknown {
   const raw = getRaw(this);
   currentWatcher()?.observeCollection(raw);
-  return getProxyOrSelf(raw.get(k));
+  return getProxyOrSelf(raw.get(getRawOrSelf(k)));
 }
 function wrappedSet(this: Map<unknown, unknown>, k: unknown, v: unknown): Map<unknown, unknown> {
-  const raw = getRaw(this);
-  currentWatcher()?.observeCollection(raw);
-  raw.set(k, v);
-  return this;
+  return getProxyOrSelf(getRaw(this).set(getRawOrSelf(k), getRawOrSelf(v)));
 }
 
 function wrappedAdd(this: Set<unknown>, v: unknown): Set<unknown> {
-  const raw = getRaw(this);
-  currentWatcher()?.observeCollection(raw);
-  return getProxyOrSelf(raw.add(v));
+  return getProxyOrSelf(getRaw(this).add(getRawOrSelf(v)));
 }
 
 function wrappedClear(this: $MapOrSet): void {
@@ -321,9 +316,7 @@ function wrappedClear(this: $MapOrSet): void {
 }
 
 function wrappedDelete(this: $MapOrSet, k: unknown): boolean {
-  const raw = getRaw(this);
-  currentWatcher()?.observeCollection(raw);
-  return getProxyOrSelf(raw.delete(k));
+  return getProxyOrSelf(getRaw(this).delete(getRawOrSelf(k)));
 }
 
 function wrappedKeys(this: $MapOrSet): IterableIterator<unknown> {

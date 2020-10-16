@@ -7,17 +7,17 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     @watch<App>(app => app.col.has(Symbol), 5)
     @watch<App>(app => app.col.has(Symbol), 'someMethod')
     @watch<App>(app => app.col.has(Symbol), symbolMethod)
-    @watch<App>(app => app.col.has(Symbol), (value, oldValue, app) => {})
+    @watch<App>(app => app.col.has(Symbol), (v, o, a) => a.someMethod(v, o, a))
     @watch<App>('some.expression', 5)
     @watch<App>('some.expression', 'someMethod')
     @watch<App>('some.expression', symbolMethod)
-    @watch<App>('some.expression', (v, o, a) => {/* empty */})
-    @watch<App>('some.expression', function(v, o, a) {/* some callback */})
+    @watch<App>('some.expression', (v, o, a) => a.someMethod(v, o, a))
+    @watch<App>('some.expression', function(v, o, a) { a.someMethod(v, o, a); })
     @watch<App>(Symbol(), 5)
     @watch<App>(Symbol(), 'someMethod')
     @watch<App>(Symbol(), symbolMethod)
-    @watch<App>(Symbol(), (v, o, a) => {})
-    @watch<App>(Symbol(), function(v, o, a) {/* some callback */})
+    @watch<App>(Symbol(), (v, o, a) => a.someMethod(v, o, a))
+    @watch<App>(Symbol(), function(v, o, a) { a.someMethod(v, o, a); })
     class App {
       public col: Map<unknown, unknown>
 
@@ -289,6 +289,20 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
 
     const testCases: ITestCase[] = [
       {
+        title: 'observes .get()',
+        get: (app) => app.map.get(symbol),
+        created: (app) => {
+          app.map.set(symbol, 0);
+          assert.strictEqual(app.callCount, 1);
+          app.map.delete(symbol);
+          assert.strictEqual(app.callCount, 2);
+        },
+        disposed: (app, { }) => {
+          app.map.set(symbol, 'a');
+          assert.strictEqual(app.callCount, 2, 'after disposed');
+        }
+      },
+      {
         title: 'observes .values()',
         get: (app) => Array.from(app.map.values()).filter(v => v === symbol).length,
         created: (app) => {
@@ -309,19 +323,20 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       },
       {
         title: 'observes .has()',
-        get: app => app.map.has(symbol) ? ++app.symbols : 0,
+        // also asserts that mutation during getter run won't cause infinite run
+        get: app => app.map.has(symbol) ? ++app.counter : 0,
         created: (app) => {
-          assert.strictEqual(app.symbols, 0);
+          assert.strictEqual(app.counter, 0);
           assert.strictEqual(app.callCount, 0);
           app.map.set(symbol, '');
-          assert.strictEqual(app.symbols, 1);
+          assert.strictEqual(app.counter, 1);
           assert.strictEqual(app.callCount, 1);
         },
         disposed: (app) => {
-          assert.strictEqual(app.symbols, 1);
+          assert.strictEqual(app.counter, 1);
           assert.strictEqual(app.callCount, 1);
           app.map.set(symbol, '');
-          assert.strictEqual(app.symbols, 1);
+          assert.strictEqual(app.counter, 1);
           assert.strictEqual(app.callCount, 1);
         },
       },
@@ -330,12 +345,148 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         get: app => Array.from(app.map.keys()).filter(k => k === symbol).length,
         created: app => {
           assert.strictEqual(app.callCount, 0);
-          app.map.set('a', 2);
+          app.map.set('a', 2);          assert.strictEqual(app.callCount, 0);
+          app.map.set(symbol, '1');     assert.strictEqual(app.callCount, 1);
+        },
+      },
+      {
+        title: 'observers .values()',
+        get: app => Array.from(app.map.values()).filter(v => v === symbol).length,
+        created: app => {
           assert.strictEqual(app.callCount, 0);
-          app.map.set(symbol, '1');
+          // mutate                     // assert the effect
+          app.map.set('a', 2);          assert.strictEqual(app.callCount, 0);
+          app.map.set('a', symbol);     assert.strictEqual(app.callCount, 1);
+          app.map.set('b', symbol);     assert.strictEqual(app.callCount, 2);
+        },
+      },
+      {
+        title: 'observers @@Symbol.iterator',
+        get: app => {
+          let count = 0;
+          for (const [, value] of app.map) {
+            if (value === symbol) count++;
+          }
+          return count;
+        },
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          // mutate                     // assert the effect
+          app.map.set('a', 2);          assert.strictEqual(app.callCount, 0);
+          app.map.set('a', symbol);     assert.strictEqual(app.callCount, 1);
+          app.map.set('b', symbol);     assert.strictEqual(app.callCount, 2);
+        },
+      },
+      {
+        title: 'observers .entries()',
+        get: app => {
+          let count = 0;
+          for (const [, value] of app.map) {
+            if (value === symbol) count++;
+          }
+          return count;
+        },
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          // mutate                     // assert the effect
+          app.map.set('a', 2);          assert.strictEqual(app.callCount, 0);
+          app.map.set('a', symbol);     assert.strictEqual(app.callCount, 1);
+          app.map.set('b', symbol);     assert.strictEqual(app.callCount, 2);
+        },
+      },
+      {
+        title: 'does not observe mutation by .set()',
+        get: app => app.map.set(symbol, 1),
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          app.map.set(symbol, 2);
+          app.map.set(1, 2);
+          app.map.set(1, symbol);
+          assert.strictEqual(app.callCount, 0);
+        },
+      },
+      {
+        title: 'does not observe mutation by .delete()',
+        get: app => app.map.delete(symbol),
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          app.map.set(symbol, 2);       assert.strictEqual(app.callCount, 0);
+          app.map.set(1, 2);            assert.strictEqual(app.callCount, 0);
+          app.map.set(1, symbol);       assert.strictEqual(app.callCount, 0);
+        },
+      },
+      {
+        title: 'does not observe mutation by .clear()',
+        get: app => app.map.clear(),
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          app.map.set(symbol, 2);       assert.strictEqual(app.callCount, 0);
+          app.map.set(1, 2);            assert.strictEqual(app.callCount, 0);
+          app.map.set(1, symbol);       assert.strictEqual(app.callCount, 0);
+        },
+      },
+      {
+        title: 'works when getter throws error',
+        get: app => {
+          if (app.counter++ === 0) {
+            return 0; 
+          }
+          throw new Error('err');
+        },
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          let ex: unknown;
+          try {
+            app.counter++;
+          } catch (e) {
+            ex = e;
+          }
+          assert.strictEqual(app.callCount, 0);
+          assert.instanceOf(ex, Error);
+        },
+      },
+      {
+        title: 'works with ===',
+        get: app => {
+          let has = false;
+          app.map.forEach(v => {
+            if (v === app.selectedItem) {
+              has = true;
+            }
+          });
+          return has;
+        },
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          const item1 = {};
+          const item2 = {};
+          app.map = new Map([[1, item1], [2, item2]]);
+          assert.strictEqual(app.callCount, 0);
+          app.selectedItem = item1;
           assert.strictEqual(app.callCount, 1);
         },
       },
+      {
+        title: 'works with Object.is()',
+        get: app => {
+          let has = false;
+          app.map.forEach(v => {
+            if (Object.is(v, app.selectedItem)) {
+              has = true;
+            }
+          });
+          return has;
+        },
+        created: app => {
+          assert.strictEqual(app.callCount, 0);
+          const item1 = {};
+          const item2 = {};
+          app.map = new Map([[1, item1], [2, item2]]);
+          assert.strictEqual(app.callCount, 0);
+          app.selectedItem = item1;
+          assert.strictEqual(app.callCount, 1);
+        },
+      }
     ];
 
     for (const { title, only = false, get, created, disposed } of testCases) {
@@ -343,7 +494,8 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       $it(`${title} on method`, function () {
         class App implements IApp {
           public map: Map<unknown, unknown> = new Map();
-          public symbols: number = 0;
+          public selectedItem: unknown = void 0;
+          public counter: number = 0;
           public callCount = 0;
 
           @watch(get)
@@ -362,7 +514,8 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         @watch(get, (v, o, a) => a.log())
         class App implements IApp {
           public map: Map<unknown, unknown> = new Map();
-          public symbols: number = 0;
+          public selectedItem: unknown;
+          public counter: number = 0;
           public callCount = 0;
 
           public log() {
@@ -374,12 +527,13 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         created(component, ctx);
         tearDown();
         disposed?.(component, ctx);
-      })
+      });
     }
 
     interface IApp {
       map: Map<unknown, unknown>;
-      symbols: number;
+      selectedItem: unknown;
+      counter: number;
       callCount: number;
       log(): void;
     }

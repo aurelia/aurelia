@@ -12,14 +12,14 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     @watch<App>('some.expression', 'someMethod')
     @watch<App>('some.expression', symbolMethod)
     @watch<App>('some.expression', (v, o, a) => a.someMethod(v, o, a))
-    @watch<App>('some.expression', function(v, o, a) { a.someMethod(v, o, a); })
+    @watch<App>('some.expression', function (v, o, a) { a.someMethod(v, o, a); })
     @watch<App>(Symbol(), 5)
     @watch<App>(Symbol(), 'someMethod')
     @watch<App>(Symbol(), symbolMethod)
     @watch<App>(Symbol(), (v, o, a) => a.someMethod(v, o, a))
-    @watch<App>(Symbol(), function(v, o, a) { a.someMethod(v, o, a); })
+    @watch<App>(Symbol(), function (v, o, a) { a.someMethod(v, o, a); })
     class App {
-      public col: Map<unknown, unknown>
+      public col: Map<unknown, unknown>;
 
       @watch<App>(app => app.col.has(Symbol))
       @watch('some.expression')
@@ -145,7 +145,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       public deliveries: IDelivery[];
 
       public constructor() {
-        (this.deliveries = [this.storage[1]]).toString = function() {
+        (this.deliveries = [this.storage[1]]).toString = function () {
           return JSON.stringify(this);
         };
       }
@@ -164,7 +164,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       @watch((postOffice: PostOffice) => postOffice.storage.filter(d => d.delivered))
       public onDelivered(deliveries: IDelivery[]) {
         callCount++;
-        deliveries.toString = function() {
+        deliveries.toString = function () {
           return JSON.stringify(this);
         };
         latestDelivered = this.deliveries = deliveries;
@@ -216,7 +216,6 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
 
   it('observes chain lighting', function () {
     let callCount = 0;
-    let latestDelivered: IDelivery[] = [];
     interface IDelivery {
       id: number; name: string; delivered: boolean;
     }
@@ -316,7 +315,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           app.map.set('a', symbol);
           assert.strictEqual(app.callCount, 2);
         },
-        disposed: (app, { }) => {
+        disposed: (app) => {
           app.map.set('a', symbol);
           assert.strictEqual(app.callCount, 2, 'after disposed');
         }
@@ -541,9 +540,9 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     interface ITestCase {
       title: string;
       only?: boolean;
-      get: IDepCollectionFn<IApp>,
-      created: (app: IApp, ctx: HTMLTestContext) => any,
-      disposed?: (app: IApp, ctx: HTMLTestContext) => any,
+      get: IDepCollectionFn<IApp>;
+      created: (app: IApp, ctx: HTMLTestContext) => any;
+      disposed?: (app: IApp, ctx: HTMLTestContext) => any;
     }
   });
 });

@@ -12,6 +12,7 @@ import {
   Controller,
   CustomElementDefinition,
   getCompositionContext,
+  IComposableController,
 } from '@aurelia/runtime';
 import {
   ToViewBindingInstruction,
@@ -158,8 +159,8 @@ describe(`If/Else`, function () {
           sut = new If<AuNode>(ifFactory, location);
           elseSut = new Else<AuNode>(elseFactory);
         }
-        elseSut.link(sut);
-        (sut as Writable<If>).$controller = Controller.forCustomAttribute(null, container, sut, lifecycle, (void 0)!);
+        const ifController = (sut as Writable<If>).$controller = Controller.forCustomAttribute(null, container, sut, lifecycle, (void 0)!);
+        elseSut.link(LifecycleFlags.none, void 0!, { children: [ifController] } as unknown as IComposableController, void 0!, void 0!, void 0!);
 
         const firstBindInitialNodesText: string = value1 ? ifText : elseText;
         const firstBindFinalNodesText = firstBindInitialNodesText;

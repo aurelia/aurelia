@@ -284,6 +284,7 @@ export class Controller<
     viewFactory: IViewFactory<T>,
     lifecycle: ILifecycle,
     flags: LifecycleFlags = LifecycleFlags.none,
+    parentController: ISyntheticView<T> | ICustomElementController<T> | ICustomAttributeController<T> | undefined = void 0,
   ): ISyntheticView<T> {
     const controller = new Controller<T>(
       /* root           */root,
@@ -298,6 +299,8 @@ export class Controller<
       /* bindingContext */void 0,
       /* host           */void 0,
     );
+    // deepscan-disable-next-line
+    controller.parent = parentController as Controller<T> ?? null;
 
     controller.hydrateSynthetic(context);
 

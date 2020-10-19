@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable @typescript-eslint/promise-function-async */
 import { Runner } from '@aurelia/router';
 import { assert } from '@aurelia/testing';
 

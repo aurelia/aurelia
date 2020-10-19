@@ -20,6 +20,7 @@ import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
 import { Now } from '@aurelia/scheduler';
 import { AuSlot } from './resources/custom-elements/au-slot';
+import { Switch, Case, DefaultCase } from './resources/custom-attributes/switch';
 
 /**
  * Default implementations for the following interfaces:
@@ -43,6 +44,9 @@ export const IfRegistration = If as unknown as IRegistry;
 export const ElseRegistration = Else as unknown as IRegistry;
 export const RepeatRegistration = Repeat as unknown as IRegistry;
 export const WithRegistration = With as unknown as IRegistry;
+export const SwitchRegistration = Switch as unknown as IRegistry;
+export const CaseRegistration = Case as unknown as IRegistry;
+export const DefaultCaseRegistration = DefaultCase as unknown as IRegistry;
 export const SanitizeValueConverterRegistration = SanitizeValueConverter as unknown as IRegistry;
 export const ViewValueConverterRegistration = ViewValueConverter as unknown as IRegistry;
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
@@ -68,7 +72,12 @@ export const DefaultResources = [
   ElseRegistration,
   RepeatRegistration,
   WithRegistration,
+  SwitchRegistration,
+  CaseRegistration,
+  DefaultCaseRegistration,
+
   SanitizeValueConverterRegistration,
+
   ViewValueConverterRegistration,
   DebounceBindingBehaviorRegistration,
   OneTimeBindingBehaviorRegistration,

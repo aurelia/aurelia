@@ -333,10 +333,7 @@ export class TemplateControllerComposer implements IInstructionComposer {
 
     Metadata.define(key, childController, renderLocation);
 
-    if (instruction.link) {
-      const children = controller.children!;
-      (component as { link(componentTail: IController): void}).link(children[children.length - 1]);
-    }
+    component.link?.(flags, context, controller, childController, target, instruction);
 
     context.composeChildren(
       /* flags        */flags,

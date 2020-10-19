@@ -8,7 +8,7 @@ import {
   IDisposable,
 } from '@aurelia/kernel';
 import {
-  HooksDefinition,
+  HooksDefinition, IInstruction,
 } from './definitions';
 import {
   INode,
@@ -483,7 +483,7 @@ export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   readonly context: ICompositionContext<T>;
   readonly contentType: AuSlotContentType | undefined;
   readonly projectionScope: Scope | null;
-  create(flags?: LifecycleFlags): ISyntheticView<T>;
+  create(flags?: LifecycleFlags, parentController?: ISyntheticView<T> | ICustomElementController<T> | ICustomAttributeController<T> | undefined): ISyntheticView<T>;
 }
 
 export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();
@@ -576,6 +576,14 @@ export interface ICustomElementViewModel<T extends INode = INode> extends IViewM
 
 export interface ICustomAttributeViewModel<T extends INode = INode> extends IViewModel<T>, IActivationHooks<IHydratedParentController<T>, T> {
   readonly $controller?: ICustomAttributeController<T, this>;
+  link?(
+    flags: LifecycleFlags,
+    parentContext: ICompiledCompositionContext<T>,
+    controller: IComposableController<T>,
+    childController: ICustomAttributeController,
+    target: INode,
+    instruction: IInstruction,
+  ): void;
 }
 
 export interface IHydratedCustomElementViewModel<T extends INode = INode> extends ICustomElementViewModel<T> {

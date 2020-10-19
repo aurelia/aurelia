@@ -773,24 +773,24 @@ export const AuDOMTest = {
     return new HydrateTemplateController(
       def,
       'if',
-      [new ToViewBindingInstruction(parseExpression(expression), 'value')]
+      [new ToViewBindingInstruction(parseExpression(expression), 'value')],
     );
   },
   createElseInstruction(def: PartialCustomElementDefinition): HydrateTemplateController {
-    return new HydrateTemplateController(def, 'else', [], true);
+    return new HydrateTemplateController(def, 'else', []);
   },
   createRepeatInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController {
     return new HydrateTemplateController(
       def,
       'repeat',
-      [new IteratorBindingInstruction(parseExpression(expression, BindingType.ForCommand), 'items')]
+      [new IteratorBindingInstruction(parseExpression(expression, BindingType.ForCommand), 'items')],
     );
   },
   createWithInstruction(expression: string, def: PartialCustomElementDefinition): HydrateTemplateController {
     return new HydrateTemplateController(
       def,
       'with',
-      [new ToViewBindingInstruction(parseExpression(expression), 'value')]
+      [new ToViewBindingInstruction(parseExpression(expression), 'value')],
     );
   },
   createElementInstruction(name: string, bindings: [string, string][]): HydrateElementInstruction {

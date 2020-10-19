@@ -203,7 +203,6 @@ export class HydrateTemplateController {
     public def: PartialCustomElementDefinition,
     public res: string,
     public instructions: IInstruction[],
-    public link?: boolean,
   ) {}
 }
 

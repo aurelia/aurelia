@@ -212,7 +212,7 @@ module.exports = {
     '@typescript-eslint/no-unused-vars-experimental': 'off', // Off for now, crashes eslint
     '@typescript-eslint/prefer-nullish-coalescing': ['warn', { 'forceSuggestionFixer': true }],
     '@typescript-eslint/prefer-optional-chain': 'warn',
-    '@typescript-eslint/promise-function-async': 'warn',
+    '@typescript-eslint/promise-function-async': 'off',
     // '@typescript-eslint/quotes': ['warn', 'backtick', { avoidEscape: true }],
     '@typescript-eslint/require-array-sort-compare': 'warn',
     '@typescript-eslint/restrict-plus-operands': ['warn', { 'checkCompoundAssignments': true }],

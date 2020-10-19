@@ -341,7 +341,6 @@ export {
   INode,
   IRenderLocation,
   IDOM,
-  NodeSequence,
   INodeSequence,
   INodeSequenceFactory
 } from './dom';

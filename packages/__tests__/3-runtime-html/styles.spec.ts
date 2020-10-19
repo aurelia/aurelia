@@ -1,5 +1,5 @@
 import { DI, Registration } from '@aurelia/kernel';
-import { CustomAttribute, CustomElement, INode, CustomAttributeType, Controller, ICustomElementViewModel, ILifecycle, NodeSequence } from '@aurelia/runtime';
+import { CustomAttribute, CustomElement, INode, CustomAttributeType, Controller, ICustomElementViewModel } from '@aurelia/runtime';
 import {
   Aurelia,
   AdoptedStyleSheetsStyles,
@@ -9,7 +9,8 @@ import {
   cssModules,
   IShadowDOMGlobalStyles,
   IShadowDOMStyles,
-  ShadowDOMProjector
+  ShadowDOMProjector,
+  FragmentNodeSequence,
 } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -215,7 +216,7 @@ describe('Styles', function () {
         null,
       );
 
-      const seq = NodeSequence.empty;
+      const seq = FragmentNodeSequence.empty;
       const projector = controller.projector as ShadowDOMProjector;
 
       projector.project(seq);

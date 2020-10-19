@@ -202,29 +202,6 @@ export const DOM: IDOM & {
   }
 };
 
-// This is an implementation of INodeSequence that represents "no DOM" to render.
-// It's used in various places to avoid null and to encode
-// the explicit idea of "no view".
-const emptySequence: INodeSequence = {
-  isMounted: false,
-  isLinked: false,
-  next: void 0,
-  childNodes: PLATFORM.emptyArray,
-  firstChild: null!,
-  lastChild: null!,
-  findTargets(): ArrayLike<INode> { return PLATFORM.emptyArray; },
-  insertBefore(refNode: INode): void { /* do nothing */ },
-  appendTo(parent: INode): void { /* do nothing */ },
-  remove(): void { /* do nothing */ },
-  addToLinked(): void { /* do nothing */ },
-  unlink(): void { /* do nothing */ },
-  link(next: INodeSequence | IRenderLocation | undefined): void { /* do nothing */ },
-};
-
-export const NodeSequence = {
-  empty: emptySequence
-};
-
 export interface INodeSequenceFactory<T extends INode = INode> {
   createNodeSequence(): INodeSequence<T>;
 }

@@ -16,7 +16,7 @@ export class Settings {
   public define() { return; }
   public beforeCompose() { return; }
   public beforeComposeChildren() { return; }
-  public afterCompileChildren() { return; }
+  public afterCompose() { return; }
 
   public beforeBind() { return; }
   public afterBind() { return; }

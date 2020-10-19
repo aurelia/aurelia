@@ -567,7 +567,7 @@ describe(spec, function () {
             public items: any[];
             public display: boolean;
             public count: number;
-            public afterCompileChildren() {
+            public afterCompose() {
               this.items = initialItems;
               this.display = false;
               this.count = count;

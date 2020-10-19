@@ -411,11 +411,11 @@ export class Controller<
       /* host       */this.host,
     );
 
-    if (this.hooks.hasAfterCompileChildren) {
+    if (this.hooks.hasAfterCompose) {
       if (this.debug) {
-        this.logger!.trace(`invoking afterCompileChildren() hook`);
+        this.logger!.trace(`invoking afterCompose() hook`);
       }
-      (this.viewModel as BindingContext<T, C>).afterCompileChildren(this as ICustomElementController<T>);
+      (this.viewModel as BindingContext<T, C>).afterCompose(this as ICustomElementController<T>);
     }
   }
 

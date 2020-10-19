@@ -23,7 +23,7 @@ export class HooksDefinition {
 
   public readonly hasBeforeCompose: boolean;
   public readonly hasBeforeComposeChildren: boolean;
-  public readonly hasAfterCompileChildren: boolean;
+  public readonly hasAfterCompose: boolean;
 
   public readonly hasBeforeBind: boolean;
   public readonly hasAfterBind: boolean;
@@ -43,7 +43,7 @@ export class HooksDefinition {
 
     this.hasBeforeCompose = 'beforeCompose' in target;
     this.hasBeforeComposeChildren = 'beforeComposeChildren' in target;
-    this.hasAfterCompileChildren = 'afterCompileChildren' in target;
+    this.hasAfterCompose = 'afterCompose' in target;
 
     this.hasBeforeBind = 'beforeBind' in target;
     this.hasAfterBind = 'afterBind' in target;

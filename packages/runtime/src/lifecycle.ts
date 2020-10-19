@@ -556,7 +556,7 @@ export interface ICompileHooks<T extends INode = INode> {
   beforeComposeChildren?(
     controller: ICompiledCustomElementController<T, this>,
   ): void;
-  afterCompileChildren?(
+  afterCompose?(
     controller: ICustomElementController<T, this>,
   ): void;
 }

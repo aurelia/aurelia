@@ -54,8 +54,8 @@ export class Author {
     console.log('### beforeComposeChildren', this);
   }
 
-  public afterCompileChildren() {
-    console.log('### afterCompileChildren', this);
+  public afterCompose() {
+    console.log('### afterCompose', this);
   }
 
   // KEEP THIS!

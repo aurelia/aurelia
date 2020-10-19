@@ -7,32 +7,34 @@
 ## au-slot
 
 Aurelia provides another way of view projection with `au-slot`.
-This is similar to the native `slot`, but without shadow DOM.
-`au-slot` is useful where you need slot-like behavior without the shadow DOM; for example you want externally defined styles to penetrate the component boundary, to facilitate easy styling of components.
+This is similar to the native `slot` in terms of content projection, however, it does not use shadow DOM.
+`au-slot` is useful where you want externally defined styles to penetrate the component boundary, to facilitate easy styling of components.
 If you are creating your own set of custom elements that are solely used in your application, then you might want to avoid the native slots in the custom elements as it might be difficult to style those elements from your application.
-However, if you still want to have slot-like behavior, then you can use `au-slot`, as that makes the styling those custom elements/components easier as it does not use any shadow DOM.
-Instead the resulting view is composed purely by Aurelia compilation pipeline.
+However, if you still want to have slot-like behavior, then you can use `au-slot`, as that makes the styling those custom elements/components easier.
+Instead of using shadow DOM, the resulting view is composed purely by Aurelia compilation pipeline.
 There are other aspects of `au-slot` as well which will be explored in this section with examples.
 
 {% hint style="info" %}
-- An obvious question might be "Why not simply 'turn off' shadow DOM, and use the `slot` itself"? We feel that goes to the opposite direction of Aurelia's promise of keeping things as close to native behavior as possible. Moreover, using a different name like `au-slot` makes it clear that the native slot is not used in this case, however still bringing slotting behavior to picture.
+- An obvious question might be "Why not simply 'turn off' shadow DOM, and use the `slot` itself"? We feel that goes to the opposite direction of Aurelia's promise of keeping things as close to native behavior as possible. Moreover, using a different name like `au-slot` makes it clear that the native slot is not used in this case, however still bringing slotting behavior to use.
 - If you have used the `replaceable` and `replace part` before or with Aurelia1, it is replaced with `au-slot`.
 - The following examples use [local templates](#local-templates) for succinctness only; the examples should also work for full-fledged custom elements.
 {% endhint %}
 
 ### Basic templating usage
 
-Like `slot`, a "projection target", or "slot" can be defined using a `<au-slot>` element, and a projection to that slot can be provided using a `au-slot` attribute.
+Like `slot`, a "projection target"/"slot" can be defined using a `<au-slot>` element, and a projection to that slot can be provided using a `[au-slot]` attribute.
 Consider the following example.
 
 {% code title="my-app.html" %}
 ```markup
+<!-- A custom element with <au-slot> -->
 <template as-custom-element="my-element">
   static content
   <au-slot>fallback content for default slot.</au-slot>
   <au-slot name="s1">fallback content for s1 slot.</au-slot>
 </template>
 
+<!-- Usage without projection -->
 <my-element></my-element>
 <!-- Rendered (simplified): -->
 <!--
@@ -43,6 +45,7 @@ Consider the following example.
   </my-element>
 -->
 
+<!-- Usage with projection -->
 <my-element>
   <div au-slot>d</div>        <!-- using `au-slot="default"` explicitly also works. -->
   <div au-slot="s1">p1</div>
@@ -85,6 +88,7 @@ Projection without `[au-slot]` attribute is not supported and may result in unex
   <au-slot>dfb</au-slot>
 </template>
 
+<!-- Is not projected to any slot. -->
 <my-element><div>projection</div></my-element>
 <!-- Rendered (simplified): -->
 <!--
@@ -97,7 +101,7 @@ Projection without `[au-slot]` attribute is not supported and may result in unex
 ```
 {% endcode %}
 
-Another important point to note is that usage of `[au-slot]` attribute is supported only on the direct children element of a custom element.
+Another important point to note is that the usage of `[au-slot]` attribute is supported only on the direct children elements of a custom element.
 This means that the following examples do not work.
 
 {% code title="my-app.html" %}
@@ -124,7 +128,7 @@ While doing so, the scope accessing rule can be described by the following thumb
 
 1. When projection is provided, the scope of the custom element, providing the projection is used.
 2. When projection is not provided, the scope of the inner custom element is used.
-3. The outer custom element can still access the inner scope using the `$host` keyword.
+3. The outer custom element can still access the inner scope using the `$host` keyword while projecting.
 
 These rules are explained with the following examples.
 
@@ -168,7 +172,7 @@ export class MyElement {
 {% endtabs %}
 
 Although the `my-element` has a `message` property, but as `my-app` projects to `s1` slot, scope of `my-app` is used to evaluate the interpolation expression.
-Similar behavior is also expected when binding properties of custom elements, as shown in the following example.
+Similar behavior can also be observed when binding properties of custom elements, as shown in the following example.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -217,7 +221,7 @@ export class FooBar {
 {% endtab %}
 {% endtabs %}
 
-**Example: Fallback always uses the inner scope**
+**Example: Fallback uses the inner scope by default**
 
 Let's consider the following example with interpolation.
 This is the same example as before, but this time without projection.
@@ -256,7 +260,7 @@ export class MyElement {
 {% endtabs %}
 
 Note that in the absence of projection, the fallback content uses the scope of `my-element`.
-For completeness let's see that it also holds while binding values to the `@bindable`s in custom elements.
+For completeness the following example shows that it also holds while binding values to the `@bindable`s in custom elements.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -348,7 +352,7 @@ export class MyElement {
 {% endtabs %}
 
 Note that using the `$host.message` expression, `MyApp` can access the `MyElement#message`.
-Similar behavior can also be observed for binding values to custom elements.
+The following example demonstrate the same behavior for binding values to custom elements.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -397,7 +401,7 @@ export class FooBar {
 {% endtab %}
 {% endtabs %}
 
-If you are not really convinced about the necessity of the `$host` scope, and wondering about a real-world use-case, let's consider the following example.
+Let's consider another example of `$host` which highlights the necessity of it.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -411,8 +415,8 @@ If you are not really convinced about the necessity of the `$host` scope, and wo
     </au-slot>
     <template repeat.for="person of people">
       <au-slot name="content">
-        <div>\${person.firstName}</div>
-        <div>\${person.lastName}</div>
+        <div>${person.firstName}</div>
+        <div>${person.lastName}</div>
       </au-slot>
     </template>
   </au-slot>
@@ -425,9 +429,9 @@ If you are not really convinced about the necessity of the `$host` scope, and wo
     <h4>Given name</h4>
   </template>
   <template au-slot="content">
-    <div>\${$host.$index}-\${$host.$even}-\${$host.$odd}</div>
-    <div>\${$host.person.lastName}</div>
-    <div>\${$host.person.firstName}</div>
+    <div>${$host.$index}-${$host.$even}-${$host.$odd}</div>
+    <div>${$host.person.lastName}</div>
+    <div>${$host.person.firstName}</div>
   </template>
 </my-element>
 <!-- Rendered (simplified): -->
@@ -460,14 +464,20 @@ class Person {
 {% endtab %}
 {% endtabs %}
 
-Note that `$host` lets us access the scope of the repeater from `my-element` in `my-app`.
-This gives us access to even the contextual properties like `$index`, `$even`, or `$odd`.
+In the example above, we replace the 'content' template of the grid, defined in `my-element`, from `my-app`.
+While doing so, we can grab the scope of the repeater and use the properties made available by the binding context, and use those in the projection template.
+Note that `$host` let us access even the contextual properties like `$index`, `$even`, or `$odd`.
 Without the `$host` it might have been difficult to provide a template for the repeater from outside.
 
 {% hint style="info" %}
 The last example is also interesting from another aspect.
 It shows that while working with a grid, many parts of the grid can be replaced with projection.
 This includes, the header of the grid (`au-slot="header"`), the template column of the grid (`au-slot="content"`), or even the whole grid itself (`au-slot="grid"`).
+{% endhint %}
+
+{% hint style="warning" %}
+The `$host` keyword can only be used in context of projection.
+Using it in any other context is not supported, and will throw error with high probability.
 {% endhint %}
 
 ### Multiple projections for single slot
@@ -523,10 +533,12 @@ One evident example would a 'tabs' custom element.
 {% endcode %}
 
 This helps keeping things closer that belong together.
+For example, keeping the tab-header and tab-content next to each other, provides better readability and understanding of the code to the developer.
+On other hand, it still places the projected contents at the right slot.
 
 ### Duplicate slots
 
-Having slots with same name is also perfectly alright.
+Having more than one `<au-slot>` with same name is also supported.
 This lets us projecting same content to multiple slots declaratively, as can be seen from the following example.
 
 {% code title="my-app.html" %}
@@ -550,18 +562,19 @@ This lets us projecting same content to multiple slots declaratively, as can be 
 ```
 {% endcode %}
 
-Note that projection for the name is provided once, but it is duplicated in 2 slots.
+Note that projection for the name is provided once, but it gets duplicated in 2 slots.
 You can also see this example in action [here](https://stackblitz.com/edit/au-slot-duplicate-slots?file=my-app.html).
 
 ### Template controller integration and dynamic content
 
 Template controllers like `if/else`, `switch`, and `repeat.for` be used in combination of `au-slot` element to dynamically generate content.
 
-{% hint style="info" %}
-One limitation at this point is that template controllers cannot be used directly with `[au-slot]` attribute, but it can be easily circumvented by wrapping template controller with the element with `[au-slot]` attribute.
+{% hint style="warning" %}
+One limitation at this point is that template controllers cannot be used directly with `[au-slot]` attribute.
+However, it can be easily circumvented by wrapping the template controller with the element with `[au-slot]` attribute.
 {% endhint %}
 
-**Examples with `if`/`else`**
+**Examples using `if`/`else`**
 
 Following is a basic example of `if`/`else`, combined with `au-slot`.
 
@@ -646,7 +659,7 @@ This is shown below.
 ```
 {% endcode %}
 
-Although the previous example works, but the following attempt to use `if`/`else` with `[au-slot]` throws error.
+Although the previous examples work, but the following attempt to use `if`/`else` with `[au-slot]` throws error.
 
 {% code title="my-app.html" %}
 ```markup
@@ -685,7 +698,9 @@ However the content can still be projected dynamically from client by wrapping t
 
 This wrapping of template controller by the element with the `[au-slot]` holds for other template controllers as well.
 
-**Example with `switch`**
+**Example using `switch`**
+
+Providing dynamic projections using `switch` is also supported.
 
 {% code title="my-app.html" %}
 ```markup
@@ -713,7 +728,7 @@ This wrapping of template controller by the element with the `[au-slot]` holds f
 ```
 {% endcode %}
 
-**Examples with `repeat.for`**
+**Examples using `repeat.for`**
 
 A simple example of using the repeater with `au-slot` is shown below.
 
@@ -735,7 +750,7 @@ A simple example of using the repeater with `au-slot` is shown below.
 ```
 {% endcode %}
 
-It is also possible to project to a inner nested slot, used inside a `repeat.for`.
+It is also possible to project to a nested slot, used inside a `repeat.for`.
 
 {% code title="my-app.html" %}
 ```markup
@@ -767,7 +782,7 @@ It is also possible to project to a inner nested slot, used inside a `repeat.for
 ```
 {% endcode %}
 
-Another interesting example of `repeat.for` is already shown in the [Binding scope](#binding-scope) section in context of `$host` keyword that you must check, if not already done.
+Another interesting example of `repeat.for` is already shown in the [Binding scope](#binding-scope) section in context of `$host` keyword that you must check, if you haven't already.
 
 **Examples using `with`**
 
@@ -897,7 +912,9 @@ class MyApp {
 {% endtab %}
 {% endtabs %}
 
-Projections are also supported to different nested custom elements with same slot name.
+An important point to note in the above example is that the `$host.collection` while projecting to `<collection-viewer>`, lets us access the scope of that custom element which is a different scope than the one used in the expression `$host.person.pets`.
+
+Projections are supported to different nested custom elements with same slot name.
 
 {% tabs %}
 {% tab title="my-element1.html" %}
@@ -945,8 +962,7 @@ class MyElement2 { }
 {% endtab %}
 {% endtabs %}
 
-'Chained projection' is also supported.
-This is explained in the following example.
+You can 'chain' projections, as explained in the following example.
 
 {% tabs %}
 {% tab title="lvl-zero.html" %}
@@ -1006,8 +1022,8 @@ Following are some invalid examples that are not supported, and may result in un
 </template>
 
 <my-element>
-  <au-slot au-slot="s1"> mis-projected </au-slot>
-  <au-slot au-slot="foo"> bar </au-slot>
+  <au-slot name="s1"> mis-projected </au-slot>
+  <au-slot name="foo"> bar </au-slot>
 </my-element>
 <!-- Rendered (simplified): -->
 <!--

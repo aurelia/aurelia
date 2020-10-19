@@ -837,11 +837,11 @@
 //     ): void {
 //       this.$calls.addCall(this.id, 'beforeCompose');
 //     };
-//     proto.afterCompile = function afterCompile(
+//     proto.beforeComposeChildren = function beforeComposeChildren(
 //       this: TProto,
 //       controller: ICompiledCustomElementController<HTMLElement, TProto>,
 //     ): void {
-//       this.$calls.addCall(this.id, 'afterCompile');
+//       this.$calls.addCall(this.id, 'beforeComposeChildren');
 //     };
 //     proto.afterCompileChildren = function afterCompileChildren(
 //       this: TProto,
@@ -957,7 +957,7 @@
 //       expectedCalls
 //         .addCall(1, 'define')
 //         .addCall(1, 'beforeCompose')
-//         .addCall(1, 'afterCompile')
+//         .addCall(1, 'beforeComposeChildren')
 //         .addCall(1, 'afterCompileChildren')
 //         .addCall(1, 'beforeBind')
 //         .addCall(1, 'afterBind')
@@ -1012,11 +1012,11 @@
 //       expectedCalls
 //         .addCall(1, 'define')
 //         .addCall(1, 'beforeCompose')
-//         .addCall(1, 'afterCompile')
+//         .addCall(1, 'beforeComposeChildren')
 
 //         .addCall(2, 'create')
 //         .addCall(2, 'beforeCompose')
-//         .addCall(2, 'afterCompile')
+//         .addCall(2, 'beforeComposeChildren')
 
 //         .addCall(2, 'afterCompileChildren')
 //         .addCall(1, 'afterCompileChildren')

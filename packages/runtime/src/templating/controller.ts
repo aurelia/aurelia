@@ -392,11 +392,11 @@ export class Controller<
     (this.viewModel as Writable<C>).$controller = this;
     this.nodes = compiledContext.createNodes();
 
-    if (this.hooks.hasAfterCompile) {
+    if (this.hooks.hasBeforeComposeChildren) {
       if (this.debug) {
-        this.logger!.trace(`invoking hasAfterCompile() hook`);
+        this.logger!.trace(`invoking hasBeforeComposeChildren() hook`);
       }
-      (this.viewModel as BindingContext<T, C>).afterCompile(this as ICustomElementController<T>);
+      (this.viewModel as BindingContext<T, C>).beforeComposeChildren(this as ICustomElementController<T>);
     }
   }
 

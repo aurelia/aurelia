@@ -77,7 +77,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel<Node>
   //   return CustomElementDefinition.getOrCreate({ ...part, containerless: true });
   // }
 
-  public afterCompile(controller: ICompiledCustomElementController) {
+  public beforeComposeChildren(controller: ICompiledCustomElementController) {
     this.controller = controller as IRoutingController;
     // Don't update the container here (probably because it wants to be a part of the structure)
     // this.container = controller.context.get(IContainer);

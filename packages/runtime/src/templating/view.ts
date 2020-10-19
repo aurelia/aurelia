@@ -257,11 +257,11 @@ export class ViewLocator {
           this.viewModel.beforeCompose!(controller as IContextualCustomElementController<INode, T>);
         };
       }
-      if ('afterCompile' in object) {
-        proto.afterCompile = function afterCompile(
+      if ('beforeComposeChildren' in object) {
+        proto.beforeComposeChildren = function beforeComposeChildren(
           controller: ICompiledCustomElementController,
         ): void {
-          this.viewModel.afterCompile!(controller as ICompiledCustomElementController<INode, T>);
+          this.viewModel.beforeComposeChildren!(controller as ICompiledCustomElementController<INode, T>);
         };
       }
       if ('afterCompileChildren' in object) {

@@ -19,7 +19,7 @@ export class Editor {
 
   public define() { return; }
   public beforeCompose() { return; }
-  public afterCompile() { return; }
+  public beforeComposeChildren() { return; }
   public afterCompileChildren() { return; }
 
   public beforeBind() { return; }

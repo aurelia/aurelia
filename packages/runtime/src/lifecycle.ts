@@ -398,7 +398,7 @@ export interface IContextualCustomElementController<
 }
 
 /**
- * A representation of `IController` specific to a custom element whose `afterCompile` hook is about to be invoked (if present).
+ * A representation of `IController` specific to a custom element whose `beforeComposeChildren` hook is about to be invoked (if present).
  *
  * It has the same properties as `IContextualCustomElementController`, except the context is now compiled (hence 'compiled'), as well as the nodes, and projector.
  */
@@ -553,7 +553,7 @@ export interface ICompileHooks<T extends INode = INode> {
   beforeCompose?(
     controller: IContextualCustomElementController<T, this>,
   ): void;
-  afterCompile?(
+  beforeComposeChildren?(
     controller: ICompiledCustomElementController<T, this>,
   ): void;
   afterCompileChildren?(

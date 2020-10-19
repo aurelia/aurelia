@@ -224,7 +224,7 @@ describe('the view locator', function () {
   [
     'beforeCompose',
     'define',
-    'afterCompile',
+    'beforeComposeChildren',
     'afterCompileChildren',
 
     'beforeBind',

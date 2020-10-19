@@ -223,7 +223,7 @@ describe('the view locator', function () {
 
   [
     'beforeCompile',
-    'create',
+    'define',
     'afterCompile',
     'afterCompileChildren',
 
@@ -260,7 +260,7 @@ describe('the view locator', function () {
         scope: {}
       };
 
-      if (lifecycleHook === 'create') {
+      if (lifecycleHook === 'define') {
         instance[lifecycleHook](instance.$controller);
       } else {
         instance[lifecycleHook]();

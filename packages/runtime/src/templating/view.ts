@@ -229,7 +229,7 @@ export class ViewLocator {
         class {
           public constructor(public viewModel: T) {}
 
-          public create(
+          public define(
             controller: IDryCustomElementController<INode, T>,
             parentContainer: IContainer,
             definition: CustomElementDefinition,
@@ -241,8 +241,8 @@ export class ViewLocator {
               vm,
             );
 
-            if (vm.create !== void 0) {
-              return vm.create(controller, parentContainer, definition);
+            if (vm.define !== void 0) {
+              return vm.define(controller, parentContainer, definition);
             }
           }
         }

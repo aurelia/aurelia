@@ -42,8 +42,8 @@ export class Author {
     private readonly state: State,
   ) {}
 
-  public create() {
-    console.log('### create', this);
+  public define() {
+    console.log('### define', this);
   }
 
   public beforeCompile() {

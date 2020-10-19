@@ -822,14 +822,14 @@
 //   function addHooks<TProto extends ICallTracingViewModel>(ctor: Class<TProto>): Class<TProto> {
 //     const proto = ctor.prototype;
 
-//     proto.create = function create(
+//     proto.define = function define(
 //       this: TProto,
 //       controller: IDryCustomElementController<HTMLElement, TProto>,
 //       parentContainer: IContainer,
 //       definition: CustomElementDefinition,
 //       parts: PartialCustomElementDefinitionParts | undefined,
 //     ): PartialCustomElementDefinition | void {
-//       this.$calls.addCall(this.id, 'create');
+//       this.$calls.addCall(this.id, 'define');
 //     };
 //     proto.beforeCompile = function beforeCompile(
 //       this: TProto,
@@ -955,7 +955,7 @@
 
 //       const expectedCalls = new CallCollection();
 //       expectedCalls
-//         .addCall(1, 'create')
+//         .addCall(1, 'define')
 //         .addCall(1, 'beforeCompile')
 //         .addCall(1, 'afterCompile')
 //         .addCall(1, 'afterCompileChildren')
@@ -1010,7 +1010,7 @@
 
 //       const expectedCalls = new CallCollection();
 //       expectedCalls
-//         .addCall(1, 'create')
+//         .addCall(1, 'define')
 //         .addCall(1, 'beforeCompile')
 //         .addCall(1, 'afterCompile')
 

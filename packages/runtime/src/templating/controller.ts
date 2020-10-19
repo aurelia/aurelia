@@ -327,11 +327,11 @@ export class Controller<
     this.scope = Scope.create(flags, this.bindingContext!, null);
 
     const hooks = this.hooks;
-    if (hooks.hasCreate) {
+    if (hooks.hasDefine) {
       if (this.debug) {
-        this.logger.trace(`invoking create() hook`);
+        this.logger.trace(`invoking define() hook`);
       }
-      const result = instance.create(
+      const result = instance.define(
         /* controller      */this as ICustomElementController<T>,
         /* parentContainer */parentContainer,
         /* definition      */definition,

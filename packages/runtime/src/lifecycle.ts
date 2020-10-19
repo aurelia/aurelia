@@ -545,7 +545,7 @@ export interface IActivationHooks<TParent, T extends INode = INode> {
 }
 
 export interface ICompileHooks<T extends INode = INode> {
-  create?(
+  define?(
     controller: IDryCustomElementController<T, this>,
     parentContainer: IContainer,
     definition: CustomElementDefinition,

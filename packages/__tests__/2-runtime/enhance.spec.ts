@@ -229,7 +229,7 @@ describe('2-runtime/enhance.spec.ts', function () {
 
     const component = {
       eventLog: [],
-      create() { this.eventLog.push('create'); },
+      define() { this.eventLog.push('define'); },
       beforeCompile() { this.eventLog.push('beforeCompile'); },
       afterCompile() { this.eventLog.push('afterCompile'); },
       afterCompileChildren() { this.eventLog.push('afterCompileChildren'); },
@@ -247,7 +247,7 @@ describe('2-runtime/enhance.spec.ts', function () {
     ctx.doc.body.removeChild(host);
 
     assert.deepStrictEqual(component.eventLog, [
-      'create',
+      'define',
       'beforeCompile',
       'afterCompile',
       'afterCompileChildren',

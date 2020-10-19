@@ -19,7 +19,7 @@ export interface IInstruction {
 export class HooksDefinition {
   public static readonly none: Readonly<HooksDefinition> = new HooksDefinition({});
 
-  public readonly hasCreate: boolean;
+  public readonly hasDefine: boolean;
 
   public readonly hasBeforeCompile: boolean;
   public readonly hasAfterCompile: boolean;
@@ -39,7 +39,7 @@ export class HooksDefinition {
   public readonly hasAccept: boolean;
 
   public constructor(target: object) {
-    this.hasCreate = 'create' in target;
+    this.hasDefine = 'define' in target;
 
     this.hasBeforeCompile = 'beforeCompile' in target;
     this.hasAfterCompile = 'afterCompile' in target;

@@ -36,14 +36,15 @@ export function currentWatcher(): IWatcher | null {
 
 export function enterWatcher(subscriber: IWatcher): void {
   if ($watcher == null) {
-    watchers[0] = $watcher = subscriber;
+    $watcher = subscriber;
     watching = true;
     return;
   }
   if ($watcher === subscriber) {
-    throw new Error('Already in this watcher {watcher.id}');
+    throw new Error(`Already in this watcher ${watcher.id}`);
   }
-  watchers.push($watcher = subscriber);
+  watchers.push($watcher);
+  $watcher = subscriber
   watching = true;
 }
 
@@ -52,9 +53,7 @@ export function exitWatcher(subscriber: IWatcher): void {
     throw new Error('${watcher?.id} is not currently collecting');
   }
 
-  watchers.pop();
-  $watcher = watchers.length > 0 ? watchers[watchers.length - 1] : null;
-  watching = $watcher != null;
+  watching = ($watcher = watchers.pop() ?? null) != null;
 }
 
 // export const DepCollectorSwitcher = Object.freeze({

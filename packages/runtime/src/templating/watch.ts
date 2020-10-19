@@ -6,7 +6,7 @@ export type IWatcherCallback<T extends object, TValue = unknown>
   = (this: T, newValue: TValue, oldValue: TValue, vm: T) => unknown;
 
 export interface IWatchDefinition<T extends object = object> {
-  expression: PropertyKey | IDepCollectionFn<T>
+  expression: PropertyKey | IDepCollectionFn<T>;
   callback: PropertyKey | IWatcherCallback<T>;
 }
 
@@ -26,7 +26,7 @@ type WatchMethodDecorator<T> = <R, K extends AnyMethod<R> = AnyMethod<R>>(target
 //    }
 export function watch<T extends object = object, D = unknown>(
   expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<T, D>,
-  changeHandlerOrCallback: PropertyKey | IWatcherCallback<T, D>,
+  changeHandlerOrCallback: keyof T | IWatcherCallback<T, D>,
 ): WatchClassDecorator<T>;
 
 // for

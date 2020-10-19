@@ -27,7 +27,7 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
       get: 'deliveries[0].done',
       created: post => {
         assert.strictEqual(post.deliveryCount, 0);
-        post.deliveries.splice(0, 0, { id: 1, name: '1', done: false });
+        post.deliveries.unshift({ id: 1, name: '1', done: false });
         // value changed from void to 1, hence 1 change handler call
         assert.strictEqual(post.deliveryCount, 1);
         post.deliveries.splice(0, 1, { id: 1, name: 'hello', done: true });

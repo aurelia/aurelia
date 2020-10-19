@@ -21,7 +21,7 @@ export class HooksDefinition {
 
   public readonly hasDefine: boolean;
 
-  public readonly hasBeforeCompile: boolean;
+  public readonly hasBeforeCompose: boolean;
   public readonly hasAfterCompile: boolean;
   public readonly hasAfterCompileChildren: boolean;
 
@@ -41,7 +41,7 @@ export class HooksDefinition {
   public constructor(target: object) {
     this.hasDefine = 'define' in target;
 
-    this.hasBeforeCompile = 'beforeCompile' in target;
+    this.hasBeforeCompose = 'beforeCompose' in target;
     this.hasAfterCompile = 'afterCompile' in target;
     this.hasAfterCompileChildren = 'afterCompileChildren' in target;
 

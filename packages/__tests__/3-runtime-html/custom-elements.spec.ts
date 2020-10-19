@@ -831,11 +831,11 @@
 //     ): PartialCustomElementDefinition | void {
 //       this.$calls.addCall(this.id, 'define');
 //     };
-//     proto.beforeCompile = function beforeCompile(
+//     proto.beforeCompose = function beforeCompose(
 //       this: TProto,
 //       controller: IContextualCustomElementController<HTMLElement, TProto>,
 //     ): void {
-//       this.$calls.addCall(this.id, 'beforeCompile');
+//       this.$calls.addCall(this.id, 'beforeCompose');
 //     };
 //     proto.afterCompile = function afterCompile(
 //       this: TProto,
@@ -956,7 +956,7 @@
 //       const expectedCalls = new CallCollection();
 //       expectedCalls
 //         .addCall(1, 'define')
-//         .addCall(1, 'beforeCompile')
+//         .addCall(1, 'beforeCompose')
 //         .addCall(1, 'afterCompile')
 //         .addCall(1, 'afterCompileChildren')
 //         .addCall(1, 'beforeBind')
@@ -1011,11 +1011,11 @@
 //       const expectedCalls = new CallCollection();
 //       expectedCalls
 //         .addCall(1, 'define')
-//         .addCall(1, 'beforeCompile')
+//         .addCall(1, 'beforeCompose')
 //         .addCall(1, 'afterCompile')
 
 //         .addCall(2, 'create')
-//         .addCall(2, 'beforeCompile')
+//         .addCall(2, 'beforeCompose')
 //         .addCall(2, 'afterCompile')
 
 //         .addCall(2, 'afterCompileChildren')

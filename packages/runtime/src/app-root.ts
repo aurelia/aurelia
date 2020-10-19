@@ -88,7 +88,7 @@ export class AppRoot<T extends INode = INode> implements IDisposable {
       )) as Controller<T>;
 
       controller.hydrateCustomElement(container, null);
-      return onResolve(this.runAppTasks('beforeCompile'), () => {
+      return onResolve(this.runAppTasks('beforeCompose'), () => {
         controller.compile(null);
         return onResolve(this.runAppTasks('beforeCompileChildren'), () => {
           controller.compileChildren();

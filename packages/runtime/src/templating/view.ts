@@ -250,11 +250,11 @@ export class ViewLocator {
 
       const proto = UnboundComponent.prototype;
 
-      if ('beforeCompile' in object) {
-        proto.beforeCompile = function beforeCompile(
+      if ('beforeCompose' in object) {
+        proto.beforeCompose = function beforeCompose(
           controller: IContextualCustomElementController,
         ): void {
-          this.viewModel.beforeCompile!(controller as IContextualCustomElementController<INode, T>);
+          this.viewModel.beforeCompose!(controller as IContextualCustomElementController<INode, T>);
         };
       }
       if ('afterCompile' in object) {

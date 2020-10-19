@@ -222,7 +222,7 @@ describe('the view locator', function () {
   });
 
   [
-    'beforeCompile',
+    'beforeCompose',
     'define',
     'afterCompile',
     'afterCompileChildren',

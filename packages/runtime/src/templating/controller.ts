@@ -351,7 +351,7 @@ export class Controller<
 
     // If this is the root controller, then the AppRoot will invoke things in the following order:
     // - Controller.hydrateCustomElement
-    // - runAppTasks('beforeCompile') // may return a promise
+    // - runAppTasks('beforeCompose') // may return a promise
     // - Controller.compile
     // - runAppTasks('beforeCompileChildren') // may return a promise
     // - Controller.compileChildren
@@ -366,11 +366,11 @@ export class Controller<
   public compile(
     targetedProjections: RegisteredProjections | null,
   ): void {
-    if (this.hooks.hasBeforeCompile) {
+    if (this.hooks.hasBeforeCompose) {
       if (this.debug) {
-        this.logger!.trace(`invoking hasBeforeCompile() hook`);
+        this.logger!.trace(`invoking hasBeforeCompose() hook`);
       }
-      (this.viewModel as BindingContext<T, C>).beforeCompile(this as ICustomElementController<T>);
+      (this.viewModel as BindingContext<T, C>).beforeCompose(this as ICustomElementController<T>);
     }
 
     const compiledContext = this.context!.compile(targetedProjections);

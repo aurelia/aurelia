@@ -18,7 +18,7 @@ export class Editor {
   ) {}
 
   public define() { return; }
-  public beforeCompile() { return; }
+  public beforeCompose() { return; }
   public afterCompile() { return; }
   public afterCompileChildren() { return; }
 

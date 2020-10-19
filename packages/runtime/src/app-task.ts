@@ -9,7 +9,7 @@ import {
 
 export type TaskSlot = (
   'beforeCreate' |
-  'beforeCompile' |
+  'beforeCompose' |
   'beforeCompileChildren' |
   'beforeActivate' |
   'afterActivate' |
@@ -28,7 +28,7 @@ export interface IAppTask extends Pick<
 export interface ICallbackSlotChooser<K extends Key> extends Pick<
   $AppTask<K>,
   'beforeCreate' |
-  'beforeCompile' |
+  'beforeCompose' |
   'beforeCompileChildren' |
   'beforeActivate' |
   'afterActivate' |
@@ -58,8 +58,8 @@ class $AppTask<K extends Key = Key> {
     return this.at('beforeCreate');
   }
 
-  public beforeCompile(): ICallbackChooser<K> {
-    return this.at('beforeCompile');
+  public beforeCompose(): ICallbackChooser<K> {
+    return this.at('beforeCompose');
   }
 
   public beforeCompileChildren(): ICallbackChooser<K> {

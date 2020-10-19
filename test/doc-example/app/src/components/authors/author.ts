@@ -46,8 +46,8 @@ export class Author {
     console.log('### define', this);
   }
 
-  public beforeCompile() {
-    console.log('### beforeCompile', this);
+  public beforeCompose() {
+    console.log('### beforeCompose', this);
   }
 
   public afterCompile() {

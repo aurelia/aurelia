@@ -146,7 +146,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
 
       public constructor() {
         (this.deliveries = [this.storage[1]]).toString = function () {
-          return JSON.stringify(this);
+          return json(this);
         };
       }
 
@@ -165,7 +165,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       public onDelivered(deliveries: IDelivery[]) {
         callCount++;
         deliveries.toString = function () {
-          return JSON.stringify(this);
+          return json(this);
         };
         latestDelivered = this.deliveries = deliveries;
       }
@@ -175,20 +175,20 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
 
     const textNode = appHost.querySelector('div');
     assert.strictEqual(callCount, 0);
-    assert.strictEqual(textNode.textContent, JSON.stringify([{ id: 2, name: 'toy', delivered: true }]));
+    assert.strictEqual(textNode.textContent, json([{ id: 2, name: 'toy', delivered: true }]));
 
     component.newDelivery({ id: 4, name: 'cookware', delivered: false });
     assert.strictEqual(callCount, 1);
     ctx.scheduler.getRenderTaskQueue().flush();
-    assert.strictEqual(textNode.textContent, JSON.stringify([{ id: 2, name: 'toy', delivered: true }]));
+    assert.strictEqual(textNode.textContent, json([{ id: 2, name: 'toy', delivered: true }]));
 
     component.delivered(1);
     assert.strictEqual(callCount, 2);
-    assert.strictEqual(textNode.textContent, JSON.stringify([{ id: 2, name: 'toy', delivered: true }]));
+    assert.strictEqual(textNode.textContent, json([{ id: 2, name: 'toy', delivered: true }]));
     ctx.scheduler.getRenderTaskQueue().flush();
     assert.strictEqual(
       textNode.textContent,
-      JSON.stringify([
+      json([
         { id: 1, name: 'box', delivered: true },
         { id: 2, name: 'toy', delivered: true }
       ])
@@ -199,7 +199,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     component.delivered(3);
     assert.strictEqual(
       textNode.textContent,
-      JSON.stringify([
+      json([
         { id: 1, name: 'box', delivered: true },
         { id: 2, name: 'toy', delivered: true }
       ])
@@ -207,7 +207,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     ctx.scheduler.getRenderTaskQueue().flush();
     assert.strictEqual(
       textNode.textContent,
-      JSON.stringify([
+      json([
         { id: 1, name: 'box', delivered: true },
         { id: 2, name: 'toy', delivered: true }
       ])
@@ -216,9 +216,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
 
   it('observes chain lighting', function () {
     let callCount = 0;
-    interface IDelivery {
-      id: number; name: string; delivered: boolean;
-    }
+
     class PostOffice {
       public storage: IDelivery[] = [
         { id: 1, name: 'box', delivered: false },
@@ -544,4 +542,12 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       disposed?: (app: IApp, ctx: HTMLTestContext) => any;
     }
   });
+
+  interface IDelivery {
+    id: number; name: string; delivered: boolean;
+  }
+
+  function json(d: any) {
+    return JSON.stringify(d);
+  }
 });

@@ -37,7 +37,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
   for (const methodName of [Symbol('method'), 'bla', 5]) {
     it(`validates method "${String(methodName)}" not found when decorating on class`, function () {
       assert.throws(() => {
-        @watch('..', methodName)
+        @watch('..', methodName as any)
         class App {}
 
         return new App();

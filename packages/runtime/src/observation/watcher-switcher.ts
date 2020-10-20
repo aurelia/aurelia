@@ -53,7 +53,9 @@ export function exitWatcher(watcher: IWatcher): void {
     throw new Error(`\${watcher?.id} is not currently collecting`);
   }
 
-  watching = ($watcher = watchers.pop() ?? null) != null;
+  watchers.pop();
+  $watcher = watchers.length > 0 ? watchers[watchers.length - 1] : null;
+  watching = $watcher != null;
 }
 
 // export const DepCollectorSwitcher = Object.freeze({

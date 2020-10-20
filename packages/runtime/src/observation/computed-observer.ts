@@ -389,8 +389,8 @@ export class ComputedWatcher implements IWatcher {
   private compute(): unknown {
     this.running = true;
     this.version++;
-    enterWatcher(this);
     try {
+      enterWatcher(this);
       this.v = getRawOrSelf(this.get(getProxyOrSelf(this.obj), this));
     } finally {
       exitWatcher(this);

@@ -148,7 +148,9 @@ export {
   computed,
   createComputedObserver,
   CustomSetterObserver,
-  GetterObserver
+  GetterObserver,
+  ComputedWatcher,
+  ExpressionWatcher,
 } from './observation/computed-observer';
 export {
   IDirtyChecker,

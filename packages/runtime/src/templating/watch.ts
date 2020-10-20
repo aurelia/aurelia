@@ -1,13 +1,13 @@
 import { Constructable, Protocol, Metadata, PLATFORM } from '@aurelia/kernel';
 import type { IWatcher } from '../observation/watcher-switcher';
 
-export type IDepCollectionFn<T extends object, R = unknown> = (vm: T, watcher: IWatcher) => R;
-export type IWatcherCallback<T extends object, TValue = unknown>
-  = (this: T, newValue: TValue, oldValue: TValue, vm: T) => unknown;
+export type IDepCollectionFn<TType extends object, TReturn = unknown> = (vm: TType, watcher: IWatcher) => TReturn;
+export type IWatcherCallback<TType extends object, TValue = unknown>
+  = (this: TType, newValue: TValue, oldValue: TValue, vm: TType) => unknown;
 
 export interface IWatchDefinition<T extends object = object> {
   expression: PropertyKey | IDepCollectionFn<T>;
-  callback: PropertyKey | IWatcherCallback<T>;
+  callback: keyof T | IWatcherCallback<T>;
 }
 
 type AnyMethod<R = unknown> = (...args: unknown[]) => R;

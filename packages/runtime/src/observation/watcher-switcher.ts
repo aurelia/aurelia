@@ -17,7 +17,6 @@ export interface IWatcher {
  */
 let $watcher: IWatcher | null = null;
 const watchers: IWatcher[] = [];
-// const collectingStatus: boolean[] = [];
 
 export let watching = false;
 
@@ -34,23 +33,24 @@ export function currentWatcher(): IWatcher | null {
   return $watcher;
 }
 
-export function enterWatcher(subscriber: IWatcher): void {
+export function enterWatcher(watcher: IWatcher): void {
   if ($watcher == null) {
-    $watcher = subscriber;
+    $watcher = watcher;
+    watchers[0] = $watcher;
     watching = true;
     return;
   }
-  if ($watcher === subscriber) {
-    throw new Error(`Already in this watcher ${watcher.id}`);
+  if ($watcher === watcher) {
+    throw new Error(`Already in this watcher \${watcher?.id}`);
   }
   watchers.push($watcher);
-  $watcher = subscriber
+  $watcher = watcher;
   watching = true;
 }
 
-export function exitWatcher(subscriber: IWatcher): void {
-  if ($watcher == null || $watcher !== subscriber) {
-    throw new Error('${watcher?.id} is not currently collecting');
+export function exitWatcher(watcher: IWatcher): void {
+  if ($watcher == null || $watcher !== watcher) {
+    throw new Error(`\${watcher?.id} is not currently collecting`);
   }
 
   watching = ($watcher = watchers.pop() ?? null) != null;

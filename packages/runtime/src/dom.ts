@@ -73,7 +73,6 @@ export interface IDOM<T extends INode = INode> {
   createElement(name: string): T;
   createCustomEvent(eventType: string, options?: unknown): unknown;
   dispatchEvent(evt: unknown): void;
-  createNodeObserver?(node: T, cb: (...args: unknown[]) => void, init: unknown): unknown;
   createTemplate(markup?: string): T;
   createTextNode(text: string): T;
   /**
@@ -134,7 +133,6 @@ const niDOM: IDOM = {
   createElement: ni,
   createCustomEvent: ni,
   dispatchEvent: ni,
-  createNodeObserver: ni,
   createTemplate: ni,
   createTextNode: ni,
   getEffectiveParentNode: ni,

@@ -152,21 +152,6 @@ export class HTMLDOM implements IDOM {
     this.document.dispatchEvent(evt);
   }
 
-  public createNodeObserver(node: Node, cb: MutationCallback, init: MutationObserverInit): MutationObserver {
-    if (typeof MutationObserver === 'undefined') {
-      // TODO: find a proper response for this scenario
-      return {
-        disconnect(): void { /* empty */ },
-        observe(): void { /* empty */ },
-        takeRecords(): MutationRecord[] { return PLATFORM.emptyArray as typeof PLATFORM.emptyArray & MutationRecord[]; }
-      };
-    }
-
-    const observer = new MutationObserver(cb);
-    observer.observe(node, init);
-    return observer;
-  }
-
   public createTemplate(markup?: string): HTMLTemplateElement {
     const template = this.document.createElement('template');
     this.document.adoptNode(template.content);

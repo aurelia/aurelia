@@ -259,7 +259,7 @@ export class SelectValueObserver implements IAccessor {
   }
 
   public bind(flags: LifecycleFlags): void {
-    this.nodeObserver = this.dom.createNodeObserver!(this.obj, this.handleNodeChange, childObserverOptions) as MutationObserver;
+    (this.nodeObserver = new MutationObserver(this.handleNodeChange)).observe(this.obj, childObserverOptions);
   }
 
   public unbind(flags: LifecycleFlags): void {

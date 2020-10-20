@@ -77,7 +77,8 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
 
   public subscribeToChildrenChange(callback: () => void, options = childObserverOptions): void {
     // TODO: add a way to dispose/disconnect
-    this.dom.createNodeObserver!(this.host, callback, options);
+    const obs = new MutationObserver(callback);
+    obs.observe(this.host, options);
   }
 
   public provideEncapsulationSource(): CustomElementHost<ShadowRoot> {

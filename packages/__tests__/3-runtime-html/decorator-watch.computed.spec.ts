@@ -132,9 +132,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
   it('observes collection', function () {
     let callCount = 0;
     let latestDelivered: IDelivery[] = [];
-    interface IDelivery {
-      id: number; name: string; delivered: boolean;
-    }
+
     class PostOffice {
       public storage: IDelivery[] = [
         { id: 1, name: 'box', delivered: false },
@@ -290,33 +288,14 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         get: (app) => app.map.get(symbol),
         created: (app) => {
           app.map.set(symbol, 0);
-          assert.strictEqual(app.callCount, 1);
+          assert.strictEqual(app.callCount, 1 * app.decoratorCount);
           app.map.delete(symbol);
-          assert.strictEqual(app.callCount, 2);
+          assert.strictEqual(app.callCount, 2 * app.decoratorCount);
         },
         disposed: (app) => {
           app.map.set(symbol, 'a');
-          assert.strictEqual(app.callCount, 2, 'after disposed');
+          assert.strictEqual(app.callCount, 2 * app.decoratorCount, 'after disposed');
         },
-      },
-      {
-        title: 'observes .values()',
-        get: (app) => Array.from(app.map.values()).filter(v => v === symbol).length,
-        created: (app) => {
-          assert.strictEqual(app.callCount, 0);
-          app.map.set('a', 1);
-          assert.strictEqual(app.callCount, 0);
-          app.map.set('b', symbol);
-          assert.strictEqual(app.callCount, 1);
-          app.map.set('a', 2);
-          assert.strictEqual(app.callCount, 1);
-          app.map.set('a', symbol);
-          assert.strictEqual(app.callCount, 2);
-        },
-        disposed: (app) => {
-          app.map.set('a', symbol);
-          assert.strictEqual(app.callCount, 2, 'after disposed');
-        }
       },
       {
         title: 'observes .has()',
@@ -326,15 +305,15 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           assert.strictEqual(app.counter, 0);
           assert.strictEqual(app.callCount, 0);
           app.map.set(symbol, '');
-          assert.strictEqual(app.counter, 1);
-          assert.strictEqual(app.callCount, 1);
+          assert.strictEqual(app.counter, 1 * app.decoratorCount);
+          assert.strictEqual(app.callCount, 1 * app.decoratorCount);
         },
         disposed: (app) => {
-          assert.strictEqual(app.counter, 1);
-          assert.strictEqual(app.callCount, 1);
+          assert.strictEqual(app.counter, 1 * app.decoratorCount);
+          assert.strictEqual(app.callCount, 1 * app.decoratorCount);
           app.map.set(symbol, '');
-          assert.strictEqual(app.counter, 1);
-          assert.strictEqual(app.callCount, 1);
+          assert.strictEqual(app.counter, 1 * app.decoratorCount);
+          assert.strictEqual(app.callCount, 1 * app.decoratorCount);
         },
       },
       {
@@ -343,7 +322,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         created: app => {
           assert.strictEqual(app.callCount, 0);
           app.map.set('a', 2);          assert.strictEqual(app.callCount, 0);
-          app.map.set(symbol, '1');     assert.strictEqual(app.callCount, 1);
+          app.map.set(symbol, '1');     assert.strictEqual(app.callCount, 1 * app.decoratorCount);
         },
       },
       {
@@ -353,8 +332,8 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           assert.strictEqual(app.callCount, 0);
           // mutate                     // assert the effect
           app.map.set('a', 2);          assert.strictEqual(app.callCount, 0);
-          app.map.set('a', symbol);     assert.strictEqual(app.callCount, 1);
-          app.map.set('b', symbol);     assert.strictEqual(app.callCount, 2);
+          app.map.set('a', symbol);     assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+          app.map.set('b', symbol);     assert.strictEqual(app.callCount, 2 * app.decoratorCount);
         },
       },
       {
@@ -370,8 +349,8 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           assert.strictEqual(app.callCount, 0);
           // mutate                     // assert the effect
           app.map.set('a', 2);          assert.strictEqual(app.callCount, 0);
-          app.map.set('a', symbol);     assert.strictEqual(app.callCount, 1);
-          app.map.set('b', symbol);     assert.strictEqual(app.callCount, 2);
+          app.map.set('a', symbol);     assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+          app.map.set('b', symbol);     assert.strictEqual(app.callCount, 2 * app.decoratorCount);
         },
       },
       {
@@ -387,8 +366,8 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           assert.strictEqual(app.callCount, 0);
           // mutate                     // assert the effect
           app.map.set('a', 2);          assert.strictEqual(app.callCount, 0);
-          app.map.set('a', symbol);     assert.strictEqual(app.callCount, 1);
-          app.map.set('b', symbol);     assert.strictEqual(app.callCount, 2);
+          app.map.set('a', symbol);     assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+          app.map.set('b', symbol);     assert.strictEqual(app.callCount, 2 * app.decoratorCount);
         },
       },
       {
@@ -459,7 +438,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           app.map = new Map([[1, item1], [2, item2]]);
           assert.strictEqual(app.callCount, 0);
           app.selectedItem = item1;
-          assert.strictEqual(app.callCount, 1);
+          assert.strictEqual(app.callCount, 1 * app.decoratorCount);
         },
       },
       {
@@ -480,7 +459,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           app.map = new Map([[1, item1], [2, item2]]);
           assert.strictEqual(app.callCount, 0);
           app.selectedItem = item1;
-          assert.strictEqual(app.callCount, 1);
+          assert.strictEqual(app.callCount, 1 * app.decoratorCount);
         },
       }
     ];
@@ -489,6 +468,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       const $it = only ? it.only : it;
       $it(`${title} on method`, function () {
         class App implements IApp {
+          public decoratorCount: number = 1;
           public map: Map<unknown, unknown> = new Map();
           public selectedItem: unknown = void 0;
           public counter: number = 0;
@@ -509,6 +489,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       $it(`${title} on class`, function () {
         @watch(get, (v, o, a) => a.log())
         class App implements IApp {
+          public decoratorCount: number = 1;
           public map: Map<unknown, unknown> = new Map();
           public selectedItem: unknown;
           public counter: number = 0;
@@ -524,9 +505,31 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         tearDown();
         disposed?.(component, ctx);
       });
+
+      $it(`${title} on both class and method`, function () {
+        @watch(get, (v, o, a) => a.log())
+        class App implements IApp {
+          public decoratorCount: number = 2;
+          public map: Map<unknown, unknown> = new Map();
+          public selectedItem: unknown;
+          public counter: number = 0;
+          public callCount = 0;
+
+          @watch(get)
+          public log(): void {
+            this.callCount++;
+          }
+        }
+
+        const { ctx, component, tearDown } = createFixture('', App);
+        created(component, ctx);
+        tearDown();
+        disposed?.(component, ctx);
+      });
     }
 
     interface IApp {
+      decoratorCount: number;
       map: Map<unknown, unknown>;
       selectedItem: unknown;
       counter: number;

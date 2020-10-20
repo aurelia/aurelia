@@ -107,7 +107,15 @@ function chooseContext(scope: Scope, name: string, ancestor: number) {
   }
 
   // traverse the context and it's ancestors, searching for a context that has the name.
-  while (overrideContext && !(name in overrideContext) && !(overrideContext.bindingContext && name in overrideContext.bindingContext)) {
+  while (
+    !currentScope?.isComponentBoundary
+    && overrideContext
+    && !(name in overrideContext)
+    && !(
+      overrideContext.bindingContext
+      && name in overrideContext.bindingContext
+    )
+  ) {
     currentScope = currentScope!.parentScope ?? null;
     overrideContext = currentScope?.overrideContext ?? null;
   }
@@ -125,6 +133,7 @@ export class Scope {
     public parentScope: Scope | null,
     public bindingContext: IBindingContext,
     public overrideContext: IOverrideContext,
+    public readonly isComponentBoundary: boolean,
   ) {}
 
   /**
@@ -145,7 +154,7 @@ export class Scope {
    * during binding, it will traverse up via the `parentScope` of the scope until
    * it finds the property.
    */
-  public static create(flags: LifecycleFlags, bc: object, oc: IOverrideContext): Scope;
+  public static create(flags: LifecycleFlags, bc: object, oc: IOverrideContext, isComponentBoundary?: boolean): Scope;
   /**
    * Create a new `Scope` backed by the provided `BindingContext` and `OverrideContext`.
    *
@@ -155,27 +164,28 @@ export class Scope {
    * @param bc - The `BindingContext` to back the `Scope` with.
    * @param oc - null. This overload is functionally equivalent to not passing this argument at all.
    */
-  public static create(flags: LifecycleFlags, bc: object, oc: null): Scope;
+  public static create(flags: LifecycleFlags, bc: object, oc: null, isComponentBoundary?: boolean): Scope;
   public static create(
     flags: LifecycleFlags,
     bc: object,
     oc?: IOverrideContext | null,
+    isComponentBoundary?: boolean,
   ): Scope {
-    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc) : oc);
+    return new Scope(null, bc as IBindingContext, oc == null ? OverrideContext.create(flags, bc) : oc, isComponentBoundary ?? false);
   }
 
   public static fromOverride(flags: LifecycleFlags, oc: IOverrideContext): Scope {
     if (oc == null) {
       throw new Error(`OverrideContext is ${oc}`);
     }
-    return new Scope(null, oc.bindingContext, oc);
+    return new Scope(null, oc.bindingContext, oc, false);
   }
 
   public static fromParent(flags: LifecycleFlags, ps: Scope | null, bc: object): Scope {
     if (ps == null) {
       throw new Error(`ParentScope is ${ps}`);
     }
-    return new Scope(ps, bc as IBindingContext, OverrideContext.create(flags, bc));
+    return new Scope(ps, bc as IBindingContext, OverrideContext.create(flags, bc), false);
   }
 }
 

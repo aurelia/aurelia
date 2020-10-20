@@ -324,7 +324,7 @@ export class Controller<
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this as Controller, definition, flags, instance);
 
-    this.scope = Scope.create(flags, this.bindingContext!, null);
+    this.scope = Scope.create(flags, this.bindingContext!, null, true);
 
     const hooks = this.hooks;
     if (hooks.hasCreate) {

@@ -63,15 +63,6 @@ const $now = (function (): () => number {
   }
 })();
 
-const hasOwnProperty = Object.prototype.hasOwnProperty as unknown as {
-  call<V, T = object, K extends PropertyKey = PropertyKey>(target: T, key: K): target is (
-    T & { [P in K]: V; }
-  );
-  call<T, K extends keyof T>(target: T, key: K): target is (
-    T & { [P in K]-?: T[P]; }
-  );
-};
-
 const emptyArray = Object.freeze([]) as unknown as any[];
 const emptyObject = Object.freeze({}) as any;
 
@@ -81,7 +72,6 @@ const $PLATFORM = {
   emptyObject,
   noop: $noop,
   now: $now,
-  hasOwnProperty,
 
   restore(): void {
     Object.assign(PLATFORM, $PLATFORM);
@@ -92,15 +82,6 @@ interface IPlatform extends IPerformance {
   global: IWindowOrWorkerGlobalScope;
   emptyArray: any[];
   emptyObject: any;
-
-  hasOwnProperty: {
-    call<V, T = object, K extends PropertyKey = PropertyKey>(target: T, key: K): target is (
-      T & { [P in K]: V; }
-    );
-    call<T, K extends keyof T>(target: T, key: K): target is (
-      T & { [P in K]-?: T[P]; }
-    );
-  };
 
   noop(): void;
 

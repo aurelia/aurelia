@@ -9,7 +9,7 @@ import {
   ITask,
   AccessorType,
 } from '@aurelia/runtime';
-import { IEventSubscriber } from './event-manager';
+import { IEventSubscriber } from './event-delegator';
 
 export interface ValueAttributeObserver
   extends ISubscriberCollection {}

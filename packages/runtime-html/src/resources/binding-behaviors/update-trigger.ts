@@ -1,7 +1,7 @@
 import { Writable } from '@aurelia/kernel';
 import { BindingMode, IDOM, IObserverLocator, LifecycleFlags, PropertyBinding, bindingBehavior } from '@aurelia/runtime';
 import { CheckedObserver } from '../../observation/checked-observer';
-import { EventSubscriber, IEventSubscriber } from '../../observation/event-manager';
+import { EventSubscriber, IEventSubscriber } from '../../observation/event-delegator';
 import { SelectValueObserver } from '../../observation/select-value-observer';
 import { ValueAttributeObserver } from '../../observation/value-attribute-observer';
 

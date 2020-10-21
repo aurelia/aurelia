@@ -71,11 +71,11 @@ export {
   ElementPropertyAccessor
 } from './observation/element-property-accessor';
 export {
-  IEventManager,
+  IEventDelegator,
   IEventSubscriber,
   EventSubscriber,
-  EventManager
-} from './observation/event-manager';
+  EventDelegator
+} from './observation/event-delegator';
 export {
   TargetAccessorLocator,
   TargetObserverLocator

@@ -17,7 +17,7 @@ import { CheckedObserver, IInputElement } from './checked-observer';
 import { ClassAttributeAccessor } from './class-attribute-accessor';
 import { DataAttributeAccessor } from './data-attribute-accessor';
 import { ElementPropertyAccessor } from './element-property-accessor';
-import { EventSubscriber } from './event-manager';
+import { EventSubscriber } from './event-delegator';
 import { ISelectElement, SelectValueObserver } from './select-value-observer';
 import { StyleAttributeAccessor } from './style-attribute-accessor';
 import { ISVGAnalyzer } from './svg-analyzer';

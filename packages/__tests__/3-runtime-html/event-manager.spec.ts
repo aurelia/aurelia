@@ -1,6 +1,6 @@
 import { IDisposable } from '@aurelia/kernel';
 import {
-  EventManager,
+  EventDelegator,
   EventSubscriber,
 } from '@aurelia/runtime-html';
 import { _, TestContext, assert, createSpy } from '@aurelia/testing';
@@ -70,7 +70,7 @@ describe('ListenerTracker', function () {
         };
       }
     }
-    const sut = new EventManager();
+    const sut = new EventDelegator();
     const el = ctx.createElement('div');
     el.addEventListener(eventName, copyHandler(), capture);
     ctx.doc.body.appendChild(el);
@@ -241,10 +241,10 @@ describe('EventSubscriber', function () {
   }
 });
 
-describe('EventManager', function () {
+describe('EventDelegator', function () {
 
   // it(`initializes with correct default element configurations`, function () {
-  //   const sut = new EventManager();
+  //   const sut = new EventDelegator();
   //   const lookup = sut.elementHandlerLookup;
 
   //   assert.strictEqual(lookup['INPUT']['value'].length, 2, `lookup['INPUT']['value'].length`);
@@ -280,7 +280,7 @@ describe('EventManager', function () {
   // });
 
   // it(`registerElementConfiguration() registers the configuration`, function () {
-  //   const sut = new EventManager();
+  //   const sut = new EventDelegator();
   //   sut.registerElementConfiguration({
   //     tagName: 'FOO',
   //     properties: {
@@ -294,7 +294,7 @@ describe('EventManager', function () {
   // });
 
   // it(`registerElementConfiguration() does not register configuration from higher up the prototype chain`, function () {
-  //   const sut = new EventManager();
+  //   const sut = new EventDelegator();
   //   class ElementProperties {
   //     public bar: string[];
   //     constructor() {
@@ -313,7 +313,7 @@ describe('EventManager', function () {
   // });
 
   // describe(`getElementHandler()`, function () {
-  //   const sut = new EventManager();
+  //   const sut = new EventDelegator();
   //   const lookup = sut.elementHandlerLookup;
 
   //   for (let tagName in lookup) {
@@ -397,7 +397,7 @@ describe('EventManager', function () {
         parentListener = { handleEvent: parentHandler };
       }
 
-      const sut = new EventManager();
+      const sut = new EventDelegator();
       const wrapper = ctx.createElement('div');
       const parentEl = ctx.createElement('parent-div');
       const childEl = ctx.createElement('child-div');

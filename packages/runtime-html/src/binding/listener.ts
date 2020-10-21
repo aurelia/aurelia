@@ -6,7 +6,7 @@ import {
   IsBindingBehavior,
   LifecycleFlags,
 } from '@aurelia/runtime';
-import { IEventManager } from '../observation/event-manager';
+import { IEventDelegator } from '../observation/event-delegator';
 
 import type { Scope } from '@aurelia/runtime';
 import { HTMLDOM } from '../dom';
@@ -36,7 +36,7 @@ export class Listener implements IBinding {
     public sourceExpression: IsBindingBehavior,
     public target: Node,
     public preventDefault: boolean,
-    public eventManager: IEventManager,
+    public eventDelegator: IEventDelegator,
     public locator: IServiceLocator,
   ) {}
 
@@ -79,7 +79,7 @@ export class Listener implements IBinding {
     if (this.delegationStrategy === DelegationStrategy.none) {
       this.target.addEventListener(this.targetEvent, this);
     } else {
-      this.handler = this.eventManager.addEventListener(
+      this.handler = this.eventDelegator.addEventListener(
         this.dom.document,
         this.target,
         this.targetEvent,

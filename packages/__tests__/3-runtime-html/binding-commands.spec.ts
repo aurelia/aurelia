@@ -95,7 +95,7 @@ describe('binding-commands', function () {
 });
 
 // import { Aurelia, CustomElement as CE, IViewModel, LifecycleFlags as LF } from '@aurelia/runtime';
-// import { IEventManager } from '@aurelia/runtime-html';
+// import { IEventDelegator } from '@aurelia/runtime-html';
 // import { HTMLTestContext, TestContext, TestConfiguration, setupAndStart, setupWithDocumentAndStart, tearDown } from '@aurelia/testing';
 
 // // TemplateCompiler - Binding Commands integration
@@ -296,7 +296,7 @@ describe('binding-commands', function () {
 //       host.firstChild.dispatchEvent(new ctx.CustomEvent('click', { bubbles: true }));
 //       expect(component.doStuff).to.have.been.called;
 //     } finally {
-//       const em = ctx.container.get(IEventManager);
+//       const em = ctx.container.get(IEventDelegator);
 //       em.dispose();
 //       tearDown(au, lifecycle, host);
 //     }
@@ -310,7 +310,7 @@ describe('binding-commands', function () {
 //       host.firstChild.dispatchEvent(new ctx.CustomEvent('click', { bubbles: true }));
 //       expect(component.doStuff).to.have.been.called;
 //     } finally {
-//       const em = ctx.container.get(IEventManager);
+//       const em = ctx.container.get(IEventDelegator);
 //       em.dispose();
 //       tearDown(au, lifecycle, host);
 //     }

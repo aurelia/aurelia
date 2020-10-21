@@ -13,7 +13,7 @@ import {
   ITask,
   AccessorType,
 } from '@aurelia/runtime';
-import { IEventSubscriber } from './event-manager';
+import { IEventSubscriber } from './event-delegator';
 import { bound } from '@aurelia/kernel';
 
 const childObserverOptions = {

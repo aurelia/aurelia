@@ -1,6 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
 import { BindingMode, CustomElement, IScheduler } from '@aurelia/runtime';
-import { Aurelia, IEventManager, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, IEventDelegator, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert } from '@aurelia/testing';
 import { ClassAttributePattern } from './attribute-pattern';
 
@@ -196,7 +196,7 @@ describe('template-compiler.binding-commands.class', function () {
           );
           await testCase.assert(au, scheduler, host, component, testCase, className);
         } finally {
-          const em = ctx.container.get(IEventManager);
+          const em = ctx.container.get(IEventDelegator);
           em.dispose();
           tearDown();
           await au.stop();

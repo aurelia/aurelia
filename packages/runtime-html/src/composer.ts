@@ -40,7 +40,7 @@ import {
 } from '@aurelia/runtime';
 import { AttributeBinding } from './binding/attribute';
 import { Listener } from './binding/listener';
-import { IEventManager } from './observation/event-manager';
+import { IEventDelegator } from './observation/event-delegator';
 import {
   AttributeBindingInstruction,
   CallBindingInstruction,
@@ -595,7 +595,7 @@ export class TextBindingComposer implements IInstructionComposer {
 export class ListenerBindingComposer implements IInstructionComposer {
   public constructor(
     @IExpressionParser private readonly parser: IExpressionParser,
-    @IEventManager private readonly eventManager: IEventManager,
+    @IEventDelegator private readonly eventDelegator: IEventDelegator,
   ) {}
 
   public compose(
@@ -608,7 +608,7 @@ export class ListenerBindingComposer implements IInstructionComposer {
     // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
     const binding = applyBindingBehavior(
-      new Listener(context.dom as HTMLDOM, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context),
+      new Listener(context.dom as HTMLDOM, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, context),
       expr,
       context,
     );

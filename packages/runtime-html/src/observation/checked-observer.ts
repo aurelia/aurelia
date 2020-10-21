@@ -14,7 +14,7 @@ import {
   ILifecycle,
   AccessorType,
 } from '@aurelia/runtime';
-import { IEventSubscriber } from './event-manager';
+import { IEventSubscriber } from './event-delegator';
 import { ValueAttributeObserver } from './value-attribute-observer';
 
 type RepeatableCollection = unknown[] | Set<unknown> | Map<unknown, unknown>;

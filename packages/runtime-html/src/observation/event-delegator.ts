@@ -135,10 +135,10 @@ export class EventSubscriber implements IEventSubscriber {
   }
 }
 
-export interface IEventManager extends EventManager {}
-export const IEventManager = DI.createInterface<IEventManager>('IEventManager').withDefault(x => x.singleton(EventManager));
+export interface IEventDelegator extends EventDelegator {}
+export const IEventDelegator = DI.createInterface<IEventDelegator>('IEventDelegator').withDefault(x => x.singleton(EventDelegator));
 
-export class EventManager implements IDisposable {
+export class EventDelegator implements IDisposable {
   private readonly trackerMaps: Record<string, Map<EventTarget, ListenerTracker> | undefined> = Object.create(null);
 
   public constructor() { /* do not remove, is necessary for fulfilling the TS (new() => ...) type */ }

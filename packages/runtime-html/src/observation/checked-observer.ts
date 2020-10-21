@@ -14,7 +14,7 @@ import {
   ILifecycle,
   AccessorType,
 } from '@aurelia/runtime';
-import { IEventSubscriber } from './event-delegator';
+import { EventSubscriber } from './event-delegator';
 import { ValueAttributeObserver } from './value-attribute-observer';
 
 type RepeatableCollection = unknown[] | Set<unknown> | Map<unknown, unknown>;
@@ -57,7 +57,7 @@ export class CheckedObserver implements IAccessor {
     public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
     public lifecycle: ILifecycle,
-    public readonly handler: IEventSubscriber,
+    public readonly handler: EventSubscriber,
     public readonly obj: IInputElement,
   ) {
     this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;

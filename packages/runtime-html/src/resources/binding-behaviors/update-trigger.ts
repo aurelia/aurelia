@@ -1,7 +1,7 @@
 import { Writable } from '@aurelia/kernel';
 import { BindingMode, IDOM, IObserverLocator, LifecycleFlags, PropertyBinding, bindingBehavior } from '@aurelia/runtime';
 import { CheckedObserver } from '../../observation/checked-observer';
-import { EventSubscriber, IEventSubscriber } from '../../observation/event-delegator';
+import { EventSubscriber } from '../../observation/event-delegator';
 import { SelectValueObserver } from '../../observation/select-value-observer';
 import { ValueAttributeObserver } from '../../observation/value-attribute-observer';
 
@@ -12,7 +12,7 @@ export type UpdateTriggerableObserver = (
   (CheckedObserver & Required<CheckedObserver>) |
   (SelectValueObserver & Required<SelectValueObserver>)
 ) & {
-  originalHandler?: IEventSubscriber;
+  originalHandler?: EventSubscriber;
 };
 
 export type UpdateTriggerableBinding = PropertyBinding & {
@@ -50,7 +50,7 @@ export class UpdateTriggerBindingBehavior {
     targetObserver.originalHandler = binding.targetObserver.handler;
 
     // replace the element subscribe function with one that uses the correct events.
-    (targetObserver as Writable<typeof targetObserver>).handler = new EventSubscriber(binding.locator.get(IDOM), events);
+    (targetObserver as Writable<typeof targetObserver>).handler = new EventSubscriber(events);
   }
 
   public unbind(flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, binding: UpdateTriggerableBinding): void {

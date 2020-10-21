@@ -13,7 +13,7 @@ import {
   ITask,
   AccessorType,
 } from '@aurelia/runtime';
-import { IEventSubscriber } from './event-delegator';
+import { EventSubscriber } from './event-delegator';
 import { bound } from '@aurelia/kernel';
 
 const childObserverOptions = {
@@ -58,7 +58,7 @@ export class SelectValueObserver implements IAccessor {
     flags: LifecycleFlags,
     public readonly observerLocator: IObserverLocator,
     public readonly dom: IDOM,
-    public readonly handler: IEventSubscriber,
+    public readonly handler: EventSubscriber,
     public readonly obj: ISelectElement,
   ) {
     this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;

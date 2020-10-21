@@ -72,7 +72,6 @@ export {
 } from './observation/element-property-accessor';
 export {
   IEventDelegator,
-  IEventSubscriber,
   EventSubscriber,
   EventDelegator
 } from './observation/event-delegator';

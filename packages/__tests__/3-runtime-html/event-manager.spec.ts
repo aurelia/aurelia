@@ -194,7 +194,7 @@ describe('EventSubscriber', function () {
       });
     });
 
-    const sut = new EventSubscriber(ctx.dom, eventNames);
+    const sut = new EventSubscriber(eventNames);
 
     return { ctx, sut, handler, listener, events, el };
   }

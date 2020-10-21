@@ -9,7 +9,7 @@ import {
   ITask,
   AccessorType,
 } from '@aurelia/runtime';
-import { IEventSubscriber } from './event-delegator';
+import { EventSubscriber } from './event-delegator';
 
 export interface ValueAttributeObserver
   extends ISubscriberCollection {}
@@ -35,7 +35,7 @@ export class ValueAttributeObserver implements IAccessor {
   public constructor(
     public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
-    public readonly handler: IEventSubscriber,
+    public readonly handler: EventSubscriber,
     public readonly obj: Node & IIndexable,
     public readonly propertyKey: string,
   ) {

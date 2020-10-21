@@ -1,5 +1,4 @@
 import { DI, IDisposable } from '@aurelia/kernel';
-import { IDOM } from '@aurelia/runtime';
 
 const defaultOptions: AddEventListenerOptions = {
   capture: false,
@@ -96,39 +95,28 @@ export class DelegateSubscription implements IDisposable {
   }
 }
 
-export interface IEventSubscriber extends IDisposable {
-  subscribe(node: Node, callbackOrListener: EventListenerOrEventListenerObject): void;
-}
-
-export class EventSubscriber implements IEventSubscriber {
-  private target: Node = null!;
-  private handler: EventListenerOrEventListenerObject = null!;
+export class EventSubscriber {
+  private target: EventTarget | null = null;
+  private handler: EventListenerOrEventListenerObject | null = null;
 
   public constructor(
-    private readonly dom: IDOM,
     private readonly events: string[],
   ) {}
 
-  public subscribe(node: Node, callbackOrListener: EventListenerOrEventListenerObject): void {
+  public subscribe(node: EventTarget, callbackOrListener: EventListenerOrEventListenerObject): void {
     this.target = node;
     this.handler = callbackOrListener;
-
-    const add = this.dom.addEventListener;
-    const events = this.events;
-
-    for (let i = 0, ii = events.length; ii > i; ++i) {
-      add(events[i], callbackOrListener, node);
+    for (const event of this.events) {
+      node.addEventListener(event, callbackOrListener);
     }
   }
 
   public dispose(): void {
-    const node = this.target;
-    const callbackOrListener = this.handler;
-    const events = this.events;
-    const dom = this.dom;
-
-    for (let i = 0, ii = events.length; ii > i; ++i) {
-      dom.removeEventListener(events[i], callbackOrListener, node);
+    const { target, handler } = this;
+    if (target !== null && handler !== null) {
+      for (const event of this.events) {
+        target.removeEventListener(event, handler);
+      }
     }
 
     this.target = this.handler = null!;

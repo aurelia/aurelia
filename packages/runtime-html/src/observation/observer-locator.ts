@@ -1,4 +1,3 @@
-
 import { IContainer, IResolver, Registration, IIndexable } from '@aurelia/kernel';
 import {
   IBindingTargetAccessor,
@@ -97,20 +96,20 @@ export class TargetObserverLocator implements ITargetObserverLocator {
   ): IBindingTargetObserver | IBindingTargetAccessor | null {
     switch (propertyName) {
       case 'checked':
-        return new CheckedObserver(scheduler, flags, lifecycle, new EventSubscriber(this.dom, inputEvents), obj as IInputElement);
+        return new CheckedObserver(scheduler, flags, lifecycle, new EventSubscriber(inputEvents), obj as IInputElement);
       case 'value':
         if ((obj as Element).tagName === 'SELECT') {
-          return new SelectValueObserver(scheduler, flags, observerLocator, this.dom, new EventSubscriber(this.dom, selectEvents), obj as ISelectElement);
+          return new SelectValueObserver(scheduler, flags, observerLocator, this.dom, new EventSubscriber(selectEvents), obj as ISelectElement);
         }
-        return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(this.dom, inputEvents), obj as Node & IIndexable, propertyName);
+        return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(inputEvents), obj as Node & IIndexable, propertyName);
       case 'files':
-        return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(this.dom, inputEvents), obj as Node & IIndexable, propertyName);
+        return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(inputEvents), obj as Node & IIndexable, propertyName);
       case 'textContent':
       case 'innerHTML':
-        return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(this.dom, contentEvents), obj as Node & IIndexable, propertyName);
+        return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(contentEvents), obj as Node & IIndexable, propertyName);
       case 'scrollTop':
       case 'scrollLeft':
-        return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(this.dom, scrollEvents), obj as Node & IIndexable, propertyName);
+        return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(scrollEvents), obj as Node & IIndexable, propertyName);
       case 'class':
         return new ClassAttributeAccessor(scheduler, flags, obj as HTMLElement);
       case 'style':

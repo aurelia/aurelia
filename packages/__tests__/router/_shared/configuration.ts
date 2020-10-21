@@ -1,4 +1,4 @@
-import { IContainer, Registration, IRegistry, LoggerConfiguration, LogLevel, ColorOptions, PLATFORM } from '@aurelia/kernel';
+import { IContainer, Registration, IRegistry, LoggerConfiguration, LogLevel, ColorOptions } from '@aurelia/kernel';
 import { MockBrowserHistoryLocation, HTMLTestContext } from '@aurelia/testing';
 import { IRouter } from '@aurelia/router';
 import { IHistory, ILocation } from '@aurelia/runtime-html';
@@ -12,7 +12,7 @@ export const TestRouterConfiguration = {
           LoggerConfiguration.create({
             $console: console,
             level: logLevel,
-            colorOptions: PLATFORM.isNodeLike ? ColorOptions.colors : ColorOptions.noColors,
+            colorOptions: ColorOptions.noColors,
           }),
         );
 

@@ -33,12 +33,6 @@ const isBrowserLike = (
   && typeof (window as unknown as { document: unknown }).document !== 'undefined'
 );
 
-const isNodeLike = (
-  typeof process !== 'undefined'
-  && process.versions != null
-  && process.versions.node != null
-);
-
 // performance.now polyfill for non-browser envs based on https://github.com/myrne/performance-now
 const $now = (function (): () => number {
   let getNanoSeconds: () => number;
@@ -95,14 +89,6 @@ const $PLATFORM = {
    */
   isBrowserLike,
 
-  /**
-   * `true` if there is a `process` variable in the global scope with a `versions` property which has a `node` property.
-   *
-   * NOTE: this is not a guarantee that the code is actually running in nodejs, as some libraries tamper with globals.
-   * The only conclusion that can be drawn is that the `process` global is available and likely behaves similar to how it would in nodejs.
-   */
-  isNodeLike,
-
   global: $global,
   emptyArray,
   emptyObject,
@@ -123,14 +109,6 @@ interface IPlatform extends IPerformance {
    * The only conclusion that can be drawn is that the `window` global is available and likely behaves similar to how it would in a browser.
    */
   isBrowserLike: boolean;
-
-  /**
-   * `true` if there is a `process` variable in the global scope with a `versions` property which has a `node` property.
-   *
-   * NOTE: this is not a guarantee that the code is actually running in nodejs, as some libraries tamper with globals.
-   * The only conclusion that can be drawn is that the `process` global is available and likely behaves similar to how it would in nodejs.
-   */
-  isNodeLike: boolean;
 
   global: IWindowOrWorkerGlobalScope;
   emptyArray: any[];

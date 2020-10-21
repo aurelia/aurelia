@@ -278,6 +278,262 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     assert.strictEqual(textNode.textContent, '1');
   });
 
+  describe('Erray', function () {
+    const testCases: ITestCase[] = [
+      {
+        title: 'observes .filter()',
+        init: () => Array.from(
+          { length: 3 },
+          (_, idx) => ({ id: idx + 1, name: `box ${idx + 1}`, delivered: false })
+        ),
+        get: post => post.packages.filter(d => d.delivered).length,
+        created: post => {
+          const decoratorCount = post.decoratorCount;
+          assert.strictEqual(post.callCount, 0);
+          post.newDelivery(4, 'box 4'); assert.strictEqual(post.callCount, 0);
+          post.delivered(1);            assert.strictEqual(post.callCount, 1 * decoratorCount);
+          post.delivered(4);            assert.strictEqual(post.callCount, 2 * decoratorCount);
+          post.newDelivery(5, 'box 5'); assert.strictEqual(post.callCount, 2 * decoratorCount);
+        },
+        disposed: post => {
+          const decoratorCount = post.decoratorCount;
+          assert.strictEqual(post.callCount, 2 * decoratorCount);
+          post.delivered(2);            assert.strictEqual(post.callCount, 2 * decoratorCount);
+        }
+      },
+      {
+        title: 'observes .find()',
+        init: () => Array.from(
+          { length: 3 },
+          (_, idx) => ({ id: idx + 1, name: `box ${idx + 1}`, delivered: false })
+        ),
+        get: post => post.packages.find(d => d.delivered),
+        created: post => {
+          const decoratorCount = post.decoratorCount;
+          assert.strictEqual(post.callCount, 0);
+          post.newDelivery(4, 'box 4'); assert.strictEqual(post.callCount, 0);
+          post.delivered(1);            assert.strictEqual(post.callCount, 1 * decoratorCount);
+          post.delivered(4);            assert.strictEqual(post.callCount, 1 * decoratorCount);
+          post.undelivered(4);          assert.strictEqual(post.callCount, 1 * decoratorCount);
+          post.undelivered(1);          assert.strictEqual(post.callCount, 2 * decoratorCount);
+        },
+        disposed: post => {
+          const decoratorCount = post.decoratorCount;
+          assert.strictEqual(post.callCount, 2 * decoratorCount);
+          post.delivered(1);            assert.strictEqual(post.callCount, 2 * decoratorCount);
+        }
+      },
+      {
+        title: 'observes .indexOf()',
+        init: () => Array.from(
+          { length: 3 },
+          (_, idx) => ({ id: idx + 1, name: `box ${idx + 1}`, delivered: false })
+        ),
+        get: post => post.packages.indexOf(post.selected),
+        created: post => {
+          const decoratorCount = post.decoratorCount;
+          assert.strictEqual(post.callCount, 0);
+          post.selected = post.packages[2];     assert.strictEqual(post.callCount, 1 * decoratorCount);
+          post.selected = post.packages[1];     assert.strictEqual(post.callCount, 2 * decoratorCount);
+          post.selected = null;                 assert.strictEqual(post.callCount, 3 * decoratorCount);
+        },
+        disposed: post => {
+          const decoratorCount = post.decoratorCount;
+          assert.strictEqual(post.callCount, 3 * decoratorCount);
+          post.selected = post.packages[1];     assert.strictEqual(post.callCount, 3 * decoratorCount);
+        }
+      },
+      {
+        title: 'observes .findIndex()',
+        init: () => Array.from(
+          { length: 3 },
+          (_, idx) => ({ id: idx + 1, name: `box ${idx + 1}`, delivered: false })
+        ),
+        get: post => post.packages.findIndex(v => v === post.selected),
+        created: post => {
+          const decoratorCount = post.decoratorCount;
+          assert.strictEqual(post.callCount, 0);
+          post.selected = post.packages[2];     assert.strictEqual(post.callCount, 1 * decoratorCount);
+          post.selected = post.packages[1];     assert.strictEqual(post.callCount, 2 * decoratorCount);
+          post.selected = null;                 assert.strictEqual(post.callCount, 3 * decoratorCount);
+        },
+        disposed: post => {
+          const decoratorCount = post.decoratorCount;
+          assert.strictEqual(post.callCount, 3 * decoratorCount);
+          post.selected = post.packages[1];     assert.strictEqual(post.callCount, 3 * decoratorCount);
+        }
+      },
+      {
+        title: 'observes .some()',
+        init: () => Array.from(
+          { length: 3 },
+          (_, idx) => ({ id: idx + 1, name: `box ${idx + 1}`, delivered: false })
+        ),
+        get: post => post.packages.some(d => d.delivered),
+        created: post => {
+          const decoratorCount = post.decoratorCount;
+          assert.strictEqual(post.callCount, 0);
+          post.newDelivery(4, 'box 4'); assert.strictEqual(post.callCount, 0);
+          post.delivered(1);            assert.strictEqual(post.callCount, 1 * decoratorCount);
+          post.delivered(4);            assert.strictEqual(post.callCount, 1 * decoratorCount);
+          post.undelivered(4);          assert.strictEqual(post.callCount, 1 * decoratorCount);
+          post.undelivered(1);          assert.strictEqual(post.callCount, 2 * decoratorCount);
+        },
+        disposed: post => {
+          const decoratorCount = post.decoratorCount;
+          assert.strictEqual(post.callCount, 2 * decoratorCount);
+          post.delivered(1);            assert.strictEqual(post.callCount, 2 * decoratorCount);
+        }
+      },
+    ];
+
+    for (const { title, only, init, get, created, disposed } of testCases) {
+      const $it = only ? it.only : it;
+      $it(`${title} on class`, async function () {
+        @watch(get, 'log')
+        class App implements IPostOffice {
+          public decoratorCount: number = 1;
+          public packages: IDelivery[] = init?.() ?? [];
+          public selected: IDelivery;
+          public counter: number = 0;
+          public callCount: number = 0;
+
+          public delivered(id: number): void {
+            let p = this.packages.find(p => p.id === id);
+            if (p) {
+              p.delivered = true;
+            }
+          }
+
+          public undelivered(id: number): void {
+            let p = this.packages.find(p => p.id === id);
+            if (p) {
+              p.delivered = false;
+            }
+          }
+
+          public newDelivery(id: number, name: string, delivered = false): void {
+            this.packages.push({ id, name, delivered });
+          }
+
+          public log(): void {
+            this.callCount++;
+          }
+        }
+
+        const { component, ctx, startPromise, tearDown } = createFixture('', App);
+
+        await startPromise;
+        created(component, ctx, 1);
+        await tearDown();
+        disposed?.(component, ctx, 1);
+      });
+
+      $it(`${title} on method`, async function () {
+        class App implements IPostOffice {
+          public decoratorCount: number = 1;
+          public packages: IDelivery[] = init?.() ?? [];
+          public selected: IDelivery;
+          public counter: number = 0;
+          public callCount: number = 0;
+
+          public delivered(id: number): void {
+            let p = this.packages.find(p => p.id === id);
+            if (p) {
+              p.delivered = true;
+            }
+          }
+
+          public undelivered(id: number): void {
+            let p = this.packages.find(p => p.id === id);
+            if (p) {
+              p.delivered = false;
+            }
+          }
+
+          public newDelivery(id: number, name: string, delivered = false): void {
+            this.packages.push({ id, name, delivered });
+          }
+
+          @watch(get)
+          public log(): void {
+            this.callCount++;
+          }
+        }
+
+        const { component, ctx, startPromise, tearDown } = createFixture('', App);
+
+        await startPromise;
+        created(component, ctx, 1);
+        await tearDown();
+        disposed?.(component, ctx, 1);
+      });
+
+      $it(`${title} on both class and method`, async function () {
+        @watch(get, 'log')
+        class App implements IPostOffice {
+          public decoratorCount: number = 2;
+          public packages: IDelivery[] = init?.() ?? [];
+          public selected: IDelivery;
+          public counter: number = 0;
+          public callCount: number = 0;
+
+          public delivered(id: number): void {
+            let p = this.packages.find(p => p.id === id);
+            if (p) {
+              p.delivered = true;
+            }
+          }
+
+          public undelivered(id: number): void {
+            let p = this.packages.find(p => p.id === id);
+            if (p) {
+              p.delivered = false;
+            }
+          }
+
+          public newDelivery(id: number, name: string, delivered = false): void {
+            this.packages.push({ id, name, delivered });
+          }
+
+          @watch(get)
+          public log(): void {
+            this.callCount++;
+          }
+        }
+
+        const { component, ctx, startPromise, tearDown } = createFixture('', App);
+
+        await startPromise;
+        created(component, ctx, 1);
+        await tearDown();
+        disposed?.(component, ctx, 1);
+      });
+    }
+
+    interface IPostOffice {
+      decoratorCount: number;
+      packages: IDelivery[];
+      selected: IDelivery;
+      counter: number;
+      callCount: number;
+
+      newDelivery(id: number, name: string, delivered?: boolean): void;
+      delivered(id: number): void;
+      undelivered(id: number): void;
+      log(): void;
+    }
+
+    interface ITestCase {
+      title: string;
+      only?: boolean;
+      init?: () => IDelivery[];
+      get: IDepCollectionFn<IPostOffice>;
+      created: (post: IPostOffice, ctx: HTMLTestContext, decoratorCount: number) => any;
+      disposed?: (post: IPostOffice, ctx: HTMLTestContext, decoratorCount: number) => any;
+    }
+  });
+
   describe('Map/Set', function () {
     const symbol = Symbol();
 
@@ -402,21 +658,32 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       {
         title: 'works when getter throws error',
         get: app => {
-          if (app.counter++ === 0) {
-            return 0;
+          if (app.decoratorCount === 2) {
+            if (app.counter++ <= 2) {
+              return 0;
+            }
+          } else {
+            if (app.counter++ === 0) {
+              return 0;
+            }
           }
           throw new Error('err');
         },
         created: app => {
           assert.strictEqual(app.callCount, 0);
-          let ex: unknown;
+          let ex: Error;
           try {
-            app.counter++;
+            if (app.decoratorCount === 2) {
+              app.counter = 0;
+            } else {
+              app.counter++;
+            }
           } catch (e) {
             ex = e;
           }
           assert.strictEqual(app.callCount, 0);
           assert.instanceOf(ex, Error);
+          assert.strictEqual(ex.message, 'err');
         },
       },
       {
@@ -465,7 +732,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
 
     for (const { title, only = false, get, created, disposed } of testCases) {
       const $it = only ? it.only : it;
-      $it(`${title} on method`, function () {
+      $it(`${title} on method`, async function () {
         class App implements IApp {
           public decoratorCount: number = 1;
           public map: Map<unknown, unknown> = new Map();
@@ -479,13 +746,14 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           }
         }
 
-        const { ctx, component, tearDown } = createFixture('', App);
+        const { ctx, component, startPromise, tearDown } = createFixture('', App);
+        await startPromise;
         created(component, ctx, 1);
-        tearDown();
+        await tearDown();
         disposed?.(component, ctx, 1);
       });
 
-      $it(`${title} on class`, function () {
+      $it(`${title} on class`, async function () {
         @watch(get, (v, o, a) => a.log())
         class App implements IApp {
           public decoratorCount: number = 1;
@@ -499,13 +767,14 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           }
         }
 
-        const { ctx, component, tearDown } = createFixture('', App);
+        const { ctx, component, tearDown, startPromise } = createFixture('', App);
+        await startPromise
         created(component, ctx, 1);
-        tearDown();
+        await tearDown();
         disposed?.(component, ctx, 1);
       });
 
-      $it(`${title} on both class and method`, function () {
+      $it(`${title} on both class and method`, async function () {
         @watch(get, (v, o, a) => a.log())
         class App implements IApp {
           public decoratorCount: number = 2;
@@ -520,9 +789,10 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           }
         }
 
-        const { ctx, component, tearDown } = createFixture('', App);
+        const { ctx, component, startPromise, tearDown } = createFixture('', App);
+        await startPromise;
         created(component, ctx, 2);
-        tearDown();
+        await tearDown();
         disposed?.(component, ctx, 2);
       });
     }

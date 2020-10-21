@@ -7,8 +7,8 @@ import { Collection } from '../observation';
 // so it works even without proxy
 export interface IWatcher {
   observe(obj: object, property: PropertyKey): void;
-  observeCollection<T extends Collection>(collection: T): T;
-  observeLength<T extends Collection>(collection: T): T;
+  observeCollection(collection: Collection): void;
+  observeLength(collection: Collection): void;
 }
 
 /**

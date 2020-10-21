@@ -113,7 +113,6 @@ export interface IDOM<T extends INode = INode> {
   makeTarget(node: T): void;
   registerElementResolver(container: IContainer, resolver: IResolver): void;
   remove(node: T): void;
-  removeEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
   setAttribute(node: T, name: string, value: unknown): void;
 }
 
@@ -142,7 +141,6 @@ const niDOM: IDOM = {
   makeTarget: ni,
   registerElementResolver: ni,
   remove: ni,
-  removeEventListener: ni,
   setAttribute: ni
 };
 

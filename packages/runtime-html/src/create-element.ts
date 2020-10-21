@@ -7,14 +7,13 @@ import {
 import {
   CustomElement,
   CustomElementType,
-  IDOM,
-  INode,
   IViewFactory,
   CustomElementDefinition,
   ICompositionContext,
   getCompositionContext,
   ISyntheticView,
 } from '@aurelia/runtime';
+import { HTMLDOM } from './dom';
 import {
   HydrateElementInstruction,
   isInstruction,
@@ -23,8 +22,8 @@ import {
   InstructionType,
 } from './instructions';
 
-export function createElement<T extends INode = Node, C extends Constructable = Constructable>(
-  dom: IDOM<T>,
+export function createElement<T extends HTMLElement = HTMLElement, C extends Constructable = Constructable>(
+  dom: HTMLDOM,
   tagOrType: string | C,
   props?: Record<string, string | Instruction>,
   children?: ArrayLike<unknown>
@@ -41,11 +40,11 @@ export function createElement<T extends INode = Node, C extends Constructable = 
 /**
  * CompositionPlan. Todo: describe goal of this class
  */
-export class CompositionPlan<T extends INode = Node> {
+export class CompositionPlan<T extends HTMLElement = HTMLElement> {
   private lazyDefinition?: CustomElementDefinition = void 0;
 
   public constructor(
-    private readonly dom: IDOM<T>,
+    private readonly dom: HTMLDOM,
     private readonly node: T,
     private readonly instructions: Instruction[][],
     private readonly dependencies: Key[]
@@ -84,11 +83,11 @@ export class CompositionPlan<T extends INode = Node> {
   }
 }
 
-function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, props?: Record<string, string | Instruction>, children?: ArrayLike<unknown>): CompositionPlan<T> {
+function createElementForTag<T extends HTMLElement>(dom: HTMLDOM, tagName: string, props?: Record<string, string | Instruction>, children?: ArrayLike<unknown>): CompositionPlan<T> {
   const instructions: Instruction[] = [];
   const allInstructions: Instruction[][] = [];
   const dependencies: IRegistry[] = [];
-  const element = dom.createElement(tagName);
+  const element = dom.createElement(tagName) as T;
   let hasInstructions = false;
 
   if (props) {
@@ -100,7 +99,7 @@ function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, pro
           hasInstructions = true;
           instructions.push(value);
         } else {
-          dom.setAttribute(element, to, value);
+          element.setAttribute(to, value);
         }
       });
   }
@@ -117,8 +116,8 @@ function createElementForTag<T extends INode>(dom: IDOM<T>, tagName: string, pro
   return new CompositionPlan(dom, element, allInstructions, dependencies);
 }
 
-function createElementForType<T extends INode>(
-  dom: IDOM<T>,
+function createElementForType<T extends HTMLElement>(
+  dom: HTMLDOM,
   Type: CustomElementType,
   props?: Record<string, unknown>,
   children?: ArrayLike<unknown>,
@@ -130,7 +129,7 @@ function createElementForType<T extends INode>(
   const dependencies: Key[] = [];
   const childInstructions: Instruction[] = [];
   const bindables = definition.bindables;
-  const element = dom.createElement(tagName);
+  const element = dom.createElement(tagName) as T;
 
   dom.makeTarget(element);
 
@@ -170,8 +169,8 @@ function createElementForType<T extends INode>(
   return new CompositionPlan<T>(dom, element, allInstructions, dependencies);
 }
 
-function addChildren<T extends INode>(
-  dom: IDOM<T>,
+function addChildren<T extends HTMLElement>(
+  dom: HTMLDOM,
   parent: T,
   children: ArrayLike<unknown>,
   allInstructions: Instruction[][],

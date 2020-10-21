@@ -8,7 +8,7 @@ import {
   customElement,
   getCompositionContext,
 } from '@aurelia/runtime';
-import { Aurelia, CompositionPlan } from '@aurelia/runtime-html';
+import { Aurelia, CompositionPlan, HTMLDOM } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
   TestContext,
@@ -30,7 +30,7 @@ describe(spec, function () {
 
   interface SpecContext {
     container: IContainer;
-    dom: IDOM;
+    dom: HTMLDOM;
     au: Aurelia;
     host: HTMLElement;
     lifecycle: ILifecycle;
@@ -79,7 +79,7 @@ describe(spec, function () {
     // },
     {
       t: '6',
-      createSubject: ctx => new CompositionPlan(ctx.dom, `<div>Hello!</div>`, [], []),
+      createSubject: ctx => new CompositionPlan(ctx.dom, `<div>Hello!</div>` as any, [], []),
       expectedText: 'Hello!'
     }
   ];

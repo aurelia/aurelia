@@ -391,9 +391,6 @@ export class AuDOM implements IDOM<AuNode> {
   public remove(node: AuNode): void {
     node.remove();
   }
-  public setAttribute(node: AuNode, name: string, value: unknown): void {
-    (node as AuNode & Record<string, unknown>)[name] = value;
-  }
   public createCustomEvent(eventType: string, options?: unknown): unknown {
     throw new Error('Method not implemented.');
   }

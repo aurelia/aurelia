@@ -24,10 +24,11 @@ import {
   ControllerVisitor,
 } from '@aurelia/runtime';
 import { createElement, CompositionPlan } from '../../create-element';
+import { HTMLDOM } from '../../dom';
 import { HydrateElementInstruction, Instruction } from '../../instructions';
 
-export type Subject<T extends INode = Node> = IViewFactory<T> | ISyntheticView<T> | CompositionPlan<T> | Constructable | CustomElementDefinition;
-export type MaybeSubjectPromise<T> = Subject<T> | Promise<Subject<T>> | undefined;
+export type Subject<T extends HTMLElement = HTMLElement> = IViewFactory<T> | ISyntheticView<T> | CompositionPlan<T> | Constructable | CustomElementDefinition;
+export type MaybeSubjectPromise<T extends HTMLElement> = Subject<T> | Promise<Subject<T>> | undefined;
 
 function toLookup(
   acc: Record<string, Instruction>,
@@ -42,7 +43,7 @@ function toLookup(
 }
 
 @customElement({ name: 'au-compose', template: null, containerless: true })
-export class Compose<T extends INode = Node> implements ICustomElementViewModel<T> {
+export class Compose<T extends HTMLElement = HTMLElement> implements ICustomElementViewModel<T> {
   public readonly id: number = nextId('au$component');
 
   @bindable public subject?: MaybeSubjectPromise<T> = void 0;
@@ -57,7 +58,7 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
   public readonly $controller!: ICustomElementController<T, this>; // This is set by the controller after this instance is constructed
 
   public constructor(
-    @IDOM private readonly dom: IDOM<T>,
+    @IDOM private readonly dom: HTMLDOM,
     @IInstruction instruction: HydrateElementInstruction,
   ) {
     this.properties = instruction.instructions.reduce(toLookup, {});
@@ -189,7 +190,7 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
     }
 
     // Constructable (Custom Element Constructor)
-    return createElement(
+    return createElement<T>(
       this.dom,
       subject,
       this.properties,
@@ -219,6 +220,6 @@ export class Compose<T extends INode = Node> implements ICustomElementViewModel<
   }
 }
 
-function isController<T extends INode = INode>(subject: Subject<T>): subject is ISyntheticView<T> {
+function isController<T extends HTMLElement = HTMLElement>(subject: Subject<T>): subject is ISyntheticView<T> {
   return 'lockScope' in subject;
 }

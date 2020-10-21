@@ -283,10 +283,6 @@ export class HTMLDOM implements IDOM {
       node.parentNode!.removeChild(node);
     }
   }
-
-  public setAttribute(node: Element, name: string, value: unknown): void {
-    node.setAttribute(name, value as string);
-  }
 }
 
 const $DOM = DOM as unknown as HTMLDOM;

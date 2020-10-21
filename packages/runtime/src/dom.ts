@@ -113,7 +113,6 @@ export interface IDOM<T extends INode = INode> {
   makeTarget(node: T): void;
   registerElementResolver(container: IContainer, resolver: IResolver): void;
   remove(node: T): void;
-  setAttribute(node: T, name: string, value: unknown): void;
 }
 
 const ni = function (...args: unknown[]): unknown {
@@ -141,7 +140,6 @@ const niDOM: IDOM = {
   makeTarget: ni,
   registerElementResolver: ni,
   remove: ni,
-  setAttribute: ni
 };
 
 export const DOM: IDOM & {

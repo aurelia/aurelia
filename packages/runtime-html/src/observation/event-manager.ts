@@ -14,26 +14,24 @@ class ListenerTracker implements IDisposable {
     private readonly publisher: EventTarget,
     private readonly eventName: string,
     private readonly options: AddEventListenerOptions = defaultOptions,
-  ) {
-    this.handleEvent = this.handleEvent.bind(this);
-  }
+  ) {}
 
   public increment(): void {
     if (++this.count === 1) {
-      this.publisher.addEventListener(this.eventName, this.handleEvent, this.options);
+      this.publisher.addEventListener(this.eventName, this, this.options);
     }
   }
 
   public decrement(): void {
     if (--this.count === 0) {
-      this.publisher.removeEventListener(this.eventName, this.handleEvent, this.options);
+      this.publisher.removeEventListener(this.eventName, this, this.options);
     }
   }
 
   public dispose(): void {
     if (this.count > 0) {
       this.count = 0;
-      this.publisher.removeEventListener(this.eventName, this.handleEvent, this.options);
+      this.publisher.removeEventListener(this.eventName, this, this.options);
     }
     this.captureLookups.clear();
     this.bubbleLookups.clear();
@@ -49,7 +47,8 @@ class ListenerTracker implements IDisposable {
     return lookup;
   }
 
-  private handleEvent(event: Event): void {
+  /** @internal */
+  public handleEvent(event: Event): void {
     const lookups = this.options.capture === true ? this.captureLookups : this.bubbleLookups;
     const path = event.composedPath();
     if (this.options.capture === true) {

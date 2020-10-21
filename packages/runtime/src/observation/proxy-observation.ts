@@ -55,12 +55,11 @@ const objectHandler: ProxyHandler<object> = {
     const connectable = currentWatcher();
 
     if (!watching || doNotCollect(target, key) || connectable == null) {
-      // maybe just use symbol
       return R$get(target, key, receiver);
     }
 
     // todo: static
-    connectable.observeProperty(LifecycleFlags.none, target, key as string);
+    connectable.observe(target, key);
 
     return getProxyOrSelf(R$get(target, key, receiver));
   },
@@ -124,9 +123,14 @@ const arrayHandler: ProxyHandler<unknown[]> = {
         return wrappedEntries;
     }
 
-    connectable.observeProperty(LifecycleFlags.none, target, key as string);
+    connectable.observe(target, key);
 
     return getProxyOrSelf(R$get(target, key, receiver));
+  },
+  // for (let i in array) ...
+  ownKeys(target: unknown[]): PropertyKey[] {
+    currentWatcher()?.observeLength(target);
+    return Reflect.ownKeys(target);
   },
 };
 

@@ -4,7 +4,7 @@ import {
   IIndexable,
   PLATFORM,
   IServiceLocator,
-  isArrayIndex
+  isArrayIndex,
 } from '@aurelia/kernel';
 import { LifecycleFlags, ExpressionKind } from '../flags';
 import { ILifecycle } from '../lifecycle';
@@ -322,7 +322,7 @@ export class ComputedWatcher implements IWatcher {
   private readonly observers: Map<ICollectionObserver<CollectionKind>, number> = new Map();
   // todo: maybe use a counter allow recursive call to a certain level
   private running: boolean = false;
-  private v: unknown = void 0;
+  private value: unknown = void 0;
 
   public isBound: boolean = false;
 
@@ -360,6 +360,11 @@ export class ComputedWatcher implements IWatcher {
     this.unobserveCollection(true);
   }
 
+  public observe(obj: object, key: PropertyKey): void {
+    const observer = this.observerLocator.getObserver(LifecycleFlags.none, obj, key as string) as IBindingTargetObserver;
+    this.addObserver(observer);
+  }
+
   public observeCollection<T extends Collection>(collection: T): T {
     const obs = this.forCollection(collection);
     this.observers.set(obs, this.version);
@@ -377,7 +382,7 @@ export class ComputedWatcher implements IWatcher {
       return;
     }
     const obj = this.obj;
-    const oldValue = this.v;
+    const oldValue = this.value;
     const newValue = this.compute();
 
     if (!Object.is(newValue, oldValue)) {
@@ -391,14 +396,14 @@ export class ComputedWatcher implements IWatcher {
     this.version++;
     try {
       enterWatcher(this);
-      this.v = getRawOrSelf(this.get(getProxyOrSelf(this.obj), this));
+      this.value = getRawOrSelf(this.get(getProxyOrSelf(this.obj), this));
     } finally {
       exitWatcher(this);
       this.unobserve(false);
       this.unobserveCollection(false);
+      this.running = false;
     }
-    this.running = false;
-    return this.v;
+    return this.value;
   }
 
   private forCollection(collection: Collection): ICollectionObserver<CollectionKind> {
@@ -436,7 +441,7 @@ export class ExpressionWatcher implements ExpressionWatcher {
   /**
    * @internal
    */
-  private v: any;
+  private value: any;
   /**
    * @internal
    */
@@ -448,17 +453,17 @@ export class ExpressionWatcher implements ExpressionWatcher {
     public scope: Scope,
     public locator: IServiceLocator,
     public observerLocator: IObserverLocator,
-    private readonly expr: IsBindingBehavior,
-    private readonly cb: IWatcherCallback<object>,
+    private readonly expression: IsBindingBehavior,
+    private readonly callback: IWatcherCallback<object>,
   ) {
     this.obj = scope.bindingContext;
     connectable.assignIdTo(this);
   }
 
   public handleChange(value: unknown): void {
-    const expr = this.expr;
+    const expr = this.expression;
     const obj = this.obj;
-    const oldValue = this.v;
+    const oldValue = this.value;
     const canOptimize = expr.$kind === ExpressionKind.AccessScope && this.observerSlots === 1;
     if (!canOptimize) {
       this.version++;
@@ -466,9 +471,9 @@ export class ExpressionWatcher implements ExpressionWatcher {
       this.unobserve(false);
     }
     if (!Object.is(value, oldValue)) {
-      this.v = value;
+      this.value = value;
       // should optionally queue for batch synchronous
-      this.cb.call(obj, value, oldValue, obj);
+      this.callback.call(obj, value, oldValue, obj);
     }
   }
 
@@ -478,7 +483,7 @@ export class ExpressionWatcher implements ExpressionWatcher {
     }
     this.isBound = true;
     this.version++;
-    this.v = this.expr.evaluate(0, this.scope, null, this.locator, this);
+    this.value = this.expression.evaluate(LifecycleFlags.none, this.scope, null, this.locator, this);
     this.unobserve(false);
   }
 
@@ -488,7 +493,7 @@ export class ExpressionWatcher implements ExpressionWatcher {
     }
     this.isBound = false;
     this.unobserve(true);
-    this.v = void 0;
+    this.value = void 0;
   }
 }
 

@@ -7,7 +7,7 @@ import { Collection } from '../observation';
 // An alternative way is to make collection observation manual & user controllable
 // so it works even without proxy
 export interface IWatcher {
-  observeProperty(flags: LifecycleFlags, obj: object, property: PropertyKey): void;
+  observe(obj: object, property: PropertyKey): void;
   observeCollection<T extends Collection>(collection: T): T;
   observeLength<T extends Collection>(collection: T): T;
 }

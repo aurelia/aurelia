@@ -28,11 +28,6 @@ const $global: IWindowOrWorkerGlobalScope = (function (): IWindowOrWorkerGlobalS
   }
 })();
 
-const isBrowserLike = (
-  typeof window !== 'undefined'
-  && typeof (window as unknown as { document: unknown }).document !== 'undefined'
-);
-
 // performance.now polyfill for non-browser envs based on https://github.com/myrne/performance-now
 const $now = (function (): () => number {
   let getNanoSeconds: () => number;
@@ -81,14 +76,6 @@ const emptyArray = Object.freeze([]) as unknown as any[];
 const emptyObject = Object.freeze({}) as any;
 
 const $PLATFORM = {
-  /**
-   * `true` if there is a `window` variable in the global scope with a `document` property.
-   *
-   * NOTE: this does not guarantee that the code is actually running in a browser, as some libraries tamper with globals.
-   * The only conclusion that can be drawn is that the `window` global is available and likely behaves similar to how it would in a browser.
-   */
-  isBrowserLike,
-
   global: $global,
   emptyArray,
   emptyObject,
@@ -102,14 +89,6 @@ const $PLATFORM = {
 };
 
 interface IPlatform extends IPerformance {
-  /**
-   * `true` if there is a `window` variable in the global scope with a `document` property.
-   *
-   * NOTE: this does not guarantee that the code is actually running in a browser, as some libraries tamper with globals.
-   * The only conclusion that can be drawn is that the `window` global is available and likely behaves similar to how it would in a browser.
-   */
-  isBrowserLike: boolean;
-
   global: IWindowOrWorkerGlobalScope;
   emptyArray: any[];
   emptyObject: any;

@@ -454,9 +454,9 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
       assertFnAfterDestroy = PLATFORM.noop,
       testWillThrow
     } = testCase;
-    if (!PLATFORM.isBrowserLike && browserOnly) {
-      continue;
-    }
+    // if (!PLATFORM.isBrowserLike && browserOnly) {
+    //   continue;
+    // }
     const suit = (_title: string, fn: any) => only
       ? it.only(_title, fn)
       : it(_title, fn);

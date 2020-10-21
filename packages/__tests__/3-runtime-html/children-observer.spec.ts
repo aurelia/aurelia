@@ -44,9 +44,9 @@ describe('ChildrenObserver', function () {
   });
 
   describe('updates', function () {
-    if (!PLATFORM.isBrowserLike) {
-      return;
-    }
+    // if (!PLATFORM.isBrowserLike) {
+    //   return;
+    // }
 
     it('children array with child view models', function (done) {
       const { au, viewModel, ChildOne, ChildTwo, hostViewModel } = createAppAndStart();

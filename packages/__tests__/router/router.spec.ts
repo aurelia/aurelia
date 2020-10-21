@@ -769,45 +769,45 @@ describe('Router', function () {
     await tearDown();
   });
 
-  if (PLATFORM.isBrowserLike) {
-    // TODO: figure out why this works in nodejs locally but not in CI and fix it
-    it.skip('keeps input when stateful', async function () {
-      this.timeout(15000);
+  // if (PLATFORM.isBrowserLike) {
+  // TODO: figure out why this works in nodejs locally but not in CI and fix it
+  it.skip('keeps input when stateful', async function () {
+    this.timeout(15000);
 
-      const { scheduler, host, router, tearDown } = await createFixture();
+    const { scheduler, host, router, tearDown } = await createFixture();
 
-      await $goto('grault@left', router, scheduler);
-      assert.includes(host.textContent, 'toggle', `host.textContent`);
-      assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
-      assert.notIncludes(host.textContent, 'garply', `host.textContent`);
+    await $goto('grault@left', router, scheduler);
+    assert.includes(host.textContent, 'toggle', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
+    assert.notIncludes(host.textContent, 'garply', `host.textContent`);
 
-      (host as any).getElementsByTagName('INPUT')[0].click();
+    (host as any).getElementsByTagName('INPUT')[0].click();
 
-      await scheduler.yieldAll();
+    await scheduler.yieldAll();
 
-      assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
-      assert.includes(host.textContent, 'garply', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
+    assert.includes(host.textContent, 'garply', `host.textContent`);
 
-      (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
+    (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
 
-      await scheduler.yieldAll();
+    await scheduler.yieldAll();
 
-      // NOT going to work since it loads non-stateful parent grault
-      await $goto('grault@left/corge@grault', router, scheduler);
+    // NOT going to work since it loads non-stateful parent grault
+    await $goto('grault@left/corge@grault', router, scheduler);
 
-      assert.notIncludes(host.textContent, 'garply', `host.textContent`);
-      assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
+    assert.notIncludes(host.textContent, 'garply', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
 
-      await $goto('grault@left/garply@grault', router, scheduler);
+    await $goto('grault@left/garply@grault', router, scheduler);
 
-      assert.notIncludes(host.textContent, 'Viewport: corge', `host.textContent`);
-      assert.includes(host.textContent, 'garply', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: corge', `host.textContent`);
+    assert.includes(host.textContent, 'garply', `host.textContent`);
 
-      assert.strictEqual((host as any).getElementsByTagName('INPUT')[1].value, 'asdf', `(host as any).getElementsByTagName('INPUT')[1].value`);
+    assert.strictEqual((host as any).getElementsByTagName('INPUT')[1].value, 'asdf', `(host as any).getElementsByTagName('INPUT')[1].value`);
 
-      await tearDown();
-    });
-  }
+    await tearDown();
+  });
+  // }
   it.skip('keeps input when grandparent stateful', async function () {
     this.timeout(5000);
 

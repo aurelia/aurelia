@@ -5,9 +5,9 @@ import { assert, createSpy, eachCartesianJoin, HTMLTestContext, TestContext } fr
 
 describe('[UNIT] blur.unit.spec.ts', function () {
 
-  if (!PLATFORM.isBrowserLike) {
-    return;
-  }
+  // if (!PLATFORM.isBrowserLike) {
+  //   return;
+  // }
 
   const falsyPansyValues = [false, 0, '', undefined, null];
 

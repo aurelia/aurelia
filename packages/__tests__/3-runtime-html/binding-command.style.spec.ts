@@ -25,19 +25,19 @@ describe('template-compiler.binding-commands.style', function () {
     ['background-color', 'red', ''],
     ['font-size', '10px', ''],
     ['font-family', 'Arial', ''],
-    ...(
-      // For tests that only work in the browser, only run them in the browser
-      PLATFORM.isBrowserLike
-        ? [
+    // ...(
+    //   // For tests that only work in the browser, only run them in the browser
+    //   PLATFORM.isBrowserLike
+    //     ? [
           ['-webkit-user-select', 'none', ''],
           ['--customprop', 'red', ''],
           ['--custumprop', 'nah!important', ''],
-        ] as [string, string, string][]
-        : [
+    //     ] as [string, string, string][]
+    //     : [
 
-        ]
-    )
-    ,
+    //     ]
+    // )
+    // ,
     ['background', 'red!important', ''],
     // non happy path
     ['-webkit-user-select', 'of course', '', true, ''],

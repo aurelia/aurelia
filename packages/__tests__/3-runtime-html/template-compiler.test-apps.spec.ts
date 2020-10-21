@@ -12,9 +12,9 @@ import { register } from '@aurelia/plugin-svg';
 
 describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
   it('renders fractal tree', async function () {
-    if (!PLATFORM.isBrowserLike) {
-      return;
-    }
+    // if (!PLATFORM.isBrowserLike) {
+    //   return;
+    // }
 
     const ctx = TestContext.createHTMLTestContext();
     const state = new State();

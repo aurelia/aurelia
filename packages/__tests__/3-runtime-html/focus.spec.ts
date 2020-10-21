@@ -5,9 +5,9 @@ import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aureli
 
 describe('focus.spec.ts', function () {
 
-  if (!PLATFORM.isBrowserLike) {
-    return;
-  }
+  // if (!PLATFORM.isBrowserLike) {
+  //   return;
+  // }
 
   interface IApp {
     hasFocus?: boolean;

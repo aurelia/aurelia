@@ -1,4 +1,3 @@
-import { LifecycleFlags } from '../flags';
 import { Collection } from '../observation';
 
 // todo:
@@ -57,11 +56,3 @@ export function exitWatcher(watcher: IWatcher): void {
   $watcher = watchers.length > 0 ? watchers[watchers.length - 1] : null;
   watching = $watcher != null;
 }
-
-// export const DepCollectorSwitcher = Object.freeze({
-//   getCurrentSubscriber: currentSub,
-//   enterSubscriber: enterSub,
-//   exitSubscriber: exitSub,
-//   pauseSubscription,
-//   resumeSubscription,
-// });

@@ -205,7 +205,7 @@ function wrappedArraySplice(this: unknown[], ...args: [number, number, ...unknow
 
 function wrappedArraySome(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => boolean, thisArg?: unknown): boolean {
   const raw = getRaw(this);
-  const res = raw.some((v, i) => getRawOrSelf(cb.call(thisArg, v, i, this)));
+  const res = raw.some((v, i) => getRawOrSelf(cb.call(thisArg, getProxyOrSelf(v), i, this)));
   currentWatcher()?.observeCollection(raw);
   return res;
 }

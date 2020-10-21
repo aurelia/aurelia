@@ -33,12 +33,6 @@ const isBrowserLike = (
   && typeof (window as unknown as { document: unknown }).document !== 'undefined'
 );
 
-const isWebWorkerLike = (
-  typeof self === 'object'
-  && self.constructor != null
-  && self.constructor.name === 'DedicatedWorkerGlobalScope'
-);
-
 const isNodeLike = (
   typeof process !== 'undefined'
   && process.versions != null
@@ -102,14 +96,6 @@ const $PLATFORM = {
   isBrowserLike,
 
   /**
-   * `true` if there is a `self` variable (of type `object`) in the global scope with constructor name `'DedicatedWorkerGlobalScope'`.
-   *
-   * NOTE: this does not guarantee that the code is actually running in a web worker, as some libraries tamper with globals.
-   * The only conclusion that can be drawn is that the `self` global is available and likely behaves similar to how it would in a web worker.
-   */
-  isWebWorkerLike,
-
-  /**
    * `true` if there is a `process` variable in the global scope with a `versions` property which has a `node` property.
    *
    * NOTE: this is not a guarantee that the code is actually running in nodejs, as some libraries tamper with globals.
@@ -137,14 +123,6 @@ interface IPlatform extends IPerformance {
    * The only conclusion that can be drawn is that the `window` global is available and likely behaves similar to how it would in a browser.
    */
   isBrowserLike: boolean;
-
-  /**
-   * `true` if there is a `self` variable (of type `object`) in the global scope with constructor name `'DedicatedWorkerGlobalScope'`.
-   *
-   * NOTE: this does not guarantee that the code is actually running in a web worker, as some libraries tamper with globals.
-   * The only conclusion that can be drawn is that the `self` global is available and likely behaves similar to how it would in a web worker.
-   */
-  isWebWorkerLike: boolean;
 
   /**
    * `true` if there is a `process` variable in the global scope with a `versions` property which has a `node` property.

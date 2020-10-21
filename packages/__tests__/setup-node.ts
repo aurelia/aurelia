@@ -5,7 +5,6 @@ import {
   TestContext,
 } from '@aurelia/testing';
 import {
-  Aurelia,
   RuntimeHtmlConfiguration
 } from '@aurelia/runtime-html';
 import { JSDOM } from 'jsdom';
@@ -32,8 +31,7 @@ function createJSDOMTestContext(): HTMLTestContext {
 function initializeJSDOMTestContext(): void {
   TestContext.createHTMLTestContext = createJSDOMTestContext;
   // Just trigger the HTMLDOM to be resolved once so it sets the DOM globals
-  const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, { pretendToBeVisual: true });
-  new Aurelia().app({ host: jsdom.window.document.body, component: class {} });
+  createJSDOMTestContext().scheduler.getRenderTaskQueue();
 
   // eslint-disable-next-line
   beforeEach(function() {

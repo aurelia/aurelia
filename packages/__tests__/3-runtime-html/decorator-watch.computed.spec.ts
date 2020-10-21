@@ -131,7 +131,6 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
 
   it('observes collection', function () {
     let callCount = 0;
-    let latestDelivered: IDelivery[] = [];
 
     class PostOffice {
       public storage: IDelivery[] = [
@@ -165,7 +164,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         deliveries.toString = function () {
           return json(this);
         };
-        latestDelivered = this.deliveries = deliveries;
+        this.deliveries = deliveries;
       }
     }
 
@@ -301,19 +300,19 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         title: 'observes .has()',
         // also asserts that mutation during getter run won't cause infinite run
         get: app => app.map.has(symbol) ? ++app.counter : 0,
-        created: (app) => {
+        created: (app, _, decoratorCount) => {
           assert.strictEqual(app.counter, 0);
           assert.strictEqual(app.callCount, 0);
           app.map.set(symbol, '');
-          assert.strictEqual(app.counter, 1 * app.decoratorCount);
-          assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+          assert.strictEqual(app.counter, decoratorCount === 2 ? 3 : 1);
+          assert.strictEqual(app.callCount, decoratorCount === 2 ? 3 : 1);
         },
-        disposed: (app) => {
-          assert.strictEqual(app.counter, 1 * app.decoratorCount);
-          assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+        disposed: (app, _, decoratorCount) => {
+          assert.strictEqual(app.counter,  decoratorCount === 2 ? 3 : 1);
+          assert.strictEqual(app.callCount,  decoratorCount === 2 ? 3 : 1);
           app.map.set(symbol, '');
-          assert.strictEqual(app.counter, 1 * app.decoratorCount);
-          assert.strictEqual(app.callCount, 1 * app.decoratorCount);
+          assert.strictEqual(app.counter, decoratorCount === 2 ? 3 : 1);
+          assert.strictEqual(app.callCount, decoratorCount === 2 ? 3 : 1);
         },
       },
       {
@@ -481,9 +480,9 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         }
 
         const { ctx, component, tearDown } = createFixture('', App);
-        created(component, ctx);
+        created(component, ctx, 1);
         tearDown();
-        disposed?.(component, ctx);
+        disposed?.(component, ctx, 1);
       });
 
       $it(`${title} on class`, function () {
@@ -501,9 +500,9 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         }
 
         const { ctx, component, tearDown } = createFixture('', App);
-        created(component, ctx);
+        created(component, ctx, 1);
         tearDown();
-        disposed?.(component, ctx);
+        disposed?.(component, ctx, 1);
       });
 
       $it(`${title} on both class and method`, function () {
@@ -522,9 +521,9 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         }
 
         const { ctx, component, tearDown } = createFixture('', App);
-        created(component, ctx);
+        created(component, ctx, 2);
         tearDown();
-        disposed?.(component, ctx);
+        disposed?.(component, ctx, 2);
       });
     }
 
@@ -541,8 +540,8 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       title: string;
       only?: boolean;
       get: IDepCollectionFn<IApp>;
-      created: (app: IApp, ctx: HTMLTestContext) => any;
-      disposed?: (app: IApp, ctx: HTMLTestContext) => any;
+      created: (app: IApp, ctx: HTMLTestContext, decoratorCount: number) => any;
+      disposed?: (app: IApp, ctx: HTMLTestContext, decoratorCount: number) => any;
     }
   });
 

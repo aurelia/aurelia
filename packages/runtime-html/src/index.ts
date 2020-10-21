@@ -71,16 +71,9 @@ export {
   ElementPropertyAccessor
 } from './observation/element-property-accessor';
 export {
-  IManagedEvent,
-  ListenerTracker,
-  DelegateOrCaptureSubscription,
-  TriggerSubscription,
-  IElementConfiguration,
   IEventManager,
   IEventSubscriber,
-  IEventTargetWithLookups,
   EventSubscriber,
-  EventSubscription,
   EventManager
 } from './observation/event-manager';
 export {

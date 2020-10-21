@@ -1,6 +1,4 @@
-import { IDisposable } from '@aurelia/kernel';
-import { customAttribute, INode, bindable, BindingMode, IDOM, DelegationStrategy, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime';
-import { IEventManager } from '@aurelia/runtime-html';
+import { customAttribute, INode, bindable, BindingMode, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime';
 import { IRouter } from '../router';
 import { NavigationInstructionResolver } from '../type-resolvers';
 import { deprecationWarning } from '../utils';
@@ -10,7 +8,6 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel<Element> {
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 
-  private listener: IDisposable | null = null;
   private hasHref: boolean | null = null;
 
   private readonly element: Element;
@@ -20,18 +17,15 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel<Element> {
 
   private readonly activeClass: string = 'goto-active';
   public constructor(
-    @IDOM private readonly dom: IDOM,
     @INode element: INode,
     @IRouter private readonly router: IRouter,
-    @IEventManager private readonly eventManager: IEventManager,
   ) {
     deprecationWarning('"goto" custom attribute', '"load" custom attribute');
     this.element = element as Element;
   }
 
   public beforeBind(): void {
-    this.listener = this.eventManager.addEventListener(
-      this.dom, this.element, 'click', this.router.linkHandler.handler, DelegationStrategy.none);
+    this.element.addEventListener('click', this.router.linkHandler.handler);
     this.updateValue();
 
     const observerLocator = this.router.container.get(IObserverLocator);
@@ -40,9 +34,7 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel<Element> {
   }
 
   public beforeUnbind(): void {
-    if (this.listener !== null) {
-      this.listener.dispose();
-    }
+    this.element.removeEventListener('click', this.router.linkHandler.handler);
     this.observer.unsubscribe(this);
   }
 

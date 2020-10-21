@@ -3,13 +3,18 @@ import {
   DelegationStrategy,
   IBinding,
   IConnectableBinding,
-  IDOM,
   IsBindingBehavior,
   LifecycleFlags,
 } from '@aurelia/runtime';
 import { IEventManager } from '../observation/event-manager';
 
 import type { Scope } from '@aurelia/runtime';
+import { HTMLDOM } from '../dom';
+
+const options = {
+  [DelegationStrategy.capturing]: { capture: true } as const,
+  [DelegationStrategy.bubbling]: { capture: false } as const,
+} as const;
 
 export interface Listener extends IConnectableBinding {}
 /**
@@ -22,10 +27,10 @@ export class Listener implements IBinding {
   public $scope!: Scope;
   public $hostScope: Scope | null = null;
 
-  private handler!: IDisposable;
+  private handler: IDisposable = null!;
 
   public constructor(
-    public dom: IDOM,
+    public dom: HTMLDOM,
     public targetEvent: string,
     public delegationStrategy: DelegationStrategy,
     public sourceExpression: IsBindingBehavior,
@@ -71,13 +76,17 @@ export class Listener implements IBinding {
       sourceExpression.bind(flags, scope, hostScope, this.interceptor);
     }
 
-    this.handler = this.eventManager.addEventListener(
-      this.dom,
-      this.target,
-      this.targetEvent,
-      this,
-      this.delegationStrategy
-    );
+    if (this.delegationStrategy === DelegationStrategy.none) {
+      this.target.addEventListener(this.targetEvent, this);
+    } else {
+      this.handler = this.eventManager.addEventListener(
+        this.dom.document,
+        this.target,
+        this.targetEvent,
+        this,
+        options[this.delegationStrategy],
+      );
+    }
 
     // add isBound flag and remove isBinding flag
     this.isBound = true;
@@ -94,8 +103,12 @@ export class Listener implements IBinding {
     }
 
     this.$scope = null!;
-    this.handler.dispose();
-    this.handler = null!;
+    if (this.delegationStrategy === DelegationStrategy.none) {
+      this.target.removeEventListener(this.targetEvent, this);
+    } else {
+      this.handler.dispose();
+      this.handler = null!;
+    }
 
     // remove isBound and isUnbinding flags
     this.isBound = false;

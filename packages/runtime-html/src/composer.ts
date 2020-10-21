@@ -63,6 +63,7 @@ import {
   InstructionType,
   TextBindingInstruction,
 } from './instructions';
+import { HTMLDOM } from './dom';
 
 export class Composer implements IComposer {
   private readonly instructionComposers: Record<InstructionTypeName, IInstructionComposer['compose']>;
@@ -607,7 +608,7 @@ export class ListenerBindingComposer implements IInstructionComposer {
     // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
     const binding = applyBindingBehavior(
-      new Listener(context.dom, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context),
+      new Listener(context.dom as HTMLDOM, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventManager, context),
       expr,
       context,
     );

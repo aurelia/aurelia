@@ -28,6 +28,7 @@ function createBrowserTestContext(): HTMLTestContext {
 
 function initializeBrowserTestContext(): void {
   TestContext.createHTMLTestContext = createBrowserTestContext;
+  createBrowserTestContext().scheduler.getRenderTaskQueue();
 
   // eslint-disable-next-line
   afterEach(function() {

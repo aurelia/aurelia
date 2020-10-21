@@ -1,157 +1,100 @@
 import { DI, IDisposable } from '@aurelia/kernel';
-import { DelegationStrategy, IDOM } from '@aurelia/runtime';
+import { IDOM } from '@aurelia/runtime';
 
-export interface IManagedEvent extends Event {
-  propagationStopped?: boolean;
-  // legacy
-  path?: EventTarget[];
-  standardStopPropagation?(): void;
-  // old composedPath
-  deepPath?(): EventTarget[];
-}
+const defaultOptions: AddEventListenerOptions = {
+  capture: false,
+};
 
-// Note: path and deepPath are designed to handle v0 and v1 shadow dom specs respectively
-/** @internal */
-export function findOriginalEventTarget(event: IManagedEvent): EventTarget {
-  return (event.composedPath && event.composedPath()[0]) || (event.deepPath && event.deepPath()[0]) || (event.path && event.path[0]) || event.target;
-}
-
-function stopPropagation(this: IManagedEvent): void {
-  this.standardStopPropagation!();
-  this.propagationStopped = true;
-}
-
-function handleCapturedEvent(event: IManagedEvent): void {
-  event.propagationStopped = false;
-  let target: IEventTargetWithLookups = findOriginalEventTarget(event) as EventTarget & IEventTargetWithLookups;
-  const orderedCallbacks = [];
-  /**
-   * During capturing phase, event 'bubbles' down from parent. Needs to reorder callback from root down to target
-   */
-  while (target) {
-    if (target.capturedCallbacks) {
-      const callback = target.capturedCallbacks[event.type];
-      if (callback) {
-        if (event.stopPropagation !== stopPropagation) {
-          event.standardStopPropagation = event.stopPropagation;
-          event.stopPropagation = stopPropagation;
-        }
-        orderedCallbacks.push(callback);
-      }
-    }
-    target = target.parentNode!;
-  }
-
-  for (let i = orderedCallbacks.length - 1; i >= 0 && !event.propagationStopped; i--) {
-    const orderedCallback = orderedCallbacks[i];
-    if ('handleEvent' in orderedCallback) {
-      orderedCallback.handleEvent(event);
-    } else {
-      orderedCallback(event);
-    }
-  }
-}
-
-function handleDelegatedEvent(event: IManagedEvent): void {
-  event.propagationStopped = false;
-  let target: IEventTargetWithLookups = findOriginalEventTarget(event) as EventTarget & IEventTargetWithLookups;
-  while (target && !event.propagationStopped) {
-    if (target.delegatedCallbacks) {
-      const callback = target.delegatedCallbacks[event.type];
-      if (callback) {
-        if (event.stopPropagation !== stopPropagation) {
-          event.standardStopPropagation = event.stopPropagation;
-          event.stopPropagation = stopPropagation;
-        }
-        if ('handleEvent' in callback) {
-          callback.handleEvent(event);
-        } else {
-          callback(event);
-        }
-      }
-    }
-    target = target.parentNode!;
-  }
-}
-
-export class ListenerTracker {
+class ListenerTracker implements IDisposable {
   private count: number = 0;
+  private readonly captureLookups: Map<EventTarget, Record<string, EventListenerOrEventListenerObject | undefined>> = new Map();
+  private readonly bubbleLookups: Map<EventTarget, Record<string, EventListenerOrEventListenerObject | undefined>> = new Map();
 
   public constructor(
-    private readonly dom: IDOM,
+    private readonly publisher: EventTarget,
     private readonly eventName: string,
-    private readonly listener: EventListenerOrEventListenerObject,
-    private readonly capture: boolean,
-  ) {}
+    private readonly options: AddEventListenerOptions = defaultOptions,
+  ) {
+    this.handleEvent = this.handleEvent.bind(this);
+  }
 
   public increment(): void {
-    this.count++;
-    if (this.count === 1) {
-      this.dom.addEventListener(this.eventName, this.listener, null, this.capture);
+    if (++this.count === 1) {
+      this.publisher.addEventListener(this.eventName, this.handleEvent, this.options);
     }
   }
 
   public decrement(): void {
-    this.count--;
-    if (this.count === 0) {
-      this.dom.removeEventListener(this.eventName, this.listener, null, this.capture);
+    if (--this.count === 0) {
+      this.publisher.removeEventListener(this.eventName, this.handleEvent, this.options);
     }
   }
 
-  /* @internal */
   public dispose(): void {
     if (this.count > 0) {
       this.count = 0;
-      this.dom.removeEventListener(this.eventName, this.listener, null, this.capture);
+      this.publisher.removeEventListener(this.eventName, this.handleEvent, this.options);
+    }
+    this.captureLookups.clear();
+    this.bubbleLookups.clear();
+  }
+
+  /** @internal */
+  public getLookup(target: EventTarget): Record<string, EventListenerOrEventListenerObject | undefined> {
+    let lookups = this.options.capture === true ? this.captureLookups : this.bubbleLookups;
+    let lookup = lookups.get(target);
+    if (lookup === void 0) {
+      lookups.set(target, lookup = Object.create(null) as Record<string, EventListenerOrEventListenerObject | undefined>);
+    }
+    return lookup;
+  }
+
+  private handleEvent(event: Event): void {
+    const lookups = this.options.capture === true ? this.captureLookups : this.bubbleLookups;
+    const path = event.composedPath();
+    if (this.options.capture === true) {
+      path.reverse();
+    }
+    for (const target of path) {
+      const lookup = lookups.get(target);
+      if (lookup === void 0) {
+        continue;
+      }
+      const listener = lookup[this.eventName];
+      if (listener === void 0) {
+        continue;
+      }
+      if (typeof listener === 'function') {
+        listener(event);
+      } else {
+        listener.handleEvent(event);
+      }
+      if (event.cancelBubble === true) {
+        return;
+      }
     }
   }
 }
+
 
 /**
  * Enable dispose() pattern for `delegate` & `capture` commands
  */
-export class DelegateOrCaptureSubscription implements IDisposable {
+export class DelegateSubscription implements IDisposable {
   public constructor(
-    public entry: { decrement(): void },
-    public lookup: Record<string, EventListenerOrEventListenerObject>,
-    public targetEvent: string,
+    private readonly tracker: ListenerTracker,
+    private readonly lookup: Record<string, EventListenerOrEventListenerObject | undefined>,
+    private readonly eventName: string,
     callback: EventListenerOrEventListenerObject
   ) {
-    lookup[targetEvent] = callback;
+    tracker.increment();
+    lookup[eventName] = callback;
   }
 
   public dispose(): void {
-    this.entry.decrement();
-    this.lookup[this.targetEvent] = null!;
+    this.tracker.decrement();
+    this.lookup[this.eventName] = void 0;
   }
-}
-
-/**
- * Enable dispose() pattern for addEventListener for `trigger`
- */
-export class TriggerSubscription implements IDisposable {
-  public constructor(
-    private readonly dom: IDOM,
-    public target: Node,
-    public targetEvent: string,
-    public callback: EventListenerOrEventListenerObject
-  ) {
-    dom.addEventListener(targetEvent, callback, target);
-  }
-
-  public dispose(): void {
-    this.dom.removeEventListener(this.targetEvent, this.callback, this.target);
-  }
-}
-
-export interface  IEventTargetWithLookups extends Node {
-  delegatedCallbacks?: Record<string, EventListenerOrEventListenerObject>;
-  capturedCallbacks?: Record<string, EventListenerOrEventListenerObject>;
-}
-
-export interface IElementConfiguration {
-  tagName: string;
-  properties: Record<string, string[]>;
 }
 
 export interface IEventSubscriber extends IDisposable {
@@ -193,55 +136,36 @@ export class EventSubscriber implements IEventSubscriber {
   }
 }
 
-export type EventSubscription = DelegateOrCaptureSubscription | TriggerSubscription;
-
-export interface IEventManager extends IDisposable {
-  addEventListener(dom: IDOM, target: Node, targetEvent: string, callbackOrListener: EventListenerOrEventListenerObject, delegate: DelegationStrategy): IDisposable;
-}
-
+export interface IEventManager extends EventManager {}
 export const IEventManager = DI.createInterface<IEventManager>('IEventManager').withDefault(x => x.singleton(EventManager));
 
-/** @internal */
-export class EventManager implements IEventManager {
-  public readonly delegatedHandlers: Record<string, ListenerTracker> = {};
-  public readonly capturedHandlers: Record<string, ListenerTracker> = {};
+export class EventManager implements IDisposable {
+  private readonly trackerMaps: Record<string, Map<EventTarget, ListenerTracker> | undefined> = Object.create(null);
+
+  public constructor() { /* do not remove, is necessary for fulfilling the TS (new() => ...) type */ }
 
   public addEventListener(
-    dom: IDOM,
-    target: IEventTargetWithLookups,
-    targetEvent: string,
-    callbackOrListener: EventListenerOrEventListenerObject,
-    strategy: DelegationStrategy
-  ): EventSubscription {
-    let delegatedHandlers: Record<string, ListenerTracker> | undefined;
-    let capturedHandlers: Record<string, ListenerTracker> | undefined;
-    let handlerEntry: ListenerTracker | undefined;
-
-    if (strategy === DelegationStrategy.bubbling) {
-      delegatedHandlers = this.delegatedHandlers;
-      handlerEntry = delegatedHandlers[targetEvent] || (delegatedHandlers[targetEvent] = new ListenerTracker(dom, targetEvent, handleDelegatedEvent, false));
-      handlerEntry.increment();
-      const delegatedCallbacks = target.delegatedCallbacks || (target.delegatedCallbacks = {});
-      return new DelegateOrCaptureSubscription(handlerEntry, delegatedCallbacks, targetEvent, callbackOrListener);
+    publisher: EventTarget,
+    target: Node,
+    eventName: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: AddEventListenerOptions,
+  ): IDisposable {
+    const trackerMap = this.trackerMaps[eventName] ??= new Map<EventTarget, ListenerTracker>();
+    let tracker = trackerMap.get(publisher);
+    if (tracker === void 0) {
+      trackerMap.set(publisher, tracker = new ListenerTracker(publisher, eventName, options));
     }
-    if (strategy === DelegationStrategy.capturing) {
-      capturedHandlers = this.capturedHandlers;
-      handlerEntry = capturedHandlers[targetEvent] || (capturedHandlers[targetEvent] = new ListenerTracker(dom, targetEvent, handleCapturedEvent, true));
-      handlerEntry.increment();
-      const capturedCallbacks = target.capturedCallbacks || (target.capturedCallbacks = {});
-      return new DelegateOrCaptureSubscription(handlerEntry, capturedCallbacks, targetEvent, callbackOrListener);
-    }
-    return new TriggerSubscription(dom, target, targetEvent, callbackOrListener);
+    return new DelegateSubscription(tracker, tracker.getLookup(target), eventName, listener);
   }
 
   public dispose(): void {
-    let key: string;
-    const { delegatedHandlers, capturedHandlers } = this;
-    for (key in delegatedHandlers) {
-      delegatedHandlers[key].dispose();
-    }
-    for (key in capturedHandlers) {
-      capturedHandlers[key].dispose();
+    for (const eventName in this.trackerMaps) {
+      const trackerMap = this.trackerMaps[eventName]!;
+      for (const tracker of trackerMap.values()) {
+        tracker.dispose();
+      }
+      trackerMap.clear();
     }
   }
 }

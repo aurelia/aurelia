@@ -59,6 +59,7 @@ export class BindingContext implements IBindingContext {
       throw new Error(`Scope is ${scope} and HostScope is ${hostScope}.`);
     }
 
+    const hashHostScope = hostScope !== scope && hostScope != null;
     /* eslint-disable jsdoc/check-indentation */
     /**
      * This fallback is needed to support the following case:
@@ -71,10 +72,10 @@ export class BindingContext implements IBindingContext {
      * This artifact raises the need for this fallback.
      */
     /* eslint-enable jsdoc/check-indentation */
-    let context = chooseContext(scope, name, ancestor);
-    if (context !== null) { return context; }
-    if (hostScope !== scope && hostScope != null) {
-      context = chooseContext(hostScope, name, ancestor);
+    let [context, found] = chooseContext(scope, name, ancestor);
+    if ((found && context !== null) || !hashHostScope) { return context; }
+    if (hashHostScope) {
+      [context,] = chooseContext(hostScope!, name, ancestor);
       if (context !== null) { return context; }
     }
 
@@ -88,7 +89,7 @@ export class BindingContext implements IBindingContext {
   }
 }
 
-function chooseContext(scope: Scope, name: string, ancestor: number) {
+function chooseContext(scope: Scope, name: string, ancestor: number): [IBindingContext, boolean] | [undefined | null, false] {
   let overrideContext: IOverrideContext | null = scope.overrideContext;
   let currentScope: Scope | null = scope;
 
@@ -98,12 +99,13 @@ function chooseContext(scope: Scope, name: string, ancestor: number) {
       ancestor--;
       currentScope = currentScope.parentScope;
       if (currentScope?.overrideContext == null) {
-        return void 0;
+        return [void 0, false];
       }
     }
 
     overrideContext = currentScope!.overrideContext;
-    return name in overrideContext ? overrideContext : overrideContext.bindingContext;
+    const bc = overrideContext.bindingContext;
+    return name in overrideContext ? [overrideContext, true] : [bc, name in bc];
   }
 
   // traverse the context and it's ancestors, searching for a context that has the name.
@@ -121,11 +123,11 @@ function chooseContext(scope: Scope, name: string, ancestor: number) {
   }
 
   if (overrideContext) {
-    // we located a context with the property.  return it.
-    return name in overrideContext ? overrideContext : overrideContext.bindingContext;
+    const bc = overrideContext.bindingContext;
+    return name in overrideContext ? [overrideContext, true] : [bc, name in bc];
   }
 
-  return null;
+  return [null, false];
 }
 
 export class Scope {

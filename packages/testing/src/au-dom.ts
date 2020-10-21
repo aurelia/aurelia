@@ -310,9 +310,6 @@ export class AuDOM implements IDOM<AuNode> {
   public createNodeSequence(fragment: AuNode): AuNodeSequence {
     return new AuNodeSequence(this, fragment.cloneNode(true));
   }
-  public addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void {
-    return;
-  }
   public appendChild(parent: AuNode, child: AuNode): void {
     parent.appendChild(child);
   }

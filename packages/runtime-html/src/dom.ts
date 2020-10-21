@@ -80,10 +80,6 @@ export class HTMLDOM implements IDOM {
     return Registration.aliasTo(IDOM, this).register(container);
   }
 
-  public addEventListener(eventName: string, subscriber: EventListenerOrEventListenerObject, publisher?: Node, options?: boolean | AddEventListenerOptions): void {
-    (publisher || this.document).addEventListener(eventName, subscriber, options);
-  }
-
   public appendChild(parent: Node, child: Node): void {
     parent.appendChild(child);
   }

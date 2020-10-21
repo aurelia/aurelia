@@ -207,37 +207,6 @@ describe('dom', function () {
     });
   });
 
-  describe('addEventListener', function () {
-    it('should add the specified eventListener to the node if the node is specified', function (done) {
-      const node = ctx.dom.createElement('div');
-      const eventListener = createSpy();
-      ctx.dom.addEventListener('click', eventListener, node);
-      node.dispatchEvent(new ctx.CustomEvent('click', { bubbles: true }));
-
-      setTimeout(
-        () => {
-          assert.strictEqual(eventListener.calls.length, 1, `eventListener.calls.length`);
-          done();
-        },
-        0,
-      );
-    });
-
-    it('should add the specified eventListener to the document if the node is NOT specified', function (done) {
-      const eventListener = createSpy();
-      ctx.dom.addEventListener('click', eventListener);
-      ctx.doc.dispatchEvent(new ctx.CustomEvent('click', { bubbles: true }));
-
-      setTimeout(
-        () => {
-          assert.strictEqual(eventListener.calls.length, 1, `eventListener.calls.length`);
-          done();
-        },
-        0,
-      );
-    });
-  });
-
   describe('removeEventListener', function () {
     it('should remove the specified eventListener from the node if the node is specified', function (done) {
       const node = ctx.dom.createElement('div');

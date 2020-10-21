@@ -64,7 +64,6 @@ export interface INodeSequence<T extends INode = INode> extends INode {
 export const IDOM = DI.createInterface<IDOM>('IDOM').noDefault();
 
 export interface IDOM<T extends INode = INode> {
-  addEventListener(eventName: string, subscriber: unknown, publisher?: unknown, options?: unknown): void;
   appendChild(parent: T, child: T): void;
   cloneNode<TClone extends T>(node: TClone, deep?: boolean): TClone;
   convertToRenderLocation(node: T): IRenderLocation<T>;
@@ -124,7 +123,6 @@ const ni = function (...args: unknown[]): unknown {
 } as any; // this function doesn't need typing because it is never directly called
 
 const niDOM: IDOM = {
-  addEventListener: ni,
   appendChild: ni,
   cloneNode: ni,
   convertToRenderLocation: ni,

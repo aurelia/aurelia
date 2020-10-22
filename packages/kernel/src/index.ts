@@ -42,14 +42,8 @@ export {
   ConstructableClass,
   IDisposable,
   IIndexable,
-  IPerformance,
-  ITimerHandler,
-  IWindowOrWorkerGlobalScope,
-  Omit,
   Overwrite,
   Primitive,
-  StrictPrimitive,
-  Unwrap,
   Writable,
 } from './interfaces';
 export {

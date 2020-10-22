@@ -6,7 +6,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
   describe('ComputedWatcher', function () {
     it('works', function () {
       let getCallCount = 0;
-      let callbackValues = [];
+      const callbackValues = [];
       const container = DI.createContainer();
       const observerLocator = createObserverLocator(container);
       const obj: any = {};
@@ -46,7 +46,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
 
     it('observes collection/collection length', function () {
       let getCallCount = 0;
-      let callbackValues = [];
+      const callbackValues = [];
       const container = DI.createContainer();
       const observerLocator = createObserverLocator(container);
       const obj: any = {};
@@ -86,7 +86,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
   describe('ExpressionWatcher', function () {
     it('observers', function () {
       let evaluateCallCount = 0;
-      let callbackValues = [];
+      const callbackValues = [];
       const container = DI.createContainer();
       const observerLocator = createObserverLocator(container);
       const obj: any = {};
@@ -101,7 +101,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
         }
       );
       expr.evaluate = (evaluate => {
-        return function(...args: unknown[]) {
+        return function (...args: unknown[]) {
           evaluateCallCount++;
           assert.strictEqual(args[4], watcher);
           return evaluate.apply(this, args);
@@ -111,10 +111,27 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       obj.prop = 1;
       assert.strictEqual(evaluateCallCount, 0);
       assert.strictEqual(watcher['value'], undefined);
+      assert.deepStrictEqual(callbackValues, []);
 
       watcher.$bind();
       assert.strictEqual(evaluateCallCount, 1);
       assert.strictEqual(watcher['value'], 1);
+      assert.deepStrictEqual(callbackValues, []);
+
+      obj.prop = 2;
+      assert.strictEqual(evaluateCallCount, 2);
+      assert.strictEqual(watcher['value'], 2);
+      assert.deepStrictEqual(callbackValues, [2]);
+
+      watcher.$unbind();
+      assert.strictEqual(evaluateCallCount, 2);
+      assert.strictEqual(watcher['value'], 2);
+      assert.deepStrictEqual(callbackValues, [2]);
+
+      obj.prop = 3;
+      assert.strictEqual(evaluateCallCount, 2);
+      assert.strictEqual(watcher['value'], 2);
+      assert.deepStrictEqual(callbackValues, [2]);
     });
   });
 

@@ -399,14 +399,14 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           public callCount: number = 0;
 
           public delivered(id: number): void {
-            let p = this.packages.find(p => p.id === id);
+            const p = this.packages.find(p => p.id === id);
             if (p) {
               p.delivered = true;
             }
           }
 
           public undelivered(id: number): void {
-            let p = this.packages.find(p => p.id === id);
+            const p = this.packages.find(p => p.id === id);
             if (p) {
               p.delivered = false;
             }
@@ -438,14 +438,14 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           public callCount: number = 0;
 
           public delivered(id: number): void {
-            let p = this.packages.find(p => p.id === id);
+            const p = this.packages.find(p => p.id === id);
             if (p) {
               p.delivered = true;
             }
           }
 
           public undelivered(id: number): void {
-            let p = this.packages.find(p => p.id === id);
+            const p = this.packages.find(p => p.id === id);
             if (p) {
               p.delivered = false;
             }
@@ -479,14 +479,14 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           public callCount: number = 0;
 
           public delivered(id: number): void {
-            let p = this.packages.find(p => p.id === id);
+            const p = this.packages.find(p => p.id === id);
             if (p) {
               p.delivered = true;
             }
           }
 
           public undelivered(id: number): void {
-            let p = this.packages.find(p => p.id === id);
+            const p = this.packages.find(p => p.id === id);
             if (p) {
               p.delivered = false;
             }

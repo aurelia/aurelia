@@ -445,7 +445,7 @@ export class ExpressionWatcher implements ExpressionWatcher {
   /**
    * @internal
    */
-  private obj: object;
+  private readonly obj: object;
 
   public isBound: boolean = false;
 

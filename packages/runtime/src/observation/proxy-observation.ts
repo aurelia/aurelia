@@ -242,7 +242,7 @@ const collectionHandler: ProxyHandler<$MapOrSet> = {
     const connectable = currentWatcher();
 
     if (!watching || doNotCollect(target, key) || connectable == null) {
-      return R$get(target, key, receiver);;
+      return R$get(target, key, receiver);
     }
 
     switch (key) {

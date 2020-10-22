@@ -16,8 +16,9 @@ export interface IWatcher {
  */
 let $watcher: IWatcher | null = null;
 const watchers: IWatcher[] = [];
+let watching = false;
 
-export let watching = false;
+export { watching };
 
 // todo: layer based collection pause/resume?
 export function pauseSubscription() {

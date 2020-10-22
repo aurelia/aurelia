@@ -34,7 +34,7 @@ export function isSet<TV = unknown>(obj: unknown): obj is Set<TV> {
   return obj instanceof Set;
 }
 
-export function isSymbol(v: unknown): v is Symbol {
+export function isSymbol(v: unknown): v is symbol {
   return typeof v === 'symbol';
 }
 
@@ -50,7 +50,7 @@ export function isPlainObject(value: unknown) {
   if (proto == null) {
     return true;
   }
-  return proto.constructor?.toString() === plainObjectString
+  return proto.constructor?.toString() === plainObjectString;
 }
 
 const plainObjectString = Object.toString();

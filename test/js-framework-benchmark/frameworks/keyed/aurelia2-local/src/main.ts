@@ -1,4 +1,13 @@
 import {
+  RepeatRegistration,
+  OneTimeBindingBehaviorRegistration,
+} from '@aurelia/runtime';
+import {
+  ITemplateCompilerRegistration,
+  IProjectorLocatorRegistration,
+  ITargetAccessorLocatorRegistration,
+  ITargetObserverLocatorRegistration,
+
   DotSeparatedAttributePatternRegistration,
 
   DefaultBindingCommandRegistration,
@@ -9,27 +18,12 @@ import {
 
   CustomElementComposerRegistration,
   TemplateControllerComposerRegistration,
-
-  RepeatRegistration,
-  OneTimeBindingBehaviorRegistration,
-
-  Aurelia,
-} from '@aurelia/runtime';
-import {
-  ITemplateCompilerRegistration,
-  ITemplateElementFactoryRegistration,
-  IAttrSyntaxTransformerRegistation,
-  IProjectorLocatorRegistration,
-  ITargetAccessorLocatorRegistration,
-  ITargetObserverLocatorRegistration,
-
   DelegateBindingCommandRegistration,
 
   TextBindingComposerRegistration,
   ListenerBindingComposerRegistration,
-} from '@aurelia/runtime-html';
-import {
-  IDOMInitializerRegistration,
+
+  Aurelia,
 } from '@aurelia/runtime-html';
 
 import { App } from './app';
@@ -37,8 +31,6 @@ import { App } from './app';
 global['Aurelia'] = new Aurelia()
   .register(
     ITemplateCompilerRegistration,
-    ITemplateElementFactoryRegistration,
-    IAttrSyntaxTransformerRegistation,
     IProjectorLocatorRegistration,
     ITargetAccessorLocatorRegistration,
     ITargetObserverLocatorRegistration,
@@ -58,8 +50,6 @@ global['Aurelia'] = new Aurelia()
     IteratorBindingComposerRegistration,
     CustomElementComposerRegistration,
     TemplateControllerComposerRegistration,
-
-    IDOMInitializerRegistration,
   )
   .app({
     host: document.querySelector('app'),

@@ -65,7 +65,6 @@
     "@aurelia/validation-html": "0.7.0",
     "@aurelia/validation-i18n": "0.7.0",
     "@aurelia/validation": "0.7.0",
-    "@aurelia/web-components": "0.7.0",
     "@aurelia/webpack-loader": "0.7.0",
     "@jest/transform": "^26.3.0",
     "@jest/types": "^26.3.0",

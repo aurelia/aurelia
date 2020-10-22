@@ -13,7 +13,6 @@ importAll(require.context('./1-kernel/', true, /\.spec\.js$/));
 importAll(require.context('./2-runtime/', true, /\.spec\.js$/));
 importAll(require.context('./3-runtime-html/', true, /\.spec\.js$/));
 
-importAll(require.context('./web-components/', true, /\.spec\.js$/));
 importAll(require.context('./fetch-client/', true, /\.spec\.js$/));
 importAll(require.context('./i18n/', true, /\.spec\.js$/));
 importAll(require.context('./integration/', true, /\.spec\.js$/));

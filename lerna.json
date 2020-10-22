@@ -34,7 +34,6 @@
     "packages/validation",
     "packages/validation-html",
     "packages/validation-i18n",
-    "packages/web-components",
     "packages/webpack-loader",
     "packages/babel-jest",
     "packages/ts-jest",

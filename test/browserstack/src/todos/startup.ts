@@ -1,5 +1,4 @@
-import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
-import { Aurelia } from '@aurelia/runtime';
+import { Aurelia, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { App } from './app';
 
 window['au'] = new Aurelia()

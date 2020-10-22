@@ -21,7 +21,6 @@
     "packages/plugin-conventions",
     "packages/plugin-gulp",
     "packages/plugin-parcel",
-    "packages/plugin-pixi",
     "packages/plugin-svg",
     "packages/router",
     "packages/route-recognizer",

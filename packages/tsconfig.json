@@ -16,7 +16,6 @@
     { "path": "plugin-conventions" },
     { "path": "plugin-gulp" },
     { "path": "plugin-parcel" },
-    { "path": "plugin-pixi" },
     { "path": "plugin-svg" },
     { "path": "router" },
     { "path": "route-recognizer" },

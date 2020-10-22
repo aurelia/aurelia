@@ -1,7 +1,60 @@
-export {
-  Aurelia,
-  Aurelia as default
-} from './quick-start';
+import { DI, IContainer, Registration } from '@aurelia/kernel';
+import { IAppRoot, CustomElementType, ISinglePageApp, CustomElement } from '@aurelia/runtime';
+import { RuntimeHtmlConfiguration, Aurelia as $Aurelia, IPlatform } from '@aurelia/runtime-html';
+import { BrowserPlatform } from '@aurelia/platform-browser';
+
+export const PLATFORM = new BrowserPlatform(window);
+
+function createContainer(): IContainer {
+  return DI.createContainer()
+    .register(
+      Registration.instance(IPlatform, PLATFORM),
+      RuntimeHtmlConfiguration,
+    );
+}
+
+export class Aurelia extends $Aurelia {
+  public constructor(container: IContainer = createContainer()) {
+    super(container);
+  }
+
+  public static start(root: IAppRoot<HTMLElement> | undefined): void | Promise<void> {
+    return new Aurelia().start(root);
+  }
+
+  public static app(config: ISinglePageApp<HTMLElement> | unknown): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
+    return new Aurelia().app(config);
+  }
+
+  public static enhance(config: ISinglePageApp<HTMLElement>): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
+    return new Aurelia().enhance(config) as Omit<Aurelia, 'register' | 'app' | 'enhance'>;
+  }
+
+  public static register(...params: readonly unknown[]): Aurelia {
+    return new Aurelia().register(...params);
+  }
+
+  public app(config: ISinglePageApp<HTMLElement> | unknown): Omit<this, 'register' | 'app' | 'enhance'> {
+    if (CustomElement.isType(config as CustomElementType)) {
+      // Default to custom element element name
+      const definition = CustomElement.getDefinition(config as CustomElementType);
+      let host = document.querySelector(definition.name);
+      if (host === null) {
+        // When no target is found, default to body.
+        // For example, when user forgot to write <my-app></my-app> in html.
+        host = document.body;
+      }
+      return super.app({
+        host: host as HTMLElement,
+        component: config as CustomElementType
+      });
+    }
+
+    return super.app(config as ISinglePageApp<HTMLElement>);
+  }
+}
+
+export default Aurelia;
 
 export {
   DebugConfiguration,

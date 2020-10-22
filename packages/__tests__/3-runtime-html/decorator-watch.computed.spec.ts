@@ -68,6 +68,8 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     assert.strictEqual(callCount, 0);
     component.person.first = 'bi ';
     assert.strictEqual(callCount, 0);
+    ctx.scheduler.getRenderTaskQueue().flush();
+    assert.strictEqual(appHost.textContent, '');
     component.person.phone = '0413';
     assert.strictEqual(callCount, 1);
     assert.strictEqual(appHost.textContent, '');
@@ -192,6 +194,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     );
 
     tearDown();
+    assert.strictEqual(appHost.textContent, '');
     component.newDelivery({ id: 5, name: 'gardenware', delivered: true });
     component.delivered(3);
     assert.strictEqual(
@@ -209,6 +212,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         { id: 2, name: 'toy', delivered: true }
       ])
     );
+    assert.strictEqual(appHost.textContent, '');
   });
 
   it('observes chain lighting', function () {
@@ -274,6 +278,9 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     component.delivered(3);
     assert.strictEqual(textNode.textContent, '1');
     assert.strictEqual(callCount, 1);
+    ctx.scheduler.getRenderTaskQueue().flush();
+    assert.strictEqual(textNode.textContent, '1');
+    component.newDelivery({ id: 6, name: 'box', delivered: true });
     ctx.scheduler.getRenderTaskQueue().flush();
     assert.strictEqual(textNode.textContent, '1');
   });
@@ -560,6 +567,8 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           assert.strictEqual(app.counter, 0);
           assert.strictEqual(app.callCount, 0);
           app.map.set(symbol, '');
+          // eslint-disable-next-line
+          app.map.set(symbol, '');
           assert.strictEqual(app.counter, decoratorCount === 2 ? 3 : 1);
           assert.strictEqual(app.callCount, decoratorCount === 2 ? 3 : 1);
         },
@@ -656,7 +665,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         },
       },
       {
-        title: 'works when getter throws error',
+        title: 'watcher callback is not invoked when getter throws error',
         get: app => {
           if (app.decoratorCount === 2) {
             if (app.counter++ <= 2) {

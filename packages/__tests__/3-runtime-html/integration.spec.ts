@@ -4,6 +4,8 @@ import {
 } from '@aurelia/kernel';
 import {
   Aurelia,
+  bindable,
+  BindingMode,
   Controller,
   CustomElement,
   customElement,
@@ -20,7 +22,7 @@ import {
   TestFunction,
 } from '../util';
 
-describe.only('runtime-html.integration', function () {
+describe('runtime-html.integration', function () {
 
   async function runTest<TApp>(
     testFunction: TestFunction<IntegrationTestExecutionContext<TApp>>,
@@ -111,7 +113,7 @@ describe.only('runtime-html.integration', function () {
         'ref-binding',
         App,
         [Child, GrandChild],
-        function (ctx: IntegrationTestExecutionContext<App>) {
+        function (ctx) {
           const app = ctx.app;
           const container = app.container;
           const host = ctx.host;
@@ -133,6 +135,273 @@ describe.only('runtime-html.integration', function () {
           const grandChildContainer = grandChildVm.container;
           assert.strictEqual(grandChildEl.querySelector('#cgc'), grandChildContainer);
           assert.html.textContent(grandChildContainer, '3');
+        }
+      );
+    }
+    {
+      @customElement({ name: 'app', isStrictBinding: true, template: '<child value.from-view="value"></child><div id="cr">${value}</div>' })
+      class App {
+        public value: number = 1;
+      }
+      @customElement({ name: 'child', isStrictBinding: true, template: '<grand-child value.from-view="value"></grand-child><div id="cc">${value}</div>' })
+      class Child {
+        @bindable public value: number;
+      }
+      @customElement({ name: 'grand-child', isStrictBinding: true, template: '<div id="cgc">${value}</div>' })
+      class GrandChild {
+        @bindable public value: number = 3;
+      }
+      yield new TestData(
+        'from-view with change',
+        App,
+        [Child, GrandChild],
+        async function (ctx) {
+          const app = ctx.app;
+          const host = ctx.host;
+          const cgc = host.querySelector('#cgc');
+          const cc = host.querySelector('#cc');
+          const cr = host.querySelector('#cr');
+          assert.html.textContent(cgc, '3');
+          assert.html.textContent(cc, '3');
+          assert.html.textContent(cr, '3');
+
+          const childVm = CustomElement.for<Element, Child>(host.querySelector('child')).viewModel;
+          assert.strictEqual(childVm.value, 3);
+          assert.strictEqual(app.value, 3);
+
+          const grandchildVm = CustomElement.for<Element, GrandChild>(host.querySelector('grand-child')).viewModel;
+          grandchildVm.value = 42;
+          await ctx.scheduler.yieldAll();
+
+          assert.html.textContent(cgc, '42');
+          assert.html.textContent(cc, '42');
+          assert.html.textContent(cr, '42');
+
+          assert.strictEqual(childVm.value, 42);
+          assert.strictEqual(app.value, 42);
+        }
+      );
+    }
+    {
+      @customElement({ name: 'app', isStrictBinding: true, template: '<child value.to-view="value"></child><div id="cr">${value}</div>' })
+      class App {
+        public value: number = 1;
+      }
+      @customElement({ name: 'child', isStrictBinding: true, template: '<grand-child value.to-view="value"></grand-child><div id="cc">${value}</div>' })
+      class Child {
+        @bindable public value: number;
+      }
+      @customElement({ name: 'grand-child', isStrictBinding: true, template: '<div id="cgc">${value}</div>' })
+      class GrandChild {
+        @bindable public value: number = 3;
+      }
+      yield new TestData(
+        'to-view with change',
+        App,
+        [Child, GrandChild],
+        async function (ctx) {
+          const app = ctx.app;
+          const host = ctx.host;
+          const cgc = host.querySelector('#cgc');
+          const cc = host.querySelector('#cc');
+          const cr = host.querySelector('#cr');
+          assert.html.textContent(cgc, '1');
+          assert.html.textContent(cc, '1');
+          assert.html.textContent(cr, '1');
+
+          const childVm = CustomElement.for<Element, Child>(host.querySelector('child')).viewModel;
+          const grandchildVm = CustomElement.for<Element, GrandChild>(host.querySelector('grand-child')).viewModel;
+          assert.strictEqual(grandchildVm.value, 1);
+          assert.strictEqual(childVm.value, 1);
+
+          app.value = 42;
+          await ctx.scheduler.yieldAll();
+
+          assert.html.textContent(cgc, '42');
+          assert.html.textContent(cc, '42');
+          assert.html.textContent(cr, '42');
+
+          assert.strictEqual(grandchildVm.value, 42);
+          assert.strictEqual(childVm.value, 42);
+        }
+      );
+    }
+    {
+      @customElement({ name: 'app', isStrictBinding: true, template: '<child value.two-way="value"></child><div id="cr">${value}</div>' })
+      class App {
+        public value: number = 1;
+      }
+      @customElement({ name: 'child', isStrictBinding: true, template: '<grand-child value.two-way="value"></grand-child><div id="cc">${value}</div>' })
+      class Child {
+        @bindable public value: number;
+      }
+      @customElement({ name: 'grand-child', isStrictBinding: true, template: '<div id="cgc">${value}</div>' })
+      class GrandChild {
+        @bindable public value: number = 3;
+      }
+      yield new TestData(
+        'two-way with change',
+        App,
+        [Child, GrandChild],
+        async function (ctx) {
+          const app = ctx.app;
+          const host = ctx.host;
+          const cgc = host.querySelector('#cgc');
+          const cc = host.querySelector('#cc');
+          const cr = host.querySelector('#cr');
+          assert.html.textContent(cgc, '1');
+          assert.html.textContent(cc, '1');
+          assert.html.textContent(cr, '1');
+
+          const childVm = CustomElement.for<Element, Child>(host.querySelector('child')).viewModel;
+          const grandchildVm = CustomElement.for<Element, GrandChild>(host.querySelector('grand-child')).viewModel;
+          assert.strictEqual(grandchildVm.value, 1);
+          assert.strictEqual(childVm.value, 1);
+
+          grandchildVm.value = 42;
+          await ctx.scheduler.yieldAll();
+
+          assert.html.textContent(cgc, '42');
+          assert.html.textContent(cc, '42');
+          assert.html.textContent(cr, '42');
+
+          assert.strictEqual(childVm.value, 42);
+          assert.strictEqual(app.value, 42);
+
+          childVm.value = 24;
+          await ctx.scheduler.yieldAll();
+
+          assert.html.textContent(cgc, '24');
+          assert.html.textContent(cc, '24');
+          assert.html.textContent(cr, '24');
+
+          assert.strictEqual(grandchildVm.value, 24);
+          assert.strictEqual(app.value, 24);
+        }
+      );
+    }
+    {
+      @customElement({ name: 'app', isStrictBinding: true, template: '<child value.to-view="value"></child><div id="cr">${value}</div>' })
+      class App {
+        public value: number = 1;
+      }
+      @customElement({ name: 'child', isStrictBinding: true, template: '<div id="cc">${value}</div>' })
+      class Child {
+        @bindable({ mode: BindingMode.fromView }) public value: number;
+      }
+      yield new TestData(
+        'to-view (root) -> from-view (child)',
+        App,
+        [Child],
+        async function (ctx) {
+          const app = ctx.app;
+          const host = ctx.host;
+          const cc = host.querySelector('#cc');
+          const cr = host.querySelector('#cr');
+          assert.html.textContent(cc, '1', 'cc.text.1');
+          assert.html.textContent(cr, '1', 'cr.text.1');
+
+          const childVm = CustomElement.for<Element, Child>(host.querySelector('child')).viewModel;
+          assert.strictEqual(childVm.value, 1, 'child.value.1');
+
+          childVm.value = 42;
+          await ctx.scheduler.yieldAll();
+          assert.strictEqual(app.value, 1, 'app.value.2');
+          assert.html.textContent(cc, '42', 'cc.text.2');
+          assert.html.textContent(cr, '1', 'cr.text.2');
+
+          app.value = 24;
+          await ctx.scheduler.yieldAll();
+          assert.strictEqual(childVm.value, 24, 'child.value.3');
+          assert.html.textContent(cc, '24', 'cc.text.3');
+          assert.html.textContent(cr, '24', 'cr.text.3');
+        }
+      );
+    }
+    {
+      @customElement({ name: 'app', isStrictBinding: true, template: '<child value.from-view="value"></child><div id="cr">${value}</div>' })
+      class App {
+        public value: number;
+      }
+      @customElement({ name: 'child', isStrictBinding: true, template: '<div id="cc">${value}</div>' })
+      class Child {
+        @bindable({ mode: BindingMode.toView }) public value: number = 2;
+      }
+      yield new TestData(
+        'to-view (child) -> from-view (root)',
+        App,
+        [Child],
+        async function (ctx) {
+          const app = ctx.app;
+          const host = ctx.host;
+          const cc = host.querySelector('#cc');
+          const cr = host.querySelector('#cr');
+          assert.html.textContent(cc, '2', 'cc.text.1');
+          assert.html.textContent(cr, '2', 'cr.text.1');
+          assert.strictEqual(app.value, 2, 'app.value.1');
+
+          app.value = 24;
+          await ctx.scheduler.yieldAll();
+          const childVm = CustomElement.for<Element, Child>(host.querySelector('child')).viewModel;
+          assert.strictEqual(childVm.value, 2, 'child.value.2');
+          assert.html.textContent(cc, '2', 'cc.text.2');
+          assert.html.textContent(cr, '24', 'cr.text.2');
+
+          childVm.value = 42;
+          await ctx.scheduler.yieldAll();
+          assert.strictEqual(app.value, 42, 'app.value.3');
+          assert.html.textContent(cc, '42', 'cc.text.3');
+          assert.html.textContent(cr, '42', 'cr.text.3');
+        }
+      );
+    }
+    {
+      @customElement({ name: 'app', isStrictBinding: true, template: '<child value.two-way="value"></child><div id="cr">${value}</div>' })
+      class App {
+        public value: number = 1;
+      }
+      @customElement({ name: 'child', isStrictBinding: true, template: '<grand-child if.bind="condition" value.two-way="value"></grand-child><div id="cc">${value}</div>' })
+      class Child {
+        @bindable public value: number;
+        public condition: boolean = false;
+      }
+      @customElement({ name: 'grand-child', isStrictBinding: true, template: '<div id="cgc">${value}</div>' })
+      class GrandChild {
+        @bindable public value: number = 3;
+      }
+      yield new TestData(
+        'property-binding with `if` + change',
+        App,
+        [Child, GrandChild],
+        async function (ctx) {
+          const app = ctx.app;
+          const host = ctx.host;
+
+          assert.strictEqual(host.querySelector('grand-child'), null);
+          assert.strictEqual(host.querySelector('#cgc'), null);
+
+          const cc = host.querySelector('#cc');
+          const cr = host.querySelector('#cr');
+          assert.html.textContent(cc, '1');
+          assert.html.textContent(cr, '1');
+
+          const childVm = CustomElement.for<Element, Child>(host.querySelector('child')).viewModel;
+          assert.strictEqual(childVm.value, 1);
+
+          childVm.condition = true;
+          await ctx.scheduler.yieldAll();
+          const grandchildVm = CustomElement.for<Element, GrandChild>(host.querySelector('grand-child')).viewModel;
+          assert.strictEqual(grandchildVm.value, 1);
+          const cgc = host.querySelector('#cgc');
+          assert.html.textContent(cgc, '1');
+
+          grandchildVm.value = 42;
+          await ctx.scheduler.yieldAll();
+          assert.html.textContent(cgc, '42');
+          assert.html.textContent(cc, '42');
+          assert.html.textContent(cr, '42');
+          assert.strictEqual(childVm.value, 42);
+          assert.strictEqual(app.value, 42);
         }
       );
     }

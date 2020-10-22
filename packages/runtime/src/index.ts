@@ -261,7 +261,6 @@ export {
 } from './resources/value-converters/view';
 
 export {
-  Now,
   IScheduler,
   ITask,
   ITaskQueue,

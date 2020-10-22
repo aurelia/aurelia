@@ -2,7 +2,7 @@ import { Metadata } from '@aurelia/metadata';
 
 import { IContainer } from './di';
 import { Constructable } from './interfaces';
-import { PLATFORM } from './platform';
+import { emptyArray } from './platform';
 
 export type ResourceType<
   TUserType extends Constructable = Constructable,
@@ -90,7 +90,7 @@ const resource = {
   getAll(target: Constructable): readonly ResourceDefinition[] {
     const keys = Metadata.getOwn(resource.name, target) as string[];
     if (keys === void 0) {
-      return PLATFORM.emptyArray;
+      return emptyArray;
     } else {
       return keys.map(k => Metadata.getOwn(k, target));
     }

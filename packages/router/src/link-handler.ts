@@ -44,7 +44,8 @@ export interface AnchorEventInfo {
 /**
  * Class responsible for handling interactions that should trigger navigation.
  *
- * @internal - Shouldn't be used directly.
+ * @ internal - Shouldn't be used directly.
+ * TODO: remove the space between @ and i again at some point (this stripInternal currently screws up the types in the __tests__ package for some reason)
  */
 export class LinkHandler {
   public static readonly inject: readonly Key[] = [IDOM];

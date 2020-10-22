@@ -1,7 +1,4 @@
 import {
-  PLATFORM
-} from '@aurelia/kernel';
-import {
   CustomAttribute,
   CustomElement,
   CustomElementHost,

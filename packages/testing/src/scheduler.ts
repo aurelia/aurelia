@@ -1,9 +1,8 @@
 import { Scheduler, TaskQueue, IScheduler } from '@aurelia/scheduler';
-import { PLATFORM } from '@aurelia/kernel';
 
 export function ensureSchedulerEmpty(scheduler?: IScheduler): void {
   if (!scheduler) {
-    scheduler = Scheduler.get(PLATFORM.global) as IScheduler;
+    scheduler = Scheduler.get(globalThis) as IScheduler;
   }
   const $scheduler = scheduler as Scheduler;
 

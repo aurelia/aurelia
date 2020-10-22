@@ -7,6 +7,7 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
   public readonly CustomEvent: TGlobal['CustomEvent'];
   public readonly CSSStyleSheet: TGlobal['CSSStyleSheet'];
   public readonly ShadowRoot: TGlobal['ShadowRoot'];
+  public readonly MutationObserver: TGlobal['MutationObserver'];
 
   public readonly window: TGlobal['window'];
   public readonly document: TGlobal['document'];
@@ -15,6 +16,7 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
   public readonly navigator: TGlobal['navigator'];
 
   public readonly requestAnimationFrame: TGlobal['requestAnimationFrame'];
+  public readonly customElements: TGlobal['customElements'];
 
   public constructor(
     g: TGlobal,
@@ -29,6 +31,7 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
     this.CustomEvent = 'CustomEvent' in overrides ? overrides.CustomEvent! : g.CustomEvent;
     this.CSSStyleSheet = 'CSSStyleSheet' in overrides ? overrides.CSSStyleSheet! : g.CSSStyleSheet;
     this.ShadowRoot = 'ShadowRoot' in overrides ? overrides.ShadowRoot! : g.ShadowRoot;
+    this.MutationObserver = 'MutationObserver' in overrides ? overrides.MutationObserver! : g.MutationObserver;
 
     this.window = 'window' in overrides ? overrides.window! : g.window;
     this.document = 'document' in overrides ? overrides.document! : g.document;
@@ -37,6 +40,7 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
     this.navigator = 'navigator' in overrides ? overrides.navigator! : g.navigator;
 
     this.requestAnimationFrame = 'requestAnimationFrame' in overrides ? overrides.requestAnimationFrame! : g.requestAnimationFrame;
+    this.customElements = 'customElements' in overrides ? overrides.customElements! : g.customElements;
     /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
   }
 }

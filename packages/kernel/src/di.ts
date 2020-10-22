@@ -4,10 +4,8 @@ applyMetadataPolyfill(Reflect);
 
 import { isArrayIndex, isNativeFunction } from './functions';
 import { Class, Constructable, IDisposable } from './interfaces';
-import { PLATFORM } from './platform';
+import { emptyArray } from './platform';
 import { Protocol } from './resource';
-
-const { emptyArray } = PLATFORM;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

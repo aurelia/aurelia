@@ -1,6 +1,6 @@
 import { AnchorEventInfo, LinkHandler, GotoCustomAttribute, HrefCustomAttribute } from '@aurelia/router';
 import { assert, createSpy, TestContext } from '@aurelia/testing';
-import { Writable, IRegistry, PLATFORM } from '@aurelia/kernel';
+import { Writable, IRegistry } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime';
 import { Aurelia } from '@aurelia/runtime-html';
 
@@ -147,7 +147,7 @@ describe('LinkHandler', function () {
 
       const anchor = doc.getElementsByTagName('A')[0];
 
-      const evt = new MouseEvent('click', { cancelable: true });
+      const evt = new ctx.wnd.MouseEvent('click', { cancelable: true });
       let info: AnchorEventInfo | null = { shouldHandleEvent: false, instruction: null, anchor: null };
 
       const origHandler = sut['handler'];

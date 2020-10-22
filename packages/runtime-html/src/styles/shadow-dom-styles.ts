@@ -1,4 +1,4 @@
-import { DI, PLATFORM } from '@aurelia/kernel';
+import { DI, noop } from '@aurelia/kernel';
 import { HTMLDOM } from '../dom';
 
 type HasAdoptedStyleSheets = ShadowRoot & {
@@ -6,7 +6,7 @@ type HasAdoptedStyleSheets = ShadowRoot & {
 };
 
 export const noopShadowDOMStyles = Object.freeze({
-  applyTo: PLATFORM.noop
+  applyTo: noop
 });
 
 export const IShadowDOMStyles =

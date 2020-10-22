@@ -1,5 +1,5 @@
 import {
-  PLATFORM
+  noop
 } from '@aurelia/kernel';
 import {
   BindingStrategy,
@@ -353,7 +353,7 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
       repeatExpression = `item of items`,
       textExpression = `[\${item.name}] -- \${$index} -- \${$even}`,
       only,
-      mutate = PLATFORM.noop,
+      mutate = noop,
       expectation = defaultExpectation,
       testWillThrow,
       mutationWillThrow

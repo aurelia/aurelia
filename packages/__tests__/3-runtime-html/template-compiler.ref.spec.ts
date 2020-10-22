@@ -1,6 +1,6 @@
 import {
   Constructable,
-  PLATFORM
+  noop,
 } from '@aurelia/kernel';
 import {
   Controller,
@@ -437,7 +437,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
       title: `basic WRONG ref usage with [repeat.ref] as cannot reference template controller`,
       testWillThrow: true,
       template: `<div repeat.for="i of 1" repeat.ref=hello>`,
-      assertFn: PLATFORM.noop
+      assertFn: noop
     },
     // #endregion wrong usage
   ];
@@ -451,7 +451,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
       only,
       browserOnly,
       assertFn,
-      assertFnAfterDestroy = PLATFORM.noop,
+      assertFnAfterDestroy = noop,
       testWillThrow
     } = testCase;
     // if (!PLATFORM.isBrowserLike && browserOnly) {

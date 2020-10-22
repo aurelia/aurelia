@@ -1,5 +1,3 @@
-import { PLATFORM } from '@aurelia/kernel';
-import { ILifecycle } from '@aurelia/runtime';
 import { Blur } from '@aurelia/runtime-html';
 import { assert, createSpy, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 

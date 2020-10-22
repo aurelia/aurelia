@@ -58,9 +58,6 @@ export {
   SpySubscriber,
 } from './mocks';
 export {
-  writeProfilerReport,
-} from './profiler';
-export {
   SortValueConverter,
   JsonValueConverter,
   TestConfiguration,

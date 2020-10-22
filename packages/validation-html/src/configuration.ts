@@ -1,4 +1,4 @@
-import { Constructable, IContainer, PLATFORM, Registration } from '@aurelia/kernel';
+import { Constructable, IContainer, noop, Registration } from '@aurelia/kernel';
 import { getDefaultValidationConfiguration, ValidationCustomizationOptions, ValidationConfiguration } from '@aurelia/validation';
 import { ValidationContainerCustomElement, defaultContainerDefinition, defaultContainerTemplate } from './subscribers/validation-container-custom-element';
 import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors-custom-attribute';
@@ -56,5 +56,5 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
   };
 }
 
-export const ValidationHtmlConfiguration = createConfiguration(PLATFORM.noop);
+export const ValidationHtmlConfiguration = createConfiguration(noop);
 

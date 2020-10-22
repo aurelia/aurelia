@@ -2,7 +2,6 @@ import {
   DI,
   IContainer,
   IResolver,
-  PLATFORM,
   Registration,
   Writable
 } from '@aurelia/kernel';

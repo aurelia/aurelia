@@ -1,4 +1,4 @@
-import { PLATFORM, Primitive, IIndexable } from '@aurelia/kernel';
+import { noop, Primitive, IIndexable } from '@aurelia/kernel';
 import {
   LifecycleFlags as LF,
   PrimitiveObserver,
@@ -175,7 +175,7 @@ describe('BindableObserver', function () {
   function createFixture(flags: LF, obj: IIndexable, key: string) {
     const ctx = TestContext.createHTMLTestContext();
     const lifecycle = ctx.lifecycle;
-    const sut = new BindableObserver(lifecycle, flags, obj, key, `${key ? key.toString() : `${key}`}Changed`, PLATFORM.noop);
+    const sut = new BindableObserver(lifecycle, flags, obj, key, `${key ? key.toString() : `${key}`}Changed`, noop);
 
     return { sut };
   }

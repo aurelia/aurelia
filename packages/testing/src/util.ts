@@ -25,7 +25,7 @@
 
 import {
   isArrayIndex,
-  PLATFORM,
+  noop,
   Primitive,
 } from '@aurelia/kernel';
 
@@ -519,13 +519,13 @@ export function createSpy<
     $spy = function spy(...args: unknown[]) {
       calls.push(args);
     };
-    $restore = PLATFORM.noop;
+    $restore = noop;
   } else if (key === void 0) {
     $spy = function spy(...args: unknown[]) {
       calls.push(args);
       return (instanceOrInnerFn as AnyFunction)(...args);
     };
-    $restore = PLATFORM.noop;
+    $restore = noop;
   } else {
     if (!(key in instanceOrInnerFn)) {
       throw new Error(`No method named '${key}' exists in object of type ${Reflect.getPrototypeOf(instanceOrInnerFn).constructor.name}`);

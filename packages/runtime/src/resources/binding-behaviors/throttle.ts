@@ -1,6 +1,7 @@
 import { LifecycleFlags } from '../../flags';
 import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../binding-behavior';
-import { ITask, IScheduler, ITaskQueue, QueueTaskOptions, Now } from '@aurelia/scheduler';
+import { ITask, IScheduler, ITaskQueue, QueueTaskOptions } from '@aurelia/scheduler';
+import { IPlatform } from '@aurelia/kernel';
 import { BindingBehaviorExpression, IsAssign } from '../../binding/ast';
 
 import type { Scope } from '../../observation/binding-context';
@@ -8,7 +9,7 @@ import type { Scope } from '../../observation/binding-context';
 @bindingBehavior('throttle')
 export class ThrottleBindingBehavior extends BindingInterceptor {
   private readonly taskQueue: ITaskQueue;
-  private readonly now: Now;
+  private readonly platform: IPlatform;
   private readonly opts: QueueTaskOptions = { delay: 0 };
   private readonly firstArg: IsAssign | null = null;
   private task: ITask | null = null;
@@ -20,7 +21,7 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
   ) {
     super(binding, expr);
     this.taskQueue = binding.locator.get(IScheduler).getPostRenderTaskQueue();
-    this.now = binding.locator.get(Now);
+    this.platform = binding.locator.get(IPlatform);
     if (expr.args.length > 0) {
       this.firstArg = expr.args[0];
     }
@@ -37,8 +38,8 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
 
   private queueTask(callback: () => void): void {
     const opts = this.opts;
-    const now = this.now;
-    const nextDelay = this.lastCall + opts.delay! - now();
+    const platform = this.platform;
+    const nextDelay = this.lastCall + opts.delay! - platform.performanceNow();
 
     if (nextDelay > 0) {
       if (this.task !== null) {
@@ -47,12 +48,12 @@ export class ThrottleBindingBehavior extends BindingInterceptor {
 
       opts.delay = nextDelay;
       this.task = this.taskQueue.queueTask(() => {
-        this.lastCall = now();
+        this.lastCall = platform.performanceNow();
         this.task = null;
         callback();
       }, opts);
     } else {
-      this.lastCall = now();
+      this.lastCall = platform.performanceNow();
       callback();
     }
   }

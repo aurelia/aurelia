@@ -1,7 +1,4 @@
 export {
-  Now,
-} from './now';
-export {
   IScheduler,
   Scheduler,
 } from './scheduler';

@@ -6,7 +6,7 @@ import {
   INode,
   AccessorType,
 } from '@aurelia/runtime';
-import { PLATFORM, kebabCase } from '@aurelia/kernel';
+import { emptyArray, kebabCase } from '@aurelia/kernel';
 
 export class StyleAttributeAccessor implements IAccessor {
   public readonly obj: HTMLElement;
@@ -86,7 +86,7 @@ export class StyleAttributeAccessor implements IAccessor {
       }
       return styles;
     }
-    return PLATFORM.emptyArray;
+    return emptyArray;
   }
 
   private getStyleTuples(currentValue: unknown): [string, string][] {
@@ -102,7 +102,7 @@ export class StyleAttributeAccessor implements IAccessor {
       return this.getStyleTuplesFromObject(currentValue as Record<string, unknown>);
     }
 
-    return PLATFORM.emptyArray;
+    return emptyArray;
   }
 
   public flushChanges(flags: LifecycleFlags): void {

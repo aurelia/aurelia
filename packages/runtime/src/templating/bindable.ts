@@ -6,7 +6,7 @@ import {
   firstDefined,
   getPrototypeChain,
   Writable,
-  PLATFORM,
+  noop,
 } from '@aurelia/kernel';
 import {
   BindingMode,
@@ -247,7 +247,7 @@ export class BindableDefinition {
       firstDefined(def.mode, BindingMode.toView),
       firstDefined(def.primary, false),
       firstDefined(def.property, prop),
-      firstDefined(def.set, PLATFORM.noop),
+      firstDefined(def.set, noop),
     );
   }
 }

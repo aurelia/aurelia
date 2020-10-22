@@ -4,11 +4,10 @@ import {
   ITaskQueue,
   IScheduler,
   Scheduler,
-  Now,
 } from '@aurelia/scheduler';
 import {
   IContainer,
-  PLATFORM,
+  IPlatform,
 } from '@aurelia/kernel';
 
 function createMicroTaskFlushRequestorFactory(): IFlushRequestorFactory {
@@ -176,10 +175,11 @@ function createRequestIdleCallbackFlushRequestor(g: NodeJS.Global): IFlushReques
 }
 
 export function createNodeScheduler(container: IContainer, g: NodeJS.Global): IScheduler {
-  let scheduler = Scheduler.get(PLATFORM.global);
+  const platform = container.get(IPlatform);
+  let scheduler = Scheduler.get(platform.globalThis);
   if (scheduler === void 0) {
-    Scheduler.set(PLATFORM.global, scheduler = new Scheduler(
-      container.get(Now),
+    Scheduler.set(platform.globalThis, scheduler = new Scheduler(
+      platform,
       createMicroTaskFlushRequestorFactory(),
       createRequestAnimationFrameFlushRequestor(g),
       createSetTimeoutFlushRequestorFactory(g),

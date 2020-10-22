@@ -7,7 +7,7 @@ import {
   createFixture,
   TestContext
 } from '@aurelia/testing';
-import { Registration, PLATFORM } from '@aurelia/kernel';
+import { Registration } from '@aurelia/kernel';
 import { register } from '@aurelia/plugin-svg';
 
 describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {

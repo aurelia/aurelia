@@ -10,6 +10,7 @@ import {
   ITask,
   AccessorType,
 } from '@aurelia/runtime';
+import { IPlatform } from '../platform';
 
 export interface IHtmlElement extends HTMLElement {
   $mObserver: MutationObserver;
@@ -44,6 +45,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
   public constructor(
+    private readonly platform: IPlatform,
     public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
     public readonly observerLocator: IObserverLocator,
@@ -141,7 +143,7 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   public subscribe(subscriber: ISubscriber): void {
     if (!this.hasSubscribers()) {
       this.currentValue = this.oldValue = this.obj.getAttribute(this.propertyKey);
-      startObservation(this.obj, this);
+      startObservation(this.platform.MutationObserver, this.obj, this);
     }
     this.addSubscriber(subscriber);
   }
@@ -154,12 +156,12 @@ export class AttributeObserver implements AttributeObserver, ElementMutationSubs
   }
 }
 
-const startObservation = (element: IHtmlElement, subscription: ElementMutationSubscription): void => {
+const startObservation = ($MutationObserver: typeof MutationObserver, element: IHtmlElement, subscription: ElementMutationSubscription): void => {
   if (element.$eMObservers === undefined) {
     element.$eMObservers = new Set();
   }
   if (element.$mObserver === undefined) {
-    (element.$mObserver = new MutationObserver(handleMutation)).observe(element, { attributes: true });
+    (element.$mObserver = new $MutationObserver(handleMutation)).observe(element, { attributes: true });
   }
   element.$eMObservers.add(subscription);
 };

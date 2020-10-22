@@ -1,4 +1,4 @@
-import { Class, Constructable, DI, IContainer, Metadata, PLATFORM, Protocol, Registration, ResourceDefinition, ResourceType } from '@aurelia/kernel';
+import { Class, Constructable, DI, IContainer, Metadata, emptyArray, Protocol, Registration, ResourceDefinition, ResourceType } from '@aurelia/kernel';
 import { AttrSyntax } from './attribute-parser';
 
 export interface AttributePatternDefinition {
@@ -84,7 +84,7 @@ export class CharSpec implements ICharSpec {
 }
 
 export class Interpretation {
-  public parts: readonly string[] = PLATFORM.emptyArray;
+  public parts: readonly string[] = emptyArray;
   public get pattern(): string | null {
     const value = this._pattern;
     if (value === '') {
@@ -96,7 +96,7 @@ export class Interpretation {
   public set pattern(value: string | null) {
     if (value == null) {
       this._pattern = '';
-      this.parts = PLATFORM.emptyArray;
+      this.parts = emptyArray;
     } else {
       this._pattern = value;
       this.parts = this.partsRecord[value];

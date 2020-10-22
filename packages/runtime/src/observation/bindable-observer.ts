@@ -1,4 +1,4 @@
-import { IIndexable, PLATFORM } from '@aurelia/kernel';
+import { IIndexable, noop } from '@aurelia/kernel';
 import { LifecycleFlags } from '../flags';
 import { ILifecycle } from '../lifecycle';
 import { IPropertyObserver, ISubscriber, AccessorType } from '../observation';
@@ -49,7 +49,7 @@ export class BindableObserver {
     const propertyChangedCallback = this.propertyChangedCallback = (this.obj as IMayHavePropertyChangedCallback).propertyChanged;
     const hasPropertyChangedCallback = this.hasPropertyChangedCallback = typeof propertyChangedCallback === 'function';
 
-    const shouldInterceptSet = this.shouldInterceptSet = $set !== PLATFORM.noop;
+    const shouldInterceptSet = this.shouldInterceptSet = $set !== noop;
     // when user declare @bindable({ set })
     // it's expected to work from the start,
     // regardless where the assignment comes from: either direct view model assignment or from binding during render

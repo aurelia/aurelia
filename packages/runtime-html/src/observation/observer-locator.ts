@@ -11,6 +11,7 @@ import {
   SetterObserver,
   IScheduler
 } from '@aurelia/runtime';
+import { HTMLDOM } from '../dom';
 import { AttributeNSAccessor } from './attribute-ns-accessor';
 import { CheckedObserver, IInputElement } from './checked-observer';
 import { ClassAttributeAccessor } from './class-attribute-accessor';
@@ -78,7 +79,7 @@ const overrideProps = Object.assign(
 
 export class TargetObserverLocator implements ITargetObserverLocator {
   public constructor(
-    @IDOM private readonly dom: IDOM,
+    @IDOM private readonly dom: HTMLDOM,
     @ISVGAnalyzer private readonly svgAnalyzer: ISVGAnalyzer,
   ) {}
 

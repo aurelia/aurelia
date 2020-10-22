@@ -1,7 +1,7 @@
 import {
   DI,
   IContainer,
-  IRegistry
+  IRegistry,
 } from '@aurelia/kernel';
 import {
   FromViewBindingBehavior,
@@ -18,24 +18,8 @@ import { Repeat } from './resources/custom-attributes/repeat';
 import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
-import { Now } from '@aurelia/scheduler';
 import { AuSlot } from './resources/custom-elements/au-slot';
 import { Switch, Case, DefaultCase } from './resources/custom-attributes/switch';
-
-/**
- * Default implementations for the following interfaces:
- * - `IExpressionParserRegistration`
- * - `IObserverLocator`
- * - `ILifecycle`
- * - `IComposer`
- * - `IAppTaskManager`
- * - `IViewLocator`
- * - `IClockRegistration`
- * - `ISchedulerRegistration`
- */
-export const DefaultComponents = [
-  Now,
-];
 
 export const FrequentMutationsRegistration = FrequentMutations as unknown as IRegistry;
 export const InfrequentMutationsRegistration = InfrequentMutations as unknown as IRegistry;
@@ -101,7 +85,6 @@ export const RuntimeConfiguration = {
    */
   register(container: IContainer): IContainer {
     return container.register(
-      ...DefaultComponents,
       ...DefaultResources,
     );
   },

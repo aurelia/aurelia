@@ -1,7 +1,7 @@
 import {
   Constructable,
   nextId,
-  PLATFORM,
+  emptyArray,
   onResolve,
 } from '@aurelia/kernel';
 import {
@@ -195,7 +195,7 @@ export class Compose<T extends HTMLElement = HTMLElement> implements ICustomElem
       subject,
       this.properties,
       this.$controller.projector === void 0
-        ? PLATFORM.emptyArray
+        ? emptyArray
         : this.$controller.projector.children
     ).createView(this.$controller.context!);
   }

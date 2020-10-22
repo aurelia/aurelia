@@ -1,4 +1,4 @@
-import { Constructable, PLATFORM } from '@aurelia/kernel';
+import { Constructable } from '@aurelia/kernel';
 import { CustomElement, IScheduler } from '@aurelia/runtime';
 import { Aurelia, IEventDelegator, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, TestContext } from '@aurelia/testing';

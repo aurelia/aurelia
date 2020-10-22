@@ -2,7 +2,7 @@ import {
   DI,
   IContainer,
   IResolver,
-  PLATFORM,
+  emptyArray,
 } from '@aurelia/kernel';
 import { IScheduler } from '@aurelia/scheduler';
 
@@ -189,7 +189,7 @@ export const DOM: IDOM & {
       Reflect.deleteProperty(this, key);
     });
     Object.assign(this, niDOM);
-    Reflect.set(this, '$domKeys', PLATFORM.emptyArray);
+    Reflect.set(this, '$domKeys', emptyArray);
     Reflect.set(this, '$initialized', false);
   }
 };

@@ -1,7 +1,7 @@
 import { children, CustomElement, PartialChildrenDefinition } from '@aurelia/runtime';
 import { Aurelia } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
-import { IContainer, PLATFORM } from '@aurelia/kernel';
+import { IContainer } from '@aurelia/kernel';
 
 describe('ChildrenObserver', function () {
   describe('populates', function () {

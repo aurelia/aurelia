@@ -46,27 +46,24 @@ describe('SelectValueObserver', function () {
   });
 
   describe('bind()', function () {
+    // TODO: fix the spy thing
+    it.skip('uses private method handleNodeChange as callback', async function () {
+      for (const isMultiple of [true, false]) {
+        const { ctx, el, sut } = createFixture([], [], isMultiple);
 
-    if (typeof MutationObserver !== 'undefined') {
-      // TODO: fix the spy thing
-      it.skip('uses private method handleNodeChange as callback', async function () {
-        for (const isMultiple of [true, false]) {
-          const { ctx, el, sut } = createFixture([], [], isMultiple);
+        const callbackSpy = createSpy(sut, 'handleNodeChange', true);
 
-          const callbackSpy = createSpy(sut, 'handleNodeChange', true);
+        sut.bind(LF.none);
 
-          sut.bind(LF.none);
+        el.appendChild(ctx.createElement('option'));
 
-          el.appendChild(ctx.createElement('option'));
+        await Promise.resolve();
 
-          await Promise.resolve();
+        assert.strictEqual(callbackSpy.calls.length, 1, 'callbackSpy.calls.length');
 
-          assert.strictEqual(callbackSpy.calls.length, 1, 'callbackSpy.calls.length');
-
-          sut.unbind(LF.none);
-        }
-      });
-    }
+        sut.unbind(LF.none);
+      }
+    });
   });
 
   describe('unbind()', function () {

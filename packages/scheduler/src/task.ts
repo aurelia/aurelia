@@ -107,7 +107,7 @@ export class Task<T = any> implements ITask {
     this._status = 'running';
 
     try {
-      const ret = callback(taskQueue.now() - createdTime);
+      const ret = callback(taskQueue.platform.performanceNow() - createdTime);
       if (ret instanceof Promise) {
         ret.then($ret => {
             if (this.persistent) {

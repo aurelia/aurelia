@@ -1,3 +1,9 @@
+import { Platform } from '@aurelia/platform';
+import { DI } from './di';
+
+export interface IPlatform extends Platform {}
+export const IPlatform = DI.createInterface<IPlatform>('IPlatform').noDefault();
+
 export {
   all,
   DI,
@@ -29,6 +35,7 @@ export {
   DefaultResolver,
   IContainerConfiguration,
 } from './di';
+
 export {
   Class,
   Constructable,
@@ -70,10 +77,11 @@ export {
   format,
   sink,
 } from './logger';
-export { PLATFORM } from './platform';
 export {
-  Profiler
-} from './profiler';
+  noop,
+  emptyArray,
+  emptyObject,
+} from './platform';
 export {
   IResourceKind,
   PartialResourceDefinition,

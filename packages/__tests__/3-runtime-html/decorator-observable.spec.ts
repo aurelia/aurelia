@@ -1,6 +1,6 @@
 import { observable, SetterObserver, IObservable, ValueConverter } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
-import { PLATFORM } from '@aurelia/kernel';
+import { noop } from '@aurelia/kernel';
 
 describe('3-runtime-html/decorator-observable.spec.ts', function () {
   const oldValue = 'old';
@@ -93,7 +93,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
     instance.value = newValue;
     assert.strictEqual(callCount, 2);
 
-    instance.customHandler = PLATFORM.noop;
+    instance.customHandler = noop;
     instance.value = oldValue;
     // change handler is resolved once
     assert.strictEqual(callCount, 3);

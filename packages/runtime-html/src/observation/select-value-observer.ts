@@ -15,6 +15,7 @@ import {
 } from '@aurelia/runtime';
 import { EventSubscriber } from './event-delegator';
 import { bound } from '@aurelia/kernel';
+import { HTMLDOM } from '../dom';
 
 const childObserverOptions = {
   childList: true,
@@ -57,7 +58,7 @@ export class SelectValueObserver implements IAccessor {
     public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
     public readonly observerLocator: IObserverLocator,
-    public readonly dom: IDOM,
+    public readonly dom: HTMLDOM,
     public readonly handler: EventSubscriber,
     public readonly obj: ISelectElement,
   ) {
@@ -259,7 +260,7 @@ export class SelectValueObserver implements IAccessor {
   }
 
   public bind(flags: LifecycleFlags): void {
-    (this.nodeObserver = new MutationObserver(this.handleNodeChange)).observe(this.obj, childObserverOptions);
+    (this.nodeObserver = new this.dom.window.MutationObserver(this.handleNodeChange)).observe(this.obj, childObserverOptions);
   }
 
   public unbind(flags: LifecycleFlags): void {

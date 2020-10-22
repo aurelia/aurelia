@@ -1,14 +1,13 @@
 import {
   IContainer,
   IResolver,
-  PLATFORM,
+  emptyArray,
   Registration,
   toArray,
   Metadata
 } from '@aurelia/kernel';
 import {
   CustomElementHost,
-  IDOM,
   IElementProjector,
   INodeSequence,
   IProjectorLocator,
@@ -16,6 +15,7 @@ import {
   CustomElement,
   ICustomElementController,
 } from '@aurelia/runtime';
+import { HTMLDOM } from './dom';
 import { IShadowDOMStyles, IShadowDOMGlobalStyles } from './styles/shadow-dom-styles';
 
 const defaultShadowOptions = {
@@ -27,7 +27,7 @@ export class HTMLProjectorLocator implements IProjectorLocator<Node> {
     return Registration.singleton(IProjectorLocator, this).register(container);
   }
 
-  public getElementProjector(dom: IDOM<Node>, $component: ICustomElementController<Node>, host: CustomElementHost<HTMLElement>, def: CustomElementDefinition): IElementProjector<Node> {
+  public getElementProjector(dom: HTMLDOM, $component: ICustomElementController<Node>, host: CustomElementHost<HTMLElement>, def: CustomElementDefinition): IElementProjector<Node> {
     if (def.shadowOptions || def.hasSlots) {
       if (def.containerless) {
         throw new Error('You cannot combine the containerless custom element option with Shadow DOM.');
@@ -51,7 +51,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
   public shadowRoot: CustomElementHost<ShadowRoot>;
 
   public constructor(
-    public dom: IDOM<Node>,
+    public dom: HTMLDOM,
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private $controller: ICustomElementController<Node>,
     public host: CustomElementHost<HTMLElement>,
@@ -77,7 +77,7 @@ export class ShadowDOMProjector implements IElementProjector<Node> {
 
   public subscribeToChildrenChange(callback: () => void, options = childObserverOptions): void {
     // TODO: add a way to dispose/disconnect
-    const obs = new MutationObserver(callback);
+    const obs = new this.dom.window.MutationObserver(callback);
     obs.observe(this.host, options);
   }
 
@@ -108,14 +108,14 @@ export class ContainerlessProjector implements IElementProjector<Node> {
   private readonly childNodes: readonly CustomElementHost<Node>[];
 
   public constructor(
-    dom: IDOM<Node>,
+    dom: HTMLDOM,
     $controller: ICustomElementController<Node>,
     host: Node,
   ) {
     if (host.childNodes.length) {
       this.childNodes = toArray(host.childNodes);
     } else {
-      this.childNodes = PLATFORM.emptyArray;
+      this.childNodes = emptyArray;
     }
 
     this.host = dom.convertToRenderLocation(host) as CustomElementHost<Node>;

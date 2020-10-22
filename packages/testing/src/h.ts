@@ -1,6 +1,6 @@
 import {
   kebabCase,
-  PLATFORM,
+  emptyArray,
   Writable,
 } from '@aurelia/kernel';
 import {
@@ -8,8 +8,6 @@ import {
 } from '@aurelia/runtime-html';
 
 export type H = string | number | boolean | null | undefined | Node;
-
-const emptyArray = PLATFORM.emptyArray as unknown as string[];
 
 export function h<T extends string, TChildren extends H[]>(
   name: T,

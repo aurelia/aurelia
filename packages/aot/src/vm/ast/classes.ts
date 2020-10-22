@@ -19,7 +19,7 @@ import {
   createSpread,
 } from 'typescript';
 import {
-  PLATFORM,
+  emptyArray,
   ILogger,
   Writable,
 } from '@aurelia/kernel';
@@ -108,10 +108,6 @@ import {
 import {
   $List,
 } from '../types/list';
-
-const {
-  emptyArray,
-} = PLATFORM;
 
 // #region Declaration members
 

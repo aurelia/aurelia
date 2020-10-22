@@ -1,4 +1,4 @@
-import { Constructable, PLATFORM } from '@aurelia/kernel';
+import { Constructable } from '@aurelia/kernel';
 import { CustomElement, CustomElementHost } from '@aurelia/runtime';
 import { Aurelia, Blur, Focus } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';

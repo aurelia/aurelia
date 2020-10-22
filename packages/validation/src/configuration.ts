@@ -1,4 +1,4 @@
-import { IContainer, PLATFORM, Registration } from '@aurelia/kernel';
+import { IContainer, noop, Registration } from '@aurelia/kernel';
 import { IValidationExpressionHydrator } from './rule-interfaces';
 import { ICustomMessages, IValidationRules, ValidationMessageProvider, ValidationRules } from './rule-provider';
 import { IValidationMessageProvider } from './rules';
@@ -41,4 +41,4 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
   };
 }
 
-export const ValidationConfiguration = createConfiguration(PLATFORM.noop);
+export const ValidationConfiguration = createConfiguration(noop);

@@ -1,3 +1,4 @@
+import { IPlatform } from '@aurelia/kernel';
 import {
   createExposedPromise,
   defaultQueueTaskOptions,
@@ -5,9 +6,6 @@ import {
   QueueTaskOptions,
   TaskQueuePriority,
 } from './types';
-import {
-  Now,
-} from './now';
 import {
   Task,
   ITask,
@@ -111,7 +109,7 @@ export class TaskQueue {
   }
 
   public constructor(
-    public readonly now: Now,
+    public readonly platform: IPlatform,
     public readonly priority: TaskQueuePriority,
     private readonly scheduler: IScheduler,
     flushRequestorFactory: IFlushRequestorFactory,
@@ -259,7 +257,7 @@ export class TaskQueue {
       this.requestFlush();
     }
 
-    const time = this.now();
+    const time = this.platform.performanceNow();
 
     let task: Task<T>;
     if (reusable) {
@@ -323,7 +321,7 @@ export class TaskQueue {
 
     if (task.preempt) {
       this.addToProcessing(task);
-    } else if (task.queueTime <= this.now()) {
+    } else if (task.queueTime <= this.platform.performanceNow()) {
       this.addToPending(task);
     } else {
       this.addToDelayed(task);
@@ -347,7 +345,7 @@ export class TaskQueue {
       return;
     }
 
-    if (task.queueTime > this.now()) {
+    if (task.queueTime > this.platform.performanceNow()) {
       // Fast path - task with queueTime in the future can only ever be in the delayed queue
       this.removeFromDelayed(task);
 
@@ -414,7 +412,7 @@ export class TaskQueue {
   public resetPersistentTask(task: Task): void {
     enter(this, 'resetPersistentTask');
 
-    task.reset(this.now());
+    task.reset(this.platform.performanceNow());
 
     if (task.createdTime === task.queueTime) {
       if (this.pendingSize++ === 0) {
@@ -595,7 +593,7 @@ export class TaskQueue {
   private moveDelayedToProcessing(): void {
     enter(this, 'moveDelayedToProcessing');
 
-    const time = this.now();
+    const time = this.platform.performanceNow();
 
     // Add any delayed tasks whose delay have expired to the currently processing tasks
     const delayedHead = this.delayedHead!;
@@ -639,7 +637,7 @@ export class TaskQueue {
 
     if (!this.flushRequested) {
       this.flushRequested = true;
-      this.lastRequest = this.now();
+      this.lastRequest = this.platform.performanceNow();
       this.flushRequestor.request();
     }
 

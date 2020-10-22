@@ -111,14 +111,14 @@ export {
   // parseQueryString,
   // IQueryParams,
 
-  PLATFORM,
+  emptyArray,
+  emptyObject,
+  noop,
 
   // ITraceInfo,
   // ITraceWriter,
   // ILiveLoggingOptions,
   LogLevel,
-
-  Profiler,
 
   // IResourceDefinition,
   // IResourceDescriptions,

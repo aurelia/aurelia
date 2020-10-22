@@ -1,5 +1,5 @@
 import {
-  Constructable, PLATFORM
+  Constructable,
 } from '@aurelia/kernel';
 import {
   bindable,
@@ -601,9 +601,9 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
       await au.start();
 
       // if (PLATFORM.isBrowserLike) {
-      //   assert.includes(host.querySelector('a').search, `?route=home.main`);
+      assert.includes(host.querySelector('a').search, `?route=home.main`);
       // } else {
-        assert.strictEqual(host.querySelector('a').href, `/?route=home.main`);
+      //   assert.strictEqual(host.querySelector('a').href, `/?route=home.main`);
       // }
 
       await au.stop();
@@ -628,9 +628,9 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
       await au.start();
 
       // if (PLATFORM.isBrowserLike) {
-      //   assert.strictEqual(host.querySelector('a').search, '?route=home--main');
+      assert.strictEqual(host.querySelector('a').search, '?route=home--main');
       // } else {
-        assert.strictEqual(host.querySelector('a').href, '/?route=home--main');
+      //   assert.strictEqual(host.querySelector('a').href, '/?route=home--main');
       // }
 
       await au.stop();
@@ -664,18 +664,18 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
       const anchorEl = host.querySelector('a');
 
       // if (PLATFORM.isBrowserLike) {
-      //   assert.strictEqual(anchorEl.search, '?route=home.main');
+      assert.strictEqual(anchorEl.search, '?route=home.main');
       // } else {
-        assert.strictEqual(anchorEl.href, '/?route=home.main');
+      //   assert.strictEqual(anchorEl.href, '/?route=home.main');
       // }
 
       const app = au.root.controller.viewModel as any;
 
       app.appId = 'appId-appId';
       // if (PLATFORM.isBrowserLike) {
-      //   assert.strictEqual(anchorEl.search, `?params=[object%20Object]`);
+      assert.strictEqual(anchorEl.search, `?params=[object%20Object]`);
       // } else {
-        assert.strictEqual(anchorEl.href, '/?params=[object Object]');
+      //   assert.strictEqual(anchorEl.href, '/?params=[object Object]');
       // }
 
       await au.stop();

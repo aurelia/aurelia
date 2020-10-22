@@ -249,6 +249,9 @@ export {
   InstructionType,
 } from './instructions';
 export {
+  IPlatform,
+} from './platform';
+export {
   ContainerlessProjector,
   HostProjector,
   HTMLProjectorLocator,

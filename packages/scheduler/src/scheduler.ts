@@ -1,4 +1,4 @@
-import { DI } from '@aurelia/kernel';
+import { DI, IPlatform } from '@aurelia/kernel';
 
 import {
   defaultQueueTaskOptions,
@@ -12,9 +12,6 @@ import {
   TaskCallback,
   TaskQueue,
 } from './task-queue';
-import {
-  Now,
-} from './now';
 import {
   Task,
   ITask,
@@ -58,7 +55,7 @@ export class Scheduler implements IScheduler {
   private readonly postRender: TaskQueue;
 
   public constructor(
-    now: Now,
+    platform: IPlatform,
     microtaskFactory: IFlushRequestorFactory,
     renderFactory: IFlushRequestorFactory,
     macroTaskFactory: IFlushRequestorFactory,
@@ -66,16 +63,16 @@ export class Scheduler implements IScheduler {
   ) {
     this.taskQueues = [
       this.microtask = (
-        new TaskQueue(now, TaskQueuePriority.microTask, this, microtaskFactory)
+        new TaskQueue(platform, TaskQueuePriority.microTask, this, microtaskFactory)
       ),
       this.render = (
-        new TaskQueue(now, TaskQueuePriority.render, this, renderFactory)
+        new TaskQueue(platform, TaskQueuePriority.render, this, renderFactory)
       ),
       this.macroTask = (
-        new TaskQueue(now, TaskQueuePriority.macroTask, this, macroTaskFactory)
+        new TaskQueue(platform, TaskQueuePriority.macroTask, this, macroTaskFactory)
       ),
       this.postRender = (
-        new TaskQueue(now, TaskQueuePriority.postRender, this, postRenderFactory)
+        new TaskQueue(platform, TaskQueuePriority.postRender, this, postRenderFactory)
       ),
     ];
 

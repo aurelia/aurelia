@@ -9,13 +9,14 @@ import {
   IScheduler,
   ITemplateCompiler,
 } from '@aurelia/runtime';
-import { HTMLDOM } from '@aurelia/runtime-html';
+import { HTMLDOM, IPlatform } from '@aurelia/runtime-html';
 import { createDOMScheduler } from '@aurelia/scheduler-dom';
+import { BrowserPlatform } from '@aurelia/platform-browser';
 
 export class HTMLTestContext {
-  public readonly wnd: Window;
   public readonly doc: Document;
   public readonly dom: HTMLDOM;
+  public readonly platform: IPlatform;
 
   public readonly UIEvent: typeof UIEvent;
   public readonly Event: typeof Event;
@@ -28,15 +29,18 @@ export class HTMLTestContext {
   public readonly Comment: typeof Comment;
   public readonly DOMParser: typeof DOMParser;
 
-  private readonly config: IRegistry;
-
   public get container(): IContainer {
     if (this._container === void 0) {
-      this._container = DI.createContainer().register(this.config);
-      Registration.instance(IDOM, this.dom).register(this._container);
-      Registration.instance(HTMLTestContext, this).register(this._container);
-      Registration.instance(IScheduler, createDOMScheduler(this._container, this.wnd)).register(this._container);
-      this._container.register(DebugConfiguration);
+      this._container = DI.createContainer().register(
+        this.config,
+        DebugConfiguration,
+        Registration.instance(IDOM, this.dom),
+        Registration.instance(IPlatform, this.platform),
+        Registration.instance(HTMLTestContext, this),
+      );
+      this._container.register(
+        Registration.instance(IScheduler, createDOMScheduler(this._container, this.wnd)),
+      );
     }
     return this._container;
   }
@@ -95,33 +99,22 @@ export class HTMLTestContext {
   private _domParser?: HTMLDivElement;
 
   private constructor(
-    config: IRegistry,
-    wnd: Window,
-    UIEventType: typeof UIEvent,
-    EventType: typeof Event,
-    CustomEventType: typeof CustomEvent,
-    NodeType: typeof Node,
-    ElementType: typeof Element,
-    HTMLElementType: typeof HTMLElement,
-    HTMLDivElementType: typeof HTMLDivElement,
-    TextType: typeof Text,
-    CommentType: typeof Comment,
-    DOMParserType: typeof DOMParser,
+    private readonly config: IRegistry,
+    public readonly wnd: Window & typeof globalThis,
   ) {
-    this.config = config;
-    this.wnd = wnd;
-    this.UIEvent = UIEventType;
-    this.Event = EventType;
-    this.CustomEvent = CustomEventType;
-    this.Node = NodeType;
-    this.Element = ElementType;
-    this.HTMLElement = HTMLElementType;
-    this.HTMLDivElement = HTMLDivElementType;
-    this.Text = TextType;
-    this.Comment = CommentType;
-    this.DOMParser = DOMParserType;
+    this.UIEvent = wnd.UIEvent;
+    this.Event = wnd.Event;
+    this.CustomEvent = wnd.CustomEvent;
+    this.Node = wnd.Node;
+    this.Element = wnd.Element;
+    this.HTMLElement = wnd.HTMLElement;
+    this.HTMLDivElement = wnd.HTMLDivElement;
+    this.Text = wnd.Text;
+    this.Comment = wnd.Comment;
+    this.DOMParser = wnd.DOMParser;
     this.doc = wnd.document;
-    this.dom = new HTMLDOM(this.wnd.document.body);
+    this.dom = new HTMLDOM(wnd.document.body);
+    this.platform = new BrowserPlatform(wnd);
     this._container = void 0;
     this._scheduler = void 0;
     this._templateCompiler = void 0;
@@ -132,34 +125,8 @@ export class HTMLTestContext {
     this._domParser = void 0;
   }
 
-  public static create(
-    config: IRegistry,
-    wnd: Window,
-    UIEventType: typeof UIEvent,
-    EventType: typeof Event,
-    CustomEventType: typeof CustomEvent,
-    NodeType: typeof Node,
-    ElementType: typeof Element,
-    HTMLElementType: typeof HTMLElement,
-    HTMLDivElementType: typeof HTMLDivElement,
-    TextType: typeof Text,
-    CommentType: typeof Comment,
-    DOMParserType: typeof DOMParser,
-  ): HTMLTestContext {
-    return new HTMLTestContext(
-      config,
-      wnd,
-      UIEventType,
-      EventType,
-      CustomEventType,
-      NodeType,
-      ElementType,
-      HTMLElementType,
-      HTMLDivElementType,
-      TextType,
-      CommentType,
-      DOMParserType,
-    );
+  public static create(config: IRegistry, $window: Window & typeof globalThis): HTMLTestContext {
+    return new HTMLTestContext(config, $window);
   }
 
   public createElementFromMarkup(markup: string): HTMLElement {

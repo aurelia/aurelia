@@ -3,7 +3,7 @@
 import {
   IIndexable,
   IServiceLocator,
-  PLATFORM,
+  emptyArray,
   StrictPrimitive,
   isNumberOrBigInt,
   isStringOrDate,
@@ -831,7 +831,7 @@ export class HtmlLiteralExpression {
 }
 
 export class ArrayLiteralExpression {
-  public static readonly $empty: ArrayLiteralExpression = new ArrayLiteralExpression(PLATFORM.emptyArray);
+  public static readonly $empty: ArrayLiteralExpression = new ArrayLiteralExpression(emptyArray);
   public get $kind(): ExpressionKind.ArrayLiteral { return ExpressionKind.ArrayLiteral; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
@@ -860,7 +860,7 @@ export class ArrayLiteralExpression {
 }
 
 export class ObjectLiteralExpression {
-  public static readonly $empty: ObjectLiteralExpression = new ObjectLiteralExpression(PLATFORM.emptyArray, PLATFORM.emptyArray);
+  public static readonly $empty: ObjectLiteralExpression = new ObjectLiteralExpression(emptyArray, emptyArray);
   public get $kind(): ExpressionKind.ObjectLiteral { return ExpressionKind.ObjectLiteral; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
@@ -901,7 +901,7 @@ export class TemplateExpression {
 
   public constructor(
     public readonly cooked: readonly string[],
-    public readonly expressions: readonly IsAssign[] = PLATFORM.emptyArray,
+    public readonly expressions: readonly IsAssign[] = emptyArray,
   ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): string {
@@ -938,7 +938,7 @@ export class TaggedTemplateExpression {
     public readonly cooked: readonly string[] & { raw?: readonly string[] },
     raw: readonly string[],
     public readonly func: IsLeftHandSide,
-    public readonly expressions: readonly IsAssign[] = PLATFORM.emptyArray,
+    public readonly expressions: readonly IsAssign[] = emptyArray,
   ) {
     cooked.raw = raw;
   }
@@ -1132,7 +1132,7 @@ export class Interpolation {
 
   public constructor(
     public readonly parts: readonly string[],
-    public readonly expressions: readonly IsBindingBehavior[] = PLATFORM.emptyArray,
+    public readonly expressions: readonly IsBindingBehavior[] = emptyArray,
   ) {
     this.isMulti = expressions.length > 1;
     this.firstExpression = expressions[0];

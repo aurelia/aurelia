@@ -1,4 +1,4 @@
-import { Constructable, PLATFORM } from '@aurelia/kernel';
+import { Constructable } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime';
 import { Aurelia, Focus } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
@@ -390,7 +390,7 @@ describe('focus.spec.ts', function () {
         }
       }
     }
-    customElements.define(name, CustomEl);
+    ctx.platform.customElements.define(name, CustomEl);
     return CustomEl;
   }
 

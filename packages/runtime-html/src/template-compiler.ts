@@ -1,7 +1,7 @@
 import {
   IContainer,
   IResolver,
-  PLATFORM,
+  emptyArray,
   Registration,
   mergeArrays,
   toArray,
@@ -314,7 +314,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         bindingInstructions[i] = this.compileBinding(bindings[i]);
       }
     } else {
-      bindingInstructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & AttributeInstruction[];
+      bindingInstructions = emptyArray;
     }
     return bindingInstructions;
   }
@@ -361,7 +361,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     } else if (offset > 0) {
       attributeInstructions = Array(offset);
     } else {
-      attributeInstructions = PLATFORM.emptyArray as typeof PLATFORM.emptyArray & AttributeInstruction[];
+      attributeInstructions = emptyArray;
     }
     return attributeInstructions;
   }

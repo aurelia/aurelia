@@ -1,4 +1,4 @@
-import { PLATFORM } from '@aurelia/kernel';
+import { emptyArray } from '@aurelia/kernel';
 import {
   bindable,
   customAttribute,
@@ -218,7 +218,7 @@ export class Blur implements ICustomAttributeViewModel<HTMLElement> {
           // todo: are there too many knobs?? Consider remove "linkedMultiple"??
           if (!linkedMultiple) {
             const el = contextNode.querySelector(link);
-            els = el !== null ? [el] : PLATFORM.emptyArray;
+            els = el !== null ? [el] : emptyArray;
           } else {
             els = contextNode.querySelectorAll(link);
           }

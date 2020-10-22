@@ -6,10 +6,12 @@ import {
   IDisposable,
   onResolve,
 } from '@aurelia/kernel';
+import { BrowserPlatform } from '@aurelia/platform-browser';
 import { AppRoot, IAppRoot, IDOM, ISinglePageApp } from '@aurelia/runtime';
 import { IScheduler } from '@aurelia/scheduler';
 import { createDOMScheduler } from '@aurelia/scheduler-dom';
 import { HTMLDOM } from './dom';
+import { IPlatform } from './platform';
 
 type Publisher = { dispatchEvent(evt: unknown, options?: unknown): void };
 
@@ -74,7 +76,15 @@ export class Aurelia implements IDisposable {
       this.container.register(Registration.instance(IDOM, dom));
     }
     if (!this.container.has(IDOM, true)) {
-      this.container.register(Registration.instance(IScheduler, createDOMScheduler(this.container, dom.window)));
+      const scheduler = createDOMScheduler(this.container, dom.window);
+      this.container.register(Registration.instance(IScheduler, scheduler));
+    }
+    if (!this.container.has(IPlatform, false)) {
+      if (host.ownerDocument.defaultView === null) {
+        throw new Error(`Failed to initialize the platform object. The host element's ownerDocument does not have a defaultView`);
+      }
+      const platform = new BrowserPlatform(host.ownerDocument.defaultView)
+      this.container.register(Registration.instance(IPlatform, platform));
     }
     // cast is temporary hack but we're soon getting rid of IDOM anyway
     return dom as unknown as IDOM<HTMLElement>;

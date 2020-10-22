@@ -27,7 +27,6 @@ import {
 } from '../observation/element-attribute-observer';
 
 import type { Scope } from '@aurelia/runtime';
-import { HTMLDOM } from '../dom';
 import { IPlatform } from '../platform';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak

@@ -7,7 +7,6 @@ import {
 import {
   BindingMode,
   IDOM,
-  INode,
   IInstruction,
   IViewFactory,
   LifecycleFlags,

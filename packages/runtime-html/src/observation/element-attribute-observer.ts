@@ -1,5 +1,4 @@
 import {
-  DOM,
   IBindingTargetObserver,
   IObserverLocator,
   ISubscriber,

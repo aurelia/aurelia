@@ -219,7 +219,6 @@ export class StaticSegment implements ISegment {
   public constructor(
     public text: string,
   ) {
-    this.text = text;
     const len = this.len = text.length;
     const specs = this.specs = [] as CharSpec[];
     for (let i = 0; i < len; ++i) {

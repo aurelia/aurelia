@@ -1,7 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import {
   CustomElement,
-  IDOM,
   ILifecycle,
   IObserverLocator,
   view,

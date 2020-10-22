@@ -2,9 +2,7 @@ import {
   DI,
   IContainer,
   IIndexable,
-  IResolver,
   IServiceLocator,
-  Registration,
   IDisposable,
 } from '@aurelia/kernel';
 import {

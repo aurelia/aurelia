@@ -1,4 +1,4 @@
-import { CustomElementType, customElement, customAttribute, alias, CustomAttributeDefinition, BindingMode } from "@aurelia/runtime";
+import { CustomElementType, customElement, customAttribute, alias, CustomAttributeDefinition } from "@aurelia/runtime";
 import { Aurelia } from '@aurelia/runtime-html';
 import { TestContext, assert } from "@aurelia/testing";
 import { Metadata } from '@aurelia/kernel';

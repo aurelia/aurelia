@@ -21,7 +21,6 @@ export class AttributeParser {
     @ISyntaxInterpreter private readonly interpreter: ISyntaxInterpreter,
     @all(IAttributePattern) attrPatterns: IAttributePattern[],
   ) {
-    this.interpreter = interpreter;
     const patterns: AttributeParser['patterns'] = this.patterns = {};
     attrPatterns.forEach(attrPattern => {
       const defs = AttributePattern.getPatternDefinitions(attrPattern.constructor as Constructable);

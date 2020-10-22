@@ -17,7 +17,6 @@ import {
   CustomElementType,
   IDOM,
   IExpressionParser,
-  INode,
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 

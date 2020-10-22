@@ -378,7 +378,7 @@ export class ComputedWatcher implements IWatcher {
   }
 
   private run(): void {
-    if (this.running) {
+    if (!this.isBound || this.running) {
       return;
     }
     const obj = this.obj;

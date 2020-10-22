@@ -8,6 +8,10 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
     @watch<App>(app => app.col.has(Symbol), 'someMethod')
     @watch<App>(app => app.col.has(Symbol), symbolMethod)
     @watch<App>(app => app.col.has(Symbol), (v, o, a) => a.someMethod(v, o, a))
+    @watch((app: App) => app.col.has(Symbol), 5)
+    @watch((app: App) => app.col.has(Symbol), 'someMethod')
+    @watch((app: App) => app.col.has(Symbol), symbolMethod)
+    @watch((app: App) => app.col.has(Symbol), (v, o, a) => a.someMethod(v, o, a))
     @watch<App>('some.expression', 5)
     @watch<App>('some.expression', 'someMethod')
     @watch<App>('some.expression', symbolMethod)
@@ -22,6 +26,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       public col: Map<unknown, unknown>;
 
       @watch<App>(app => app.col.has(Symbol))
+      @watch((app: App) => app.col.has(Symbol))
       @watch('some.expression')
       @watch(Symbol())
       @watch(5)
@@ -777,7 +782,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         }
 
         const { ctx, component, tearDown, startPromise } = createFixture('', App);
-        await startPromise
+        await startPromise;
         created(component, ctx, 1);
         await tearDown();
         disposed?.(component, ctx, 1);

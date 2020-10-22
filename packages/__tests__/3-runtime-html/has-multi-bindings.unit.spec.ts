@@ -1,7 +1,6 @@
-import { TemplateBinder, IAttrSyntaxTransformer, ITemplateElementFactory } from '@aurelia/runtime-html';
+import { TemplateBinder, IAttrSyntaxTransformer, ITemplateElementFactory, ResourceModel, IAttributeParser, PlainElementSymbol } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { IExpressionParser, CustomAttribute } from '@aurelia/runtime';
-import { ResourceModel, IAttributeParser, PlainElementSymbol } from '@aurelia/runtime-html';
 
 describe('has-multi-bindings.unit.spec.ts', function () {
   interface IBindingSpec {

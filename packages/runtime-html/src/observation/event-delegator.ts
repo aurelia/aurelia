@@ -38,7 +38,7 @@ class ListenerTracker implements IDisposable {
 
   /** @internal */
   public getLookup(target: EventTarget): Record<string, EventListenerOrEventListenerObject | undefined> {
-    let lookups = this.options.capture === true ? this.captureLookups : this.bubbleLookups;
+    const lookups = this.options.capture === true ? this.captureLookups : this.bubbleLookups;
     let lookup = lookups.get(target);
     if (lookup === void 0) {
       lookups.set(target, lookup = Object.create(null) as Record<string, EventListenerOrEventListenerObject | undefined>);
@@ -73,7 +73,6 @@ class ListenerTracker implements IDisposable {
     }
   }
 }
-
 
 /**
  * Enable dispose() pattern for `delegate` & `capture` commands
@@ -129,6 +128,7 @@ export const IEventDelegator = DI.createInterface<IEventDelegator>('IEventDelega
 export class EventDelegator implements IDisposable {
   private readonly trackerMaps: Record<string, Map<EventTarget, ListenerTracker> | undefined> = Object.create(null);
 
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
   public constructor() { /* do not remove, is necessary for fulfilling the TS (new() => ...) type */ }
 
   public addEventListener(

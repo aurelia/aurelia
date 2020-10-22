@@ -34,7 +34,7 @@ export function $setup($window: Window & typeof globalThis) {
       console.log(`Test initialization took ${Math.round(firstTestStart - globalStart)}ms`);
     }
     const totalElapsed = start - firstTestStart;
-    const ts = new Date(totalElapsed).toISOString().slice(14, -1)
+    const ts = new Date(totalElapsed).toISOString().slice(14, -1);
 
     const title = this.currentTest!.fullTitle();
     if (title.length > 1000) {

@@ -92,7 +92,7 @@ describe('ListenerTracker', function () {
     for (const eventName of ['foo', 'change', 'input', 'blur', 'keyup', 'paste', 'scroll']) {
       for (const capture of [true, false, undefined]) {
         for (const bubbles of [true, false]) {
-          for (let listener of [null, { handleEvent: null }] as (((ev: Event) => void) | { handleEvent(ev: Event): void })[]) {
+          for (const listener of [null, { handleEvent: null }] as (((ev: Event) => void) | { handleEvent(ev: Event): void })[]) {
             describe('increment()', function () {
               it(_`adds the event listener (increment=${increment}, eventName=${eventName}, capture=${capture}, bubbles=${bubbles}, listener=${listener})`, function () {
                 const { ctx, sut, el, event, handlerPath, copyHandler } = createFixture(eventName, listener, capture, bubbles);

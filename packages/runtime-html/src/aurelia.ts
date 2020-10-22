@@ -83,7 +83,7 @@ export class Aurelia implements IDisposable {
       if (host.ownerDocument.defaultView === null) {
         throw new Error(`Failed to initialize the platform object. The host element's ownerDocument does not have a defaultView`);
       }
-      const platform = new BrowserPlatform(host.ownerDocument.defaultView)
+      const platform = new BrowserPlatform(host.ownerDocument.defaultView);
       this.container.register(Registration.instance(IPlatform, platform));
     }
     // cast is temporary hack but we're soon getting rid of IDOM anyway

@@ -1,4 +1,4 @@
-import { DebugConfiguration } from '@aurelia/debug';;
+import { DebugConfiguration } from '@aurelia/debug';
 import { DI, IContainer } from '@aurelia/kernel';
 import { IAppRoot, CustomElementType, ISinglePageApp, CustomElement } from '@aurelia/runtime';
 import { RuntimeHtmlConfiguration, Aurelia as $Aurelia } from '@aurelia/runtime-html';

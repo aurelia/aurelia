@@ -54,7 +54,6 @@ describe('[UNIT] blur.unit.spec.ts', function () {
       dispose();
     });
 
-
     it('bails when there is no thing linked and the hosting element does not contain the target', function () {
       const { ctx, sut, dispose } = createFixture();
       let accessed: Record<string, number> = {};

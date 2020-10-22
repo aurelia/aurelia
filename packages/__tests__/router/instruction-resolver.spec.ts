@@ -1,4 +1,3 @@
-import { DebugConfiguration } from '@aurelia/debug';
 import { IRouter, RouterConfiguration, ViewportInstruction, InstructionResolver } from '@aurelia/router';
 import { CustomElement } from '@aurelia/runtime';
 import { Aurelia } from '@aurelia/runtime-html';
@@ -15,7 +14,7 @@ describe('InstructionResolver', function () {
     ctx.doc.body.appendChild(host);
 
     const au = ctx.wnd['au'] = new Aurelia(container)
-      .register(DebugConfiguration, RouterConfiguration)
+      .register(RouterConfiguration)
       .app({ host: host, component: App });
 
     const instructionResolver = container.get(InstructionResolver);

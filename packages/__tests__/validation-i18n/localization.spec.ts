@@ -1,4 +1,3 @@
-import { Unparser } from '@aurelia/debug';
 import { I18N, I18nConfiguration, I18nConfigurationOptions } from '@aurelia/i18n';
 import { IContainer, Registration } from '@aurelia/kernel';
 import { CustomElement, IBinding, INode, IScheduler } from '@aurelia/runtime';
@@ -182,7 +181,7 @@ describe('validation-i18n', function () {
 
     const binding = bindings[0];
     assert.equal(binding.target, target);
-    assert.equal(Unparser.unparse(binding.sourceExpression.expression), rawExpression);
+    assert.equal(binding.sourceExpression.expression.toString(), rawExpression);
   }
 
   async function assertEventHandler(target: HTMLElement, event: 'change' | 'focusout', callCount: number, scheduler: IScheduler, controllerSpy: Spy, ctx: HTMLTestContext) {

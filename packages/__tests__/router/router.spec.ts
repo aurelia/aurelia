@@ -1,5 +1,3 @@
-import { DebugConfiguration } from '@aurelia/debug';
-import { inject, IContainer } from '@aurelia/kernel';
 import { IRouter, RouterConfiguration, IConfigurableRoute, IRoute, IRouterTitle, ViewportInstruction } from '@aurelia/router';
 import { CustomElement, customElement, IScheduler } from '@aurelia/runtime';
 import { Aurelia } from '@aurelia/runtime-html';
@@ -138,7 +136,6 @@ describe('Router', function () {
 
     const au = ctx.wnd['au'] = new Aurelia(container)
       .register(
-        DebugConfiguration,
         !config ? RouterConfiguration : RouterConfiguration.customize(config),
         App)
       .app({ host: host, component: App });
@@ -946,7 +943,7 @@ describe('Router', function () {
       const component = new App();
 
       const au = ctx.wnd['au'] = new Aurelia(container)
-        .register(DebugConfiguration, RouterConfiguration)
+        .register(RouterConfiguration)
         .app({ host: host, component: App });
 
       const router = container.get(IRouter);
@@ -1196,7 +1193,6 @@ describe('Router', function () {
 
       const au = new Aurelia(container)
         .register(
-          DebugConfiguration,
           !config ? RouterConfiguration : RouterConfiguration.customize(config),
           App)
         .app({ host: host, component: App });
@@ -1326,7 +1322,6 @@ describe('Router', function () {
 
       const au = new Aurelia(container)
         .register(
-          DebugConfiguration,
           !config ? RouterConfiguration : RouterConfiguration.customize(config),
           App)
         .app({ host: host, component: App });
@@ -1594,7 +1589,6 @@ describe('Router', function () {
 
       const au = new Aurelia(container)
         .register(
-          DebugConfiguration,
           !config ? RouterConfiguration : RouterConfiguration.customize(config),
           App)
         .app({ host: host, component: App });
@@ -1815,7 +1809,6 @@ describe('Router', function () {
 
       const au = new Aurelia(container)
         .register(
-          DebugConfiguration,
           !config ? RouterConfiguration : RouterConfiguration.customize(config),
           App)
         .app({ host: host, component: App });

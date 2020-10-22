@@ -45,7 +45,6 @@ import {
   UnaryExpression,
   ValueConverterExpression,
 } from '@aurelia/runtime';
-import { Unparser } from '@aurelia/debug';
 
 const $false = PrimitiveLiteralExpression.$false;
 const $true = PrimitiveLiteralExpression.$true;
@@ -1510,7 +1509,7 @@ describe('BinaryExpression', function () {
       public hs: Scope | null = null,
     ) { }
 
-    public toString() { return `${Unparser.unparse(this.expr)}${this.hs !== null ? ' - hostScoped' : ''}`; }
+    public toString() { return `${this.expr}${this.hs !== null ? ' - hostScoped' : ''}`; }
   }
 
   describe('performs \'in\'', function () {
@@ -2109,7 +2108,7 @@ describe('LiteralTemplate', function () {
   }
 
   for (const item of getTestData()) {
-    it(`${Unparser.unparse(item.expr)} evaluates ${item.expected}`, function () {
+    it(`${item.expr} evaluates ${item.expected}`, function () {
       assert.strictEqual(item.expr.evaluate(LF.none,  item.scope,  item.hostScope,  null, null), item.expected, `expr.evaluate(LF.none, scope, hs, null, null)`);
     });
   }

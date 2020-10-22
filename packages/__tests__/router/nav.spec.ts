@@ -1,5 +1,4 @@
-import { DebugConfiguration } from '@aurelia/debug';
-import { IRouter, RouterConfiguration, ViewportInstruction } from '@aurelia/router';
+import { IRouter, RouterConfiguration } from '@aurelia/router';
 import { CustomElement } from '@aurelia/runtime';
 import { Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
@@ -33,7 +32,7 @@ describe('Nav', function () {
     ctx.doc.body.appendChild(host);
 
     const au = ctx.wnd['au'] = new Aurelia(container)
-      .register(DebugConfiguration, RouterConfiguration)
+      .register(RouterConfiguration)
       .app({ host: host, component: App });
 
     const router = container.get(IRouter);

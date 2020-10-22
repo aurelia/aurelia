@@ -1,4 +1,3 @@
-import { DebugConfiguration } from '@aurelia/debug';
 import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { RouterConfiguration } from '@aurelia/router';
 import { Aurelia } from '@aurelia/runtime';
@@ -48,7 +47,6 @@ import { State } from './state';
 
       RuntimeHtmlConfiguration,
       RouterConfiguration.customize({ useHref: true }),
-      DebugConfiguration,
     )
     .app({
       host: document.querySelector('app'),

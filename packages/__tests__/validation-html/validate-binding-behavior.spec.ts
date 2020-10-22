@@ -1,4 +1,3 @@
-import { Unparser } from '@aurelia/debug';
 import { DI, IServiceLocator, newInstanceForScope, newInstanceOf, Registration } from '@aurelia/kernel';
 import {
   ArrayObserver,
@@ -331,7 +330,7 @@ describe('validate-binding-behavior', function () {
 
     const binding = bindings[0];
     assert.equal(binding.target, target);
-    assert.equal(Unparser.unparse(binding.sourceExpression.expression), rawExpression);
+    assert.equal(binding.sourceExpression.expression.toString(), rawExpression);
   }
 
   async function assertEventHandler(target: HTMLElement, event: 'change' | 'blur' | 'focusout', callCount: number, scheduler: IScheduler, validateBindingSpy: ISpy, validateSpy: ISpy, ctx: HTMLTestContext) {
@@ -1103,7 +1102,7 @@ describe('validate-binding-behavior', function () {
       assert.equal(bindings.length, 1);
 
       const binding = bindings[0];
-      assert.equal(Unparser.unparse(binding.sourceExpression.expression), 'org.employees');
+      assert.equal(binding.sourceExpression.expression.toString(), 'org.employees');
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees').length, 0, 'error1');
       await controller.validate();
@@ -1137,7 +1136,7 @@ describe('validate-binding-behavior', function () {
       assert.equal(bindings.length, 1);
 
       const binding = bindings[0];
-      assert.equal(Unparser.unparse(binding.sourceExpression.expression), 'org.employees');
+      assert.equal(binding.sourceExpression.expression.toString(), 'org.employees');
 
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees').length, 0, 'error1');
       await controller.validate();
@@ -1170,9 +1169,9 @@ describe('validate-binding-behavior', function () {
       const bindings = Array.from((controller['bindings'] as Map<IBinding, any>).keys()) as BindingWithBehavior[];
       assert.equal(bindings.length, 2);
       assert.equal(bindings[0].target, target1);
-      assert.equal(Unparser.unparse(bindings[0].sourceExpression.expression), 'obj.coll[(0)].a|toNumber');
+      assert.equal(bindings[0].sourceExpression.expression.toString(), 'obj.coll[(0)].a|toNumber');
       assert.equal(bindings[1].target, target2);
-      assert.equal(Unparser.unparse(bindings[1].sourceExpression.expression), 'obj.coll[(1)].a|toNumber');
+      assert.equal(bindings[1].sourceExpression.expression.toString(), 'obj.coll[(1)].a|toNumber');
 
       assert.equal(controller.results.filter((r) => !r.valid && (r.propertyName === 'coll[0].a' || r.propertyName === 'coll[1].a')).length, 0, 'error1');
       await controller.validate();

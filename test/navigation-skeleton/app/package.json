@@ -10,7 +10,6 @@
     "now": "rimraf dist && webpack --config webpack.config.js && cd dist && now && cd .."
   },
   "dependencies": {
-    "@aurelia/debug": "0.7.0",
     "@aurelia/fetch-client": "0.7.0",
     "@aurelia/kernel": "0.7.0",
     "@aurelia/metadata": "0.7.0",

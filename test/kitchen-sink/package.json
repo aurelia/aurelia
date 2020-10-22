@@ -13,7 +13,6 @@
     "serve": "node -r esm ./node_modules/@aurelia/http-server/dist/esnext/cli.js au.conf.js"
   },
   "dependencies": {
-    "@aurelia/debug": "0.7.0",
     "@aurelia/kernel": "0.7.0",
     "@aurelia/metadata": "0.7.0",
     "@aurelia/platform": "0.7.0",

@@ -1,5 +1,4 @@
 import { NavCustomElement, ViewportCustomElement } from '@aurelia/router';
-import { DebugConfiguration } from '@aurelia/debug';
 import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { Aurelia } from '@aurelia/runtime';
 import { registerComponent } from './utils';
@@ -21,6 +20,5 @@ registerComponent(
 );
 
 window['au'] = new Aurelia(container)
-  .register(DebugConfiguration)
   .app({ host: document.querySelector('app'), component: App })
   .start();

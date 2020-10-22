@@ -1,5 +1,4 @@
 import * as faker from 'faker';
-import { TraceConfiguration, DebugConfiguration } from '@aurelia/debug';
 import {
   Aurelia,
   IfRegistration,
@@ -46,8 +45,6 @@ import { DI, Tracer, camelCase } from '@aurelia/kernel';
 
 window['faker'] = faker;
 
-DebugConfiguration.register();
-TraceConfiguration.register();
 Tracer.enabled = true;
 Tracer.enableLiveLogging({
   di: false,

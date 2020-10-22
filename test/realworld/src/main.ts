@@ -1,5 +1,4 @@
 import { Aurelia } from '@aurelia/runtime';
-import { DebugConfiguration } from '@aurelia/debug';
 import { HttpClient } from '@aurelia/fetch-client';
 import { RouterConfiguration } from '@aurelia/router';
 import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
@@ -29,7 +28,6 @@ const globalResources = [
 new Aurelia()
   .register(
     RuntimeHtmlConfiguration,
-    DebugConfiguration,
     RouterConfiguration.customize({ useUrlFragmentHash: false, statefulHistoryLength: 3 }),
     ...globalResources,
   )

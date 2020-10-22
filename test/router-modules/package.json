@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "aurelia": "0.7.0",
-    "@aurelia/debug": "0.7.0",
     "@aurelia/fetch-client": "0.7.0",
     "@aurelia/kernel": "0.7.0",
     "@aurelia/metadata": "0.7.0",

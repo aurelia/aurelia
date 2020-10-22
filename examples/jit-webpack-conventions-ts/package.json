@@ -13,7 +13,6 @@
     "serve": "au-http-server au.conf.js"
   },
   "dependencies": {
-    "@aurelia/debug": "dev",
     "@aurelia/fetch-client": "dev",
     "@aurelia/kernel": "dev",
     "@aurelia/metadata": "dev",

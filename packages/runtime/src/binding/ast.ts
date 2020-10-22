@@ -82,6 +82,256 @@ export interface IVisitor<T = unknown> {
   visitValueConverter(expr: ValueConverterExpression): T;
 }
 
+export class Unparser implements IVisitor<void> {
+  public text: string = '';
+
+  public static unparse(expr: IsExpressionOrStatement): string {
+    const visitor = new Unparser();
+    expr.accept(visitor);
+    return visitor.text;
+  }
+
+  public visitAccessMember(expr: AccessMemberExpression): void {
+    expr.object.accept(this);
+    this.text += `.${expr.name}`;
+  }
+
+  public visitAccessKeyed(expr: AccessKeyedExpression): void {
+    expr.object.accept(this);
+    this.text += '[';
+    expr.key.accept(this);
+    this.text += ']';
+  }
+
+  public visitAccessThis(expr: AccessThisExpression): void {
+    if (expr.ancestor === 0) {
+      this.text += '$this';
+      return;
+    }
+    this.text += '$parent';
+    let i = expr.ancestor - 1;
+    while (i--) {
+      this.text += '.$parent';
+    }
+  }
+
+  public visitAccessScope(expr: AccessScopeExpression): void {
+    let i = expr.ancestor;
+    while (i--) {
+      this.text += '$parent.';
+    }
+    this.text += expr.name;
+  }
+
+  public visitArrayLiteral(expr: ArrayLiteralExpression): void {
+    const elements = expr.elements;
+    this.text += '[';
+    for (let i = 0, length = elements.length; i < length; ++i) {
+      if (i !== 0) {
+        this.text += ',';
+      }
+      elements[i].accept(this);
+    }
+    this.text += ']';
+  }
+
+  public visitObjectLiteral(expr: ObjectLiteralExpression): void {
+    const keys = expr.keys;
+    const values = expr.values;
+    this.text += '{';
+    for (let i = 0, length = keys.length; i < length; ++i) {
+      if (i !== 0) {
+        this.text += ',';
+      }
+      this.text += `'${keys[i]}':`;
+      values[i].accept(this);
+    }
+    this.text += '}';
+  }
+
+  public visitPrimitiveLiteral(expr: PrimitiveLiteralExpression): void {
+    this.text += '(';
+    if (typeof expr.value === 'string') {
+      const escaped = expr.value.replace(/'/g, '\\\'');
+      this.text += `'${escaped}'`;
+    } else {
+      this.text += `${expr.value}`;
+    }
+    this.text += ')';
+  }
+
+  public visitCallFunction(expr: CallFunctionExpression): void {
+    this.text += '(';
+    expr.func.accept(this);
+    this.writeArgs(expr.args);
+    this.text += ')';
+  }
+
+  public visitCallMember(expr: CallMemberExpression): void {
+    this.text += '(';
+    expr.object.accept(this);
+    this.text += `.${expr.name}`;
+    this.writeArgs(expr.args);
+    this.text += ')';
+  }
+
+  public visitCallScope(expr: CallScopeExpression): void {
+    this.text += '(';
+    let i = expr.ancestor;
+    while (i--) {
+      this.text += '$parent.';
+    }
+    this.text += expr.name;
+    this.writeArgs(expr.args);
+    this.text += ')';
+  }
+
+  public visitTemplate(expr: TemplateExpression): void {
+    const { cooked, expressions } = expr;
+    const length = expressions.length;
+    this.text += '`';
+    this.text += cooked[0];
+    for (let i = 0; i < length; i++) {
+      expressions[i].accept(this);
+      this.text += cooked[i + 1];
+    }
+    this.text += '`';
+  }
+
+  public visitTaggedTemplate(expr: TaggedTemplateExpression): void {
+    const { cooked, expressions } = expr;
+    const length = expressions.length;
+    expr.func.accept(this);
+    this.text += '`';
+    this.text += cooked[0];
+    for (let i = 0; i < length; i++) {
+      expressions[i].accept(this);
+      this.text += cooked[i + 1];
+    }
+    this.text += '`';
+  }
+
+  public visitUnary(expr: UnaryExpression): void {
+    this.text += `(${expr.operation}`;
+    if (expr.operation.charCodeAt(0) >= /* a */97) {
+      this.text += ' ';
+    }
+    expr.expression.accept(this);
+    this.text += ')';
+  }
+
+  public visitBinary(expr: BinaryExpression): void {
+    this.text += '(';
+    expr.left.accept(this);
+    if (expr.operation.charCodeAt(0) === /* i */105) {
+      this.text += ` ${expr.operation} `;
+    } else {
+      this.text += expr.operation;
+    }
+    expr.right.accept(this);
+    this.text += ')';
+  }
+
+  public visitConditional(expr: ConditionalExpression): void {
+    this.text += '(';
+    expr.condition.accept(this);
+    this.text += '?';
+    expr.yes.accept(this);
+    this.text += ':';
+    expr.no.accept(this);
+    this.text += ')';
+  }
+
+  public visitAssign(expr: AssignExpression): void {
+    this.text += '(';
+    expr.target.accept(this);
+    this.text += '=';
+    expr.value.accept(this);
+    this.text += ')';
+  }
+
+  public visitValueConverter(expr: ValueConverterExpression): void {
+    const args = expr.args;
+    expr.expression.accept(this);
+    this.text += `|${expr.name}`;
+    for (let i = 0, length = args.length; i < length; ++i) {
+      this.text += ':';
+      args[i].accept(this);
+    }
+  }
+
+  public visitBindingBehavior(expr: BindingBehaviorExpression): void {
+    const args = expr.args;
+    expr.expression.accept(this);
+    this.text += `&${expr.name}`;
+    for (let i = 0, length = args.length; i < length; ++i) {
+      this.text += ':';
+      args[i].accept(this);
+    }
+  }
+
+  public visitArrayBindingPattern(expr: ArrayBindingPattern): void {
+    const elements = expr.elements;
+    this.text += '[';
+    for (let i = 0, length = elements.length; i < length; ++i) {
+      if (i !== 0) {
+        this.text += ',';
+      }
+      elements[i].accept(this);
+    }
+    this.text += ']';
+  }
+
+  public visitObjectBindingPattern(expr: ObjectBindingPattern): void {
+    const keys = expr.keys;
+    const values = expr.values;
+    this.text += '{';
+    for (let i = 0, length = keys.length; i < length; ++i) {
+      if (i !== 0) {
+        this.text += ',';
+      }
+      this.text += `'${keys[i]}':`;
+      values[i].accept(this);
+    }
+    this.text += '}';
+  }
+
+  public visitBindingIdentifier(expr: BindingIdentifier): void {
+    this.text += expr.name;
+  }
+
+  public visitHtmlLiteral(expr: HtmlLiteralExpression): void { throw new Error('visitHtmlLiteral'); }
+
+  public visitForOfStatement(expr: ForOfStatement): void {
+    expr.declaration.accept(this);
+    this.text += ' of ';
+    expr.iterable.accept(this);
+  }
+
+  public visitInterpolation(expr: Interpolation): void {
+    const { parts, expressions } = expr;
+    const length = expressions.length;
+    this.text += '${';
+    this.text += parts[0];
+    for (let i = 0; i < length; i++) {
+      expressions[i].accept(this);
+      this.text += parts[i + 1];
+    }
+    this.text += '}';
+  }
+
+  private writeArgs(args: readonly IsBindingBehavior[]): void {
+    this.text += '(';
+    for (let i = 0, length = args.length; i < length; ++i) {
+      if (i !== 0) {
+        this.text += ',';
+      }
+      args[i].accept(this);
+    }
+    this.text += ')';
+  }
+}
+
 function chooseScope(accessHostScope: boolean, s: Scope, hs: Scope | null){
   if (accessHostScope) {
     if (hs === null || hs === void 0) { throw new Error('Host scope is missing. Are you using `$host` outside the `au-slot`? Or missing the `au-slot` attribute?'); }
@@ -162,6 +412,10 @@ export class BindingBehaviorExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBindingBehavior(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -245,6 +499,10 @@ export class ValueConverterExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitValueConverter(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class AssignExpression {
@@ -272,6 +530,10 @@ export class AssignExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAssign(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -306,6 +568,10 @@ export class ConditionalExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitConditional(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -346,6 +612,10 @@ export class AccessThisExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessThis(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -392,6 +662,10 @@ export class AccessScopeExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessScope(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -449,6 +723,10 @@ export class AccessMemberExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessMember(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class AccessKeyedExpression {
@@ -495,6 +773,10 @@ export class AccessKeyedExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessKeyed(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class CallScopeExpression {
@@ -536,6 +818,10 @@ export class CallScopeExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitCallScope(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -580,6 +866,10 @@ export class CallMemberExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitCallMember(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class CallFunctionExpression {
@@ -619,6 +909,10 @@ export class CallFunctionExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitCallFunction(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -721,6 +1015,10 @@ export class BinaryExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBinary(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class UnaryExpression {
@@ -761,6 +1059,10 @@ export class UnaryExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitUnary(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 export class PrimitiveLiteralExpression<TValue extends null | undefined | number | boolean | string = null | undefined | number | boolean | string> {
   public static readonly $undefined: PrimitiveLiteralExpression<undefined> = new PrimitiveLiteralExpression<undefined>(void 0);
@@ -790,6 +1092,10 @@ export class PrimitiveLiteralExpression<TValue extends null | undefined | number
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitPrimitiveLiteral(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -827,6 +1133,10 @@ export class HtmlLiteralExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitHtmlLiteral(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class ArrayLiteralExpression {
@@ -855,6 +1165,10 @@ export class ArrayLiteralExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitArrayLiteral(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -889,6 +1203,10 @@ export class ObjectLiteralExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitObjectLiteral(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -925,6 +1243,10 @@ export class TemplateExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitTemplate(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -965,6 +1287,10 @@ export class TaggedTemplateExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitTaggedTemplate(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class ArrayBindingPattern {
@@ -993,6 +1319,10 @@ export class ArrayBindingPattern {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitArrayBindingPattern(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -1024,6 +1354,10 @@ export class ObjectBindingPattern {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitObjectBindingPattern(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class BindingIdentifier {
@@ -1044,6 +1378,10 @@ export class BindingIdentifier {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBindingIdentifier(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -1115,6 +1453,10 @@ export class ForOfStatement {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitForOfStatement(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 /*
@@ -1160,6 +1502,10 @@ export class Interpolation {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitInterpolation(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 

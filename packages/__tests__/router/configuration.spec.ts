@@ -1,4 +1,3 @@
-import { DebugConfiguration } from '@aurelia/debug';
 import { IRouter, RouterConfiguration } from '@aurelia/router';
 import { CustomElement } from '@aurelia/runtime';
 import { Aurelia } from '@aurelia/runtime-html';
@@ -24,7 +23,6 @@ describe('Configuration', function () {
 
     const au = new Aurelia(container)
       .register(
-        DebugConfiguration,
         !config ? RouterConfiguration : RouterConfiguration.customize(config),
         App)
       .app({ host: host, component: App });
@@ -97,7 +95,6 @@ describe('Configuration', function () {
 
     const au = new Aurelia(container)
       .register(
-        DebugConfiguration,
         RouterConfiguration,
         App,
         Foo)

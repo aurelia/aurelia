@@ -1,4 +1,3 @@
-import { DebugConfiguration } from '@aurelia/debug';
 import { DI, IContainer, IRegistry, Registration } from '@aurelia/kernel';
 import {
   IDOM,
@@ -34,7 +33,6 @@ export class HTMLTestContext {
     if (this._container === void 0) {
       this._container = DI.createContainer().register(
         this.config,
-        DebugConfiguration,
         Registration.instance(IDOM, this.dom),
         Registration.instance(IPlatform, this.platform),
         Registration.instance(HTMLTestContext, this),

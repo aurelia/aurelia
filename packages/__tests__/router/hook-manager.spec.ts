@@ -2,7 +2,6 @@ import { HookManager, HookTypes, ViewportInstruction, RouterConfiguration, IRout
 import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, IScheduler } from '@aurelia/runtime';
 import { Aurelia } from '@aurelia/runtime-html';
-import { DebugConfiguration } from '@aurelia/debug';
 
 describe('HookManager', function () {
   this.timeout(5000);
@@ -27,7 +26,6 @@ describe('HookManager', function () {
     }
     const au = new Aurelia(container)
       .register(
-        DebugConfiguration,
         !config ? RouterConfiguration : RouterConfiguration.customize(config),
         App)
       .app({ host: host, component: App });

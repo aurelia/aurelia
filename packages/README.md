@@ -23,10 +23,7 @@ The Aurelia core framework can be broken down into 4 parts:
 ### Other
 | Package | Version | Dependencies |
 |--------|-------|------------|
-| [`@aurelia/debug`](/packages/debug) | [![npm](https://img.shields.io/npm/v/@aurelia/debug.svg?maxAge=3600)](https://www.npmjs.com/package/@aurelia/debug) | [![Dependency Status](https://david-dm.org/aurelia/aurelia.svg?path=packages/debug)](https://david-dm.org/aurelia/aurelia?path=packages/debug) |
 | [`@aurelia/router`](/packages/router) | [![npm](https://img.shields.io/npm/v/@aurelia/router.svg?maxAge=3600)](https://www.npmjs.com/package/@aurelia/router) | [![Dependency Status](https://david-dm.org/aurelia/aurelia.svg?path=packages/router)](https://david-dm.org/aurelia/aurelia?path=packages/router) |
-
-[`@aurelia/debug`](/packages/debug) enables detailed error messages, richer stack trace information, and other debug-time instrumentation and tooling.
 
 ### Plugins
 

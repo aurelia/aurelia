@@ -1,4 +1,3 @@
-import { DebugConfiguration } from '@aurelia/debug';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { AuConfigurationOptions } from './au-configuration-options';
@@ -57,8 +56,6 @@ function parseArgs(args: string[]): ParsedArgs {
 }
 
 (async function () {
-  DebugConfiguration.register();
-
   const args = parseArgs(process.argv.slice(2));
   switch (args.cmd) {
     case 'dev': {

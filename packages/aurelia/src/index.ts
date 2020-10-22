@@ -57,16 +57,6 @@ export class Aurelia extends $Aurelia {
 export default Aurelia;
 
 export {
-  DebugConfiguration,
-
-  // DebugTracer,
-  // stringifyLifecycleFlags,
-
-  // Unparser,
-  // Serializer
-} from '@aurelia/debug';
-
-export {
   Interceptor,
   // RetryConfiguration,
   // RetryableRequest,

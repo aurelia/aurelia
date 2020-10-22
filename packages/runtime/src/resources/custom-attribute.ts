@@ -2,7 +2,6 @@ import {
   Constructable,
   IContainer,
   IResourceKind,
-  Omit,
   Registration,
   Protocol,
   Metadata,

@@ -1,4 +1,3 @@
-import { Unwrap } from '@aurelia/kernel';
 import * as AST from '@aurelia/runtime';
 
 const astTypeMap = [
@@ -31,6 +30,8 @@ const astTypeMap = [
 export function enableImprovedExpressionDebugging(): void {
   astTypeMap.forEach(x => { adoptDebugMethods(x.type, x.name); });
 }
+
+type Unwrap<T> = T extends (infer R)[] ? R : never;
 
 /** @internal */
 export function adoptDebugMethods($type: Unwrap<typeof astTypeMap>['type'], name: string): void {

@@ -4,7 +4,6 @@ import {
   IIndexable,
   IServiceLocator,
   emptyArray,
-  StrictPrimitive,
   isNumberOrBigInt,
   isStringOrDate,
 } from '@aurelia/kernel';
@@ -763,7 +762,7 @@ export class UnaryExpression {
     return visitor.visitUnary(this);
   }
 }
-export class PrimitiveLiteralExpression<TValue extends StrictPrimitive = StrictPrimitive> {
+export class PrimitiveLiteralExpression<TValue extends null | undefined | number | boolean | string = null | undefined | number | boolean | string> {
   public static readonly $undefined: PrimitiveLiteralExpression<undefined> = new PrimitiveLiteralExpression<undefined>(void 0);
   public static readonly $null: PrimitiveLiteralExpression<null> = new PrimitiveLiteralExpression<null>(null);
   public static readonly $true: PrimitiveLiteralExpression<true> = new PrimitiveLiteralExpression<true>(true);

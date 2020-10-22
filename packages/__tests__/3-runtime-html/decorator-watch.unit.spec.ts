@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { AccessScopeExpression, ComputedWatcher, ExpressionWatcher } from '@aurelia/runtime';
+import { AccessMemberExpression, AccessScopeExpression, ComputedWatcher, ExpressionWatcher } from '@aurelia/runtime';
 import { assert, createObserverLocator, createScopeForTest } from '@aurelia/testing';
 
 describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
@@ -89,8 +89,11 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       const callbackValues = [];
       const container = DI.createContainer();
       const observerLocator = createObserverLocator(container);
-      const obj: any = {};
-      const expr = new AccessScopeExpression('prop');
+      const obj: any = { a: {} };
+      const expr = new AccessMemberExpression(
+        new AccessScopeExpression('a'),
+        'prop'
+      );
       const watcher = new ExpressionWatcher(
         createScopeForTest(obj),
         container,
@@ -108,9 +111,9 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
         };
       })(expr.evaluate);
 
-      obj.prop = 1;
+      obj.a.prop = 1;
       assert.strictEqual(evaluateCallCount, 0);
-      assert.strictEqual(watcher['value'], undefined);
+      assert.strictEqual(watcher['value'], void 0);
       assert.deepStrictEqual(callbackValues, []);
 
       watcher.$bind();
@@ -118,19 +121,19 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       assert.strictEqual(watcher['value'], 1);
       assert.deepStrictEqual(callbackValues, []);
 
-      obj.prop = 2;
+      obj.a.prop = 2;
       assert.strictEqual(evaluateCallCount, 2);
       assert.strictEqual(watcher['value'], 2);
       assert.deepStrictEqual(callbackValues, [2]);
 
       watcher.$unbind();
       assert.strictEqual(evaluateCallCount, 2);
-      assert.strictEqual(watcher['value'], 2);
+      assert.strictEqual(watcher['value'], void 0);
       assert.deepStrictEqual(callbackValues, [2]);
 
-      obj.prop = 3;
+      obj.a.prop = 3;
       assert.strictEqual(evaluateCallCount, 2);
-      assert.strictEqual(watcher['value'], 2);
+      assert.strictEqual(watcher['value'], void 0);
       assert.deepStrictEqual(callbackValues, [2]);
     });
   });

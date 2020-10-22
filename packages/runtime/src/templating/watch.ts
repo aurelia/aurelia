@@ -11,6 +11,7 @@ export interface IWatchDefinition<T extends object = object> {
 }
 
 type AnyMethod<R = unknown> = (...args: unknown[]) => R;
+// eslint-disable-next-line
 type WatchClassDecorator<T extends object> = <K>(target: K extends Constructable<T> ? Constructable<T> : Function) => void;
 type WatchMethodDecorator<T> = <R, K extends AnyMethod<R> = AnyMethod<R>>(target: T, key: string | symbol, descriptor: TypedPropertyDescriptor<K>) => TypedPropertyDescriptor<K>;
 
@@ -71,7 +72,7 @@ export function watch<T extends object = object>(
       expression: expressionOrPropertyAccessFn,
       callback: isClassDecorator ? changeHandlerOrCallback : descriptor!.value,
     });
-  }
+  };
 }
 
 const noDefinitions: IWatchDefinition[] = PLATFORM.emptyArray;

@@ -6,7 +6,6 @@
     { "path": "aot" },
     { "path": "au" },
     { "path": "aurelia" },
-    { "path": "dialog" },
     { "path": "debug" },
     { "path": "fetch-client" },
     { "path": "kernel" },

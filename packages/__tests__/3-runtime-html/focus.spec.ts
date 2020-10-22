@@ -106,6 +106,10 @@ describe('focus.spec.ts', function () {
       });
     }
 
+    // Doesn't seem to be implemented yet in JSDOM
+    if (TestContext.createHTMLTestContext().platform.customElements === void 0) {
+      return;
+    }
     // For combination with native custom element, there needs to be tests based on several combinations
     // Factors that need to be considered are: shadow root, shadow root with a focusable element,
     //                  no shadow root, no shadow root with a focusable element

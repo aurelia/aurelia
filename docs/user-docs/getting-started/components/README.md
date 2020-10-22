@@ -47,7 +47,7 @@ export class SayHello {
 {% hint style="warning" %}
 **Naming Components**
 
-The component name, derived from the file name, **must** contain a hyphen when working with Shadow DOM \(see [Styling Components](../app-basics/styling-components.md)\). This is part of the W3C Web Components standard and is designed to serve as a namespacing mechanism for custom HTML elements. A typical best practice is to choose a two to three character prefix to use consistently across your app or company. For example, all components provided by Aurelia have the prefix `au-`.
+The component name, derived from the file name, **must** contain a hyphen when working with Shadow DOM \(see [Styling Components](../../app-basics/styling-components.md)\). This is part of the W3C Web Components standard and is designed to serve as a namespacing mechanism for custom HTML elements. A typical best practice is to choose a two to three character prefix to use consistently across your app or company. For example, all components provided by Aurelia have the prefix `au-`.
 {% endhint %}
 
 The `say-hello` custom element we've created isn't very interesting yet, so lets spice it up by allowing the user to providing a "to" property so that we can personalize the message. To create "bindable" properties for your HTML element, you declare them using the `@bindable` decorator as shown in the next example.
@@ -121,7 +121,7 @@ Now, when the user clicks the button, the `leave` method will get called. It the
 {% hint style="info" %}
 **Further Reading**
 
-Interested to learn more about how you can display data with Aurelia's templating engine or how you can leverage events to respond to changes and interactions within your app? The next few docs on [Displaying Basic Data](displaying-basic-data.md), [Rendering Collections](rendering-collections.md), [Conditional Rendering](conditional-rendering.md), and [Handling Events](handling-events.md) will give you all the nitty, gritty details.
+Interested to learn more about how you can display data with Aurelia's templating engine or how you can leverage events to respond to changes and interactions within your app? The next few docs on [Displaying Basic Data](../displaying-basic-data.md), [Rendering Collections](../rendering-collections.md), [Conditional Rendering](../conditional-rendering.md), and [Handling Events](../handling-events.md) will give you all the nitty, gritty details.
 {% endhint %}
 
 ### Component Registration
@@ -319,16 +319,18 @@ export class SayHello {
 {% hint style="info" %}
 **Dependency Injection**
 
-There are various ways to tell the framework what you want to inject. The above code sample shows the most vanilla JS approach, by using a TypeScript constructor param. This works automatically for components that use conventions. See [the dependency injection documentation](../app-basics/dependency-injection.md) for more information on other approaches, as well as an in-depth look at dependency injection in general.
+There are various ways to tell the framework what you want to inject. The above code sample shows the most vanilla JS approach, by using a TypeScript constructor param. This works automatically for components that use conventions. See [the dependency injection documentation](../../app-basics/dependency-injection.md) for more information on other approaches, as well as an in-depth look at dependency injection in general.
 {% endhint %}
 
 {% hint style="success" %}
 **Referencing View Elements**
 
-If you need access to a DOM element from within your view, rather than the host, place a `ref` attribute on the desired element in your template and the framework will set a property of the same name on your class to reference that element. For more information on this, see the documentation on [displaying basic data](displaying-basic-data.md#referencing-dom-elements).
+If you need access to a DOM element from within your view, rather than the host, place a `ref` attribute on the desired element in your template and the framework will set a property of the same name on your class to reference that element. For more information on this, see the documentation on [displaying basic data](../displaying-basic-data.md#referencing-dom-elements).
 {% endhint %}
 
 ## So Much More...
 
-So far, we've only scratched the surface of what Aurelia's component system can do. If you'd like to continue on to additional component scenarios, including component composition, Shadow DOM and slots, HTML-only components, and more, you can pick up from here in our App Basics article [Components Revisited](../app-basics/components-revisited.md).
-
+So far, we've only scratched the surface of what Aurelia's component system can do. If you'd like to continue on to additional component scenarios, including component composition, Shadow DOM and slots, HTML-only components, and more, you can pick up from here in our Component Basics articles:
+- [Local Templates](./local-templates.md).
+- [Watching data](./watching-data.md).
+- [Components Revisited](../app-basics/components-revisited.md).

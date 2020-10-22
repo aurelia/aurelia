@@ -19,6 +19,8 @@ import {
 } from '@aurelia/testing';
 import { Aurelia, HTMLDOM } from '@aurelia/runtime-html';
 
+const $ctx = TestContext.createHTMLTestContext();
+
 describe('template-compiler.primary-bindable.spec.ts', function () {
 
   interface IPrimaryBindableTestCase {
@@ -600,11 +602,11 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
       au.app({ component: App, host });
       await au.start();
 
-      // if (PLATFORM.isBrowserLike) {
-      assert.includes(host.querySelector('a').search, `?route=home.main`);
-      // } else {
-      //   assert.strictEqual(host.querySelector('a').href, `/?route=home.main`);
-      // }
+      if ($ctx.userAgent.includes('jsdom')) {
+        assert.strictEqual(host.querySelector('a').href, `/?route=home.main`);
+      } else {
+        assert.includes(host.querySelector('a').search, `?route=home.main`);
+      }
 
       await au.stop();
       au.dispose();
@@ -627,11 +629,11 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
       au.app({ component: App, host });
       await au.start();
 
-      // if (PLATFORM.isBrowserLike) {
-      assert.strictEqual(host.querySelector('a').search, '?route=home--main');
-      // } else {
-      //   assert.strictEqual(host.querySelector('a').href, '/?route=home--main');
-      // }
+      if ($ctx.userAgent.includes('jsdom')) {
+        assert.strictEqual(host.querySelector('a').href, '/?route=home--main');
+      } else {
+        assert.strictEqual(host.querySelector('a').search, '?route=home--main');
+      }
 
       await au.stop();
       au.dispose();
@@ -663,20 +665,20 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
 
       const anchorEl = host.querySelector('a');
 
-      // if (PLATFORM.isBrowserLike) {
-      assert.strictEqual(anchorEl.search, '?route=home.main');
-      // } else {
-      //   assert.strictEqual(anchorEl.href, '/?route=home.main');
-      // }
+      if ($ctx.userAgent.includes('jsdom')) {
+        assert.strictEqual(anchorEl.href, '/?route=home.main');
+      } else {
+        assert.strictEqual(anchorEl.search, '?route=home.main');
+      }
 
       const app = au.root.controller.viewModel as any;
 
       app.appId = 'appId-appId';
-      // if (PLATFORM.isBrowserLike) {
-      assert.strictEqual(anchorEl.search, `?params=[object%20Object]`);
-      // } else {
-      //   assert.strictEqual(anchorEl.href, '/?params=[object Object]');
-      // }
+      if ($ctx.userAgent.includes('jsdom')) {
+        assert.strictEqual(anchorEl.href, '/?params=[object Object]');
+      } else {
+        assert.strictEqual(anchorEl.search, `?params=[object%20Object]`);
+      }
 
       await au.stop();
       au.dispose();

@@ -10,11 +10,13 @@ import {
 import { Registration } from '@aurelia/kernel';
 import { register } from '@aurelia/plugin-svg';
 
+const $ctx = TestContext.createHTMLTestContext();
+
 describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
   it('renders fractal tree', async function () {
-    // if (!PLATFORM.isBrowserLike) {
-    //   return;
-    // }
+    if ($ctx.userAgent.includes('jsdom')) {
+      return;
+    }
 
     const ctx = TestContext.createHTMLTestContext();
     const state = new State();

@@ -11,6 +11,8 @@ import {
   TestContext,
 } from '@aurelia/testing';
 
+const $ctx = TestContext.createHTMLTestContext();
+
 describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', function () {
   interface IHarmoniousCompilationTestCase {
     title: string;
@@ -308,9 +310,9 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
 
   testCases.forEach((testCase, idx) => {
     const { title, template, resources = [], browserOnly, assertFn } = testCase;
-    // if (!PLATFORM.isBrowserLike && browserOnly) {
-    //   return;
-    // }
+    if ($ctx.userAgent.includes('jsdom') && browserOnly) {
+      return;
+    }
     it(`\n\t(${idx + 1}). ${title}\n\t`, async function () {
       let host: HTMLElement;
       let body: HTMLElement;

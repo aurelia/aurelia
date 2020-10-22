@@ -4,6 +4,8 @@ import { Aurelia, IEventDelegator, RuntimeHtmlConfiguration } from '@aurelia/run
 import { assert, eachCartesianJoin, TestContext } from '@aurelia/testing';
 import { StyleAttributePattern } from './attribute-pattern';
 
+const $ctx = TestContext.createHTMLTestContext();
+
 // Remove certain defaults/fallbacks which are added by certain browsers to allow the assertion to pass
 function getNormalizedStyle(el: HTMLElement, ruleName: string): string {
   const styleString = el.style.getPropertyValue(ruleName);
@@ -25,19 +27,18 @@ describe('template-compiler.binding-commands.style', function () {
     ['background-color', 'red', ''],
     ['font-size', '10px', ''],
     ['font-family', 'Arial', ''],
-    // ...(
-    //   // For tests that only work in the browser, only run them in the browser
-    //   PLATFORM.isBrowserLike
-    //     ? [
+    ...(
+      // For tests that only work in the browser, only run them in the browser
+      !$ctx.userAgent.includes('jsdom')
+        ? [
           ['-webkit-user-select', 'none', ''],
-          ['--customprop', 'red', ''],
-          ['--custumprop', 'nah!important', ''],
-    //     ] as [string, string, string][]
-    //     : [
+        ] as [string, string, string][]
+        : [
 
-    //     ]
-    // )
-    // ,
+        ]
+    ),
+    ['--customprop', 'red', ''],
+    ['--custumprop', 'nah!important', ''],
     ['background', 'red!important', ''],
     // non happy path
     ['-webkit-user-select', 'of course', '', true, ''],

@@ -3,6 +3,8 @@ import { CustomElement } from '@aurelia/runtime';
 import { Aurelia, Focus } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
+const $ctx = TestContext.createHTMLTestContext();
+
 describe('focus.spec.ts', function () {
 
   // if (!PLATFORM.isBrowserLike) {
@@ -43,9 +45,9 @@ describe('focus.spec.ts', function () {
 
     it('invokes focus when there is **NO** tabindex attribute', async function () {
       let callCount = 0;
-      HTMLDivElement.prototype.focus = function () {
+      $ctx.wnd.HTMLDivElement.prototype.focus = function () {
         callCount++;
-        return HTMLElement.prototype.focus.call(this);
+        return $ctx.wnd.HTMLElement.prototype.focus.call(this);
       };
 
       const { startPromise, testHost, dispose, component, ctx } = createFixture<IApp>(
@@ -67,20 +69,23 @@ describe('focus.spec.ts', function () {
       assert.equal(component.hasFocus, true, 'It should not have affected component.hasFocus');
 
       // focus belongs to HTMLElement class
-      delete HTMLDivElement.prototype.focus;
+      delete $ctx.wnd.HTMLDivElement.prototype.focus;
 
       await dispose();
     });
 
-    for (const [desc, template] of [
-      ['<div/>', '<div contenteditable focus.two-way=hasFocus id=blurred></div>'],
+    const specs = [
       ['<input/>', `<input focus.two-way=hasFocus id=blurred>`],
       ['<select/>', `<select focus.two-way=hasFocus id=blurred></select>`],
       ['<button/>', '<button focus.two-way=hasFocus id=blurred></button>'],
       ['<video/>', '<video tabindex=1 focus.two-way=hasFocus id=blurred></video>'],
       ['<select/> + <option/>', `<select focus.two-way=hasFocus id=blurred><option tabindex=1>Hello</option></select>`],
       ['<textarea/>', `<textarea focus.two-way=hasFocus id=blurred></textarea>`]
-    ]) {
+    ];
+    if (!$ctx.userAgent.includes('jsdom')) {
+      specs.push(['<div/>', '<div contenteditable focus.two-way=hasFocus id=blurred></div>']);
+    }
+    for (const [desc, template] of specs) {
       describe(`with ${desc}`, function () {
         it('Works in basic scenario', async function () {
           const { startPromise, testHost, dispose, component, ctx } = createFixture<IApp>(

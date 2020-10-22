@@ -17,6 +17,7 @@ export class HTMLTestContext {
   public readonly doc: Document;
   public readonly dom: HTMLDOM;
   public readonly platform: IPlatform;
+  public readonly userAgent: string;
 
   public readonly UIEvent: typeof UIEvent;
   public readonly Event: typeof Event;
@@ -102,6 +103,7 @@ export class HTMLTestContext {
     private readonly config: IRegistry,
     public readonly wnd: Window & typeof globalThis,
   ) {
+    this.userAgent = wnd.navigator.userAgent;
     this.UIEvent = wnd.UIEvent;
     this.Event = wnd.Event;
     this.CustomEvent = wnd.CustomEvent;

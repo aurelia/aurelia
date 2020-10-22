@@ -1,6 +1,8 @@
 import { Blur } from '@aurelia/runtime-html';
 import { assert, createSpy, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
+const $ctx = TestContext.createHTMLTestContext();
+
 describe('[UNIT] blur.unit.spec.ts', function () {
 
   // if (!PLATFORM.isBrowserLike) {
@@ -52,6 +54,7 @@ describe('[UNIT] blur.unit.spec.ts', function () {
       dispose();
     });
 
+
     it('bails when there is no thing linked and the hosting element does not contain the target', function () {
       const { ctx, sut, dispose } = createFixture();
       let accessed: Record<string, number> = {};
@@ -81,7 +84,6 @@ describe('[UNIT] blur.unit.spec.ts', function () {
         ctx.doc.createElementNS('http://www.w3.org/1999/xhtml', 'asdasd:sadasd'),
         ctx.doc,
         ctx.doc.documentElement,
-        ctx.doc.createAttribute('asd')
       ]) {
         const result = sut.contains(testValue as unknown as Element);
         assert.equal(result, false, `Should have been false for ${String(testValue)}`);
@@ -266,8 +268,10 @@ describe('[UNIT] blur.unit.spec.ts', function () {
         'some-el',
         '.some-css-class',
         '#some-id',
-        '#some-complex-selector > .some-nested-complex-selector + button'
       ];
+      if (!$ctx.userAgent.includes('jsdom')) {
+        linkedWithValues.push('#some-complex-selector > .some-nested-complex-selector + button');
+      }
       for (const linkWith of linkedWithValues) {
         it(`works when linkedWith is a string: ${linkWith}`, function () {
           const { sut, ctx: { doc }, dispose } = createFixture();

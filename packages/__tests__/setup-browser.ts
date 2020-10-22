@@ -1,47 +1,8 @@
-import {
-  HTMLTestContext,
-  TestContext,
-  assert,
-  ensureSchedulerEmpty,
-} from '@aurelia/testing';
-import {
-  Aurelia,
-  RuntimeHtmlConfiguration,
-} from '@aurelia/runtime-html';
+import { $setup } from './setup-shared';
 
-function createBrowserTestContext(): HTMLTestContext {
-  return HTMLTestContext.create(
-    RuntimeHtmlConfiguration,
-    window,
-    UIEvent,
-    Event,
-    CustomEvent,
-    Node,
-    Element,
-    HTMLElement,
-    HTMLDivElement,
-    Text,
-    Comment,
-    DOMParser,
-  );
-}
+$setup(window);
 
-function initializeBrowserTestContext(): void {
-  TestContext.createHTMLTestContext = createBrowserTestContext;
-  createBrowserTestContext().scheduler.getRenderTaskQueue();
-
-  // eslint-disable-next-line
-  afterEach(function() {
-    try {
-      assert.isSchedulerEmpty();
-    } catch (ex) {
-      ensureSchedulerEmpty();
-      throw ex;
-    }
-  });
-}
-
-initializeBrowserTestContext();
+console.log(`Browser test context initialized`);
 
 function importAll(r) {
   r.keys().forEach(r);

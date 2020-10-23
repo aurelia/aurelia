@@ -1,3 +1,8 @@
+/* eslint-disable
+  @typescript-eslint/no-unsafe-member-access,
+  @typescript-eslint/no-unsafe-assignment,
+  no-template-curly-in-string,
+*/
 import {
   Class,
   IContainer,
@@ -50,7 +55,7 @@ describe('runtime-html.integration', function () {
         .app({ host, component })
         .start();
       app = au.root.controller.viewModel as TApp;
-      controller = au.root.controller! as unknown as Controller;
+      controller = au.root.controller as unknown as Controller;
     } catch (e) {
       error = e;
     }
@@ -89,7 +94,7 @@ describe('runtime-html.integration', function () {
       public readonly name: string,
       public readonly component: Class<TApp>,
       public readonly registrations: any[] = [],
-      public readonly assert: (ctx: IntegrationTestExecutionContext<TApp>) => void | Promise<void>,
+      public readonly verify: (ctx: IntegrationTestExecutionContext<TApp>) => void | Promise<void>,
     ) { }
   }
 
@@ -514,7 +519,7 @@ describe('runtime-html.integration', function () {
         `repeater + $parent - #${i + 1}`,
         App,
         [],
-        async function (ctx) {
+        function (ctx) {
           const host = ctx.host;
           assert.html.textContent(host, '0 1 2 1 2 3 2 3 4 1 2 3 2 3 4 3 4 5 2 3 4 3 4 5 4 5 6');
         }
@@ -524,7 +529,7 @@ describe('runtime-html.integration', function () {
 
   for (const data of getTestData()) {
     $it(data.name, async function (ctx: IntegrationTestExecutionContext<any>) {
-      await data.assert(ctx);
+      await data.verify(ctx);
     }, data);
   }
 });

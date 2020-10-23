@@ -147,7 +147,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       let appBeforeUnbindCallCount = 0;
       let appAfterUnbindCallCount = 0;
 
-      @customElement({ name: 'child', template: '${prop}' })
+      @customElement({ name: 'child', template: `\${prop}` })
       class Child {
         @bindable()
         public prop = 0;

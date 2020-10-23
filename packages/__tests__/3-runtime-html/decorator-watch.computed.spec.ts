@@ -1,4 +1,4 @@
-import { watch, IDepCollectionFn, CustomElement, customElement, bindable, ComputedWatcher } from '@aurelia/runtime';
+import { watch, IDepCollectionFn, customElement, bindable, ComputedWatcher, ICustomElementViewModel, customAttribute } from '@aurelia/runtime';
 import { assert, createFixture, HTMLTestContext } from '@aurelia/testing';
 
 describe('3-runtime-html/decorator-watch.spec.ts', function () {
@@ -147,7 +147,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       let appBeforeUnbindCallCount = 0;
       let appAfterUnbindCallCount = 0;
 
-      @customElement('child')
+      @customElement({ name: 'child', template: '${prop}' })
       class Child {
         @bindable()
         public prop = 0;
@@ -236,7 +236,7 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
         }
       }
 
-      const { component, ctx, appHost, startPromise, tearDown } = createFixture('<child view-model.ref="child" prop.bind=prop>', App, [Child]);
+      const { component, startPromise, tearDown } = createFixture('<child view-model.ref="child" prop.bind=prop>', App, [Child]);
 
       await startPromise;
       assert.strictEqual(appBeforeBindCallCount, 1);
@@ -252,20 +252,26 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       assert.strictEqual(component.logCallCount, 2);
       assert.strictEqual(component.child.logCallCount, 2);
 
-      const bindings = component.$controller!.bindings!;
+      const bindings = component.$controller!.bindings;
       assert.strictEqual(bindings.length, 3);
       // watcher should be created before all else
       assert.instanceOf(bindings[0], ComputedWatcher);
 
       const child = component.child;
+      const childBindings = (child as ICustomElementViewModel).$controller!.bindings;
+      assert.strictEqual(childBindings.length, 2);
+      // watcher should be created before all else
+      assert.instanceOf(childBindings[0], ComputedWatcher);
       await tearDown();
-      
+
       assert.strictEqual(appBeforeBindCallCount, 1);
       assert.strictEqual(appAfterBindCallCount, 1);
       assert.strictEqual(appBeforeUnbindCallCount, 1);
       assert.strictEqual(appAfterUnbindCallCount, 1);
       assert.strictEqual(childBeforeBindCallCount, 1);
       assert.strictEqual(childAfterBindCallCount, 1);
+      assert.strictEqual(childBeforeUnbindCallCount, 1);
+      assert.strictEqual(childAfterUnbindCallCount, 1);
 
       assert.strictEqual(component.logCallCount, 3);
       assert.strictEqual(child.logCallCount, 4);
@@ -274,27 +280,148 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
       assert.strictEqual(child.logCallCount, 4);
     });
 
-    interface IPostOffice {
-      decoratorCount: number;
-      packages: IDelivery[];
-      selected: IDelivery;
-      counter: number;
-      callCount: number;
+    it('ensures proper timing with custom attribute', async function () {
+      let childBeforeBindCallCount = 0;
+      let childAfterBindCallCount = 0;
+      let childBeforeUnbindCallCount = 0;
+      let childAfterUnbindCallCount = 0;
+      let appBeforeBindCallCount = 0;
+      let appAfterBindCallCount = 0;
+      let appBeforeUnbindCallCount = 0;
+      let appAfterUnbindCallCount = 0;
 
-      newDelivery(id: number, name: string, delivered?: boolean): void;
-      delivered(id: number): void;
-      undelivered(id: number): void;
-      log(): void;
-    }
+      @customAttribute({ name: 'child' })
+      class Child {
+        @bindable()
+        public prop = 0;
+        public logCallCount = 0;
 
-    interface ITestCase {
-      title: string;
-      only?: boolean;
-      init?: () => IDelivery[];
-      get: IDepCollectionFn<IPostOffice>;
-      created: (post: IPostOffice, ctx: HTMLTestContext, decoratorCount: number) => any;
-      disposed?: (post: IPostOffice, ctx: HTMLTestContext, decoratorCount: number) => any;
-    }
+        @watch((child: Child) => child.prop)
+        public log(): void {
+          this.logCallCount++;
+        }
+
+        public beforeBind(): void {
+          childBeforeBindCallCount++;
+          assert.strictEqual(this.logCallCount, 0);
+          this.prop++;
+          assert.strictEqual(this.logCallCount, 0);
+        }
+
+        public afterBind(): void {
+          childAfterBindCallCount++;
+          assert.strictEqual(this.logCallCount, 0);
+          this.prop++;
+          assert.strictEqual(this.logCallCount, 1);
+        }
+
+        public beforeUnbind(): void {
+          childBeforeUnbindCallCount++;
+          // test body prop changed, callCount++
+          // parent prop changed, callCount++
+          assert.strictEqual(this.logCallCount, 3);
+          this.prop++;
+          assert.strictEqual(this.logCallCount, 4);
+        }
+
+        public afterUnbind(): void {
+          childAfterUnbindCallCount++;
+          assert.strictEqual(this.logCallCount, 4);
+          this.prop++;
+          assert.strictEqual(this.logCallCount, 4);
+        }
+      }
+
+      class App {
+        public child: Child;
+
+        @bindable()
+        public prop = 1;
+        public logCallCount = 0;
+
+        @watch((child: App) => child.prop)
+        public log(): void {
+          this.logCallCount++;
+        }
+
+        public beforeBind(): void {
+          appBeforeBindCallCount++;
+          assert.strictEqual(this.logCallCount, 0);
+          this.prop++;
+          assert.strictEqual(this.logCallCount, 0);
+        }
+
+        public afterBind(): void {
+          appAfterBindCallCount++;
+          assert.strictEqual(this.logCallCount, 0);
+          assert.strictEqual(this.child.logCallCount, 0);
+          this.prop++;
+          assert.strictEqual(this.logCallCount, 1);
+          // child after bind hasn't been called yet,
+          // so watcher won't be activated and thus, no log call
+          assert.strictEqual(this.child.logCallCount, 0);
+        }
+
+        public beforeUnbind(): void {
+          appBeforeUnbindCallCount++;
+          // already got the modification in the code below, so it starts at 2
+          assert.strictEqual(this.logCallCount, 2);
+          assert.strictEqual(this.child.logCallCount, 2);
+          this.prop++;
+          assert.strictEqual(this.logCallCount, 3);
+        }
+
+        public afterUnbind(): void {
+          appAfterUnbindCallCount++;
+          assert.strictEqual(this.logCallCount, 3);
+          this.prop++;
+          assert.strictEqual(this.logCallCount, 3);
+        }
+      }
+
+      const { component, startPromise, tearDown } = createFixture('<div child.bind="prop" child.ref="child">', App, [Child]);
+
+      await startPromise;
+      assert.strictEqual(appBeforeBindCallCount, 1);
+      assert.strictEqual(appAfterBindCallCount, 1);
+      assert.strictEqual(appBeforeUnbindCallCount, 0);
+      assert.strictEqual(appAfterUnbindCallCount, 0);
+      assert.strictEqual(childBeforeBindCallCount, 1);
+      assert.strictEqual(childAfterBindCallCount, 1);
+
+      assert.strictEqual(component.logCallCount, 1);
+      assert.strictEqual(component.child.logCallCount, 1);
+      component.prop++;
+      assert.strictEqual(component.logCallCount, 2);
+      assert.strictEqual(component.child.logCallCount, 2);
+
+      const bindings = component.$controller!.bindings;
+      assert.strictEqual(bindings.length, 3);
+      // watcher should be created before all else
+      assert.instanceOf(bindings[0], ComputedWatcher);
+
+      const child = component.child;
+      const childBindings = (child as ICustomElementViewModel).$controller!.bindings;
+      assert.strictEqual(childBindings.length, 1);
+      // watcher should be created before all else
+      assert.instanceOf(childBindings[0], ComputedWatcher);
+      await tearDown();
+
+      assert.strictEqual(appBeforeBindCallCount, 1);
+      assert.strictEqual(appAfterBindCallCount, 1);
+      assert.strictEqual(appBeforeUnbindCallCount, 1);
+      assert.strictEqual(appAfterUnbindCallCount, 1);
+      assert.strictEqual(childBeforeBindCallCount, 1);
+      assert.strictEqual(childAfterBindCallCount, 1);
+      assert.strictEqual(childBeforeUnbindCallCount, 1);
+      assert.strictEqual(childAfterUnbindCallCount, 1);
+
+      assert.strictEqual(component.logCallCount, 3);
+      assert.strictEqual(child.logCallCount, 4);
+      component.prop++;
+      assert.strictEqual(component.logCallCount, 3);
+      assert.strictEqual(child.logCallCount, 4);
+    });
   });
 
   it('observes collection', function () {

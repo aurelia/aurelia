@@ -4,13 +4,13 @@ description: Watching data
 
 # Introduction
 
-Aurelia provides a way to author your components with reactive programming model with the `@watch` decorator. Decorating a class itself, or a method inside it with the `@watch` decorator and the corresponding method will be called whenever the watched value changes.
+Aurelia provides a way to author your components in reactive programming model with the `@watch` decorator. Decorating a class itself, or a method inside it with the `@watch` decorator and the corresponding method will be called whenever the watched value changes.
 
 {% hint style="info" %}
 **Intended usages**
 
 - The `@watch` decorator can only be used on custom element and custom attribute view models.
-- Corresponding watchers of `@watch` decorator will be created once, and bound after `beforeBind`, and before `afterBind` lifecycles. This means mutation during `beforeBind`/`beforeUnbind` won't be reacted to, as watchers haven't started or have stopped.
+- Corresponding watchers of `@watch` decorator will be created once, and bound after `beforeBind`, and unbound before `afterBind` lifecycles. This means mutation during `beforeBind`/ `afterUnbind` & after won't be reacted to, as watchers haven't started or have stopped.
 
 {% endhint %}
 

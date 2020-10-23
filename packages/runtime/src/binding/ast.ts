@@ -6,12 +6,10 @@ import {
   emptyArray,
   isNumberOrBigInt,
   isStringOrDate,
+  ResourceDefinition,
 } from '@aurelia/kernel';
 import {
-  ExpressionKind,
   LifecycleFlags as LF,
-} from '../flags';
-import {
   Collection,
   IBindingContext,
   IObservable,
@@ -25,13 +23,53 @@ import { ProxyObserver } from '../observation/proxy-observer';
 import { ISignaler } from '../observation/signaler';
 import {
   BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory,
-} from '../resources/binding-behavior';
+} from '../binding-behavior';
 import {
   ValueConverter, ValueConverterInstance,
-} from '../resources/value-converter';
+} from '../value-converter';
 import { IConnectableBinding } from './connectable';
-import { CustomElementDefinition } from '../resources/custom-element';
 import type { Scope } from '../observation/binding-context';
+
+export const enum ExpressionKind {
+  Connects             = 0b000000000001_00000, // The expression's connect() function calls observeProperty and/or calls connect() on another expression that it wraps (all expressions except for AccessThis, PrimitiveLiteral, CallMember/Function and Assign)
+  Observes             = 0b000000000010_00000, // The expression's connect() function calls observeProperty (only AccessScope, AccessMember and AccessKeyed do this)
+  CallsFunction        = 0b000000000100_00000, // Calls a function (CallFunction, CallScope, CallMember, TaggedTemplate) -> needs a valid function object returning from its lefthandside's evaluate()
+  HasAncestor          = 0b000000001000_00000, // Has an "ancestor" property, meaning the expression could climb up the context (only AccessThis, AccessScope and CallScope)
+  IsPrimary            = 0b000000010000_00000, // Is a primary expression according to ES parsing rules
+  IsLeftHandSide       = 0b000000100000_00000, // Is a left-hand side expression according to ES parsing rules, includes IsPrimary
+  HasBind              = 0b000001000000_00000, // Has a bind() method (currently only BindingBehavior)
+  HasUnbind            = 0b000010000000_00000, // Has an unbind() method (currentl only BindingBehavior and ValueConverter)
+  IsAssignable         = 0b000100000000_00000, // Is an assignable expression according to ES parsing rules (only AccessScope, AccessMember, AccessKeyed ans Assign)
+  IsLiteral            = 0b001000000000_00000, // Is an Aurelia resource (ValueConverter or BindingBehavior)
+  IsResource           = 0b010000000000_00000, // Is literal expression (Primitive, Array, Object or Template)
+  IsForDeclaration     = 0b100000000000_00000, // Is a For declaration (for..of, for..in -> currently only ForOfStatement)
+  Type                 = 0b000000000000_11111, // Type mask to uniquely identify each AST class (concrete types start below)
+  // ---------------------------------------------------------------------------------------------------------------------------
+  AccessThis           = 0b000000111000_00001, //               HasAncestor
+  AccessScope          = 0b000100111011_00010, // IsAssignable  HasAncestor       Observes  Connects
+  ArrayLiteral         = 0b001000110001_00011, //                                           Connects
+  ObjectLiteral        = 0b001000110001_00100, //                                           Connects
+  PrimitiveLiteral     = 0b001000110000_00101, //
+  Template             = 0b001000110001_00110, //                                           Connects
+  Unary                = 0b000000000001_00111, //                                           Connects
+  CallScope            = 0b000000101101_01000, //               HasAncestor  CallsFunction  Connects
+  CallMember           = 0b000000100100_01001, //                            CallsFunction
+  CallFunction         = 0b000000100100_01010, //                            CallsFunction
+  AccessMember         = 0b000100100011_01011, // IsAssignable                    Observes  Connects
+  AccessKeyed          = 0b000100100011_01100, // IsAssignable                    Observes  Connects
+  TaggedTemplate       = 0b000000100101_01101, //                            CallsFunction  Connects
+  Binary               = 0b000000000001_01110, //                                           Connects
+  Conditional          = 0b000000000001_11111, //                                           Connects
+  Assign               = 0b000100000000_10000, // IsAssignable
+  ValueConverter       = 0b010010000001_10001, //                                           Connects
+  BindingBehavior      = 0b010011000001_10010, //                                           Connects
+  HtmlLiteral          = 0b000000000001_10011, //                                           Connects
+  ArrayBindingPattern  = 0b100000000000_10100, //
+  ObjectBindingPattern = 0b100000000000_10101, //
+  BindingIdentifier    = 0b100000000000_10110, //
+  ForOfStatement       = 0b000011000001_10111, //                                           Connects
+  Interpolation        = 0b000000000000_11000  //
+}
 
 export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
 
@@ -1120,7 +1158,7 @@ export class HtmlLiteralExpression {
     return result;
   }
 
-  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown, _projection?: CustomElementDefinition): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown, _projection?: ResourceDefinition): unknown {
     return void 0;
   }
 

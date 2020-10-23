@@ -16,7 +16,7 @@ import {
   AccessScopeExpression,
   BindingMode,
   LifecycleFlags,
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 import { DI } from '@aurelia/kernel';
 type CaseType = {
   expected: number | string; expectedStrictMode?: number | string; expectedValueAfterChange?: number | string; changeFnc?: (val) => any; app: any; interpolation: string; it: string;

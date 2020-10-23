@@ -30,9 +30,6 @@ import {
   Scheduler,
 } from '@aurelia/scheduler';
 import {
-  IAppRoot, CustomElement, CustomAttribute, IScheduler, ITaskQueue, TaskQueue, TaskQueuePriority, ITask,
-} from '@aurelia/runtime';
-import {
   isDeepEqual,
   isDeepStrictEqual,
 } from './comparison';
@@ -55,7 +52,13 @@ import {
   Object_is,
   Object_keys,
 } from './util';
-import { DOM } from '@aurelia/runtime-html';
+import {
+  IAppRoot,
+  CustomElement,
+  CustomAttribute,
+  TaskQueuePriority,
+  DOM
+} from '@aurelia/runtime-html';
 import { ensureSchedulerEmpty } from './scheduler';
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-explicit-any */

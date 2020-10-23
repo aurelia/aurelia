@@ -2,12 +2,12 @@
 /* eslint-disable prefer-template */
 /* eslint-disable max-lines-per-function */
 import { DI, IContainer, Registration, IIndexable, Key, Metadata } from '@aurelia/kernel';
-import { CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, IAppRoot, isCompositionContext } from '@aurelia/runtime';
+import { CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, IAppRoot, isCompositionContext } from '@aurelia/runtime-html';
 import { InstructionResolver } from './instruction-resolver';
 import { IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
-import { INavigatorOptions, INavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator';
+import { INavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator';
 import { QueueItem } from './queue';
 import { INavClasses } from './resources/nav';
 import { NavigationInstructionResolver, IViewportInstructionsOptions } from './type-resolvers';
@@ -20,8 +20,8 @@ import { Scope, IScopeOwner } from './scope';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 import { BrowserViewerStore } from './browser-viewer-store';
 import { Navigation } from './navigation';
-import { IRoutingController, IConnectedCustomElement } from './resources/viewport';
-import { NavigationCoordinator, NavigationCoordinatorOptions, NavigationState } from './navigation-coordinator';
+import { IConnectedCustomElement } from './resources/viewport';
+import { NavigationCoordinator } from './navigation-coordinator';
 import { IRouterActivateOptions, RouterOptions } from './router-options';
 import { OpenPromise } from './open-promise';
 
@@ -1287,7 +1287,7 @@ export class Router implements IRouter {
     if ('$controller' in viewModelOrElement) {
       return viewModelOrElement.$controller!.context;
     }
-    const controller = this.CustomElementFor(viewModelOrElement);
+    const controller = this.CustomElementFor(viewModelOrElement as Node);
 
     if (controller === void 0) {
       return null;

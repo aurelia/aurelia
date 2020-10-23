@@ -1,6 +1,5 @@
 import { LoggerConfiguration, LogLevel } from '@aurelia/kernel';
-import { customElement, ISignaler, valueConverter } from '@aurelia/runtime';
-import { Aurelia } from '@aurelia/runtime-html';
+import { customElement, ISignaler, valueConverter, Aurelia } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('signaler.integration', function () {

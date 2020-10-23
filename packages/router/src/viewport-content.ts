@@ -1,6 +1,6 @@
 /* eslint-disable no-fallthrough */
 import { IContainer } from '@aurelia/kernel';
-import { Controller, LifecycleFlags, ILifecycle, IHydratedController, ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime';
+import { Controller, LifecycleFlags, ILifecycle, IHydratedController, ICustomElementController, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType, ReentryBehavior, NavigationInstruction } from './interfaces';
 import { parseQuery } from './parser';
 import { Viewport } from './viewport';
@@ -78,11 +78,11 @@ export class ViewportContent {
     return this.content.sameComponent(other.content, true);
   }
 
-  public contentController(connectedCE: IConnectedCustomElement): ICustomElementController<Element, ICustomElementViewModel<Element>> {
+  public contentController(connectedCE: IConnectedCustomElement): ICustomElementController {
     return Controller.forCustomElement(
       null,
       connectedCE.container,
-      this.content.componentInstance as ICustomElementViewModel<Element>,
+      this.content.componentInstance as ICustomElementViewModel,
       connectedCE.container.get(ILifecycle),
       connectedCE.element,
       null,
@@ -247,7 +247,7 @@ export class ViewportContent {
   //   }
   // }
 
-  public activateComponent(initiator: IHydratedController<Element> | null, parent: ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement, parentActivated: boolean): void | Promise<void> {
+  public activateComponent(initiator: IHydratedController | null, parent: ICustomElementController | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement, parentActivated: boolean): void | Promise<void> {
     // if (this.contentStates.has('activated') || !this.contentStates.has('created')) {
     // if (this.contentStates.has('activated')) {
     //   return;
@@ -289,7 +289,7 @@ export class ViewportContent {
       },
     );
   }
-  // public async activateComponent(initiator: IHydratedController<Element> | null, parent: ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement): Promise<void> {
+  // public async activateComponent(initiator: IHydratedController | null, parent: ICustomElementController<ICustomElementViewModel> | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement): Promise<void> {
   //   // if (this.contentStatus !== ContentStatus.created) {
   //   if (!this.contentStates.has('created')) {
   //     return;
@@ -313,7 +313,7 @@ export class ViewportContent {
   //   }
   // }
 
-  public deactivateComponent(initiator: IHydratedController<Element> | null, parent: ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement, stateful: boolean = false): void | Promise<void> {
+  public deactivateComponent(initiator: IHydratedController | null, parent: ICustomElementController | null, flags: LifecycleFlags, connectedCE: IConnectedCustomElement, stateful: boolean = false): void | Promise<void> {
     // if (this.contentStatus !== ContentStatus.activated) {
     if (!this.contentStates.has('activated')) {
       return;

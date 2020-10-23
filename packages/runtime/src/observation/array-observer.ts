@@ -1,5 +1,3 @@
-import { LifecycleFlags } from '../flags';
-import { ILifecycle } from '../lifecycle';
 import {
   CollectionKind,
   createIndexMap,
@@ -8,7 +6,9 @@ import {
   IObservedArray,
   ICollectionIndexObserver,
   ISubscriber,
-  AccessorType
+  AccessorType,
+  ILifecycle,
+  LifecycleFlags
 } from '../observation';
 import {
   CollectionLengthObserver

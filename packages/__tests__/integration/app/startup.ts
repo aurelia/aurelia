@@ -1,7 +1,6 @@
 /* eslint-disable no-shadow */
 import { IRegistration } from '@aurelia/kernel';
-import { CustomElement, FrequentMutations, CustomElementType } from '@aurelia/runtime';
-import { Aurelia } from '@aurelia/runtime-html';
+import { Aurelia, CustomElement, FrequentMutations, CustomElementType } from '@aurelia/runtime-html';
 import { CallCollection, HTMLTestContext, TestContext } from '@aurelia/testing';
 import { App } from './app';
 import { appTemplate as template } from './app-template';

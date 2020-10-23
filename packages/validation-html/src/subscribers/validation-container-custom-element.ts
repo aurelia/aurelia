@@ -1,4 +1,4 @@
-import { INode, bindable, PartialCustomElementDefinition } from '@aurelia/runtime';
+import { INode, bindable, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 import { ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget, IValidationController } from '../validation-controller';
 import { compareDocumentPositionFlat } from './common';
 import { optional } from '@aurelia/kernel';

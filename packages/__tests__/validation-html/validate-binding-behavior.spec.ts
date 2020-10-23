@@ -17,8 +17,6 @@ import {
   Scope,
   LifecycleFlags,
   valueConverter,
-} from '@aurelia/runtime';
-import {
   Aurelia,
 } from '@aurelia/runtime-html';
 import { assert, createSpy, HTMLTestContext, ISpy, TestContext } from '@aurelia/testing';

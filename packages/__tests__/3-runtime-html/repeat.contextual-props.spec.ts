@@ -5,8 +5,8 @@ import {
   BindingStrategy,
   CustomElement,
   ValueConverter,
-} from '@aurelia/runtime';
-import { Aurelia } from '@aurelia/runtime-html';
+  Aurelia,
+} from '@aurelia/runtime-html';
 import {
   assert,
   TestContext

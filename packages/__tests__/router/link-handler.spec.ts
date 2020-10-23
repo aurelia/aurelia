@@ -1,8 +1,7 @@
 import { AnchorEventInfo, LinkHandler, GotoCustomAttribute, HrefCustomAttribute } from '@aurelia/router';
 import { assert, createSpy, TestContext } from '@aurelia/testing';
 import { Writable, IRegistry } from '@aurelia/kernel';
-import { CustomElement } from '@aurelia/runtime';
-import { Aurelia } from '@aurelia/runtime-html';
+import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 
 const $ctx = TestContext.createHTMLTestContext();
 

@@ -1,6 +1,5 @@
 import { HTMLTestContext, TestContext, assert } from '@aurelia/testing';
-import { CustomElement } from '@aurelia/runtime';
-import { Aurelia } from '@aurelia/runtime-html';
+import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 
 describe('template-compiler.ce_and_surrogate.spec.ts', function () {
   interface ISurrogateIntegrationTestCase {

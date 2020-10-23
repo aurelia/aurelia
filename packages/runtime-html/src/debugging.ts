@@ -1,6 +1,6 @@
-import { PartialCustomElementDefinition } from '@aurelia/runtime';
 import { NodeType } from './dom';
 import { Instruction, InstructionType } from './instructions';
+import { PartialCustomElementDefinition } from './resources/custom-element';
 
 export function stringifyDOM(node: Node, depth: number): string {
   const indent = ' '.repeat(depth);

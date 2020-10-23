@@ -4,10 +4,10 @@ import {
   ForOfStatement,
   Interpolation,
   IsBindingBehavior,
-  IInstruction,
-  PartialCustomElementDefinition,
-  SlotInfo,
 } from '@aurelia/runtime';
+import { IInstruction } from './definitions';
+import { PartialCustomElementDefinition } from './resources/custom-element';
+import { SlotInfo } from './resources/custom-elements/au-slot';
 
 /**
  * InstructionType enum values become the property names for the associated renderers when they are injected

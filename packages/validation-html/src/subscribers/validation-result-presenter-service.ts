@@ -1,4 +1,4 @@
-import { DOM } from '@aurelia/runtime';
+import { DOM } from '@aurelia/runtime-html';
 import { ValidationResult } from '@aurelia/validation';
 import { ValidationEvent, ValidationResultsSubscriber, ValidationResultTarget } from '../validation-controller';
 

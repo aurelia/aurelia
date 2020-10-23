@@ -1,15 +1,13 @@
 import {
+  Constructable
+} from '@aurelia/kernel';
+import {
   enableArrayObservation,
   IBindingTargetObserver,
   LifecycleFlags as LF,
   CustomElement,
   BindingStrategy,
   ProxyObserver,
-} from '@aurelia/runtime';
-import {
-  Constructable
-} from '@aurelia/kernel';
-import {
   Aurelia,
   CheckedObserver,
   IInputElement,

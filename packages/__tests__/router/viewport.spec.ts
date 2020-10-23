@@ -1,6 +1,5 @@
 import { Viewport, RouterConfiguration, IRouter } from '@aurelia/router';
-import { CustomElement } from '@aurelia/runtime';
-import { Aurelia } from '@aurelia/runtime-html';
+import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 
 describe('Viewport', function () {

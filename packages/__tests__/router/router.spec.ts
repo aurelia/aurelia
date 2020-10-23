@@ -1,6 +1,5 @@
 import { IRouter, RouterConfiguration, IConfigurableRoute, IRoute, IRouterTitle, ViewportInstruction } from '@aurelia/router';
-import { CustomElement, customElement, IScheduler } from '@aurelia/runtime';
-import { Aurelia } from '@aurelia/runtime-html';
+import { CustomElement, customElement, IScheduler, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('Router', function () {

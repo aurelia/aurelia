@@ -6,7 +6,7 @@ import {
   IResolver,
   Key,
   Registration,
-  Metadata
+  Metadata,
 } from '@aurelia/kernel';
 import {
   BindingMode,
@@ -34,15 +34,12 @@ import {
   PartialCustomElementDefinition,
   LifecycleFlags,
   PropertyBinding,
-  RuntimeConfiguration,
   CustomElementDefinition,
   ITemplateCompiler,
   IScheduler,
   CustomElement,
   ICustomElementController,
   parseExpression,
-} from '@aurelia/runtime';
-import {
   Aurelia,
   HydrateElementInstruction,
   HydrateLetElementInstruction,
@@ -70,16 +67,24 @@ import {
   CustomAttributeComposerRegistration,
   TemplateControllerComposerRegistration,
   LetElementComposerRegistration,
+  DebounceBindingBehaviorRegistration,
+  OneTimeBindingBehaviorRegistration,
+  ToViewBindingBehaviorRegistration,
+  FromViewBindingBehaviorRegistration,
+  SignalBindingBehaviorRegistration,
+  ThrottleBindingBehaviorRegistration,
+  TwoWayBindingBehaviorRegistration,
 } from '@aurelia/runtime-html';
 import { TestContext } from './html-test-context';
 
+export interface AuNode extends Node, ParentNode, ChildNode {}
 export class AuNode implements INode {
   public readonly nodeName: string;
   public readonly isWrapper: boolean;
   public readonly isMarker: boolean;
   public readonly isRenderLocation: boolean;
   public $start: AuNode | null;
-  public $nodes: INodeSequence<AuNode> | Readonly<{}> | null;
+  public $nodes: INodeSequence | Readonly<{}> | null;
   public isTarget: boolean;
   public get isConnected(): boolean {
     return this._isConnected;
@@ -96,7 +101,7 @@ export class AuNode implements INode {
   }
   public isMounted: boolean;
   public parentNode: AuNode | null;
-  public childNodes: AuNode[];
+  public childNodes: NodeListOf<AuNode> & AuNode[];
   public get textContent(): string {
     let textContent = this._textContent;
     let current = this.firstChild;
@@ -138,7 +143,7 @@ export class AuNode implements INode {
     this.isMounted = isMounted;
     this._isConnected = isConnected;
     this.parentNode = null;
-    this.childNodes = [];
+    this.childNodes = [] as unknown as NodeListOf<AuNode> & AuNode[];
     this._textContent = '';
     this.nextSibling = null;
     this.previousSibling = null;
@@ -173,47 +178,50 @@ export class AuNode implements INode {
     return new AuNode('TEMPLATE', true, false, false, false, false, false);
   }
 
-  public appendChild(childNode: AuNode): this {
-    if (childNode.parentNode != null) {
-      childNode.remove();
+  public appendChild<T extends Node>(childNode: T): T {
+    const $childNode = childNode as unknown as AuNode;
+    if ($childNode.parentNode != null) {
+      $childNode.remove();
     }
     if (this.firstChild == null) {
-      this.firstChild = childNode;
+      this.firstChild = $childNode;
     } else {
-      this.lastChild!.nextSibling = childNode;
-      childNode.previousSibling = this.lastChild;
+      this.lastChild!.nextSibling = $childNode;
+      $childNode.previousSibling = this.lastChild;
     }
-    this.lastChild = childNode;
-    this.childNodes.push(childNode);
-    childNode.parentNode = this;
-    childNode.isMounted = true;
-    childNode.isConnected = this.isConnected;
-    return this;
+    this.lastChild = $childNode;
+    this.childNodes.push($childNode);
+    $childNode.parentNode = this;
+    $childNode.isMounted = true;
+    $childNode.isConnected = this.isConnected;
+    return this as unknown as T;
   }
 
-  public removeChild(childNode: AuNode): void {
-    if (childNode.parentNode === this) {
-      const prev = childNode.previousSibling;
-      const next = childNode.nextSibling;
+  public removeChild<T extends Node>(childNode: T): T {
+    const $childNode = childNode as unknown as AuNode;
+    if ($childNode.parentNode === this) {
+      const prev = $childNode.previousSibling;
+      const next = $childNode.nextSibling;
       if (prev != null) {
         prev.nextSibling = next;
       }
       if (next != null) {
         next.previousSibling = prev;
       }
-      if (this.firstChild === childNode) {
+      if (this.firstChild === $childNode) {
         this.firstChild = next;
       }
-      if (this.lastChild === childNode) {
+      if (this.lastChild === $childNode) {
         this.lastChild = prev;
       }
-      childNode.previousSibling = null;
-      childNode.nextSibling = null;
-      this.childNodes.splice(this.childNodes.indexOf(childNode), 1);
-      childNode.parentNode = null;
-      childNode.isMounted = false;
-      childNode.isConnected = false;
+      $childNode.previousSibling = null;
+      $childNode.nextSibling = null;
+      this.childNodes.splice(this.childNodes.indexOf($childNode), 1);
+      $childNode.parentNode = null;
+      $childNode.isMounted = false;
+      $childNode.isConnected = false;
     }
+    return this as unknown as T;
   }
 
   public remove(): void {
@@ -223,57 +231,63 @@ export class AuNode implements INode {
     }
   }
 
-  public replaceChild(newNode: AuNode, oldNode: AuNode): void {
-    if (oldNode.parentNode !== this) {
+  public replaceChild<T extends Node>(newNode: Node, oldNode: T): T {
+    const $newNode = newNode as unknown as AuNode;
+    const $oldNode = oldNode as unknown as AuNode;
+    if ($oldNode.parentNode !== this) {
       throw new Error('oldNode is not a child of this parent');
     }
-    const idx = this.childNodes.indexOf(oldNode);
-    this.childNodes.splice(idx, 1, newNode);
+    const idx = this.childNodes.indexOf($oldNode);
+    this.childNodes.splice(idx, 1, $newNode);
 
-    newNode.previousSibling = oldNode.previousSibling;
-    newNode.nextSibling = oldNode.nextSibling;
-    newNode.parentNode = this;
-    if (newNode.previousSibling != null) {
-      newNode.previousSibling.nextSibling = newNode;
+    $newNode.previousSibling = $oldNode.previousSibling;
+    $newNode.nextSibling = $oldNode.nextSibling;
+    $newNode.parentNode = this;
+    if ($newNode.previousSibling != null) {
+      $newNode.previousSibling.nextSibling = $newNode;
     }
-    if (newNode.nextSibling != null) {
-      newNode.nextSibling.previousSibling = newNode;
+    if ($newNode.nextSibling != null) {
+      $newNode.nextSibling.previousSibling = $newNode;
     }
-    newNode.isMounted = true;
-    newNode.isConnected = this.isConnected;
-    if (this.firstChild === oldNode) {
-      this.firstChild = newNode;
+    $newNode.isMounted = true;
+    $newNode.isConnected = this.isConnected;
+    if (this.firstChild === $oldNode) {
+      this.firstChild = $newNode;
     }
-    if (this.lastChild === oldNode) {
-      this.lastChild = newNode;
+    if (this.lastChild === $oldNode) {
+      this.lastChild = $newNode;
     }
 
-    oldNode.previousSibling = null;
-    oldNode.nextSibling = null;
-    oldNode.parentNode = null;
-    oldNode.isMounted = false;
-    oldNode.isConnected = false;
+    $oldNode.previousSibling = null;
+    $oldNode.nextSibling = null;
+    $oldNode.parentNode = null;
+    $oldNode.isMounted = false;
+    $oldNode.isConnected = false;
+    return this as unknown as T;
   }
 
-  public insertBefore(newNode: AuNode, refNode: AuNode): void {
-    if (newNode.parentNode != null) {
-      newNode.remove();
+  public insertBefore<T extends Node>(newNode: T, refNode: Node): T {
+    const $newNode = newNode as unknown as AuNode;
+    const $refNode = refNode as unknown as AuNode;
+    if ($newNode.parentNode != null) {
+      $newNode.remove();
     }
-    const idx = this.childNodes.indexOf(refNode);
-    this.childNodes.splice(idx, 0, newNode);
+    const idx = this.childNodes.indexOf($refNode);
+    this.childNodes.splice(idx, 0, $newNode);
 
-    newNode.nextSibling = refNode;
-    newNode.previousSibling = refNode.previousSibling;
-    if (refNode.previousSibling != null) {
-      refNode.previousSibling.nextSibling = newNode;
+    $newNode.nextSibling = $refNode;
+    $newNode.previousSibling = $refNode.previousSibling;
+    if ($refNode.previousSibling != null) {
+      $refNode.previousSibling.nextSibling = $newNode;
     }
-    refNode.previousSibling = newNode;
-    newNode.parentNode = this;
-    newNode.isMounted = true;
-    newNode.isConnected = this.isConnected;
-    if (this.firstChild === refNode) {
-      this.firstChild = newNode;
+    $refNode.previousSibling = $newNode;
+    $newNode.parentNode = this;
+    $newNode.isMounted = true;
+    $newNode.isConnected = this.isConnected;
+    if (this.firstChild === $refNode) {
+      this.firstChild = $newNode;
     }
+    return this as unknown as T;
   }
 
   public cloneNode(deep?: boolean): AuNode {
@@ -616,7 +630,7 @@ export class AuDOMInitializer implements IDOMInitializer {
     this.container = container;
   }
 
-  public initialize(config?: ISinglePageApp<AuNode>): AuDOM {
+  public initialize(config?: ISinglePageApp): AuDOM {
     if (this.container.has(IDOM, false)) {
       return this.container.get(IDOM) as AuDOM;
     }
@@ -683,7 +697,13 @@ export class AuTextComposer implements IInstructionComposer {
 export const AuDOMConfiguration = {
   register(container: IContainer): void {
     container.register(
-      RuntimeConfiguration,
+      DebounceBindingBehaviorRegistration,
+      OneTimeBindingBehaviorRegistration,
+      ToViewBindingBehaviorRegistration,
+      FromViewBindingBehaviorRegistration,
+      SignalBindingBehaviorRegistration,
+      ThrottleBindingBehaviorRegistration,
+      TwoWayBindingBehaviorRegistration,
       IComposerRegistration,
       DefaultBindingCommandRegistration,
       OneTimeBindingCommandRegistration,

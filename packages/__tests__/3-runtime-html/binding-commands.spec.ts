@@ -1,8 +1,6 @@
 import {
   alias,
   BindingType,
-} from '@aurelia/runtime';
-import {
   AttributeInstruction,
   BindingCommandInstance,
   PlainAttributeSymbol,

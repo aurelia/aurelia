@@ -1,10 +1,8 @@
 import { IIndexable, noop } from '@aurelia/kernel';
-import { LifecycleFlags } from '../flags';
-import { ILifecycle } from '../lifecycle';
-import { IPropertyObserver, ISubscriber, AccessorType } from '../observation';
+import { InterceptorFunc } from '../bindable';
+import { IPropertyObserver, ISubscriber, AccessorType, ILifecycle, LifecycleFlags } from '../observation';
 import { ProxyObserver } from './proxy-observer';
 import { subscriberCollection } from './subscriber-collection';
-import { InterceptorFunc } from '../templating/bindable';
 
 export interface BindableObserver extends IPropertyObserver<IIndexable, string> {}
 

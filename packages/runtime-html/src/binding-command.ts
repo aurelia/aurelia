@@ -12,7 +12,8 @@ import {
   firstDefined,
   Metadata
 } from '@aurelia/kernel';
-import { BindingType, IInstruction, registerAliases } from '@aurelia/runtime';
+import { BindingType, registerAliases } from '@aurelia/runtime';
+import { IInstruction } from './definitions';
 import { BindingSymbol, PlainAttributeSymbol, SymbolFlags } from './semantic-model';
 
 export type PartialBindingCommandDefinition = PartialResourceDefinition<{

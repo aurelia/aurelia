@@ -1,10 +1,161 @@
-import { IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { LifecycleFlags } from './flags';
-import { ILifecycle } from './lifecycle';
-import { ITask } from '@aurelia/scheduler';
+import { DI } from '@aurelia/kernel';
+import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
+import type { ITask } from '@aurelia/scheduler';
+import type { Scope } from './observation/binding-context';
 
 import type { CollectionLengthObserver } from './observation/collection-length-observer';
 import type { CollectionSizeObserver } from './observation/collection-size-observer';
+
+export interface IBinding {
+  interceptor: this;
+  readonly locator: IServiceLocator;
+  readonly $scope?: Scope;
+  readonly isBound: boolean;
+  $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
+  $unbind(flags: LifecycleFlags): void;
+}
+
+export interface ILifecycle extends Lifecycle {}
+export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));
+
+export class Lifecycle  {
+  public readonly batch: IAutoProcessingQueue<IBatchable> = new BatchQueue(this);
+}
+
+export interface IProcessingQueue<T> {
+  add(requestor: T): void;
+  process(flags: LifecycleFlags): void;
+}
+
+export interface IAutoProcessingQueue<T> extends IProcessingQueue<T> {
+  readonly depth: number;
+  begin(): void;
+  end(flags?: LifecycleFlags): void;
+  inline(fn: () => void, flags?: LifecycleFlags): void;
+}
+
+export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
+  public queue: IBatchable[] = [];
+  public depth: number = 0;
+
+  public constructor(
+    @ILifecycle public readonly lifecycle: ILifecycle,
+  ) {}
+
+  public begin(): void {
+    ++this.depth;
+  }
+
+  public end(flags?: LifecycleFlags): void {
+    if (flags === void 0) {
+      flags = LifecycleFlags.none;
+    }
+    if (--this.depth === 0) {
+      this.process(flags);
+    }
+  }
+
+  public inline(fn: () => void, flags?: LifecycleFlags): void {
+    this.begin();
+    fn();
+    this.end(flags);
+  }
+
+  public add(requestor: IBatchable): void {
+    this.queue.push(requestor);
+  }
+
+  public remove(requestor: IBatchable): void {
+    const index = this.queue.indexOf(requestor);
+    if (index > -1) {
+      this.queue.splice(index, 1);
+    }
+  }
+
+  public process(flags: LifecycleFlags): void {
+    while (this.queue.length > 0) {
+      const batch = this.queue.slice();
+      this.queue = [];
+      const { length } = batch;
+      for (let i = 0; i < length; ++i) {
+        batch[i].flushBatch(flags);
+      }
+    }
+  }
+}
+
+/*
+* Note: the oneTime binding now has a non-zero value for 2 reasons:
+*  - plays nicer with bitwise operations (more consistent code, more explicit settings)
+*  - allows for potentially having something like BindingMode.oneTime | BindingMode.fromView, where an initial value is set once to the view but updates from the view also propagate back to the view model
+*
+* Furthermore, the "default" mode would be for simple ".bind" expressions to make it explicit for our logic that the default is being used.
+* This essentially adds extra information which binding could use to do smarter things and allows bindingBehaviors that add a mode instead of simply overwriting it
+*/
+export enum BindingMode {
+  oneTime  = 0b0001,
+  toView   = 0b0010,
+  fromView = 0b0100,
+  twoWay   = 0b0110,
+  default  = 0b1000
+}
+
+export const enum BindingStrategy {
+  /**
+   * Configures all components "below" this one to operate in getterSetter binding mode.
+   * This is the default; if no strategy is specified, this one is implied.
+   *
+   * This strategy is the most compatible, convenient and has the best performance on frequently updated bindings on components that are infrequently replaced.
+   * However, it also consumes the most resources on initialization.
+   */
+  getterSetter = 0b01,
+  /**
+   * Configures all components "below" this one to operate in proxy binding mode.
+   * No getters/setters are created.
+   *
+   * This strategy consumes significantly fewer resources than `getterSetter` on initialization and has the best performance on infrequently updated bindings on
+   * components that are frequently replaced.
+   * However, it consumes more resources on updates.
+   */
+  proxies      = 0b10,
+}
+
+const mandatoryStrategy = BindingStrategy.getterSetter | BindingStrategy.proxies;
+
+export function ensureValidStrategy(strategy: BindingStrategy | null | undefined): BindingStrategy {
+  if ((strategy! & mandatoryStrategy) === 0) {
+    // TODO: probably want to validate that user isn't trying to mix getterSetter/proxy
+    // TODO: also need to make sure that strategy can be changed away from proxies inside the component tree (not here though, but just making a note)
+    return strategy! | BindingStrategy.getterSetter;
+  }
+  return strategy!;
+}
+
+export const enum LifecycleFlags {
+  none                          = 0b00000_00_00_00_000,
+  // Bitmask for flags that need to be stored on a binding during $bind for mutation
+  // callbacks outside of $bind
+  persistentBindingFlags        = 0b11111_000_00_00_111,
+  allowParentScopeTraversal     = 0b00001_000_00_00_000,
+  observeLeafPropertiesOnly     = 0b00010_000_00_00_000,
+  targetObserverFlags           = 0b01100_000_00_00_111,
+  noTargetObserverQueue         = 0b00100_000_00_00_000,
+  persistentTargetObserverQueue = 0b01000_000_00_00_000,
+  secondaryExpression           = 0b10000_000_00_00_000,
+  bindingStrategy               = 0b00000_000_00_00_111,
+  getterSetterStrategy          = 0b00000_000_00_00_001,
+  proxyStrategy                 = 0b00000_000_00_00_010,
+  isStrictBindingStrategy       = 0b00000_000_00_00_100,
+  update                        = 0b00000_000_00_11_000,
+  updateTargetInstance          = 0b00000_000_00_01_000,
+  updateSourceExpression        = 0b00000_000_00_10_000,
+  from                          = 0b00000_000_11_00_000,
+  fromBind                      = 0b00000_000_01_00_000,
+  fromUnbind                    = 0b00000_000_10_00_000,
+  mustEvaluate                  = 0b00000_001_00_00_000,
+  isTraversingParentScope       = 0b00000_010_00_00_000,
+  dispose                       = 0b00000_100_00_00_000,
+}
 
 export interface IConnectable {
   readonly locator: IServiceLocator;

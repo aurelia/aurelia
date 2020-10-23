@@ -1,5 +1,6 @@
-import { IScheduler, LifecycleFlags } from '@aurelia/runtime';
 import {
+  IScheduler,
+  LifecycleFlags,
   AttributeNSAccessor,
   ClassAttributeAccessor,
   DataAttributeAccessor,

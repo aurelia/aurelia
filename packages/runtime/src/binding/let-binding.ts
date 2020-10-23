@@ -6,13 +6,8 @@ import {
   ITask,
 } from '@aurelia/scheduler';
 import {
-  LifecycleFlags,
-} from '../flags';
-import {
   ILifecycle,
-} from '../lifecycle';
-import {
-  IObservable,
+  IObservable, LifecycleFlags,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IsExpression } from './ast';

@@ -3,8 +3,6 @@ import {
   Primitive,
   isArrayIndex,
 } from '@aurelia/kernel';
-import { LifecycleFlags } from '../flags';
-import { ILifecycle } from '../lifecycle';
 import {
   AccessorOrObserver,
   CollectionKind,
@@ -12,10 +10,12 @@ import {
   IBindingTargetAccessor,
   IBindingTargetObserver,
   ICollectionObserver,
+  ILifecycle,
   IObservable,
   IObservedArray,
   IObservedMap,
   IObservedSet,
+  LifecycleFlags,
 } from '../observation';
 import { getArrayObserver } from './array-observer';
 import { createComputedObserver } from './computed-observer';

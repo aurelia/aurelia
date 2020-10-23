@@ -4,7 +4,7 @@ import {
   customAttribute,
   INode,
   CustomAttribute
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, createFixture } from '@aurelia/testing';
 
 describe('custom-attributes', function () {

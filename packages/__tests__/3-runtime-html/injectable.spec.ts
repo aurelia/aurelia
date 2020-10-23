@@ -1,5 +1,4 @@
-import { CustomElement, customElement } from '@aurelia/runtime';
-import { Aurelia } from '@aurelia/runtime-html';
+import { CustomElement, customElement, Aurelia } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 
 describe('CustomElement.createInjectable', function () {

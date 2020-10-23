@@ -3,9 +3,9 @@ import {
   LifecycleFlags,
   IScheduler,
   ITask,
-  INode,
   AccessorType,
 } from '@aurelia/runtime';
+import { INode } from '../dom';
 
 /**
  * Attribute accessor in a XML document/element that can be accessed via a namespace.

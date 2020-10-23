@@ -1,6 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { INode, IDOM } from '@aurelia/runtime';
-import { ISVGAnalyzer } from '@aurelia/runtime-html';
+import { INode, IDOM, ISVGAnalyzer } from '@aurelia/runtime-html';
 
 const svgElements: Record<string, string[]> = {
   'a': ['class', 'externalResourcesRequired', 'id', 'onactivate', 'onclick', 'onfocusin', 'onfocusout', 'onload', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'requiredExtensions', 'requiredFeatures', 'style', 'systemLanguage', 'target', 'transform', 'xlink:actuate', 'xlink:arcrole', 'xlink:href', 'xlink:role', 'xlink:show', 'xlink:title', 'xlink:type', 'xml:base', 'xml:lang', 'xml:space'],

@@ -12,19 +12,8 @@ import {
   IExpressionParser,
   Interpolation,
   IsBindingBehavior,
-  IInstruction,
-  ITemplateCompiler,
-  PartialCustomElementDefinition,
-  CustomElementDefinition,
-  IDOM,
   BindingMode,
   Bindable,
-  CustomElement,
-  IProjections,
-  SlotInfo,
-  AuSlotContentType,
-  RegisteredProjections,
-  ProjectionContext,
 } from '@aurelia/runtime';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 import { TemplateBinder } from './template-binder';
@@ -61,6 +50,11 @@ import {
 } from './instructions';
 import { IAttributeParser } from './attribute-parser';
 import { ResourceModel } from './resource-model';
+import { IInstruction } from './definitions';
+import { AuSlotContentType, IProjections, ProjectionContext, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot';
+import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
+import { ITemplateCompiler } from './composer';
+import { IDOM } from './dom';
 
 class CustomElementCompilationUnit {
   public readonly instructions: IInstruction[][] = [];
@@ -70,7 +64,7 @@ class CustomElementCompilationUnit {
   public constructor(
     public readonly partialDefinition: PartialCustomElementDefinition,
     public readonly surrogate: PlainElementSymbol,
-    public readonly template: unknown,
+    public readonly template: string | null | Node,
   ) { }
 
   public toDefinition(): CustomElementDefinition {

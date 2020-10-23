@@ -12,7 +12,7 @@ import {
   IBinding,
   BindingBehaviorExpression,
   ITask,
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo, ValidationResultsSubscriber, ValidationEvent } from './validation-controller';
 

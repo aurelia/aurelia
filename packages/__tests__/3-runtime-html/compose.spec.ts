@@ -6,8 +6,10 @@ import {
   view,
   customElement,
   getCompositionContext,
-} from '@aurelia/runtime';
-import { Aurelia, CompositionPlan, HTMLDOM } from '@aurelia/runtime-html';
+  Aurelia,
+  CompositionPlan,
+  HTMLDOM,
+} from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
   TestContext,

@@ -7,8 +7,9 @@ import {
   IComposer,
   IScheduler,
   ITemplateCompiler,
-} from '@aurelia/runtime';
-import { HTMLDOM, IPlatform } from '@aurelia/runtime-html';
+  HTMLDOM,
+  IPlatform,
+} from '@aurelia/runtime-html';
 import { createDOMScheduler } from '@aurelia/scheduler-dom';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 

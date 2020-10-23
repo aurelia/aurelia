@@ -4,11 +4,9 @@ import {
   IAttributeParser,
   ResourceModel,
   Aurelia,
-} from '@aurelia/runtime-html';
-import {
   CustomElement,
   IExpressionParser,
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 // TemplateCompiler - integration with various different parts
@@ -153,7 +151,7 @@ describe('dependency injection', function () {
 //     const ifText = 'foo';
 //     const elseText = 'bar';
 
-//     const ifTemplate: ITemplate<AuNode> = {
+//     const ifTemplate: ITemplate = {
 //       compositionContext: null as any,
 //       dom: null as any,
 //       compose(composable) {
@@ -168,7 +166,7 @@ describe('dependency injection', function () {
 //       }
 //     };
 
-//     const elseTemplate: ITemplate<AuNode> = {
+//     const elseTemplate: ITemplate = {
 //       compositionContext: null as any,
 //       dom: null as any,
 //       compose(composable) {
@@ -183,11 +181,11 @@ describe('dependency injection', function () {
 //       }
 //     };
 
-//     const ifFactory = new ViewFactory<AuNode>('if-view', ifTemplate, scheduler);
-//     const elseFactory = new ViewFactory<AuNode>('else-view', elseTemplate, scheduler);
+//     const ifFactory = new ViewFactory('if-view', ifTemplate, scheduler);
+//     const elseFactory = new ViewFactory('else-view', elseTemplate, scheduler);
 
-//     const sut = new If<AuNode>(ifFactory, location, new CompositionCoordinator(scheduler));
-//     const elseSut = new Else<AuNode>(elseFactory);
+//     const sut = new If(ifFactory, location, new CompositionCoordinator(scheduler));
+//     const elseSut = new Else(elseFactory);
 //     elseSut.link(sut);
 
 //     (sut as Writable<If>).$scope = null;

@@ -1,6 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElement, CustomElementHost } from '@aurelia/runtime';
-import { Aurelia, Blur, Focus } from '@aurelia/runtime-html';
+import { CustomElement, CustomElementHost, Aurelia, Blur, Focus } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
 describe('blur.integration.spec.ts', function () {

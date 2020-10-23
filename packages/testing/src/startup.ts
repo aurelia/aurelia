@@ -1,7 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElement } from '@aurelia/runtime';
-import { Aurelia } from '@aurelia/runtime-html';
-import { assert } from './assert';
+import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { HTMLTestContext, TestContext } from './html-test-context';
 
 export function createFixture<T>(template: string | Node,

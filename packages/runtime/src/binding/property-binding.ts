@@ -7,19 +7,17 @@ import {
   QueueTaskOptions,
 } from '@aurelia/scheduler';
 import {
-  BindingMode,
-  ExpressionKind,
-  LifecycleFlags,
-} from '../flags';
-import { ILifecycle } from '../lifecycle';
-import {
   AccessorOrObserver,
   IBindingTargetObserver,
   AccessorType,
   INodeAccessor,
+  BindingMode,
+  ILifecycle,
+  LifecycleFlags,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import {
+  ExpressionKind,
   ForOfStatement,
   IsBindingBehavior,
 } from './ast';

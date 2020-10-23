@@ -7,14 +7,13 @@ import {
   AnyBindingExpression,
   BindingMode,
   BindingType,
-  IDOM,
   IExpressionParser,
   Char,
 } from '@aurelia/runtime';
 import { AttrSyntax, IAttributeParser } from './attribute-parser';
 import { IAttrSyntaxTransformer } from './attribute-syntax-transformer';
 import { BindingCommandInstance } from './binding-command';
-import { NodeType } from './dom';
+import { IDOM, NodeType } from './dom';
 import { AttrInfo, BindableInfo, ResourceModel } from './resource-model';
 import {
   BindingSymbol,

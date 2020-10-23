@@ -1,6 +1,5 @@
 import { IIndexable } from '@aurelia/kernel';
-import { IDOM } from '@aurelia/runtime';
-import { DOM, HTMLDOM } from '@aurelia/runtime-html';
+import { IDOM, DOM, HTMLDOM } from '@aurelia/runtime-html';
 import { HttpClientConfiguration } from './http-client-configuration';
 import { Interceptor, ValidInterceptorMethodName } from './interfaces';
 import { RetryInterceptor } from './retry-interceptor';

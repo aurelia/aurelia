@@ -1,6 +1,5 @@
 import { DI, IContainer, Registration } from '@aurelia/kernel';
-import { IAppRoot, CustomElementType, ISinglePageApp, CustomElement } from '@aurelia/runtime';
-import { RuntimeHtmlConfiguration, Aurelia as $Aurelia, IPlatform } from '@aurelia/runtime-html';
+import { RuntimeHtmlConfiguration, Aurelia as $Aurelia, IPlatform, IAppRoot, CustomElementType, ISinglePageApp, CustomElement } from '@aurelia/runtime-html';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 
 export const PLATFORM = new BrowserPlatform(window);
@@ -18,15 +17,15 @@ export class Aurelia extends $Aurelia {
     super(container);
   }
 
-  public static start(root: IAppRoot<HTMLElement> | undefined): void | Promise<void> {
+  public static start(root: IAppRoot | undefined): void | Promise<void> {
     return new Aurelia().start(root);
   }
 
-  public static app(config: ISinglePageApp<HTMLElement> | unknown): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
+  public static app(config: ISinglePageApp | unknown): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
     return new Aurelia().app(config);
   }
 
-  public static enhance(config: ISinglePageApp<HTMLElement>): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
+  public static enhance(config: ISinglePageApp): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
     return new Aurelia().enhance(config) as Omit<Aurelia, 'register' | 'app' | 'enhance'>;
   }
 
@@ -34,7 +33,7 @@ export class Aurelia extends $Aurelia {
     return new Aurelia().register(...params);
   }
 
-  public app(config: ISinglePageApp<HTMLElement> | unknown): Omit<this, 'register' | 'app' | 'enhance'> {
+  public app(config: ISinglePageApp | unknown): Omit<this, 'register' | 'app' | 'enhance'> {
     if (CustomElement.isType(config as CustomElementType)) {
       // Default to custom element element name
       const definition = CustomElement.getDefinition(config as CustomElementType);
@@ -50,7 +49,7 @@ export class Aurelia extends $Aurelia {
       });
     }
 
-    return super.app(config as ISinglePageApp<HTMLElement>);
+    return super.app(config as ISinglePageApp);
   }
 }
 
@@ -729,9 +728,7 @@ export {
   // SymbolWithTemplate,
   // TemplateControllerSymbol,
   // TextSymbol
-} from '@aurelia/runtime';
 
-export {
   IAurelia,
   // Listener,
 

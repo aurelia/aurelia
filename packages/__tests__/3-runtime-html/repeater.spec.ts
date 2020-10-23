@@ -1,5 +1,4 @@
-import { CustomElement } from '@aurelia/runtime';
-import { Aurelia } from '@aurelia/runtime-html';
+import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
   TestContext,

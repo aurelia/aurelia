@@ -1,3 +1,4 @@
+import { DI } from '@aurelia/kernel';
 import {
   AccessScopeExpression,
   BindingBehaviorExpression,
@@ -8,7 +9,6 @@ import {
   ILifecycle,
   Scope,
   LifecycleFlags as LF,
-  RuntimeConfiguration,
   SetterObserver
 } from '@aurelia/runtime';
 import {
@@ -20,7 +20,7 @@ import {
 
 describe.skip('CallBinding', function () {
   function createFixture(sourceExpression: IsBindingBehavior, target: any, targetProperty: string) {
-    const container = RuntimeConfiguration.createContainer();
+    const container = DI.createContainer(); // Note: used to be RuntimeConfiguration.createContainer, needs deps
     const lifecycle = container.get(ILifecycle);
     const observerLocator = createObserverLocator(container);
     const sut = new CallBinding(sourceExpression as any, target, targetProperty, observerLocator, container);

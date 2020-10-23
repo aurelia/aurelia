@@ -5,12 +5,6 @@ import {
   QueueTaskOptions,
 } from '@aurelia/scheduler';
 import {
-  BindingMode,
-  LifecycleFlags,
-  ExpressionKind,
-} from '../flags';
-import { IBinding } from '../lifecycle';
-import {
   IBindingTargetAccessor,
   AccessorType,
   INodeAccessor,
@@ -19,9 +13,12 @@ import {
   IndexMap,
   ICollectionObserver,
   CollectionKind,
+  BindingMode,
+  IBinding,
+  LifecycleFlags,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { Interpolation, IsExpression } from './ast';
+import { ExpressionKind, Interpolation, IsExpression } from './ast';
 import {
   connectable,
   IConnectableBinding,

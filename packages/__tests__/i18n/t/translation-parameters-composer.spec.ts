@@ -7,12 +7,10 @@ import {
   IInstructionComposer,
   IObserverLocator,
   LifecycleFlags,
-  RuntimeConfiguration,
+  RuntimeHtmlConfiguration,
   ICompiledCompositionContext,
   IComposableController,
   IBinding,
-} from '@aurelia/runtime';
-import {
   CallBindingInstruction,
   AttrSyntax,
   BindingCommand,
@@ -76,7 +74,7 @@ describe('TranslationParametersBindingComposer', function () {
 
   function createFixture() {
     const { container } = TestContext.createHTMLTestContext();
-    container.register(RuntimeConfiguration, I18nConfiguration);
+    container.register(RuntimeHtmlConfiguration, I18nConfiguration);
     return container;
   }
 

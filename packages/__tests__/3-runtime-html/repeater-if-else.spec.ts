@@ -2,8 +2,8 @@ import {
   BindingStrategy,
   CustomElement,
   IScheduler,
-} from '@aurelia/runtime';
-import { Aurelia } from '@aurelia/runtime-html';
+  Aurelia,
+} from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
   TestContext,

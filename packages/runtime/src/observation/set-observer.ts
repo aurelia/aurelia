@@ -1,6 +1,4 @@
-import { LifecycleFlags } from '../flags';
-import { ILifecycle } from '../lifecycle';
-import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver, AccessorType } from '../observation';
+import { CollectionKind, createIndexMap, ICollectionObserver, IObservedSet, ICollectionIndexObserver, AccessorType, ILifecycle, LifecycleFlags } from '../observation';
 import { CollectionSizeObserver } from './collection-size-observer';
 import { collectionSubscriberCollection } from './subscriber-collection';
 import { ITask } from '@aurelia/scheduler';

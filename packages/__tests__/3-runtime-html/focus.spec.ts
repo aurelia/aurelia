@@ -1,6 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElement } from '@aurelia/runtime';
-import { Aurelia, Focus } from '@aurelia/runtime-html';
+import { CustomElement, Aurelia, Focus } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
 
 const $ctx = TestContext.createHTMLTestContext();

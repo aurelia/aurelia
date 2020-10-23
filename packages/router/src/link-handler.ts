@@ -1,5 +1,4 @@
-import { IDOM, CustomAttribute } from '@aurelia/runtime';
-import { HTMLDOM } from '@aurelia/runtime-html';
+import { HTMLDOM, IDOM, CustomAttribute } from '@aurelia/runtime-html';
 import { Key } from '@aurelia/kernel';
 import { GotoCustomAttribute } from './resources/goto';
 import { LoadCustomAttribute } from './resources/load';

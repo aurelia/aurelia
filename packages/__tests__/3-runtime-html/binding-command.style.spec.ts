@@ -1,6 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElement, IScheduler } from '@aurelia/runtime';
-import { Aurelia, IEventDelegator, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { CustomElement, IScheduler, Aurelia, IEventDelegator, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, TestContext } from '@aurelia/testing';
 import { StyleAttributePattern } from './attribute-pattern';
 

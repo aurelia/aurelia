@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { I18N, I18nConfiguration, Signals } from '@aurelia/i18n';
 import { Class, IContainer } from '@aurelia/kernel';
-import { bindable, customElement, DOM, INode, IScheduler, ISignaler } from '@aurelia/runtime';
-import { Aurelia } from '@aurelia/runtime-html';
+import { Aurelia, bindable, customElement, DOM, INode, IScheduler, ISignaler } from '@aurelia/runtime-html';
 import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../../util';
 

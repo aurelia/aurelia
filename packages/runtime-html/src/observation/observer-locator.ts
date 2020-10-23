@@ -2,7 +2,6 @@ import { IContainer, IResolver, Registration, IIndexable } from '@aurelia/kernel
 import {
   IBindingTargetAccessor,
   IBindingTargetObserver,
-  IDOM,
   ILifecycle,
   IObserverLocator,
   ITargetAccessorLocator,
@@ -11,7 +10,7 @@ import {
   SetterObserver,
   IScheduler
 } from '@aurelia/runtime';
-import { HTMLDOM } from '../dom';
+import { HTMLDOM, IDOM } from '../dom';
 import { AttributeNSAccessor } from './attribute-ns-accessor';
 import { CheckedObserver, IInputElement } from './checked-observer';
 import { ClassAttributeAccessor } from './class-attribute-accessor';

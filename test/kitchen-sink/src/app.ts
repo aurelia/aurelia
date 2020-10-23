@@ -24,7 +24,7 @@ export class App {
   @bindable public keyedStrategy: boolean;
   @bindable public proxyStrategy: boolean;
 
-  public $controller: IController<Node>;
+  public $controller: IController;
 
   public constructor() {
     this.rows = [];
@@ -51,7 +51,7 @@ export class App {
     if (this.proxyStrategy) {
       strategy |= BindingStrategy.proxies;
     }
-    const dom = this.$controller.context.get<IDOM<Node>>(IDOM);
+    const dom = this.$controller.context.get<IDOM>(IDOM);
     this.subject = createElement(
       dom,
       'table',

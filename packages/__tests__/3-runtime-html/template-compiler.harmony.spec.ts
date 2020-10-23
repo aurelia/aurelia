@@ -2,9 +2,9 @@ import {
   CustomAttribute,
   CustomElement,
   CustomElementHost,
-  INode
-} from '@aurelia/runtime';
-import { Aurelia } from '@aurelia/runtime-html';
+  INode,
+  Aurelia,
+} from '@aurelia/runtime-html';
 import {
   assert,
   HTMLTestContext,

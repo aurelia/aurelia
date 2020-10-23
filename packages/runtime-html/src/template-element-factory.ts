@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { IDOM } from '@aurelia/runtime';
+import { IDOM } from './dom';
 
 /**
  * Utility that creates a `HTMLTemplateElement` out of string markup or an existing DOM node.

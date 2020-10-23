@@ -1,6 +1,11 @@
 import { DI, Registration } from '@aurelia/kernel';
-import { CustomAttribute, CustomElement, INode, CustomAttributeType, Controller, ICustomElementViewModel } from '@aurelia/runtime';
 import {
+  CustomAttribute,
+  CustomElement,
+  INode,
+  CustomAttributeType,
+  Controller,
+  ICustomElementViewModel,
   Aurelia,
   AdoptedStyleSheetsStyles,
   CSSModulesProcessorRegistry,
@@ -209,7 +214,7 @@ describe('Styles', function () {
       const controller = Controller.forCustomElement(
         null,
         ctx.container,
-        component as ICustomElementViewModel<HTMLElement>,
+        component,
         ctx.lifecycle,
         host,
         void 0,

@@ -1,3 +1,4 @@
+import { DI } from '@aurelia/kernel';
 import {
   AccessMemberExpression,
   AccessScopeExpression,
@@ -12,7 +13,6 @@ import {
   ObjectLiteralExpression,
   PrimitiveLiteralExpression,
   PropertyAccessor,
-  RuntimeConfiguration,
   Scope,
   SetterObserver,
   IsBindingBehavior,
@@ -48,7 +48,7 @@ describe('PropertyBinding', function () {
   let dummyMode: BindingMode;
 
   function createFixture(sourceExpression: any = dummySourceExpression, target: any = dummyTarget, targetProperty: string = dummyTargetProperty, mode: BindingMode = dummyMode) {
-    const container = RuntimeConfiguration.createContainer();
+    const container = DI.createContainer();
     const observerLocator = createObserverLocator(container);
     const lifecycle = container.get(ILifecycle);
     const sut = new PropertyBinding(sourceExpression, target, targetProperty, mode, observerLocator, container);
@@ -102,7 +102,7 @@ describe('PropertyBinding', function () {
         expr = new BinaryExpression('+', expr, new AccessScopeExpression(prop, 0));
       }
     }
-    const container = RuntimeConfiguration.createContainer();
+    const container = DI.createContainer();
     const observerLocator = createObserverLocator(container);
     const target = {val: 0};
     const sut = new PropertyBinding(expr as any, target, 'val', BindingMode.toView, observerLocator, container);

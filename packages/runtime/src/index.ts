@@ -1,4 +1,42 @@
 export {
+  IScheduler,
+  ITask,
+  ITaskQueue,
+  QueueTaskOptions,
+  Task,
+  TaskAbortError,
+  TaskCallback,
+  TaskQueue,
+  TaskQueuePriority,
+  TaskStatus,
+  QueueTaskTargetOptions,
+} from '@aurelia/scheduler';
+
+import { IRegistry } from '@aurelia/kernel';
+import {
+  FromViewBindingBehavior,
+  OneTimeBindingBehavior,
+  ToViewBindingBehavior,
+  TwoWayBindingBehavior
+} from './binding-behaviors/binding-mode';
+import { DebounceBindingBehavior } from './binding-behaviors/debounce';
+import { SignalBindingBehavior } from './binding-behaviors/signals';
+import { ThrottleBindingBehavior } from './binding-behaviors/throttle';
+
+export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
+export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;
+export const ToViewBindingBehaviorRegistration = ToViewBindingBehavior as unknown as IRegistry;
+export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior as unknown as IRegistry;
+export const SignalBindingBehaviorRegistration = SignalBindingBehavior as unknown as IRegistry;
+export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior as unknown as IRegistry;
+export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as unknown as IRegistry;
+
+export {
+  alias,
+  registerAliases,
+} from './alias';
+export {
+  ExpressionKind,
   CallFunctionExpression,
   CustomExpression,
   BindingBehaviorExpression,
@@ -168,79 +206,23 @@ export {
   BindingBehaviorFactory,
   BindingBehaviorStrategy,
   IInterceptableBinding,
-} from './resources/binding-behavior';
+} from './binding-behavior';
 export {
   BindingModeBehavior,
   OneTimeBindingBehavior,
   ToViewBindingBehavior,
   FromViewBindingBehavior,
   TwoWayBindingBehavior
-} from './resources/binding-behaviors/binding-mode';
+} from './binding-behaviors/binding-mode';
 export {
   DebounceBindingBehavior
-} from './resources/binding-behaviors/debounce';
+} from './binding-behaviors/debounce';
 export {
   SignalBindingBehavior
-} from './resources/binding-behaviors/signals';
+} from './binding-behaviors/signals';
 export {
   ThrottleBindingBehavior
-} from './resources/binding-behaviors/throttle';
-
-export {
-  customAttribute,
-  CustomAttributeDecorator,
-  CustomAttribute,
-  CustomAttributeDefinition,
-  CustomAttributeKind,
-  CustomAttributeType,
-  PartialCustomAttributeDefinition,
-  templateController,
-} from './resources/custom-attribute';
-export {
-  FrequentMutations,
-  InfrequentMutations,
-  ObserveShallow,
-} from './resources/custom-attributes/flags';
-export {
-  If,
-  Else
-} from './resources/custom-attributes/if';
-export {
-  Repeat
-} from './resources/custom-attributes/repeat';
-export {
-  With
-} from './resources/custom-attributes/with';
-export {
-  Switch,
-  Case,
-  DefaultCase,
-} from './resources/custom-attributes/switch';
-
-export {
-  AuSlot,
-  IProjections,
-  SlotInfo,
-  AuSlotContentType,
-  RegisteredProjections,
-  IProjectionProvider,
-  ProjectionContext,
-} from './resources/custom-elements/au-slot';
-
-export {
-  containerless,
-  customElement,
-  CustomElementHost,
-  CustomElement,
-  CustomElementDecorator,
-  CustomElementKind,
-  CustomElementType,
-  CustomElementDefinition,
-  PartialCustomElementDefinition,
-  IElementProjector,
-  IProjectorLocator,
-  useShadowDOM
-} from './resources/custom-element';
+} from './binding-behaviors/throttle';
 
 export {
   ValueConverter,
@@ -251,144 +233,24 @@ export {
   ValueConverterInstance,
   ValueConverterType,
   valueConverter,
-} from './resources/value-converter';
-export {
-  ISanitizer,
-  SanitizeValueConverter
-} from './resources/value-converters/sanitize';
-export {
-  ViewValueConverter
-} from './resources/value-converters/view';
+} from './value-converter';
 
-export {
-  IScheduler,
-  ITask,
-  ITaskQueue,
-  QueueTaskOptions,
-  Task,
-  TaskAbortError,
-  TaskCallback,
-  TaskQueue,
-  TaskQueuePriority,
-  TaskStatus,
-  QueueTaskTargetOptions,
-} from '@aurelia/scheduler';
+
 
 export {
   bindable,
   PartialBindableDefinition,
   BindableDefinition,
   Bindable,
-} from './templating/bindable';
+} from './bindable';
 
-export {
-  PartialChildrenDefinition,
-  ChildrenDefinition,
-  Children,
-  children,
-  ChildrenObserver,
-} from './templating/children';
-
-// These exports are temporary until we have a proper way to unit test them
-export {
-  Controller,
-  isCustomElementController,
-  isCustomElementViewModel,
-} from './templating/controller';
-export {
-  ViewFactory,
-  IViewLocator,
-  ViewLocator,
-  view,
-  Views,
-} from './templating/view';
-
-export {
-  IDOMInitializer,
-  ISinglePageApp,
-  AppRoot,
-  IAppRoot,
-} from './app-root';
-export {
-  IfRegistration,
-  ElseRegistration,
-  RepeatRegistration,
-  WithRegistration,
-
-  SanitizeValueConverterRegistration,
-
-  DebounceBindingBehaviorRegistration,
-  OneTimeBindingBehaviorRegistration,
-  ToViewBindingBehaviorRegistration,
-  FromViewBindingBehaviorRegistration,
-  SignalBindingBehaviorRegistration,
-  ThrottleBindingBehaviorRegistration,
-  TwoWayBindingBehaviorRegistration,
-
-  DefaultResources,
-  RuntimeConfiguration
-} from './configuration';
-export {
-  HooksDefinition,
-  InstructionTypeName,
-  IInstruction,
-  alias,
-  registerAliases,
-} from './definitions';
-export {
-  DOM,
-  INode,
-  IRenderLocation,
-  IDOM,
-  INodeSequence,
-  INodeSequenceFactory
-} from './dom';
 export {
   BindingMode,
   BindingStrategy,
-  ExpressionKind,
   LifecycleFlags,
-} from './flags';
-export {
-  ViewModelKind,
-  ControllerVisitor,
+  AccessorOrObserver,
   IBinding,
   ILifecycle,
-  IViewModel,
-  IController,
-  IComponentController,
-  IContextualCustomElementController,
-  IComposableController,
-  IDryCustomElementController,
-  ICustomAttributeController,
-  IHydratedController,
-  IHydratedComponentController,
-  IHydratedParentController,
-  ICompiledCustomElementController,
-  ICustomElementController,
-  IViewCache,
-  IViewFactory,
-  MountStrategy,
-  ICustomElementViewModel,
-  ICustomAttributeViewModel,
-  IHydratedCustomElementViewModel,
-  IHydratedCustomAttributeViewModel,
-  ISyntheticView,
-} from './lifecycle';
-export {
-  getCompositionContext,
-  isCompositionContext,
-  ICompositionContext,
-  ICompiledCompositionContext,
-  IComponentFactory,
-} from './templating/composition-context';
-export {
-  TaskSlot,
-  AppTask,
-  IAppTask,
-} from './app-task';
-export {
-  AccessorOrObserver,
   AccessorType,
   Collection,
   CollectionKind,
@@ -403,6 +265,7 @@ export {
   ICollectionIndexObserver,
   ICollectionSubscriber,
   IndexMap,
+  IBatchable,
   IObservable,
   IObservedArray,
   IObservedMap,
@@ -428,10 +291,3 @@ export {
   cloneIndexMap,
   createIndexMap,
 } from './observation';
-export {
-  IInstructionComposer,
-  IInstructionTypeClassifier,
-  IComposer,
-  ITemplateCompiler,
-  instructionComposer,
-} from './composer';

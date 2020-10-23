@@ -11,8 +11,6 @@ import {
   IInputElement,
   ValueAttributeObserver,
   Aurelia,
-} from '@aurelia/runtime-html';
-import {
   LifecycleFlags,
   ArrayIndexObserver,
   ISubscriber,
@@ -20,7 +18,7 @@ import {
   CustomElement,
   BindingStrategy,
   IDirtyChecker,
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 
 describe('simple Computed Observer test case', function () {
 

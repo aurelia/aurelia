@@ -1,5 +1,4 @@
-import { IElementProjector, If, Repeat, With, ICustomElementController, ViewModelKind, ISyntheticView } from '@aurelia/runtime';
-import { Compose, InstructionType } from '@aurelia/runtime-html';
+import { IElementProjector, If, Repeat, With, ICustomElementController, ViewModelKind, ISyntheticView, Compose, InstructionType } from '@aurelia/runtime-html';
 import { assert } from './assert';
 
 // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.

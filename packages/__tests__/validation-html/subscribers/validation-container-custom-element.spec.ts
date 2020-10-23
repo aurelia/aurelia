@@ -1,8 +1,7 @@
 import { newInstanceForScope, newInstanceOf, toArray } from '@aurelia/kernel';
-import { CustomElement, customElement, IScheduler } from '@aurelia/runtime';
 import { assert, createSpy, getVisibleText, HTMLTestContext, ISpy, TestContext } from '@aurelia/testing';
 import { IValidationRules } from '@aurelia/validation';
-import { Aurelia } from '@aurelia/runtime-html';
+import { CustomElement, customElement, IScheduler, Aurelia } from '@aurelia/runtime-html';
 import {
   IValidationController,
   ValidationContainerCustomElement,

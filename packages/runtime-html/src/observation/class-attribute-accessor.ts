@@ -3,10 +3,10 @@ import {
   LifecycleFlags,
   IScheduler,
   ITask,
-  INode,
   AccessorType,
 } from '@aurelia/runtime';
 import { emptyArray } from '@aurelia/kernel';
+import { INode } from '../dom';
 
 export class ClassAttributeAccessor implements IAccessor {
   public readonly obj: HTMLElement;

@@ -1,6 +1,5 @@
 import { DI, IContainer, Registration } from '@aurelia/kernel';
-import { PropertyBinding, IScheduler } from '@aurelia/runtime';
-import { SelfBindingBehavior } from '@aurelia/runtime-html';
+import { PropertyBinding, IScheduler, SelfBindingBehavior } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
 describe('SelfBindingBehavior', function () {

@@ -1,6 +1,5 @@
 import { I18N, I18nConfiguration, I18nConfigurationOptions } from '@aurelia/i18n';
 import { IContainer, Registration } from '@aurelia/kernel';
-import { CustomElement, IBinding, INode, IScheduler } from '@aurelia/runtime';
 import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
 import {
   IValidationMessageProvider,
@@ -9,7 +8,7 @@ import {
   StandardValidator,
   ValidationMessageProvider,
 } from '@aurelia/validation';
-import { Aurelia } from '@aurelia/runtime-html';
+import { CustomElement, IBinding, INode, IScheduler, Aurelia } from '@aurelia/runtime-html';
 import {
   BindingWithBehavior,
   IValidationController,

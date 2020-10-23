@@ -5,7 +5,7 @@ import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors
 import { IDefaultTrigger, ValidateBindingBehavior, ValidationTrigger } from './validate-binding-behavior';
 import { IValidationController, ValidationControllerFactory } from './validation-controller';
 import { ValidationHtmlCustomizationOptions } from './validation-customization-options';
-import { CustomElement } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime-html';
 
 export type ValidationConfigurationProvider = (options: ValidationHtmlCustomizationOptions) => void;
 

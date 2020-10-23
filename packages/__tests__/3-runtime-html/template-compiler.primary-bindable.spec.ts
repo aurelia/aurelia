@@ -2,6 +2,11 @@ import {
   Constructable,
 } from '@aurelia/kernel';
 import {
+  assert,
+  HTMLTestContext,
+  TestContext
+} from '@aurelia/testing';
+import {
   bindable,
   bindingBehavior,
   customAttribute,
@@ -10,14 +15,10 @@ import {
   valueConverter,
   CustomAttribute,
   IDOM,
-  ValueConverter
-} from '@aurelia/runtime';
-import {
-  assert,
-  HTMLTestContext,
-  TestContext
-} from '@aurelia/testing';
-import { Aurelia, HTMLDOM } from '@aurelia/runtime-html';
+  ValueConverter,
+  Aurelia,
+  HTMLDOM,
+} from '@aurelia/runtime-html';
 
 const $ctx = TestContext.createHTMLTestContext();
 

@@ -29,7 +29,7 @@ export class App {
   public rows: Row[];
   public cols: Column[];
 
-  public $controller: IController<Node>;
+  public $controller: IController;
 
   private sortCol?: string;
 

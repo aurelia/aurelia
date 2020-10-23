@@ -1,18 +1,4 @@
-import {
-  Constructable,
-  IContainer,
-  IRegistry,
-  Key
-} from '@aurelia/kernel';
-import {
-  CustomElement,
-  CustomElementType,
-  IViewFactory,
-  CustomElementDefinition,
-  ICompositionContext,
-  getCompositionContext,
-  ISyntheticView,
-} from '@aurelia/runtime';
+import { Constructable, IContainer, IRegistry, Key } from '@aurelia/kernel';
 import { HTMLDOM } from './dom';
 import {
   HydrateElementInstruction,
@@ -21,13 +7,16 @@ import {
   Instruction,
   InstructionType,
 } from './instructions';
+import { ISyntheticView, IViewFactory } from './lifecycle';
+import { CustomElement, CustomElementDefinition, CustomElementType } from './resources/custom-element';
+import { getCompositionContext, ICompositionContext } from './templating/composition-context';
 
 export function createElement<T extends HTMLElement = HTMLElement, C extends Constructable = Constructable>(
   dom: HTMLDOM,
   tagOrType: string | C,
   props?: Record<string, string | Instruction>,
   children?: ArrayLike<unknown>
-): CompositionPlan<T> {
+): CompositionPlan {
   if (typeof tagOrType === 'string') {
     return createElementForTag(dom, tagOrType, props, children);
   } else if (CustomElement.isType(tagOrType)) {
@@ -40,12 +29,12 @@ export function createElement<T extends HTMLElement = HTMLElement, C extends Con
 /**
  * CompositionPlan. Todo: describe goal of this class
  */
-export class CompositionPlan<T extends HTMLElement = HTMLElement> {
+export class CompositionPlan {
   private lazyDefinition?: CustomElementDefinition = void 0;
 
   public constructor(
     private readonly dom: HTMLDOM,
-    private readonly node: T,
+    private readonly node: Node,
     private readonly instructions: Instruction[][],
     private readonly dependencies: Key[]
   ) {}
@@ -63,31 +52,31 @@ export class CompositionPlan<T extends HTMLElement = HTMLElement> {
     return this.lazyDefinition;
   }
 
-  public getContext(parentContainer: IContainer): ICompositionContext<T> {
+  public getContext(parentContainer: IContainer): ICompositionContext {
     return getCompositionContext(this.definition, parentContainer);
   }
 
-  public createView(parentContainer: IContainer): ISyntheticView<T> {
+  public createView(parentContainer: IContainer): ISyntheticView {
     return this.getViewFactory(parentContainer).create();
   }
 
-  public getViewFactory(parentContainer: IContainer): IViewFactory<T> {
+  public getViewFactory(parentContainer: IContainer): IViewFactory {
     return this.getContext(parentContainer).getViewFactory();
   }
 
   /** @internal */
-  public mergeInto(parent: T, instructions: Instruction[][], dependencies: Key[]): void {
+  public mergeInto(parent: Node & ParentNode, instructions: Instruction[][], dependencies: Key[]): void {
     this.dom.appendChild(parent, this.node);
     instructions.push(...this.instructions);
     dependencies.push(...this.dependencies);
   }
 }
 
-function createElementForTag<T extends HTMLElement>(dom: HTMLDOM, tagName: string, props?: Record<string, string | Instruction>, children?: ArrayLike<unknown>): CompositionPlan<T> {
+function createElementForTag(dom: HTMLDOM, tagName: string, props?: Record<string, string | Instruction>, children?: ArrayLike<unknown>): CompositionPlan {
   const instructions: Instruction[] = [];
   const allInstructions: Instruction[][] = [];
   const dependencies: IRegistry[] = [];
-  const element = dom.createElement(tagName) as T;
+  const element = dom.createElement(tagName);
   let hasInstructions = false;
 
   if (props) {
@@ -116,12 +105,12 @@ function createElementForTag<T extends HTMLElement>(dom: HTMLDOM, tagName: strin
   return new CompositionPlan(dom, element, allInstructions, dependencies);
 }
 
-function createElementForType<T extends HTMLElement>(
+function createElementForType(
   dom: HTMLDOM,
   Type: CustomElementType,
   props?: Record<string, unknown>,
   children?: ArrayLike<unknown>,
-): CompositionPlan<T> {
+): CompositionPlan {
   const definition = CustomElement.getDefinition(Type);
   const tagName = definition.name;
   const instructions: Instruction[] = [];
@@ -129,7 +118,7 @@ function createElementForType<T extends HTMLElement>(
   const dependencies: Key[] = [];
   const childInstructions: Instruction[] = [];
   const bindables = definition.bindables;
-  const element = dom.createElement(tagName) as T;
+  const element = dom.createElement(tagName);
 
   dom.makeTarget(element);
 
@@ -166,7 +155,7 @@ function createElementForType<T extends HTMLElement>(
     addChildren(dom, element, children, allInstructions, dependencies);
   }
 
-  return new CompositionPlan<T>(dom, element, allInstructions, dependencies);
+  return new CompositionPlan(dom, element, allInstructions, dependencies);
 }
 
 function addChildren<T extends HTMLElement>(
@@ -187,7 +176,7 @@ function addChildren<T extends HTMLElement>(
         if (dom.isNodeInstance(current)) {
           dom.appendChild(parent, current);
         } else if ('mergeInto' in (current as CompositionPlan)) {
-          (current as CompositionPlan<T>).mergeInto(parent, allInstructions, dependencies);
+          (current as CompositionPlan).mergeInto(parent, allInstructions, dependencies);
         }
     }
   }

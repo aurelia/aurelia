@@ -1,7 +1,7 @@
 import {
   CustomElement,
   IDOM,
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 import {
   assert,
   createFixture,

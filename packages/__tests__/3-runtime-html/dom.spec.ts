@@ -1,5 +1,4 @@
-import { INode } from '@aurelia/runtime';
-import { FragmentNodeSequence } from '@aurelia/runtime-html';
+import { INode, FragmentNodeSequence } from '@aurelia/runtime-html';
 import { HTMLTestContext, TestContext, assert, createSpy } from '@aurelia/testing';
 
 function verifyThrows(call: () => void): void {

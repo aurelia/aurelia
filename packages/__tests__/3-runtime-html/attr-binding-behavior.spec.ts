@@ -1,6 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { PropertyBinding } from '@aurelia/runtime';
-import { AttrBindingBehavior, DataAttributeAccessor } from '@aurelia/runtime-html';
+import { PropertyBinding, AttrBindingBehavior, DataAttributeAccessor } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 
 describe('AttrBindingBehavior', function () {

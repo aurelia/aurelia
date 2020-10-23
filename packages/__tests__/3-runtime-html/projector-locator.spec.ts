@@ -1,7 +1,5 @@
-import { CustomElement, Controller, ILifecycle } from '@aurelia/runtime';
-import { ContainerlessProjector, HostProjector, HTMLProjectorLocator, ShadowDOMProjector } from '@aurelia/runtime-html';
+import { CustomElement, Controller, ILifecycle, ContainerlessProjector, HostProjector, HTMLProjectorLocator, ShadowDOMProjector } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
-import { Constructable } from '@aurelia/kernel';
 
 describe.skip(`determineProjector`, function () {
   const ctx = TestContext.createHTMLTestContext();
@@ -11,7 +9,7 @@ describe.skip(`determineProjector`, function () {
   it(`@useShadowDOM yields ShadowDOMProjector`, function () {
     const host = ctx.createElement('div');
 
-    const Foo = CustomElement.define<HTMLElement, Constructable>(
+    const Foo = CustomElement.define(
       {
         name: 'foo',
         shadowOptions: { mode: 'open' }
@@ -36,7 +34,7 @@ describe.skip(`determineProjector`, function () {
 
   it(`hasSlots=true yields ShadowDOMProjector`, function () {
     const host = ctx.createElement('div');
-    const Foo = CustomElement.define<HTMLElement, Constructable>(
+    const Foo = CustomElement.define(
       {
         name: 'foo',
         hasSlots: true
@@ -63,7 +61,7 @@ describe.skip(`determineProjector`, function () {
     const host = ctx.createElement('div');
     const parent = ctx.createElement('div');
     parent.appendChild(host);
-    const Foo = CustomElement.define<HTMLElement, Constructable>(
+    const Foo = CustomElement.define(
       {
         name: 'foo',
         containerless: true
@@ -97,7 +95,7 @@ describe.skip(`determineProjector`, function () {
     const child = ctx.createElement('div');
     parent.appendChild(host);
     host.appendChild(child);
-    const Foo = CustomElement.define<HTMLElement, Constructable>(
+    const Foo = CustomElement.define(
       {
         name: 'foo',
         containerless: true
@@ -123,7 +121,7 @@ describe.skip(`determineProjector`, function () {
 
   it(`no shadowDOM, slots or containerless yields HostProjector`, function () {
     const host = ctx.createElement('div');
-    const Foo = CustomElement.define<HTMLElement, Constructable>(
+    const Foo = CustomElement.define(
       {
         name: 'foo'
       },
@@ -142,7 +140,7 @@ describe.skip(`determineProjector`, function () {
 
   it(`@containerless + @useShadowDOM throws`, function () {
     const host = ctx.createElement('div');
-    const Foo = CustomElement.define<HTMLElement, Constructable>(
+    const Foo = CustomElement.define(
       {
         name: 'foo',
         containerless: true,
@@ -159,7 +157,7 @@ describe.skip(`determineProjector`, function () {
 
   it(`@containerless + hasSlots throws`, function () {
     const host = ctx.createElement('div');
-    const Foo = CustomElement.define<HTMLElement, Constructable>(
+    const Foo = CustomElement.define(
       {
         name: 'foo',
         containerless: true,

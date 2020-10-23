@@ -35,8 +35,6 @@ import {
   AuSlotContentType,
   Scope,
   parseExpression,
-} from '@aurelia/runtime';
-import {
   Aurelia,
   HydrateElementInstruction,
   HydrateTemplateController,

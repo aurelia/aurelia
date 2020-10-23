@@ -14,7 +14,7 @@ import {
   LifecycleFlags as LF,
   OverrideContext,
   IScheduler,
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 // import {
 //   Instruction,
 //   NodeSequenceFactory,

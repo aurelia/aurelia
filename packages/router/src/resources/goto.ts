@@ -1,10 +1,10 @@
-import { customAttribute, INode, bindable, BindingMode, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime';
+import { customAttribute, INode, bindable, BindingMode, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
 import { IRouter } from '../router';
 import { NavigationInstructionResolver } from '../type-resolvers';
 import { deprecationWarning } from '../utils';
 
 @customAttribute('goto')
-export class GotoCustomAttribute implements ICustomAttributeViewModel<Element> {
+export class GotoCustomAttribute implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 
@@ -13,7 +13,7 @@ export class GotoCustomAttribute implements ICustomAttributeViewModel<Element> {
   private readonly element: Element;
   private observer: any;
 
-  public readonly $controller!: ICustomAttributeController<Element, this>;
+  public readonly $controller!: ICustomAttributeController<this>;
 
   private readonly activeClass: string = 'goto-active';
   public constructor(

@@ -1,6 +1,5 @@
 import { DI, IIndexable } from '@aurelia/kernel';
-import { LifecycleFlags } from '../flags';
-import { IBindingTargetObserver, IObservable, ISubscriber, AccessorType } from '../observation';
+import { IBindingTargetObserver, IObservable, ISubscriber, AccessorType, LifecycleFlags } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { IScheduler, ITask } from '@aurelia/scheduler';
 

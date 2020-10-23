@@ -1,4 +1,4 @@
-import { observable, SetterObserver, IObservable, ValueConverter } from '@aurelia/runtime';
+import { observable, SetterObserver, IObservable, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 import { noop } from '@aurelia/kernel';
 

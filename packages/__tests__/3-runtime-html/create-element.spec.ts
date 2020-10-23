@@ -2,13 +2,11 @@ import {
   CustomElement,
   CustomElementType,
   INode,
-} from '@aurelia/runtime';
-import {
   createElement as sut,
   InstructionType,
   HydrateElementInstruction,
   CompositionPlan,
-  Instruction
+  Instruction,
 } from '@aurelia/runtime-html';
 import {
   _,

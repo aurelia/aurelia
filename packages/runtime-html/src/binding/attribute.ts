@@ -1,6 +1,4 @@
-import {
-  IServiceLocator,
-} from '@aurelia/kernel';
+import { IServiceLocator } from '@aurelia/kernel';
 import {
   AccessorOrObserver,
   INodeAccessor,
@@ -15,19 +13,16 @@ import {
   IsBindingBehavior,
   LifecycleFlags,
   IScheduler,
-  INode,
-  CustomElementDefinition,
   ITask,
   AccessorType,
   QueueTaskOptions,
 } from '@aurelia/runtime';
-import {
-  AttributeObserver,
-  IHtmlElement,
-} from '../observation/element-attribute-observer';
+import { AttributeObserver, IHtmlElement } from '../observation/element-attribute-observer';
 
 import type { Scope } from '@aurelia/runtime';
 import { IPlatform } from '../platform';
+import { CustomElementDefinition } from '../resources/custom-element';
+import { INode } from '../dom';
 
 // BindingMode is not a const enum (and therefore not inlined), so assigning them to a variable to save a member accessor is a minor perf tweak
 const { oneTime, toView, fromView } = BindingMode;

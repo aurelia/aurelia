@@ -1,4 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
+import { TranslationBinding } from './translation-binding';
 import {
   BindingMode,
   BindingType,
@@ -9,9 +10,6 @@ import {
   IObserverLocator,
   IsBindingBehavior,
   LifecycleFlags,
-} from '@aurelia/runtime';
-import { TranslationBinding } from './translation-binding';
-import {
   attributePattern,
   AttrSyntax,
   bindingCommand,

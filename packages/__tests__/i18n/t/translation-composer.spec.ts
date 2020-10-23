@@ -23,9 +23,7 @@ import {
   IObserverLocator,
   IComposableController,
   LifecycleFlags,
-  RuntimeConfiguration,
-} from '@aurelia/runtime';
-import {
+  RuntimeHtmlConfiguration,
   AttributePattern,
   AttributePatternDefinition,
   AttrSyntax,
@@ -126,7 +124,7 @@ describe('TranslationBindingComposer', function () {
 
   function createFixture() {
     const container = DI.createContainer();
-    container.register(RuntimeConfiguration, I18nConfiguration);
+    container.register(RuntimeHtmlConfiguration, I18nConfiguration);
     return container;
   }
 
@@ -271,7 +269,7 @@ describe('TranslationBindBindingComposer', function () {
 
   function createFixture() {
     const container = DI.createContainer();
-    container.register(RuntimeConfiguration, I18nConfiguration);
+    container.register(RuntimeHtmlConfiguration, I18nConfiguration);
     return container;
   }
 

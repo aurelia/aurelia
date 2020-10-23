@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { INode } from '@aurelia/runtime';
+import { INode } from '../dom';
 
 export interface ISVGAnalyzer {
   isStandardSvgAttribute(node: INode, attributeName: string): boolean;

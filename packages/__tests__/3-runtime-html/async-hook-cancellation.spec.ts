@@ -18,8 +18,8 @@ import {
   bindable,
   Controller,
   LifecycleFlags,
-} from '@aurelia/runtime';
-import { Aurelia } from '@aurelia/runtime-html';
+  Aurelia,
+} from '@aurelia/runtime-html';
 
 import {
   TestContext,

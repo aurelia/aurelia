@@ -1,14 +1,8 @@
 import { emptyArray } from '@aurelia/kernel';
-import {
-  bindable,
-  customAttribute,
-  IDOM,
-  INode,
-  IScheduler,
-  ICustomAttributeViewModel,
-  ICustomAttributeController
-} from '@aurelia/runtime';
-import { HTMLDOM, NodeType } from '../../dom';
+import { bindable, IScheduler } from '@aurelia/runtime';
+import { HTMLDOM, IDOM, INode, NodeType } from '../../dom';
+import { ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
+import { customAttribute } from '../custom-attribute';
 
 const unset = Symbol();
 
@@ -93,9 +87,9 @@ export interface HasContains {
 }
 
 @customAttribute('blur')
-export class Blur implements ICustomAttributeViewModel<HTMLElement> {
+export class Blur implements ICustomAttributeViewModel {
 
-  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
+  public readonly $controller!: ICustomAttributeController<this>;
 
   @bindable()
   public value: boolean | typeof unset;

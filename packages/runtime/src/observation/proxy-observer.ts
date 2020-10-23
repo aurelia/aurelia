@@ -1,11 +1,11 @@
 import { emptyArray } from '@aurelia/kernel';
-import { LifecycleFlags } from '../flags';
 import {
   IPropertyObserver,
   IProxy,
   IProxyObserver,
   IProxySubscriber,
   ISubscriber,
+  LifecycleFlags,
   PropertyObserver
 } from '../observation';
 import { proxySubscriberCollection, subscriberCollection } from './subscriber-collection';

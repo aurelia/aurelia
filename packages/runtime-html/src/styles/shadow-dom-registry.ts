@@ -1,7 +1,6 @@
 import { IContainer, IRegistry, Registration, DI, IResolver } from '@aurelia/kernel';
 import { IShadowDOMStyles, IShadowDOMGlobalStyles, AdoptedStyleSheetsStyles, StyleElementStyles } from './shadow-dom-styles';
-import { HTMLDOM } from '../dom';
-import { IDOM } from '@aurelia/runtime';
+import { HTMLDOM, IDOM } from '../dom';
 
 export function shadowCSS(...css: (string | CSSStyleSheet)[]) {
   return new ShadowDOMRegistry(css);

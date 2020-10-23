@@ -8,9 +8,7 @@ import {
   SetterObserver,
   MapObserver,
   CustomSetterObserver,
-  IDirtyChecker
-} from '@aurelia/runtime';
-import {
+  IDirtyChecker,
   Aurelia,
 } from '@aurelia/runtime-html';
 import {

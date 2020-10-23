@@ -10,14 +10,12 @@ import {
   ResourceModel,
   SymbolFlags,
   TemplateControllerSymbol,
-} from '@aurelia/runtime-html';
-import {
   AuSlot,
   CustomElement,
   CustomElementType,
   IDOM,
   IExpressionParser,
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('template-binder.au-slot', function () {

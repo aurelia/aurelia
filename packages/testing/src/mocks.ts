@@ -14,9 +14,9 @@ import {
   ISignaler,
   ISubscribable,
   LifecycleFlags,
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 
-import type { Scope } from '@aurelia/runtime';
+import type { Scope } from '@aurelia/runtime-html';
 
 export class MockBinding implements IConnectableBinding {
   public interceptor: this = this;

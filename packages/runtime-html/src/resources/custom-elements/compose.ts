@@ -1,33 +1,15 @@
-import {
-  Constructable,
-  nextId,
-  emptyArray,
-  onResolve,
-} from '@aurelia/kernel';
-import {
-  BindingMode,
-  IDOM,
-  IInstruction,
-  IViewFactory,
-  LifecycleFlags,
-  CustomElementDefinition,
-  bindable,
-  customElement,
-  MountStrategy,
-  getCompositionContext,
-  ICustomElementController,
-  ISyntheticView,
-  ICustomElementViewModel,
-  IHydratedController,
-  IHydratedParentController,
-  ControllerVisitor,
-} from '@aurelia/runtime';
+import { Constructable, nextId, emptyArray, onResolve } from '@aurelia/kernel';
+import { BindingMode, LifecycleFlags, bindable } from '@aurelia/runtime';
 import { createElement, CompositionPlan } from '../../create-element';
-import { HTMLDOM } from '../../dom';
+import { IInstruction } from '../../definitions';
+import { HTMLDOM, IDOM } from '../../dom';
 import { HydrateElementInstruction, Instruction } from '../../instructions';
+import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView, IViewFactory, MountStrategy } from '../../lifecycle';
+import { getCompositionContext } from '../../templating/composition-context';
+import { customElement, CustomElementDefinition } from '../custom-element';
 
-export type Subject<T extends HTMLElement = HTMLElement> = IViewFactory<T> | ISyntheticView<T> | CompositionPlan<T> | Constructable | CustomElementDefinition;
-export type MaybeSubjectPromise<T extends HTMLElement> = Subject<T> | Promise<Subject<T>> | undefined;
+export type Subject = IViewFactory | ISyntheticView | CompositionPlan | Constructable | CustomElementDefinition;
+export type MaybeSubjectPromise = Subject | Promise<Subject> | undefined;
 
 function toLookup(
   acc: Record<string, Instruction>,
@@ -42,19 +24,19 @@ function toLookup(
 }
 
 @customElement({ name: 'au-compose', template: null, containerless: true })
-export class Compose<T extends HTMLElement = HTMLElement> implements ICustomElementViewModel<T> {
+export class Compose implements ICustomElementViewModel {
   public readonly id: number = nextId('au$component');
 
-  @bindable public subject?: MaybeSubjectPromise<T> = void 0;
+  @bindable public subject?: MaybeSubjectPromise = void 0;
   @bindable({ mode: BindingMode.fromView }) public composing: boolean = false;
 
-  public view?: ISyntheticView<T> = void 0;
+  public view?: ISyntheticView = void 0;
 
   private readonly properties: Record<string, Instruction>;
 
-  private lastSubject?: MaybeSubjectPromise<T> = void 0;
+  private lastSubject?: MaybeSubjectPromise = void 0;
 
-  public readonly $controller!: ICustomElementController<T, this>; // This is set by the controller after this instance is constructed
+  public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
 
   public constructor(
     @IDOM private readonly dom: HTMLDOM,
@@ -64,8 +46,8 @@ export class Compose<T extends HTMLElement = HTMLElement> implements ICustomElem
   }
 
   public afterAttach(
-    initiator: IHydratedController<T>,
-    parent: IHydratedParentController<T> | null,
+    initiator: IHydratedController,
+    parent: IHydratedParentController | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     const { subject, view } = this;
@@ -80,16 +62,16 @@ export class Compose<T extends HTMLElement = HTMLElement> implements ICustomElem
   }
 
   public afterUnbind(
-    initiator: IHydratedController<T>,
-    parent: IHydratedParentController<T> | null,
+    initiator: IHydratedController,
+    parent: IHydratedParentController | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     return this.deactivate(this.view, initiator, flags);
   }
 
   public subjectChanged(
-    newValue: Subject<T> | Promise<Subject<T>>,
-    previousValue: Subject<T> | Promise<Subject<T>>,
+    newValue: Subject | Promise<Subject>,
+    previousValue: Subject | Promise<Subject>,
     flags: LifecycleFlags,
   ): void {
     const { $controller } = this;
@@ -115,9 +97,9 @@ export class Compose<T extends HTMLElement = HTMLElement> implements ICustomElem
   }
 
   private compose(
-    view: ISyntheticView<T> | undefined | Promise<ISyntheticView<T> | undefined>,
-    subject: MaybeSubjectPromise<T>,
-    initiator: IHydratedController<T> | null,
+    view: ISyntheticView | undefined | Promise<ISyntheticView | undefined>,
+    subject: MaybeSubjectPromise,
+    initiator: IHydratedController | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     return onResolve(
@@ -133,16 +115,16 @@ export class Compose<T extends HTMLElement = HTMLElement> implements ICustomElem
   }
 
   private deactivate(
-    view: ISyntheticView<T> | undefined,
-    initiator: IHydratedController<T> | null,
+    view: ISyntheticView | undefined,
+    initiator: IHydratedController | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     return view?.deactivate(initiator ?? view, this.$controller, flags);
   }
 
   private activate(
-    view: ISyntheticView<T> | undefined,
-    initiator: IHydratedController<T> | null,
+    view: ISyntheticView | undefined,
+    initiator: IHydratedController | null,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     const { $controller } = this;
@@ -154,7 +136,7 @@ export class Compose<T extends HTMLElement = HTMLElement> implements ICustomElem
     );
   }
 
-  private resolveView(subject: Subject<T> | undefined, flags: LifecycleFlags): ISyntheticView<T> | undefined {
+  private resolveView(subject: Subject | undefined, flags: LifecycleFlags): ISyntheticView | undefined {
     const view = this.provideViewFor(subject, flags);
 
     if (view) {
@@ -166,7 +148,7 @@ export class Compose<T extends HTMLElement = HTMLElement> implements ICustomElem
     return void 0;
   }
 
-  private provideViewFor(subject: Subject<T> | undefined, flags: LifecycleFlags): ISyntheticView<T> | undefined {
+  private provideViewFor(subject: Subject | undefined, flags: LifecycleFlags): ISyntheticView | undefined {
     if (!subject) {
       return void 0;
     }
@@ -185,11 +167,11 @@ export class Compose<T extends HTMLElement = HTMLElement> implements ICustomElem
 
     if ('template' in subject) { // Raw Template Definition
       const definition = CustomElementDefinition.getOrCreate(subject);
-      return getCompositionContext<T>(definition, this.$controller.context!).getViewFactory().create(flags);
+      return getCompositionContext(definition, this.$controller.context!).getViewFactory().create(flags);
     }
 
     // Constructable (Custom Element Constructor)
-    return createElement<T>(
+    return createElement(
       this.dom,
       subject,
       this.properties,
@@ -200,8 +182,8 @@ export class Compose<T extends HTMLElement = HTMLElement> implements ICustomElem
   }
 
   public onCancel(
-    initiator: IHydratedController<T>,
-    parent: IHydratedParentController<T>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void {
     this.view?.cancel(initiator, this.$controller, flags);
@@ -212,13 +194,13 @@ export class Compose<T extends HTMLElement = HTMLElement> implements ICustomElem
     this.view = (void 0)!;
   }
 
-  public accept(visitor: ControllerVisitor<T>): void | true {
+  public accept(visitor: ControllerVisitor): void | true {
     if (this.view?.accept(visitor) === true) {
       return true;
     }
   }
 }
 
-function isController<T extends HTMLElement = HTMLElement>(subject: Subject<T>): subject is ISyntheticView<T> {
+function isController(subject: Subject): subject is ISyntheticView {
   return 'lockScope' in subject;
 }

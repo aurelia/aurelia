@@ -1,6 +1,7 @@
-import { AnyBindingExpression, IDOM, Interpolation } from '@aurelia/runtime';
+import { AnyBindingExpression, Interpolation } from '@aurelia/runtime';
 import { AttrSyntax } from './attribute-parser';
 import { BindingCommandInstance } from './binding-command';
+import { IDOM } from './dom';
 import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';
 
 export const enum SymbolFlags {

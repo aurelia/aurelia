@@ -1,6 +1,5 @@
 import { DI, Writable } from '@aurelia/kernel';
-import { IDOM } from '@aurelia/runtime';
-import { HTMLDOM } from '@aurelia/runtime-html';
+import { IDOM, HTMLDOM } from '@aurelia/runtime-html';
 
 export type HookName = (
   'beforeBind' |

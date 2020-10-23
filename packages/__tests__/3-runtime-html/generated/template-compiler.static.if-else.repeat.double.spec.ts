@@ -1,5 +1,4 @@
-import { CustomElement } from "@aurelia/runtime";
-import { Aurelia } from "@aurelia/runtime-html";
+import { Aurelia, CustomElement } from "@aurelia/runtime-html";
 import { TestContext, assert } from "@aurelia/testing";
 
 describe("generated.template-compiler.static.if-else.repeat.double", function () {

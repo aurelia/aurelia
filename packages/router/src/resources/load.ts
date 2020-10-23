@@ -1,9 +1,9 @@
-import { customAttribute, INode, bindable, BindingMode, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime';
+import { customAttribute, INode, bindable, BindingMode, IObserverLocator, LifecycleFlags, CustomAttribute, ICustomAttributeController, ICustomAttributeViewModel } from '@aurelia/runtime-html';
 import { IRouter } from '../router';
 import { NavigationInstructionResolver } from '../type-resolvers';
 
 @customAttribute('load')
-export class LoadCustomAttribute implements ICustomAttributeViewModel<Element> {
+export class LoadCustomAttribute implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView })
   public value: unknown;
 
@@ -12,7 +12,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel<Element> {
   private readonly element: Element;
   private observer: any;
 
-  public readonly $controller!: ICustomAttributeController<Element, this>;
+  public readonly $controller!: ICustomAttributeController<this>;
 
   private readonly activeClass: string = 'load-active';
   public constructor(

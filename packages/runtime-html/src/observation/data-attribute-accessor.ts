@@ -3,9 +3,9 @@ import {
   LifecycleFlags,
   IScheduler,
   ITask,
-  INode,
   AccessorType,
 } from '@aurelia/runtime';
+import { INode } from '../dom';
 
 /**
  * Attribute accessor for HTML elements.

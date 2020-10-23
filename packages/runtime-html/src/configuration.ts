@@ -1,5 +1,13 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
-import { RuntimeConfiguration } from '@aurelia/runtime';
+import {
+  DebounceBindingBehaviorRegistration,
+  OneTimeBindingBehaviorRegistration,
+  ToViewBindingBehaviorRegistration,
+  FromViewBindingBehaviorRegistration,
+  SignalBindingBehaviorRegistration,
+  ThrottleBindingBehaviorRegistration,
+  TwoWayBindingBehaviorRegistration,
+} from '@aurelia/runtime';
 import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
@@ -51,7 +59,15 @@ import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/upda
 import { Blur } from './resources/custom-attributes/blur';
 import { Focus } from './resources/custom-attributes/focus';
 import { Portal } from './resources/custom-attributes/portal';
+import { FrequentMutations, InfrequentMutations, ObserveShallow } from './resources/custom-attributes/flags';
+import { Else, If } from './resources/custom-attributes/if';
+import { Repeat } from './resources/custom-attributes/repeat';
+import { With } from './resources/custom-attributes/with';
+import { Switch, Case, DefaultCase } from './resources/custom-attributes/switch';
 import { Compose } from './resources/custom-elements/compose';
+import { AuSlot } from './resources/custom-elements/au-slot';
+import { SanitizeValueConverter } from './resources/value-converters/sanitize';
+import { ViewValueConverter } from './resources/value-converters/view';
 
 export const IComposerRegistration = Composer as IRegistry;
 export const ITemplateCompilerRegistration = TemplateCompiler as IRegistry;
@@ -140,6 +156,18 @@ export const DefaultBindingLanguage = [
   AttrBindingCommandRegistration,
 ];
 
+export const SanitizeValueConverterRegistration = SanitizeValueConverter as unknown as IRegistry;
+export const ViewValueConverterRegistration = ViewValueConverter as unknown as IRegistry;
+export const FrequentMutationsRegistration = FrequentMutations as unknown as IRegistry;
+export const InfrequentMutationsRegistration = InfrequentMutations as unknown as IRegistry;
+export const ObserveShallowRegistration = ObserveShallow as unknown as IRegistry;
+export const IfRegistration = If as unknown as IRegistry;
+export const ElseRegistration = Else as unknown as IRegistry;
+export const RepeatRegistration = Repeat as unknown as IRegistry;
+export const WithRegistration = With as unknown as IRegistry;
+export const SwitchRegistration = Switch as unknown as IRegistry;
+export const CaseRegistration = Case as unknown as IRegistry;
+export const DefaultCaseRegistration = DefaultCase as unknown as IRegistry;
 export const AttrBindingBehaviorRegistration = AttrBindingBehavior as unknown as IRegistry;
 export const SelfBindingBehaviorRegistration = SelfBindingBehavior as unknown as IRegistry;
 export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior as unknown as IRegistry;
@@ -150,18 +178,40 @@ export const BlurRegistration = Blur as unknown as IRegistry;
 
 /**
  * Default HTML-specific (but environment-agnostic) resources:
- * - Binding Behaviors: `attr`, `self`, `updateTrigger`
- * - Custom Elements: `au-compose`
+ * - Binding Behaviors: `oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`, `attr`, `self`, `updateTrigger`
+ * - Custom Elements: `au-compose`, `au-slot`
  * - Custom Attributes: `blur`, `focus`, `portal`
+ * - Template controllers: `if`/`else`, `repeat`, `with`
+ * - Value Converters: `sanitize`
  */
 export const DefaultResources = [
+  DebounceBindingBehaviorRegistration,
+  OneTimeBindingBehaviorRegistration,
+  ToViewBindingBehaviorRegistration,
+  FromViewBindingBehaviorRegistration,
+  SignalBindingBehaviorRegistration,
+  ThrottleBindingBehaviorRegistration,
+  TwoWayBindingBehaviorRegistration,
+  SanitizeValueConverterRegistration,
+  ViewValueConverterRegistration,
+  FrequentMutationsRegistration,
+  InfrequentMutationsRegistration,
+  ObserveShallowRegistration,
+  IfRegistration,
+  ElseRegistration,
+  RepeatRegistration,
+  WithRegistration,
+  SwitchRegistration,
+  CaseRegistration,
+  DefaultCaseRegistration,
   AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,
   ComposeRegistration,
   PortalRegistration,
   FocusRegistration,
-  BlurRegistration
+  BlurRegistration,
+  AuSlot,
 ];
 
 export const CallBindingComposerRegistration = CallBindingComposer as unknown as IRegistry;
@@ -231,15 +281,13 @@ export const RuntimeHtmlConfiguration = {
    * Apply this configuration to the provided container.
    */
   register(container: IContainer): IContainer {
-    return RuntimeConfiguration
-      .register(container)
-      .register(
-        ...DefaultComponents,
-        ...DefaultResources,
-        ...DefaultBindingSyntax,
-        ...DefaultBindingLanguage,
-        ...DefaultComposers,
-      );
+    return container.register(
+      ...DefaultComponents,
+      ...DefaultResources,
+      ...DefaultBindingSyntax,
+      ...DefaultBindingLanguage,
+      ...DefaultComposers,
+    );
   },
   /**
    * Create a new container with this configuration applied to it.

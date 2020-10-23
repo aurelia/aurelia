@@ -5,15 +5,15 @@ import {
   emptyArray,
   isArrayIndex
 } from '@aurelia/kernel';
-import { LifecycleFlags } from '../flags';
-import { ILifecycle } from '../lifecycle';
 import {
   IBindingContext,
   IBindingTargetObserver,
   ICollectionSubscribable,
+  ILifecycle,
   IObservable,
   ISubscribable,
-  ISubscriber
+  ISubscriber,
+  LifecycleFlags
 } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
 import { IObserverLocator } from './observer-locator';

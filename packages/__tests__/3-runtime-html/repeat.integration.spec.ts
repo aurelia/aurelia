@@ -1,6 +1,5 @@
 /* eslint-disable quotes, @typescript-eslint/explicit-member-accessibility */
-import { CustomElement } from "@aurelia/runtime";
-import { Aurelia } from '@aurelia/runtime-html';
+import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { TestContext, assert } from "@aurelia/testing";
 
 describe("generated.template-compiler.repeat", function () {

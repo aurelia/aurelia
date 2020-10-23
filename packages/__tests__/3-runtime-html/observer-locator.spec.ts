@@ -8,9 +8,7 @@ import {
   SetterObserver,
   CollectionSizeObserver,
   computed,
-  GetterObserver
-} from '@aurelia/runtime';
-import {
+  GetterObserver,
   AttributeNSAccessor,
   CheckedObserver,
   ClassAttributeAccessor,
@@ -19,7 +17,7 @@ import {
   SelectValueObserver,
   StyleAttributeAccessor,
   ValueAttributeObserver,
-  DOM
+  DOM,
 } from '@aurelia/runtime-html';
 import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 

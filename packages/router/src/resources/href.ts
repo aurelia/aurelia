@@ -1,4 +1,4 @@
-import { customAttribute, INode, bindable, BindingMode, ViewModelKind, ICustomAttributeViewModel, ICustomAttributeController } from '@aurelia/runtime';
+import { customAttribute, INode, bindable, BindingMode, ViewModelKind, ICustomAttributeViewModel, ICustomAttributeController } from '@aurelia/runtime-html';
 import { IRouter } from '../router';
 import { GotoCustomAttribute } from '../configuration';
 
@@ -6,12 +6,12 @@ import { GotoCustomAttribute } from '../configuration';
   name: 'href',
   noMultiBindings: true
 })
-export class HrefCustomAttribute implements ICustomAttributeViewModel<Element> {
+export class HrefCustomAttribute implements ICustomAttributeViewModel {
   @bindable({ mode: BindingMode.toView })
   public value: string | undefined;
 
   private readonly element: Element;
-  public readonly $controller!: ICustomAttributeController<Element, this>;
+  public readonly $controller!: ICustomAttributeController<this>;
 
   public constructor(
     @INode element: INode,

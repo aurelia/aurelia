@@ -28,8 +28,6 @@ import {
   Repeat,
   Switch,
   valueConverter,
-} from '@aurelia/runtime';
-import {
   Aurelia,
 } from '@aurelia/runtime-html';
 import {

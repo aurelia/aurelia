@@ -2,8 +2,6 @@ import {
   BindingMode,
   ITemplateCompiler,
   IInstruction,
-} from '@aurelia/runtime';
-import {
   InstructionType as TT,
 } from '@aurelia/runtime-html';
 import {

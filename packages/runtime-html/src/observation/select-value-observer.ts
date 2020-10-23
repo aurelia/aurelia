@@ -2,7 +2,6 @@ import {
   CollectionKind,
   IAccessor,
   ICollectionObserver,
-  IDOM,
   IndexMap,
   IObserverLocator,
   ISubscriber,

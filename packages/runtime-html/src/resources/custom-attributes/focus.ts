@@ -1,21 +1,15 @@
-import {
-  bindable,
-  BindingMode,
-  customAttribute,
-  IDOM,
-  INode,
-  ICustomAttributeController,
-  ICustomAttributeViewModel
-} from '@aurelia/runtime';
-import { HTMLDOM } from '../../dom';
+import { bindable, BindingMode } from '@aurelia/runtime';
+import { HTMLDOM, IDOM, INode } from '../../dom';
+import { ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
+import { customAttribute } from '../custom-attribute';
 
 /**
  * Focus attribute for element focus binding
  */
 @customAttribute('focus')
-export class Focus implements ICustomAttributeViewModel<HTMLElement> {
+export class Focus implements ICustomAttributeViewModel {
 
-  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
+  public readonly $controller!: ICustomAttributeController<this>;
 
   @bindable({ mode: BindingMode.twoWay })
   public value: unknown;

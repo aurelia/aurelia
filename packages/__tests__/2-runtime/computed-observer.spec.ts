@@ -1,4 +1,4 @@
-import { IIndexable, Registration } from '@aurelia/kernel';
+import { DI, IIndexable, Registration } from '@aurelia/kernel';
 import {
   DirtyCheckProperty,
   IDirtyChecker,
@@ -7,7 +7,6 @@ import {
   ITargetAccessorLocator,
   ITargetObserverLocator,
   LifecycleFlags as LF,
-  RuntimeConfiguration,
   ComputedOverrides,
   createComputedObserver,
   IScheduler
@@ -21,7 +20,7 @@ declare let document;
 
 describe.skip('ComputedObserver', function () {
   function createFixture() {
-    const container = RuntimeConfiguration.createContainer();
+    const container = DI.createContainer(); // Note: used to be RuntimeConfiguration.createContainer, needs deps
     const innerLocator = {
       handles() { return false; }
     };

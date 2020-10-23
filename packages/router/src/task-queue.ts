@@ -1,4 +1,4 @@
-import { IScheduler, ITask } from '@aurelia/runtime';
+import { IScheduler, ITask } from '@aurelia/runtime-html';
 import { bound } from '@aurelia/kernel';
 
 /**

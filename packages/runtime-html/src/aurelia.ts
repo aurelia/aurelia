@@ -7,10 +7,10 @@ import {
   onResolve,
 } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
-import { AppRoot, IAppRoot, IDOM, ISinglePageApp } from '@aurelia/runtime';
 import { IScheduler } from '@aurelia/scheduler';
 import { createDOMScheduler } from '@aurelia/scheduler-dom';
-import { HTMLDOM } from './dom';
+import { AppRoot, IAppRoot, ISinglePageApp } from './app-root';
+import { HTMLDOM, IDOM } from './dom';
 import { IPlatform } from './platform';
 
 type Publisher = { dispatchEvent(evt: unknown, options?: unknown): void };
@@ -26,8 +26,8 @@ export class Aurelia implements IDisposable {
   private _isStopping: boolean = false;
   public get isStopping(): boolean { return this._isStopping; }
 
-  private _root: IAppRoot<HTMLElement> | undefined = void 0;
-  public get root(): IAppRoot<HTMLElement> {
+  private _root: IAppRoot | undefined = void 0;
+  public get root(): IAppRoot {
     if (this._root == void 0) {
       if (this.next == void 0) {
         throw new Error(`root is not defined`); // TODO: create error code
@@ -37,9 +37,9 @@ export class Aurelia implements IDisposable {
     return this._root;
   }
 
-  private next: IAppRoot<HTMLElement> | undefined = void 0;
+  private next: IAppRoot | undefined = void 0;
 
-  private readonly rootProvider: InstanceProvider<IAppRoot<HTMLElement>>;
+  private readonly rootProvider: InstanceProvider<IAppRoot>;
 
   public constructor(
     public readonly container: IContainer = DI.createContainer(),
@@ -57,17 +57,17 @@ export class Aurelia implements IDisposable {
     return this;
   }
 
-  public app(config: ISinglePageApp<HTMLElement>): Omit<this, 'register' | 'app' | 'enhance'> {
-    this.next = new AppRoot<HTMLElement>(config, this.initializeDOM(config.host), this.container, this.rootProvider, false);
+  public app(config: ISinglePageApp): Omit<this, 'register' | 'app' | 'enhance'> {
+    this.next = new AppRoot(config, this.initializeDOM(config.host), this.container, this.rootProvider, false);
     return this;
   }
 
-  public enhance(config: ISinglePageApp<HTMLElement>): Omit<this, 'register' | 'app' | 'enhance'> {
-    this.next = new AppRoot<HTMLElement>(config, this.initializeDOM(config.host), this.container, this.rootProvider, true);
+  public enhance(config: ISinglePageApp): Omit<this, 'register' | 'app' | 'enhance'> {
+    this.next = new AppRoot(config, this.initializeDOM(config.host), this.container, this.rootProvider, true);
     return this;
   }
 
-  private initializeDOM(host: HTMLElement): IDOM<HTMLElement> {
+  private initializeDOM(host: HTMLElement): IDOM {
     let dom: HTMLDOM;
     if (this.container.has(IDOM, false)) {
       dom = this.container.get(IDOM) as HTMLDOM;
@@ -87,11 +87,11 @@ export class Aurelia implements IDisposable {
       this.container.register(Registration.instance(IPlatform, platform));
     }
     // cast is temporary hack but we're soon getting rid of IDOM anyway
-    return dom as unknown as IDOM<HTMLElement>;
+    return dom as unknown as IDOM;
   }
 
   private startPromise: Promise<void> | void = void 0;
-  public start(root: IAppRoot<HTMLElement> | undefined = this.next): void | Promise<void> {
+  public start(root: IAppRoot | undefined = this.next): void | Promise<void> {
     if (root == void 0) {
       throw new Error(`There is no composition root`);
     }
@@ -145,7 +145,7 @@ export class Aurelia implements IDisposable {
     this.container.dispose();
   }
 
-  private dispatchEvent(root: IAppRoot, name: string, target: IDOM<HTMLElement> | (HTMLElement & Partial<Publisher>)): void {
+  private dispatchEvent(root: IAppRoot, name: string, target: IDOM | (HTMLElement & Partial<Publisher>)): void {
     const $target = ('dispatchEvent' in target ? target : root.dom) as Publisher;
     $target.dispatchEvent(root.dom.createCustomEvent(name, { detail: this, bubbles: true, cancelable: true }));
   }

@@ -1,7 +1,6 @@
-import { IScheduler } from '@aurelia/runtime';
+import { IScheduler, IWindow, IHistory, ILocation } from '@aurelia/runtime-html';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions, INavigatorViewerState } from './navigator';
 import { QueueTask, TaskQueue } from './task-queue';
-import { IWindow, IHistory, ILocation } from '@aurelia/runtime-html';
 
 /**
  * @internal

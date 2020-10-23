@@ -8,8 +8,8 @@ import {
   CustomElement,
   CustomElementHost,
   INode,
-} from '@aurelia/runtime';
-import { Aurelia } from '@aurelia/runtime-html';
+  Aurelia,
+} from '@aurelia/runtime-html';
 import {
   assert,
   HTMLTestContext,

@@ -1,4 +1,3 @@
-import { DOM } from '@aurelia/runtime-html';
 import { HttpClient } from './http-client';
 import { Interceptor, RetryableRequest, RetryConfiguration } from './interfaces';
 
@@ -89,7 +88,7 @@ export class RetryInterceptor implements Interceptor {
           if (doRetry) {
             retryConfig.counter++;
             const delay = calculateDelay(retryConfig);
-            return new Promise(resolve => DOM.window.setTimeout(resolve, !isNaN(delay) ? delay : 0))
+            return new Promise(resolve => setTimeout(resolve, !isNaN(delay) ? delay : 0))
               .then(() => {
                 const newRequest = requestClone.clone();
                 if (typeof (retryConfig.beforeRetry) === 'function') {

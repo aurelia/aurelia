@@ -23,6 +23,8 @@ export class HttpClientConfiguration {
    */
   public interceptors: Interceptor[] = [];
 
+  public dispatcher: Node | null = null;
+
   /**
    * Sets the baseUrl.
    *
@@ -95,6 +97,11 @@ export class HttpClientConfiguration {
     const interceptor: Interceptor = new RetryInterceptor(config);
 
     return this.withInterceptor(interceptor);
+  }
+
+  public withDispatcher(dispatcher: Node): HttpClientConfiguration {
+    this.dispatcher = dispatcher;
+    return this;
   }
 }
 

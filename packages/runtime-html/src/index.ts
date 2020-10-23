@@ -350,7 +350,9 @@ export {
   StyleAttributeAccessor
 } from './observation/style-attribute-accessor';
 export {
-  ISVGAnalyzer
+  ISVGAnalyzer,
+  SVGAnalyzer,
+  NoopSVGAnalyzer,
 } from './observation/svg-analyzer';
 export {
   ValueAttributeObserver
@@ -470,6 +472,8 @@ export {
   ColonPrefixedBindAttributePatternRegistration,
 
   ShortHandBindingSyntax,
+
+  SVGAnalyzerRegistration,
 
   CallBindingCommandRegistration,
   DefaultBindingCommandRegistration,

@@ -1,6 +1,5 @@
-import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { SVGAnalyzerRegistration, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { Aurelia, CustomElementResource, ValueConverterResource, ILifecycle, Priority, LifecycleFlags } from '@aurelia/runtime';
-import { register } from '@aurelia/plugin-svg';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { interpolateViridis } from 'd3-scale-chromatic';
 
@@ -255,7 +254,7 @@ const App = CustomElementResource.define(
   }
 );
 
-new Aurelia().register(RuntimeHtmlConfiguration, { register }).app(
+new Aurelia().register(RuntimeHtmlConfiguration, SVGAnalyzerRegistration).app(
   {
     host: document.getElementById('app'),
     component: App,

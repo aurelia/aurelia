@@ -1,5 +1,4 @@
-import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
-import { register } from '@aurelia/plugin-svg';
+import { SVGAnalyzerRegistration, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { Aurelia, CustomElementResource } from '@aurelia/runtime';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { Pythagoras } from './pythagoras';
@@ -12,7 +11,7 @@ try {
   new Aurelia()
     .register(
       RuntimeHtmlConfiguration,
-      { register }
+      SVGAnalyzerRegistration,
     )
     .app({
       host: document.getElementById('app'),

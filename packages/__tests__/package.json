@@ -51,7 +51,6 @@
     "@aurelia/platform-browser": "0.7.0",
     "@aurelia/plugin-conventions": "0.7.0",
     "@aurelia/plugin-gulp": "0.7.0",
-    "@aurelia/plugin-svg": "0.7.0",
     "@aurelia/route-recognizer": "0.7.0",
     "@aurelia/router": "0.7.0",
     "@aurelia/runtime-html": "0.7.0",

@@ -1,6 +1,7 @@
 import {
   CustomElement,
   IDOM,
+  SVGAnalyzerRegistration,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -8,7 +9,6 @@ import {
   TestContext
 } from '@aurelia/testing';
 import { Registration } from '@aurelia/kernel';
-import { register } from '@aurelia/plugin-svg';
 
 const $ctx = TestContext.createHTMLTestContext();
 
@@ -21,7 +21,7 @@ describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
     const ctx = TestContext.createHTMLTestContext();
     const state = new State();
     Registration.instance(State, state).register(ctx.container);
-    ctx.container.register({ register }, createPythagorasElement(ctx.dom));
+    ctx.container.register(SVGAnalyzerRegistration, createPythagorasElement(ctx.dom));
 
     const { startPromise, appHost, component, tearDown } = createFixture(
       `<div style='height: 50px;' css='max-width: \${width}px;'>

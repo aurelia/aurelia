@@ -23,9 +23,9 @@ As you learned in [Building Components](components.md), a component typically in
 {% code title="say-hello.js" %}
 ```javascript
 export class SayHello {
-  constructor() { 
+  constructor() {
     this.to = 'John Doe';
-  } 
+  }
 }
 ```
 {% endcode %}
@@ -55,11 +55,11 @@ When this template is run, Aurelia will insert the value of the `to` property in
 
 {% tab title="my-app.js" %}
 ```javascript
-export class MyApp { 
-  constructor() { 
+export class MyApp {
+  constructor() {
     this.name = 'John Doe';
-    this.arriving = true; 
-    setTimeout(() => this.arriving = false, 5000); 
+    this.arriving = true;
+    setTimeout(() => this.arriving = false, 5000);
   }
 }
 ```
@@ -115,7 +115,7 @@ The first input uses the `bind` command which will automatically create `two-way
 {% hint style="info" %}
 **Info**
 
-Because most apps do not leverage SVG binding, the core runtime doesn't include all the necessary infrastructure needed to support binding SVG in a cross-browser way. This allows us to make the runtime a little smaller for the most common scenarios. If you will be binding SVG elements, please install `plugin-svg`, to ensure consistent cross-browser behavior.
+Because most apps do not leverage SVG binding, the standard configuration doesn't include all the necessary infrastructure needed to support binding SVG in a cross-browser way. This allows tree-shaking to make the runtime a little smaller for the most common scenarios. If you will be binding SVG elements, please register the `SVGAnalyzerRegistration` dependency from `@aurelia/runtime-html`, to ensure consistent cross-browser behavior.
 {% endhint %}
 
 ## String Interpolation

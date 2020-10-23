@@ -1,6 +1,5 @@
-import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { SVGAnalyzerRegistration, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { Aurelia, CustomElementResource, ValueConverterResource, ILifecycle, Priority, LifecycleFlags } from '@aurelia/runtime';
-import { register } from '@aurelia/plugin-svg';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { interpolateViridis } from 'd3-scale-chromatic';
 
@@ -257,14 +256,14 @@ function defineApp(fps, count) {
   );
 }
 
-new Aurelia().register(RuntimeHtmlConfiguration, { register }).app(
+new Aurelia().register(RuntimeHtmlConfiguration, SVGAnalyzerRegistration).app(
   {
     host: document.getElementById('app-left'),
     component: defineApp(5, 2000)
   }
 ).start();
 
-new Aurelia().register(RuntimeHtmlConfiguration, { register }).app(
+new Aurelia().register(RuntimeHtmlConfiguration, SVGAnalyzerRegistration).app(
   {
     host: document.getElementById('app-right'),
     component: defineApp(25, 1000)

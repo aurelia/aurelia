@@ -1,6 +1,5 @@
-import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { SVGAnalyzerRegistration, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { Aurelia, CustomElementResource, ValueConverterResource, ILifecycle, Priority } from '@aurelia/runtime';
-import { register } from '@aurelia/plugin-svg';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { SierpinskiTriangle } from './triangle';
 
@@ -14,7 +13,7 @@ export const clock = {
   },
 };
 
-new Aurelia().register(RuntimeHtmlConfiguration, { register }).app(
+new Aurelia().register(RuntimeHtmlConfiguration, SVGAnalyzerRegistration).app(
   {
     host: document.getElementById('app'),
     component: CustomElementResource.define(

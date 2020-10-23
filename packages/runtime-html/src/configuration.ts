@@ -52,6 +52,7 @@ import {
   Composer,
 } from './composer';
 import { TargetAccessorLocator, TargetObserverLocator } from './observation/observer-locator';
+import { SVGAnalyzer } from './observation/svg-analyzer';
 import { HTMLProjectorLocator } from './projectors';
 import { AttrBindingBehavior } from './resources/binding-behaviors/attr';
 import { SelfBindingBehavior } from './resources/binding-behaviors/self';
@@ -91,6 +92,8 @@ export const DefaultComponents = [
   ITargetAccessorLocatorRegistration,
   ITargetObserverLocatorRegistration,
 ];
+
+export const SVGAnalyzerRegistration = SVGAnalyzer as IRegistry;
 
 export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern as unknown as IRegistry;
 export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern as unknown as IRegistry;

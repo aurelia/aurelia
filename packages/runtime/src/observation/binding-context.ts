@@ -59,7 +59,7 @@ export class BindingContext implements IBindingContext {
       throw new Error(`Scope is ${scope} and HostScope is ${hostScope}.`);
     }
 
-    const hashHostScope = hostScope !== scope && hostScope != null;
+    const hasOtherScope = hostScope !== scope && hostScope != null;
     /* eslint-disable jsdoc/check-indentation */
     /**
      * This fallback is needed to support the following case:
@@ -73,8 +73,8 @@ export class BindingContext implements IBindingContext {
      */
     /* eslint-enable jsdoc/check-indentation */
     let [context, found] = chooseContext(scope, name, ancestor);
-    if ((found && context !== null) || !hashHostScope) { return context; }
-    if (hashHostScope) {
+    if (context !== null && (found || !hasOtherScope)) { return context; }
+    if (hasOtherScope) {
       [context,] = chooseContext(hostScope!, name, ancestor);
       if (context !== null) { return context; }
     }
@@ -105,7 +105,7 @@ function chooseContext(scope: Scope, name: string, ancestor: number): [IBindingC
 
     overrideContext = currentScope!.overrideContext;
     const bc = overrideContext.bindingContext;
-    return name in overrideContext ? [overrideContext, true] : [bc, name in bc];
+    return name in overrideContext ? [overrideContext, true] : [bc, bc != null ? name in bc : false];
   }
 
   // traverse the context and it's ancestors, searching for a context that has the name.
@@ -124,7 +124,7 @@ function chooseContext(scope: Scope, name: string, ancestor: number): [IBindingC
 
   if (overrideContext) {
     const bc = overrideContext.bindingContext;
-    return name in overrideContext ? [overrideContext, true] : [bc, name in bc];
+    return name in overrideContext ? [overrideContext, true] : [bc, bc != null ? name in bc : false];
   }
 
   return [null, false];

@@ -16,6 +16,18 @@ Aurelia provides a way to author your components with reactive programming model
 
 # APIs
 
+```typescript
+// on class
+@watch(expressionOrPropertyAccessFn, changeHandlerOrCallback)
+class MyClass {}
+
+// on method
+class MyClass {
+  @watch(expressionOrPropertyAccessFn)
+  someMethod() {}
+}
+```
+
 | Name | Type | Description |
 |-|-|-|
 | expressionOrPropertyAccessFn | string \| IPropertyAccessFn<T> | Watch expression specifier |
@@ -206,3 +218,88 @@ class App {
   }
 }
 ```
+
+# @watch reactivity examples
+
+> During `beforeBind` lifecycle, bindings created by `@watch` decorator havent' been activated yet, which means mutations won't be reacted to:
+
+```typescript
+class PostOffice {
+  packages = [];
+
+  @watch(post => post.packages.length)
+  log(newCount, oldCount) {
+    console.log(`packages changes: ${oldCount} -> ${newCount}`);
+  }
+
+  // lifecycle
+  beforeBind() {
+    this.packages.push({ id: 1, name: 'xmas toy', delivered: false });
+  }
+}
+```
+There will be no log in the console.
+
+> During `afterBind` lifecycle, bindings created by `@watch` decorator have been activated, and mutations will be reacted to:
+
+```typescript
+class PostOffice {
+  packages = [];
+
+  @watch(post => post.packages.length)
+  log(newCount, oldCount) {
+    console.log(`packages changes: ${oldCount} -> ${newCount}`);
+  }
+
+  // lifecycle
+  beforeBind() {
+    this.packages.push({ id: 1, name: 'xmas toy', delivered: false });
+  }
+}
+```
+There will be 1 log in the console that looks like this: `packages changes: 0 -> 1`.
+
+
+{% hint style="info" %}
+**Other lifecycles**
+Lifecycles that are invoked after `afterBind` and before `afterUnbind` are not sensitive to the working of the `@watch` decorator, and thus, no need special mentions. Those lifecycles are `afterAttach`, `afterAttachChildren`, and `beforeDetach`.
+{% endhint %}
+
+> During `beforeUnbind` lifeycle, bindings created by `@watch` decorator have not been de-activated yet, and mutations will still be reacted to:
+
+```typescript
+class PostOffice {
+  packages = [];
+
+  @watch(post => post.packages.length)
+  log(newCount, oldCount) {
+    console.log(`packages changes: ${oldCount} -> ${newCount}`);
+  }
+
+  // lifecycle
+  beforeUnbind() {
+    this.packages.push({ id: 1, name: 'xmas toy', delivered: false });
+  }
+}
+```
+There will be 1 log in the console that looks like this: `packages changes: 0 -> 1`.
+
+> During `afterUnbind` lifecycle, bindings created by `@watch` decorator have been deactivated, and mutations won't be reacted to:
+
+```typescript
+class PostOffice {
+  packages = [];
+
+  @watch(post => post.packages.length)
+  log(newCount, oldCount) {
+    console.log(`packages changes: ${oldCount} -> ${newCount}`);
+  }
+
+  // lifecycle
+  beforeUnbind() {
+    this.packages.push({ id: 1, name: 'xmas toy', delivered: false });
+  }
+}
+```
+
+There will be no log in the console.

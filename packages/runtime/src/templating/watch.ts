@@ -11,9 +11,11 @@ export interface IWatchDefinition<T extends object = object> {
 }
 
 type AnyMethod<R = unknown> = (...args: unknown[]) => R;
-// eslint-disable-next-line
-type WatchClassDecorator<T extends object> = <K>(target: K extends Constructable<T> ? Constructable<T> : Function) => void;
+type WatchClassDecorator<T extends object> = <K extends Constructable<T>>(target: K) => void;
 type WatchMethodDecorator<T> = <R, K extends AnyMethod<R> = AnyMethod<R>>(target: T, key: string | symbol, descriptor: TypedPropertyDescriptor<K>) => TypedPropertyDescriptor<K>;
+type MethodsOf<Type> = {
+  [Key in keyof Type]: Type[Key] extends AnyMethod ? Key : never
+}[keyof Type];
 
 // for
 //    @watch('some.expression', (v) => ...)
@@ -25,9 +27,14 @@ type WatchMethodDecorator<T> = <R, K extends AnyMethod<R> = AnyMethod<R>>(target
 //    class A {
 //      method() {...}
 //    }
-export function watch<T extends object = object, D = unknown>(
-  expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<T, D>,
-  changeHandlerOrCallback: keyof T | IWatcherCallback<T, D>,
+export function watch<T extends object, D = unknown>(
+  expressionOrPropertyAccessFn: PropertyKey,
+  changeHandlerOrCallback: MethodsOf<T> | IWatcherCallback<T, D>,
+): WatchClassDecorator<T>;
+
+export function watch<T extends object, D = unknown>(
+  expressionOrPropertyAccessFn: IDepCollectionFn<T, D>,
+  changeHandlerOrCallback: MethodsOf<T> | IWatcherCallback<T, D>,
 ): WatchClassDecorator<T>;
 
 // for

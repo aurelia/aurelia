@@ -235,18 +235,19 @@ export class SVGAnalyzer {
     div.innerHTML = '<svg><altGlyph /></svg>';
     if (div.firstElementChild!.nodeName === 'altglyph') {
       // handle chrome casing inconsistencies.
-      let tmp = this.svgElements.altGlyph;
-      this.svgElements.altGlyph = this.svgElements.altglyph;
-      this.svgElements.altglyph = tmp;
-      tmp = this.svgElements.altGlyphDef;
-      this.svgElements.altGlyphDef = this.svgElements.altglyphdef;
-      this.svgElements.altglyphdef = tmp;
-      tmp = this.svgElements.altGlyphItem;
-      this.svgElements.altGlyphItem = this.svgElements.altglyphitem;
-      this.svgElements.altglyphitem = tmp;
-      tmp = this.svgElements.glyphRef;
-      this.svgElements.glyphRef = this.svgElements.glyphref;
-      this.svgElements.glyphref = tmp;
+      const svg = this.svgElements;
+      let tmp = svg.altGlyph;
+      svg.altGlyph = svg.altglyph;
+      svg.altglyph = tmp;
+      tmp = svg.altGlyphDef;
+      svg.altGlyphDef = svg.altglyphdef;
+      svg.altglyphdef = tmp;
+      tmp = svg.altGlyphItem;
+      svg.altGlyphItem = svg.altglyphitem;
+      svg.altglyphitem = tmp;
+      tmp = svg.glyphRef;
+      svg.glyphRef = svg.glyphref;
+      svg.glyphref = tmp;
     }
   }
 
@@ -257,7 +258,7 @@ export class SVGAnalyzer {
 
     return (
       this.svgPresentationElements[node.nodeName] === true && this.svgPresentationAttributes[attributeName] === true ||
-      this.svgElements[node.nodeName] !== void 0 && this.svgElements[node.nodeName]![attributeName] === true
+      this.svgElements[node.nodeName]?.[attributeName] === true
     );
   }
 }

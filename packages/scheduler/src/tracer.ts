@@ -1,6 +1,15 @@
 import { TaskQueue } from './task-queue';
-import { Task } from './task';
+import { Task, TaskStatus } from './task';
 import { IPlatform } from '@aurelia/kernel';
+
+function taskStatus(status: TaskStatus): 'pending' | 'running' | 'canceled' | 'completed' {
+  switch (status) {
+    case TaskStatus.pending: return 'pending';
+    case TaskStatus.running: return 'running';
+    case TaskStatus.canceled: return 'canceled';
+    case TaskStatus.completed: return 'completed';
+  }
+}
 
 export class Tracer {
   public enabled: boolean = false;
@@ -36,7 +45,7 @@ export class Tracer {
       const reusable = obj['reusable'];
       const persistent = obj['persistent'];
       const suspend = obj['suspend'];
-      const status = obj['_status'];
+      const status = taskStatus(obj['_status']);
 
       const info = `id=${id} created=${created} queue=${queue} preempt=${preempt} persistent=${persistent} reusable=${reusable} status=${status} suspend=${suspend}`;
       this.console.log(`${prefix}[T.${method}] ${info}`);

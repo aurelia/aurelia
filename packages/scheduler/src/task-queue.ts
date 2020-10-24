@@ -6,7 +6,7 @@ import {
   QueueTaskOptions,
   TaskQueuePriority,
 } from './types';
-import { Task } from './task';
+import { Task, TaskStatus } from './task';
 import { Tracer } from './tracer';
 
 export interface IFlushRequestorFactory {
@@ -117,7 +117,7 @@ export class TaskQueue {
         cur = this.processingHead!;
         cur.run();
         // If it's still running, it can only be an async task
-        if (cur.status === 'running') {
+        if (cur.status === TaskStatus.running) {
           if (cur.suspend === true) {
             this.suspenderTask = cur;
             this.requestFlush();
@@ -270,7 +270,7 @@ export class TaskQueue {
   public take(task: Task): void {
     if (this.tracer.enabled) { this.tracer.enter(this, 'take'); }
 
-    if (task.status !== 'pending') {
+    if (task.status !== TaskStatus.pending) {
       if (this.tracer.enabled) { this.tracer.leave(this, 'take error'); }
 
       throw new Error('Can only take pending tasks.');

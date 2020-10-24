@@ -45,7 +45,6 @@ export class TaskQueue {
   private readonly taskPool: Task[] = [];
   private taskPoolSize: number = 0;
   private lastRequest: number = 0;
-  private microTaskRequestFlushTask: ITask | null = null;
   private readonly flushRequestor: IFlushRequestor;
 
   public get isEmpty(): boolean {
@@ -104,13 +103,6 @@ export class TaskQueue {
 
   public flush(): void {
     if (this.tracer.enabled) { this.tracer.enter(this, 'flush'); }
-
-    if (this.microTaskRequestFlushTask !== null) {
-      // This may only exist if this is a microtask queue, in which case the macrotask queue is used to poll
-      // async task readiness state and/or re-queue persistent microtasks.
-      this.microTaskRequestFlushTask.cancel();
-      this.microTaskRequestFlushTask = null;
-    }
 
     this.flushRequested = false;
 
@@ -178,11 +170,6 @@ export class TaskQueue {
    */
   public cancel(): void {
     if (this.tracer.enabled) { this.tracer.enter(this, 'cancel'); }
-
-    if (this.microTaskRequestFlushTask !== null) {
-      this.microTaskRequestFlushTask.cancel();
-      this.microTaskRequestFlushTask = null;
-    }
 
     if (this.flushRequested) {
       this.flushRequestor.cancel();
@@ -608,11 +595,6 @@ export class TaskQueue {
 
   private requestFlush(): void {
     if (this.tracer.enabled) { this.tracer.enter(this, 'requestFlush'); }
-
-    if (this.microTaskRequestFlushTask !== null) {
-      this.microTaskRequestFlushTask.cancel();
-      this.microTaskRequestFlushTask = null;
-    }
 
     if (!this.flushRequested) {
       this.flushRequested = true;

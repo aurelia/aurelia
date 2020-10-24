@@ -4,7 +4,7 @@ description: Watching data
 
 # Introduction
 
-Aurelia provides a way to author your components in reactive programming model with the `@watch` decorator. Decorating a class itself, or a method inside it with the `@watch` decorator and the corresponding method will be called whenever the watched value changes.
+Aurelia provides a way to author your components in a reactive programming model with the `@watch` decorator. Decorating a class itself, or a method inside it with the `@watch` decorator, the corresponding method will be called whenever the watched value changes.
 
 {% hint style="info" %}
 **Intended usages**
@@ -35,7 +35,7 @@ class MyClass {
 
 # Basics
 
-The `@watch` decorator can be used in 2 fashions: using a computed function, or an expression.
+The `@watch` decorator can be used in two fashions: using a computed function, or an expression.
 
 An example of computed function usage with `@watch` is:
 
@@ -55,7 +55,7 @@ class PostOffice {
 }
 ```
 
-In this example, the `log` method of `PostOffice` will be called whenever there' new packages added to, or existing `packages` removed from the `packages` array.
+In this example, the `log` method of `PostOffice` will be called whenever there's a new package added to, or an existing package removed from the `packages` array.
 
 An example of expression usage with `@watch` is:
 
@@ -262,7 +262,7 @@ There will be 1 log in the console that looks like this: `packages changes: 0 ->
 
 {% hint style="info" %}
 **Other lifecycles**
-Lifecycles that are invoked after `afterBind` and before `afterUnbind` are not sensitive to the working of the `@watch` decorator, and thus, no need special mentions. Those lifecycles are `afterAttach`, `afterAttachChildren`, and `beforeDetach`.
+Lifecycles that are invoked after `afterBind` and before `afterUnbind` are not sensitive to the working of the `@watch` decorator, and thus don't need special mentions. Those lifecycles are `afterAttach`, `afterAttachChildren`, and `beforeDetach`.
 {% endhint %}
 
 > During `beforeUnbind` lifeycle, bindings created by `@watch` decorator have not been de-activated yet, and mutations will still be reacted to:

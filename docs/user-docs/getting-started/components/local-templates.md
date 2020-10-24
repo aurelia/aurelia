@@ -75,9 +75,9 @@ Sometimes we need to reuse a template multiple times in a single custom element.
 To create a separate custom element for that is bit of an overkill.
 Also given the fact that the custom element is only used in one single custom element, it might be optimized for that, and not meant to be reused outside this context.
 The local templates are meant to promote that, whereas having a separate custom element makes it open for reuse in another context.
-In short, it aims to reduce the boilerplate code, and promotes highly cohesive, better encapsulated custom elements.
+In short, it aims to reduce boilerplate code, and promotes highly cohesive, better encapsulated custom elements.
 
-This means that the following is a perfectly valid example. Note the local templates with same name are *defined* in different custom elements.
+This means that the following is a perfectly valid example. Note that the local templates with same name (`foo-bar`) are *defined* in different custom elements.
 
 {% tabs %}
 {% tab title="level-one.html" %}
@@ -140,7 +140,7 @@ class LevelTwo {
 {% endtab %}
 {% endtabs %}
 
-* It is theoretically possible to go to infinite level of nesting. That is the following example will work. However, whether such composition is helpful or not, depends on the use-case. Although it might provides a stronger cohesion, as the level of nesting grows, it might be difficult to work with. It is up to you decide a reasonable tradeoff while using local templates. In this respect, a good thumb rule is to keep the local function analogy in mind.
+* It is theoretically possible to go to an infinite level of nesting. That is the following example will work. However, whether such composition is helpful or not, depends on the use-case. Although it might provide a stronger cohesion, as the level of nesting grows, it can be difficult to work with. It is up to you decide a reasonable tradeoff while using local templates. In this respect, a good thumb rule is to keep the local function analogy in mind.
 ```html
 <template as-custom-element="el-one">
   <template as-custom-element="one-two">
@@ -160,7 +160,7 @@ class LevelTwo {
 <el-one></el-one>
 ```
 
-* A custom element cannot contain only local templates. The following examples will cause (jit) compilation error.
+* A custom element cannot contain only local templates. The following examples will cause a (jit) compilation error.
 
 
 {% tabs %}
@@ -180,7 +180,7 @@ class LevelTwo {
 {% endtab %}
 {% endtabs %}
 
-* A local template always needs to be defined directly under the root element. The following example will cause (jit) compilation error.
+* A local template always needs to be defined directly under the root element. The following example will cause a (jit) compilation error.
 
 {% tabs %}
 {% tab title="invalid-example1.html" %}
@@ -192,7 +192,7 @@ class LevelTwo {
 {% endtab %}
 {% endtabs %}
 
-* This one is obvious; the local templates need to have a name. The following example will cause (jit) compilation error.
+* This one is obvious; the local templates need to have a name. The following example will cause a (jit) compilation error.
 
 {% endtab %}
 {% tab title="my-app.html" %}
@@ -203,7 +203,7 @@ class LevelTwo {
 {% endtab %}
 {% endtabs %}
 
-* The names of the local templates need to be unique (in the defining custom element). The following example will cause (jit) compilation error.
+* The names of the local templates need to be unique (in defining custom element). The following example will cause a (jit) compilation error.
 
 {% endtab %}
 {% tab title="my-app.html" %}
@@ -215,7 +215,7 @@ class LevelTwo {
 {% endtab %}
 {% endtabs %}
 
-* The `<bindable>` tags needs to be under the local template root. The following example will cause (jit) compilation error.
+* The `<bindable>` tags needs to be under the local template root. The following example will cause a (jit) compilation error.
 
 {% endtab %}
 {% tab title="my-app.html" %}
@@ -230,7 +230,7 @@ class LevelTwo {
 {% endtab %}
 {% endtabs %}
 
-* The `property` attribute in `<bindable>` tags is mandatory. The following example will cause (jit) compilation error.
+* The `property` attribute in `<bindable>` tags is mandatory. The following example will cause a (jit) compilation error.
 
 {% endtab %}
 {% tab title="my-app.html" %}

@@ -7,40 +7,6 @@ import {
 } from '@aurelia/scheduler';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 
-function createMicroTaskFlushRequestorFactory(): IFlushRequestorFactory {
-  return {
-    create(taskQueue: TaskQueue): IFlushRequestor {
-      let requested: boolean = false;
-      let canceled: boolean = false;
-      const p: Promise<void> = Promise.resolve();
-
-      function flush(): void {
-        if (canceled) {
-          canceled = false;
-        } else {
-          requested = false;
-          taskQueue.flush();
-        }
-      }
-
-      return {
-        request(): void {
-          if (!requested) {
-            canceled = false;
-            requested = true;
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            p.then(flush);
-          }
-        },
-        cancel(): void {
-          canceled = true;
-          requested = false;
-        },
-      };
-    },
-  };
-}
-
 function createSetTimeoutFlushRequestorFactory(g: typeof globalThis): IFlushRequestorFactory {
   return {
     create(taskQueue: TaskQueue): IFlushRequestor {

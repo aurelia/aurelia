@@ -107,14 +107,17 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       watcher.$bind();
       assert.strictEqual(watcher['value'], undefined);
       assert.strictEqual(getCallCount, 1);
+      assert.deepStrictEqual(callbackValues, []);
 
       obj.prop = 1;
       assert.strictEqual(watcher['value'], undefined);
       assert.strictEqual(getCallCount, 1);
+      assert.deepStrictEqual(callbackValues, []);
 
       obj._p = 1;
       assert.strictEqual(watcher['value'], 1);
       assert.strictEqual(getCallCount, 2);
+      assert.deepStrictEqual(callbackValues, [1]);
     });
   });
 

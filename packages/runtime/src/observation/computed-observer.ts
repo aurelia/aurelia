@@ -367,16 +367,14 @@ export class ComputedWatcher implements IWatcher {
     this.addObserver(observer);
   }
 
-  public observeCollection<T extends Collection>(collection: T): T {
+  public observeCollection(collection: Collection): void {
     const obs = this.forCollection(collection);
     this.observers.set(obs, this.version);
     obs.subscribeToCollection(this);
-    return collection;
   }
 
-  public observeLength<T extends Collection>(collection: T): T {
+  public observeLength(collection: Collection): void {
     this.forCollection(collection).getLengthObserver().subscribe(this);
-    return collection;
   }
 
   private run(): void {

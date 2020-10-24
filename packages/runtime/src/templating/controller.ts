@@ -86,6 +86,7 @@ import { IExpressionParser, BindingType } from '../binding/expression-parser';
 import { AccessScopeExpression } from '../binding/ast';
 import { ICompositionRoot } from '../aurelia';
 import { IWatchDefinition, IWatcherCallback } from './watch';
+import { hasProxy } from '../observation/proxy-observation';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -1396,7 +1397,14 @@ function createWatchers(
       throw new Error(`Invalid callback for @watch decorator: ${String(callback)}`);
     }
     if (typeof expression === 'function') {
-      controller.addBinding(new ComputedWatcher(instance as IObservable, observerLocator, expression, callback));
+      controller.addBinding(new ComputedWatcher(
+        instance as IObservable,
+        observerLocator,
+        expression,
+        callback,
+        // there should be a flag to purposely disable proxy
+        hasProxy,
+      ));
     } else {
       const ast = typeof expression === 'string'
         ? expressionParser.parse(expression, BindingType.BindCommand)

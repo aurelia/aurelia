@@ -332,6 +332,7 @@ export class ComputedWatcher implements IWatcher {
     public readonly observerLocator: IObserverLocator,
     public readonly get: (obj: object, watcher: IWatcher) => unknown,
     private readonly cb: IWatcherCallback<object>,
+    private readonly useProxy: boolean,
   ) {
     connectable.assignIdTo(this);
   }
@@ -397,7 +398,7 @@ export class ComputedWatcher implements IWatcher {
     this.version++;
     try {
       enterWatcher(this);
-      this.value = getRawOrSelf(this.get(getProxyOrSelf(this.obj), this));
+      this.value = getRawOrSelf(this.get(this.useProxy ? getProxyOrSelf(this.obj) : this.obj, this));
     } finally {
       exitWatcher(this);
       this.unobserve(false);

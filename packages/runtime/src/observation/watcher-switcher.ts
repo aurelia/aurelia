@@ -7,6 +7,7 @@ import { Collection } from '../observation';
 // so it works even without proxy
 // todo: maybe enhance @connectable so that it provides these interfaces
 export interface IWatcher {
+  id: number;
   observe(obj: object, property: PropertyKey): void;
   observeCollection(collection: Collection): void;
   observeLength(collection: Collection): void;
@@ -34,6 +35,9 @@ export function currentWatcher(): IWatcher | null {
 }
 
 export function enterWatcher(watcher: IWatcher): void {
+  if (watcher == null) {
+    throw new Error('watcher cannot be null/undefined');
+  }
   if ($watcher == null) {
     $watcher = watcher;
     watchers[0] = $watcher;
@@ -41,7 +45,7 @@ export function enterWatcher(watcher: IWatcher): void {
     return;
   }
   if ($watcher === watcher) {
-    throw new Error(`Already in this watcher \${watcher?.id}`);
+    throw new Error(`Already in this watcher ${watcher.id}`);
   }
   watchers.push($watcher);
   $watcher = watcher;
@@ -49,8 +53,11 @@ export function enterWatcher(watcher: IWatcher): void {
 }
 
 export function exitWatcher(watcher: IWatcher): void {
-  if ($watcher == null || $watcher !== watcher) {
-    throw new Error(`\${watcher?.id} is not currently collecting`);
+  if (watcher == null) {
+    throw new Error('watcher cannot be null/undefined');
+  }
+  if ($watcher !== watcher) {
+    throw new Error(`${watcher.id} is not currently collecting`);
   }
 
   watchers.pop();

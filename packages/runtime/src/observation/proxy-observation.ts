@@ -5,6 +5,7 @@ import { isMap, isSet, isObject, isArray } from './utilities-objects';
 
 const R$get = Reflect.get;
 const proxyMap = new WeakMap<object, object>();
+export const hasProxy = typeof Proxy !== 'undefined';
 
 export const rawKey = '__raw__';
 

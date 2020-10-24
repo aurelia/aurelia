@@ -17,7 +17,7 @@ import {
 } from './log';
 
 export interface IFlushRequestorFactory {
-  create(taskQueue: ITaskQueue): IFlushRequestor;
+  create(taskQueue: TaskQueue): IFlushRequestor;
 }
 
 export interface IFlushRequestor {
@@ -26,16 +26,6 @@ export interface IFlushRequestor {
 }
 
 export type TaskCallback<T = any> = (delta: number) => T;
-
-export interface ITaskQueue {
-  readonly priority: TaskQueuePriority;
-  flush(): void;
-  cancel(): void;
-  yield(): Promise<void>;
-  queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): ITask<T>;
-  take(task: ITask): void;
-  remove(task: ITask): void;
-}
 
 export class TaskQueue {
   private processingSize: number = 0;

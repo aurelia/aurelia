@@ -1,7 +1,7 @@
 import {
   IFlushRequestor,
   IFlushRequestorFactory,
-  ITaskQueue,
+  TaskQueue,
   IScheduler,
   Scheduler,
 } from '@aurelia/scheduler';
@@ -9,7 +9,7 @@ import { BrowserPlatform } from '@aurelia/platform-browser';
 
 function createMicroTaskFlushRequestorFactory(): IFlushRequestorFactory {
   return {
-    create(taskQueue: ITaskQueue): IFlushRequestor {
+    create(taskQueue: TaskQueue): IFlushRequestor {
       let requested: boolean = false;
       let canceled: boolean = false;
       const p: Promise<void> = Promise.resolve();
@@ -43,7 +43,7 @@ function createMicroTaskFlushRequestorFactory(): IFlushRequestorFactory {
 
 function createSetTimeoutFlushRequestorFactory(g: typeof globalThis): IFlushRequestorFactory {
   return {
-    create(taskQueue: ITaskQueue): IFlushRequestor {
+    create(taskQueue: TaskQueue): IFlushRequestor {
       let handle = -1;
 
       function flush(): void {
@@ -72,7 +72,7 @@ function createSetTimeoutFlushRequestorFactory(g: typeof globalThis): IFlushRequ
 
 function createRequestAnimationFrameFlushRequestor(g: typeof globalThis): IFlushRequestorFactory {
   return {
-    create(taskQueue: ITaskQueue): IFlushRequestor {
+    create(taskQueue: TaskQueue): IFlushRequestor {
       let handle = -1;
 
       function flush() {
@@ -101,7 +101,7 @@ function createRequestAnimationFrameFlushRequestor(g: typeof globalThis): IFlush
 
 function createPostRequestAnimationFrameFlushRequestor(g: typeof globalThis): IFlushRequestorFactory {
   return {
-    create(taskQueue: ITaskQueue): IFlushRequestor {
+    create(taskQueue: TaskQueue): IFlushRequestor {
       let rafHandle = -1;
       let timeoutHandle = -1;
       function flush() {

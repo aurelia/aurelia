@@ -3,7 +3,6 @@ export {
   Scheduler,
 } from './scheduler';
 export {
-  ITaskQueue,
   IFlushRequestor,
   IFlushRequestorFactory,
   TaskQueue,

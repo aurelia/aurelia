@@ -1,6 +1,6 @@
 import { LifecycleFlags } from '../observation';
 import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../binding-behavior';
-import { ITask, IScheduler, ITaskQueue, QueueTaskOptions } from '@aurelia/scheduler';
+import { ITask, IScheduler, TaskQueue, QueueTaskOptions } from '@aurelia/scheduler';
 import { IPlatform } from '@aurelia/kernel';
 import { BindingBehaviorExpression, IsAssign } from '../binding/ast';
 
@@ -8,7 +8,7 @@ import type { Scope } from '../observation/binding-context';
 
 @bindingBehavior('throttle')
 export class ThrottleBindingBehavior extends BindingInterceptor {
-  private readonly taskQueue: ITaskQueue;
+  private readonly taskQueue: TaskQueue;
   private readonly platform: IPlatform;
   private readonly opts: QueueTaskOptions = { delay: 0 };
   private readonly firstArg: IsAssign | null = null;

@@ -522,7 +522,7 @@ export {
   // IClockSettings,
   IScheduler,
   // ITask,
-  // ITaskQueue,
+  // TaskQueue,
   // QueueTaskOptions,
   // Task,
   // TaskAbortError,

@@ -8,7 +8,6 @@ import {
 } from './types';
 import {
   IFlushRequestorFactory,
-  ITaskQueue,
   TaskCallback,
   TaskQueue,
 } from './task-queue';
@@ -21,13 +20,13 @@ const store = new WeakMap<object, IScheduler>();
 
 export const IScheduler = DI.createInterface<IScheduler>('IScheduler').noDefault();
 export interface IScheduler {
-  getTaskQueue(priority: TaskQueuePriority): ITaskQueue;
+  getTaskQueue(priority: TaskQueuePriority): TaskQueue;
   yield(priority: TaskQueuePriority): Promise<void>;
   queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskTargetOptions): ITask<T>;
 
-  getRenderTaskQueue(): ITaskQueue;
-  getMacroTaskQueue(): ITaskQueue;
-  getPostRenderTaskQueue(): ITaskQueue;
+  getRenderTaskQueue(): TaskQueue;
+  getMacroTaskQueue(): TaskQueue;
+  getPostRenderTaskQueue(): TaskQueue;
 
   yieldRenderTask(): Promise<void>;
   yieldMacroTask(): Promise<void>;
@@ -57,13 +56,13 @@ export class Scheduler implements IScheduler {
   ) {
     this.taskQueues = [
       this.render = (
-        new TaskQueue(platform, TaskQueuePriority.render, this, renderFactory)
+        new TaskQueue(platform, TaskQueuePriority.render, renderFactory)
       ),
       this.macroTask = (
-        new TaskQueue(platform, TaskQueuePriority.macroTask, this, macroTaskFactory)
+        new TaskQueue(platform, TaskQueuePriority.macroTask, macroTaskFactory)
       ),
       this.postRender = (
-        new TaskQueue(platform, TaskQueuePriority.postRender, this, postRenderFactory)
+        new TaskQueue(platform, TaskQueuePriority.postRender, postRenderFactory)
       ),
     ];
 
@@ -94,13 +93,13 @@ export class Scheduler implements IScheduler {
     return this.taskQueues[priority].queueTask(callback, { delay, preempt, persistent, reusable, suspend });
   }
 
-  public getRenderTaskQueue(): ITaskQueue {
+  public getRenderTaskQueue(): TaskQueue {
     return this.render;
   }
-  public getMacroTaskQueue(): ITaskQueue {
+  public getMacroTaskQueue(): TaskQueue {
     return this.macroTask;
   }
-  public getPostRenderTaskQueue(): ITaskQueue {
+  public getPostRenderTaskQueue(): TaskQueue {
     return this.postRender;
   }
 

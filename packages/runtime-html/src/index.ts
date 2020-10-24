@@ -168,7 +168,6 @@ export {
 
   IScheduler,
   ITask,
-  ITaskQueue,
   QueueTaskOptions,
   Task,
   TaskAbortError,

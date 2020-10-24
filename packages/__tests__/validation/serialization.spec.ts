@@ -26,7 +26,7 @@ import { Person } from './_test-resources';
 
 describe('validation de/serialization', function () {
   function setup() {
-    const container = TestContext.createHTMLTestContext().container;
+    const container = TestContext.create().container;
     container.register(ValidationConfiguration.customize((options) => { options.HydratorType = ValidationDeserializer; }));
     return {
       container,
@@ -285,7 +285,7 @@ describe('validation de/serialization', function () {
 });
 describe('ModelValidationExpressionHydrator', function () {
   function setup() {
-    const container = TestContext.createHTMLTestContext().container;
+    const container = TestContext.create().container;
     container.register(ValidationConfiguration);
     return {
       container,

@@ -1,4 +1,4 @@
-import { IRouter, RouterConfiguration, IConfigurableRoute, IRoute, IRouterTitle, ViewportInstruction } from '@aurelia/router';
+import { IRouter, RouterConfiguration, IRoute, IRouterTitle, ViewportInstruction } from '@aurelia/router';
 import { CustomElement, customElement, IScheduler, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -37,7 +37,7 @@ describe('Router', function () {
   }
 
   async function createFixture(config?, App?, stateSpy?) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container, scheduler } = ctx;
 
     if (App === void 0) {
@@ -931,7 +931,7 @@ describe('Router', function () {
     this.timeout(5000);
 
     async function $setup(dependencies: any[] = [], stateSpy?) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
 
       const { container, scheduler } = ctx;
 
@@ -1183,7 +1183,7 @@ describe('Router', function () {
     this.timeout(30000);
 
     async function $setup(App, config?, stateSpy?) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
 
       const { container, scheduler } = ctx;
 
@@ -1304,7 +1304,7 @@ describe('Router', function () {
     this.timeout(30000);
 
     async function $setup(config?, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
 
       const { container, scheduler } = ctx;
 
@@ -1571,7 +1571,7 @@ describe('Router', function () {
     this.timeout(30000);
 
     async function $setup(config?, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
 
       const { container, scheduler } = ctx;
 
@@ -1791,7 +1791,7 @@ describe('Router', function () {
     this.timeout(30000);
 
     async function $setup(config?, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
 
       const { container, scheduler } = ctx;
 

@@ -1,6 +1,6 @@
 import { IContainer, IRegistry, Registration, DI, IResolver } from '@aurelia/kernel';
+import { IPlatform } from '../platform';
 import { IShadowDOMStyles, IShadowDOMGlobalStyles, AdoptedStyleSheetsStyles, StyleElementStyles } from './shadow-dom-styles';
-import { HTMLDOM, IDOM } from '../dom';
 
 export function shadowCSS(...css: (string | CSSStyleSheet)[]) {
   return new ShadowDOMRegistry(css);
@@ -44,7 +44,7 @@ export class ShadowDOMRegistry implements IRegistry {
   }
 
   public static createStyleFactory(container: IContainer): IShadowDOMStyleFactory {
-    if (AdoptedStyleSheetsStyles.supported(container.get(HTMLDOM))) {
+    if (AdoptedStyleSheetsStyles.supported(container.get(IPlatform))) {
       return container.get(AdoptedStyleSheetsStylesFactory);
     }
 
@@ -55,14 +55,14 @@ export class ShadowDOMRegistry implements IRegistry {
 class AdoptedStyleSheetsStylesFactory {
   private readonly cache = new Map();
 
-  public constructor(@IDOM private readonly dom: HTMLDOM) {}
+  public constructor(@IPlatform private readonly p: IPlatform) {}
 
   public createStyles(
     localStyles: (string | CSSStyleSheet)[],
     sharedStyles: IShadowDOMStyles | null,
   ): IShadowDOMStyles {
     return new AdoptedStyleSheetsStyles(
-      this.dom,
+      this.p,
       localStyles,
       this.cache,
       sharedStyles,
@@ -71,7 +71,7 @@ class AdoptedStyleSheetsStylesFactory {
 }
 
 class StyleElementStylesFactory {
-  public constructor(@IDOM private readonly dom: HTMLDOM) {}
+  public constructor(@IPlatform private readonly p: IPlatform) {}
 
   public createStyles(
     localStyles: string[],
@@ -83,7 +83,7 @@ class StyleElementStylesFactory {
     }
 
     return new StyleElementStyles(
-      this.dom,
+      this.p,
       localStyles,
       sharedStyles,
     );

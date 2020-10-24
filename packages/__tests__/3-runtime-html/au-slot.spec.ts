@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IScheduler, bindable, customElement, BindingMode } from '@aurelia/runtime-html';
-import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
+import { assert, SCHEDULER, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
 
 describe('au-slot', function () {
@@ -11,7 +11,7 @@ describe('au-slot', function () {
   class AuSlotTestExecutionContext implements TestExecutionContext<any> {
     private _scheduler: IScheduler;
     public constructor(
-      public ctx: HTMLTestContext,
+      public ctx: TestContext,
       public container: IContainer,
       public host: HTMLElement,
       public app: App | null,
@@ -24,9 +24,9 @@ describe('au-slot', function () {
     testFunction: TestFunction<AuSlotTestExecutionContext>,
     { template, registrations }: Partial<TestSetupContext> = {}
   ) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
 
-    const host = ctx.dom.createElement('div');
+    const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
 
     const container = ctx.container;

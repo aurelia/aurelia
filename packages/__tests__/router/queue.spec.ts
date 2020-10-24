@@ -67,7 +67,7 @@ describe('Queue', function () {
   it('can tick the queue', async function () {
     this.timeout(5000);
 
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { scheduler } = ctx;
 
     const callback = async (qAnimal: QueueItem<Animal>) => {

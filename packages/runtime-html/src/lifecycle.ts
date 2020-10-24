@@ -3,12 +3,14 @@ import { IBindingTargetAccessor, LifecycleFlags, Scope, ILifecycle, IBinding } f
 
 import { HooksDefinition, IInstruction } from './definitions';
 import { INode, INodeSequence, IRenderLocation } from './dom';
-import { IElementProjector, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
+import { CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
 import { ICompositionContext, ICompiledCompositionContext } from './templating/composition-context';
 import { AuSlotContentType } from './resources/custom-elements/au-slot';
 import { CustomAttributeDefinition } from './resources/custom-attribute';
 
 import type { IAppRoot } from './app-root';
+import { IPlatform } from './platform';
+import { ElementProjector } from './projectors';
 
 export const enum ViewModelKind {
   customElement,
@@ -56,6 +58,7 @@ export type ControllerVisitor = (controller: IHydratedController) => void | true
  */
 export interface IController<C extends IViewModel = IViewModel> extends IDisposable {
   /** @internal */readonly id: number;
+  readonly platform: IPlatform;
   readonly root: IAppRoot | null;
   readonly flags: LifecycleFlags;
   readonly lifecycle: ILifecycle;
@@ -354,7 +357,7 @@ export interface ICompiledCustomElementController<C extends IViewModel = IViewMo
    * - `ShadowDOMProjector` (the host is a shadow root)
    * - `ContainerlessProjector` (the host is a comment node)
    */
-  readonly projector: IElementProjector;
+  readonly projector: ElementProjector;
   /**
    * The physical DOM nodes that will be appended during the `mount()` operation.
    */
@@ -404,23 +407,6 @@ export const enum MountStrategy {
   insertBefore = 1,
   append = 2,
 }
-
-export interface IViewCache {
-  readonly isCaching: boolean;
-  setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void;
-  canReturnToCache(view: ISyntheticView): boolean;
-  tryReturnToCache(view: ISyntheticView): boolean;
-}
-
-export interface IViewFactory extends IViewCache {
-  readonly name: string;
-  readonly context: ICompositionContext;
-  readonly contentType: AuSlotContentType | undefined;
-  readonly projectionScope: Scope | null;
-  create(flags?: LifecycleFlags, parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined): ISyntheticView;
-}
-
-export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();
 
 export interface IActivationHooks<TParent> {
   beforeBind?(

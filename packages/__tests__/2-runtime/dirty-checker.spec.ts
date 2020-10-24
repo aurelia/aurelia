@@ -2,7 +2,6 @@ import {
   DirtyCheckSettings,
   IDirtyChecker,
   LifecycleFlags,
-  IScheduler,
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -13,9 +12,9 @@ describe('DirtyChecker', function () {
   });
 
   function createFixture() {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const dirtyChecker = ctx.container.get(IDirtyChecker);
-    const taskQueue = ctx.container.get(IScheduler).getRenderTaskQueue();
+    const taskQueue = ctx.scheduler.getRenderTaskQueue();
 
     return { dirtyChecker, taskQueue };
   }

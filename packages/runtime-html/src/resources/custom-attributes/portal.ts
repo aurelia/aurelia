@@ -1,7 +1,9 @@
 import { nextId, onResolve } from '@aurelia/kernel';
 import { bindable, LifecycleFlags } from '@aurelia/runtime';
-import { HTMLDOM, IDOM, IRenderLocation } from '../../dom';
-import { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView, IViewFactory, MountStrategy } from '../../lifecycle';
+import { IRenderLocation, setEffectiveParentNode } from '../../dom';
+import { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ISyntheticView, MountStrategy } from '../../lifecycle';
+import { IPlatform } from '../../platform';
+import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 
 export type PortalTarget<T extends Node & ParentNode = Node & ParentNode> = string | T | null | undefined;
@@ -47,14 +49,14 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
   public constructor(
     @IViewFactory private readonly factory: IViewFactory,
     @IRenderLocation private readonly originalLoc: IRenderLocation,
-    @IDOM private readonly dom: HTMLDOM,
+    @IPlatform private readonly p: IPlatform,
   ) {
     // to make the shape of this object consistent.
     // todo: is this necessary
-    this.currentTarget = dom.createElement('div');
+    this.currentTarget = p.document.createElement('div');
 
     this.view = this.factory.create();
-    dom.setEffectiveParentNode(this.view.nodes!, originalLoc as unknown as Node);
+    setEffectiveParentNode(this.view.nodes!, originalLoc as unknown as Node);
   }
 
   public afterAttach(
@@ -195,9 +197,9 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
   }
 
   private resolveTarget(): T {
-    const dom = this.dom;
+    const p = this.p;
     // with a $ in front to make it less confusing/error prone
-    const $document = dom.document;
+    const $document = p.document;
     let target = this.target;
     let context = this.renderContext;
 
@@ -206,13 +208,13 @@ export class Portal<T extends Node & ParentNode = Node & ParentNode> implements 
       if (typeof context === 'string') {
         context = $document.querySelector(context) as ResolvedTarget;
       }
-      if (dom.isNodeInstance(context)) {
+      if (context instanceof p.Node) {
         queryContext = context;
       }
       target = queryContext.querySelector(target) as ResolvedTarget;
     }
 
-    if (dom.isNodeInstance(target)) {
+    if (target instanceof p.Node) {
       return target as T & Node & ParentNode;
     }
 

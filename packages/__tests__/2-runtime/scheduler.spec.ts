@@ -23,12 +23,6 @@ function round(num: number) {
   return ((num * 10 + .5) | 0) / 10;
 }
 
-async function wait(ms: number): Promise<void> {
-  return new Promise(function (resolve) {
-    setTimeout(resolve, ms);
-  });
-}
-
 function reportTask(task: any) {
   const id = task.id;
   const created = round(task.createdTime);
@@ -43,7 +37,7 @@ function reportTask(task: any) {
 
 describe('Scheduler', function () {
   // There is only ever one global scheduler, so we might as well store it here instead of initializing all extra boilerplate each test
-  const sut = TestContext.createHTMLTestContext().scheduler;
+  const sut = TestContext.create().scheduler;
 
   function queueRecursive(opts: QueueTaskTargetOptions, count: number, cb: () => void) {
     function $queue() {

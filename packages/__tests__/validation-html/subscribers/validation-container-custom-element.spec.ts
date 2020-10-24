@@ -1,5 +1,5 @@
 import { newInstanceForScope, newInstanceOf, toArray } from '@aurelia/kernel';
-import { assert, createSpy, getVisibleText, HTMLTestContext, ISpy, TestContext } from '@aurelia/testing';
+import { assert, createSpy, getVisibleText, ISpy, TestContext } from '@aurelia/testing';
 import { IValidationRules } from '@aurelia/validation';
 import { CustomElement, customElement, IScheduler, Aurelia } from '@aurelia/runtime-html';
 import {
@@ -61,9 +61,9 @@ describe('validation-container-custom-element', function () {
     testFunction: TestFunction<TestExecutionContext<App>>,
     { template, containerTemplate }: TestSetupContext
   ) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
-    const host = ctx.dom.createElement('app');
+    const host = ctx.doc.createElement('app');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container);
     await au
@@ -98,7 +98,7 @@ describe('validation-container-custom-element', function () {
     scheduler: IScheduler,
     controllerValidateSpy: ISpy,
     handleValidationEventSpy: ISpy,
-    ctx: HTMLTestContext,
+    ctx: TestContext,
     event: string = 'focusout',
   ) {
     handleValidationEventSpy.calls.splice(0);
@@ -289,9 +289,9 @@ describe('validation-container-custom-element', function () {
       }
     }
 
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
-    const host = ctx.dom.createElement('app');
+    const host = ctx.doc.createElement('app');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container).register(ValidationHtmlConfiguration);
 

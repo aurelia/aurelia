@@ -6,9 +6,9 @@ import {
   DataAttributeAccessor,
   StyleAttributeAccessor
 } from '@aurelia/runtime-html';
-import { assert, createSpy, CSS_PROPERTIES, globalAttributeNames, HTMLTestContext, TestContext } from '@aurelia/testing';
+import { assert, createSpy, CSS_PROPERTIES, globalAttributeNames, TestContext } from '@aurelia/testing';
 
-function createSvgUseElement(ctx: HTMLTestContext, name: string, value: string) {
+function createSvgUseElement(ctx: TestContext, name: string, value: string) {
   return ctx.createElementFromMarkup(`<svg>
   <defs>
     <g id="shape1">
@@ -23,7 +23,7 @@ function createSvgUseElement(ctx: HTMLTestContext, name: string, value: string) 
 }
 
 function createFixture() {
-  const ctx = TestContext.createHTMLTestContext();
+  const ctx = TestContext.create();
   const { container, scheduler, observerLocator } = ctx;
 
   return { ctx, container, scheduler, observerLocator };
@@ -63,7 +63,7 @@ describe('AttributeNSAccessor', function () {
 
   for (const { name, value } of tests) {
     it(`sets xlink:${name} only after flushing RAF`, function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       el = createSvgUseElement(ctx, name, value) as HTMLElement;
       const { scheduler: $scheduler } = createFixture();
       scheduler = $scheduler;
@@ -87,7 +87,7 @@ describe('DataAttributeAccessor', function () {
     for (const name of globalAttributeNames) {
       for (const value of valueArr.filter(v => v != null)) {
         it(`returns "${value}" for attribute "${name}"`, function () {
-          const ctx = TestContext.createHTMLTestContext();
+          const ctx = TestContext.create();
           el = ctx.createElementFromMarkup(`<div ${name}="${value}"></div>`);
           const { scheduler: $scheduler } = createFixture();
           scheduler = $scheduler;
@@ -107,7 +107,7 @@ describe('DataAttributeAccessor', function () {
   for (const name of globalAttributeNames) {
     for (const value of valueArr) {
       it(`sets attribute "${name}" to "${value}" only after flushing RAF`, function () {
-        const ctx = TestContext.createHTMLTestContext();
+        const ctx = TestContext.create();
         el = ctx.createElementFromMarkup(`<div></div>`);
         const { scheduler: $scheduler } = createFixture();
         scheduler = $scheduler;
@@ -143,7 +143,7 @@ describe('StyleAccessor', function () {
     const value = values[0];
     const rule = `${propName}:${value}`;
     it(`setValue - style="${rule}" flags.none`, function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       el = ctx.createElementFromMarkup('<div></div>');
       const { scheduler: $scheduler } = createFixture();
       scheduler = $scheduler;
@@ -173,7 +173,7 @@ describe('StyleAccessor', function () {
     const value = values[0];
     const rule = `${propName}:${value}`;
     it(`setValue - style="${rule}" flags.none`, function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       el = ctx.createElementFromMarkup('<div></div>');
       const { scheduler: $scheduler } = createFixture();
       scheduler = $scheduler;
@@ -312,7 +312,7 @@ describe('StyleAccessor', function () {
 
   for (const { title, staticStyle, input, expected } of specs) {
     it(title, function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const el = ctx.createElementFromMarkup(`<div style="${staticStyle}"></div>`);
       const sut = new StyleAttributeAccessor(ctx.scheduler, LifecycleFlags.none, el);
       sut.setValue(input, LifecycleFlags.none);
@@ -376,7 +376,7 @@ describe('ClassAccessor', function () {
     for (const classList of classListArr) {
 
       function createFixture() {
-        const ctx = TestContext.createHTMLTestContext();
+        const ctx = TestContext.create();
         const el = ctx.createElementFromMarkup(markup);
         const initialClassList = el.classList.toString();
         const { scheduler } = ctx;

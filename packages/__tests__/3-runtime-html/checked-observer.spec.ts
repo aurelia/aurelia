@@ -14,11 +14,10 @@ import {
 } from '@aurelia/runtime-html';
 import {
   _,
-  TestContext,
   assert,
   createSpy,
   eachCartesianJoin,
-  HTMLTestContext,
+  TestContext,
 } from '@aurelia/testing';
 
 describe('checked-observer.spec.ts', function () {
@@ -246,7 +245,7 @@ describe('checked-observer.spec.ts', function () {
     },
   ];
 
-  function simulateStateChange(ctx: HTMLTestContext, input: HTMLInputElement, checked: boolean): void {
+  function simulateStateChange(ctx: TestContext, input: HTMLInputElement, checked: boolean): void {
     input.checked = checked;
     input.dispatchEvent(new ctx.CustomEvent('change', { bubbles: true }));
   }
@@ -288,7 +287,7 @@ describe('checked-observer.spec.ts', function () {
 
   interface AssertionFn<T extends IApp = IApp> {
     // eslint-disable-next-line @typescript-eslint/prefer-function-type
-    (ctx: HTMLTestContext, testHost: HTMLElement, component: T): void | Promise<void>;
+    (ctx: TestContext, testHost: HTMLElement, component: T): void | Promise<void>;
   }
 
   interface IApp {
@@ -310,7 +309,7 @@ describe('checked-observer.spec.ts', function () {
   }
 
   async function createFixture<T>(template: string | Node, $class: Constructable | null, bindingStrategy: BindingStrategy, ...registrations: any[]) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container, lifecycle, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations]));
     container.register(...registrations);
@@ -359,7 +358,7 @@ describe.skip('CheckedObserver', function () {
 
   describe('setValue() - primitive - type="checkbox"', function () {
     function createFixture(hasSubscriber: boolean) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const { container, lifecycle, observerLocator, scheduler } = ctx;
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
       ctx.doc.body.appendChild(el);
@@ -429,7 +428,7 @@ describe.skip('CheckedObserver', function () {
 
   describe('handleEvent() - primitive - type="checkbox"', function () {
     function createFixture() {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const { container, lifecycle, observerLocator, scheduler } = ctx;
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
       ctx.doc.body.appendChild(el);
@@ -497,7 +496,7 @@ describe.skip('CheckedObserver', function () {
 
   describe('setValue() - primitive - type="radio"', function () {
     function createFixture(hasSubscriber: boolean) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const { container, lifecycle, observerLocator, scheduler } = ctx;
 
       const elA = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
@@ -601,7 +600,7 @@ describe.skip('CheckedObserver', function () {
 
   describe('handleEvent() - primitive - type="radio"', function () {
     function createFixture() {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const { container, lifecycle, observerLocator, scheduler } = ctx;
 
       const elA = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
@@ -675,7 +674,7 @@ describe.skip('CheckedObserver', function () {
 
   describe('setValue() - array - type="checkbox"', function () {
     function createFixture(hasSubscriber: boolean, value: any, prop: string) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const { container, lifecycle, observerLocator, scheduler } = ctx;
 
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
@@ -751,7 +750,7 @@ describe.skip('CheckedObserver', function () {
 
   describe('mutate collection - array - type="checkbox"', function () {
     function createFixture(hasSubscriber: boolean, value: any, prop: string) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const { container, lifecycle, observerLocator, scheduler } = ctx;
 
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
@@ -818,7 +817,7 @@ describe.skip('CheckedObserver', function () {
 
   describe('handleEvent() - array - type="checkbox"', function () {
     function createFixture(value: any, prop: string) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const { container, observerLocator, scheduler } = ctx;
 
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
@@ -885,7 +884,7 @@ describe.skip('CheckedObserver', function () {
 
   describe('SelectValueObserver.setValue() - array - type="checkbox"', function () {
     function createFixture(hasSubscriber: boolean, value: any, prop: string) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const { container, lifecycle, observerLocator, scheduler } = ctx;
 
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;

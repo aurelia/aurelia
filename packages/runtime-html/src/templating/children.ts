@@ -3,13 +3,14 @@ import { Constructable, Protocol, Metadata, firstDefined, getPrototypeChain, IIn
 import { LifecycleFlags, subscriberCollection, ISubscriberCollection, IAccessor, ISubscribable, IPropertyObserver, ISubscriber } from '@aurelia/runtime';
 import { INode } from '../dom';
 import { ICustomElementViewModel, ICustomElementController } from '../lifecycle';
-import { IElementProjector, CustomElement } from '../resources/custom-element';
+import { ElementProjector } from '../projectors';
+import { CustomElement } from '../resources/custom-element';
 
 export type PartialChildrenDefinition = {
   callback?: string;
   property?: string;
   options?: MutationObserverInit;
-  query?: (projector: IElementProjector) => ArrayLike<Node>;
+  query?: (projector: ElementProjector) => ArrayLike<Node>;
   filter?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => boolean;
   map?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => any;
 };
@@ -136,7 +137,7 @@ export class ChildrenDefinition {
     public readonly callback: string,
     public readonly property: string,
     public readonly options?: MutationObserverInit,
-    public readonly query?: (projector: IElementProjector) => ArrayLike<Node>,
+    public readonly query?: (projector: ElementProjector) => ArrayLike<Node>,
     public readonly filter?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => boolean,
     public readonly map?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => any,
   ) {}
@@ -224,7 +225,7 @@ export class ChildrenObserver {
   }
 }
 
-function defaultChildQuery(projector: IElementProjector): ArrayLike<INode> {
+function defaultChildQuery(projector: ElementProjector): ArrayLike<INode> {
   return projector.children;
 }
 
@@ -240,7 +241,7 @@ const forOpts = { optional: true } as const;
 
 /** @internal */
 export function filterChildren(
-  projector: IElementProjector,
+  projector: ElementProjector,
   query: typeof defaultChildQuery,
   filter: typeof defaultChildFilter,
   map: typeof defaultChildMap

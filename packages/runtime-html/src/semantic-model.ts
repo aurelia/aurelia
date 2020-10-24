@@ -1,7 +1,7 @@
 import { AnyBindingExpression, Interpolation } from '@aurelia/runtime';
 import { AttrSyntax } from './attribute-parser';
 import { BindingCommandInstance } from './binding-command';
-import { IDOM } from './dom';
+import { IPlatform } from './platform';
 import { AttrInfo, BindableInfo, ElementInfo } from './resource-model';
 
 export const enum SymbolFlags {
@@ -24,10 +24,10 @@ export const enum SymbolFlags {
   hasProjections       = 0b100000_0000000000,
 }
 
-function createMarker(dom: IDOM): HTMLElement {
-  const marker = dom.createElement('au-m');
-  dom.makeTarget(marker);
-  return marker as HTMLElement;
+function createMarker(p: IPlatform): HTMLElement {
+  const marker = p.document.createElement('au-m');
+  marker.className = 'au';
+  return marker;
 }
 
 export type AnySymbol = (
@@ -107,12 +107,12 @@ export class TemplateControllerSymbol {
   }
 
   public constructor(
-    dom: IDOM,
+    p: IPlatform,
     public syntax: AttrSyntax,
     public info: AttrInfo,
     public res: string = info.name,
   ) {
-    this.marker = createMarker(dom);
+    this.marker = createMarker(p);
   }
 }
 
@@ -240,7 +240,7 @@ export class CustomElementSymbol {
   }
 
   public constructor(
-    dom: IDOM,
+    p: IPlatform,
     public physicalNode: HTMLElement,
     public info: ElementInfo,
     public res: string = info.name,
@@ -248,7 +248,7 @@ export class CustomElementSymbol {
   ) {
     if (info.containerless) {
       this.isContainerless = true;
-      this.marker = createMarker(dom);
+      this.marker = createMarker(p);
       this.flags |= SymbolFlags.hasMarker;
     } else {
       this.isContainerless = false;
@@ -271,9 +271,9 @@ export class LetElementSymbol {
   }
 
   public constructor(
-    dom: IDOM,
+    p: IPlatform,
     public physicalNode: HTMLElement,
-    public marker: HTMLElement = createMarker(dom),
+    public marker: HTMLElement = createMarker(p),
   ) {}
 }
 
@@ -317,7 +317,6 @@ export class PlainElementSymbol {
   }
 
   public constructor(
-    dom: IDOM,
     public physicalNode: HTMLElement,
   ) {}
 }
@@ -329,9 +328,9 @@ export class TextSymbol {
   public flags: SymbolFlags = SymbolFlags.isText | SymbolFlags.hasMarker;
 
   public constructor(
-    dom: IDOM,
+    p: IPlatform,
     public physicalNode: Text,
     public interpolation: Interpolation,
-    public marker: HTMLElement = createMarker(dom),
+    public marker: HTMLElement = createMarker(p),
   ) {}
 }

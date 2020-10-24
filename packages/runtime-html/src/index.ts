@@ -246,7 +246,6 @@ export {
   IAurelia,
 } from './aurelia';
 export {
-  IDOMInitializer,
   ISinglePageApp,
   AppRoot,
   IAppRoot,
@@ -437,8 +436,6 @@ export {
   CustomElementType,
   CustomElementDefinition,
   PartialCustomElementDefinition,
-  IElementProjector,
-  IProjectorLocator,
   useShadowDOM
 } from './resources/custom-element';
 
@@ -455,9 +452,7 @@ export {
 } from './resources/value-converters/view';
 
 export {
-  IComposerRegistration,
   ITemplateCompilerRegistration,
-  IProjectorLocatorRegistration,
   ITargetAccessorLocatorRegistration,
   ITargetObserverLocatorRegistration,
 
@@ -568,6 +563,7 @@ export {
 } from './templating/composition-context';
 export {
   ViewFactory,
+  IViewFactory,
   IViewLocator,
   ViewLocator,
   view,
@@ -580,16 +576,16 @@ export {
 export {
   INode,
   IRenderLocation,
-  IDOM,
   INodeSequence,
-  INodeSequenceFactory,
   NodeType,
-  HTMLDOM,
-  DOM,
   FragmentNodeSequence,
   IHistory,
   IWindow,
   ILocation,
+  getEffectiveParentNode,
+  setEffectiveParentNode,
+  convertToRenderLocation,
+  isRenderLocation,
 } from './dom';
 export {
   CallBindingInstruction,
@@ -637,8 +633,6 @@ export {
   IHydratedParentController,
   ICompiledCustomElementController,
   ICustomElementController,
-  IViewCache,
-  IViewFactory,
   MountStrategy,
   ICustomElementViewModel,
   ICustomAttributeViewModel,
@@ -652,8 +646,10 @@ export {
 export {
   ContainerlessProjector,
   HostProjector,
-  HTMLProjectorLocator,
-  ShadowDOMProjector
+  ProjectorLocator,
+  IProjectorLocator,
+  ShadowDOMProjector,
+  ElementProjector,
 } from './projectors';
 
 export {

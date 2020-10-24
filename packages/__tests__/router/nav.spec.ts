@@ -4,7 +4,7 @@ import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testin
 
 describe('Nav', function () {
   async function createFixture(component) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
 
     const App = CustomElement.define({ name: 'app', template: `<template><au-viewport name="app" used-by="${component}" default="${component}"></au-viewport></template>` });

@@ -7,11 +7,9 @@ import {
 } from '@aurelia/runtime-html';
 import {
   assert,
-  HTMLTestContext,
+  PLATFORM,
   TestContext,
 } from '@aurelia/testing';
-
-const $ctx = TestContext.createHTMLTestContext();
 
 describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', function () {
   interface IHarmoniousCompilationTestCase {
@@ -19,7 +17,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
     template: string | HTMLElement;
     resources?: any[];
     browserOnly?: boolean;
-    assertFn(ctx: HTMLTestContext, host: HTMLElement, comp: any): void | Promise<void>;
+    assertFn(ctx: TestContext, host: HTMLElement, comp: any): void | Promise<void>;
   }
 
   const testCases: IHarmoniousCompilationTestCase[] = [
@@ -310,13 +308,13 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
 
   testCases.forEach((testCase, idx) => {
     const { title, template, resources = [], browserOnly, assertFn } = testCase;
-    if ($ctx.userAgent.includes('jsdom') && browserOnly) {
+    if (PLATFORM.navigator.userAgent.includes('jsdom') && browserOnly) {
       return;
     }
     it(`\n\t(${idx + 1}). ${title}\n\t`, async function () {
       let host: HTMLElement;
       let body: HTMLElement;
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       try {
         const comp = new (CustomElement.define(
           {
@@ -340,8 +338,8 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         au.dispose();
       } finally {
         host?.remove();
-        await new Promise(r => ctx.dom.window.requestAnimationFrame(r));
-        await new Promise(r => ctx.dom.window.requestAnimationFrame(r));
+        await new Promise(r => ctx.platform.requestAnimationFrame(r));
+        await new Promise(r => ctx.platform.requestAnimationFrame(r));
         body?.focus();
       }
     });

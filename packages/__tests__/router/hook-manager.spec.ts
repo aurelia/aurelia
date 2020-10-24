@@ -6,7 +6,7 @@ describe('HookManager', function () {
   this.timeout(5000);
 
   async function createFixture(config?, App?, dependencies: any[] = [], stateSpy?) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container, scheduler, doc, wnd } = ctx;
 
     let path = wnd.location.href;

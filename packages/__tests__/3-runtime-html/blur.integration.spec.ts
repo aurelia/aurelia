@@ -1,6 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElement, CustomElementHost, Aurelia, Blur, Focus } from '@aurelia/runtime-html';
-import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
+import { assert, eachCartesianJoin, TestContext } from '@aurelia/testing';
 
 describe('blur.integration.spec.ts', function () {
 
@@ -333,7 +333,7 @@ describe('blur.integration.spec.ts', function () {
   }
 
   async function createFixture<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container, lifecycle, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations, Blur, Focus]));
     container.register(...registrations);
@@ -365,7 +365,7 @@ describe('blur.integration.spec.ts', function () {
   }
 
   function mockComposedEvent<T = any>(
-    options: { ctx: HTMLTestContext; eventName: string; bubbles?: boolean; target: HTMLElement; composedPath: Node[] }
+    options: { ctx: TestContext; eventName: string; bubbles?: boolean; target: HTMLElement; composedPath: Node[] }
   ): CustomEvent<T> {
     const { ctx, eventName, target, composedPath, bubbles = true } = options;
     const e = new ctx.CustomEvent<T>(eventName, { bubbles });
@@ -377,7 +377,7 @@ describe('blur.integration.spec.ts', function () {
     return e;
   }
 
-  function dispatchEventWith(ctx: HTMLTestContext, target: EventTarget, name: string, bubbles = true) {
+  function dispatchEventWith(ctx: TestContext, target: EventTarget, name: string, bubbles = true) {
     target.dispatchEvent(new ctx.Event(name, { bubbles }));
   }
 
@@ -385,6 +385,6 @@ describe('blur.integration.spec.ts', function () {
 
   interface AssertionFn<T extends IApp = IApp> {
     // eslint-disable-next-line @typescript-eslint/prefer-function-type
-    (ctx: HTMLTestContext, testHost: HTMLElement, component: T, focusable: HTMLElement): void | Promise<void>;
+    (ctx: TestContext, testHost: HTMLElement, component: T, focusable: HTMLElement): void | Promise<void>;
   }
 });

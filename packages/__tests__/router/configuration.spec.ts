@@ -13,7 +13,7 @@ describe('Configuration', function () {
   }
 
   async function createFixture(config?) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container, lifecycle } = ctx;
 
     const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
@@ -77,7 +77,7 @@ describe('Configuration', function () {
   it('is awaitable at start up', async function () {
     this.timeout(5000);
 
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container } = ctx;
 
     const App = CustomElement.define({ name: 'app', template: '<au-viewport default="foo"></au-viewport>' });

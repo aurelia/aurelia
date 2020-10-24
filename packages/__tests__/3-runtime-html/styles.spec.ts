@@ -5,7 +5,6 @@ import {
   INode,
   CustomAttributeType,
   Controller,
-  ICustomElementViewModel,
   Aurelia,
   AdoptedStyleSheetsStyles,
   CSSModulesProcessorRegistry,
@@ -17,11 +16,11 @@ import {
   ShadowDOMProjector,
   FragmentNodeSequence,
 } from '@aurelia/runtime-html';
-import { assert, TestContext } from '@aurelia/testing';
+import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 
 describe('Styles', function () {
   async function startApp(configure: (au: Aurelia) => void) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const au = new Aurelia(ctx.container);
     configure(au);
     const host = ctx.createElement('div');
@@ -135,7 +134,7 @@ describe('Styles', function () {
       const childContainer = container.createChild();
       const s = childContainer.get(IShadowDOMGlobalStyles);
 
-      if (AdoptedStyleSheetsStyles.supported(ctx.dom)) {
+      if (AdoptedStyleSheetsStyles.supported(ctx.platform)) {
         assert.instanceOf(s, AdoptedStyleSheetsStyles);
         assert.equal(s['styleSheets'].length, 1);
       } else {
@@ -148,21 +147,21 @@ describe('Styles', function () {
     });
 
     it('element styles apply parent styles', function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const root = { prepend() { return; } };
       const fake = {
         wasCalled: false,
         applyTo() { this.wasCalled = true; }
       };
 
-      const s = new StyleElementStyles(ctx.dom, [], fake);
+      const s = new StyleElementStyles(ctx.platform, [], fake);
       s.applyTo(root as any);
 
       assert.equal(fake.wasCalled, true);
     });
 
     it('element styles apply by prepending style elements to shadow root', function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const css = '.my-class { color: red }';
       const root = {
         element: null,
@@ -171,7 +170,7 @@ describe('Styles', function () {
         }
       };
 
-      const s = new StyleElementStyles(ctx.dom, [css], null);
+      const s = new StyleElementStyles(ctx.platform, [css], null);
       s.applyTo(root as any);
 
       assert.equal(root.element.tagName, 'STYLE');
@@ -179,21 +178,21 @@ describe('Styles', function () {
     });
 
     it('adopted styles apply parent styles', function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const root = { adoptedStyleSheets: [] };
       const fake = {
         wasCalled: false,
         applyTo() { this.wasCalled = true; }
       };
 
-      const s = new AdoptedStyleSheetsStyles(ctx.dom, [], new Map(), fake);
+      const s = new AdoptedStyleSheetsStyles(ctx.platform, [], new Map(), fake);
       s.applyTo(root as any);
 
       assert.equal(fake.wasCalled, true);
     });
 
     it.skip('projector applies styles during projection', function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const host = ctx.createElement('foo-bar');
       const FooBar = CustomElement.define(
         {
@@ -206,7 +205,7 @@ describe('Styles', function () {
       context.register(
         Registration.instance(
           IShadowDOMStyles,
-          new StyleElementStyles(ctx.dom, [css], null)
+          new StyleElementStyles(ctx.platform, [css], null)
         )
       );
 
@@ -215,13 +214,12 @@ describe('Styles', function () {
         null,
         ctx.container,
         component,
-        ctx.lifecycle,
         host,
         void 0,
         null,
       );
 
-      const seq = FragmentNodeSequence.empty;
+      const seq = new FragmentNodeSequence(ctx.platform, ctx.doc.createDocumentFragment());
       const projector = controller.projector as ShadowDOMProjector;
 
       projector.project(seq);
@@ -231,31 +229,31 @@ describe('Styles', function () {
       assert.strictEqual(root.firstElementChild.innerHTML, css);
     });
 
-    if (!AdoptedStyleSheetsStyles.supported(TestContext.createHTMLTestContext().dom)) {
+    if (!AdoptedStyleSheetsStyles.supported(PLATFORM)) {
       return;
     }
 
     it('adopted styles apply by setting adopted style sheets on shadow root', function () {
       const css = '.my-class { color: red }';
       const root = { adoptedStyleSheets: [] };
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
 
-      const s = new AdoptedStyleSheetsStyles(ctx.dom, [css], new Map(), null);
+      const s = new AdoptedStyleSheetsStyles(ctx.platform, [css], new Map(), null);
       s.applyTo(root as any);
 
       assert.equal(root.adoptedStyleSheets.length, 1);
-      assert.instanceOf(root.adoptedStyleSheets[0], ctx.dom.CSSStyleSheet);
+      assert.instanceOf(root.adoptedStyleSheets[0], ctx.platform.CSSStyleSheet);
     });
 
     it('adopted styles use cached style sheets', function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const css = '.my-class { color: red }';
       const root = { adoptedStyleSheets: [] };
       const cache = new Map();
-      const sheet = new ctx.dom.CSSStyleSheet();
+      const sheet = new ctx.platform.CSSStyleSheet();
       cache.set(css, sheet);
 
-      const s = new AdoptedStyleSheetsStyles(ctx.dom, [css], cache, null);
+      const s = new AdoptedStyleSheetsStyles(ctx.platform, [css], cache, null);
       s.applyTo(root as any);
 
       assert.equal(root.adoptedStyleSheets.length, 1);
@@ -263,18 +261,18 @@ describe('Styles', function () {
     });
 
     it('adopted styles merge sheets from parent', function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const sharedCSS = '.my-class { color: red }';
       const localCSS = '.something-else { color: blue }';
       const root = { adoptedStyleSheets: [] };
       const cache = new Map();
-      const sharedSheet = new ctx.dom.CSSStyleSheet();
-      const localSheet = new ctx.dom.CSSStyleSheet();
+      const sharedSheet = new ctx.platform.CSSStyleSheet();
+      const localSheet = new ctx.platform.CSSStyleSheet();
       cache.set(sharedCSS, sharedSheet);
       cache.set(localCSS, localSheet);
 
-      const p = new AdoptedStyleSheetsStyles(ctx.dom, [sharedCSS], cache, null);
-      const s = new AdoptedStyleSheetsStyles(ctx.dom, [localCSS], cache, p);
+      const p = new AdoptedStyleSheetsStyles(ctx.platform, [sharedCSS], cache, null);
+      const s = new AdoptedStyleSheetsStyles(ctx.platform, [localCSS], cache, p);
       s.applyTo(root as any);
 
       assert.equal(root.adoptedStyleSheets.length, 2);

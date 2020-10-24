@@ -4,7 +4,7 @@ import { TestContext, assert } from '@aurelia/testing';
 
 describe('Viewport', function () {
   async function createFixture(config?, App?) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container, scheduler, doc, wnd } = ctx;
 
     let path = wnd.location.href;

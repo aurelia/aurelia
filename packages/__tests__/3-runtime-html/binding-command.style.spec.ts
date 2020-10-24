@@ -1,9 +1,7 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElement, IScheduler, Aurelia, IEventDelegator, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
-import { assert, eachCartesianJoin, TestContext } from '@aurelia/testing';
+import { assert, eachCartesianJoin, PLATFORM, TestContext } from '@aurelia/testing';
 import { StyleAttributePattern } from './attribute-pattern';
-
-const $ctx = TestContext.createHTMLTestContext();
 
 // Remove certain defaults/fallbacks which are added by certain browsers to allow the assertion to pass
 function getNormalizedStyle(el: HTMLElement, ruleName: string): string {
@@ -28,7 +26,7 @@ describe('template-compiler.binding-commands.style', function () {
     ['font-family', 'Arial', ''],
     ...(
       // For tests that only work in the browser, only run them in the browser
-      !$ctx.userAgent.includes('jsdom')
+      !PLATFORM.navigator.userAgent.includes('jsdom')
         ? [
           ['-webkit-user-select', 'none', ''],
         ] as [string, string, string][]
@@ -268,7 +266,7 @@ describe('template-compiler.binding-commands.style', function () {
   }
 
   function createFixture<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container, lifecycle, observerLocator, scheduler } = ctx;
     container.register(...registrations);
     const host = ctx.doc.body.appendChild(ctx.createElement('app'));

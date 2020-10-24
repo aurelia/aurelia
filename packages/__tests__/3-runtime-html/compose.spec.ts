@@ -8,7 +8,7 @@ import {
   getCompositionContext,
   Aurelia,
   CompositionPlan,
-  HTMLDOM,
+  IPlatform,
 } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
@@ -21,17 +21,17 @@ const spec = 'compose';
 
 describe(spec, function () {
   function createFixture(): SpecContext {
-    const ctx = TestContext.createHTMLTestContext();
-    const { container, dom, lifecycle, observerLocator } = ctx;
+    const ctx = TestContext.create();
+    const { container, platform, lifecycle, observerLocator } = ctx;
     const au = new Aurelia(container);
-    const host = dom.createElement('div');
+    const host = platform.document.createElement('div');
 
-    return { container, dom, au, host, lifecycle, observerLocator };
+    return { container, platform, au, host, lifecycle, observerLocator };
   }
 
   interface SpecContext {
     container: IContainer;
-    dom: HTMLDOM;
+    platform: IPlatform;
     au: Aurelia;
     host: HTMLElement;
     lifecycle: ILifecycle;
@@ -80,7 +80,7 @@ describe(spec, function () {
     // },
     {
       t: '6',
-      createSubject: ctx => new CompositionPlan(ctx.dom, `<div>Hello!</div>` as any, [], []),
+      createSubject: ctx => new CompositionPlan(`<div>Hello!</div>` as any, [], []),
       expectedText: 'Hello!'
     }
   ];

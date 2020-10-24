@@ -1,6 +1,7 @@
-import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { BrowserPlatform } from '@aurelia/platform-browser';
+import { setPlatform, assert, ensureSchedulerEmpty, setScheduler } from '@aurelia/testing';
+import { createDOMScheduler } from '@aurelia/scheduler-dom';
 import { Scheduler } from '@aurelia/scheduler';
-import { assert, ensureSchedulerEmpty, HTMLTestContext, TestContext } from '@aurelia/testing';
 
 interface ExtendedSuite extends Mocha.Suite {
   $duration?: number;
@@ -13,12 +14,12 @@ function getRootSuite(suite: ExtendedSuite): ExtendedSuite {
   return suite;
 }
 
-export function $setup($window: Window & typeof globalThis) {
-  const ctx = (TestContext.createHTMLTestContext = function () {
-    return HTMLTestContext.create(RuntimeHtmlConfiguration, $window);
-  })();
-  Scheduler.set(globalThis, ctx.scheduler);
-  const platform = ctx.platform;
+export function $setup(platform: BrowserPlatform) {
+  setPlatform(platform);
+  const scheduler = createDOMScheduler(platform);
+  setScheduler(scheduler);
+  Scheduler.set(globalThis, scheduler);
+
   const globalStart = platform.performanceNow();
   let firstTestStart = 0;
 

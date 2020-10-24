@@ -1,7 +1,7 @@
 // This is to test for some intrinsic properties of enhance which is otherwise difficult to test in Data-driven tests parallel to `.app`
 import { Constructable, IContainer } from '@aurelia/kernel';
 import { CustomElement, ICustomElementViewModel, IScheduler, Aurelia } from '@aurelia/runtime-html';
-import { assert, HTMLTestContext, TestContext, eachCartesianJoin } from '@aurelia/testing';
+import { assert, TestContext, eachCartesianJoin } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util';
 
 describe('2-runtime/enhance.spec.ts', function () {
@@ -14,7 +14,7 @@ describe('2-runtime/enhance.spec.ts', function () {
   class EnhanceTestExecutionContext implements TestExecutionContext<any> {
     private _scheduler: IScheduler;
     public constructor(
-      public ctx: HTMLTestContext,
+      public ctx: TestContext,
       public container: IContainer,
       public host: HTMLElement,
       public app: any,
@@ -31,9 +31,9 @@ describe('2-runtime/enhance.spec.ts', function () {
       beforeHydration
     }: Partial<TestSetupContext> = {}
   ) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
 
-    const host = ctx.dom.createElement('div');
+    const host = ctx.doc.createElement('div');
     host.innerHTML = template;
     ctx.doc.body.appendChild(host);
     const child = childIndex !== void 0
@@ -111,14 +111,14 @@ describe('2-runtime/enhance.spec.ts', function () {
         }
 
         private async enhance(host = this.r2) {
-          await new Aurelia(TestContext.createHTMLTestContext().container)
+          await new Aurelia(TestContext.create().container)
             .enhance({ host: host.querySelector('div'), component: { message } })
             .start();
         }
       }
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
 
-      const host = ctx.dom.createElement('div');
+      const host = ctx.doc.createElement('div');
       ctx.doc.body.appendChild(host);
 
       const container = ctx.container;
@@ -133,11 +133,10 @@ describe('2-runtime/enhance.spec.ts', function () {
       au[initialMethod]({ host, component });
       await au.start();
 
-      const scheduler = container.get(IScheduler);
       assert.html.textContent('div', message, 'div', host);
 
       host.querySelector('button').click();
-      scheduler.getPostRenderTaskQueue().flush();
+      ctx.scheduler.getPostRenderTaskQueue().flush();
 
       assert.html.textContent('div:nth-of-type(2)', message, 'div:nth-of-type(2)', host);
 
@@ -193,9 +192,9 @@ describe('2-runtime/enhance.spec.ts', function () {
             }
           }
         }
-        const ctx = TestContext.createHTMLTestContext();
+        const ctx = TestContext.create();
 
-        const host = ctx.dom.createElement('div');
+        const host = ctx.doc.createElement('div');
         ctx.doc.body.appendChild(host);
 
         const container = ctx.container;
@@ -220,9 +219,9 @@ describe('2-runtime/enhance.spec.ts', function () {
   );
 
   it(`respects the hooks in raw object component`, async function () {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
 
-    const host = ctx.dom.createElement('div');
+    const host = ctx.doc.createElement('div');
     host.innerHTML = '<span></span>';
     ctx.doc.body.appendChild(host);
 
@@ -259,9 +258,9 @@ describe('2-runtime/enhance.spec.ts', function () {
   });
 
   it(`enhance is idempotent`, async function () {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
 
-    const host = ctx.dom.createElement('div');
+    const host = ctx.doc.createElement('div');
     host.innerHTML = `<span>\${foo}</span>`;
     ctx.doc.body.appendChild(host);
 

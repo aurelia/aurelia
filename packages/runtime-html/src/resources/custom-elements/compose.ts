@@ -2,10 +2,11 @@ import { Constructable, nextId, emptyArray, onResolve } from '@aurelia/kernel';
 import { BindingMode, LifecycleFlags, bindable } from '@aurelia/runtime';
 import { createElement, CompositionPlan } from '../../create-element';
 import { IInstruction } from '../../definitions';
-import { HTMLDOM, IDOM } from '../../dom';
 import { HydrateElementInstruction, Instruction } from '../../instructions';
-import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView, IViewFactory, MountStrategy } from '../../lifecycle';
+import { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView, MountStrategy } from '../../lifecycle';
+import { IPlatform } from '../../platform';
 import { getCompositionContext } from '../../templating/composition-context';
+import { IViewFactory } from '../../templating/view';
 import { customElement, CustomElementDefinition } from '../custom-element';
 
 export type Subject = IViewFactory | ISyntheticView | CompositionPlan | Constructable | CustomElementDefinition;
@@ -39,7 +40,7 @@ export class Compose implements ICustomElementViewModel {
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
 
   public constructor(
-    @IDOM private readonly dom: HTMLDOM,
+    @IPlatform private readonly p: IPlatform,
     @IInstruction instruction: HydrateElementInstruction,
   ) {
     this.properties = instruction.instructions.reduce(toLookup, {});
@@ -172,7 +173,7 @@ export class Compose implements ICustomElementViewModel {
 
     // Constructable (Custom Element Constructor)
     return createElement(
-      this.dom,
+      this.p,
       subject,
       this.properties,
       this.$controller.projector === void 0

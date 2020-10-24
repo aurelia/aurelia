@@ -48,13 +48,14 @@ import {
   TextBindingInstruction,
 } from './instructions';
 import { InstructionTypeName, IInstruction } from './definitions';
-import { IComposableController, IController, ICustomAttributeViewModel, ICustomElementViewModel, IViewFactory } from './lifecycle';
+import { IComposableController, IController, ICustomAttributeViewModel, ICustomElementViewModel } from './lifecycle';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
 import { getCompositionContext, ICompiledCompositionContext } from './templating/composition-context';
 import { RegisteredProjections } from './resources/custom-elements/au-slot';
 import { CustomAttribute } from './resources/custom-attribute';
-import { HTMLDOM, INode } from './dom';
+import { convertToRenderLocation, INode } from './dom';
 import { Controller } from './templating/controller';
+import { IViewFactory } from './templating/view';
 
 export interface ITemplateCompiler {
   compile(
@@ -65,26 +66,6 @@ export interface ITemplateCompiler {
 }
 
 export const ITemplateCompiler = DI.createInterface<ITemplateCompiler>('ITemplateCompiler').noDefault();
-
-export interface IComposer {
-  compose(
-    flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    controller: IComposableController,
-    targets: ArrayLike<INode>,
-    definition: CustomElementDefinition,
-    host: INode | null | undefined,
-  ): void;
-
-  composeChildren(
-    flags: LifecycleFlags,
-    context: ICompiledCompositionContext,
-    instructions: readonly IInstruction[],
-    controller: IComposableController,
-    target: unknown,
-  ): void ;
-}
-export const IComposer = DI.createInterface<IComposer>('IComposer').noDefault();
 
 export interface IInstructionTypeClassifier<TType extends string = string> {
   instructionType: TType;
@@ -135,12 +116,10 @@ export function instructionComposer<TType extends string>(instructionType: TType
   };
 }
 
-export class Composer implements IComposer {
+export interface IComposer extends Composer {}
+export const IComposer = DI.createInterface<IComposer>('IComposer').withDefault(x => x.singleton(Composer));
+export class Composer {
   private readonly instructionComposers: Record<InstructionTypeName, IInstructionComposer['compose']>;
-
-  public static register(container: IContainer): IResolver<IComposer> {
-    return Registration.singleton(IComposer, this).register(container);
-  }
 
   public constructor(@all(IInstructionComposer) instructionComposers: IInstructionComposer[]) {
     const record: Record<InstructionTypeName, IInstructionComposer['compose']> = this.instructionComposers = {};
@@ -294,12 +273,10 @@ export class CustomElementComposer implements IInstructionComposer {
     const key = CustomElement.keyFrom(instruction.res);
     const component = factory.createComponent<ICustomElementViewModel>(key);
 
-    const lifecycle = context.get(ILifecycle);
     const childController = Controller.forCustomElement(
       /* root                */controller.root,
       /* container           */context,
       /* viewModel           */component,
-      /* lifecycle           */lifecycle,
       /* host                */target,
       /* targetedProjections */context.getProjectionFor(instruction),
       /* flags               */flags,
@@ -342,12 +319,10 @@ export class CustomAttributeComposer implements IInstructionComposer {
     const key = CustomAttribute.keyFrom(instruction.res);
     const component = factory.createComponent<ICustomAttributeViewModel>(key);
 
-    const lifecycle = context.get(ILifecycle);
     const childController = Controller.forCustomAttribute(
       /* root      */controller.root,
       /* container */context,
       /* viewModel */component,
-      /* lifecycle */lifecycle,
       /* host      */target,
       /* flags     */flags,
     );
@@ -379,7 +354,7 @@ export class TemplateControllerComposer implements IInstructionComposer {
   ): void {
 
     const viewFactory = getCompositionContext(instruction.def, context).getViewFactory();
-    const renderLocation = context.dom.convertToRenderLocation(target);
+    const renderLocation = convertToRenderLocation(target);
 
     const componentFactory = context.getComponentFactory(
       /* parentController */controller,
@@ -392,12 +367,10 @@ export class TemplateControllerComposer implements IInstructionComposer {
     const key = CustomAttribute.keyFrom(instruction.res);
     const component = componentFactory.createComponent<ICustomAttributeViewModel>(key);
 
-    const lifecycle = context.get(ILifecycle);
     const childController = Controller.forCustomAttribute(
       /* root      */controller.root,
       /* container */context,
       /* viewModel */component,
-      /* lifecycle */lifecycle,
       /* host      */target,
       /* flags     */flags,
     );
@@ -431,10 +404,10 @@ export class LetElementComposer implements IInstructionComposer {
     flags: LifecycleFlags,
     context: ICompiledCompositionContext,
     controller: IComposableController,
-    target: INode,
+    target: Node & ChildNode,
     instruction: HydrateLetElementInstruction,
   ): void {
-    context.dom.remove(target);
+    target.remove();
     const childInstructions = instruction.instructions;
     const toBindingContext = instruction.toBindingContext;
 
@@ -633,8 +606,8 @@ export class TextBindingComposer implements IInstructionComposer {
     instruction: TextBindingInstruction,
   ): void {
     const next = target.nextSibling;
-    if (context.dom.isMarker(target)) {
-      context.dom.remove(target);
+    if (target.nodeName === 'AU-M') {
+      target.remove();
     }
     const expr = ensureExpression(this.parser, instruction.from, BindingType.Interpolation) as Interpolation;
     const binding = new InterpolationBinding(
@@ -678,7 +651,7 @@ export class ListenerBindingComposer implements IInstructionComposer {
     // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
     const expr = ensureExpression(this.parser, instruction.from, BindingType.IsEventCommand | (instruction.strategy + BindingType.DelegationStrategyDelta));
     const binding = applyBindingBehavior(
-      new Listener(context.dom as HTMLDOM, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, context),
+      new Listener(context.platform, instruction.to, instruction.strategy, expr, target, instruction.preventDefault, this.eventDelegator, context),
       expr,
       context,
     );

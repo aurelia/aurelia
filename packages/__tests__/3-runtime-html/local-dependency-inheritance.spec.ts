@@ -4,7 +4,7 @@ import { assert, TestContext } from '@aurelia/testing';
 
 describe('local dependency inheritance', function () {
   function createFixture() {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const au = new Aurelia(ctx.container);
     const host = ctx.createElement('div');
     return { ctx, au, host };

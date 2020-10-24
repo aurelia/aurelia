@@ -2,8 +2,9 @@ import { nextId, onResolve } from '@aurelia/kernel';
 import { bindable, LifecycleFlags } from '@aurelia/runtime';
 import { IInstruction } from '../../definitions';
 import { INode, IRenderLocation } from '../../dom';
-import { ISyntheticView, IViewFactory, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IComposableController } from '../../lifecycle';
+import { ISyntheticView, MountStrategy, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IComposableController } from '../../lifecycle';
 import { ICompiledCompositionContext } from '../../templating/composition-context';
+import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 
 @templateController('if')

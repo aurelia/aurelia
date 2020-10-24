@@ -3,6 +3,7 @@ import { RuntimeHtmlConfiguration, Aurelia as $Aurelia, IPlatform, IAppRoot, Cus
 import { BrowserPlatform } from '@aurelia/platform-browser';
 
 export const PLATFORM = new BrowserPlatform(window);
+export { IPlatform };
 
 function createContainer(): IContainer {
   return DI.createContainer()
@@ -615,7 +616,6 @@ export {
   // DOM, should expose the one exported in runtime-html
   INode,
   IRenderLocation,
-  IDOM,
   // NodeSequence,
   // INodeSequence,
   // INodeSequenceFactory,
@@ -898,9 +898,6 @@ export {
   // IStylePropertyBindingInstruction,
   // ITextBindingInstruction,
 
-  // NodeType,
-  HTMLDOM,
-  DOM, // on top of DOM in @aurelia/runtime
   // NodeSequenceFactory,
   // FragmentNodeSequence,
 

@@ -10,10 +10,7 @@ import { BrowserPlatform } from '@aurelia/platform-browser';
 import { IScheduler } from '@aurelia/scheduler';
 import { createDOMScheduler } from '@aurelia/scheduler-dom';
 import { AppRoot, IAppRoot, ISinglePageApp } from './app-root';
-import { HTMLDOM, IDOM } from './dom';
 import { IPlatform } from './platform';
-
-type Publisher = { dispatchEvent(evt: unknown, options?: unknown): void };
 
 export interface IAurelia extends Aurelia {}
 export const IAurelia = DI.createInterface<IAurelia>('IAurelia').noDefault();
@@ -58,36 +55,31 @@ export class Aurelia implements IDisposable {
   }
 
   public app(config: ISinglePageApp): Omit<this, 'register' | 'app' | 'enhance'> {
-    this.next = new AppRoot(config, this.initializeDOM(config.host), this.container, this.rootProvider, false);
+    this.next = new AppRoot(config, this.initPlatform(config.host), this.container, this.rootProvider, false);
     return this;
   }
 
   public enhance(config: ISinglePageApp): Omit<this, 'register' | 'app' | 'enhance'> {
-    this.next = new AppRoot(config, this.initializeDOM(config.host), this.container, this.rootProvider, true);
+    this.next = new AppRoot(config, this.initPlatform(config.host), this.container, this.rootProvider, true);
     return this;
   }
 
-  private initializeDOM(host: HTMLElement): IDOM {
-    let dom: HTMLDOM;
-    if (this.container.has(IDOM, false)) {
-      dom = this.container.get(IDOM) as HTMLDOM;
-    } else {
-      dom = new HTMLDOM(host);
-      this.container.register(Registration.instance(IDOM, dom));
-    }
-    if (!this.container.has(IDOM, true)) {
-      const scheduler = createDOMScheduler(this.container, dom.window);
-      this.container.register(Registration.instance(IScheduler, scheduler));
-    }
+  private initPlatform(host: HTMLElement): IPlatform {
+    let p: IPlatform;
     if (!this.container.has(IPlatform, false)) {
       if (host.ownerDocument.defaultView === null) {
         throw new Error(`Failed to initialize the platform object. The host element's ownerDocument does not have a defaultView`);
       }
-      const platform = new BrowserPlatform(host.ownerDocument.defaultView);
-      this.container.register(Registration.instance(IPlatform, platform));
+      p = new BrowserPlatform(host.ownerDocument.defaultView);
+      this.container.register(Registration.instance(IPlatform, p));
+    } else {
+      p = this.container.get(IPlatform);
     }
-    // cast is temporary hack but we're soon getting rid of IDOM anyway
-    return dom as unknown as IDOM;
+    if (!this.container.has(IScheduler, true)) {
+      const scheduler = createDOMScheduler(p);
+      this.container.register(Registration.instance(IScheduler, scheduler));
+    }
+    return p;
   }
 
   private startPromise: Promise<void> | void = void 0;
@@ -109,7 +101,6 @@ export class Aurelia implements IDisposable {
         this._isRunning = true;
         this._isStarting = false;
         this.startPromise = void 0;
-        this.dispatchEvent(root, 'aurelia-composed', root.dom);
         this.dispatchEvent(root, 'au-started', root.host);
       });
     });
@@ -145,8 +136,8 @@ export class Aurelia implements IDisposable {
     this.container.dispose();
   }
 
-  private dispatchEvent(root: IAppRoot, name: string, target: IDOM | (HTMLElement & Partial<Publisher>)): void {
-    const $target = ('dispatchEvent' in target ? target : root.dom) as Publisher;
-    $target.dispatchEvent(root.dom.createCustomEvent(name, { detail: this, bubbles: true, cancelable: true }));
+  private dispatchEvent(root: IAppRoot, name: string, target: HTMLElement): void {
+    const ev = new root.platform.window.CustomEvent(name, { detail: this, bubbles: true, cancelable: true });
+    target.dispatchEvent(ev);
   }
 }

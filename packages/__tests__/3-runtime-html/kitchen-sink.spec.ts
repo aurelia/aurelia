@@ -39,13 +39,13 @@ describe('xml node compiler tests', function () {
   for (const markup of markups) {
     const escaped = markup.replace(/\b/g, '\\b').replace(/\t/g, '\\t').replace(/\n/g, '\\n').replace(/\v/g, '\\v').replace(/\f/g, '\\f').replace(/\r/g, '\\r');
     it.skip(escaped, function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const parser = new ctx.DOMParser();
       const doc = parser.parseFromString(markup, 'application/xml');
       const fakeSurrogate = { firstChild: doc, attributes: [] };
 
       const binder = new TemplateBinder(
-        ctx.dom,
+        ctx.platform,
         new ResourceModel(ctx.container),
         ctx.container.get(IAttributeParser),
         ctx.container.get(IExpressionParser),
@@ -76,7 +76,7 @@ describe('dependency injection', function () {
       null
     );
 
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     ctx.container.register(Foo);
     const au = new Aurelia(ctx.container);
 

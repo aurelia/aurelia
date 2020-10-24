@@ -50,7 +50,6 @@ import {
 import {
   assert,
   eachCartesianJoinFactory,
-  HTMLTestContext,
   TestContext,
   verifyBindingInstructionsEqual,
   generateCartesianProduct,
@@ -64,13 +63,13 @@ export function createAttribute(name: string, value: string): Attr {
 }
 
 describe('template-compiler.spec.ts\n  [TemplateCompiler]', function () {
-  let ctx: HTMLTestContext;
+  let ctx: TestContext;
   let sut: ITemplateCompiler;
   let container: IContainer;
 
   // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
-    ctx = TestContext.createHTMLTestContext();
+    ctx = TestContext.create();
     container = ctx.container;
     sut = ctx.templateCompiler;
     container.registerResolver<string>(CustomAttribute.keyFrom('foo'), { getFactory: () => ({ Type: { description: {} } }) } as any);
@@ -488,7 +487,7 @@ function createTplCtrlAttributeInstruction(attr: string, value: string) {
   }
 }
 
-function createTemplateController(ctx: HTMLTestContext, attr: string, target: string, value: string, tagName: string, finalize: boolean, childInstr?, childTpl?): CTCResult {
+function createTemplateController(ctx: TestContext, attr: string, target: string, value: string, tagName: string, finalize: boolean, childInstr?, childTpl?): CTCResult {
   // multiple template controllers per element
   if (tagName == null) {
     const node = ctx.createElementFromMarkup(childTpl);
@@ -575,7 +574,7 @@ function createTemplateController(ctx: HTMLTestContext, attr: string, target: st
 }
 
 function createCustomElement(
-  ctx: HTMLTestContext,
+  ctx: TestContext,
   tagName: string,
   finalize: boolean,
   attributes: readonly [string, string][],
@@ -614,7 +613,7 @@ function createCustomElement(
 }
 
 function createCustomAttribute(
-  ctx: HTMLTestContext,
+  ctx: TestContext,
   resName: string,
   finalize: boolean,
   attributes: readonly [string, string][],
@@ -715,7 +714,7 @@ type CTCResult = [PartialCustomElementDefinition, PartialCustomElementDefinition
 type Bindables = { [pdName: string]: BindableDefinition };
 
 describe(`TemplateCompiler - combinations`, function () {
-  function createFixture(ctx: HTMLTestContext, ...globals: any[]) {
+  function createFixture(ctx: TestContext, ...globals: any[]) {
     const container = ctx.container;
     container.register(...globals);
     const sut = ctx.templateCompiler;
@@ -725,17 +724,17 @@ describe(`TemplateCompiler - combinations`, function () {
   describe('plain attributes', function () {
     eachCartesianJoinFactory([
       [
-        TestContext.createHTMLTestContext
+        TestContext.create
       ],
       [
         (ctx) => ['div']
-      ] as ((ctx: HTMLTestContext) => [string])[],
+      ] as ((ctx: TestContext) => [string])[],
       [
         (ctx) => ['foo', 'foo', 'bar'],
         (ctx) => ['foo.bar', 'foo', 'bar'],
         (ctx) => ['foo.bind', 'foo', 'bar'],
         (ctx) => ['value', 'value', 'value']
-      ] as ((ctx: HTMLTestContext, $1: [string]) => [string, string, string])[],
+      ] as ((ctx: TestContext, $1: [string]) => [string, string, string])[],
       [
         (ctx, $1, [, , value]) => [`ref`,                     value, { type: TT.refBinding,       from: new AccessScopeExpression(value), to: 'element' }],
         (ctx, $1, [attr, to, value]) => [`${attr}.bind`,      value, { type: TT.propertyBinding,  from: new AccessScopeExpression(value), to, mode: BindingMode.toView,   oneTime: false }],
@@ -747,7 +746,7 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, $1, [attr, to, value]) => [`${attr}.delegate`,  value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, strategy: DelegationStrategy.bubbling,  preventDefault: false }],
         (ctx, $1, [attr, to, value]) => [`${attr}.capture`,   value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, strategy: DelegationStrategy.capturing, preventDefault: false }],
         (ctx, $1, [attr, to, value]) => [`${attr}.call`,      value, { type: TT.callBinding,      from: new AccessScopeExpression(value), to }]
-      ] as ((ctx: HTMLTestContext, $1: [string], $2: [string, string, string]) => [string, string, any])[]
+      ] as ((ctx: TestContext, $1: [string], $2: [string, string, string]) => [string, string, any])[]
     ],                       (ctx, [el], $2, [n1, v1, i1]) => {
       const markup = `<${el} ${n1}="${v1}"></${el}>`;
 
@@ -779,7 +778,7 @@ describe(`TemplateCompiler - combinations`, function () {
   describe('custom attributes', function () {
     eachCartesianJoinFactory([
       [
-        TestContext.createHTMLTestContext
+        TestContext.create
       ],
       // PartialCustomAttributeDefinition.bindables
       [
@@ -789,13 +788,13 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.fromView }), BindingMode.fromView, 'bazBaz'],
         (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.twoWay }), BindingMode.twoWay, 'bazBaz'],
         (ctx) => [BindableDefinition.create('asdf', { attribute: 'bazBaz', property: 'bazBaz', mode: BindingMode.default }), BindingMode.default, 'bazBaz']
-      ] as ((ctx: HTMLTestContext) => [Record<string, BindableDefinition> | undefined, BindingMode | undefined, string])[],
+      ] as ((ctx: TestContext) => [Record<string, BindableDefinition> | undefined, BindingMode | undefined, string])[],
       [
         (ctx) => ['foo',     '', class Foo {}],
         (ctx) => ['foo-foo', '', class FooFoo {}],
         (ctx) => ['foo',     'bar', class Foo {}],
         (ctx) => ['foo-foo', 'bar', class Foo {}]
-      ] as ((ctx: HTMLTestContext) => [string, string, Constructable])[],
+      ] as ((ctx: TestContext) => [string, string, Constructable])[],
       // PartialCustomAttributeDefinition.defaultBindingMode
       [
         (ctx) => undefined,
@@ -803,7 +802,7 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx) => BindingMode.toView,
         (ctx) => BindingMode.fromView,
         (ctx) => BindingMode.twoWay
-      ] as ((ctx: HTMLTestContext) => BindingMode | undefined)[],
+      ] as ((ctx: TestContext) => BindingMode | undefined)[],
       [
         (ctx, [, , to], [attr, value]) => [`${attr}`,           { type: TT.setProperty, to, value }],
         (ctx, [, mode, to], [attr, value], defaultMode) => [`${attr}.bind`,      { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
@@ -811,7 +810,7 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, [, , to],      [attr, value]) => [`${attr}.one-time`,  { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.oneTime }],
         (ctx, [, , to],      [attr, value]) => [`${attr}.from-view`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.fromView }],
         (ctx, [, , to],      [attr, value]) => [`${attr}.two-way`,   { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.twoWay }]
-      ] as ((ctx: HTMLTestContext, $1: [Record<string, BindableDefinition>, BindingMode, string], $2: [string, string, Constructable], $3: BindingMode) => [string, any])[]
+      ] as ((ctx: TestContext, $1: [Record<string, BindableDefinition>, BindingMode, string], $2: [string, string, Constructable], $3: BindingMode) => [string, any])[]
     ],                       (ctx, [bindables], [attr, value, ctor], defaultBindingMode, [name, childInstruction]) => {
       if (childInstruction.mode !== undefined) {
         childInstruction.oneTime = childInstruction.mode === BindingMode.oneTime;
@@ -854,23 +853,23 @@ describe(`TemplateCompiler - combinations`, function () {
 
     eachCartesianJoinFactory([
       [
-        TestContext.createHTMLTestContext
+        TestContext.create
       ],
       [
         (ctx) => 'foo',
         (ctx) => 'bar42'
-      ] as ((ctx: HTMLTestContext) => string)[],
+      ] as ((ctx: TestContext) => string)[],
       [
         (ctx, pdName) => pdName,
         (ctx, pdName) => `${pdName}Bar` // descriptor.property is different from the actual property name
-      ] as ((ctx: HTMLTestContext, $1: string) => string)[],
+      ] as ((ctx: TestContext, $1: string) => string)[],
       [
         (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.default  }) }),
         (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.oneTime  }) }),
         (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.toView   }) }),
         (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.fromView }) }),
         (ctx, pdName, pdProp) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: kebabCase(pdProp), mode: BindingMode.twoWay   }) })
-      ] as ((ctx: HTMLTestContext, $1: string, $2: string) => Bindables)[],
+      ] as ((ctx: TestContext, $1: string, $2: string) => Bindables)[],
       [
         (ctx) => [``,           `''`],
         (ctx) => [``,           `\${a}`],
@@ -879,13 +878,13 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx) => [`.to-view`,   `''`],
         (ctx) => [`.from-view`, `''`],
         (ctx) => [`.two-way`,   `''`]
-      ] as ((ctx: HTMLTestContext) => [string, string])[],
+      ] as ((ctx: TestContext) => [string, string])[],
       [
         (ctx, pdName, pdProp, bindables, [cmd]) => [bindables[pdName], `${pdProp}${cmd}`],
         (ctx, pdName, pdProp, bindables, [cmd]) => [bindables[pdName], `${pdProp}.qux${cmd}`],
         (ctx, pdName, pdProp, bindables, [cmd]) => [null,              `${pdProp}Qux${cmd}`]
         // TODO: test fallback to attribute name when no matching binding exists (or throw if we don't want to support this)
-      ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: Bindables, $4: [string, string]) => [BindableDefinition, string])[]
+      ] as ((ctx: TestContext, $1: string, $2: string, $3: Bindables, $4: [string, string]) => [BindableDefinition, string])[]
     ],                       (ctx, pdName, pdProp, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
       it(`div - pdName=${pdName}  pdProp=${pdProp}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
 
@@ -930,7 +929,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
     eachCartesianJoinFactory([
       [
-        TestContext.createHTMLTestContext
+        TestContext.create
       ],
       [
         (ctx) => createTemplateController(ctx, 'foo',        'foo',    '',              'div',      false),
@@ -939,7 +938,7 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx) => createTemplateController(ctx, 'if.bind',    'if',     'show',          'template', false),
         (ctx) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div',      false),
         (ctx) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', false)
-      ] as ((ctx: HTMLTestContext) => CTCResult)[],
+      ] as ((ctx: TestContext) => CTCResult)[],
       [
         (ctx, [input, output]) => createTemplateController(ctx, 'foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.template),
         (ctx, [input, output]) => createTemplateController(ctx, 'foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.template),
@@ -949,21 +948,21 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.template),
         (ctx, [input, output]) => createTemplateController(ctx, 'with.bind',  'with',   'foo',           'div',      false, output.instructions[0][0], input.template),
         (ctx, [input, output]) => createTemplateController(ctx, 'with.bind',  'with',   'foo',           'template', false, output.instructions[0][0], input.template)
-      ] as ((ctx: HTMLTestContext, $1: CTCResult) => CTCResult)[],
+      ] as ((ctx: TestContext, $1: CTCResult) => CTCResult)[],
       [
         (ctx, $1, [input, output]) => createTemplateController(ctx, 'foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.template),
         (ctx, $1, [input, output]) => createTemplateController(ctx, 'foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.template),
         (ctx, $1, [input, output]) => createTemplateController(ctx, 'foo',        'foo',    'bar',           'template', false, output.instructions[0][0], input.template),
         (ctx, $1, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.template),
         (ctx, $1, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.template)
-      ] as ((ctx: HTMLTestContext, $1: CTCResult, $2: CTCResult) => CTCResult)[],
+      ] as ((ctx: TestContext, $1: CTCResult, $2: CTCResult) => CTCResult)[],
       [
         (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'bar',        'bar',    '',              'div',      true, output.instructions[0][0], input.template),
         (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'bar',        'bar',    'baz',           'div',      true, output.instructions[0][0], input.template),
         (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'bar',        'bar',    'baz',           'template', true, output.instructions[0][0], input.template),
         (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div',      true, output.instructions[0][0], input.template),
         (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', true, output.instructions[0][0], input.template)
-      ] as ((ctx: HTMLTestContext, $1: CTCResult, $2: CTCResult, $3: CTCResult) => CTCResult)[]
+      ] as ((ctx: TestContext, $1: CTCResult, $2: CTCResult, $3: CTCResult) => CTCResult)[]
     ],                       (ctx, $1, $2, $3, [input, output]) => {
 
       it(`${input.template}`, function () {
@@ -992,7 +991,7 @@ describe(`TemplateCompiler - combinations`, function () {
 
     eachCartesianJoinFactory([
       [
-        TestContext.createHTMLTestContext
+        TestContext.create
       ],
       [
         (ctx) => createTemplateController(ctx, 'foo',        'foo',    '',              'div',      false),
@@ -1001,12 +1000,12 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx) => createTemplateController(ctx, 'if.bind',    'if',     'show',          'template', false),
         (ctx) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div',      false),
         (ctx) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', false)
-      ] as ((ctx: HTMLTestContext) => CTCResult)[],
+      ] as ((ctx: TestContext) => CTCResult)[],
       [
         (ctx, [input, output]) => createTemplateController(ctx, 'bar',        'bar',    '',              null,       false, output.instructions[0][0], input.template),
         (ctx, [input, output]) => createTemplateController(ctx, 'else',       'else',   '',              null,       false, output.instructions[0][0], input.template),
         (ctx, [input, output]) => createTemplateController(ctx, 'with.bind',  'with',   'foo',           null,       false, output.instructions[0][0], input.template)
-      ] as ((ctx: HTMLTestContext, $1: CTCResult) => CTCResult)[],
+      ] as ((ctx: TestContext, $1: CTCResult) => CTCResult)[],
       [
         (ctx, $1, [input, output]) => createTemplateController(ctx, 'foo',        'foo',    '',              'div',      false, output.instructions[0][0], input.template),
         (ctx, $1, [input, output]) => createTemplateController(ctx, 'foo',        'foo',    'bar',           'div',      false, output.instructions[0][0], input.template),
@@ -1014,17 +1013,17 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, $1, [input, output]) => createTemplateController(ctx, 'baz',        'baz',    '',              null,       false, output.instructions[0][0], input.template),
         (ctx, $1, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.template),
         (ctx, $1, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.template)
-      ] as ((ctx: HTMLTestContext, $1: CTCResult, $2: CTCResult) => CTCResult)[],
+      ] as ((ctx: TestContext, $1: CTCResult, $2: CTCResult) => CTCResult)[],
       [
         (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'qux',        'qux',    '',              null,       false, output.instructions[0][0], input.template),
         (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'if.bind',    'if',     '',              'template', false, output.instructions[0][0], input.template),
         (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'if.bind',    'if',     '',              'div',      false, output.instructions[0][0], input.template),
         (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div',      false, output.instructions[0][0], input.template),
         (ctx, $1, $2, [input, output]) => createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', false, output.instructions[0][0], input.template)
-      ] as ((ctx: HTMLTestContext, $1: CTCResult, $2: CTCResult, $3: CTCResult) => CTCResult)[],
+      ] as ((ctx: TestContext, $1: CTCResult, $2: CTCResult, $3: CTCResult) => CTCResult)[],
       [
         (ctx, $1, $2, $3, [input, output]) => createTemplateController(ctx, 'quux',       'quux',   '',              null,       true, output.instructions[0][0], input.template)
-      ] as ((ctx: HTMLTestContext, $1: CTCResult, $2: CTCResult, $3: CTCResult, $4: CTCResult) => CTCResult)[]
+      ] as ((ctx: TestContext, $1: CTCResult, $2: CTCResult, $3: CTCResult, $4: CTCResult) => CTCResult)[]
     ],                       (ctx, $1, $2, $3, $4, [input, output]) => {
 
       it(`${input.template}`, function () {
@@ -1054,18 +1053,18 @@ describe(`TemplateCompiler - combinations`, function () {
 
     eachCartesianJoinFactory([
       [
-        TestContext.createHTMLTestContext
+        TestContext.create
       ],
       [
         (ctx) => []
-      ] as ((ctx: HTMLTestContext) => CTCResult[])[],
+      ] as ((ctx: TestContext) => CTCResult[])[],
       [
         (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'foo',        'foo',    '',              'div', false)); },
         (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'foo',        'foo',    '',              'template', false)); },
         (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'foo',        'foo',    'bar',           'div', false)); },
         (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'if.bind',    'if',     'show',          'div', false)); },
         (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div', false)); }
-      ] as ((ctx: HTMLTestContext, results: CTCResult[]) => void)[],
+      ] as ((ctx: TestContext, results: CTCResult[]) => void)[],
       [
         (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'foo',        'foo',    '',              'div', false)); },
         (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'foo',        'foo',    'bar',           'div', false)); },
@@ -1075,13 +1074,13 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div', false)); },
         (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', false)); },
         (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'with.bind',  'with',   'bar',           'div', false)); }
-      ] as ((ctx: HTMLTestContext, results: CTCResult[]) => void)[],
+      ] as ((ctx: TestContext, results: CTCResult[]) => void)[],
       [
         (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'foo',        'foo',    '',              'div', false)); },
         (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'foo',        'foo',    'bar',           'div', false)); },
         (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'div', false)); },
         (ctx, results: CTCResult[]) => { results.push(createTemplateController(ctx, 'repeat.for', 'repeat', 'item of items', 'template', false)); }
-      ] as ((ctx: HTMLTestContext, results: CTCResult[]) => void)[]
+      ] as ((ctx: TestContext, results: CTCResult[]) => void)[]
     ],                       (ctx, [[input1, output1], [input2, output2], [input3, output3]]) => {
       const input: PartialCustomElementDefinition = {
         template: `<div>${input1.template}${input2.template}${input3.template}</div>`,
@@ -1124,27 +1123,27 @@ describe(`TemplateCompiler - combinations`, function () {
   describe('attributes on custom elements', function () {
     eachCartesianJoinFactory([
       [
-        TestContext.createHTMLTestContext
+        TestContext.create
       ],
       [
         (ctx) => 'foo',
         (ctx) => 'bar42'
-      ] as ((ctx: HTMLTestContext) => string)[],
+      ] as ((ctx: TestContext) => string)[],
       [
         (ctx, pdName) => pdName,
         (ctx, pdName) => `${pdName}Bar` // descriptor.property is different from the actual property name
-      ] as ((ctx: HTMLTestContext, $1: string) => string)[],
+      ] as ((ctx: TestContext, $1: string) => string)[],
       [
         (ctx, pdName, pdProp) => kebabCase(pdProp),
         (ctx, pdName, pdProp) => `${kebabCase(pdProp)}-baz` // descriptor.attribute is different from kebab-cased descriptor.property
-      ] as ((ctx: HTMLTestContext, $1: string, $2: string) => string)[],
+      ] as ((ctx: TestContext, $1: string, $2: string) => string)[],
       [
         (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.default  }) }),
         (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.oneTime  }) }),
         (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.toView   }) }),
         (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.fromView }) }),
         (ctx, pdName, pdProp, pdAttr) => ({ [pdName]: BindableDefinition.create(pdName, { property: pdProp, attribute: pdAttr, mode: BindingMode.twoWay   }) })
-      ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: string) => Bindables)[],
+      ] as ((ctx: TestContext, $1: string, $2: string, $3: string) => Bindables)[],
       [
         (ctx) => [``,           `''`],
         (ctx) => [``,           `\${a}`],
@@ -1153,15 +1152,15 @@ describe(`TemplateCompiler - combinations`, function () {
         (ctx) => [`.to-view`,   `''`],
         (ctx) => [`.from-view`, `''`],
         (ctx) => [`.two-way`,   `''`]
-      ] as ((ctx: HTMLTestContext) => [string, string])[],
+      ] as ((ctx: TestContext) => [string, string])[],
       [
         (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}${cmd}`],
         (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [bindables[pdName], `${pdAttr}.qux${cmd}`],
         (ctx, pdName, pdProp, pdAttr, bindables, [cmd]) => [null,              `${pdAttr}-qux${cmd}`]
-      ] as ((ctx: HTMLTestContext, $1: string, $2: string, $3: string, $4: Bindables, $5: [string, string]) => [BindableDefinition, string])[],
+      ] as ((ctx: TestContext, $1: string, $2: string, $3: string, $4: Bindables, $5: [string, string]) => [BindableDefinition, string])[],
       [
         (ctx) => `''`
-      ] as ((ctx: HTMLTestContext) => string)[]
+      ] as ((ctx: TestContext) => string)[]
     ],                       (ctx, pdName, pdProp, pdAttr, bindables, [cmd, attrValue], [bindableDescription, attrName]) => {
       it(`customElement - pdName=${pdName}  pdProp=${pdProp}  pdAttr=${pdAttr}  cmd=${cmd}  attrName=${attrName}  attrValue="${attrValue}"`, function () {
 
@@ -1208,13 +1207,13 @@ describe(`TemplateCompiler - combinations`, function () {
   describe('custom elements', function () {
     eachCartesianJoinFactory([
       [
-        TestContext.createHTMLTestContext
+        TestContext.create
       ],
       [
         (ctx) => createCustomElement(ctx, `foo`, true, [], [], [], []),
         (ctx) => createCustomElement(ctx, `bar`, true, [], [], [], []),
         (ctx) => createCustomElement(ctx, `baz`, true, [], [], [], [])
-      ] as ((ctx: HTMLTestContext) => CTCResult)[]
+      ] as ((ctx: TestContext) => CTCResult)[]
       // <(($1: CTCResult) => CTCResult)[]>[
       //   ([input, output]) => createCustomElement(`foo`, false, [], [], [], output.instructions, output, input),
       //   ([input, output]) => createCustomElement(`bar`, false, [], [], [], output.instructions, output, input),
@@ -1261,7 +1260,7 @@ describe('TemplateCompiler - local templates', function () {
     }
   }
   function createFixture() {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
     container.register(LoggerConfiguration.create({ sinks: [EventLog] }));
     const sut = ctx.templateCompiler;
@@ -1376,7 +1375,7 @@ describe('TemplateCompiler - local templates', function () {
     if (template.includes(`mode="fromView"`)) { continue; }
     it(`${template} - content`, async function () {
       const { ctx, container } = createFixture();
-      const host = ctx.dom.createElement('div');
+      const host = ctx.doc.createElement('div');
       ctx.doc.body.appendChild(host);
       const au = new Aurelia(container)
         .app({ host, component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) });
@@ -1401,7 +1400,7 @@ describe('TemplateCompiler - local templates', function () {
     const expectedContent = "awesome possum";
 
     const { ctx, container } = createFixture();
-    const host = ctx.dom.createElement('div');
+    const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container)
       .app({ host, component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) });
@@ -1424,7 +1423,7 @@ describe('TemplateCompiler - local templates', function () {
     const expectedContent = "0 1 2 3 4";
 
     const { ctx, container } = createFixture();
-    const host = ctx.dom.createElement('div');
+    const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container)
       .app({ host, component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) });
@@ -1460,7 +1459,7 @@ describe('TemplateCompiler - local templates', function () {
     const expectedContent = "Level Two foo2 Level One inter-dimensional portal Level One foo2 Level One foo1";
 
     const { ctx, container } = createFixture();
-    const host = ctx.dom.createElement('div');
+    const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container)
       .register(LevelOne, LevelTwo)
@@ -1497,7 +1496,7 @@ describe('TemplateCompiler - local templates', function () {
     const expectedContent = "4 3 2 1";
 
     const { ctx, container } = createFixture();
-    const host = ctx.dom.createElement('div');
+    const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container)
       .app({ host, component: CustomElement.define({ name: 'lorem-ipsum', template }, class { }) });
@@ -1613,7 +1612,7 @@ describe('TemplateCompiler - local templates', function () {
 
 describe('TemplateCompiler - au-slot', function () {
   function createFixture() {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
     const sut = ctx.templateCompiler;
     return { ctx, container, sut };

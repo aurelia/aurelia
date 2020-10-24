@@ -8,13 +8,14 @@ import {
   onResolve,
   resolveAll
 } from '@aurelia/kernel';
-import { BindingStrategy, ILifecycle, LifecycleFlags } from '@aurelia/runtime';
-import { IDOM, INode } from './dom';
+import { BindingStrategy, LifecycleFlags } from '@aurelia/runtime';
+import { INode } from './dom';
 import { ICustomElementViewModel, ICustomElementController } from './lifecycle';
 import { IAppTask, TaskSlot } from './app-task';
 import { CustomElement, CustomElementDefinition } from './resources/custom-element';
 import { Controller } from './templating/controller';
 import { HooksDefinition } from './definitions';
+import { IPlatform } from './platform';
 
 export interface ISinglePageApp {
   strategy?: BindingStrategy;
@@ -33,11 +34,10 @@ export class AppRoot implements IDisposable {
   private hydratePromise: Promise<void> | void = void 0;
   private readonly enhanceDefinition: CustomElementDefinition | undefined;
   private readonly strategy: BindingStrategy;
-  private readonly lifecycle: ILifecycle;
 
   public constructor(
     public readonly config: ISinglePageApp,
-    public readonly dom: IDOM,
+    public readonly platform: IPlatform,
     public readonly container: IContainer,
     rootProvider: InstanceProvider<IAppRoot>,
     enhance: boolean = false,
@@ -49,7 +49,6 @@ export class AppRoot implements IDisposable {
     }
     this.container.register(Registration.instance(INode, config.host));
     this.strategy = config.strategy ?? BindingStrategy.getterSetter;
-    this.lifecycle = this.container.get(ILifecycle);
 
     if (enhance) {
       const component = config.component as Constructable | ICustomElementViewModel;
@@ -69,7 +68,6 @@ export class AppRoot implements IDisposable {
         this,
         container,
         instance,
-        this.lifecycle,
         this.host,
         null,
         this.strategy as number,
@@ -119,10 +117,4 @@ export class AppRoot implements IDisposable {
   public dispose(): void {
     this.controller?.dispose();
   }
-}
-
-export const IDOMInitializer = DI.createInterface<IDOMInitializer>('IDOMInitializer').noDefault();
-
-export interface IDOMInitializer {
-  initialize(config?: ISinglePageApp): IDOM;
 }

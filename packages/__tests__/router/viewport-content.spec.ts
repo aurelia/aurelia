@@ -13,7 +13,7 @@ describe('ViewportContent', function () {
     this.timeout(5000);
 
     function $setup(dependencies: any[] = []) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const container = ctx.container;
       const router = container.get(IRouter);
       return { container, router };

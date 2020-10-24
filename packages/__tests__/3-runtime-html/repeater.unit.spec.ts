@@ -5,24 +5,29 @@ import {
   BindingIdentifier,
   BindingStrategy,
   ForOfStatement,
-  ILifecycle,
   Scope,
   LifecycleFlags,
   ProxyObserver,
   Repeat,
   ViewFactory,
   Controller,
-  IScheduler,
   CustomElementDefinition,
   getCompositionContext,
   IComposableController,
-  ToViewBindingInstruction,
+  IRenderLocation,
+  ITargetAccessorLocatorRegistration,
+  ITargetObserverLocatorRegistration,
+  PropertyBindingComposerRegistration,
+  TextBindingComposerRegistration,
+  TextBindingInstruction,
+  Interpolation,
 } from '@aurelia/runtime-html';
 import {
-  AuDOMConfiguration,
-  AuNode,
   eachCartesianJoin,
   assert,
+  PLATFORM,
+  SCHEDULER,
+  createContainer,
 } from '@aurelia/testing';
 import { Writable } from '@aurelia/kernel';
 
@@ -527,6 +532,19 @@ describe(`Repeat`, function () {
     { t: '2', activateFlags1: bind,            deactivateFlags1: unbind,            activateFlags2: bind,            deactivateFlags2: unbind,            },
   ];
 
+  const container = createContainer().register(
+    ITargetAccessorLocatorRegistration,
+    ITargetObserverLocatorRegistration,
+    PropertyBindingComposerRegistration,
+    TextBindingComposerRegistration,
+  );
+
+  const marker = PLATFORM.document.createElement('au-m');
+  marker.className = 'au';
+  const text = PLATFORM.document.createTextNode('');
+  const textTemplate = PLATFORM.document.createElement('template');
+  textTemplate.content.append(marker, text);
+
   eachCartesianJoin(
     [strategySpecs, duplicateOperationSpecs, bindSpecs, flagsSpecs],
     (strategySpec, duplicateOperationSpec, bindSpec, flagsSpec) => {
@@ -540,20 +558,19 @@ describe(`Repeat`, function () {
         // common stuff
         const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
         const proxies = (strategy & BindingStrategy.proxies) > 0;
-        const container = AuDOMConfiguration.createContainer();
-        const lifecycle = container.get(ILifecycle);
-        const scheduler = container.get(IScheduler);
 
-        const location = AuNode.createRenderLocation();
-        const host = AuNode.createHost().appendChild(location.$start).appendChild(location);
+        const host = PLATFORM.document.createElement('div');
+        const loc = PLATFORM.document.createComment('au-end') as IRenderLocation;
+        loc.$start = PLATFORM.document.createComment('au-start');
+        host.append(loc.$start, loc);
 
         const itemContext = getCompositionContext(
           CustomElementDefinition.create({
             name: void 0,
-            template: AuNode.createText().makeTarget(),
+            template: textTemplate.content.cloneNode(true),
             instructions: [
               [
-                new ToViewBindingInstruction(new AccessScopeExpression('item'), 'textContent'),
+                new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression('item')])),
               ],
             ],
             needsCompile: false,
@@ -561,7 +578,7 @@ describe(`Repeat`, function () {
           container,
         );
 
-        const itemFactory = new ViewFactory(`item-view`, itemContext, lifecycle, void 0, null);
+        const itemFactory = new ViewFactory(`item-view`, itemContext, void 0, null);
 
         const binding: PropertyBinding = {
           target: null,
@@ -573,12 +590,12 @@ describe(`Repeat`, function () {
         } as any;
         let sut: Repeat;
         if (proxies) {
-          const raw = new Repeat(location, composable, itemFactory);
+          const raw = new Repeat(loc, composable, itemFactory);
           sut = new ProxyObserver(raw).proxy;
-          (raw as Writable<Repeat>).$controller = Controller.forCustomAttribute(null, container, sut, lifecycle, (void 0)!);
+          (raw as Writable<Repeat>).$controller = Controller.forCustomAttribute(null, container, sut, (void 0)!);
         } else {
-          sut = new Repeat(location, composable, itemFactory);
-          (sut as Writable<Repeat>).$controller = Controller.forCustomAttribute(null, container, sut, lifecycle, (void 0)!);
+          sut = new Repeat(loc, composable, itemFactory);
+          (sut as Writable<Repeat>).$controller = Controller.forCustomAttribute(null, container, sut, (void 0)!);
         }
         binding.target = sut as any;
 
@@ -600,7 +617,7 @@ describe(`Repeat`, function () {
         const expectedText2 = sut.items ? sut.items.join('') : '';
 
         if (flush) {
-          scheduler.getRenderTaskQueue().flush();
+          SCHEDULER.getRenderTaskQueue().flush();
 
           assert.strictEqual(host.textContent, expectedText2, 'host.textContent #3');
         } else {
@@ -636,7 +653,7 @@ describe(`Repeat`, function () {
         const expectedText4 = sut.items ? sut.items.join('') : '';
 
         if (flush) {
-          scheduler.getRenderTaskQueue().flush();
+          SCHEDULER.getRenderTaskQueue().flush();
 
           assert.strictEqual(host.textContent, expectedText4, 'host.textContent #9');
         } else {

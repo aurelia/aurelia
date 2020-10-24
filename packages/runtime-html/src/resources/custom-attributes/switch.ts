@@ -24,13 +24,13 @@ import {
   IHydratedParentController,
   IComposableController,
   ISyntheticView,
-  IViewFactory,
   MountStrategy,
 } from '../../lifecycle';
 import { templateController } from '../custom-attribute';
 import { Controller } from '../../templating/controller';
 import { ICompiledCompositionContext } from '../../templating/composition-context';
 import { IInstruction } from '../../definitions';
+import { IViewFactory } from '../../templating/view';
 
 @templateController('switch')
 export class Switch implements ICustomAttributeViewModel {

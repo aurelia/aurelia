@@ -4,7 +4,7 @@ import { assert, TestContext } from '@aurelia/testing';
 
 describe('signaler.integration', function () {
   it('1 non-observed input and 2 observed inputs - toView', async function () {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const tq = ctx.scheduler.getRenderTaskQueue();
 
     ctx.container.register(LoggerConfiguration.create({ $console: console, level: LogLevel.warn }));
@@ -81,7 +81,7 @@ describe('signaler.integration', function () {
       `& signal:'updateItem' & oneTime`,
     ]) {
       it(expr, async function () {
-        const ctx = TestContext.createHTMLTestContext();
+        const ctx = TestContext.create();
         const tq = ctx.scheduler.getRenderTaskQueue();
 
         ctx.container.register(LoggerConfiguration.create({ $console: console, level: LogLevel.warn }));

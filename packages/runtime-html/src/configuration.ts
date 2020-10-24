@@ -49,11 +49,9 @@ import {
   TextBindingComposer,
   SetClassAttributeComposer,
   SetStyleAttributeComposer,
-  Composer,
 } from './composer';
 import { TargetAccessorLocator, TargetObserverLocator } from './observation/observer-locator';
 import { SVGAnalyzer } from './observation/svg-analyzer';
-import { HTMLProjectorLocator } from './projectors';
 import { AttrBindingBehavior } from './resources/binding-behaviors/attr';
 import { SelfBindingBehavior } from './resources/binding-behaviors/self';
 import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger';
@@ -70,25 +68,19 @@ import { AuSlot } from './resources/custom-elements/au-slot';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
 
-export const IComposerRegistration = Composer as IRegistry;
 export const ITemplateCompilerRegistration = TemplateCompiler as IRegistry;
-export const IProjectorLocatorRegistration = HTMLProjectorLocator as IRegistry;
 export const ITargetAccessorLocatorRegistration = TargetAccessorLocator as IRegistry;
 export const ITargetObserverLocatorRegistration = TargetObserverLocator as IRegistry;
 
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
  * - `ITemplateCompiler`
- * - `ITemplateElementFactory`
- * - `IProjectorLocator`
+ * - `IComposer`
  * - `ITargetAccessorLocator`
  * - `ITargetObserverLocator`
- * - `ITemplateFactory`
  */
 export const DefaultComponents = [
-  IComposerRegistration,
   ITemplateCompilerRegistration,
-  IProjectorLocatorRegistration,
   ITargetAccessorLocatorRegistration,
   ITargetObserverLocatorRegistration,
 ];

@@ -300,8 +300,8 @@ describe('has-multi-bindings.unit.spec.ts', function () {
     const markup = `<div attr="${attrValue}"></div>`;
 
     it(markup, function () {
-      const ctx = TestContext.createHTMLTestContext();
-      const { dom, container } = ctx;
+      const ctx = TestContext.create();
+      const { platform, container } = ctx;
 
       container.register(CustomAttribute.define({ name: 'attr', bindables: ['a', 'b', 'c'] }, class {}));
 
@@ -312,9 +312,9 @@ describe('has-multi-bindings.unit.spec.ts', function () {
       const transformer = container.get(IAttrSyntaxTransformer);
       const factory = container.get(ITemplateElementFactory);
 
-      const sut = new TemplateBinder(dom, resources, attrParser, exprParser, transformer);
+      const sut = new TemplateBinder(platform, resources, attrParser, exprParser, transformer);
 
-      const template = factory.createTemplate(markup) as HTMLTemplateElement;
+      const template = factory.createTemplate(markup);
       const manifestRoot = sut.bind(template);
       const div = manifestRoot.childNodes[0] as PlainElementSymbol;
 

@@ -10,7 +10,7 @@ import {
   SetterObserver,
   IScheduler
 } from '@aurelia/runtime';
-import { HTMLDOM, IDOM } from '../dom';
+import { IPlatform } from '../platform';
 import { AttributeNSAccessor } from './attribute-ns-accessor';
 import { CheckedObserver, IInputElement } from './checked-observer';
 import { ClassAttributeAccessor } from './class-attribute-accessor';
@@ -78,7 +78,7 @@ const overrideProps = Object.assign(
 
 export class TargetObserverLocator implements ITargetObserverLocator {
   public constructor(
-    @IDOM private readonly dom: HTMLDOM,
+    @IPlatform private readonly platform: IPlatform,
     @ISVGAnalyzer private readonly svgAnalyzer: ISVGAnalyzer,
   ) {}
 
@@ -99,7 +99,7 @@ export class TargetObserverLocator implements ITargetObserverLocator {
         return new CheckedObserver(scheduler, flags, lifecycle, new EventSubscriber(inputEvents), obj as IInputElement);
       case 'value':
         if ((obj as Element).tagName === 'SELECT') {
-          return new SelectValueObserver(scheduler, flags, observerLocator, this.dom, new EventSubscriber(selectEvents), obj as ISelectElement);
+          return new SelectValueObserver(scheduler, flags, observerLocator, this.platform, new EventSubscriber(selectEvents), obj as ISelectElement);
         }
         return new ValueAttributeObserver(scheduler, flags, new EventSubscriber(inputEvents), obj as Node & IIndexable, propertyName);
       case 'files':
@@ -140,13 +140,13 @@ export class TargetObserverLocator implements ITargetObserverLocator {
   // and a new implementation of ITargetObserverLocator should be used instead
   // This default implementation only accounts for the most common target scenarios
   public handles(flags: LifecycleFlags, obj: unknown): boolean {
-    return this.dom.isNodeInstance(obj);
+    return obj instanceof this.platform.Node;
   }
 }
 
 export class TargetAccessorLocator implements ITargetAccessorLocator {
   public constructor(
-    @IDOM private readonly dom: IDOM,
+    @IPlatform private readonly platform: IPlatform,
     @ISVGAnalyzer private readonly svgAnalyzer: ISVGAnalyzer,
   ) {}
 
@@ -190,7 +190,7 @@ export class TargetAccessorLocator implements ITargetAccessorLocator {
   }
 
   public handles(flags: LifecycleFlags, obj: Node): boolean {
-    return this.dom.isNodeInstance(obj);
+    return obj instanceof this.platform.Node;
   }
 }
 

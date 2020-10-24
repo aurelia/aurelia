@@ -58,12 +58,12 @@ export class Platform<TGlobal extends GlobalThisOrWindowOrWorkerGlobalScope = Gl
 
     this.Reflect = 'Reflect' in overrides ? overrides.Reflect! : g.Reflect;
 
-    this.clearInterval = 'clearInterval' in overrides ? overrides.clearInterval! : g.clearInterval;
-    this.clearTimeout = 'clearTimeout' in overrides ? overrides.clearTimeout! : g.clearTimeout;
-    this.fetch = 'fetch' in overrides ? overrides.fetch! : g.fetch;
-    this.queueMicrotask = 'queueMicrotask' in overrides ? overrides.queueMicrotask! : g.queueMicrotask;
-    this.setInterval = 'setInterval' in overrides ? overrides.setInterval! : g.setInterval;
-    this.setTimeout = 'setTimeout' in overrides ? overrides.setTimeout! : g.setTimeout;
+    this.clearInterval = 'clearInterval' in overrides ? overrides.clearInterval! : g.clearInterval.bind(g);
+    this.clearTimeout = 'clearTimeout' in overrides ? overrides.clearTimeout! : g.clearTimeout.bind(g);
+    this.fetch = 'fetch' in overrides ? overrides.fetch! : g.fetch.bind(g);
+    this.queueMicrotask = 'queueMicrotask' in overrides ? overrides.queueMicrotask! : g.queueMicrotask.bind(g);
+    this.setInterval = 'setInterval' in overrides ? overrides.setInterval! : g.setInterval.bind(g);
+    this.setTimeout = 'setTimeout' in overrides ? overrides.setTimeout! : g.setTimeout.bind(g);
     this.console = 'console' in overrides ? overrides.console! : g.console;
 
     this.performanceNow = 'performanceNow' in overrides ? overrides.performanceNow! : g.performance.now.bind(g.performance);

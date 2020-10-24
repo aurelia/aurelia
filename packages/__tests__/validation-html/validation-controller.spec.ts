@@ -74,9 +74,9 @@ describe('validation controller factory', function () {
   async function runTest(
     testFunction: TestFunction<TestExecutionContext<VcRoot>>,
   ) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
-    const host = ctx.dom.createElement('div');
+    const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container);
     await au
@@ -199,9 +199,9 @@ describe('validation-controller', function () {
     testFunction: TestFunction<TestExecutionContext<App>>,
     { template = '' }: Partial<TestSetupContext> = {}
   ) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
-    const host = ctx.dom.createElement('app');
+    const host = ctx.doc.createElement('app');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container);
     await au

@@ -1,12 +1,12 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
-import { HTMLTestContext, TestContext } from './html-test-context';
+import { TestContext } from './test-context';
 
 export function createFixture<T>(template: string | Node,
   $class?: Constructable<T>,
   registrations: any[] = [],
   autoStart: boolean = true,
-  ctx: HTMLTestContext = TestContext.createHTMLTestContext(),
+  ctx: TestContext = TestContext.create(),
 ) {
   const { container, lifecycle, scheduler, observerLocator } = ctx;
   container.register(...registrations);

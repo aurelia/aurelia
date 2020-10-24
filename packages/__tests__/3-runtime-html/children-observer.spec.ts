@@ -128,7 +128,7 @@ describe('ChildrenObserver', function () {
   }
 
   function createAppAndStart(childrenOptions?: PartialChildrenDefinition) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container } = ctx;
 
     const HostElement = defineAndRegisterElementWithChildren(container, childrenOptions);

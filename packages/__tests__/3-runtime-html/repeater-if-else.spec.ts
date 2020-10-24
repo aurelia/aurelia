@@ -538,7 +538,7 @@ describe(spec, function () {
         const { count } = countSpec;
         const { execute } = mutationSpec;
 
-        const ctx = TestContext.createHTMLTestContext();
+        const ctx = TestContext.create();
         const { container } = ctx;
 
         const initialItems = createItems();

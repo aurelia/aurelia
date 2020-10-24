@@ -12,7 +12,7 @@ import {
   TranslationBindInstructionType,
   TranslationInstructionType,
 } from '@aurelia/i18n';
-import { Constructable, DI } from '@aurelia/kernel';
+import { Constructable } from '@aurelia/kernel';
 import {
   AnyBindingExpression,
   BindingType,
@@ -32,9 +32,8 @@ import {
   PlainAttributeSymbol,
   CallBindingInstruction,
   AttrBindingCommand,
-  DOM,
 } from '@aurelia/runtime-html';
-import { assert } from '@aurelia/testing';
+import { assert, PLATFORM, createContainer } from '@aurelia/testing';
 
 describe('TranslationAttributePattern', function () {
   function createFixture(aliases: string[] = ['t']) {
@@ -43,7 +42,7 @@ describe('TranslationAttributePattern', function () {
       patterns.push({ pattern, symbols: '' });
       TranslationAttributePattern.registerAlias(pattern);
     }
-    const container = DI.createContainer().register(AttributePattern.define(patterns, TranslationAttributePattern));
+    const container = createContainer().register(AttributePattern.define(patterns, TranslationAttributePattern));
     return container.get(IAttributePattern);
   }
 
@@ -78,7 +77,7 @@ describe('TranslationAttributePattern', function () {
 describe('TranslationBindingCommand', function () {
   function createFixture(aliases?: string[]) {
     aliases = aliases || [];
-    const container = DI.createContainer().register(
+    const container = createContainer().register(
       BindingCommand.define({name: 't', aliases}, TranslationBindingCommand)
     );
     if (!aliases.includes('t')) {
@@ -123,9 +122,7 @@ describe('TranslationBindingCommand', function () {
 describe('TranslationBindingComposer', function () {
 
   function createFixture() {
-    const container = DI.createContainer();
-    container.register(RuntimeHtmlConfiguration, I18nConfiguration);
-    return container;
+    return createContainer(RuntimeHtmlConfiguration, I18nConfiguration);
   }
 
   it('instantiated with instruction type', function () {
@@ -146,7 +143,7 @@ describe('TranslationBindingComposer', function () {
       LifecycleFlags.none,
       container as unknown as ICompiledCompositionContext,
       controller,
-      DOM.createElement('span'),
+      PLATFORM.document.createElement('span'),
       callBindingInstruction,
     );
 
@@ -157,7 +154,7 @@ describe('TranslationBindingComposer', function () {
     const container = createFixture();
     const sut: IInstructionComposer = new TranslationBindingComposer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     const expressionParser = container.get(IExpressionParser);
-    const targetElement = DOM.createElement('span');
+    const targetElement = PLATFORM.document.createElement('span');
     const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container);
     const controller = ({ bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IComposableController);
 
@@ -182,7 +179,7 @@ describe('TranslationBindAttributePattern', function () {
       patterns.push({ pattern: `${pattern}.bind`, symbols: '.' });
       TranslationBindAttributePattern.registerAlias(pattern);
     }
-    const container = DI.createContainer().register(
+    const container = createContainer().register(
       AttributePattern.define(patterns, TranslationBindAttributePattern)
     );
     return container.get(IAttributePattern);
@@ -224,7 +221,7 @@ describe('TranslationBindBindingCommand', function () {
   function createFixture(aliases?: string[]) {
     aliases = aliases || [];
     aliases = aliases.map(alias => `${alias}.bind`);
-    const container = DI.createContainer().register(
+    const container = createContainer().register(
       BindingCommand.define({name: 't.bind', aliases}, TranslationBindBindingCommand)
     );
     if (!aliases.includes('t.bind')) {
@@ -268,7 +265,7 @@ describe('TranslationBindBindingCommand', function () {
 describe('TranslationBindBindingComposer', function () {
 
   function createFixture() {
-    const container = DI.createContainer();
+    const container = createContainer();
     container.register(RuntimeHtmlConfiguration, I18nConfiguration);
     return container;
   }
@@ -291,7 +288,7 @@ describe('TranslationBindBindingComposer', function () {
       LifecycleFlags.none,
       container as unknown as ICompiledCompositionContext,
       controller,
-      DOM.createElement('span'),
+      PLATFORM.document.createElement('span'),
       callBindingInstruction,
     );
 
@@ -310,7 +307,7 @@ describe('TranslationBindBindingComposer', function () {
       LifecycleFlags.none,
       container as unknown as ICompiledCompositionContext,
       controller,
-      DOM.createElement('span'),
+      PLATFORM.document.createElement('span'),
       callBindingInstruction,
     );
 
@@ -321,7 +318,7 @@ describe('TranslationBindBindingComposer', function () {
     const container = createFixture();
     const sut: IInstructionComposer = new TranslationBindBindingComposer(container.get(IExpressionParser), {} as unknown as IObserverLocator);
     const expressionParser = container.get(IExpressionParser);
-    const targetElement = DOM.createElement('span');
+    const targetElement = PLATFORM.document.createElement('span');
     const binding = new TranslationBinding(targetElement, {} as unknown as IObserverLocator, container);
     const controller = ({ bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IComposableController);
 

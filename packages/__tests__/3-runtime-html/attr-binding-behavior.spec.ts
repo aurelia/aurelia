@@ -11,7 +11,7 @@ describe('AttrBindingBehavior', function () {
 
   // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     target = ctx.createElement('div');
     targetProperty = 'foo';
     sut = new AttrBindingBehavior();

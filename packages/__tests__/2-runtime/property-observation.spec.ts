@@ -68,7 +68,7 @@ class Foo {}
 
 describe('SetterObserver', function () {
   function createFixture(flags: LF, obj: IIndexable, key: string) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const sut = new SetterObserver(flags, obj, key);
 
     return { ctx, sut };
@@ -173,7 +173,7 @@ describe('SetterObserver', function () {
 
 describe('BindableObserver', function () {
   function createFixture(flags: LF, obj: IIndexable, key: string) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const lifecycle = ctx.lifecycle;
     const sut = new BindableObserver(lifecycle, flags, obj, key, `${key ? key.toString() : `${key}`}Changed`, noop);
 

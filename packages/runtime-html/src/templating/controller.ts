@@ -29,7 +29,6 @@ import {
   IViewModel,
   ViewModelKind,
   MountStrategy,
-  IViewFactory,
   ISyntheticView,
   ICustomAttributeController,
   ICustomElementController,
@@ -43,17 +42,15 @@ import {
   stringifyState,
   ControllerVisitor,
 } from '../lifecycle';
-import {
-  IElementProjector,
-  IProjectorLocator,
-  CustomElementDefinition,
-  CustomElement,
-} from '../resources/custom-element';
+import { CustomElementDefinition, CustomElement, CustomElementHost } from '../resources/custom-element';
 import { CustomAttributeDefinition, CustomAttribute } from '../resources/custom-attribute';
 import { ICompositionContext, getCompositionContext, CompositionContext } from './composition-context';
 import { ChildrenObserver } from './children';
 import { RegisteredProjections } from '../resources/custom-elements/au-slot';
 import { IAppRoot } from '../app-root';
+import { ElementProjector, IProjectorLocator } from '../projectors';
+import { IPlatform } from '../platform';
+import { IViewFactory } from './view';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -83,7 +80,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public scope: Scope | undefined = void 0;
   public hostScope: Scope | null = null;
-  public projector: IElementProjector | undefined = void 0;
+  public projector: ElementProjector | undefined = void 0;
 
   public nodes: INodeSequence | undefined = void 0;
   public context: CompositionContext | undefined = void 0;
@@ -115,12 +112,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   private debug: boolean = false;
   private fullyNamed: boolean = false;
 
+  public readonly platform: IPlatform;
+  public readonly lifecycle: ILifecycle;
+
   public constructor(
     public root: IAppRoot | null,
     public container: IContainer,
     public readonly vmKind: ViewModelKind,
     public flags: LifecycleFlags,
-    public readonly lifecycle: ILifecycle,
     public readonly definition: CustomElementDefinition | CustomAttributeDefinition | undefined,
     public hooks: HooksDefinition,
     /**
@@ -143,6 +142,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     if (root === null && container.has(IAppRoot, true)) {
       this.root = container.get<IAppRoot>(IAppRoot);
     }
+    this.platform = container.get(IPlatform);
+    this.lifecycle = container.get(ILifecycle);
   }
 
   public static getCached<C extends ICustomElementViewModel = ICustomElementViewModel>(viewModel: C): ICustomElementController<C> | undefined {
@@ -161,7 +162,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     root: IAppRoot | null,
     container: IContainer,
     viewModel: C,
-    lifecycle: ILifecycle,
     host: Node,
     // projections *targeted* for this custom element. these are not the projections *provided* by this custom element.
     targetedProjections: RegisteredProjections | null,
@@ -182,7 +182,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* container      */container,
       /* vmKind         */ViewModelKind.customElement,
       /* flags          */flags,
-      /* lifecycle      */lifecycle,
       /* definition     */definition,
       /* hooks          */definition.hooks,
       /* viewFactory    */void 0,
@@ -204,7 +203,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     root: IAppRoot | null,
     container: IContainer,
     viewModel: C,
-    lifecycle: ILifecycle,
     host: Node,
     flags: LifecycleFlags = LifecycleFlags.none,
   ): ICustomAttributeController<C> {
@@ -220,7 +218,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* container      */container,
       /* vmKind         */ViewModelKind.customAttribute,
       /* flags          */flags,
-      /* lifecycle      */lifecycle,
       /* definition     */definition,
       /* hooks          */definition.hooks,
       /* viewFactory    */void 0,
@@ -240,7 +237,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     root: IAppRoot | null,
     context: ICompositionContext,
     viewFactory: IViewFactory,
-    lifecycle: ILifecycle,
     flags: LifecycleFlags = LifecycleFlags.none,
     parentController: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined = void 0,
   ): ISyntheticView {
@@ -249,7 +245,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* container      */context,
       /* vmKind         */ViewModelKind.synthetic,
       /* flags          */flags,
-      /* lifecycle      */lifecycle,
       /* definition     */void 0,
       /* hooks          */HooksDefinition.none,
       /* viewFactory    */viewFactory,
@@ -341,9 +336,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     const projectorLocator = this.context!.get<IProjectorLocator>(IProjectorLocator);
     this.projector = projectorLocator.getElementProjector(
-      this.context!.dom,
       this as ICustomElementController,
-      this.host!,
+      this.host as CustomElementHost<HTMLElement>,
       compiledDefinition,
     );
 

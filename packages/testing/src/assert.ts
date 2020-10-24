@@ -57,9 +57,9 @@ import {
   CustomElement,
   CustomAttribute,
   TaskQueuePriority,
-  DOM
 } from '@aurelia/runtime-html';
 import { ensureSchedulerEmpty } from './scheduler';
+import { PLATFORM } from './test-context';
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-explicit-any */
 
@@ -679,7 +679,7 @@ export function isCustomAttributeType(actual: any, message?: string): void {
   }
 }
 
-function getNode(elementOrSelector: string | Node, root: Node = DOM.document) {
+function getNode(elementOrSelector: string | Node, root: Node = PLATFORM.document) {
   return typeof elementOrSelector === "string"
     ? (root as Element).querySelector(elementOrSelector)
     : elementOrSelector;
@@ -733,7 +733,7 @@ function isInnerHtmlEqual(elementOrSelector: string | Node, expected: string, me
 
 type styleMatch = { isMatch: true } | { isMatch: false; property: string; actual: string; expected: string };
 function matchStyle(element: Node, expectedStyles: Record<string, string>): styleMatch {
-  const styles = DOM.window.getComputedStyle(element as Element);
+  const styles = PLATFORM.window.getComputedStyle(element as Element);
   for (const [property, expected] of Object.entries(expectedStyles)) {
     const actual: string = styles[property as any];
     if (actual !== expected) {
@@ -833,7 +833,7 @@ const isSchedulerEmpty = (function () {
 
   return function $isSchedulerEmpty(clearBeforeThrow?: any) {
     // Please don't do this anywhere else. We need to get rid of this / improve this at some point, not make it worse.
-    // Also for this to work, a HTMLTestContext needs to have been created somewhere, so we can't just call this e.g. in kernel and certain runtime tests that don't use
+    // Also for this to work, a TestContext needs to have been created somewhere, so we can't just call this e.g. in kernel and certain runtime tests that don't use
     // the full test context.
     const scheduler = Scheduler.get(globalThis)!;
 

@@ -19,7 +19,7 @@ import {
   valueConverter,
   Aurelia,
 } from '@aurelia/runtime-html';
-import { assert, createSpy, HTMLTestContext, ISpy, TestContext } from '@aurelia/testing';
+import { assert, createSpy, ISpy, TestContext } from '@aurelia/testing';
 import { IValidationRules, PropertyRule, RangeRule, RequiredRule } from '@aurelia/validation';
 import {
   BindingWithBehavior,
@@ -280,9 +280,9 @@ describe('validate-binding-behavior', function () {
     testFunction: TestFunction<TestExecutionContext<App>>,
     { template, customDefaultTrigger, observeCollection }: TestSetupContext
   ) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
-    const host = ctx.dom.createElement('app');
+    const host = ctx.doc.createElement('app');
     ctx.doc.body.appendChild(host);
     // let app: App;
     const au = new Aurelia(container);
@@ -331,7 +331,7 @@ describe('validate-binding-behavior', function () {
     assert.equal(binding.sourceExpression.expression.toString(), rawExpression);
   }
 
-  async function assertEventHandler(target: HTMLElement, event: 'change' | 'blur' | 'focusout', callCount: number, scheduler: IScheduler, validateBindingSpy: ISpy, validateSpy: ISpy, ctx: HTMLTestContext) {
+  async function assertEventHandler(target: HTMLElement, event: 'change' | 'blur' | 'focusout', callCount: number, scheduler: IScheduler, validateBindingSpy: ISpy, validateSpy: ISpy, ctx: TestContext) {
     validateBindingSpy.calls.splice(0);
     validateSpy.calls.splice(0);
     target.dispatchEvent(new ctx.Event(event, { bubbles: event === 'focusout' }));
@@ -682,9 +682,9 @@ describe('validate-binding-behavior', function () {
   ];
   for (const { args, expectedError } of negativeTestData) {
     it(`throws error if the arguments are not provided in correct order - ${args}`, async function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const container = ctx.container;
-      const host = ctx.dom.createElement('app');
+      const host = ctx.doc.createElement('app');
       const template = `<input id="target2" type="text" value.two-way="person.age & validate:${args}">`;
       ctx.doc.body.appendChild(host);
       const au = new Aurelia(container);
@@ -1349,9 +1349,9 @@ describe('validate-binding-behavior', function () {
   ];
   for (const { text, template } of negativeTestData1) {
     it(`cannot be used with ${text}`, async function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const container = ctx.container;
-      const host = ctx.dom.createElement('app');
+      const host = ctx.doc.createElement('app');
       ctx.doc.body.appendChild(host);
       const au = new Aurelia(container).register(ValidationHtmlConfiguration);
 
@@ -1410,9 +1410,9 @@ describe('validate-binding-behavior', function () {
       }
     }
 
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
-    const host = ctx.dom.createElement('app');
+    const host = ctx.doc.createElement('app');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container).register(ValidationHtmlConfiguration);
 

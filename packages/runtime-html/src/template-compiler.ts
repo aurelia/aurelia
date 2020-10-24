@@ -54,7 +54,7 @@ import { IInstruction } from './definitions';
 import { AuSlotContentType, IProjections, ProjectionContext, RegisteredProjections, SlotInfo } from './resources/custom-elements/au-slot';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from './resources/custom-element';
 import { ITemplateCompiler } from './composer';
-import { IDOM } from './dom';
+import { IPlatform } from './platform';
 
 class CustomElementCompilationUnit {
   public readonly instructions: IInstruction[][] = [];
@@ -113,7 +113,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     @IExpressionParser private readonly exprParser: IExpressionParser,
     @IAttrSyntaxTransformer private readonly attrSyntaxModifier: IAttrSyntaxTransformer,
     @ILogger logger: ILogger,
-    @IDOM private readonly dom: IDOM,
+    @IPlatform private readonly p: IPlatform,
   ) {
     this.logger = logger.scopeTo('TemplateCompiler');
   }
@@ -135,14 +135,14 @@ export class TemplateCompiler implements ITemplateCompiler {
     const resources = ResourceModel.getOrCreate(context);
     const { attrParser, exprParser, attrSyntaxModifier, factory } = this;
 
-    const dom = context.get(IDOM);
-    const binder = new TemplateBinder(dom, resources, attrParser, exprParser, attrSyntaxModifier);
+    const p = context.get(IPlatform);
+    const binder = new TemplateBinder(p, resources, attrParser, exprParser, attrSyntaxModifier);
 
     const template = definition.enhance === true
       ? definition.template as HTMLElement
-      : factory.createTemplate(definition.template as string | Node);
+      : factory.createTemplate(definition.template);
 
-    processLocalTemplates(template, definition, context, dom, this.logger);
+    processLocalTemplates(template, definition, context, p, this.logger);
 
     const surrogate = binder.bind(template);
 
@@ -417,7 +417,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
     if ((symbol.flags & SymbolFlags.hasProjections) === 0) { return null; }
 
-    const dom = this.dom;
+    const p = this.p;
     const projections: IProjections = Object.create(null);
     const $projections = symbol.projections;
     const len = $projections.length;
@@ -434,14 +434,14 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (definition === void 0) {
         let template = projection.template!.physicalNode!;
         if (template.tagName !== 'TEMPLATE') {
-          const _template = dom.createTemplate() as HTMLTemplateElement;
-          dom.appendChild(_template.content, template);
+          const _template = p.document.createElement('template');
+          _template.content.appendChild(template);
           template = _template;
         }
         projections[name] = CustomElementDefinition.create({ name, template, instructions, needsCompile: false });
       } else {
         // consolidate the projections to same slot
-        dom.appendChild((definition.template as HTMLTemplateElement).content, projection.template!.physicalNode!);
+        (definition.template as HTMLTemplateElement).content.appendChild(projection.template!.physicalNode!);
         (definition.instructions as IInstruction[][]).push(...instructions);
       }
     }
@@ -455,7 +455,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   ): CustomElementDefinition {
     const instructions: IInstruction[][] = [];
     this.compileChildNodes(symbol, instructions, projections, targetedProjections);
-    const template = this.dom.createTemplate() as HTMLTemplateElement;
+    const template = this.p.document.createElement('template');
     template.content.append(...toArray(symbol.physicalNode.childNodes));
     return CustomElementDefinition.create({ name: CustomElement.generateName(), template, instructions, needsCompile: false });
   }
@@ -494,7 +494,7 @@ function processLocalTemplates(
   template: HTMLElement,
   definition: CustomElementDefinition,
   context: IContainer,
-  dom: IDOM,
+  p: IPlatform,
   logger: ILogger,
 ) {
   let root: HTMLElement | DocumentFragment;
@@ -558,7 +558,7 @@ function processLocalTemplates(
       content.removeChild(bindableEl);
     }
 
-    const div = dom.createElement('div') as HTMLDivElement;
+    const div = p.document.createElement('div');
     div.appendChild(content);
     const localTemplateDefinition = CustomElement.define({ name, template: div.innerHTML }, localTemplateType);
     // the casting is needed here as the dependencies are typed as readonly array

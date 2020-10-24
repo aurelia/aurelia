@@ -1,12 +1,5 @@
-import {
-  DI,
-  emptyArray,
-  IContainer,
-  IResolver,
-  Registration,
-  Writable
-} from '@aurelia/kernel';
-import { IScheduler } from '@aurelia/scheduler';
+import { DI, Writable } from '@aurelia/kernel';
+import { IPlatform } from './platform';
 import { ShadowDOMProjector } from './projectors';
 import { CustomElement } from './resources/custom-element';
 
@@ -24,6 +17,7 @@ export interface IRenderLocation<T extends Node = Node> extends Node {
  * Represents a DocumentFragment
  */
 export interface INodeSequence<T extends INode = INode> {
+  readonly platform: IPlatform;
   readonly isMounted: boolean;
   readonly isLinked: boolean;
 
@@ -65,144 +59,6 @@ export interface INodeSequence<T extends INode = INode> {
   link(next: INodeSequence<T> | IRenderLocation<T> | undefined): void;
 }
 
-export const IDOM = DI.createInterface<IDOM>('IDOM').noDefault();
-
-export interface IDOM<T extends INode = INode> {
-  appendChild(parent: T, child: T): void;
-  cloneNode<TClone extends T>(node: TClone, deep?: boolean): TClone;
-  convertToRenderLocation(node: T): IRenderLocation<T>;
-  createDocumentFragment(markupOrNode?: string | T): T;
-  createNodeSequence(fragment: T | null, cloneNode?: boolean): INodeSequence<T>;
-  createElement(name: string): T;
-  createCustomEvent(eventType: string, options?: unknown): unknown;
-  dispatchEvent(evt: unknown): void;
-  createTemplate(markup?: string): T;
-  createTextNode(text: string): T;
-  /**
-   * Returns the effective parentNode according to Aurelia's component hierarchy.
-   *
-   * Used by Aurelia to find the closest parent controller relative to a node.
-   *
-   * This method supports 3 additional scenarios that `node.parentNode` does not support:
-   * - Containerless elements. The parentNode in this case is a comment precending the element under specific conditions, rather than a node wrapping the element.
-   * - ShadowDOM. If a `ShadowRoot` is encountered, this method retrieves the associated controller via the metadata api to locate the original host.
-   * - Portals. If the provided node was moved to a different location in the DOM by a `portal` attribute, then the original parent of the node will be returned.
-   *
-   * @param node - The node to get the parent for.
-   * @returns Either the closest parent node, the closest `IRenderLocation` (comment node that is the containerless host), original portal host, or `null` if this is either the absolute document root or a disconnected node.
-   */
-  getEffectiveParentNode(node: T): T | null;
-  /**
-   * Set the effective parentNode, overriding the DOM-based structure that `getEffectiveParentNode` otherwise defaults to.
-   *
-   * Used by Aurelia's `portal` template controller to retain the linkage between the portaled nodes (after they are moved to the portal target) and the original `portal` host.
-   *
-   * @param nodeSequence - The node sequence whose children that, when `getEffectiveParentNode` is called on, return the supplied `parentNode`.
-   * @param parentNode - The node to return when `getEffectiveParentNode` is called on any child of the supplied `nodeSequence`.
-   */
-  setEffectiveParentNode(nodeSequence: INodeSequence, parentNode: T): void;
-  /**
-   * Set the effective parentNode, overriding the DOM-based structure that `getEffectiveParentNode` otherwise defaults to.
-   *
-   * Used by Aurelia's `portal` template controller to retain the linkage between the portaled nodes (after they are moved to the portal target) and the original `portal` host.
-   *
-   * @param childNode - The node that, when `getEffectiveParentNode` is called on, returns the supplied `parentNode`.
-   * @param parentNode - The node to return when `getEffectiveParentNode` is called on the supplied `childNode`.
-   */
-  setEffectiveParentNode(childNode: T, parentNode: T): void;
-  insertBefore(nodeToInsert: T, referenceNode: T): void;
-  isMarker(node: unknown): node is T;
-  isNodeInstance(potentialNode: unknown): potentialNode is T;
-  isRenderLocation(node: unknown): node is IRenderLocation<T>;
-  makeTarget(node: T): void;
-  registerElementResolver(container: IContainer, resolver: IResolver): void;
-  remove(node: T): void;
-}
-
-const ni = function (...args: unknown[]): unknown {
-  throw new Error(`No DOM implementation is provided.`);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as any; // this function doesn't need typing because it is never directly called
-
-const niDOM: IDOM = {
-  appendChild: ni,
-  cloneNode: ni,
-  convertToRenderLocation: ni,
-  createDocumentFragment: ni,
-  createNodeSequence: ni,
-  createElement: ni,
-  createCustomEvent: ni,
-  dispatchEvent: ni,
-  createTemplate: ni,
-  createTextNode: ni,
-  getEffectiveParentNode: ni,
-  setEffectiveParentNode: ni,
-  insertBefore: ni,
-  isMarker: ni,
-  isNodeInstance: ni,
-  isRenderLocation: ni,
-  makeTarget: ni,
-  registerElementResolver: ni,
-  remove: ni,
-};
-
-const $DOM: IDOM & {
-  readonly isInitialized: boolean;
-  readonly scheduler: IScheduler;
-  initialize(dom: IDOM): void;
-  destroy(): void;
-} = {
-  ...niDOM,
-  scheduler: (void 0)!,
-  get isInitialized(): boolean {
-    return Reflect.get(this, '$initialized') === true;
-  },
-  initialize(dom: IDOM): void {
-    if (this.isInitialized) {
-      throw new Error(`DOM is already initialized.`);
-    }
-    const descriptors: PropertyDescriptorMap = {};
-    const protos: IDOM[] = [dom];
-    let proto = Object.getPrototypeOf(dom);
-    while (proto && proto !== Object.prototype) {
-      protos.unshift(proto);
-      proto = Object.getPrototypeOf(proto);
-    }
-    for (proto of protos) {
-      Object.assign(descriptors, Object.getOwnPropertyDescriptors(proto));
-    }
-    const keys: string[] = [];
-    let key: string;
-    let descriptor: PropertyDescriptor;
-    for (key in descriptors) {
-      descriptor = descriptors[key];
-      if (descriptor.configurable && descriptor.writable) {
-        Reflect.defineProperty(this, key, descriptor);
-        keys.push(key);
-      }
-    }
-    Reflect.set(this, '$domKeys', keys);
-    Reflect.set(this, '$initialized', true);
-  },
-  destroy(): void {
-    if (!this.isInitialized) {
-      throw new Error(`DOM is already destroyed.`);
-    }
-    const keys = Reflect.get(this, '$domKeys') as string[];
-    keys.forEach(key => {
-      Reflect.deleteProperty(this, key);
-    });
-    Object.assign(this, niDOM);
-    Reflect.set(this, '$domKeys', emptyArray);
-    Reflect.set(this, '$initialized', false);
-  }
-};
-export const DOM = $DOM as unknown as HTMLDOM;
-
-export interface INodeSequenceFactory<T extends INode = INode> {
-  createNodeSequence(): INodeSequence<T>;
-}
-
 export const enum NodeType {
   Element = 1,
   Attr = 2,
@@ -221,269 +77,120 @@ export const enum NodeType {
 const effectiveParentNodeOverrides = new WeakMap<Node, Node>();
 
 /**
- * IDOM implementation for Html.
+ * Returns the effective parentNode according to Aurelia's component hierarchy.
+ *
+ * Used by Aurelia to find the closest parent controller relative to a node.
+ *
+ * This method supports 3 additional scenarios that `node.parentNode` does not support:
+ * - Containerless elements. The parentNode in this case is a comment precending the element under specific conditions, rather than a node wrapping the element.
+ * - ShadowDOM. If a `ShadowRoot` is encountered, this method retrieves the associated controller via the metadata api to locate the original host.
+ * - Portals. If the provided node was moved to a different location in the DOM by a `portal` attribute, then the original parent of the node will be returned.
+ *
+ * @param node - The node to get the parent for.
+ * @returns Either the closest parent node, the closest `IRenderLocation` (comment node that is the containerless host), original portal host, or `null` if this is either the absolute document root or a disconnected node.
  */
-export class HTMLDOM implements IDOM {
-  public readonly window: Window & typeof globalThis;
-  public readonly document: Document;
-
-  public readonly Node: typeof Node;
-  public readonly Element: typeof Element;
-  public readonly HTMLElement: typeof HTMLElement;
-  public readonly CustomEvent: typeof CustomEvent;
-  public readonly CSSStyleSheet: typeof CSSStyleSheet;
-  public readonly ShadowRoot: typeof ShadowRoot;
-
-  private readonly emptyNodes: FragmentNodeSequence;
-
-  public constructor(host: Node) {
-    if (!Reflect.has(host, 'ownerDocument')) {
-      throw new Error(`host must be a HTMLElement with an ownerDocument, but instead got: ${Object.prototype.toString.call(host)}`);
-    }
-    const doc = host.ownerDocument;
-    if (doc === null) {
-      throw new Error(`host.ownerDocument must not be null. To successfully start Aurelia from a detached node, run document.adoptNode(host) before calling Aurelia#app`);
-    }
-    const win = doc.defaultView;
-    if (win === null) {
-      throw new Error(`host.ownerDocument.defaultView must not be null. To successfully start Aurelia from a detached node, run document.adoptNode(host) before calling Aurelia#app`);
-    }
-    this.window = win;
-    this.document = doc;
-    this.Node = win.Node;
-    this.Element = win.Element;
-    this.HTMLElement = win.HTMLElement;
-    this.CustomEvent = win.CustomEvent;
-    this.CSSStyleSheet = win.CSSStyleSheet;
-    this.ShadowRoot = win.ShadowRoot;
-    if ($DOM.isInitialized) {
-      $DOM.destroy();
-    }
-    $DOM.initialize(this);
-    this.emptyNodes = new FragmentNodeSequence(this, this.document.adoptNode(this.document.createDocumentFragment()));
+export function getEffectiveParentNode(node: Node): Node | null {
+  // TODO: this method needs more tests!
+  // First look for any overrides
+  if (effectiveParentNodeOverrides.has(node)) {
+    return effectiveParentNodeOverrides.get(node)!;
   }
 
-  public static register(container: IContainer): IResolver<IDOM> {
-    return Registration.aliasTo(IDOM, this).register(container);
-  }
-
-  public appendChild(parent: Node, child: Node): void {
-    parent.appendChild(child);
-  }
-
-  public cloneNode<T>(node: T, deep?: boolean): T {
-    return (node as unknown as Node).cloneNode(deep !== false) as unknown as T;
-  }
-
-  public convertToRenderLocation(node: Node): IRenderLocation {
-    if (this.isRenderLocation(node)) {
-      return node; // it's already a IRenderLocation (converted by FragmentNodeSequence)
-    }
-
-    if (node.parentNode == null) {
-      throw new Error('Cannot convert an element without a parent to a RenderLocation');
-    }
-
-    const locationEnd = this.document.createComment('au-end');
-    const locationStart = this.document.createComment('au-start');
-
-    node.parentNode.replaceChild(locationEnd, node);
-
-    locationEnd.parentNode!.insertBefore(locationStart, locationEnd);
-
-    (locationEnd as IRenderLocation).$start = locationStart as IRenderLocation;
-    (locationStart as IRenderLocation).$nodes = null!;
-
-    return locationEnd as IRenderLocation;
-  }
-
-  public createDocumentFragment(markupOrNode?: string | Node): DocumentFragment {
-    if (markupOrNode instanceof this.Node) {
-      if (markupOrNode.nodeName === 'TEMPLATE') {
-        return this.document.adoptNode((markupOrNode as HTMLTemplateElement).content);
-      }
-
-      const fragment = this.document.adoptNode(this.document.createDocumentFragment());
-      fragment.appendChild(markupOrNode);
-      return fragment;
-    }
-
-    return this.createTemplate(markupOrNode).content;
-  }
-
-  public createNodeSequence(fragment: DocumentFragment | null, cloneNode: boolean = true): FragmentNodeSequence {
-    if (fragment === null) {
-      return this.emptyNodes;
-    }
-    return new FragmentNodeSequence(this, cloneNode ? fragment.cloneNode(true) as DocumentFragment : fragment);
-  }
-
-  public createElement(name: string): HTMLElement {
-    return this.document.createElement(name);
-  }
-
-  public fetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
-    return this.window.fetch(input, init);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public createCustomEvent<T = any>(eventType: string, options?: CustomEventInit<T>): CustomEvent<T> { // this is how the DOM is typed
-    return new this.CustomEvent(eventType, options);
-  }
-
-  public dispatchEvent(evt: Event): void {
-    this.document.dispatchEvent(evt);
-  }
-
-  public createTemplate(markup?: string): HTMLTemplateElement {
-    const template = this.document.createElement('template');
-    this.document.adoptNode(template.content);
-    if (typeof markup === 'string') {
-      template.innerHTML = markup;
-    }
-    return template;
-  }
-  public createTextNode(text: string): Text {
-    return this.document.createTextNode(text);
-  }
-
-  /**
-   * Returns the effective parentNode according to Aurelia's component hierarchy.
-   *
-   * Used by Aurelia to find the closest parent controller relative to a node.
-   *
-   * This method supports 3 additional scenarios that `node.parentNode` does not support:
-   * - Containerless elements. The parentNode in this case is a comment precending the element under specific conditions, rather than a node wrapping the element.
-   * - ShadowDOM. If a `ShadowRoot` is encountered, this method retrieves the associated controller via the metadata api to locate the original host.
-   * - Portals. If the provided node was moved to a different location in the DOM by a `portal` attribute, then the original parent of the node will be returned.
-   *
-   * @param node - The node to get the parent for.
-   * @returns Either the closest parent node, the closest `IRenderLocation` (comment node that is the containerless host), original portal host, or `null` if this is either the absolute document root or a disconnected node.
-   */
-  public getEffectiveParentNode(node: Node): Node | null {
-    // TODO: this method needs more tests!
-    // First look for any overrides
-    if (effectiveParentNodeOverrides.has(node)) {
-      return effectiveParentNodeOverrides.get(node)!;
-    }
-
-    // Then try to get the nearest au-start render location, which would be the containerless parent,
-    // again looking for any overrides along the way.
-    // otherwise return the normal parent node
-    let containerlessOffset = 0;
-    let next = node.nextSibling;
-    while (next !== null) {
-      if (next.nodeType === NodeType.Comment) {
-        switch (next.textContent) {
-          case 'au-start':
-            // If we see an au-start before we see au-end, it will precede the host of a sibling containerless element rather than a parent.
-            // So we use the offset to ignore the next au-end
-            ++containerlessOffset;
-            break;
-          case 'au-end':
-            if (containerlessOffset-- === 0) {
-              return next;
-            }
-        }
-      }
-      next = next.nextSibling;
-    }
-
-    if (node.parentNode === null && node.nodeType === NodeType.DocumentFragment) {
-      // Could be a shadow root; see if there's a controller and if so, get the original host via the projector
-      const controller = CustomElement.for(node);
-      if (controller === void 0) {
-        // Not a shadow root (or at least, not one created by Aurelia)
-        // Nothing more we can try, just return null
-        return null;
-      }
-      const projector = controller.projector!;
-      if (projector instanceof ShadowDOMProjector) {
-        // Now we can use the original host to traverse further up
-        return this.getEffectiveParentNode(projector.host);
+  // Then try to get the nearest au-start render location, which would be the containerless parent,
+  // again looking for any overrides along the way.
+  // otherwise return the normal parent node
+  let containerlessOffset = 0;
+  let next = node.nextSibling;
+  while (next !== null) {
+    if (next.nodeType === NodeType.Comment) {
+      switch (next.textContent) {
+        case 'au-start':
+          // If we see an au-start before we see au-end, it will precede the host of a sibling containerless element rather than a parent.
+          // So we use the offset to ignore the next au-end
+          ++containerlessOffset;
+          break;
+        case 'au-end':
+          if (containerlessOffset-- === 0) {
+            return next;
+          }
       }
     }
-
-    return node.parentNode;
+    next = next.nextSibling;
   }
 
-  /**
-   * Set the effective parentNode, overriding the DOM-based structure that `getEffectiveParentNode` otherwise defaults to.
-   *
-   * Used by Aurelia's `portal` template controller to retain the linkage between the portaled nodes (after they are moved to the portal target) and the original `portal` host.
-   *
-   * @param nodeSequence - The node sequence whose children that, when `getEffectiveParentNode` is called on, return the supplied `parentNode`.
-   * @param parentNode - The node to return when `getEffectiveParentNode` is called on any child of the supplied `nodeSequence`.
-   */
-  public setEffectiveParentNode(nodeSequence: INodeSequence, parentNode: Node): void;
-  /**
-   * Set the effective parentNode, overriding the DOM-based structure that `getEffectiveParentNode` otherwise defaults to.
-   *
-   * Used by Aurelia's `portal` template controller to retain the linkage between the portaled nodes (after they are moved to the portal target) and the original `portal` host.
-   *
-   * @param childNode - The node that, when `getEffectiveParentNode` is called on, returns the supplied `parentNode`.
-   * @param parentNode - The node to return when `getEffectiveParentNode` is called on the supplied `childNode`.
-   */
-  public setEffectiveParentNode(childNode: Node, parentNode: Node): void;
-  public setEffectiveParentNode(childNodeOrNodeSequence: Node | INodeSequence, parentNode: Node): void {
-    if (this.isNodeInstance(childNodeOrNodeSequence)) {
-      effectiveParentNodeOverrides.set(childNodeOrNodeSequence, parentNode);
-    } else {
-      const nodes = childNodeOrNodeSequence.childNodes;
-      for (let i = 0, ii = nodes.length; i < ii; ++i) {
-        effectiveParentNodeOverrides.set(nodes[i] as Node, parentNode);
-      }
+  if (node.parentNode === null && node.nodeType === NodeType.DocumentFragment) {
+    // Could be a shadow root; see if there's a controller and if so, get the original host via the projector
+    const controller = CustomElement.for(node);
+    if (controller === void 0) {
+      // Not a shadow root (or at least, not one created by Aurelia)
+      // Nothing more we can try, just return null
+      return null;
+    }
+    const projector = controller.projector!;
+    if (projector instanceof ShadowDOMProjector) {
+      // Now we can use the original host to traverse further up
+      return getEffectiveParentNode(projector.host);
     }
   }
 
-  public insertBefore(nodeToInsert: Node, referenceNode: Node): void {
-    referenceNode.parentNode!.insertBefore(nodeToInsert, referenceNode);
-  }
+  return node.parentNode;
+}
 
-  public isMarker(node: unknown): node is HTMLElement {
-    return (node as Element).nodeName === 'AU-M';
-  }
-
-  public isNodeInstance(potentialNode: unknown): potentialNode is Node {
-    return potentialNode != null && (potentialNode as Node).nodeType > 0;
-  }
-
-  public isRenderLocation(node: unknown): node is IRenderLocation {
-    return (node as Comment).textContent === 'au-end';
-  }
-
-  public makeTarget(node: unknown): void {
-    (node as Element).className = 'au';
-  }
-
-  public registerElementResolver(container: IContainer, resolver: IResolver): void {
-    container.registerResolver(INode, resolver);
-    container.registerResolver(this.Node, resolver);
-    container.registerResolver(this.Element, resolver);
-    container.registerResolver(this.HTMLElement, resolver);
-  }
-
-  public remove(node: Node): void {
-    if ((node as Partial<ChildNode>).remove) {
-      (node as ChildNode).remove();
-    } else {
-      node.parentNode!.removeChild(node);
+/**
+ * Set the effective parentNode, overriding the DOM-based structure that `getEffectiveParentNode` otherwise defaults to.
+ *
+ * Used by Aurelia's `portal` template controller to retain the linkage between the portaled nodes (after they are moved to the portal target) and the original `portal` host.
+ *
+ * @param nodeSequence - The node sequence whose children that, when `getEffectiveParentNode` is called on, return the supplied `parentNode`.
+ * @param parentNode - The node to return when `getEffectiveParentNode` is called on any child of the supplied `nodeSequence`.
+ */
+export function setEffectiveParentNode(nodeSequence: INodeSequence, parentNode: Node): void;
+/**
+ * Set the effective parentNode, overriding the DOM-based structure that `getEffectiveParentNode` otherwise defaults to.
+ *
+ * Used by Aurelia's `portal` template controller to retain the linkage between the portaled nodes (after they are moved to the portal target) and the original `portal` host.
+ *
+ * @param childNode - The node that, when `getEffectiveParentNode` is called on, returns the supplied `parentNode`.
+ * @param parentNode - The node to return when `getEffectiveParentNode` is called on the supplied `childNode`.
+ */
+export function setEffectiveParentNode(childNode: Node, parentNode: Node): void;
+export function setEffectiveParentNode(childNodeOrNodeSequence: Node | INodeSequence, parentNode: Node): void {
+  if ((childNodeOrNodeSequence as INodeSequence).platform !== void 0 && !(childNodeOrNodeSequence instanceof (childNodeOrNodeSequence as INodeSequence).platform.Node)) {
+    const nodes = childNodeOrNodeSequence.childNodes;
+    for (let i = 0, ii = nodes.length; i < ii; ++i) {
+      effectiveParentNodeOverrides.set(nodes[i] as Node, parentNode);
     }
+  } else {
+    effectiveParentNodeOverrides.set(childNodeOrNodeSequence as Node, parentNode);
   }
 }
 
-/* eslint-enable @typescript-eslint/no-explicit-any */
+export function convertToRenderLocation(node: Node): IRenderLocation {
+  if (isRenderLocation(node)) {
+    return node; // it's already a IRenderLocation (converted by FragmentNodeSequence)
+  }
 
-// This is the most common form of INodeSequence.
-// Every custom element or template controller whose node sequence is based on an HTML template
-// has an instance of this under the hood. Anyone who wants to create a node sequence from
-// a string of markup would also receive an instance of this.
-// CompiledTemplates create instances of FragmentNodeSequence.
-/**
- * This is the most common form of INodeSequence.
- *
- * @internal
- */
+  if (node.parentNode == null) {
+    throw new Error('Cannot convert an element without a parent to a RenderLocation');
+  }
+
+  const locationEnd = node.ownerDocument!.createComment('au-end');
+  const locationStart = node.ownerDocument!.createComment('au-start');
+
+  node.parentNode.replaceChild(locationEnd, node);
+
+  locationEnd.parentNode!.insertBefore(locationStart, locationEnd);
+
+  (locationEnd as IRenderLocation).$start = locationStart as IRenderLocation;
+  (locationStart as IRenderLocation).$nodes = null!;
+
+  return locationEnd as IRenderLocation;
+}
+
+export function isRenderLocation(node: INode | INodeSequence): node is IRenderLocation {
+  return (node as Comment).textContent === 'au-end';
+}
+
 export class FragmentNodeSequence implements INodeSequence {
   public isMounted: boolean = false;
   public isLinked: boolean = false;
@@ -499,7 +206,7 @@ export class FragmentNodeSequence implements INodeSequence {
   private readonly targets: ArrayLike<Node>;
 
   public constructor(
-    public readonly dom: IDOM,
+    public readonly platform: IPlatform,
     private readonly fragment: DocumentFragment,
   ) {
     const targetNodeList = fragment.querySelectorAll('.au');
@@ -516,7 +223,7 @@ export class FragmentNodeSequence implements INodeSequence {
       if (target.nodeName === 'AU-M') {
         // note the composer will still call this method, but it will just return the
         // location if it sees it's already a location
-        targets[i] = this.dom.convertToRenderLocation(target);
+        targets[i] = convertToRenderLocation(target);
       } else {
         // also store non-markers for consistent ordering
         targets[i] = target;
@@ -646,7 +353,7 @@ export class FragmentNodeSequence implements INodeSequence {
 
   public link(next: INodeSequence | IRenderLocation & Comment | undefined): void {
     this.isLinked = true;
-    if (this.dom.isRenderLocation(next)) {
+    if (isRenderLocation(next!)) {
       this.refNode = next;
     } else {
       this.next = next;
@@ -663,7 +370,7 @@ export class FragmentNodeSequence implements INodeSequence {
   }
 }
 
-export const IWindow = DI.createInterface<IWindow>('IWindow').withDefault(x => x.callback(handler => handler.get(HTMLDOM).window));
+export const IWindow = DI.createInterface<IWindow>('IWindow').withDefault(x => x.callback(handler => handler.get(IPlatform).window));
 export interface IWindow extends Window { }
 
 export const ILocation = DI.createInterface<ILocation>('ILocation').withDefault(x => x.callback(handler => handler.get(IWindow).location));

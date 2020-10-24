@@ -18,9 +18,8 @@ import {
   IAttributePattern,
   PlainAttributeSymbol,
   AttrBindingCommand,
-  DOM,
 } from '@aurelia/runtime-html';
-import { assert, TestContext } from '@aurelia/testing';
+import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 
 describe('TranslationParametersAttributePattern', function () {
   function createFixture() {
@@ -73,7 +72,7 @@ describe('TranslationParametersBindingCommand', function () {
 describe('TranslationParametersBindingComposer', function () {
 
   function createFixture() {
-    const { container } = TestContext.createHTMLTestContext();
+    const { container } = TestContext.create();
     container.register(RuntimeHtmlConfiguration, I18nConfiguration);
     return container;
   }
@@ -95,7 +94,7 @@ describe('TranslationParametersBindingComposer', function () {
       LifecycleFlags.none,
       container as unknown as ICompiledCompositionContext,
       controller,
-      DOM.createElement('span'),
+      PLATFORM.document.createElement('span'),
       callBindingInstruction,
     );
 
@@ -106,7 +105,7 @@ describe('TranslationParametersBindingComposer', function () {
     const container = createFixture();
     const sut: IInstructionComposer = new TranslationParametersBindingComposer(container.get(IExpressionParser), container.get(IObserverLocator));
     const expressionParser = container.get(IExpressionParser);
-    const targetElement = DOM.createElement('span');
+    const targetElement = PLATFORM.document.createElement('span');
     const binding = new TranslationBinding(targetElement, container.get(IObserverLocator), container);
     const composable = ({ bindings: [binding] } as unknown as IComposableController);
     const paramExpr = expressionParser.parse('{foo: "bar"}', BindingType.BindCommand);

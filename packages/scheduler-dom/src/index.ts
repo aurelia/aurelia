@@ -5,10 +5,7 @@ import {
   IScheduler,
   Scheduler,
 } from '@aurelia/scheduler';
-import {
-  IContainer,
-  IPlatform,
-} from '@aurelia/kernel';
+import { BrowserPlatform } from '@aurelia/platform-browser';
 
 function createMicroTaskFlushRequestorFactory(): IFlushRequestorFactory {
   return {
@@ -44,7 +41,7 @@ function createMicroTaskFlushRequestorFactory(): IFlushRequestorFactory {
   };
 }
 
-function createSetTimeoutFlushRequestorFactory(w: Window): IFlushRequestorFactory {
+function createSetTimeoutFlushRequestorFactory(g: typeof globalThis): IFlushRequestorFactory {
   return {
     create(taskQueue: ITaskQueue): IFlushRequestor {
       let handle = -1;
@@ -59,13 +56,13 @@ function createSetTimeoutFlushRequestorFactory(w: Window): IFlushRequestorFactor
       return {
         cancel() {
           if (handle > -1) {
-            w.clearTimeout(handle);
+            g.clearTimeout(handle);
             handle = -1;
           }
         },
         request() {
           if (handle === -1) {
-            handle = w.setTimeout(flush, 0);
+            handle = g.setTimeout(flush, 0);
           }
         },
       };
@@ -73,7 +70,7 @@ function createSetTimeoutFlushRequestorFactory(w: Window): IFlushRequestorFactor
   };
 }
 
-function createRequestAnimationFrameFlushRequestor(w: Window): IFlushRequestorFactory {
+function createRequestAnimationFrameFlushRequestor(g: typeof globalThis): IFlushRequestorFactory {
   return {
     create(taskQueue: ITaskQueue): IFlushRequestor {
       let handle = -1;
@@ -88,13 +85,13 @@ function createRequestAnimationFrameFlushRequestor(w: Window): IFlushRequestorFa
       return {
         cancel() {
           if (handle > -1) {
-            w.cancelAnimationFrame(handle);
+            g.cancelAnimationFrame(handle);
             handle = -1;
           }
         },
         request() {
           if (handle === -1) {
-            handle = w.requestAnimationFrame(flush);
+            handle = g.requestAnimationFrame(flush);
           }
         },
       };
@@ -102,7 +99,7 @@ function createRequestAnimationFrameFlushRequestor(w: Window): IFlushRequestorFa
   };
 }
 
-function createPostRequestAnimationFrameFlushRequestor(w: Window): IFlushRequestorFactory {
+function createPostRequestAnimationFrameFlushRequestor(g: typeof globalThis): IFlushRequestorFactory {
   return {
     create(taskQueue: ITaskQueue): IFlushRequestor {
       let rafHandle = -1;
@@ -118,7 +115,7 @@ function createPostRequestAnimationFrameFlushRequestor(w: Window): IFlushRequest
         if (rafHandle > -1) {
           rafHandle = -1;
           if (timeoutHandle === -1) {
-            timeoutHandle = w.setTimeout(flush, 0);
+            timeoutHandle = g.setTimeout(flush, 0);
           }
         }
       }
@@ -126,17 +123,17 @@ function createPostRequestAnimationFrameFlushRequestor(w: Window): IFlushRequest
       return {
         cancel() {
           if (rafHandle > -1) {
-            w.cancelAnimationFrame(rafHandle);
+            g.cancelAnimationFrame(rafHandle);
             rafHandle = -1;
           }
           if (timeoutHandle > -1) {
-            w.clearTimeout(timeoutHandle);
+            g.clearTimeout(timeoutHandle);
             timeoutHandle = -1;
           }
         },
         request() {
           if (rafHandle === -1) {
-            rafHandle = w.requestAnimationFrame(queueFlush);
+            rafHandle = g.requestAnimationFrame(queueFlush);
           }
         },
       };
@@ -144,16 +141,16 @@ function createPostRequestAnimationFrameFlushRequestor(w: Window): IFlushRequest
   };
 }
 
-export function createDOMScheduler(container: IContainer, w: Window): IScheduler {
-  const platform = container.get(IPlatform);
-  let scheduler = Scheduler.get(platform.globalThis);
+export function createDOMScheduler(platform: BrowserPlatform): IScheduler {
+  const g = platform.globalThis;
+  let scheduler = Scheduler.get(g);
   if (scheduler === void 0) {
-    Scheduler.set(platform.globalThis, scheduler = new Scheduler(
+    Scheduler.set(g, scheduler = new Scheduler(
       platform,
       createMicroTaskFlushRequestorFactory(),
-      createRequestAnimationFrameFlushRequestor(w),
-      createSetTimeoutFlushRequestorFactory(w),
-      createPostRequestAnimationFrameFlushRequestor(w),
+      createRequestAnimationFrameFlushRequestor(g),
+      createSetTimeoutFlushRequestorFactory(g),
+      createPostRequestAnimationFrameFlushRequestor(g),
     ));
   }
   return scheduler;

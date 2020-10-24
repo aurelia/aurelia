@@ -18,6 +18,17 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
   public readonly requestAnimationFrame: TGlobal['requestAnimationFrame'];
   public readonly customElements: TGlobal['customElements'];
 
+  // In environments with nodejs types, the node globalThis for some reason overwrites that of the DOM, changing the signature
+  // of setTimeout etc to those of node.
+  // So, re-declaring these based on the Window type to ensure they have the DOM-based signature.
+  public readonly clearInterval!: TGlobal['window']['clearInterval'];
+  public readonly clearTimeout!: TGlobal['window']['clearTimeout'];
+  public readonly fetch!: TGlobal['window']['fetch'];
+  public readonly queueMicrotask!: TGlobal['window']['queueMicrotask'];
+  public readonly setInterval!: TGlobal['window']['setInterval'];
+  public readonly setTimeout!: TGlobal['window']['setTimeout'];
+  public readonly console!: TGlobal['window']['console'];
+
   public constructor(
     g: TGlobal,
     overrides: Partial<Exclude<BrowserPlatform, 'globalThis'>> = {},
@@ -39,7 +50,7 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
     this.history = 'history' in overrides ? overrides.history! : g.history;
     this.navigator = 'navigator' in overrides ? overrides.navigator! : g.navigator;
 
-    this.requestAnimationFrame = 'requestAnimationFrame' in overrides ? overrides.requestAnimationFrame! : g.requestAnimationFrame;
+    this.requestAnimationFrame = 'requestAnimationFrame' in overrides ? overrides.requestAnimationFrame! : g.requestAnimationFrame.bind(g);
     this.customElements = 'customElements' in overrides ? overrides.customElements! : g.customElements;
     /* eslint-enable @typescript-eslint/no-unnecessary-type-assertion */
   }

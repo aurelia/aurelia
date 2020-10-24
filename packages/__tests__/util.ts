@@ -1,9 +1,9 @@
 import { IContainer } from '@aurelia/kernel';
-import { IScheduler, valueConverter } from '@aurelia/runtime';
-import { HTMLTestContext } from '@aurelia/testing';
+import { IScheduler, valueConverter } from '@aurelia/runtime-html';
+import { TestContext } from '@aurelia/testing';
 
 export interface TestExecutionContext<TApp extends any> {
-  ctx: HTMLTestContext;
+  ctx: TestContext;
   container: IContainer;
   host: HTMLElement;
   app: TApp;

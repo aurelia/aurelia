@@ -3,7 +3,7 @@ import { TestContext, assert } from "@aurelia/testing";
 
 describe("generated.template-compiler.static.if-else.repeat", function () {
     function createFixture() {
-        const ctx = TestContext.createHTMLTestContext();
+        const ctx = TestContext.create();
         const au = new Aurelia(ctx.container);
         const host = ctx.createElement("div");
         return { au, host };

@@ -2,7 +2,7 @@
 /* eslint-disable prefer-template */
 /* eslint-disable max-lines-per-function */
 import { DI, IContainer, Registration, IIndexable, Key, Metadata } from '@aurelia/kernel';
-import { CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, IAppRoot, isCompositionContext } from '@aurelia/runtime-html';
+import { CustomElementType, CustomElement, INode, ICustomElementController, ICustomElementViewModel, IAppRoot, isCompositionContext, getEffectiveParentNode } from '@aurelia/runtime-html';
 import { InstructionResolver } from './instruction-resolver';
 import { IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
@@ -1324,7 +1324,7 @@ export class Router implements IRouter {
       if (controller !== void 0) {
         return controller;
       }
-      cur = DOM.getEffectiveParentNode(cur);
+      cur = getEffectiveParentNode(cur);
     }
     return (void 0);
   }

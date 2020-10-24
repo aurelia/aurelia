@@ -1,8 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElement, Aurelia, Focus } from '@aurelia/runtime-html';
-import { assert, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
-
-const $ctx = TestContext.createHTMLTestContext();
+import { PLATFORM, assert, eachCartesianJoin, TestContext } from '@aurelia/testing';
 
 describe('focus.spec.ts', function () {
 
@@ -44,9 +42,9 @@ describe('focus.spec.ts', function () {
 
     it('invokes focus when there is **NO** tabindex attribute', async function () {
       let callCount = 0;
-      $ctx.wnd.HTMLDivElement.prototype.focus = function () {
+      PLATFORM.window.HTMLDivElement.prototype.focus = function () {
         callCount++;
-        return $ctx.wnd.HTMLElement.prototype.focus.call(this);
+        return PLATFORM.HTMLElement.prototype.focus.call(this);
       };
 
       const { startPromise, testHost, dispose, component, ctx } = createFixture<IApp>(
@@ -68,7 +66,7 @@ describe('focus.spec.ts', function () {
       assert.equal(component.hasFocus, true, 'It should not have affected component.hasFocus');
 
       // focus belongs to HTMLElement class
-      delete $ctx.wnd.HTMLDivElement.prototype.focus;
+      delete PLATFORM.window.HTMLDivElement.prototype.focus;
 
       await dispose();
     });
@@ -81,7 +79,7 @@ describe('focus.spec.ts', function () {
       ['<select/> + <option/>', `<select focus.two-way=hasFocus id=blurred><option tabindex=1>Hello</option></select>`],
       ['<textarea/>', `<textarea focus.two-way=hasFocus id=blurred></textarea>`]
     ];
-    if (!$ctx.userAgent.includes('jsdom')) {
+    if (!PLATFORM.navigator.userAgent.includes('jsdom')) {
       specs.push(['<div/>', '<div contenteditable focus.two-way=hasFocus id=blurred></div>']);
     }
     for (const [desc, template] of specs) {
@@ -111,7 +109,7 @@ describe('focus.spec.ts', function () {
     }
 
     // Doesn't seem to be implemented yet in JSDOM
-    if (TestContext.createHTMLTestContext().platform.customElements === void 0) {
+    if (PLATFORM.window.customElements === void 0) {
       return;
     }
     // For combination with native custom element, there needs to be tests based on several combinations
@@ -346,7 +344,7 @@ describe('focus.spec.ts', function () {
   });
 
   function createFixture<T>(template: string | Node, $class: Constructable<T>, autoStart: boolean = true, ...registrations: any[]) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container, lifecycle, observerLocator } = ctx;
     container.register(...registrations, Focus);
     const testHost = ctx.doc.body.appendChild(ctx.doc.createElement('div'));
@@ -384,7 +382,7 @@ describe('focus.spec.ts', function () {
     };
   }
 
-  function defineCustomElement(ctx: HTMLTestContext, name: string, template: string, props: Record<string, any> = null, mode: 'open' | 'closed' | null = 'open') {
+  function defineCustomElement(ctx: TestContext, name: string, template: string, props: Record<string, any> = null, mode: 'open' | 'closed' | null = 'open') {
     class CustomEl extends ctx.HTMLElement {
       public constructor() {
         super();
@@ -402,7 +400,7 @@ describe('focus.spec.ts', function () {
     return CustomEl;
   }
 
-  function dispatchEventWith(ctx: HTMLTestContext, target: EventTarget, name: string, bubbles = true) {
+  function dispatchEventWith(ctx: TestContext, target: EventTarget, name: string, bubbles = true) {
     target.dispatchEvent(new ctx.CustomEvent(name, { bubbles }));
   }
 
@@ -410,6 +408,6 @@ describe('focus.spec.ts', function () {
 
   interface AssertionFn<T extends IApp = IApp> {
     // eslint-disable-next-line @typescript-eslint/prefer-function-type
-    (ctx: HTMLTestContext, testHost: HTMLElement, component: T, focusable: HTMLElement): void | Promise<void>;
+    (ctx: TestContext, testHost: HTMLElement, component: T, focusable: HTMLElement): void | Promise<void>;
   }
 });

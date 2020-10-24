@@ -9,20 +9,21 @@ import {
   Resolved,
   Transformer,
 } from '@aurelia/kernel';
-import { Scope, LifecycleFlags, ILifecycle } from '@aurelia/runtime';
+import { Scope, LifecycleFlags } from '@aurelia/runtime';
 import { IInstruction } from '../definitions';
-import { IDOM, INode, INodeSequence, IRenderLocation } from '../dom';
+import { FragmentNodeSequence, INode, INodeSequence, IRenderLocation } from '../dom';
 import {
   IController,
   ICustomAttributeViewModel,
   ICustomElementViewModel,
   IComposableController,
-  IViewFactory,
 } from '../lifecycle';
 import { IComposer, ITemplateCompiler } from '../composer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
-import { ViewFactory } from './view';
+import { IViewFactory, ViewFactory } from './view';
 import { AuSlotContentType, IProjectionProvider, RegisteredProjections } from '../resources/custom-elements/au-slot';
+import { IPlatform } from '../platform';
+import { Instruction } from '../instructions';
 
 const definitionContainerLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, CompositionContext>>();
 const definitionContainerProjectionsLookup = new WeakMap<CustomElementDefinition, WeakMap<IContainer, WeakMap<Record<string, CustomElementDefinition>, CompositionContext>>>();
@@ -37,7 +38,7 @@ export function isCompositionContext(value: unknown): value is ICompositionConte
  * A composition context that wraps an `IContainer` and must be compiled before it can be used for composing.
  */
 export interface ICompositionContext extends IContainer {
-  readonly dom: IDOM;
+  readonly platform: IPlatform;
 
   /**
    * The `CustomElementDefinition` that this `ICompositionContext` was created with.
@@ -226,6 +227,8 @@ export function getCompositionContext(
   return context;
 }
 
+const emptyNodeCache = new WeakMap<IPlatform, FragmentNodeSequence>();
+
 export class CompositionContext implements IComponentFactory {
   private readonly container: IContainer;
 
@@ -241,8 +244,8 @@ export class CompositionContext implements IComponentFactory {
   private isCompiled: boolean = false;
 
   private readonly projectionProvider: IProjectionProvider;
+  public readonly platform: IPlatform;
   public readonly composer: IComposer;
-  public readonly dom: IDOM;
 
   public compiledDefinition: CustomElementDefinition = (void 0)!;
 
@@ -253,6 +256,7 @@ export class CompositionContext implements IComponentFactory {
     const container = this.container = parentContainer.createChild();
     this.composer = container.get(IComposer);
     this.projectionProvider = container.get(IProjectionProvider);
+    const p = this.platform = container.get(IPlatform);
 
     container.registerResolver(
       IViewFactory,
@@ -274,11 +278,12 @@ export class CompositionContext implements IComponentFactory {
       this.renderLocationProvider = new InstanceProvider<IRenderLocation>('IRenderLocation'),
       true,
     );
+    const ep = this.elementProvider = new InstanceProvider('ElementResolver');
+    container.registerResolver(INode, ep);
+    container.registerResolver(p.Node, ep);
+    container.registerResolver(p.Element, ep);
+    container.registerResolver(p.HTMLElement, ep);
 
-    (this.dom = container.get(IDOM)).registerElementResolver(
-      container,
-      this.elementProvider = new InstanceProvider('ElementResolver'),
-    );
     container.register(...definition.dependencies);
   }
 
@@ -358,15 +363,25 @@ export class CompositionContext implements IComponentFactory {
     if (fragmentCache.has(compiledDefinition)) {
       this.fragment = fragmentCache.get(compiledDefinition)!;
     } else {
+      const doc = this.platform.document;
       const template = compiledDefinition.template;
-      if (template === null) {
-        fragmentCache.set(compiledDefinition, null);
+      if (template === null || this.definition.enhance === true) {
+        this.fragment = null;
+      } else if (template instanceof this.platform.Node) {
+        if (template.nodeName === 'TEMPLATE') {
+          this.fragment = doc.adoptNode((template as HTMLTemplateElement).content);
+        } else {
+          (this.fragment = doc.adoptNode(doc.createDocumentFragment())).appendChild(template);
+        }
       } else {
-        fragmentCache.set(
-          compiledDefinition,
-          this.fragment = this.definition.enhance ? template as Node : this.dom.createDocumentFragment(template),
-        );
+        const tpl = doc.createElement('template');
+        doc.adoptNode(tpl.content);
+        if (typeof template === 'string') {
+          tpl.innerHTML = template;
+        }
+        this.fragment = tpl.content;
       }
+      fragmentCache.set(compiledDefinition, this.fragment);
     }
 
     return this;
@@ -378,8 +393,7 @@ export class CompositionContext implements IComponentFactory {
       if (name === void 0) {
         name = this.definition.name;
       }
-      const lifecycle = this.parentContainer.get(ILifecycle);
-      factory = this.factory = new ViewFactory(name, this, lifecycle, contentType, projectionScope);
+      factory = this.factory = new ViewFactory(name, this, contentType, projectionScope);
     }
     return factory;
   }
@@ -404,7 +418,17 @@ export class CompositionContext implements IComponentFactory {
   // #region ICompiledCompositionContext api
 
   public createNodes(): INodeSequence {
-    return this.dom.createNodeSequence(this.fragment, !this.definition.enhance);
+    if (this.compiledDefinition.enhance === true) {
+      return new FragmentNodeSequence(this.platform, this.compiledDefinition.template as DocumentFragment);
+    }
+    if (this.fragment === null) {
+      let emptyNodes = emptyNodeCache.get(this.platform);
+      if (emptyNodes === void 0) {
+        emptyNodeCache.set(this.platform, emptyNodes = new FragmentNodeSequence(this.platform, this.platform.document.createDocumentFragment()));
+      }
+      return emptyNodes;
+    }
+    return new FragmentNodeSequence(this.platform, this.fragment.cloneNode(true) as DocumentFragment);
   }
 
   // TODO: split up into 2 methods? getComponentFactory + getSyntheticFactory or something
@@ -454,7 +478,7 @@ export class CompositionContext implements IComponentFactory {
 
   public composeChildren(
     flags: LifecycleFlags,
-    instructions: readonly IInstruction[],
+    instructions: readonly Instruction[],
     controller: IComposableController,
     target: unknown,
   ): void {

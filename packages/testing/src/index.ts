@@ -4,20 +4,6 @@ export {
 } from './assert';
 
 export {
-  AuNode,
-  AuDOM,
-  AuDOMConfiguration,
-  AuDOMInitializer,
-  AuDOMTest,
-  AuNodeSequence,
-  AuNodeSequenceFactory,
-  AuObserverLocator,
-  AuProjector,
-  AuProjectorLocator,
-  AuTextInstruction,
-  AuTextComposer,
-} from './au-dom';
-export {
   globalAttributeNames,
   CSS_PROPERTIES,
   PSEUDO_ELEMENTS,
@@ -36,9 +22,15 @@ export {
   createFixture
 } from './startup';
 export {
-  HTMLTestContext,
   TestContext,
-} from './html-test-context';
+  PLATFORM,
+  PLATFORMRegistration,
+  setPlatform,
+  SCHEDULER,
+  SCHEDULERRegistration,
+  setScheduler,
+  createContainer,
+} from './test-context';
 export {
   inspect,
 } from './inspect';

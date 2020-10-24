@@ -1,13 +1,11 @@
 import { AnchorEventInfo, LinkHandler, GotoCustomAttribute, HrefCustomAttribute } from '@aurelia/router';
-import { assert, createSpy, TestContext } from '@aurelia/testing';
+import { assert, createSpy, PLATFORM, TestContext } from '@aurelia/testing';
 import { Writable, IRegistry } from '@aurelia/kernel';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 
-const $ctx = TestContext.createHTMLTestContext();
-
 describe('LinkHandler', function () {
   function createFixture() {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container } = ctx;
 
     const sut = container.get(LinkHandler);
@@ -16,7 +14,7 @@ describe('LinkHandler', function () {
   }
 
   async function setupApp(App) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container, doc } = ctx;
 
     const host = doc.createElement('div');
@@ -122,7 +120,7 @@ describe('LinkHandler', function () {
     assert.includes(err.message, 'Link handler has not been started', `err.message`);
   });
 
-  if ($ctx.userAgent.includes('jsdom')) {
+  if (PLATFORM.navigator.userAgent.includes('jsdom')) {
     // TODO: figure out why it doesn't work in nodejs and fix it
     const tests = [
       { useHref: true, href: true, goto: true, result: 'goto' },

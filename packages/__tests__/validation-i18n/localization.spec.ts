@@ -1,6 +1,6 @@
 import { I18N, I18nConfiguration, I18nConfigurationOptions } from '@aurelia/i18n';
 import { IContainer, Registration } from '@aurelia/kernel';
-import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
+import { assert, TestContext } from '@aurelia/testing';
 import {
   IValidationMessageProvider,
   IValidationRules,
@@ -8,7 +8,7 @@ import {
   StandardValidator,
   ValidationMessageProvider,
 } from '@aurelia/validation';
-import { CustomElement, IBinding, INode, IScheduler, Aurelia } from '@aurelia/runtime-html';
+import { CustomElement, IBinding, INode, Aurelia, IScheduler } from '@aurelia/runtime-html';
 import {
   BindingWithBehavior,
   IValidationController,
@@ -87,9 +87,9 @@ describe('validation-i18n', function () {
     testFunction: TestFunction<TestExecutionContext<App>>,
     { template = '', toCustomize = false, defaultNS, defaultKeyPrefix }: Partial<TestSetupContext> = {}
   ) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
-    const host = ctx.dom.createElement('app');
+    const host = ctx.doc.createElement('app');
     ctx.doc.body.appendChild(host);
     let app: App;
     const au = new Aurelia(container);
@@ -183,7 +183,7 @@ describe('validation-i18n', function () {
     assert.equal(binding.sourceExpression.expression.toString(), rawExpression);
   }
 
-  async function assertEventHandler(target: HTMLElement, event: 'change' | 'focusout', callCount: number, scheduler: IScheduler, controllerSpy: Spy, ctx: HTMLTestContext) {
+  async function assertEventHandler(target: HTMLElement, event: 'change' | 'focusout', callCount: number, scheduler: IScheduler, controllerSpy: Spy, ctx: TestContext) {
     controllerSpy.clearCallRecords();
     target.dispatchEvent(new ctx.Event(event));
     await scheduler.yieldAll();

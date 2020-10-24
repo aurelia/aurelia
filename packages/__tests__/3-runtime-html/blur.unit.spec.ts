@@ -1,7 +1,5 @@
 import { Blur } from '@aurelia/runtime-html';
-import { assert, createSpy, eachCartesianJoin, HTMLTestContext, TestContext } from '@aurelia/testing';
-
-const $ctx = TestContext.createHTMLTestContext();
+import { assert, createSpy, eachCartesianJoin, PLATFORM, TestContext } from '@aurelia/testing';
 
 describe('[UNIT] blur.unit.spec.ts', function () {
 
@@ -138,7 +136,7 @@ describe('[UNIT] blur.unit.spec.ts', function () {
       });
     }
 
-    function createNestingShadowRoot(ctx: HTMLTestContext, level: number, rootEl: HTMLElement) {
+    function createNestingShadowRoot(ctx: TestContext, level: number, rootEl: HTMLElement) {
       const rootShadowRoot = rootEl.attachShadow({ mode: 'open' });
       let currentShadowRoot = rootShadowRoot;
       currentShadowRoot.appendChild(ctx.createElement('button'));
@@ -205,7 +203,7 @@ describe('[UNIT] blur.unit.spec.ts', function () {
 
   describe('\n\t+ [linkedWith]', function () {
     describe('object/object[] scenarios', function () {
-      const { doc } = TestContext.createHTMLTestContext();
+      const { doc } = TestContext.create();
       const fakeEl = doc.body.appendChild(doc.createElement('fake'));
       const linkedWithValues: (HasContains | HasContains[])[] = [
         doc,
@@ -268,7 +266,7 @@ describe('[UNIT] blur.unit.spec.ts', function () {
         '.some-css-class',
         '#some-id',
       ];
-      if (!$ctx.userAgent.includes('jsdom')) {
+      if (!PLATFORM.navigator.userAgent.includes('jsdom')) {
         linkedWithValues.push('#some-complex-selector > .some-nested-complex-selector + button');
       }
       for (const linkWith of linkedWithValues) {
@@ -434,7 +432,7 @@ describe('[UNIT] blur.unit.spec.ts', function () {
       (testCase) => {
         const { linkedWith, linkingContext, template, title, assertFn, blurHost } = testCase;
         it(title(), async function () {
-          const ctx = TestContext.createHTMLTestContext();
+          const ctx = TestContext.create();
           const host = ctx.doc.body.appendChild(ctx.createElement('div'));
           host.innerHTML = template();
 
@@ -442,7 +440,7 @@ describe('[UNIT] blur.unit.spec.ts', function () {
             typeof blurHost === 'string'
               ? host.querySelector(blurHost)
               : blurHost,
-            ctx.dom,
+            ctx.platform,
             ctx.scheduler,
           );
           sut.linkedWith = linkedWith;
@@ -459,16 +457,16 @@ describe('[UNIT] blur.unit.spec.ts', function () {
       blurHost: string | HTMLElement;
       title: () => string;
       template: () => string;
-      assertFn: (ctx: HTMLTestContext, host: HTMLElement, sut: Blur) => void | Promise<void>;
+      assertFn: (ctx: TestContext, host: HTMLElement, sut: Blur) => void | Promise<void>;
     }
   });
   describe('with [linkedWith] + [linkingContext] + [searchSubTree]', function todo() {/**/});
   describe('with [linkedWith] + [linkingContext] + [searchSubTree] + [linkMultiple]', function todo() {/**/});
 
   function createFixture() {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const target = ctx.doc.body.appendChild(ctx.createElement('div'));
-    const sut = new Blur(target, ctx.dom, ctx.scheduler);
+    const sut = new Blur(target, ctx.platform, ctx.scheduler);
     return { ctx, target, sut, dispose: () => { target.remove(); } };
   }
 

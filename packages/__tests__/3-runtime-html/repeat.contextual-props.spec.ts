@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   noop
 } from '@aurelia/kernel';
@@ -369,7 +371,7 @@ describe(`[repeat.contextual-prop.spec.ts]`, function () {
     for (const bindingStrategy of [BindingStrategy.getterSetter, BindingStrategy.proxies]) {
 
       suit(title, async function (): Promise<void> {
-        const ctx = TestContext.createHTMLTestContext();
+        const ctx = TestContext.create();
 
         let body: HTMLElement;
         let host: HTMLElement;

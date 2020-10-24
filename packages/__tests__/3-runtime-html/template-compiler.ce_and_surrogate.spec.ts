@@ -1,4 +1,4 @@
-import { HTMLTestContext, TestContext, assert } from '@aurelia/testing';
+import { TestContext, assert } from '@aurelia/testing';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 
 describe('template-compiler.ce_and_surrogate.spec.ts', function () {
@@ -7,7 +7,7 @@ describe('template-compiler.ce_and_surrogate.spec.ts', function () {
     template: string;
     root?: any;
     resources?: any[];
-    assertFn: <T = any>(ctx: HTMLTestContext, host: HTMLElement, comp: T) => void | Promise<void>;
+    assertFn: <T = any>(ctx: TestContext, host: HTMLElement, comp: T) => void | Promise<void>;
   }
 
   const testCases: ISurrogateIntegrationTestCase[] = [
@@ -165,7 +165,7 @@ describe('template-compiler.ce_and_surrogate.spec.ts', function () {
     it(title, async function () {
       let host: HTMLElement;
       try {
-        const ctx = TestContext.createHTMLTestContext();
+        const ctx = TestContext.create();
         const aurelia = new Aurelia(ctx.container);
         host = ctx.createElement('div');
 

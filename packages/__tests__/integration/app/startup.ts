@@ -1,7 +1,7 @@
 /* eslint-disable no-shadow */
 import { IRegistration } from '@aurelia/kernel';
 import { Aurelia, CustomElement, FrequentMutations, CustomElementType } from '@aurelia/runtime-html';
-import { CallCollection, HTMLTestContext, TestContext } from '@aurelia/testing';
+import { CallCollection, TestContext } from '@aurelia/testing';
 import { App } from './app';
 import { appTemplate as template } from './app-template';
 import { atoms } from './atoms';
@@ -12,7 +12,7 @@ export class TestExecutionContext {
   public constructor(
     public au: Aurelia,
     public host: HTMLElement,
-    public ctx: HTMLTestContext,
+    public ctx: TestContext,
     public tearDown: () => Promise<void>,
     public callCollection: CallCollection,
   ) { }
@@ -25,9 +25,9 @@ export const enum ComponentMode {
 export type StartupConfiguration = Partial<MolecularConfiguration & { method: 'app' | 'enhance'; componentMode: ComponentMode }>;
 
 export async function startup(config: StartupConfiguration = {}) {
-  const ctx = TestContext.createHTMLTestContext();
+  const ctx = TestContext.create();
 
-  const host = ctx.dom.createElement('div');
+  const host = ctx.doc.createElement('div');
   const au = new Aurelia(ctx.container);
   au
     .register(

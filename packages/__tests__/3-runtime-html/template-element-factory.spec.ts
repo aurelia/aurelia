@@ -1,14 +1,14 @@
 
 import { ITemplateElementFactory } from '@aurelia/runtime-html';
-import { HTMLTestContext, TestContext, assert } from '@aurelia/testing';
+import { TestContext, assert } from '@aurelia/testing';
 
 describe('TemplateElementFactory', function () {
   let sut: ITemplateElementFactory;
-  let ctx: HTMLTestContext;
+  let ctx: TestContext;
 
   // eslint-disable-next-line mocha/no-hooks
   beforeEach(function () {
-    ctx = TestContext.createHTMLTestContext();
+    ctx = TestContext.create();
     sut = ctx.container.get(ITemplateElementFactory);
   });
 

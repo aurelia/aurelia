@@ -218,7 +218,7 @@ describe(spec, function () {
       const { forof, item, expected, initialize } = bindSpec;
       const { createTemplate } = templateSpec;
 
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const { container } = ctx;
       container.register(TestConfiguration);
 

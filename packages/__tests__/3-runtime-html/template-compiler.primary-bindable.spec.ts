@@ -3,8 +3,8 @@ import {
 } from '@aurelia/kernel';
 import {
   assert,
-  HTMLTestContext,
-  TestContext
+  TestContext,
+  PLATFORM,
 } from '@aurelia/testing';
 import {
   bindable,
@@ -14,13 +14,9 @@ import {
   INode,
   valueConverter,
   CustomAttribute,
-  IDOM,
   ValueConverter,
   Aurelia,
-  HTMLDOM,
 } from '@aurelia/runtime-html';
-
-const $ctx = TestContext.createHTMLTestContext();
 
 describe('template-compiler.primary-bindable.spec.ts', function () {
 
@@ -33,7 +29,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
     browserOnly?: boolean;
     testWillThrow?: boolean;
     attrResources?: any[] | (() => any[]);
-    assertFn: (ctx: HTMLTestContext, host: HTMLElement, comp: any, attrResources: any[]) => void | Promise<void>;
+    assertFn: (ctx: TestContext, host: HTMLElement, comp: any, attrResources: any[]) => void | Promise<void>;
   }
 
   const testCases: IPrimaryBindableTestCase[] = [
@@ -485,7 +481,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
       let body: HTMLElement;
       let host: HTMLElement;
       try {
-        const ctx = TestContext.createHTMLTestContext();
+        const ctx = TestContext.create();
 
         const App = CustomElement.define({ name: 'app', template }, root);
         const au = new Aurelia(ctx.container);
@@ -535,7 +531,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
   describe('mimic vCurrent route-href', function () {
     class $RouteHref$ {
 
-      public static readonly inject = [INode, IDOM];
+      public static readonly inject = [INode];
 
       @bindable()
       public params: any;
@@ -548,7 +544,6 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
 
       public constructor(
         private readonly el: HTMLAnchorElement,
-        private readonly dom: HTMLDOM
       ) {
         /*  */
       }
@@ -588,7 +583,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
     );
 
     it('works correctly when binding only route name', async function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
 
       const App = CustomElement.define({
         name: 'app',
@@ -603,7 +598,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
       au.app({ component: App, host });
       await au.start();
 
-      if ($ctx.userAgent.includes('jsdom')) {
+      if (PLATFORM.navigator.userAgent.includes('jsdom')) {
         assert.strictEqual(host.querySelector('a').href, `/?route=home.main`);
       } else {
         assert.includes(host.querySelector('a').search, `?route=home.main`);
@@ -615,7 +610,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
     });
 
     it('works correctly when using with value converter and a colon', async function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
 
       const App = CustomElement.define({
         name: 'app',
@@ -630,7 +625,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
       au.app({ component: App, host });
       await au.start();
 
-      if ($ctx.userAgent.includes('jsdom')) {
+      if (PLATFORM.navigator.userAgent.includes('jsdom')) {
         assert.strictEqual(host.querySelector('a').href, '/?route=home--main');
       } else {
         assert.strictEqual(host.querySelector('a').search, '?route=home--main');
@@ -644,7 +639,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
     // todo: fix:
     //      + timing issue (change handler is invoked before binding)
     it('works correctly when using multi binding syntax', async function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
 
       const App = CustomElement.define(
         {
@@ -666,7 +661,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
 
       const anchorEl = host.querySelector('a');
 
-      if ($ctx.userAgent.includes('jsdom')) {
+      if (PLATFORM.navigator.userAgent.includes('jsdom')) {
         assert.strictEqual(anchorEl.href, '/?route=home.main');
       } else {
         assert.strictEqual(anchorEl.search, '?route=home.main');
@@ -675,7 +670,7 @@ describe('template-compiler.primary-bindable.spec.ts', function () {
       const app = au.root.controller.viewModel as any;
 
       app.appId = 'appId-appId';
-      if ($ctx.userAgent.includes('jsdom')) {
+      if (PLATFORM.navigator.userAgent.includes('jsdom')) {
         assert.strictEqual(anchorEl.href, '/?params=[object Object]');
       } else {
         assert.strictEqual(anchorEl.search, `?params=[object%20Object]`);

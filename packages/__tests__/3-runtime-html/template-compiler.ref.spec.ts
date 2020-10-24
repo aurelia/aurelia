@@ -12,7 +12,6 @@ import {
 } from '@aurelia/runtime-html';
 import {
   assert,
-  HTMLTestContext,
   TestContext,
 } from '@aurelia/testing';
 
@@ -25,8 +24,8 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
     resources?: any[];
     browserOnly?: boolean;
     testWillThrow?: boolean;
-    assertFn(ctx: HTMLTestContext, host: HTMLElement, comp: any): void | Promise<void>;
-    assertFnAfterDestroy?(ctx: HTMLTestContext, host: HTMLElement, comp: any): void | Promise<void>;
+    assertFn(ctx: TestContext, host: HTMLElement, comp: any): void | Promise<void>;
+    assertFnAfterDestroy?(ctx: TestContext, host: HTMLElement, comp: any): void | Promise<void>;
   }
 
   const testCases: IRefIntegrationTestCase[] = [
@@ -465,7 +464,7 @@ describe('3-runtime-html/templating-compiler.ref.spec.ts', function () {
       let body: HTMLElement;
       let host: HTMLElement;
       try {
-        const ctx = TestContext.createHTMLTestContext();
+        const ctx = TestContext.create();
 
         const App = CustomElement.define({ name: 'app', template }, root);
         const au = new Aurelia(ctx.container);

@@ -24,10 +24,16 @@
  */
 
 import {
+  DI,
+  IContainer,
+  IRegistration,
+  IResolver,
   isArrayIndex,
   noop,
   Primitive,
+  Registration,
 } from '@aurelia/kernel';
+import { IPlatform, IScheduler } from '@aurelia/runtime-html';
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any, no-control-regex */
 

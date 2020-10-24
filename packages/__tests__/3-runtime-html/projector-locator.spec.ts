@@ -1,10 +1,9 @@
-import { CustomElement, Controller, ILifecycle, ContainerlessProjector, HostProjector, HTMLProjectorLocator, ShadowDOMProjector } from '@aurelia/runtime-html';
+import { CustomElement, Controller, ContainerlessProjector, HostProjector, ProjectorLocator, ShadowDOMProjector } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 
 describe.skip(`determineProjector`, function () {
-  const ctx = TestContext.createHTMLTestContext();
-  const dom = ctx.dom;
-  const locator = new HTMLProjectorLocator();
+  const ctx = TestContext.create();
+  const locator = new ProjectorLocator();
 
   it(`@useShadowDOM yields ShadowDOMProjector`, function () {
     const host = ctx.createElement('div');
@@ -18,8 +17,8 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(null, ctx.container, component, ctx.container.get(ILifecycle), host, void 0, null);
-    const projector = locator.getElementProjector(dom, controller, host, definition);
+    const controller = Controller.forCustomElement(null, ctx.container, component, host, void 0, null);
+    const projector = locator.getElementProjector(controller, host, definition);
 
     assert.instanceOf(projector, ShadowDOMProjector, `projector`);
     assert.instanceOf(projector['shadowRoot'], ctx.Node, `projector['shadowRoot']`);
@@ -43,8 +42,8 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(null, ctx.container, component, ctx.container.get(ILifecycle), host, void 0, null);
-    const projector = locator.getElementProjector(dom, controller, host, definition);
+    const controller = Controller.forCustomElement(null, ctx.container, component, host, void 0, null);
+    const projector = locator.getElementProjector(controller, host, definition);
 
     assert.instanceOf(projector, ShadowDOMProjector, `projector`);
     assert.instanceOf(projector['shadowRoot'], ctx.Node, `projector['shadowRoot']`);
@@ -70,8 +69,8 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(null, ctx.container, component, ctx.container.get(ILifecycle), host, void 0, null);
-    const projector = locator.getElementProjector(dom, controller, host, definition);
+    const controller = Controller.forCustomElement(null, ctx.container, component, host, void 0, null);
+    const projector = locator.getElementProjector(controller, host, definition);
 
     assert.instanceOf(projector, ContainerlessProjector, `projector`);
     assert.strictEqual(projector['childNodes'].length, 0, `projector['childNodes'].length`);
@@ -104,8 +103,8 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(null, ctx.container, component, ctx.container.get(ILifecycle), host, void 0, null);
-    const projector = locator.getElementProjector(dom, controller, host, definition);
+    const controller = Controller.forCustomElement(null, ctx.container, component, host, void 0, null);
+    const projector = locator.getElementProjector(controller, host, definition);
 
     assert.instanceOf(projector, ContainerlessProjector, `projector`);
     assert.strictEqual(projector['childNodes'][0], child, `projector['childNodes'][0]`);
@@ -129,8 +128,8 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(null, ctx.container, component, ctx.container.get(ILifecycle), host, void 0, null);
-    const projector = locator.getElementProjector(dom, controller, host, definition);
+    const controller = Controller.forCustomElement(null, ctx.container, component, host, void 0, null);
+    const projector = locator.getElementProjector(controller, host, definition);
 
     assert.strictEqual(CustomElement.for(host), component, `CustomElement.for(host)`);
     assert.instanceOf(projector, HostProjector, `projector`);
@@ -150,9 +149,9 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(null, ctx.container, component, ctx.container.get(ILifecycle), host, void 0, null);
+    const controller = Controller.forCustomElement(null, ctx.container, component, host, void 0, null);
 
-    assert.throws(() => locator.getElementProjector(dom, controller, host, definition), /You cannot combine the containerless custom element option with Shadow DOM./, `() => locator.getElementProjector(dom, component, host, definition)`);
+    assert.throws(() => locator.getElementProjector(controller, host, definition), /You cannot combine the containerless custom element option with Shadow DOM./, `() => locator.getElementProjector(dom, component, host, definition)`);
   });
 
   it(`@containerless + hasSlots throws`, function () {
@@ -167,8 +166,8 @@ describe.skip(`determineProjector`, function () {
     );
     const definition = CustomElement.getDefinition(Foo);
     const component = new Foo();
-    const controller = Controller.forCustomElement(null, ctx.container, component, ctx.container.get(ILifecycle), host, void 0, null);
+    const controller = Controller.forCustomElement(null, ctx.container, component, host, void 0, null);
 
-    assert.throws(() => locator.getElementProjector(dom, controller, host, definition), /You cannot combine the containerless custom element option with Shadow DOM./, `() => locator.getElementProjector(dom, component, host, definition)`);
+    assert.throws(() => locator.getElementProjector(controller, host, definition), /You cannot combine the containerless custom element option with Shadow DOM./, `() => locator.getElementProjector(dom, component, host, definition)`);
   });
 });

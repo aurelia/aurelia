@@ -35,7 +35,7 @@ describe('template-compiler.convention.spec.ts \n\thtml convention', function ()
   for (const [el, bindingAttr, bindingProp = bindingAttr, elAttrs = {}] of bindToTwoWayCombos) {
     const elAttrsStr = Object.entries(elAttrs).map(([key, value]) => `${key}="${value}"`).join(' ');
     it(`compile <${el} ${bindingAttr}.bind="..." ${elAttrsStr} />`, function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const compiler = ctx.container.get(ITemplateCompiler);
       const template = `<${el} ${bindingAttr}.bind="value" ${elAttrsStr}></${el}>`;
       const { instructions: rootInstructions } = compiler.compile(
@@ -83,7 +83,7 @@ describe('template-compiler.convention.spec.ts \n\thtml convention', function ()
   for (const [el, bindingAttr, bindingProp, elAttrs = {}] of attrToPropCombos) {
     const elAttrsStr = Object.entries(elAttrs).map(([key, value]) => `${key}="${value}"`).join(' ');
     it(`compile <${el} ${bindingAttr}.bind="..." ${elAttrsStr} />`, function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const compiler = ctx.container.get(ITemplateCompiler);
       const template = `<${el} ${bindingAttr}.bind="value" ${elAttrsStr}></${el}>`;
       const { instructions: rootInstructions } = compiler.compile(

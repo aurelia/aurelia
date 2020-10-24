@@ -18,7 +18,6 @@ import {
 import { IRenderLocation } from '../../dom';
 import {
   ISyntheticView,
-  IViewFactory,
   MountStrategy,
   ICustomAttributeController,
   IComposableController,
@@ -28,6 +27,7 @@ import {
   IHydratedParentController,
   ControllerVisitor,
 } from '../../lifecycle';
+import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 
 type Items<C extends ObservedCollection = IObservedArray> = C | undefined;

@@ -1,7 +1,6 @@
 import { Constructable, ConstructableClass, DI, IContainer, Metadata, Protocol } from '@aurelia/kernel';
-import { ILifecycle, LifecycleFlags, Scope } from '@aurelia/runtime';
+import { LifecycleFlags, Scope } from '@aurelia/runtime';
 import {
-  IViewFactory,
   ICustomElementViewModel,
   ISyntheticView,
   IDryCustomElementController,
@@ -17,6 +16,8 @@ import { Controller } from './controller';
 import { ICompositionContext } from './composition-context';
 import { AuSlotContentType } from '../resources/custom-elements/au-slot';
 
+export interface IViewFactory extends ViewFactory {}
+export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();
 export class ViewFactory implements IViewFactory {
   public static maxCacheSize: number = 0xFFFF;
 
@@ -28,7 +29,6 @@ export class ViewFactory implements IViewFactory {
   public constructor(
     public name: string,
     public readonly context: ICompositionContext,
-    private readonly lifecycle: ILifecycle,
     public readonly contentType: AuSlotContentType | undefined,
     public readonly projectionScope: Scope | null = null,
   ) {}
@@ -80,7 +80,7 @@ export class ViewFactory implements IViewFactory {
       return controller;
     }
 
-    controller = Controller.forSyntheticView(null, this.context, this, this.lifecycle, flags, parentController);
+    controller = Controller.forSyntheticView(null, this.context, this, flags, parentController);
     return controller;
   }
 }

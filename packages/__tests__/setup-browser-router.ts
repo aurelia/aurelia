@@ -1,6 +1,8 @@
+import { BrowserPlatform } from '@aurelia/platform-browser';
 import { $setup } from './setup-shared';
 
-$setup(window);
+const platform = new BrowserPlatform(window);
+$setup(platform);
 
 console.log(`Browser router test context initialized`);
 

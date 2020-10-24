@@ -1,27 +1,25 @@
 import {
   CustomElement,
-  IDOM,
   SVGAnalyzerRegistration,
 } from '@aurelia/runtime-html';
 import {
   assert,
   createFixture,
+  PLATFORM,
   TestContext
 } from '@aurelia/testing';
 import { Registration } from '@aurelia/kernel';
 
-const $ctx = TestContext.createHTMLTestContext();
-
 describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
   it('renders fractal tree', async function () {
-    if ($ctx.userAgent.includes('jsdom')) {
+    if (PLATFORM.navigator.userAgent.includes('jsdom')) {
       return;
     }
 
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const state = new State();
     Registration.instance(State, state).register(ctx.container);
-    ctx.container.register(SVGAnalyzerRegistration, createPythagorasElement(ctx.dom));
+    ctx.container.register(SVGAnalyzerRegistration, createPythagorasElement());
 
     const { startPromise, appHost, component, tearDown } = createFixture(
       `<div style='height: 50px;' css='max-width: \${width}px;'>
@@ -113,7 +111,7 @@ describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
     }
   }
 
-  function createPythagorasElement(dom: IDOM) {
+  function createPythagorasElement() {
     const TEMPLATE =
     `<template>
       <svg remove>
@@ -154,7 +152,7 @@ describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
       {
         name: 'pythagoras',
         template: (() => {
-          const parser = dom.createElement('div') as HTMLDivElement;
+          const parser = PLATFORM.document.createElement('div');
           parser.innerHTML = TEMPLATE;
           const template = parser.firstElementChild as HTMLTemplateElement;
           const svg = template.content.firstElementChild;

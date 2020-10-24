@@ -20,7 +20,7 @@ import {
 } from '@aurelia/kernel';
 import { PartialBindableDefinition, BindingStrategy, BindableDefinition, Bindable, registerAliases } from '@aurelia/runtime';
 import { IInstruction, HooksDefinition } from '../definitions';
-import { IDOM, INode, INodeSequence, IRenderLocation, DOM } from '../dom';
+import { INode, IRenderLocation, getEffectiveParentNode } from '../dom';
 import { ICustomElementViewModel, ICustomElementController } from '../lifecycle';
 import { PartialChildrenDefinition, ChildrenDefinition, Children } from '../templating/children';
 import { IProjections } from './custom-elements/au-slot';
@@ -438,7 +438,7 @@ export const CustomElement: CustomElementKind = {
           }
         }
 
-        cur = DOM.getEffectiveParentNode(cur);
+        cur = getEffectiveParentNode(cur);
       }
 
       if (foundAController) {
@@ -455,7 +455,7 @@ export const CustomElement: CustomElementKind = {
         return controller;
       }
 
-      cur = DOM.getEffectiveParentNode(cur);
+      cur = getEffectiveParentNode(cur);
     }
 
     throw new Error(`The provided node does does not appear to be part of an Aurelia app DOM tree, or it was added to the DOM in a way that Aurelia cannot properly resolve its position in the component tree.`);
@@ -548,20 +548,3 @@ export const CustomElement: CustomElementKind = {
 export type CustomElementHost<T extends Node & ParentNode = Node & ParentNode> = IRenderLocation<T> & T & {
   $controller?: ICustomElementController;
 };
-
-export interface IElementProjector {
-  readonly host: CustomElementHost;
-  readonly children: ArrayLike<ChildNode>;
-
-  provideEncapsulationSource(): Node;
-  project(nodes: INodeSequence): void;
-  take(nodes: INodeSequence): void;
-
-  subscribeToChildrenChange(callback: () => void, options?: any): void;
-}
-
-export const IProjectorLocator = DI.createInterface<IProjectorLocator>('IProjectorLocator').noDefault();
-
-export interface IProjectorLocator {
-  getElementProjector(dom: IDOM, $component: ICustomElementController, host: Node, def: CustomElementDefinition): IElementProjector;
-}

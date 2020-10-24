@@ -17,13 +17,12 @@ import {
   SelectValueObserver,
   StyleAttributeAccessor,
   ValueAttributeObserver,
-  DOM,
 } from '@aurelia/runtime-html';
-import { _, TestContext, assert, createSpy } from '@aurelia/testing';
+import { _, TestContext, assert, PLATFORM } from '@aurelia/testing';
 
 describe('ObserverLocator', function () {
   function createFixture() {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const sut = ctx.observerLocator;
 
     return { ctx, sut };
@@ -285,9 +284,9 @@ describe('ObserverLocator', function () {
     for (const hasAdapterObserver of [true, false]) {
       for (const adapterIsDefined of hasAdapterObserver ? [true, false] : [false]) {
         const descriptors = {
-          ...Object.getOwnPropertyDescriptors(DOM.Node.prototype),
-          ...Object.getOwnPropertyDescriptors(DOM.Element.prototype),
-          ...Object.getOwnPropertyDescriptors(DOM.HTMLElement.prototype)
+          ...Object.getOwnPropertyDescriptors(PLATFORM.Node.prototype),
+          ...Object.getOwnPropertyDescriptors(PLATFORM.Element.prototype),
+          ...Object.getOwnPropertyDescriptors(PLATFORM.HTMLElement.prototype)
         };
         for (const property of Object.keys(descriptors)) {
           it(_`getObserver() - obj=<div></div>, property=${property}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, function () {

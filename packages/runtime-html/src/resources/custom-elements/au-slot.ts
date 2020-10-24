@@ -8,11 +8,11 @@ import {
   IHydratedController,
   IHydratedParentController,
   ISyntheticView,
-  IViewFactory,
   MountStrategy
 } from '../../lifecycle';
 import { customElement, CustomElementDefinition } from '../custom-element';
 import { IInstruction } from '../../definitions';
+import { IViewFactory } from '../../templating/view';
 
 export type IProjections = Record<string, CustomElementDefinition>;
 export const IProjections = DI.createInterface<IProjections>("IProjections").noDefault();

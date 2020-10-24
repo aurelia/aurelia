@@ -24,7 +24,7 @@ import {
 //   FakeView,
 //   FakeViewFactory,
 // } from './fakes';
-// import { HTMLTestContext } from './html-test-context';
+// import { TestContext } from './html-test-context';
 // import {
 //   defineComponentLifecycleMock,
 //   IComponentLifecycleMock,
@@ -509,7 +509,7 @@ export function createScopeForTest(bindingContext: any = {}, parentBindingContex
 //   return { Type, sut };
 // }
 
-// export function hydrateCustomElement<T>(Type: Constructable<T>, ctx: HTMLTestContext) {
+// export function hydrateCustomElement<T>(Type: Constructable<T>, ctx: TestContext) {
 //   const { container, dom } = ctx;
 //   const ElementType: ICustomElementType = Type as any;
 //   const parent = ctx.createElement('div');

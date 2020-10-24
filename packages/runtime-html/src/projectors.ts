@@ -1,29 +1,28 @@
-import { IContainer, IResolver, emptyArray, Registration, toArray, Metadata } from '@aurelia/kernel';
-import { HTMLDOM, INodeSequence } from './dom';
+import { emptyArray, toArray, Metadata, DI } from '@aurelia/kernel';
+import { convertToRenderLocation, INodeSequence } from './dom';
 import { ICustomElementController } from './lifecycle';
-import { CustomElement, CustomElementDefinition, CustomElementHost, IElementProjector, IProjectorLocator } from './resources/custom-element';
+import { CustomElement, CustomElementDefinition, CustomElementHost } from './resources/custom-element';
 import { IShadowDOMStyles, IShadowDOMGlobalStyles } from './styles/shadow-dom-styles';
 
 const defaultShadowOptions = {
   mode: 'open' as 'open' | 'closed'
 };
 
-export class HTMLProjectorLocator implements IProjectorLocator {
-  public static register(container: IContainer): IResolver<IProjectorLocator> {
-    return Registration.singleton(IProjectorLocator, this).register(container);
-  }
+export const IProjectorLocator = DI.createInterface<IProjectorLocator>('IProjectorLocator').withDefault(x => x.singleton(ProjectorLocator));
+export interface IProjectorLocator extends ProjectorLocator {}
 
-  public getElementProjector(dom: HTMLDOM, $component: ICustomElementController, host: CustomElementHost<HTMLElement>, def: CustomElementDefinition): IElementProjector {
+export class ProjectorLocator {
+  public getElementProjector($component: ICustomElementController, host: CustomElementHost<HTMLElement>, def: CustomElementDefinition): ElementProjector {
     if (def.shadowOptions || def.hasSlots) {
       if (def.containerless) {
         throw new Error('You cannot combine the containerless custom element option with Shadow DOM.');
       }
 
-      return new ShadowDOMProjector(dom, $component, host, def);
+      return new ShadowDOMProjector($component, host, def);
     }
 
     if (def.containerless) {
-      return new ContainerlessProjector(dom, $component, host);
+      return new ContainerlessProjector($component, host);
     }
 
     return new HostProjector($component, host, def.enhance);
@@ -32,12 +31,11 @@ export class HTMLProjectorLocator implements IProjectorLocator {
 
 const childObserverOptions = { childList: true };
 
-/** @internal */
-export class ShadowDOMProjector implements IElementProjector {
+export type ElementProjector = ShadowDOMProjector | ContainerlessProjector | HostProjector;
+export class ShadowDOMProjector {
   public shadowRoot: CustomElementHost<ShadowRoot>;
 
   public constructor(
-    public dom: HTMLDOM,
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private $controller: ICustomElementController,
     public host: CustomElementHost<HTMLElement>,
@@ -61,9 +59,9 @@ export class ShadowDOMProjector implements IElementProjector {
     return this.host.childNodes;
   }
 
-  public subscribeToChildrenChange(callback: () => void, options = childObserverOptions): void {
+  public subscribeToChildrenChange(callback: () => void, options: MutationObserverInit = childObserverOptions): void {
     // TODO: add a way to dispose/disconnect
-    const obs = new this.dom.window.MutationObserver(callback);
+    const obs = new this.host.ownerDocument!.defaultView!.MutationObserver(callback);
     obs.observe(this.host, options);
   }
 
@@ -87,14 +85,12 @@ export class ShadowDOMProjector implements IElementProjector {
   }
 }
 
-/** @internal */
-export class ContainerlessProjector implements IElementProjector {
+export class ContainerlessProjector {
   public host: CustomElementHost;
 
   private readonly childNodes: readonly ChildNode[];
 
   public constructor(
-    dom: HTMLDOM,
     $controller: ICustomElementController,
     host: Node,
   ) {
@@ -104,7 +100,7 @@ export class ContainerlessProjector implements IElementProjector {
       this.childNodes = emptyArray;
     }
 
-    this.host = dom.convertToRenderLocation(host) as CustomElementHost;
+    this.host = convertToRenderLocation(host) as CustomElementHost;
     Metadata.define(CustomElement.name, $controller, this.host);
   }
 
@@ -131,8 +127,7 @@ export class ContainerlessProjector implements IElementProjector {
   }
 }
 
-/** @internal */
-export class HostProjector implements IElementProjector {
+export class HostProjector {
   public constructor(
     $controller: ICustomElementController,
     public host: CustomElementHost,

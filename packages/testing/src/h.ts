@@ -3,9 +3,7 @@ import {
   emptyArray,
   Writable,
 } from '@aurelia/kernel';
-import {
-  DOM,
-} from '@aurelia/runtime-html';
+import { PLATFORM } from './test-context';
 
 export type H = string | number | boolean | null | undefined | Node;
 
@@ -14,7 +12,8 @@ export function h<T extends string, TChildren extends H[]>(
   attrs: Record<string, string | null | undefined | string[] | boolean | number> | null = null,
   ...children: TChildren
 ): T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] : HTMLElement {
-  const el = DOM.createElement(name);
+  const doc = PLATFORM.document;
+  const el = doc.createElement(name);
   for (const attr in attrs) {
     if (attr === 'class' || attr === 'className' || attr === 'cls') {
       let value = attrs[attr];
@@ -37,7 +36,7 @@ export function h<T extends string, TChildren extends H[]>(
     }
     childrenCt.appendChild(isNodeOrTextOrComment(child)
       ? child
-      : DOM.createTextNode(`${child}`)
+      : doc.createTextNode(`${child}`)
     );
   }
   return el as any;
@@ -53,7 +52,8 @@ const eventCmds = { delegate: 1, capture: 1, call: 1 };
  * jsx with aurelia binding command friendly version of h
  */
 export const hJsx = function (name: string, attrs: Record<string, string> | null, ...children: (Node | string | (Node | string)[])[]) {
-  const el = DOM.createElement(name === 'let$' ? 'let' : name);
+  const doc = PLATFORM.document;
+  const el = doc.createElement(name === 'let$' ? 'let' : name);
   if (attrs != null) {
     let value: string | string[];
     for (const attr in attrs) {
@@ -119,10 +119,10 @@ export const hJsx = function (name: string, attrs: Record<string, string> | null
     }
     if (Array.isArray(child)) {
       for (const child_child of child) {
-        appender.appendChild(DOM.isNodeInstance(child_child) ? child_child : DOM.createTextNode(`${child_child}`));
+        appender.appendChild(child_child instanceof PLATFORM.Node ? child_child : doc.createTextNode(`${child_child}`));
       }
     } else {
-      appender.appendChild(DOM.isNodeInstance(child) ? child : DOM.createTextNode(`${child}`));
+      appender.appendChild(child instanceof PLATFORM.Node ? child : doc.createTextNode(`${child}`));
     }
   }
   return el;

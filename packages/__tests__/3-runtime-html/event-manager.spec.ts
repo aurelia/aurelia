@@ -56,7 +56,7 @@ function eventPropertiesShallowClone<T extends Event>(e: T): T & { instance: T; 
 
 describe('ListenerTracker', function () {
   function createFixture(eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean, bubbles: boolean) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const handlerPath: ReturnType<typeof eventPropertiesShallowClone>[] = [];
     function handler(e: UIEvent) {
       handlerPath.push(eventPropertiesShallowClone(e));
@@ -175,7 +175,7 @@ describe('ListenerTracker', function () {
 
 describe('EventSubscriber', function () {
   function createFixture(listener: EventListenerOrEventListenerObject, eventNames: string[], bubbles: boolean) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const handler = createSpy();
 
     if (listener == null) {
@@ -369,7 +369,7 @@ describe('EventDelegator', function () {
       opts: AddEventListenerOptions,
       shadow: string) {
 
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
 
       const childHandlerPath: ReturnType<typeof eventPropertiesShallowClone>[] = [];
       const parentHandlerPath: ReturnType<typeof eventPropertiesShallowClone>[] = [];

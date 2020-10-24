@@ -19,7 +19,7 @@ describe.skip('ValueAttributeObserver', function () {
   ]) {
     describe(`setValue() - type="${inputType}"`, function () {
       function createFixture(hasSubscriber: boolean) {
-        const ctx = TestContext.createHTMLTestContext();
+        const ctx = TestContext.create();
         const { container, lifecycle, observerLocator, scheduler } = ctx;
 
         const el = ctx.createElementFromMarkup(`<input type="${inputType}"/>`) as HTMLInputElement;
@@ -100,7 +100,7 @@ describe.skip('ValueAttributeObserver', function () {
 
     describe(`handleEvent() - type="${inputType}"`, function () {
       function createFixture() {
-        const ctx = TestContext.createHTMLTestContext();
+        const ctx = TestContext.create();
         const { container, observerLocator } = ctx;
 
         const el = ctx.createElementFromMarkup(`<input type="${inputType}"/>`) as HTMLInputElement;

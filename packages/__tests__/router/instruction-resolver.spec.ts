@@ -4,7 +4,7 @@ import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testin
 
 describe('InstructionResolver', function () {
   async function createFixture() {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
 
     const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
@@ -73,7 +73,7 @@ describe('InstructionResolver', function () {
       viewportInstruction: ViewportInstruction;
     }
 
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
     const router = container.get(IRouter);
 

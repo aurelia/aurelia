@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { I18N, I18nConfiguration, Signals } from '@aurelia/i18n';
 import { Class, IContainer } from '@aurelia/kernel';
-import { Aurelia, bindable, customElement, DOM, INode, IScheduler, ISignaler } from '@aurelia/runtime-html';
-import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
+import { Aurelia, bindable, customElement, INode, IScheduler, ISignaler } from '@aurelia/runtime-html';
+import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../../util';
 
 describe('translation-integration', function () {
@@ -26,7 +26,7 @@ describe('translation-integration', function () {
     public constructor(
       public readonly en: Record<string, any>,
       public readonly de: Record<string, any>,
-      public readonly ctx: HTMLTestContext,
+      public readonly ctx: TestContext,
       public readonly au: Aurelia,
       public readonly i18n: I18N,
       public readonly host: HTMLElement,
@@ -106,8 +106,8 @@ describe('translation-integration', function () {
 
       imgPath: 'bar.jpg'
     };
-    const ctx = TestContext.createHTMLTestContext();
-    const host = DOM.createElement('app') as HTMLElement;
+    const ctx = TestContext.create();
+    const host = PLATFORM.document.createElement('app');
     const au = new Aurelia(ctx.container).register(
       I18nConfiguration.customize((config) => {
         config.initOptions = {

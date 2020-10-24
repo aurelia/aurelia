@@ -83,7 +83,6 @@ export class ViewportContent {
       null,
       connectedCE.container,
       this.content.componentInstance as ICustomElementViewModel,
-      connectedCE.container.get(ILifecycle),
       connectedCE.element,
       null,
       void 0,

@@ -12,7 +12,6 @@ import {
   _,
   eachCartesianJoin,
   eachCartesianJoinFactory,
-  HTMLTestContext,
   TestContext,
   assert
 } from '@aurelia/testing';
@@ -21,8 +20,8 @@ describe(`createElement() creates element based on tag`, function () {
   eachCartesianJoin([['div', 'template']], (tag: string) => {
     describe(`tag=${tag}`, function () {
       it(`translates raw object properties to attributes`, function () {
-        const ctx = TestContext.createHTMLTestContext();
-        const actual = sut(ctx.dom, tag, { title: 'asdf', foo: 'bar' });
+        const ctx = TestContext.create();
+        const actual = sut(ctx.platform, tag, { title: 'asdf', foo: 'bar' });
 
         const node = actual['node'] as Element;
 
@@ -35,8 +34,8 @@ describe(`createElement() creates element based on tag`, function () {
 
       eachCartesianJoin([[[null, 'null'], [undefined, 'undefined']]], ([props, str]) => {
         it(`can handle ${str} props`, function () {
-          const ctx = TestContext.createHTMLTestContext();
-          const actual = sut(ctx.dom, tag, props as unknown as Record<string, string>);
+          const ctx = TestContext.create();
+          const actual = sut(ctx.platform, tag, props as unknown as Record<string, string>);
 
           const node = actual['node'] as Element;
 
@@ -67,8 +66,8 @@ describe(`createElement() creates element based on tag`, function () {
         ],
         t => {
           it(`understands targeted instruction type=${t}`, function () {
-            const ctx = TestContext.createHTMLTestContext();
-            const actual = sut(ctx.dom, tag, { prop: { type: t }  as unknown as string|Instruction});
+            const ctx = TestContext.create();
+            const actual = sut(ctx.platform, tag, { prop: { type: t }  as unknown as string|Instruction});
 
             const instruction = actual['instructions'][0][0] as Instruction;
             const node = actual['node'] as Element;
@@ -82,21 +81,21 @@ describe(`createElement() creates element based on tag`, function () {
 
       eachCartesianJoinFactory([
         [
-          TestContext.createHTMLTestContext
+          TestContext.create
         ],
         [
           ctx => [['foo', 'bar'], 'foobar'],
           ctx => [[ctx.createElementFromMarkup('<div>foo</div>'), ctx.createElementFromMarkup('<div>bar</div>')], 'foobar'],
           ctx => [['foo', ctx.createElementFromMarkup('<div>bar</div>')], 'foobar']
-        ] as ((ctx: HTMLTestContext) => [(CompositionPlan | string | INode)[], string])[],
+        ] as ((ctx: TestContext) => [(CompositionPlan | string | INode)[], string])[],
         [
           (ctx, [children, expected]) => [children, expected],
-          (ctx, [children, expected]) => [[sut(ctx.dom, 'div', null, ['baz']), ...children], `baz${expected}`],
-          (ctx, [children, expected]) => [[sut(ctx.dom, 'div', null, [ctx.createElementFromMarkup('<div>baz</div>')]), ...children], `baz${expected}`]
-        ] as ((ctx: HTMLTestContext, $1: [(CompositionPlan | string | INode)[], string]) => [(CompositionPlan | string | INode)[], string])[]
+          (ctx, [children, expected]) => [[sut(ctx.platform, 'div', null, ['baz']), ...children], `baz${expected}`],
+          (ctx, [children, expected]) => [[sut(ctx.platform, 'div', null, [ctx.createElementFromMarkup('<div>baz</div>')]), ...children], `baz${expected}`]
+        ] as ((ctx: TestContext, $1: [(CompositionPlan | string | INode)[], string]) => [(CompositionPlan | string | INode)[], string])[]
       ],                       (ctx, $1, [children, expected]) => {
         it(_`adds children (${children})`, function () {
-          const actual = sut(ctx.dom, tag, null, children);
+          const actual = sut(ctx.platform, tag, null, children);
 
           const node = actual['node'] as Element;
 
@@ -120,10 +119,10 @@ describe(`createElement() creates element based on type`, function () {
   (createType: () => CustomElementType) => {
     describe(_`type=${createType()}`, function () {
       it(`translates raw object properties to attributes`, function () {
-        const ctx = TestContext.createHTMLTestContext();
+        const ctx = TestContext.create();
         const type = createType();
         const definition = CustomElement.getDefinition(type);
-        const actual = sut(ctx.dom, type, { title: 'asdf', foo: 'bar' });
+        const actual = sut(ctx.platform, type, { title: 'asdf', foo: 'bar' });
 
         const node = actual['node'] as Element;
         const instruction = (actual['instructions'][0][0]) as HydrateElementInstruction;
@@ -152,8 +151,8 @@ describe(`createElement() creates element based on type`, function () {
       eachCartesianJoin([[[null, 'null'], [undefined, 'undefined']]], ([props, str]) => {
         it(`can handle ${str} props`, function () {
           const type = createType();
-          const ctx = TestContext.createHTMLTestContext();
-          const actual = sut(ctx.dom, type, props as unknown as Record<string, string|Instruction>);
+          const ctx = TestContext.create();
+          const actual = sut(ctx.platform, type, props as unknown as Record<string, string|Instruction>);
 
           const node = actual['node'] as Element;
           const instruction = (actual['instructions'][0][0]) as HydrateElementInstruction;
@@ -189,8 +188,8 @@ describe(`createElement() creates element based on type`, function () {
           it(`understands targeted instruction type=${t}`, function () {
             const type = createType();
             const definition = CustomElement.getDefinition(type);
-            const ctx = TestContext.createHTMLTestContext();
-            const actual = sut(ctx.dom, type, { prop: { type: t } as unknown as string|Instruction});
+            const ctx = TestContext.create();
+            const actual = sut(ctx.platform, type, { prop: { type: t } as unknown as string|Instruction});
 
             const node = actual['node'] as Element;
             const instruction = (actual['instructions'][0][0]) as HydrateElementInstruction;
@@ -207,23 +206,23 @@ describe(`createElement() creates element based on type`, function () {
 
       eachCartesianJoinFactory([
         [
-          TestContext.createHTMLTestContext
+          TestContext.create
         ],
         [
           ctx => [['foo', 'bar'], 'foobar'],
           ctx => [[ctx.createElementFromMarkup('<div>foo</div>'), ctx.createElementFromMarkup('<div>bar</div>')], 'foobar'],
           ctx => [['foo', ctx.createElementFromMarkup('<div>bar</div>')], 'foobar']
-        ] as ((ctx: HTMLTestContext) => [(CompositionPlan | string | INode)[], string])[],
+        ] as ((ctx: TestContext) => [(CompositionPlan | string | INode)[], string])[],
         [
           (ctx, [children, expected]) => [children, expected],
-          (ctx, [children, expected]) => [[sut(ctx.dom, 'div', null, ['baz']), ...children], `baz${expected}`],
-          (ctx, [children, expected]) => [[sut(ctx.dom, 'div', null, [ctx.createElementFromMarkup('<div>baz</div>')]), ...children], `baz${expected}`]
-        ] as ((ctx: HTMLTestContext, $1: [(CompositionPlan | string | INode)[], string]) => [(CompositionPlan | string | INode)[], string])[]
+          (ctx, [children, expected]) => [[sut(ctx.platform, 'div', null, ['baz']), ...children], `baz${expected}`],
+          (ctx, [children, expected]) => [[sut(ctx.platform, 'div', null, [ctx.createElementFromMarkup('<div>baz</div>')]), ...children], `baz${expected}`]
+        ] as ((ctx: TestContext, $1: [(CompositionPlan | string | INode)[], string]) => [(CompositionPlan | string | INode)[], string])[]
       ],                       (ctx, $1, [children, expected]) => {
         it(_`adds children (${children})`, function () {
           const type = createType();
           const definition = CustomElement.getDefinition(type);
-          const actual = sut(ctx.dom, type, null, children);
+          const actual = sut(ctx.platform, type, null, children);
 
           const node = actual['node'] as Element;
           const instruction = (actual['instructions'][0][0]) as HydrateElementInstruction;

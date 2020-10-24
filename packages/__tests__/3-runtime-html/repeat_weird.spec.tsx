@@ -78,7 +78,7 @@ describe('[repeat] -- funny cases', function () {
         class App { message = 'Aurelia' }
       );
 
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       ctx.container.register(Foo);
       const au = new Aurelia(ctx.container);
 

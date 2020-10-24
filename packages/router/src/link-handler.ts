@@ -1,5 +1,4 @@
-import { HTMLDOM, IDOM, CustomAttribute } from '@aurelia/runtime-html';
-import { Key } from '@aurelia/kernel';
+import { IPlatform, CustomAttribute } from '@aurelia/runtime-html';
 import { GotoCustomAttribute } from './resources/goto';
 import { LoadCustomAttribute } from './resources/load';
 
@@ -47,8 +46,6 @@ export interface AnchorEventInfo {
  * TODO: remove the space between @ and i again at some point (this stripInternal currently screws up the types in the __tests__ package for some reason)
  */
 export class LinkHandler {
-  public static readonly inject: readonly Key[] = [IDOM];
-
   public window: Window;
   public document: Document;
 
@@ -58,11 +55,9 @@ export class LinkHandler {
   };
   private isActive: boolean = false;
 
-  public constructor(
-    dom: HTMLDOM
-  ) {
-    this.window = dom.window;
-    this.document = dom.document;
+  public constructor(@IPlatform p: IPlatform) {
+    this.window = p.window;
+    this.document = p.document;
   }
   /**
    * Gets the href and a "should handle" recommendation, given an Event.

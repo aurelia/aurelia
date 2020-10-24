@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { IDOM } from './dom';
+import { IPlatform } from './platform';
 
 /**
  * Utility that creates a `HTMLTemplateElement` out of string markup or an existing DOM node.
@@ -16,9 +16,9 @@ export class TemplateElementFactory {
   private template: HTMLTemplateElement;
 
   public constructor(
-    @IDOM private readonly dom: IDOM,
+    @IPlatform private readonly p: IPlatform,
   ) {
-    this.template = dom.createTemplate() as HTMLTemplateElement;
+    this.template = p.document.createElement('template');
   }
 
   public createTemplate(markup: string): HTMLTemplateElement;
@@ -34,7 +34,7 @@ export class TemplateElementFactory {
         // if the input is either not wrapped in a template or there is more than one node,
         // return the whole template that wraps it/them (and create a new one for the next input)
         if (node == null || node.nodeName !== 'TEMPLATE' || node.nextElementSibling != null) {
-          this.template = this.dom.createTemplate() as HTMLTemplateElement;
+          this.template = this.p.document.createElement('template');
           result = template;
         } else {
           // the node to return is both a template and the only node, so return just the node
@@ -50,7 +50,7 @@ export class TemplateElementFactory {
     }
     if (input.nodeName !== 'TEMPLATE') {
       // if we get one node that is not a template, wrap it in one
-      const template = this.dom.createTemplate() as HTMLTemplateElement;
+      const template = this.p.document.createElement('template');
       template.content.appendChild(input);
       return template;
     }

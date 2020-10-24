@@ -1,4 +1,4 @@
-import { IElementProjector, If, Repeat, With, ICustomElementController, ViewModelKind, ISyntheticView, Compose, InstructionType } from '@aurelia/runtime-html';
+import { ElementProjector, If, Repeat, With, ICustomElementController, ViewModelKind, ISyntheticView, Compose, InstructionType } from '@aurelia/runtime-html';
 import { assert } from './assert';
 
 // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.
@@ -66,7 +66,7 @@ export function getVisibleText(root: ICustomElementController, host: Node, remov
   return removeWhiteSpace && text ? text.replace(/\s\s+/g, ' ').trim() : text;
 }
 
-function isShadowDOMProjector(projector: IElementProjector | undefined): projector is IElementProjector & { shadowRoot: ShadowRoot } {
+function isShadowDOMProjector(projector: ElementProjector | undefined): projector is ElementProjector & { shadowRoot: ShadowRoot } {
   return projector != void 0 && 'shadowRoot' in projector;
 }
 

@@ -4,7 +4,6 @@ import {
   BindingStrategy,
   Else,
   If,
-  ILifecycle,
   Scope,
   LifecycleFlags,
   ProxyObserver,
@@ -13,13 +12,19 @@ import {
   CustomElementDefinition,
   getCompositionContext,
   IComposableController,
-  ToViewBindingInstruction,
+  IRenderLocation,
+  PropertyBindingComposerRegistration,
+  ITargetAccessorLocatorRegistration,
+  ITargetObserverLocatorRegistration,
+  TextBindingComposerRegistration,
+  TextBindingInstruction,
+  Interpolation,
 } from '@aurelia/runtime-html';
 import {
-  AuDOMConfiguration,
-  AuNode,
   eachCartesianJoin,
   assert,
+  PLATFORM,
+  createContainer,
 } from '@aurelia/testing';
 import { Writable } from '@aurelia/kernel';
 
@@ -99,6 +104,19 @@ describe(`If/Else`, function () {
     { t: '2', activateFlags1: bind,            deactivateFlags1: unbind,            activateFlags2: bind,            deactivateFlags2: unbind,            },
   ];
 
+  const container = createContainer().register(
+    ITargetAccessorLocatorRegistration,
+    ITargetObserverLocatorRegistration,
+    PropertyBindingComposerRegistration,
+    TextBindingComposerRegistration,
+  );
+
+  const marker = PLATFORM.document.createElement('au-m');
+  marker.className = 'au';
+  const text = PLATFORM.document.createTextNode('');
+  const textTemplate = PLATFORM.document.createElement('template');
+  textTemplate.content.append(marker, text);
+
   eachCartesianJoin(
     [strategySpecs, duplicateOperationSpecs, bindSpecs, mutationSpecs, flagsSpecs],
     (strategySpec, duplicateOperationSpec, bindSpec, mutationSpec, flagsSpec) => {
@@ -112,20 +130,21 @@ describe(`If/Else`, function () {
         // common stuff
         const baseFlags: LifecycleFlags = strategy as unknown as LifecycleFlags;
         const proxies = (strategy & BindingStrategy.proxies) > 0;
-        const container = AuDOMConfiguration.createContainer();
-        const lifecycle = container.get(ILifecycle);
 
-        const location = AuNode.createRenderLocation();
-        const location2 = AuNode.createRenderLocation();
-        const host = AuNode.createHost().appendChild(location.$start).appendChild(location).appendChild(location2.$start).appendChild(location2);
+        const host = PLATFORM.document.createElement('div');
+        const ifLoc = PLATFORM.document.createComment('au-end') as IRenderLocation;
+        const elseLoc = PLATFORM.document.createComment('au-end') as IRenderLocation;
+        ifLoc.$start = PLATFORM.document.createComment('au-start');
+        elseLoc.$start = PLATFORM.document.createComment('au-start');
+        host.append(ifLoc.$start, ifLoc, elseLoc.$start, elseLoc);
 
         const ifContext = getCompositionContext(
           CustomElementDefinition.create({
             name: void 0,
-            template: AuNode.createText().makeTarget(),
+            template: textTemplate.content.cloneNode(true),
             instructions: [
               [
-                new ToViewBindingInstruction(new AccessScopeExpression(ifPropName), 'textContent'),
+                new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression(ifPropName)])),
               ],
             ],
             needsCompile: false,
@@ -135,10 +154,10 @@ describe(`If/Else`, function () {
         const elseContext = getCompositionContext(
           CustomElementDefinition.create({
             name: void 0,
-            template: AuNode.createText().makeTarget(),
+            template: textTemplate.content.cloneNode(true),
             instructions: [
               [
-                new ToViewBindingInstruction(new AccessScopeExpression(elsePropName), 'textContent'),
+                new TextBindingInstruction(new Interpolation(['', ''], [new AccessScopeExpression(elsePropName)])),
               ],
             ],
             needsCompile: false,
@@ -146,18 +165,18 @@ describe(`If/Else`, function () {
           container,
         );
 
-        const ifFactory = new ViewFactory('if-view', ifContext, lifecycle, void 0, null);
-        const elseFactory = new ViewFactory('else-view', elseContext, lifecycle, void 0, null);
+        const ifFactory = new ViewFactory('if-view', ifContext, void 0, null);
+        const elseFactory = new ViewFactory('else-view', elseContext, void 0, null);
         let sut: If;
         let elseSut: Else;
         if (proxies) {
-          sut = ProxyObserver.getOrCreate(new If(ifFactory, location)).proxy;
+          sut = ProxyObserver.getOrCreate(new If(ifFactory, ifLoc)).proxy;
           elseSut = ProxyObserver.getOrCreate(new Else(elseFactory)).proxy;
         } else {
-          sut = new If(ifFactory, location);
+          sut = new If(ifFactory, ifLoc);
           elseSut = new Else(elseFactory);
         }
-        const ifController = (sut as Writable<If>).$controller = Controller.forCustomAttribute(null, container, sut, lifecycle, (void 0)!);
+        const ifController = (sut as Writable<If>).$controller = Controller.forCustomAttribute(null, container, sut, (void 0)!);
         elseSut.link(LifecycleFlags.none, void 0!, { children: [ifController] } as unknown as IComposableController, void 0!, void 0!, void 0!);
 
         const firstBindInitialNodesText: string = value1 ? ifText : elseText;
@@ -182,13 +201,13 @@ describe(`If/Else`, function () {
 
         runActivateLifecycle(sut, baseFlags | activateFlags1, scope);
 
-        assert.strictEqual(sut.view.nodes.firstChild['textContent'], firstBindInitialNodesText, '$nodes.textContent #1');
+        assert.strictEqual(sut.view.nodes.lastChild['textContent'], firstBindInitialNodesText, '$nodes.textContent #1');
 
         if (activateTwice) {
           runActivateLifecycle(sut, baseFlags | activateFlags1, scope);
         }
 
-        assert.strictEqual(sut.view.nodes.firstChild['textContent'], firstBindFinalNodesText, '$nodes.textContent #2');
+        assert.strictEqual(sut.view.nodes.lastChild['textContent'], firstBindFinalNodesText, '$nodes.textContent #2');
 
         assert.strictEqual(host.textContent, firstAttachInitialHostText, 'host.textContent #1');
 
@@ -211,12 +230,12 @@ describe(`If/Else`, function () {
 
         runActivateLifecycle(sut, baseFlags | activateFlags2, scope);
 
-        assert.strictEqual(sut.view.nodes.firstChild['textContent'], secondBindInitialNodesText, '$nodes.textContent #3');
+        assert.strictEqual(sut.view.nodes.lastChild['textContent'], secondBindInitialNodesText, '$nodes.textContent #3');
         if (activateTwice) {
           runActivateLifecycle(sut, baseFlags | activateFlags2, scope);
         }
 
-        assert.strictEqual(sut.view.nodes.firstChild['textContent'], secondBindFinalNodesText, '$nodes.textContent #4');
+        assert.strictEqual(sut.view.nodes.lastChild['textContent'], secondBindFinalNodesText, '$nodes.textContent #4');
 
         assert.strictEqual(host.textContent, secondAttachInitialHostText, 'host.textContent #4');
 

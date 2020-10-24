@@ -1,8 +1,7 @@
 import {
-  TestContext,
   assert,
   eachCartesianJoin,
-  HTMLTestContext,
+  TestContext,
 } from '@aurelia/testing';
 import {
   Constructable,
@@ -14,7 +13,6 @@ import {
   LifecycleFlags,
   ArrayIndexObserver,
   ISubscriber,
-  IScheduler,
   CustomElement,
   BindingStrategy,
   IDirtyChecker,
@@ -32,7 +30,7 @@ describe('simple Computed Observer test case', function () {
 
   interface AssertionFn<T extends IApp = IApp> {
     // eslint-disable-next-line @typescript-eslint/prefer-function-type
-    (ctx: HTMLTestContext, testHost: HTMLElement, component: T): void | Promise<void>;
+    (ctx: TestContext, testHost: HTMLElement, component: T): void | Promise<void>;
   }
 
   interface IApp {
@@ -89,7 +87,7 @@ describe('simple Computed Observer test case', function () {
         assert.strictEqual(inputEl.checked, false);
 
         component.itemNames.splice(0, 1, true as any);
-        ctx.container.get(IScheduler).getRenderTaskQueue().flush();
+        ctx.scheduler.getRenderTaskQueue().flush();
         assert.strictEqual(inputEl.checked, true, 'should have been checked');
 
         inputEl.checked = false;
@@ -119,7 +117,7 @@ describe('simple Computed Observer test case', function () {
 
         component.itemNames.splice(0, 1, 'i-2');
         assert.strictEqual(selectEl.value, 'i-1');
-        ctx.container.get(IScheduler).getRenderTaskQueue().flush();
+        ctx.scheduler.getRenderTaskQueue().flush();
         assert.strictEqual(selectEl.value, 'i-2');
       }
     },
@@ -161,7 +159,7 @@ describe('simple Computed Observer test case', function () {
 
         component.itemNames.splice(0, 1, '00');
         assert.html.textContent(host, 'i-0');
-        ctx.container.get(IScheduler).getRenderTaskQueue().flush();
+        ctx.scheduler.getRenderTaskQueue().flush();
         assert.html.textContent(host, '00');
       }
     }
@@ -187,7 +185,7 @@ describe('simple Computed Observer test case', function () {
   );
 
   async function createFixture<T>(template: string | Node, $class: Constructable | null, ...registrations: any[]) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container, lifecycle, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations]));
     container.register(...registrations);
@@ -247,7 +245,7 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
   });
 
   function createFixture() {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container, lifecycle, observerLocator, scheduler } = ctx;
     const el = ctx.createElementFromMarkup(`<input />`) as IInputElement;
     ctx.doc.body.appendChild(el);

@@ -1,7 +1,8 @@
 import { emptyArray } from '@aurelia/kernel';
 import { bindable, IScheduler } from '@aurelia/runtime';
-import { HTMLDOM, IDOM, INode, NodeType } from '../../dom';
+import { INode, NodeType } from '../../dom';
 import { ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
+import { IPlatform } from '../../platform';
 import { customAttribute } from '../custom-attribute';
 
 const unset = Symbol();
@@ -24,15 +25,15 @@ export class BlurManager {
   private readonly handler: EventListenerObject;
 
   private constructor(
-    public readonly dom: HTMLDOM,
+    public readonly platform: IPlatform,
     public readonly scheduler: IScheduler,
   ) {
-    blurDocMap.set(dom.document, this);
+    blurDocMap.set(platform.document, this);
     this.handler = createHandler(this, this.blurs);
   }
 
-  public static createFor(dom: HTMLDOM, scheduler: IScheduler): BlurManager {
-    return blurDocMap.get(dom.document) || new BlurManager(dom, scheduler);
+  public static createFor(platform: IPlatform, scheduler: IScheduler): BlurManager {
+    return blurDocMap.get(platform.document) || new BlurManager(platform, scheduler);
   }
 
   public register(blur: Blur): void {
@@ -54,9 +55,9 @@ export class BlurManager {
   }
 
   private addListeners(): void {
-    const dom = this.dom;
-    const doc = dom.document;
-    const win = dom.window;
+    const p = this.platform;
+    const doc = p.document;
+    const win = p.window;
     const handler = this.handler;
     if (win.navigator.pointerEnabled) {
       doc.addEventListener('pointerdown', handler, defaultCaptureEventInit);
@@ -68,9 +69,9 @@ export class BlurManager {
   }
 
   private removeListeners(): void {
-    const dom = this.dom;
-    const doc = dom.document;
-    const win = dom.window;
+    const p = this.platform;
+    const doc = p.document;
+    const win = p.window;
     const handler = this.handler;
     if (win.navigator.pointerEnabled) {
       doc.removeEventListener('pointerdown', handler, defaultCaptureEventInit);
@@ -136,7 +137,7 @@ export class Blur implements ICustomAttributeViewModel {
 
   private readonly element: HTMLElement;
 
-  public constructor(@INode element: INode, @IDOM private readonly dom: HTMLDOM, @IScheduler scheduler: IScheduler) {
+  public constructor(@INode element: INode, @IPlatform private readonly p: IPlatform, @IScheduler scheduler: IScheduler) {
     this.element = element as HTMLElement;
     /**
      * By default, the behavior should be least surprise possible, that:
@@ -148,7 +149,7 @@ export class Blur implements ICustomAttributeViewModel {
     this.searchSubTree = true;
     this.linkingContext = null;
     this.value = unset;
-    this.manager = BlurManager.createFor(dom, scheduler);
+    this.manager = BlurManager.createFor(p, scheduler);
   }
 
   public afterAttachChildren(): void {
@@ -163,8 +164,8 @@ export class Blur implements ICustomAttributeViewModel {
     if (this.value === false) {
       return;
     }
-    const dom = this.dom;
-    if (target === dom.window || target === dom.document || !this.contains(target as Element)) {
+    const p = this.p;
+    if (target === p.window || target === p.document || !this.contains(target as Element)) {
       this.triggerBlur();
     }
   }
@@ -187,7 +188,7 @@ export class Blur implements ICustomAttributeViewModel {
       return false;
     }
 
-    const doc = this.dom.document;
+    const doc = this.p.document;
     const linkedWith = this.linkedWith;
     const linkingContext = this.linkingContext;
     const searchSubTree = this.searchSubTree;
@@ -340,7 +341,7 @@ const createHandler = (
     // when the window itself got focus, reacting to it is quite unnecessary
     // as it doesn't really affect element inside the document
     // Do a simple check and bail immediately
-    const isWindow = e.target === manager.dom.window;
+    const isWindow = e.target === manager.platform.window;
     if (isWindow) {
       for (let i = 0, ii = checkTargets.length; ii > i; ++i) {
         checkTargets[i].triggerBlur();

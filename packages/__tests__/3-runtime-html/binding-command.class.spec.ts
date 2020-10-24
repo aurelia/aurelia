@@ -220,7 +220,7 @@ describe('template-compiler.binding-commands.class', function () {
   }
 
   function createFixture<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container, scheduler, observerLocator } = ctx;
     container.register(...registrations);
     const host = ctx.doc.body.appendChild(ctx.createElement('app'));

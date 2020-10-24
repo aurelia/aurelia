@@ -1,6 +1,6 @@
 import { Registration, toArray, newInstanceForScope, DI } from '@aurelia/kernel';
-import { IScheduler, CustomElement, DOM, customElement, Aurelia } from '@aurelia/runtime-html';
-import { assert, TestContext, ISpy, HTMLTestContext, createSpy, getVisibleText } from '@aurelia/testing';
+import { IScheduler, CustomElement, customElement, Aurelia } from '@aurelia/runtime-html';
+import { PLATFORM, assert, ISpy, TestContext, createSpy, getVisibleText } from '@aurelia/testing';
 import {
   IValidationRules,
   ValidationResult,
@@ -66,11 +66,11 @@ describe('validation-result-presenter-service', function () {
   }
   async function runTest(
     testFunction: TestFunction<TestExecutionContext<App>>,
-    { template, presenterService = new ValidationResultPresenterService() }: TestSetupContext
+    { template, presenterService = new ValidationResultPresenterService(PLATFORM) }: TestSetupContext
   ) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
-    const host = ctx.dom.createElement('app');
+    const host = ctx.createElement('app');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container);
     await au
@@ -102,7 +102,7 @@ describe('validation-result-presenter-service', function () {
     scheduler: IScheduler,
     controllerValidateSpy: ISpy,
     handleValidationEventSpy: ISpy,
-    ctx: HTMLTestContext,
+    ctx: TestContext,
     event: string = 'focusout',
   ) {
     handleValidationEventSpy.calls.splice(0);
@@ -128,7 +128,7 @@ describe('validation-result-presenter-service', function () {
       messageContainer.append(
         ...results.reduce((acc: Node[], result) => {
           if (!result.valid) {
-            const text = DOM.createTextNode(result.message) as Node;
+            const text = PLATFORM.document.createTextNode(result.message) as Node;
             Reflect.set(text, CustomPresenterService.markerProperty, result.id);
             acc.push(text);
           }
@@ -356,7 +356,7 @@ describe('validation-result-presenter-service', function () {
       assert.equal(getVisibleText(void 0, validationContainer2.shadowRoot.querySelector('small'), true), '');
     },
     {
-      presenterService: new CustomPresenterService(),
+      presenterService: new CustomPresenterService(PLATFORM),
       template: `
       <custom-validation-container>
         <input id="target1" type="text" value.two-way="person.name & validate">
@@ -423,7 +423,7 @@ describe('validation-result-presenter-service', function () {
         class extends ValidationResultPresenterService {
           public getValidationMessageContainer() { return null; }
         }
-      )(),
+      )(PLATFORM),
       template: `
       <div>
         <input id="target1" type="text" value.two-way="person.name & validate">

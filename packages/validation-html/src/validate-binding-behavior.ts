@@ -7,11 +7,11 @@ import {
   IScheduler,
   LifecycleFlags,
   CustomElementHost,
-  DOM,
   PropertyBinding,
   IBinding,
   BindingBehaviorExpression,
   ITask,
+  IPlatform,
 } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo, ValidationResultsSubscriber, ValidationEvent } from './validation-controller';
@@ -79,6 +79,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   private validatedOnce: boolean = false;
   private triggerEvent: 'blur' | 'focusout' | null = null;
   private bindingInfo!: BindingInfo;
+  private readonly platform: IPlatform;
 
   public constructor(
     public readonly binding: BindingWithBehavior,
@@ -88,6 +89,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
     const locator = this.locator;
     this.scheduler = locator.get(IScheduler);
     this.defaultTrigger = locator.get(IDefaultTrigger);
+    this.platform = locator.get(IPlatform);
     if (locator.has(IValidationController, true)) {
       this.scopedController = locator.get(IValidationController);
     }
@@ -280,7 +282,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
 
   private setTarget() {
     const target = this.propertyBinding.target;
-    if (DOM.isNodeInstance(target)) {
+    if (target instanceof this.platform.Node) {
       this.target = target as HTMLElement;
     } else {
       const controller = (target as CustomElementHost)?.$controller;

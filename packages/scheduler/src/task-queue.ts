@@ -265,35 +265,6 @@ export class TaskQueue {
   }
 
   /**
-   * Take this task from the taskQueue it's currently queued to, and add it to this queue.
-   */
-  public take(task: Task): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'take'); }
-
-    if (task.status !== TaskStatus.pending) {
-      if (this.tracer.enabled) { this.tracer.leave(this, 'take error'); }
-
-      throw new Error('Can only take pending tasks.');
-    }
-
-    if (this.processingSize === 0) {
-      this.requestFlush();
-    }
-
-    task.taskQueue.remove(task);
-
-    if (task.preempt) {
-      this.addToProcessing(task);
-    } else if (task.queueTime <= this.platform.performanceNow()) {
-      this.addToPending(task);
-    } else {
-      this.addToDelayed(task);
-    }
-
-    if (this.tracer.enabled) { this.tracer.leave(this, 'take'); }
-  }
-
-  /**
    * Remove the task from this queue.
    */
   public remove<T = any>(task: Task<T>): void {
@@ -494,42 +465,6 @@ export class TaskQueue {
     this.finish(task);
 
     if (this.tracer.enabled) { this.tracer.leave(this, 'removeFromDelayed'); }
-  }
-
-  private addToProcessing(task: Task): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'addToProcessing'); }
-
-    if (this.processingSize++ === 0) {
-      this.processingHead = this.processingTail = task;
-    } else {
-      this.processingTail = (task.prev = this.processingTail!).next = task;
-    }
-
-    if (this.tracer.enabled) { this.tracer.leave(this, 'addToProcessing'); }
-  }
-
-  private addToPending(task: Task): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'addToPending'); }
-
-    if (this.pendingSize++ === 0) {
-      this.pendingHead = this.pendingTail = task;
-    } else {
-      this.pendingTail = (task.prev = this.pendingTail!).next = task;
-    }
-
-    if (this.tracer.enabled) { this.tracer.leave(this, 'addToPending'); }
-  }
-
-  private addToDelayed(task: Task): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'addToDelayed'); }
-
-    if (this.delayedSize++ === 0) {
-      this.delayedHead = this.delayedTail = task;
-    } else {
-      this.delayedTail = (task.prev = this.delayedTail!).next = task;
-    }
-
-    if (this.tracer.enabled) { this.tracer.leave(this, 'addToDelayed'); }
   }
 
   private movePendingToProcessing(): void {

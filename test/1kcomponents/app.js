@@ -1,5 +1,6 @@
+// @ts-check
 import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
-import { Aurelia, CustomElementResource, ValueConverterResource, ILifecycle, Priority, LifecycleFlags } from '@aurelia/runtime';
+import { Aurelia, CustomElement, ValueConverter, ILifecycle, IScheduler } from '@aurelia/runtime';
 import { register } from '@aurelia/plugin-svg';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { interpolateViridis } from 'd3-scale-chromatic';
@@ -139,12 +140,9 @@ class Point {
   }
 
   flushRAF() {
-    if (this.transform === void 0) {
-      this.transform = this.$controller.getTargetAccessor('transform');
-    }
     this.x = this[Point.pxProp] + (this[Point.nxProp] - this[Point.pxProp]) * Point.pct;
     this.y = this[Point.pyProp] + (this[Point.nyProp] - this[Point.pyProp]) * Point.pct;
-    this.transform.setValue(`translate(${~~this.x}, ${~~this.y})`, LifecycleFlags.fromBind);
+    this.transform = `translate(${~~this.x}, ${~~this.y})`;
   }
 }
 
@@ -158,7 +156,7 @@ Point.nxProp = '';
 Point.pyProp = '';
 Point.nyProp = '';
 
-const App = CustomElementResource.define(
+const App = CustomElement.define(
   {
     name: 'app',
     template: `
@@ -195,27 +193,39 @@ const App = CustomElementResource.define(
     `,
     bindables: ['count', 'fps'],
     dependencies: [
-      ValueConverterResource.define('num', class { fromView(str) { return parseInt(str, 10); } })
+      ValueConverter.define('num', class { fromView(str) { return parseInt(str, 10); } })
     ]
   },
   class {
-    static get inject() { return [ILifecycle]; }
+    static get inject() { return [IScheduler]; }
 
-    constructor(lifecycle) {
-      this.lifecycle = lifecycle;
+    /**
+     * @param {IScheduler} scheduler
+     */
+    constructor(scheduler) {
+      this.scheduler = scheduler;
+      /**@type {Point[]} */
       this.points = [];
       this.count = 0;
       this.fps = 30;
     }
 
-    attached() {
+    afterAttach() {
       this.count = 1000;
-      this.lifecycle.enqueueRAF(Point.update, Point, Priority.preempt);
+      // this.scheduler.enqueueRAF(Point.update, Point, Priority.preempt);
+      this.scheduler.queueRenderTask(
+        () => {
+          Point.update();
+          this.points.forEach(point => point.flushRAF());
+        },
+        {
+        persistent: true,
+      });
     }
 
-    fpsChanged(fps) {
-      this.$controller.lifecycle.minFPS = fps;
-    }
+    // fpsChanged(fps) {
+    //   this.$controller.lifecycle.minFPS = fps;
+    // }
 
     countChanged(count) {
       Phyllotaxis.count = count;
@@ -241,7 +251,7 @@ const App = CustomElementResource.define(
         let point;
         for (let i = count; i < length; ++i) {
           point = points[i];
-          this.lifecycle.dequeueRAF(point.flushRAF, point);
+          // this.scheduler.dequeueRAF(point.flushRAF, point);
         }
         points.splice(count, length - count);
       }
@@ -249,17 +259,16 @@ const App = CustomElementResource.define(
 
     createPoint(count, i) {
       const point = new Point(i, count);
-      this.lifecycle.enqueueRAF(point.flushRAF, point, Priority.low);
+      // this.scheduler.enqueueRAF(point.flushRAF, point, Priority.low);
       return point;
     }
   }
 );
 
-new Aurelia().register(RuntimeHtmlBrowserConfiguration, { register }).app(
-  {
+new Aurelia()
+  .register(RuntimeHtmlBrowserConfiguration, { register })
+  .app({
     host: document.getElementById('app'),
     component: App,
-    enableTimeSlicing: true,
-    adaptiveTimeSlicing: true
-  }
-).start();
+  })
+  .start();

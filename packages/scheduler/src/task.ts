@@ -122,10 +122,6 @@ export class Task<T = any> implements ITask {
               }
 
               this.dispose();
-
-              if (reusable) {
-                taskQueue.returnToPool(this);
-              }
             }
 
             taskQueue.completeAsyncTask(this);
@@ -134,6 +130,10 @@ export class Task<T = any> implements ITask {
 
             if (resolve !== void 0) {
               resolve($ret as UnwrapPromise<T>);
+            }
+
+            if (!this.persistent && reusable) {
+              taskQueue.returnToPool(this);
             }
           })
           .catch(err => {
@@ -163,16 +163,16 @@ export class Task<T = any> implements ITask {
           }
 
           this.dispose();
-
-          if (reusable) {
-            taskQueue.returnToPool(this);
-          }
         }
 
         if (this.tracer.enabled) { this.tracer.leave(this, 'run sync success'); }
 
         if (resolve !== void 0) {
           resolve(ret as UnwrapPromise<T>);
+        }
+
+        if (!this.persistent && reusable) {
+          taskQueue.returnToPool(this);
         }
       }
     } catch (err) {

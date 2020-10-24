@@ -6,10 +6,7 @@ import {
   QueueTaskOptions,
   TaskQueuePriority,
 } from './types';
-import {
-  Task,
-  ITask,
-} from './task';
+import { Task } from './task';
 import { Tracer } from './tracer';
 
 export interface IFlushRequestorFactory {
@@ -593,7 +590,7 @@ export class TaskQueue {
     if (this.tracer.enabled) { this.tracer.leave(this, 'moveDelayedToProcessing'); }
   }
 
-  private requestFlush(): void {
+  private readonly requestFlush: () => void = () => {
     if (this.tracer.enabled) { this.tracer.enter(this, 'requestFlush'); }
 
     if (!this.flushRequested) {
@@ -603,5 +600,5 @@ export class TaskQueue {
     }
 
     if (this.tracer.enabled) { this.tracer.leave(this, 'requestFlush'); }
-  }
+  };
 }

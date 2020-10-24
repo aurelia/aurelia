@@ -20,6 +20,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
         (newValue) => {
           callbackValues.push(newValue);
         },
+        true,
       );
 
       watcher.$bind();
@@ -60,6 +61,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
         (newValue) => {
           callbackValues.push(newValue);
         },
+        true,
       );
       const arr = [];
       watcher.isBound = true;
@@ -80,6 +82,39 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       assert.strictEqual(getCallCount, 2);
       // returning te same value, callback won't be call
       assert.deepStrictEqual(callbackValues, [obj]);
+    });
+
+    it('works with manual observation without proxy', function () {
+      let getCallCount = 0;
+      const callbackValues = [];
+      const container = DI.createContainer();
+      const observerLocator = createObserverLocator(container);
+      const obj: any = {};
+      const watcher = new ComputedWatcher(
+        obj,
+        observerLocator,
+        (o: any, w) => {
+          getCallCount++;
+          w.observe(o, '_p');
+          return o.prop;
+        },
+        (newValue) => {
+          callbackValues.push(newValue);
+        },
+        false,
+      );
+
+      watcher.$bind();
+      assert.strictEqual(watcher['value'], undefined);
+      assert.strictEqual(getCallCount, 1);
+
+      obj.prop = 1;
+      assert.strictEqual(watcher['value'], undefined);
+      assert.strictEqual(getCallCount, 1);
+
+      obj._p = 1;
+      assert.strictEqual(watcher['value'], 1);
+      assert.strictEqual(getCallCount, 2);
     });
   });
 

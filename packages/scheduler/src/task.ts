@@ -8,7 +8,7 @@ import {
   TaskQueue,
   TaskCallback,
 } from './task-queue';
-import { enter, trace, leave } from './log';
+import { Tracer } from './tracer';
 
 export class TaskAbortError<T = any> extends Error {
   public constructor(public task: Task<T>) {
@@ -68,6 +68,7 @@ export class Task<T = any> implements ITask {
   public readonly priority: TaskQueuePriority;
 
   public constructor(
+    private readonly tracer: Tracer,
     public readonly taskQueue: TaskQueue,
     public createdTime: number,
     public queueTime: number,
@@ -81,10 +82,10 @@ export class Task<T = any> implements ITask {
   }
 
   public run(): void {
-    enter(this, 'run');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'run'); }
 
     if (this._status !== 'pending') {
-      leave(this, 'run error');
+      if (this.tracer.enabled) { this.tracer.leave(this, 'run error'); }
 
       throw new Error(`Cannot run task in ${this._status} state`);
     }
@@ -129,7 +130,7 @@ export class Task<T = any> implements ITask {
 
             taskQueue.completeAsyncTask(this);
 
-            leave(this, 'run async then');
+            if (this.tracer.enabled) { this.tracer.leave(this, 'run async then'); }
 
             if (resolve !== void 0) {
               resolve($ret as UnwrapPromise<T>);
@@ -142,7 +143,7 @@ export class Task<T = any> implements ITask {
 
             taskQueue.completeAsyncTask(this);
 
-            leave(this, 'run async catch');
+            if (this.tracer.enabled) { this.tracer.leave(this, 'run async catch'); }
 
             if (reject !== void 0) {
               reject(err);
@@ -168,7 +169,7 @@ export class Task<T = any> implements ITask {
           }
         }
 
-        leave(this, 'run sync success');
+        if (this.tracer.enabled) { this.tracer.leave(this, 'run sync success'); }
 
         if (resolve !== void 0) {
           resolve(ret as UnwrapPromise<T>);
@@ -179,7 +180,7 @@ export class Task<T = any> implements ITask {
         this.dispose();
       }
 
-      leave(this, 'run sync error');
+      if (this.tracer.enabled) { this.tracer.leave(this, 'run sync error'); }
 
       if (reject !== void 0) {
         reject(err);
@@ -190,7 +191,7 @@ export class Task<T = any> implements ITask {
   }
 
   public cancel(): boolean {
-    enter(this, 'cancel');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'cancel'); }
 
     if (this._status === 'pending') {
 
@@ -216,24 +217,24 @@ export class Task<T = any> implements ITask {
         reject(new TaskAbortError(this));
       }
 
-      leave(this, 'cancel true =pending');
+      if (this.tracer.enabled) { this.tracer.leave(this, 'cancel true =pending'); }
 
       return true;
     } else if (this._status === 'running' && this.persistent) {
       this.persistent = false;
 
-      leave(this, 'cancel true =running+persistent');
+      if (this.tracer.enabled) { this.tracer.leave(this, 'cancel true =running+persistent'); }
 
       return true;
     }
 
-    leave(this, 'cancel false');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'cancel false'); }
 
     return false;
   }
 
   public reset(time: number): void {
-    enter(this, 'reset');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'reset'); }
 
     const delay = this.queueTime - this.createdTime;
     this.createdTime = time;
@@ -244,7 +245,7 @@ export class Task<T = any> implements ITask {
     this.reject = void 0;
     this._result = void 0;
 
-    leave(this, 'reset');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'reset'); }
   }
 
   public reuse(
@@ -255,7 +256,7 @@ export class Task<T = any> implements ITask {
     suspend: boolean,
     callback: TaskCallback<T>,
   ): void {
-    enter(this, 'reuse');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'reuse'); }
 
     this.createdTime = time;
     this.queueTime = time + delay;
@@ -265,11 +266,11 @@ export class Task<T = any> implements ITask {
     this.callback = callback;
     this._status = 'pending';
 
-    leave(this, 'reuse');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'reuse'); }
   }
 
   public dispose(): void {
-    trace(this, 'dispose');
+    if (this.tracer.enabled) { this.tracer.trace(this, 'dispose'); }
 
     this.prev = void 0;
     this.next = void 0;

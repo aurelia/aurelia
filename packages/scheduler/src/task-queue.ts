@@ -10,11 +10,7 @@ import {
   Task,
   ITask,
 } from './task';
-import {
-  enter,
-  trace,
-  leave,
-} from './log';
+import { Tracer } from './tracer';
 
 export interface IFlushRequestorFactory {
   create(taskQueue: TaskQueue): IFlushRequestor;
@@ -95,6 +91,7 @@ export class TaskQueue {
     return true;
   }
 
+  private readonly tracer: Tracer;
   public constructor(
     public readonly platform: IPlatform,
     public readonly priority: TaskQueuePriority,
@@ -102,10 +99,11 @@ export class TaskQueue {
   ) {
     this.flushRequestor = flushRequestorFactory.create(this);
     this.requestFlush = this.requestFlush.bind(this);
+    this.tracer = new Tracer(platform.console);
   }
 
   public flush(): void {
-    enter(this, 'flush');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'flush'); }
 
     if (this.microTaskRequestFlushTask !== null) {
       // This may only exist if this is a microtask queue, in which case the macrotask queue is used to poll
@@ -135,7 +133,7 @@ export class TaskQueue {
             this.suspenderTask = cur;
             this.requestFlush();
 
-            leave(this, 'flush early async');
+            if (this.tracer.enabled) { this.tracer.leave(this, 'flush early async'); }
 
             return;
           } else {
@@ -170,7 +168,7 @@ export class TaskQueue {
       this.requestFlush();
     }
 
-    leave(this, 'flush full');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'flush full'); }
   }
 
   /**
@@ -179,7 +177,7 @@ export class TaskQueue {
    * This operation is idempotent and will do nothing if no flush is scheduled.
    */
   public cancel(): void {
-    enter(this, 'cancel');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'cancel'); }
 
     if (this.microTaskRequestFlushTask !== null) {
       this.microTaskRequestFlushTask.cancel();
@@ -191,7 +189,7 @@ export class TaskQueue {
       this.flushRequested = false;
     }
 
-    leave(this, 'cancel');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'cancel'); }
   }
 
   /**
@@ -204,24 +202,24 @@ export class TaskQueue {
    * If `yield()` is called multiple times in a row when there are one or more persistent tasks in the queue, each call will await exactly one cycle of those tasks.
    */
   public async yield(): Promise<void> {
-    enter(this, 'yield');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'yield'); }
 
     if (this.isEmpty) {
-      leave(this, 'yield empty');
+      if (this.tracer.enabled) { this.tracer.leave(this, 'yield empty'); }
     } else {
       if (this.yieldPromise === void 0) {
-        trace(this, 'yield - creating promise');
+        if (this.tracer.enabled) { this.tracer.trace(this, 'yield - creating promise'); }
         this.yieldPromise = createExposedPromise();
       }
 
       await this.yieldPromise;
 
-      leave(this, 'yield task');
+      if (this.tracer.enabled) { this.tracer.leave(this, 'yield task'); }
     }
   }
 
   public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): Task<T> {
-    enter(this, 'queueTask');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'queueTask'); }
 
     const { delay, preempt, persistent, reusable, suspend } = { ...defaultQueueTaskOptions, ...opts };
 
@@ -251,10 +249,10 @@ export class TaskQueue {
 
         task.reuse(time, delay, preempt, persistent, suspend, callback);
       } else {
-        task = new Task(this, time, time + delay, preempt, persistent, suspend, reusable, callback);
+        task = new Task(this.tracer, this, time, time + delay, preempt, persistent, suspend, reusable, callback);
       }
     } else {
-      task = new Task(this, time, time + delay, preempt, persistent, suspend, reusable, callback);
+      task = new Task(this.tracer, this, time, time + delay, preempt, persistent, suspend, reusable, callback);
     }
 
     if (preempt) {
@@ -277,7 +275,7 @@ export class TaskQueue {
       }
     }
 
-    leave(this, 'queueTask');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'queueTask'); }
 
     return task;
   }
@@ -286,10 +284,10 @@ export class TaskQueue {
    * Take this task from the taskQueue it's currently queued to, and add it to this queue.
    */
   public take(task: Task): void {
-    enter(this, 'take');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'take'); }
 
     if (task.status !== 'pending') {
-      leave(this, 'take error');
+      if (this.tracer.enabled) { this.tracer.leave(this, 'take error'); }
 
       throw new Error('Can only take pending tasks.');
     }
@@ -308,20 +306,20 @@ export class TaskQueue {
       this.addToDelayed(task);
     }
 
-    leave(this, 'take');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'take'); }
   }
 
   /**
    * Remove the task from this queue.
    */
   public remove<T = any>(task: Task<T>): void {
-    enter(this, 'remove');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'remove'); }
 
     if (task.preempt) {
       // Fast path - preempt task can only ever end up in the processing queue
       this.removeFromProcessing(task);
 
-      leave(this, 'remove processing fast');
+      if (this.tracer.enabled) { this.tracer.leave(this, 'remove processing fast'); }
 
       return;
     }
@@ -330,7 +328,7 @@ export class TaskQueue {
       // Fast path - task with queueTime in the future can only ever be in the delayed queue
       this.removeFromDelayed(task);
 
-      leave(this, 'remove delayed fast');
+      if (this.tracer.enabled) { this.tracer.leave(this, 'remove delayed fast'); }
 
       return;
     }
@@ -341,7 +339,7 @@ export class TaskQueue {
       if (cur === task) {
         this.removeFromProcessing(task);
 
-        leave(this, 'remove processing slow');
+        if (this.tracer.enabled) { this.tracer.leave(this, 'remove processing slow'); }
 
         return;
       }
@@ -353,7 +351,7 @@ export class TaskQueue {
       if (cur === task) {
         this.removeFromPending(task);
 
-        leave(this, 'remove pending slow');
+        if (this.tracer.enabled) { this.tracer.leave(this, 'remove pending slow'); }
 
         return;
       }
@@ -365,14 +363,14 @@ export class TaskQueue {
       if (cur === task) {
         this.removeFromDelayed(task);
 
-        leave(this, 'remove delayed slow');
+        if (this.tracer.enabled) { this.tracer.leave(this, 'remove delayed slow'); }
 
         return;
       }
       cur = cur.next;
     }
 
-    leave(this, 'remove error');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'remove error'); }
 
     throw new Error(`Task #${task.id} could not be found`);
   }
@@ -382,7 +380,7 @@ export class TaskQueue {
    * The next queued callback will reuse this task object instead of creating a new one, to save overhead of creating additional objects.
    */
   public returnToPool(task: Task): void {
-    trace(this, 'returnToPool');
+    if (this.tracer.enabled) { this.tracer.trace(this, 'returnToPool'); }
 
     this.taskPool[this.taskPoolSize++] = task;
   }
@@ -391,7 +389,7 @@ export class TaskQueue {
    * Reset the persistent task back to its pending state, preparing it for being invoked again on the next flush.
    */
   public resetPersistentTask(task: Task): void {
-    enter(this, 'resetPersistentTask');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'resetPersistentTask'); }
 
     task.reset(this.platform.performanceNow());
 
@@ -413,18 +411,18 @@ export class TaskQueue {
       }
     }
 
-    leave(this, 'resetPersistentTask');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'resetPersistentTask'); }
   }
 
   /**
    * Notify the queue that this async task has had its promise resolved, so that the queue can proceed with consecutive tasks on the next flush.
    */
   public completeAsyncTask(task: Task): void {
-    enter(this, 'completeAsyncTask');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'completeAsyncTask'); }
 
     if (task.suspend === true) {
       if (this.suspenderTask !== task) {
-        leave(this, 'completeAsyncTask error');
+        if (this.tracer.enabled) { this.tracer.leave(this, 'completeAsyncTask error'); }
 
         throw new Error(`Async task completion mismatch: suspenderTask=${this.suspenderTask?.id}, task=${task.id}`);
       }
@@ -447,11 +445,11 @@ export class TaskQueue {
       this.cancel();
     }
 
-    leave(this, 'completeAsyncTask');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'completeAsyncTask'); }
   }
 
   private finish(task: Task): void {
-    enter(this, 'finish');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'finish'); }
 
     if (task.next !== void 0) {
       task.next.prev = task.prev;
@@ -460,11 +458,11 @@ export class TaskQueue {
       task.prev.next = task.next;
     }
 
-    leave(this, 'finish');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'finish'); }
   }
 
   private removeFromProcessing(task: Task): void {
-    enter(this, 'removeFromProcessing');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'removeFromProcessing'); }
 
     if (this.processingHead === task) {
       this.processingHead = task.next;
@@ -477,11 +475,11 @@ export class TaskQueue {
 
     this.finish(task);
 
-    leave(this, 'removeFromProcessing');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'removeFromProcessing'); }
   }
 
   private removeFromPending(task: Task): void {
-    enter(this, 'removeFromPending');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'removeFromPending'); }
 
     if (this.pendingHead === task) {
       this.pendingHead = task.next;
@@ -494,11 +492,11 @@ export class TaskQueue {
 
     this.finish(task);
 
-    leave(this, 'removeFromPending');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'removeFromPending'); }
   }
 
   private removeFromDelayed(task: Task): void {
-    enter(this, 'removeFromDelayed');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'removeFromDelayed'); }
 
     if (this.delayedHead === task) {
       this.delayedHead = task.next;
@@ -511,11 +509,11 @@ export class TaskQueue {
 
     this.finish(task);
 
-    leave(this, 'removeFromDelayed');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'removeFromDelayed'); }
   }
 
   private addToProcessing(task: Task): void {
-    enter(this, 'addToProcessing');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'addToProcessing'); }
 
     if (this.processingSize++ === 0) {
       this.processingHead = this.processingTail = task;
@@ -523,11 +521,11 @@ export class TaskQueue {
       this.processingTail = (task.prev = this.processingTail!).next = task;
     }
 
-    leave(this, 'addToProcessing');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'addToProcessing'); }
   }
 
   private addToPending(task: Task): void {
-    enter(this, 'addToPending');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'addToPending'); }
 
     if (this.pendingSize++ === 0) {
       this.pendingHead = this.pendingTail = task;
@@ -535,11 +533,11 @@ export class TaskQueue {
       this.pendingTail = (task.prev = this.pendingTail!).next = task;
     }
 
-    leave(this, 'addToPending');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'addToPending'); }
   }
 
   private addToDelayed(task: Task): void {
-    enter(this, 'addToDelayed');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'addToDelayed'); }
 
     if (this.delayedSize++ === 0) {
       this.delayedHead = this.delayedTail = task;
@@ -547,11 +545,11 @@ export class TaskQueue {
       this.delayedTail = (task.prev = this.delayedTail!).next = task;
     }
 
-    leave(this, 'addToDelayed');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'addToDelayed'); }
   }
 
   private movePendingToProcessing(): void {
-    enter(this, 'movePendingToProcessing');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'movePendingToProcessing'); }
 
     // Add the previously pending tasks to the currently processing tasks
     if (this.processingSize === 0) {
@@ -568,11 +566,11 @@ export class TaskQueue {
     this.pendingTail = void 0;
     this.pendingSize = 0;
 
-    leave(this, 'movePendingToProcessing');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'movePendingToProcessing'); }
   }
 
   private moveDelayedToProcessing(): void {
-    enter(this, 'moveDelayedToProcessing');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'moveDelayedToProcessing'); }
 
     const time = this.platform.performanceNow();
 
@@ -605,11 +603,11 @@ export class TaskQueue {
       }
     }
 
-    leave(this, 'moveDelayedToProcessing');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'moveDelayedToProcessing'); }
   }
 
   private requestFlush(): void {
-    enter(this, 'requestFlush');
+    if (this.tracer.enabled) { this.tracer.enter(this, 'requestFlush'); }
 
     if (this.microTaskRequestFlushTask !== null) {
       this.microTaskRequestFlushTask.cancel();
@@ -622,6 +620,6 @@ export class TaskQueue {
       this.flushRequestor.request();
     }
 
-    leave(this, 'requestFlush');
+    if (this.tracer.enabled) { this.tracer.leave(this, 'requestFlush'); }
   }
 }

@@ -28,6 +28,7 @@ import { IWatcherCallback } from '../templating/watch';
 import { IsBindingBehavior } from '../binding/ast';
 import { getProxyOrSelf, getRawOrSelf } from './proxy-observation';
 import { Scope } from './binding-context';
+import { isArray, isSet } from './utilities-objects';
 
 export interface ComputedOverrides {
   // Indicates that a getter doesn't need to re-calculate its dependencies after the first observation.
@@ -409,9 +410,9 @@ export class ComputedWatcher implements IWatcher {
   private forCollection(collection: Collection): ICollectionObserver<CollectionKind> {
     const obsLocator = this.observerLocator;
     let observer: ICollectionObserver<CollectionKind>;
-    if (collection instanceof Array) {
+    if (isArray(collection)) {
       observer = obsLocator.getArrayObserver(LifecycleFlags.none, collection);
-    } else if (collection instanceof Set) {
+    } else if (isSet(collection)) {
       observer = obsLocator.getSetObserver(LifecycleFlags.none, collection);
     } else {
       observer = obsLocator.getMapObserver(LifecycleFlags.none, collection);

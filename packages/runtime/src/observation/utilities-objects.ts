@@ -1,29 +1,5 @@
-export const defineProp = Reflect.defineProperty;
-
-export function defineHiddenProp(o: object, key: PropertyKey, value: unknown): boolean {
-  return defineProp(o, key, {
-    enumerable: false,
-    writable: true,
-    configurable: true,
-    value
-  });
-}
-
-export function defineHiddenReadonlyProp(obj: object, key: PropertyKey, value: unknown): boolean {
-  return defineProp(obj, key, {
-    enumerable: false,
-    writable: false,
-    configurable: true,
-    value
-  });
-}
-
 export function isArray(obj: unknown): obj is unknown[] {
   return obj instanceof Array;
-}
-
-export function isCollection(obj: unknown): obj is Map<unknown, unknown> | Set<unknown> {
-  return isMap(obj) || isSet(obj);
 }
 
 export function isMap<TK = unknown, TV = unknown>(obj: unknown): obj is Map<TK, TV> {

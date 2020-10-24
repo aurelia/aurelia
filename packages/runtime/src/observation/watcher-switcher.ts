@@ -5,6 +5,7 @@ import { Collection } from '../observation';
 // and make IWatcher simpler, so observers in static observation won't have to implement many methods
 // An alternative way is to make collection observation manual & user controllable
 // so it works even without proxy
+// todo: maybe enhance @connectable so that it provides these interfaces
 export interface IWatcher {
   observe(obj: object, property: PropertyKey): void;
   observeCollection(collection: Collection): void;

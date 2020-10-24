@@ -685,6 +685,28 @@ describe('3-runtime-html/decorator-watch.spec.ts', function () {
           post.delivered(1);            assert.strictEqual(post.callCount, 2 * decoratorCount);
         }
       },
+      {
+        title: 'observes .map()',
+        init: () => Array.from(
+          { length: 3 },
+          (_, idx) => ({ id: idx + 1, name: `box ${idx + 1}`, delivered: false })
+        ),
+        get: post => post.packages.map(d => d.delivered).join(', '),
+        created: post => {
+          const decoratorCount = post.decoratorCount;
+          assert.strictEqual(post.callCount, 0);
+          post.newDelivery(4, 'box 4'); assert.strictEqual(post.callCount, 1 * decoratorCount);
+          post.delivered(1);            assert.strictEqual(post.callCount, 2 * decoratorCount);
+          post.delivered(4);            assert.strictEqual(post.callCount, 3 * decoratorCount);
+          post.newDelivery(5, 'box 5'); assert.strictEqual(post.callCount, 4 * decoratorCount);
+          post.packages[0].name = 'h';  assert.strictEqual(post.callCount, 4 * decoratorCount);
+        },
+        disposed: post => {
+          const decoratorCount = post.decoratorCount;
+          assert.strictEqual(post.callCount, 4 * decoratorCount);
+          post.delivered(2);            assert.strictEqual(post.callCount, 4 * decoratorCount);
+        }
+      },
     ];
 
     for (const { title, only, init, get, created, disposed } of testCases) {

@@ -60,18 +60,6 @@ function getHookSpecs<T extends HookName>(name: T) {
         // return getValue();
       },
     } as IHookSpec<T>,
-    yieldDelayedMicroTask_1: {
-      name,
-      ticks: -1,
-      type: 'yieldDelayedMicroTask_1',
-      async invoke(vm, getValue) {
-        const ctx = vm.$controller.context;
-        const label = `${vm.name}.${name}`;
-
-        await delayedTaskWaiter(ctx, 1, TaskQueuePriority.microTask, label);
-        return getValue();
-      },
-    } as IHookSpec<T>,
     yieldDelayedMacroTask_1: {
       name,
       ticks: -1,
@@ -93,18 +81,6 @@ function getHookSpecs<T extends HookName>(name: T) {
         const label = `${vm.name}.${name}`;
 
         await delayedTaskWaiter(ctx, 1, TaskQueuePriority.render, label);
-        return getValue();
-      },
-    } as IHookSpec<T>,
-    yieldAsyncMicroTask_1: {
-      name,
-      ticks: -1,
-      type: 'yieldAsyncMicroTask_1',
-      async invoke(vm, getValue) {
-        const ctx = vm.$controller.context;
-        const label = `${vm.name}.${name}`;
-
-        await asyncTaskWaiter(ctx, 1, TaskQueuePriority.microTask, label);
         return getValue();
       },
     } as IHookSpec<T>,

@@ -24,17 +24,14 @@ export function setTimeoutWaiter(
 
 function stringifyPriority(
   priority: (
-    TaskQueuePriority.microTask |
     TaskQueuePriority.macroTask |
     TaskQueuePriority.render
   ),
 ): (
-  'MicroTask' |
   'MacroTask' |
   'RenderTask'
 ) {
   switch (priority) {
-    case TaskQueuePriority.microTask: return 'MicroTask';
     case TaskQueuePriority.macroTask: return 'MacroTask';
     case TaskQueuePriority.render: return 'RenderTask';
   }
@@ -44,7 +41,6 @@ export function delayedTaskWaiter(
   container: IContainer,
   ms: number,
   priority: (
-    TaskQueuePriority.microTask |
     TaskQueuePriority.macroTask |
     TaskQueuePriority.render
   ),
@@ -71,7 +67,6 @@ export function asyncTaskWaiter(
   container: IContainer,
   ms: number,
   priority: (
-    TaskQueuePriority.microTask |
     TaskQueuePriority.macroTask |
     TaskQueuePriority.render
   ),

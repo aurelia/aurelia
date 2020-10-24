@@ -11,9 +11,6 @@ import {
   ITask,
 } from './task';
 import {
-  IScheduler,
-} from './scheduler';
-import {
   enter,
   trace,
   leave,
@@ -111,7 +108,6 @@ export class TaskQueue {
   public constructor(
     public readonly platform: IPlatform,
     public readonly priority: TaskQueuePriority,
-    private readonly scheduler: IScheduler,
     flushRequestorFactory: IFlushRequestorFactory,
   ) {
     this.flushRequestor = flushRequestorFactory.create(this);
@@ -147,7 +143,7 @@ export class TaskQueue {
         if (cur.status === 'running') {
           if (cur.suspend === true) {
             this.suspenderTask = cur;
-            this.requestFlushClamped();
+            this.requestFlush();
 
             leave(this, 'flush early async');
 
@@ -165,10 +161,8 @@ export class TaskQueue {
         this.moveDelayedToProcessing();
       }
 
-      if (this.processingSize > 0) {
+      if (this.processingSize > 0 || this.delayedSize > 0 || this.pendingAsyncCount > 0) {
         this.requestFlush();
-      } else if (this.delayedSize > 0 || this.pendingAsyncCount > 0) {
-        this.requestFlushClamped();
       }
 
       if (
@@ -183,7 +177,7 @@ export class TaskQueue {
       // If we are still waiting for an async task to finish, just schedule the next flush and do nothing else.
       // Should the task finish before the next flush is invoked,
       // the callback to `completeAsyncTask` will have reset `this.suspenderTask` back to undefined so processing can return back to normal next flush.
-      this.requestFlushClamped();
+      this.requestFlush();
     }
 
     leave(this, 'flush full');
@@ -248,9 +242,6 @@ export class TaskQueue {
       if (persistent) {
         throw new Error(`Invalid arguments: preempt cannot be combined with persistent`);
       }
-    }
-    if (persistent && this.priority === TaskQueuePriority.microTask) {
-      throw new Error(`Invalid arguments: cannot queue persistent tasks on the micro task queue`);
     }
 
     if (this.processingSize === 0) {
@@ -643,26 +634,4 @@ export class TaskQueue {
 
     leave(this, 'requestFlush');
   }
-
-  private requestFlushClamped(): void {
-    enter(this, 'requestFlushClamped');
-
-    if (this.priority <= TaskQueuePriority.microTask) {
-      // MicroTasks are not clamped so we have to clamp them with setTimeout or they'll block forever
-      this.microTaskRequestFlushTask = this.scheduler.queueMacroTask(this.requestFlush, microTaskRequestFlushTaskOptions);
-    } else {
-      // Otherwise just let this queue handle itself
-      this.requestFlush();
-    }
-
-    leave(this, 'requestFlushClamped');
-  }
 }
-
-const microTaskRequestFlushTaskOptions: QueueTaskOptions = {
-  delay: 0,
-  preempt: true,
-  persistent: false,
-  reusable: true,
-  suspend: false,
-};

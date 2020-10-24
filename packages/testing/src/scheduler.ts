@@ -8,10 +8,6 @@ export function ensureSchedulerEmpty(scheduler?: IScheduler): void {
 
   // canceling pending heading to remove the sticky tasks
 
-  const microQueue = $scheduler['microtask'] as TaskQueue;
-  microQueue.flush();
-  microQueue['pendingHead']?.cancel();
-
   const renderQueue = $scheduler['render'] as TaskQueue;
   renderQueue.flush();
   renderQueue['pendingHead']?.cancel();

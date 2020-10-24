@@ -772,8 +772,6 @@ function notComputedStyle(element: Node, expectedStyles: Record<string, string>,
 const isSchedulerEmpty = (function () {
   function priorityToString(priority: TaskQueuePriority) {
     switch (priority) {
-      case TaskQueuePriority.microTask:
-        return 'microTask';
       case TaskQueuePriority.render:
         return 'render';
       case TaskQueuePriority.macroTask:
@@ -837,17 +835,12 @@ const isSchedulerEmpty = (function () {
     // the full test context.
     const scheduler = Scheduler.get(globalThis)!;
 
-    const microTaskQueue = scheduler.getMicroTaskQueue() as any;
     const renderTaskQueue = scheduler.getRenderTaskQueue() as any;
     const macroTaskQueue = scheduler.getMacroTaskQueue() as any;
     const postRenderTaskQueue = scheduler.getPostRenderTaskQueue() as any;
 
     let isEmpty = true;
     let message = '';
-    if (!microTaskQueue.isEmpty) {
-      message += `\n${reportTaskQueue(microTaskQueue)}\n\n`;
-      isEmpty = false;
-    }
     if (!renderTaskQueue.isEmpty) {
       message += `\n${reportTaskQueue(renderTaskQueue)}\n\n`;
       isEmpty = false;

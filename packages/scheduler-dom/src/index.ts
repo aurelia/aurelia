@@ -147,7 +147,6 @@ export function createDOMScheduler(platform: BrowserPlatform): IScheduler {
   if (scheduler === void 0) {
     Scheduler.set(g, scheduler = new Scheduler(
       platform,
-      createMicroTaskFlushRequestorFactory(),
       createRequestAnimationFrameFlushRequestor(g),
       createSetTimeoutFlushRequestorFactory(g),
       createPostRequestAnimationFrameFlushRequestor(g),

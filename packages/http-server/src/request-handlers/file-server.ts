@@ -130,7 +130,7 @@ export class Http2FileServer implements IHttp2FileServer {
 
     if (!(request instanceof Http2ServerRequest && response instanceof Http2ServerResponse)) { return; }
     const parsedUrl = context.requestUrl;
-    let parsedPath = parsedUrl.path!;
+    const parsedPath = parsedUrl.path!;
     const path = join(this.root, parsedPath);
 
     const contentEncoding = determineContentEncoding(context);

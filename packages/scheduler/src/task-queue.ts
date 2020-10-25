@@ -20,21 +20,17 @@ export interface IFlushRequestor {
 
 export type TaskCallback<T = any> = (delta: number) => T;
 
+function isPersistent(task: Task): boolean {
+  return task.persistent;
+}
 export class TaskQueue {
-  private processingSize: number = 0;
-  private processingHead: Task | undefined = void 0;
-  private processingTail: Task | undefined = void 0;
+  private processing: Task[] = [];
 
   private suspenderTask: Task | undefined = void 0;
   private pendingAsyncCount: number = 0;
 
-  private pendingSize: number = 0;
-  private pendingHead: Task | undefined = void 0;
-  private pendingTail: Task | undefined = void 0;
-
-  private delayedSize: number = 0;
-  private delayedHead: Task | undefined = void 0;
-  private delayedTail: Task | undefined = void 0;
+  private pending: Task[] = [];
+  private delayed: Task[] = [];
 
   private flushRequested: boolean = false;
   private yieldPromise: ExposedPromise | undefined = void 0;
@@ -42,10 +38,11 @@ export class TaskQueue {
   private readonly taskPool: Task[] = [];
   private taskPoolSize: number = 0;
   private lastRequest: number = 0;
+  private lastFlush: number = 0;
   private readonly flushRequestor: IFlushRequestor;
 
   public get isEmpty(): boolean {
-    return this.processingSize === 0 && this.pendingSize === 0 && this.delayedSize === 0;
+    return this.processing.length === 0 && this.pending.length === 0 && this.delayed.length === 0;
   }
 
   /**
@@ -57,34 +54,12 @@ export class TaskQueue {
    * If that is the case, we can resolve the promise that was created when `yield()` is called.
    */
   private get hasNoMoreFiniteWork(): boolean {
-    if (this.pendingAsyncCount > 0) {
-      return false;
-    }
-    let cur = this.processingHead;
-    while (cur !== void 0) {
-      if (!cur.persistent) {
-        return false;
-      }
-      cur = cur.next;
-    }
-
-    cur = this.pendingHead;
-    while (cur !== void 0) {
-      if (!cur.persistent) {
-        return false;
-      }
-      cur = cur.next;
-    }
-
-    cur = this.delayedHead;
-    while (cur !== void 0) {
-      if (!cur.persistent) {
-        return false;
-      }
-      cur = cur.next;
-    }
-
-    return true;
+    return (
+      this.pendingAsyncCount === 0 &&
+      this.processing.every(isPersistent) &&
+      this.pending.every(isPersistent) &&
+      this.delayed.every(isPersistent)
+    );
   }
 
   private readonly tracer: Tracer;
@@ -94,28 +69,30 @@ export class TaskQueue {
     flushRequestorFactory: IFlushRequestorFactory,
   ) {
     this.flushRequestor = flushRequestorFactory.create(this);
-    this.requestFlush = this.requestFlush.bind(this);
     this.tracer = new Tracer(platform.console);
   }
 
-  public flush(): void {
+  public flush(time: number = this.platform.performanceNow()): void {
     if (this.tracer.enabled) { this.tracer.enter(this, 'flush'); }
 
     this.flushRequested = false;
+    this.lastFlush = time;
 
     // Only process normally if we are *not* currently waiting for an async task to finish
     if (this.suspenderTask === void 0) {
-      if (this.pendingSize > 0) {
-        this.movePendingToProcessing();
+      if (this.pending.length > 0) {
+        this.processing.push(...this.pending);
+        this.pending.length = 0;
       }
-      if (this.delayedSize > 0) {
-        this.moveDelayedToProcessing();
+      if (this.delayed.length > 0) {
+        let i = -1;
+        while (++i < this.delayed.length && this.delayed[i].queueTime <= time) { /* do nothing */ }
+        this.processing.push(...this.delayed.splice(0, i));
       }
 
       let cur: Task;
-      while (this.processingSize > 0) {
-        cur = this.processingHead!;
-        cur.run();
+      while (this.processing.length > 0) {
+        (cur = this.processing.shift()!).run();
         // If it's still running, it can only be an async task
         if (cur.status === TaskStatus.running) {
           if (cur.suspend === true) {
@@ -131,14 +108,17 @@ export class TaskQueue {
         }
       }
 
-      if (this.pendingSize > 0) {
-        this.movePendingToProcessing();
+      if (this.pending.length > 0) {
+        this.processing.push(...this.pending);
+        this.pending.length = 0;
       }
-      if (this.delayedSize > 0) {
-        this.moveDelayedToProcessing();
+      if (this.delayed.length > 0) {
+        let i = -1;
+        while (++i < this.delayed.length && this.delayed[i].queueTime <= time) { /* do nothing */ }
+        this.processing.push(...this.delayed.splice(0, i));
       }
 
-      if (this.processingSize > 0 || this.delayedSize > 0 || this.pendingAsyncCount > 0) {
+      if (this.processing.length > 0 || this.delayed.length > 0 || this.pendingAsyncCount > 0) {
         this.requestFlush();
       }
 
@@ -216,7 +196,7 @@ export class TaskQueue {
       }
     }
 
-    if (this.processingSize === 0) {
+    if (this.processing.length === 0) {
       this.requestFlush();
     }
 
@@ -240,23 +220,11 @@ export class TaskQueue {
     }
 
     if (preempt) {
-      if (this.processingSize++ === 0) {
-        this.processingHead = this.processingTail = task;
-      } else {
-        this.processingTail = (task.prev = this.processingTail!).next = task;
-      }
+      this.processing[this.processing.length] = task;
     } else if (delay === 0) {
-      if (this.pendingSize++ === 0) {
-        this.pendingHead = this.pendingTail = task;
-      } else {
-        this.pendingTail = (task.prev = this.pendingTail!).next = task;
-      }
+      this.pending[this.pending.length] = task;
     } else {
-      if (this.delayedSize++ === 0) {
-        this.delayedHead = this.delayedTail = task;
-      } else {
-        this.delayedTail = (task.prev = this.delayedTail!).next = task;
-      }
+      this.delayed[this.delayed.length] = task;
     }
 
     if (this.tracer.enabled) { this.tracer.leave(this, 'queueTask'); }
@@ -270,59 +238,23 @@ export class TaskQueue {
   public remove<T = any>(task: Task<T>): void {
     if (this.tracer.enabled) { this.tracer.enter(this, 'remove'); }
 
-    if (task.preempt) {
-      // Fast path - preempt task can only ever end up in the processing queue
-      this.removeFromProcessing(task);
-
-      if (this.tracer.enabled) { this.tracer.leave(this, 'remove processing fast'); }
-
+    let idx = this.processing.indexOf(task);
+    if (idx > -1) {
+      this.processing.splice(idx, 1);
+      if (this.tracer.enabled) { this.tracer.leave(this, 'remove processing'); }
       return;
     }
-
-    if (task.queueTime > this.platform.performanceNow()) {
-      // Fast path - task with queueTime in the future can only ever be in the delayed queue
-      this.removeFromDelayed(task);
-
-      if (this.tracer.enabled) { this.tracer.leave(this, 'remove delayed fast'); }
-
+    idx = this.pending.indexOf(task);
+    if (idx > -1) {
+      this.pending.splice(idx, 1);
+      if (this.tracer.enabled) { this.tracer.leave(this, 'remove pending'); }
       return;
     }
-
-    // Scan everything (we can make this faster by using the queueTime property, but this is good enough for now)
-    let cur = this.processingHead;
-    while (cur !== void 0) {
-      if (cur === task) {
-        this.removeFromProcessing(task);
-
-        if (this.tracer.enabled) { this.tracer.leave(this, 'remove processing slow'); }
-
-        return;
-      }
-      cur = cur.next;
-    }
-
-    cur = this.pendingHead;
-    while (cur !== void 0) {
-      if (cur === task) {
-        this.removeFromPending(task);
-
-        if (this.tracer.enabled) { this.tracer.leave(this, 'remove pending slow'); }
-
-        return;
-      }
-      cur = cur.next;
-    }
-
-    cur = this.delayedHead;
-    while (cur !== void 0) {
-      if (cur === task) {
-        this.removeFromDelayed(task);
-
-        if (this.tracer.enabled) { this.tracer.leave(this, 'remove delayed slow'); }
-
-        return;
-      }
-      cur = cur.next;
+    idx = this.delayed.indexOf(task);
+    if (idx > -1) {
+      this.delayed.splice(idx, 1);
+      if (this.tracer.enabled) { this.tracer.leave(this, 'remove delayed'); }
+      return;
     }
 
     if (this.tracer.enabled) { this.tracer.leave(this, 'remove error'); }
@@ -349,21 +281,9 @@ export class TaskQueue {
     task.reset(this.platform.performanceNow());
 
     if (task.createdTime === task.queueTime) {
-      if (this.pendingSize++ === 0) {
-        this.pendingHead = this.pendingTail = task;
-        task.prev = task.next = void 0;
-      } else {
-        this.pendingTail = (task.prev = this.pendingTail!).next = task;
-        task.next = void 0;
-      }
+      this.pending[this.pending.length] = task;
     } else {
-      if (this.delayedSize++ === 0) {
-        this.delayedHead = this.delayedTail = task;
-        task.prev = task.next = void 0;
-      } else {
-        this.delayedTail = (task.prev = this.delayedTail!).next = task;
-        task.next = void 0;
-      }
+      this.delayed[this.delayed.length] = task;
     }
 
     if (this.tracer.enabled) { this.tracer.leave(this, 'resetPersistentTask'); }
@@ -401,128 +321,6 @@ export class TaskQueue {
     }
 
     if (this.tracer.enabled) { this.tracer.leave(this, 'completeAsyncTask'); }
-  }
-
-  private finish(task: Task): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'finish'); }
-
-    if (task.next !== void 0) {
-      task.next.prev = task.prev;
-    }
-    if (task.prev !== void 0) {
-      task.prev.next = task.next;
-    }
-
-    if (this.tracer.enabled) { this.tracer.leave(this, 'finish'); }
-  }
-
-  private removeFromProcessing(task: Task): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'removeFromProcessing'); }
-
-    if (this.processingHead === task) {
-      this.processingHead = task.next;
-    }
-    if (this.processingTail === task) {
-      this.processingTail = task.prev;
-    }
-
-    --this.processingSize;
-
-    this.finish(task);
-
-    if (this.tracer.enabled) { this.tracer.leave(this, 'removeFromProcessing'); }
-  }
-
-  private removeFromPending(task: Task): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'removeFromPending'); }
-
-    if (this.pendingHead === task) {
-      this.pendingHead = task.next;
-    }
-    if (this.pendingTail === task) {
-      this.pendingTail = task.prev;
-    }
-
-    --this.pendingSize;
-
-    this.finish(task);
-
-    if (this.tracer.enabled) { this.tracer.leave(this, 'removeFromPending'); }
-  }
-
-  private removeFromDelayed(task: Task): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'removeFromDelayed'); }
-
-    if (this.delayedHead === task) {
-      this.delayedHead = task.next;
-    }
-    if (this.delayedTail === task) {
-      this.delayedTail = task.prev;
-    }
-
-    --this.delayedSize;
-
-    this.finish(task);
-
-    if (this.tracer.enabled) { this.tracer.leave(this, 'removeFromDelayed'); }
-  }
-
-  private movePendingToProcessing(): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'movePendingToProcessing'); }
-
-    // Add the previously pending tasks to the currently processing tasks
-    if (this.processingSize === 0) {
-      this.processingHead = this.pendingHead;
-      this.processingTail = this.pendingTail;
-      this.processingSize = this.pendingSize;
-    } else {
-      this.processingTail!.next = this.pendingHead;
-      this.processingTail = this.pendingTail;
-      this.processingSize += this.pendingSize;
-    }
-
-    this.pendingHead = void 0;
-    this.pendingTail = void 0;
-    this.pendingSize = 0;
-
-    if (this.tracer.enabled) { this.tracer.leave(this, 'movePendingToProcessing'); }
-  }
-
-  private moveDelayedToProcessing(): void {
-    if (this.tracer.enabled) { this.tracer.enter(this, 'moveDelayedToProcessing'); }
-
-    const time = this.platform.performanceNow();
-
-    // Add any delayed tasks whose delay have expired to the currently processing tasks
-    const delayedHead = this.delayedHead!;
-    if (delayedHead.queueTime <= time) {
-      let delayedTail = delayedHead;
-      let next = delayedTail.next;
-      let count = 1;
-      while (next !== void 0 && next.queueTime <= time) {
-        delayedTail = next;
-        next = delayedTail.next;
-        ++count;
-      }
-
-      if (this.processingSize === 0) {
-        this.processingHead = delayedHead;
-        this.processingTail = delayedTail;
-        this.processingSize = count;
-      } else {
-        this.processingTail!.next = delayedHead;
-        this.processingTail = delayedTail;
-        this.processingSize += count;
-      }
-
-      this.delayedHead = next;
-      this.delayedSize -= count;
-      if (this.delayedSize === 0) {
-        this.delayedTail = void 0;
-      }
-    }
-
-    if (this.tracer.enabled) { this.tracer.leave(this, 'moveDelayedToProcessing'); }
   }
 
   private readonly requestFlush: () => void = () => {

@@ -37,8 +37,6 @@ export interface ITask<T = any> {
 
 export class Task<T = any> implements ITask {
   public readonly id: number = ++id;
-  public next: Task<T> | undefined = void 0;
-  public prev: Task<T> | undefined = void 0;
 
   private resolve: PResolve<UnwrapPromise<T>> | undefined = void 0;
   private reject: PReject<TaskAbortError<T>> | undefined = void 0;
@@ -86,7 +84,7 @@ export class Task<T = any> implements ITask {
     this.priority = taskQueue.priority;
   }
 
-  public run(): void {
+  public run(time: number = this.taskQueue.platform.performanceNow()): void {
     if (this.tracer.enabled) { this.tracer.enter(this, 'run'); }
 
     if (this._status !== TaskStatus.pending) {
@@ -108,12 +106,10 @@ export class Task<T = any> implements ITask {
       createdTime,
     } = this;
 
-    taskQueue.remove(this);
-
     this._status = TaskStatus.running;
 
     try {
-      const ret = callback(taskQueue.platform.performanceNow() - createdTime);
+      const ret = callback(time - createdTime);
       if (ret instanceof Promise) {
         ret.then($ret => {
             if (this.persistent) {
@@ -199,7 +195,6 @@ export class Task<T = any> implements ITask {
     if (this.tracer.enabled) { this.tracer.enter(this, 'cancel'); }
 
     if (this._status === TaskStatus.pending) {
-
       const taskQueue = this.taskQueue;
       const reusable = this.reusable;
       const reject = this.reject;
@@ -276,9 +271,6 @@ export class Task<T = any> implements ITask {
 
   public dispose(): void {
     if (this.tracer.enabled) { this.tracer.trace(this, 'dispose'); }
-
-    this.prev = void 0;
-    this.next = void 0;
 
     this.callback = (void 0)!;
     this.resolve = void 0;

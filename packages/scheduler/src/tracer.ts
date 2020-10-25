@@ -28,9 +28,9 @@ export class Tracer {
 
   private log(prefix: string, obj: TaskQueue | Task, method: string): void {
     if (obj instanceof TaskQueue) {
-      const processing = obj['processingSize'];
-      const pending = obj['pendingSize'];
-      const delayed = obj['delayedSize'];
+      const processing = obj['processing'].length;
+      const pending = obj['pending'].length;
+      const delayed = obj['delayed'].length;
       const flushReq = obj['flushRequested'];
       const prio = obj['priority'];
       const susTask = !!obj['suspenderTask'];

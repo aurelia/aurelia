@@ -1,4 +1,4 @@
-import { Scheduler, TaskQueue, IScheduler } from '@aurelia/scheduler';
+import { Scheduler, TaskQueue, IScheduler, ITask } from '@aurelia/scheduler';
 
 export function ensureSchedulerEmpty(scheduler?: IScheduler): void {
   if (!scheduler) {
@@ -10,13 +10,13 @@ export function ensureSchedulerEmpty(scheduler?: IScheduler): void {
 
   const renderQueue = $scheduler['render'] as TaskQueue;
   renderQueue.flush();
-  renderQueue['pendingHead']?.cancel();
+  renderQueue['pending'].forEach((x: ITask) => x.cancel());
 
   const macroQueue = $scheduler['macroTask'] as TaskQueue;
   macroQueue.flush();
-  macroQueue['pendingHead']?.cancel();
+  renderQueue['pending'].forEach((x: ITask) => x.cancel());
 
   const postRenderQueue = $scheduler['postRender'] as TaskQueue;
   postRenderQueue.flush();
-  postRenderQueue['pendingHead']?.cancel();
+  renderQueue['pending'].forEach((x: ITask) => x.cancel());
 }

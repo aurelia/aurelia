@@ -5,18 +5,12 @@ import {
   ensureSchedulerEmpty,
 } from '@aurelia/testing';
 import {
-  JitHtmlBrowserConfiguration
-} from '@aurelia/jit-html-browser';
-import {
-  Reporter,
-  LogLevel,
-} from '@aurelia/kernel';
-
-Reporter.level = LogLevel.error;
+  RuntimeHtmlBrowserConfiguration
+} from '@aurelia/runtime-html-browser';
 
 function createBrowserTestContext(): HTMLTestContext {
   return HTMLTestContext.create(
-    JitHtmlBrowserConfiguration,
+    RuntimeHtmlBrowserConfiguration,
     window,
     UIEvent,
     Event,
@@ -38,7 +32,7 @@ function initializeBrowserTestContext(): void {
   // Just trigger the HTMLDOM to be resolved once so it sets the DOM globals
   const ctx = TestContext.createHTMLTestContext();
   ctx.dom.createElement('div');
-  ctx.scheduler.getIdleTaskQueue();
+  ctx.scheduler.getRenderTaskQueue();
 
   // eslint-disable-next-line
   afterEach(function() {
@@ -61,8 +55,6 @@ function importAll(r) {
 importAll(require.context('./1-kernel/', true, /\.spec\.js$/));
 importAll(require.context('./2-runtime/', true, /\.spec\.js$/));
 importAll(require.context('./3-runtime-html/', true, /\.spec\.js$/));
-importAll(require.context('./4-jit/', true, /\.spec\.js$/));
-importAll(require.context('./5-jit-html/', true, /\.spec\.js$/));
 
 importAll(require.context('./web-components/', true, /\.spec\.js$/));
 importAll(require.context('./fetch-client/', true, /\.spec\.js$/));

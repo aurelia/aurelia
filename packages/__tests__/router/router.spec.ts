@@ -147,12 +147,11 @@ describe('Router', function () {
 
     container.register(Foo, Bar, Baz, Qux, Quux, Corge, Uier, Grault, Garply, Waldo, Plugh);
 
-    await au.start().wait();
+    await au.start();
 
     async function tearDown() {
       unspyNavigationStates(router, _pushState, _replaceState);
-      router.stop();
-      await au.stop().wait();
+      await au.stop();
       ctx.doc.body.removeChild(host);
     }
 
@@ -955,12 +954,13 @@ describe('Router', function () {
       router.navigation.history = mockBrowserHistoryLocation as any;
       router.navigation.location = mockBrowserHistoryLocation as any;
 
-      await au.start().wait();
+      await au.start();
 
       async function $teardown() {
-        await au.stop().wait();
+        await au.stop();
         ctx.doc.body.removeChild(host);
-        router.stop();
+
+        au.dispose();
       }
 
       return { ctx, container, scheduler, host, component, au, router, $teardown };
@@ -1203,13 +1203,14 @@ describe('Router', function () {
       const router = getModifiedRouter(container);
       const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
-      await au.start().wait();
+      await au.start();
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        router.stop();
-        await au.stop().wait();
+        await au.stop();
         ctx.doc.body.removeChild(host);
+
+        au.dispose();
       }
 
       return { ctx, container, scheduler, host, au, router, $teardown };
@@ -1220,7 +1221,7 @@ describe('Router', function () {
     for (let i = 0, ii = names.length; i < ii; i++) {
       const name = names[i];
       const fallback = i < ii - 1 ? names[i + 1] : null;
-      const viewport = fallback ? `<au-viewport name="${name}"${fallback ? ` fallback="${fallback}"` : ''}></au-viewport>` : '';
+      const viewport = fallback ? `<au-viewport name="${name}" fallback="${fallback}"}></au-viewport>` : '';
       const template = `!${name}\${param ? ":" + param : ""}!${viewport}`;
       dependencies.push(CustomElement.define({ name, template }, class {
         public static parameters = ['id'];
@@ -1332,13 +1333,14 @@ describe('Router', function () {
       const router = getModifiedRouter(container);
       const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
-      await au.start().wait();
+      await au.start();
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        router.stop();
-        await au.stop().wait();
+        await au.stop();
         ctx.doc.body.removeChild(host);
+
+        au.dispose();
       }
 
       return { ctx, container, scheduler, host, au, router, $teardown, App };
@@ -1599,13 +1601,14 @@ describe('Router', function () {
       const router = getModifiedRouter(container);
       const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
-      await au.start().wait();
+      await au.start();
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        router.stop();
-        await au.stop().wait();
+        await au.stop();
         ctx.doc.body.removeChild(host);
+
+        au.dispose();
       }
 
       return { ctx, container, scheduler, host, au, router, $teardown, App };
@@ -1819,13 +1822,14 @@ describe('Router', function () {
       const router = getModifiedRouter(container);
       const { _pushState, _replaceState } = spyNavigationStates(router, stateSpy);
 
-      await au.start().wait();
+      await au.start();
 
       async function $teardown() {
         unspyNavigationStates(router, _pushState, _replaceState);
-        router.stop();
-        await au.stop().wait();
+        await au.stop();
         ctx.doc.body.removeChild(host);
+
+        au.dispose();
       }
 
       return { ctx, container, scheduler, host, au, router, $teardown, App };

@@ -1,9 +1,9 @@
 /* eslint-disable no-template-curly-in-string */
-import { Class, DI, Protocol, Metadata, ILogger } from '@aurelia/kernel';
+import { Class, DI, Protocol, Metadata, ILogger, IServiceLocator } from '@aurelia/kernel';
 import {
   BindingType,
   IExpressionParser,
-  IInterpolationExpression,
+  Interpolation,
   IsBindingBehavior,
   LifecycleFlags,
   PrimitiveLiteralExpression,
@@ -111,6 +111,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   private latestRule?: IValidationRule;
 
   public constructor(
+    private readonly locator: IServiceLocator,
     public readonly validationRules: IValidationRules,
     public readonly messageProvider: IValidationMessageProvider,
     public property: RuleProperty,
@@ -149,7 +150,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     if (expression === void 0) {
       value = object;
     } else {
-      value = expression.evaluate(flags, scope, null, null); // TODO: get proper hostScope?
+      value = expression.evaluate(flags, scope, null, this.locator, null); // TODO: get proper hostScope?
     }
 
     let isValid = true;
@@ -172,7 +173,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
               rule,
               object,
             ));
-          message = this.messageProvider.getMessage(rule).evaluate(flags!, messageEvaluationScope, null, null!) as string;
+          message = this.messageProvider.getMessage(rule).evaluate(flags!, messageEvaluationScope, null, null!, null) as string;
         }
         return new ValidationResult(isValidOrPromise, message, name, object, rule, this);
       };
@@ -465,6 +466,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
   private readonly targets: Set<IValidateable> = new Set<IValidateable>();
 
   public constructor(
+    @IServiceLocator private readonly locator: IServiceLocator,
     @IExpressionParser private readonly parser: IExpressionParser,
     @IValidationMessageProvider private readonly messageProvider: IValidationMessageProvider,
     @IValidationHydrator private readonly deserializer: IValidationHydrator,
@@ -475,14 +477,14 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
     // eslint-disable-next-line eqeqeq
     let rule = this.rules.find((r) => r.property.name == name);
     if (rule === void 0) {
-      rule = new PropertyRule(this, this.messageProvider, new RuleProperty(expression, name));
+      rule = new PropertyRule(this.locator, this, this.messageProvider, new RuleProperty(expression, name));
       this.rules.push(rule);
     }
     return rule;
   }
 
   public ensureObject(): PropertyRule {
-    const rule = new PropertyRule(this, this.messageProvider, new RuleProperty());
+    const rule = new PropertyRule(this.locator, this, this.messageProvider, new RuleProperty());
     this.rules.push(rule);
     return rule;
   }
@@ -596,7 +598,7 @@ const contextualProperties: Readonly<Set<string>> = new Set([
 export class ValidationMessageProvider implements IValidationMessageProvider {
 
   private readonly logger: ILogger;
-  protected registeredMessages: WeakMap<IValidationRule, IInterpolationExpression | PrimitiveLiteralExpression> = new WeakMap<IValidationRule, IInterpolationExpression | PrimitiveLiteralExpression>();
+  protected registeredMessages: WeakMap<IValidationRule, Interpolation | PrimitiveLiteralExpression> = new WeakMap<IValidationRule, Interpolation | PrimitiveLiteralExpression>();
 
   public constructor(
     @IExpressionParser public parser: IExpressionParser,
@@ -609,7 +611,7 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
     }
   }
 
-  public getMessage(rule: IValidationRule): IInterpolationExpression | PrimitiveLiteralExpression {
+  public getMessage(rule: IValidationRule): Interpolation | PrimitiveLiteralExpression {
     const parsedMessage = this.registeredMessages.get(rule);
     if (parsedMessage !== void 0) { return parsedMessage; }
 
@@ -628,13 +630,13 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
     return this.setMessage(rule, message);
   }
 
-  public setMessage(rule: IValidationRule, message: string): IInterpolationExpression | PrimitiveLiteralExpression {
+  public setMessage(rule: IValidationRule, message: string): Interpolation | PrimitiveLiteralExpression {
     const parsedMessage = this.parseMessage(message);
     this.registeredMessages.set(rule, parsedMessage);
     return parsedMessage;
   }
 
-  public parseMessage(message: string): IInterpolationExpression | PrimitiveLiteralExpression {
+  public parseMessage(message: string): Interpolation | PrimitiveLiteralExpression {
     const parsed = this.parser.parse(message, BindingType.Interpolation);
     if (parsed?.$kind === ExpressionKind.Interpolation) {
       for (const expr of parsed.expressions) {

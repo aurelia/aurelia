@@ -1,5 +1,4 @@
 /* eslint-disable sonarjs/prefer-immediate-return */
-/* eslint-disable @typescript-eslint/promise-function-async */
 import { IContainer, ILogger } from '@aurelia/kernel';
 import { IScheduler, TaskQueuePriority } from '@aurelia/scheduler';
 import { HTMLDOM } from '@aurelia/runtime-html';
@@ -95,7 +94,7 @@ export function asyncTaskWaiter(
       });
     },
     {
-      async: true,
+      suspend: true,
     },
   );
   const promise = task.result;

@@ -11,9 +11,6 @@
   "dependencies": {
     "@aurelia/debug": "0.7.0",
     "@aurelia/fetch-client": "0.7.0",
-    "@aurelia/jit-html-browser": "0.7.0",
-    "@aurelia/jit-html": "0.7.0",
-    "@aurelia/jit": "0.7.0",
     "@aurelia/kernel": "0.7.0",
     "@aurelia/metadata": "0.7.0",
     "@aurelia/route-recognizer": "0.7.0",
@@ -32,26 +29,22 @@
     "@aurelia/webpack-loader": "0.7.0",
     "@aurelia/plugin-conventions": "0.7.0",
     "@types/marked": "^0.7.2",
-    "@types/node": "^12.12.21",
+    "@types/node": "^14.11.5",
     "@types/querystringify": "^2.0.0",
-    "css-loader": "^3.4.0",
-    "html-webpack-plugin": "^3.2.0",
+    "css-loader": "^4.3.0",
+    "html-webpack-plugin": "^4.5.0",
     "htmlhint": "^0.11.0",
     "rimraf": "^3.0.0",
     "style-loader": "^1.1.1",
-    "ts-loader": "^6.2.1",
-    "tslint": "^5.20.1",
-    "typescript": "^3.9.3",
-    "typescript-tslint-plugin": "^0.5.5",
+    "ts-loader": "^8.0.4",
+    "typescript": "^4.0.3",
     "webpack": "^4.41.4",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.10.1"
   },
   "scripts": {
     "lint:html": "htmlhint -c .htmlhintrc src",
-    "lint": "npm run lint:js && npm run lint:html",
     "start": "webpack-dev-server",
-    "build": "rimraf dist && webpack",
-    "lint:js": "tslint --project tsconfig.json"
+    "build": "rimraf dist && webpack"
   }
 }

@@ -436,6 +436,24 @@ describe(`The DI object`, function () {
   });
 
   describe(`createInterface()`, function () {
+    it(`returns a function that stringifies its default friendly name`, function () {
+      const sut = DI.createInterface();
+      const expected = 'InterfaceSymbol<(anonymous)>';
+      assert.strictEqual(sut.toString(), expected, `sut.toString() === '${expected}'`);
+      assert.strictEqual(String(sut), expected, `String(sut) === '${expected}'`);
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      assert.strictEqual(`${sut}`, expected, `\`\${sut}\` === '${expected}'`);
+    });
+
+    it(`returns a function that stringifies its configured friendly name`, function () {
+      const sut = DI.createInterface('IFoo');
+      const expected = 'InterfaceSymbol<IFoo>';
+      assert.strictEqual(sut.toString(), expected, `sut.toString() === '${expected}'`);
+      assert.strictEqual(String(sut), expected, `String(sut) === '${expected}'`);
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      assert.strictEqual(`${sut}`, expected, `\`\${sut}\` === '${expected}'`);
+    });
+
     it(`returns a function that has withDefault and noDefault functions`, function () {
       const sut = DI.createInterface();
       assert.strictEqual(typeof sut, 'function', `typeof sut`);
@@ -1097,7 +1115,7 @@ describe(`The Container class`, function () {
     for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
         const { sut } = createFixture();
-        assert.throws(() => sut.registerTransformer(key, null as any), /5/, `() => sut.registerTransformer(key, null as any)`);
+        assert.throws(() => sut.registerTransformer(key, null as any), /key\/value cannot be null or undefined/, `() => sut.registerTransformer(key, null as any)`);
       });
     }
 
@@ -1114,7 +1132,7 @@ describe(`The Container class`, function () {
     for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
         const { sut } = createFixture();
-        assert.throws(() => sut.getResolver(key, null as any), /5/, `() => sut.getResolver(key, null as any)`);
+        assert.throws(() => sut.getResolver(key, null as any), /key\/value cannot be null or undefined/, `() => sut.getResolver(key, null as any)`);
       });
     }
 
@@ -1137,7 +1155,7 @@ describe(`The Container class`, function () {
     for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
         const { sut } = createFixture();
-        assert.throws(() => sut.get(key), /5/, `() => sut.get(key)`);
+        assert.throws(() => sut.get(key), /key\/value cannot be null or undefined/, `() => sut.get(key)`);
       });
     }
 
@@ -1147,7 +1165,7 @@ describe(`The Container class`, function () {
     for (const key of [null, undefined]) {
       it(_`throws on invalid key ${key}`, function () {
         const { sut } = createFixture();
-        assert.throws(() => sut.getAll(key), /5/, `() => sut.getAll(key)`);
+        assert.throws(() => sut.getAll(key), /key\/value cannot be null or undefined/, `() => sut.getAll(key)`);
       });
     }
 

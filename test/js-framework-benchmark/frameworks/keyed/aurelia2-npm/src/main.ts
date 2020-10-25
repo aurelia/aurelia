@@ -1,9 +1,67 @@
-import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
-import { Aurelia } from '@aurelia/runtime';
+import {
+  DotSeparatedAttributePatternRegistration,
+
+  DefaultBindingCommandRegistration,
+  ForBindingCommandRegistration,
+
+  PropertyBindingRendererRegistration,
+  IteratorBindingRendererRegistration,
+
+  CustomElementRendererRegistration,
+  TemplateControllerRendererRegistration,
+
+  RepeatRegistration,
+  OneTimeBindingBehaviorRegistration,
+
+  Aurelia,
+} from '@aurelia/runtime';
+import {
+  ITemplateCompilerRegistration,
+  ITemplateElementFactoryRegistration,
+  IAttrSyntaxTransformerRegistation,
+  IProjectorLocatorRegistration,
+  ITargetAccessorLocatorRegistration,
+  ITargetObserverLocatorRegistration,
+
+  DelegateBindingCommandRegistration,
+
+  TextBindingRendererRegistration,
+  ListenerBindingRendererRegistration,
+} from '@aurelia/runtime-html';
+import {
+  IDOMInitializerRegistration,
+} from '@aurelia/runtime-html-browser';
+
 import { App } from './app';
 
-new Aurelia()
-  .register(JitHtmlBrowserConfiguration)
+global['Aurelia'] = new Aurelia()
+  .register(
+
+    ITemplateCompilerRegistration,
+    ITemplateElementFactoryRegistration,
+    IAttrSyntaxTransformerRegistation,
+    IProjectorLocatorRegistration,
+    ITargetAccessorLocatorRegistration,
+    ITargetObserverLocatorRegistration,
+
+    DotSeparatedAttributePatternRegistration,
+
+    RepeatRegistration,
+    OneTimeBindingBehaviorRegistration,
+
+    DefaultBindingCommandRegistration,
+    DelegateBindingCommandRegistration,
+    ForBindingCommandRegistration,
+
+    TextBindingRendererRegistration,
+    ListenerBindingRendererRegistration,
+    PropertyBindingRendererRegistration,
+    IteratorBindingRendererRegistration,
+    CustomElementRendererRegistration,
+    TemplateControllerRendererRegistration,
+
+    IDOMInitializerRegistration,
+  )
   .app({
     host: document.querySelector('app'),
     component: App

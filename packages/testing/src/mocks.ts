@@ -11,11 +11,12 @@ import {
   IConnectableBinding,
   IndexMap,
   IObserverLocator,
-  IScope,
   ISignaler,
   ISubscribable,
   LifecycleFlags,
 } from '@aurelia/runtime';
+
+import type { Scope } from '@aurelia/runtime';
 
 export class MockBinding implements IConnectableBinding {
   public interceptor: this = this;
@@ -24,7 +25,7 @@ export class MockBinding implements IConnectableBinding {
   public version!: number;
   public observerLocator!: IObserverLocator;
   public locator!: IServiceLocator;
-  public $scope?: IScope | undefined;
+  public $scope?: Scope | undefined;
   public isBound!: boolean;
 
   public calls: [keyof MockBinding, ...any[]][] = [];
@@ -53,7 +54,7 @@ export class MockBinding implements IConnectableBinding {
     this.trace('addObserver', observer);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope): void {
+  public $bind(flags: LifecycleFlags, scope: Scope): void {
     this.trace('$bind', flags, scope);
   }
 
@@ -73,11 +74,11 @@ export class MockBinding implements IConnectableBinding {
 export class MockBindingBehavior {
   public calls: [keyof MockBindingBehavior, ...any[]][] = [];
 
-  public bind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...rest: any[]): void {
+  public bind(flags: LifecycleFlags, scope: Scope, binding: IBinding, ...rest: any[]): void {
     this.trace('bind', flags, scope, binding, ...rest);
   }
 
-  public unbind(flags: LifecycleFlags, scope: IScope, binding: IBinding, ...rest: any[]): void {
+  public unbind(flags: LifecycleFlags, scope: Scope, binding: IBinding, ...rest: any[]): void {
     this.trace('unbind', flags, scope, binding, ...rest);
   }
 

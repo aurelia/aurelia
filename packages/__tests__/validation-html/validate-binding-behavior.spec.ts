@@ -16,7 +16,7 @@ import {
   INode,
   IObserverLocator,
   IScheduler,
-  IScope,
+  Scope,
   LifecycleFlags,
   valueConverter,
 } from '@aurelia/runtime';
@@ -92,7 +92,7 @@ describe('validate-binding-behavior', function () {
         .rules;
 
       const { validationRules: vrs, messageProvider, property, $rules } = rules.find((rule) => rule.property.name === 'age')!;
-      this.ageMinRule = new PropertyRule(vrs, messageProvider, property, [[$rules[0].find((rule) => rule instanceof RangeRule)]]);
+      this.ageMinRule = new PropertyRule(serviceLocator, vrs, messageProvider, property, [[$rules[0].find((rule) => rule instanceof RangeRule)]]);
 
       validationRules
         .on(this.org)
@@ -243,10 +243,10 @@ describe('validate-binding-behavior', function () {
   }
   @bindingBehavior('vanilla')
   class VanillaBindingBehavior implements BindingBehaviorInstance {
-    public bind(_flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, _binding: IBinding): void {
+    public bind(_flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, _binding: IBinding): void {
       return;
     }
-    public unbind(_flags: LifecycleFlags, _scope: IScope, _hostScope: IScope | null, _binding: IBinding): void {
+    public unbind(_flags: LifecycleFlags, _scope: Scope, _hostScope: Scope | null, _binding: IBinding): void {
       return;
     }
   }
@@ -309,14 +309,15 @@ describe('validate-binding-behavior', function () {
         host,
         component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
       })
-      .start()
-      .wait();
+      .start();
 
-    const app = au.root.viewModel as App;
+    const app = au.root.controller.viewModel as App;
     await testFunction({ app, host, container, scheduler: app.scheduler, ctx });
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
+
+    au.dispose();
   }
 
   const $it = createSpecFunction(runTest);
@@ -335,7 +336,7 @@ describe('validate-binding-behavior', function () {
     validateBindingSpy.calls.splice(0);
     validateSpy.calls.splice(0);
     target.dispatchEvent(new ctx.Event(event, { bubbles: event === 'focusout' }));
-    await scheduler.yieldAll(10);
+    await scheduler.yieldAll();
     assert.equal(validateBindingSpy.calls.length, callCount, 'incorrect validateBinding calls');
     assert.equal(validateSpy.calls.length, callCount, 'incorrect validate calls');
   }
@@ -565,7 +566,7 @@ describe('validate-binding-behavior', function () {
       assert.equal(controller2.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error2');
 
       app.tempController = controller2;
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll();
       assert.equal(app.controllerUnregisterBindingSpy.calls.length, 1);
       assertControllerBinding(controller2, 'person.name', target1, app.controller2RegisterBindingSpy);
 
@@ -698,13 +699,15 @@ describe('validate-binding-behavior', function () {
             host,
             component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
           })
-          .start()
-          .wait();
+          .start();
       } catch (e) {
         assert.equal(e.message.endsWith(expectedError), true);
       }
-      await au.stop().wait();
+      await au.stop();
       ctx.doc.body.removeChild(host);
+
+      // TODO: there's a binding somewhere without a dispose() method, causing this to fail
+      // au.dispose();
     });
   }
 
@@ -742,7 +745,7 @@ describe('validate-binding-behavior', function () {
 
       app.clearControllerCalls();
       person.name = 'foo';
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll();
       assert.equal(app.controllerValidateBindingSpy.calls.length, 0);
       assert.equal(app.controllerValidateSpy.calls.length, 0);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error3');
@@ -863,7 +866,7 @@ describe('validate-binding-behavior', function () {
 
       app.clearControllerCalls();
       caHost.click();
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll();
       assert.equal(app.controllerValidateBindingSpy.calls.length, 1);
       assert.equal(app.controllerValidateSpy.calls.length, 1);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error3');
@@ -922,7 +925,7 @@ describe('validate-binding-behavior', function () {
       // clicking the CE host triggers change in CA value
       app.clearControllerCalls();
       caHost.click();
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll();
       assert.equal(app.controllerValidateBindingSpy.calls.length, 1);
       assert.equal(app.controllerValidateSpy.calls.length, 1);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error3');
@@ -948,7 +951,7 @@ describe('validate-binding-behavior', function () {
       // clicking the CE host triggers change in CA value
       app.clearControllerCalls();
       caHost.click();
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll();
       assert.equal(app.controllerValidateBindingSpy.calls.length, 1);
       assert.equal(app.controllerValidateSpy.calls.length, 1);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 0, 'error3');
@@ -971,7 +974,7 @@ describe('validate-binding-behavior', function () {
 
       app.clearControllerCalls();
       caHost.click();
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll();
       assert.equal(app.controllerValidateBindingSpy.calls.length, 0);
       assert.equal(app.controllerValidateSpy.calls.length, 0);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'name' && r.object === person).length, 1, 'error3');
@@ -1106,14 +1109,14 @@ describe('validate-binding-behavior', function () {
 
       app.clearControllerCalls();
       (target.querySelector('button#hire-replace') as HTMLButtonElement).click();
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll();
       assert.equal(app.controllerValidateBindingSpy.calls.length, 1);
       assert.equal(app.controllerValidateSpy.calls.length, 1);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees').length, 0, 'error3');
 
       app.clearControllerCalls();
       (target.querySelector('button#fire-replace') as HTMLButtonElement).click();
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll();
       assert.equal(app.controllerValidateBindingSpy.calls.length, 1);
       assert.equal(app.controllerValidateSpy.calls.length, 1);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees').length, 1, 'error4');
@@ -1140,14 +1143,14 @@ describe('validate-binding-behavior', function () {
 
       app.clearControllerCalls();
       (target.querySelector('button#hire-in-place') as HTMLButtonElement).click();
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll();
       assert.equal(app.org.employees.length, 1);
       assert.equal(app.controllerValidateSpy.calls.length, 1);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees').length, 0, 'error3');
 
       app.clearControllerCalls();
       (target.querySelector('button#fire-in-place') as HTMLButtonElement).click();
-      await scheduler.yieldAll(10);
+      await scheduler.yieldAll();
       assert.equal(app.org.employees.length, 0);
       assert.equal(app.controllerValidateSpy.calls.length, 1);
       assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'employees').length, 1, 'error4');
@@ -1360,13 +1363,14 @@ describe('validate-binding-behavior', function () {
             host,
             component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
           })
-          .start()
-          .wait();
+          .start();
       } catch (e) {
         assert.equal(e.message, 'Unable to set property binding');
       }
-      await au.stop().wait();
+      await au.stop();
       ctx.doc.body.removeChild(host);
+
+      au.dispose();
     });
   }
 
@@ -1415,10 +1419,9 @@ describe('validate-binding-behavior', function () {
 
     await au
       .app({ host, component: App1 })
-      .start()
-      .wait();
+      .start();
 
-    const app: App1 = au.root.viewModel as App1;
+    const app: App1 = au.root.controller.viewModel as App1;
     const controller = app.controller;
     const scheduler = container.get(IScheduler);
 
@@ -1434,7 +1437,9 @@ describe('validate-binding-behavior', function () {
     await assertEventHandler(target, 'focusout', 1, scheduler, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
     assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'name').length, 0, 'error3');
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
+
+    au.dispose();
   });
 });

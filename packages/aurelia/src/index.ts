@@ -5,7 +5,6 @@ export {
 
 export {
   DebugConfiguration,
-  TraceConfiguration,
 
   // DebugTracer,
   // stringifyLifecycleFlags,
@@ -31,137 +30,8 @@ export {
 } from '@aurelia/fetch-client';
 
 export {
-  // AttrSyntax,
-
-  // IAttributeParser,
-
-  attributePattern,
-  // AttributePatternDefinition,
-  IAttributePattern,
-  // IAttributePatternHandler,
-  // Interpretation,
-  // ISyntaxInterpreter,
-
-  // AtPrefixedTriggerAttributePattern,
-  // ColonPrefixedBindAttributePattern,
-  // DotSeparatedAttributePattern,
-  // RefAttributePattern,
-
-  bindingCommand,
-  // BindingCommand,
-  BindingCommandInstance,
-  // BindingCommandDefinition,
-  // BindingCommandKind,
-  // BindingCommandType,
-  getTarget,
-
-  // CallBindingCommand,
-  // DefaultBindingCommand,
-  // ForBindingCommand,
-  // FromViewBindingCommand,
-  // OneTimeBindingCommand,
-  // ToViewBindingCommand,
-  // TwoWayBindingCommand,
-
-  // IExpressionParserRegistration,
-
-  // DefaultComponents as JitDefaultComponents,
-
-  // RefAttributePatternRegistration,
-  // DotSeparatedAttributePatternRegistration,
-
-  // DefaultBindingSyntax,
-
-  // AtPrefixedTriggerAttributePatternRegistration,
-  // ColonPrefixedBindAttributePatternRegistration,
-
-  ShortHandBindingSyntax,
-
-  // CallBindingCommandRegistration,
-  // DefaultBindingCommandRegistration,
-  // ForBindingCommandRegistration,
-  // FromViewBindingCommandRegistration,
-  // OneTimeBindingCommandRegistration,
-  // ToViewBindingCommandRegistration,
-  // TwoWayBindingCommandRegistration,
-
-  // DefaultBindingLanguage as JitDefaultBindingLanguage,
-
-  // JitConfiguration,
-
-  // Access,
-  // Precedence,
-  // Char,
-  // These exports are temporary until we have a proper way to unit test them
-
-  // parseExpression,
-  // parse,
-  // ParserState,
-
-  // ResourceModel,
-  // BindableInfo,
-  // ElementInfo,
-  // AttrInfo,
-
-  // AnySymbol,
-  // BindingSymbol,
-  // CustomAttributeSymbol,
-  // CustomElementSymbol,
-  // ElementSymbol,
-  // LetElementSymbol,
-  // NodeSymbol,
-  // ParentNodeSymbol,
-  // PlainAttributeSymbol,
-  // PlainElementSymbol,
-  // ReplacePartSymbol,
-  // ResourceAttributeSymbol,
-  // SymbolFlags,
-  // SymbolWithBindings,
-  // SymbolWithMarker,
-  // SymbolWithTemplate,
-  // TemplateControllerSymbol,
-  // TextSymbol
-} from '@aurelia/jit';
-
-export {
-  // IAttrSyntaxTransformer,
-
-  // TriggerBindingCommand,
-  // DelegateBindingCommand,
-  // CaptureBindingCommand,
-  // AttrBindingCommand,
-  // ClassBindingCommand,
-  // StyleBindingCommand,
-
-  // ITemplateCompilerRegistration,
-  // ITemplateElementFactoryRegistration,
-  // IAttrSyntaxTransformerRegistation,
-
-  // DefaultComponents as JitHtmlDefaultComponents,
-
-  // TriggerBindingCommandRegistration,
-  // DelegateBindingCommandRegistration,
-  // CaptureBindingCommandRegistration,
-  // AttrBindingCommandRegistration,
-  // ClassBindingCommandRegistration,
-  // StyleBindingCommandRegistration,
-
-  // DefaultBindingLanguage as JitHtmlDefaultBindingLanguage,
-
-  // JitHtmlConfiguration,
-
-  // stringifyDOM,
-  // stringifyInstructions,
-  // stringifyTemplateDefinition,
-
-  // TemplateBinder,
-
-  // ITemplateElementFactory
-} from '@aurelia/jit-html';
-
-export {
-  JitHtmlBrowserConfiguration
-} from '@aurelia/jit-html-browser';
+  RuntimeHtmlBrowserConfiguration
+} from '@aurelia/runtime-html-browser';
 
 export {
   all,
@@ -192,7 +62,6 @@ export {
   Constructable,
   ConstructableClass,
   // Diff,
-  ICallable,
   IDisposable,
   // IFrameRequestCallback,
   IIndexable,
@@ -251,8 +120,6 @@ export {
   // ITraceInfo,
   // ITraceWriter,
   // ILiveLoggingOptions,
-  Reporter,
-  Tracer,
   LogLevel,
 
   Profiler,
@@ -378,6 +245,7 @@ export {
 } from '@aurelia/router';
 
 export {
+  IAurelia,
   // CallFunctionExpression,
   // connects,
   // observes,
@@ -453,9 +321,9 @@ export {
   // ICallMemberExpression,
   // ICallScopeExpression,
   // IConditionalExpression,
-  // IForOfStatement,
+  // ForOfStatement,
   // IHtmlLiteralExpression,
-  // IInterpolationExpression,
+  // Interpolation,
   // IObjectBindingPattern,
   // IObjectLiteralExpression,
   // IPrimitiveLiteralExpression,
@@ -500,7 +368,6 @@ export {
   // disableSetObservation,
 
   // BindingContext,
-  // Scope,
   // OverrideContext,
 
   // CollectionLengthObserver,
@@ -649,7 +516,7 @@ export {
   // Aurelia, // Replaced by quick-start wrapper
   // IDOMInitializer,
   // ISinglePageApp,
-  CompositionRoot,
+  ICompositionRoot,
 
   // IfRegistration,
   // ElseRegistration,
@@ -767,11 +634,10 @@ export {
   // IOverrideContext,
   // IPropertyChangeTracker,
   // IPropertyObserver,
-  // IScope,
+  // Scope,
   // ISubscribable,
   // ISubscriberCollection,
   // ObservedCollection,
-  // ObserversLookup,
   // PropertyObserver,
   // CollectionObserver,
   // ICollectionSubscriberCollection,
@@ -801,6 +667,97 @@ export {
   // ITemplateFactory,
 
   // RenderContext
+
+  // AttrSyntax,
+
+  // IAttributeParser,
+
+  attributePattern,
+  // AttributePatternDefinition,
+  IAttributePattern,
+  // IAttributePatternHandler,
+  // Interpretation,
+  // ISyntaxInterpreter,
+
+  // AtPrefixedTriggerAttributePattern,
+  // ColonPrefixedBindAttributePattern,
+  // DotSeparatedAttributePattern,
+  // RefAttributePattern,
+
+  bindingCommand,
+  // BindingCommand,
+  BindingCommandInstance,
+  // BindingCommandDefinition,
+  // BindingCommandKind,
+  // BindingCommandType,
+  getTarget,
+
+  // CallBindingCommand,
+  // DefaultBindingCommand,
+  // ForBindingCommand,
+  // FromViewBindingCommand,
+  // OneTimeBindingCommand,
+  // ToViewBindingCommand,
+  // TwoWayBindingCommand,
+
+  // IExpressionParserRegistration,
+
+  // DefaultComponents as JitDefaultComponents,
+
+  // RefAttributePatternRegistration,
+  // DotSeparatedAttributePatternRegistration,
+
+  // DefaultBindingSyntax,
+
+  // AtPrefixedTriggerAttributePatternRegistration,
+  // ColonPrefixedBindAttributePatternRegistration,
+
+  ShortHandBindingSyntax,
+
+  // CallBindingCommandRegistration,
+  // DefaultBindingCommandRegistration,
+  // ForBindingCommandRegistration,
+  // FromViewBindingCommandRegistration,
+  // OneTimeBindingCommandRegistration,
+  // ToViewBindingCommandRegistration,
+  // TwoWayBindingCommandRegistration,
+
+  // DefaultBindingLanguage as JitDefaultBindingLanguage,
+
+  // JitConfiguration,
+
+  // Access,
+  // Precedence,
+  // Char,
+  // These exports are temporary until we have a proper way to unit test them
+
+  // parseExpression,
+  // parse,
+  // ParserState,
+
+  // ResourceModel,
+  // BindableInfo,
+  // ElementInfo,
+  // AttrInfo,
+
+  // AnySymbol,
+  // BindingSymbol,
+  // CustomAttributeSymbol,
+  // CustomElementSymbol,
+  // ElementSymbol,
+  // LetElementSymbol,
+  // NodeSymbol,
+  // ParentNodeSymbol,
+  // PlainAttributeSymbol,
+  // PlainElementSymbol,
+  // ReplacePartSymbol,
+  // ResourceAttributeSymbol,
+  // SymbolFlags,
+  // SymbolWithBindings,
+  // SymbolWithMarker,
+  // SymbolWithTemplate,
+  // TemplateControllerSymbol,
+  // TextSymbol
 } from '@aurelia/runtime';
 
 export {
@@ -942,6 +899,40 @@ export {
   // StyleElementStyles,
   // IShadowDOMStyles,
   // IShadowDOMGlobalStyles
+
+  // IAttrSyntaxTransformer,
+
+  // TriggerBindingCommand,
+  // DelegateBindingCommand,
+  // CaptureBindingCommand,
+  // AttrBindingCommand,
+  // ClassBindingCommand,
+  // StyleBindingCommand,
+
+  // ITemplateCompilerRegistration,
+  // ITemplateElementFactoryRegistration,
+  // IAttrSyntaxTransformerRegistation,
+
+  // DefaultComponents as JitHtmlDefaultComponents,
+
+  // TriggerBindingCommandRegistration,
+  // DelegateBindingCommandRegistration,
+  // CaptureBindingCommandRegistration,
+  // AttrBindingCommandRegistration,
+  // ClassBindingCommandRegistration,
+  // StyleBindingCommandRegistration,
+
+  // DefaultBindingLanguage as JitHtmlDefaultBindingLanguage,
+
+  // RuntimeHtmlConfiguration,
+
+  // stringifyDOM,
+  // stringifyInstructions,
+  // stringifyTemplateDefinition,
+
+  // TemplateBinder,
+
+  // ITemplateElementFactory
 } from '@aurelia/runtime-html';
 
 export {

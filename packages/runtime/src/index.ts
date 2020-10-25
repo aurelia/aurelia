@@ -1,18 +1,41 @@
 export {
+  AttrSyntax,
+  IAttributeParser,
+} from './attribute-parser';
+export {
+  attributePattern,
+  AttributePatternDefinition,
+  IAttributePattern,
+  AttributePattern,
+  Interpretation,
+  ISyntaxInterpreter,
+} from './attribute-pattern';
+export {
+  AtPrefixedTriggerAttributePattern,
+  ColonPrefixedBindAttributePattern,
+  DotSeparatedAttributePattern,
+  RefAttributePattern,
+} from './attribute-patterns';
+export {
+  bindingCommand,
+  BindingCommand ,
+  BindingCommandInstance,
+  BindingCommandDefinition,
+  BindingCommandKind,
+  BindingCommandType,
+  getTarget,
+} from './binding-command';
+export {
+  CallBindingCommand,
+  DefaultBindingCommand,
+  ForBindingCommand,
+  FromViewBindingCommand,
+  OneTimeBindingCommand,
+  ToViewBindingCommand,
+  TwoWayBindingCommand
+} from './binding-commands';
+export {
   CallFunctionExpression,
-  connects,
-  observes,
-  callsFunction,
-  hasAncestor,
-  isAssignable,
-  isLeftHandSide,
-  isPrimary,
-  isResource,
-  hasBind,
-  hasUnbind,
-  isLiteral,
-  arePureLiterals,
-  isPureLiteral,
   CustomExpression,
   BindingBehaviorExpression,
   ValueConverterExpression,
@@ -36,9 +59,7 @@ export {
   ObjectBindingPattern,
   BindingIdentifier,
   ForOfStatement,
-  Interpolation
-} from './binding/ast';
-export {
+  Interpolation,
   AnyBindingExpression,
   IsPrimary,
   IsLiteral,
@@ -52,43 +73,12 @@ export {
   IsAssignable,
   IsExpression,
   IsExpressionOrStatement,
-  Connects,
-  Observes,
-  CallsFunction,
-  IsResource,
-  HasBind,
-  HasUnbind,
-  HasAncestor,
   IVisitor,
-  IExpression,
-  IAccessKeyedExpression,
-  IAccessMemberExpression,
-  IAccessScopeExpression,
-  IAccessThisExpression,
-  IArrayBindingPattern,
-  IArrayLiteralExpression,
-  IAssignExpression,
-  IBinaryExpression,
-  IBindingBehaviorExpression,
-  IBindingIdentifier,
-  ICallFunctionExpression,
-  ICallMemberExpression,
-  ICallScopeExpression,
-  IConditionalExpression,
-  IForOfStatement,
-  IHtmlLiteralExpression,
-  IInterpolationExpression,
-  IObjectBindingPattern,
-  IObjectLiteralExpression,
-  IPrimitiveLiteralExpression,
-  ITaggedTemplateExpression,
-  ITemplateExpression,
-  IUnaryExpression,
-  IValueConverterExpression,
   BinaryOperator,
   BindingIdentifierOrPattern,
-  UnaryOperator
-} from './ast';
+  UnaryOperator,
+  IHydrator,
+} from './binding/ast';
 export {
   PropertyBinding
 } from './binding/property-binding';
@@ -104,11 +94,17 @@ export {
 } from './binding/connectable';
 export {
   IExpressionParser,
-  BindingType
+  BindingType,
+  parseExpression,
+  Char,
+  Access,
+  Precedence,
+  parse,
+  ParserState,
 } from './binding/expression-parser';
 export {
-  MultiInterpolationBinding,
-  InterpolationBinding
+  ContentBinding,
+  InterpolationBinding,
 } from './binding/interpolation-binding';
 export {
   LetBinding
@@ -159,6 +155,10 @@ export {
   DirtyCheckProperty,
   DirtyCheckSettings
 } from './observation/dirty-checker';
+export {
+  IObservableDefinition,
+  observable,
+} from './observation/observable';
 export {
   IObjectObservationAdapter,
   IObserverLocator,
@@ -214,7 +214,6 @@ export {
   DebounceBindingBehavior
 } from './resources/binding-behaviors/debounce';
 export {
-  SignalableBinding,
   SignalBindingBehavior
 } from './resources/binding-behaviors/signals';
 export {
@@ -246,6 +245,11 @@ export {
 export {
   With
 } from './resources/custom-attributes/with';
+export {
+  Switch,
+  Case,
+  DefaultCase,
+} from './resources/custom-attributes/switch';
 
 export {
   AuSlot,
@@ -336,11 +340,33 @@ export {
 
 export {
   Aurelia,
+  IAurelia,
   IDOMInitializer,
   ISinglePageApp,
   CompositionRoot,
+  ICompositionRoot,
 } from './aurelia';
 export {
+  RefAttributePatternRegistration,
+  DotSeparatedAttributePatternRegistration,
+
+  DefaultBindingSyntax,
+
+  AtPrefixedTriggerAttributePatternRegistration,
+  ColonPrefixedBindAttributePatternRegistration,
+
+  ShortHandBindingSyntax,
+
+  CallBindingCommandRegistration,
+  DefaultBindingCommandRegistration,
+  ForBindingCommandRegistration,
+  FromViewBindingCommandRegistration,
+  OneTimeBindingCommandRegistration,
+  ToViewBindingCommandRegistration,
+  TwoWayBindingCommandRegistration,
+
+  DefaultBindingLanguage,
+
   IfRegistration,
   ElseRegistration,
   RepeatRegistration,
@@ -368,9 +394,6 @@ export {
   TemplateControllerRendererRegistration,
 
   DefaultResources,
-  IObserverLocatorRegistration,
-  ILifecycleRegistration,
-  IRendererRegistration,
   RuntimeConfiguration
 } from './configuration';
 export {
@@ -395,7 +418,7 @@ export {
   TargetedInstruction,
   TargetedInstructionType,
   alias,
-  registerAliases
+  registerAliases,
 } from './definitions';
 export {
   DOM,
@@ -462,21 +485,10 @@ export {
   IComponentFactory,
 } from './templating/render-context';
 export {
-  PromiseOrTask,
-  MaybePromiseOrTask,
-  AggregateContinuationTask,
-  TerminalTask,
-  AggregateTerminalTask,
-  ContinuationTask,
-  ILifecycleTask,
-  LifecycleTask,
-  PromiseTask,
   TaskSlot,
-  StartTask,
-  IStartTask,
-  IStartTaskManager,
-  ProviderTask,
-} from './lifecycle-task';
+  AppTask,
+  IAppTask,
+} from './app-task';
 export {
   AccessorOrObserver,
   AccessorType,
@@ -500,11 +512,9 @@ export {
   IOverrideContext,
   IPropertyChangeTracker,
   IPropertyObserver,
-  IScope,
   ISubscribable,
   ISubscriberCollection,
   ObservedCollection,
-  ObserversLookup,
   PropertyObserver,
   CollectionObserver,
   ICollectionSubscriberCollection,
@@ -529,3 +539,29 @@ export {
   instructionRenderer,
   ensureExpression,
 } from './renderer';
+export {
+  ResourceModel,
+  BindableInfo,
+  ElementInfo,
+  AttrInfo
+} from './resource-model';
+export {
+  AnySymbol,
+  BindingSymbol,
+  CustomAttributeSymbol,
+  CustomElementSymbol,
+  ElementSymbol,
+  LetElementSymbol,
+  NodeSymbol,
+  ParentNodeSymbol,
+  PlainAttributeSymbol,
+  PlainElementSymbol,
+  ResourceAttributeSymbol,
+  SymbolFlags,
+  SymbolWithBindings,
+  SymbolWithMarker,
+  SymbolWithTemplate,
+  TemplateControllerSymbol,
+  TextSymbol,
+  ProjectionSymbol,
+} from './semantic-model';

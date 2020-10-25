@@ -73,7 +73,7 @@ export class Task<T = any> implements ITask {
     public queueTime: number,
     public preempt: boolean,
     public persistent: boolean,
-    public async: boolean | 'auto',
+    public suspend: boolean,
     public readonly reusable: boolean,
     public callback: TaskCallback<T>,
   ) {
@@ -100,7 +100,6 @@ export class Task<T = any> implements ITask {
       resolve,
       reject,
       createdTime,
-      async,
     } = this;
 
     taskQueue.remove(this);
@@ -109,9 +108,8 @@ export class Task<T = any> implements ITask {
 
     try {
       const ret = callback(taskQueue.now() - createdTime);
-      if (async === true || (async === 'auto' && ret instanceof Promise)) {
-        (ret as unknown as Promise<T>)
-          .then($ret => {
+      if (ret instanceof Promise) {
+        ret.then($ret => {
             if (this.persistent) {
               taskQueue.resetPersistentTask(this);
             } else {
@@ -254,7 +252,7 @@ export class Task<T = any> implements ITask {
     delay: number,
     preempt: boolean,
     persistent: boolean,
-    async: boolean | 'auto',
+    suspend: boolean,
     callback: TaskCallback<T>,
   ): void {
     enter(this, 'reuse');
@@ -263,7 +261,7 @@ export class Task<T = any> implements ITask {
     this.queueTime = time + delay;
     this.preempt = preempt;
     this.persistent = persistent;
-    this.async = async;
+    this.suspend = suspend;
     this.callback = callback;
     this._status = 'pending';
 

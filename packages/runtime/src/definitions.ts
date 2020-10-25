@@ -9,10 +9,10 @@ import {
   Protocol,
 } from '@aurelia/kernel';
 import {
-  IForOfStatement,
-  IInterpolationExpression,
-  IsBindingBehavior
-} from './ast';
+  ForOfStatement,
+  Interpolation,
+  IsBindingBehavior,
+} from './binding/ast';
 import {
   BindingMode,
 } from './flags';
@@ -82,7 +82,7 @@ export function isTargetedInstruction(value: unknown): value is TargetedInstruct
 
 export interface IInterpolationInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.interpolation;
-  from: string | IInterpolationExpression;
+  from: string | Interpolation;
   to: string;
 }
 
@@ -96,7 +96,7 @@ export interface IPropertyBindingInstruction extends ITargetedInstruction {
 
 export interface IIteratorBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.iteratorBinding;
-  from: string | IForOfStatement;
+  from: string | ForOfStatement;
   to: string;
 }
 
@@ -136,7 +136,6 @@ export interface IHydrateTemplateController extends IHydrateInstruction {
   res: string;
   instructions: ITargetedInstruction[];
   def: PartialCustomElementDefinition;
-  link?: boolean;
 }
 
 export interface IHydrateLetElementInstruction extends IHydrateInstruction {
@@ -147,7 +146,7 @@ export interface IHydrateLetElementInstruction extends IHydrateInstruction {
 
 export interface ILetBindingInstruction extends ITargetedInstruction {
   type: TargetedInstructionType.letBinding;
-  from: string | IsBindingBehavior | IInterpolationExpression;
+  from: string | IsBindingBehavior | Interpolation;
   to: string;
 }
 

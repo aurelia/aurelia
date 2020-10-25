@@ -30,12 +30,13 @@ describe('Configuration', function () {
 
     const router = getModifiedRouter(container);
 
-    await au.start().wait();
+    await au.start();
 
     async function tearDown() {
-      router.stop();
-      await au.stop().wait();
+      await au.stop();
       ctx.doc.body.removeChild(host);
+
+      au.dispose();
     }
 
     return { au, container, lifecycle, host, router, ctx, tearDown };
@@ -103,12 +104,13 @@ describe('Configuration', function () {
 
     const router = getModifiedRouter(container);
 
-    await au.start().wait();
+    await au.start();
 
     assert.includes(host.textContent, 'Hello, World!', `host.textContent`);
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
-    router.stop();
+
+    au.dispose();
   });
 });

@@ -35,9 +35,6 @@ import {
   IViewFactory,
   ISyntheticView,
   ICustomAttributeController,
-  IDryCustomElementController,
-  IContextualCustomElementController,
-  ICompiledCustomElementController,
   ICustomElementController,
   ICustomElementViewModel,
   ICustomAttributeViewModel,
@@ -51,7 +48,6 @@ import {
 } from '../lifecycle';
 import {
   IBindingTargetAccessor,
-  IScope,
 } from '../observation';
 import {
   Scope,
@@ -82,7 +78,7 @@ import {
 } from './render-context';
 import { ChildrenObserver } from './children';
 import { RegisteredProjections } from '../resources/custom-elements/au-slot';
-import { IStartTaskManager } from '../lifecycle-task';
+import { ICompositionRoot } from '../aurelia';
 
 function callDispose(disposable: IDisposable): void {
   disposable.dispose();
@@ -113,9 +109,9 @@ export class Controller<
 
   public isStrictBinding: boolean = false;
 
-  public scope: IScope | undefined = void 0;
-  public hostScope: IScope | null = null;
-  public projector: IElementProjector | undefined = void 0;
+  public scope: Scope | undefined = void 0;
+  public hostScope: Scope | null = null;
+  public projector: IElementProjector<T> | undefined = void 0;
 
   public nodes: INodeSequence<T> | undefined = void 0;
   public context: RenderContext<T> | undefined = void 0;
@@ -148,6 +144,8 @@ export class Controller<
   private fullyNamed: boolean = false;
 
   public constructor(
+    public root: ICompositionRoot<T> | null,
+    public container: IContainer,
     public readonly vmKind: ViewModelKind,
     public flags: LifecycleFlags,
     public readonly lifecycle: ILifecycle,
@@ -169,7 +167,11 @@ export class Controller<
      * The physical host dom node. Only present for custom elements.
      */
     public host: T | undefined,
-  ) {}
+  ) {
+    if (root === null && container.has(ICompositionRoot, true)) {
+      this.root = container.get<ICompositionRoot<T>>(ICompositionRoot);
+    }
+  }
 
   public static getCached<
     T extends INode = INode,
@@ -193,10 +195,11 @@ export class Controller<
     T extends INode = INode,
     C extends ICustomElementViewModel<T> = ICustomElementViewModel<T>,
   >(
+    root: ICompositionRoot<T> | null,
+    container: IContainer,
     viewModel: C,
     lifecycle: ILifecycle,
     host: T,
-    parentContainer: IContainer,
     // projections *targeted* for this custom element. these are not the projections *provided* by this custom element.
     targetedProjections: RegisteredProjections | null,
     flags: LifecycleFlags = LifecycleFlags.none,
@@ -212,6 +215,8 @@ export class Controller<
     flags |= definition.strategy;
 
     const controller = new Controller<T, C>(
+      /* root           */root,
+      /* container      */container,
       /* vmKind         */ViewModelKind.customElement,
       /* flags          */flags,
       /* lifecycle      */lifecycle,
@@ -226,7 +231,7 @@ export class Controller<
     controllerLookup.set(viewModel, controller as Controller);
 
     if (hydrate) {
-      controller.hydrateCustomElement(parentContainer, targetedProjections);
+      controller.hydrateCustomElement(container, targetedProjections);
     }
 
     return controller as unknown as ICustomElementController<T, C>;
@@ -236,6 +241,8 @@ export class Controller<
     T extends INode = INode,
     C extends ICustomAttributeViewModel<T> = ICustomAttributeViewModel<T>,
   >(
+    root: ICompositionRoot<T> | null,
+    container: IContainer,
     viewModel: C,
     lifecycle: ILifecycle,
     host: T,
@@ -249,6 +256,8 @@ export class Controller<
     flags |= definition.strategy;
 
     const controller = new Controller<T, C>(
+      /* root           */root,
+      /* container      */container,
       /* vmKind         */ViewModelKind.customAttribute,
       /* flags          */flags,
       /* lifecycle      */lifecycle,
@@ -270,12 +279,16 @@ export class Controller<
   public static forSyntheticView<
     T extends INode = INode,
   >(
+    root: ICompositionRoot<T> | null,
+    context: IRenderContext<T>,
     viewFactory: IViewFactory<T>,
     lifecycle: ILifecycle,
-    context: IRenderContext<T>,
     flags: LifecycleFlags = LifecycleFlags.none,
+    parentController: ISyntheticView<T> | ICustomElementController<T> | ICustomAttributeController<T> | undefined = void 0,
   ): ISyntheticView<T> {
     const controller = new Controller<T>(
+      /* root           */root,
+      /* container      */context,
       /* vmKind         */ViewModelKind.synthetic,
       /* flags          */flags,
       /* lifecycle      */lifecycle,
@@ -286,13 +299,16 @@ export class Controller<
       /* bindingContext */void 0,
       /* host           */void 0,
     );
+    // deepscan-disable-next-line
+    controller.parent = parentController as Controller<T> ?? null;
 
     controller.hydrateSynthetic(context);
 
     return controller as unknown as ISyntheticView<T>;
   }
 
-  private hydrateCustomElement(
+  /** @internal */
+  public hydrateCustomElement(
     parentContainer: IContainer,
     targetedProjections: RegisteredProjections | null,
   ): void {
@@ -308,7 +324,7 @@ export class Controller<
     createObservers(this.lifecycle, definition, flags, instance);
     createChildrenObservers(this as Controller, definition, flags, instance);
 
-    const scope = this.scope = Scope.create(flags, this.bindingContext!, null);
+    this.scope = Scope.create(flags, this.bindingContext!, null);
 
     const hooks = this.hooks;
     if (hooks.hasCreate) {
@@ -316,7 +332,7 @@ export class Controller<
         this.logger.trace(`invoking create() hook`);
       }
       const result = instance.create(
-        /* controller      */this as unknown as IDryCustomElementController<T, typeof instance>,
+        /* controller      */this as ICustomElementController<T>,
         /* parentContainer */parentContainer,
         /* definition      */definition,
       );
@@ -333,57 +349,73 @@ export class Controller<
       context.beginChildComponentOperation(instance as ICustomElementViewModel);
     }
 
-    if (hooks.hasBeforeCompile) {
+    // If this is the root controller, then the CompositionRoot will invoke things in the following order:
+    // - Controller.hydrateCustomElement
+    // - runAppTasks('beforeCompile') // may return a promise
+    // - Controller.compile
+    // - runAppTasks('beforeCompileChildren') // may return a promise
+    // - Controller.compileChildren
+    // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
+    if ((this.root?.controller as this | undefined) !== this) {
+      this.compile(targetedProjections);
+      this.compileChildren();
+    }
+  }
+
+  /** @internal */
+  public compile(
+    targetedProjections: RegisteredProjections | null,
+  ): void {
+    if (this.hooks.hasBeforeCompile) {
       if (this.debug) {
-        this.logger.trace(`invoking hasBeforeCompile() hook`);
+        this.logger!.trace(`invoking hasBeforeCompile() hook`);
       }
-      instance.beforeCompile(this as unknown as IContextualCustomElementController<T, typeof instance>);
+      (this.viewModel as BindingContext<T, C>).beforeCompile(this as ICustomElementController<T>);
     }
 
-    const compiledContext = context.compile(targetedProjections);
+    const compiledContext = this.context!.compile(targetedProjections);
     const compiledDefinition = compiledContext.compiledDefinition;
 
-    compiledContext.registerProjections(compiledDefinition.projectionsMap, scope);
+    compiledContext.registerProjections(compiledDefinition.projectionsMap, this.scope!);
     // once the projections are registered, we can cleanup the projection map to prevent memory leaks.
     compiledDefinition.projectionsMap.clear();
     this.isStrictBinding = compiledDefinition.isStrictBinding;
 
-    const projectorLocator = parentContainer.get(IProjectorLocator);
-
+    const projectorLocator = this.context!.get<IProjectorLocator<T>>(IProjectorLocator);
     this.projector = projectorLocator.getElementProjector(
-      context.dom,
-      this as unknown as ICustomElementController,
+      this.context!.dom,
+      this as ICustomElementController<T>,
       this.host!,
       compiledDefinition,
     );
 
-    (instance as Writable<C>).$controller = this;
-    const nodes = this.nodes = compiledContext.createNodes();
+    (this.viewModel as Writable<C>).$controller = this;
+    this.nodes = compiledContext.createNodes();
 
-    if (hooks.hasAfterCompile) {
+    if (this.hooks.hasAfterCompile) {
       if (this.debug) {
-        this.logger.trace(`invoking hasAfterCompile() hook`);
+        this.logger!.trace(`invoking hasAfterCompile() hook`);
       }
-      instance.afterCompile(this as unknown as ICompiledCustomElementController<T, typeof instance>);
+      (this.viewModel as BindingContext<T, C>).afterCompile(this as ICustomElementController<T>);
     }
+  }
 
-    const taskmgr = parentContainer.get(IStartTaskManager);
-    taskmgr.runBeforeCompileChildren(parentContainer);
-
-    const targets = nodes.findTargets();
-    compiledContext.render(
+  /** @internal */
+  public compileChildren(): void {
+    const targets = this.nodes!.findTargets();
+    this.context!.render(
       /* flags      */this.flags,
-      /* controller */this,
+      /* controller */this as ICustomElementController<T>,
       /* targets    */targets,
-      /* definition */compiledDefinition,
+      /* definition */this.context!.compiledDefinition,
       /* host       */this.host,
     );
 
-    if (hooks.hasAfterCompileChildren) {
+    if (this.hooks.hasAfterCompileChildren) {
       if (this.debug) {
-        this.logger.trace(`invoking afterCompileChildren() hook`);
+        this.logger!.trace(`invoking afterCompileChildren() hook`);
       }
-      instance.afterCompileChildren(this as unknown as ICustomElementController<T, ICompileHooks<T>>);
+      (this.viewModel as BindingContext<T, C>).afterCompileChildren(this as ICustomElementController<T>);
     }
   }
 
@@ -455,8 +487,8 @@ export class Controller<
     initiator: Controller<T>,
     parent: Controller<T> | null,
     flags: LifecycleFlags,
-    scope?: IScope,
-    hostScope?: IScope | null,
+    scope?: Scope,
+    hostScope?: Scope | null,
   ): void | Promise<void> {
     this.canceling = false;
     switch (this.state) {
@@ -514,7 +546,7 @@ export class Controller<
     switch (this.vmKind) {
       case ViewModelKind.customElement:
         // Custom element scope is created and assigned during hydration
-        (this.scope as Writable<IScope>).parentScope = scope === void 0 ? null : scope;
+        (this.scope as Writable<Scope>).parentScope = scope === void 0 ? null : scope;
         break;
       case ViewModelKind.customAttribute:
         this.scope = scope;
@@ -1039,7 +1071,7 @@ export class Controller<
             }
             break;
           case ViewModelKind.customElement:
-            (this.scope as Writable<IScope>).parentScope = null;
+            (this.scope as Writable<Scope>).parentScope = null;
             break;
         }
 
@@ -1122,7 +1154,7 @@ export class Controller<
     }
   }
 
-  public lockScope(scope: Writable<IScope>): void {
+  public lockScope(scope: Writable<Scope>): void {
     this.scope = scope;
     this.hasLockedScope = true;
   }
@@ -1155,11 +1187,6 @@ export class Controller<
       this.children = void 0;
     }
 
-    if (this.bindings !== void 0) {
-      this.bindings.forEach(callDispose);
-      this.bindings = void 0;
-    }
-
     this.scope = void 0;
     this.projector = void 0;
 
@@ -1174,6 +1201,7 @@ export class Controller<
     }
     this.bindingContext = void 0;
     this.host = void 0;
+    this.root = null;
   }
 
   public accept(visitor: ControllerVisitor<T>): void | true {

@@ -35,9 +35,6 @@
   "dependencies": {
     "@aurelia/debug": "0.7.0",
     "@aurelia/fetch-client": "0.7.0",
-    "@aurelia/jit-html-browser": "0.7.0",
-    "@aurelia/jit-html": "0.7.0",
-    "@aurelia/jit": "0.7.0",
     "@aurelia/kernel": "0.7.0",
     "@aurelia/metadata": "0.7.0",
     "@aurelia/route-recognizer": "0.7.0",
@@ -49,6 +46,6 @@
     "@aurelia/scheduler": "0.7.0"
   },
   "devDependencies": {
-    "typescript": "^3.9.3"
+    "typescript": "^4.0.3"
   }
 }

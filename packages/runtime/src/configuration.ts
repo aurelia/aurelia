@@ -3,9 +3,6 @@ import {
   IContainer,
   IRegistry
 } from '@aurelia/kernel';
-import { Lifecycle } from './lifecycle';
-import { StartTaskManager } from './lifecycle-task';
-import { ObserverLocator } from './observation/observer-locator';
 import {
   CallBindingRenderer,
   CustomAttributeRenderer,
@@ -15,7 +12,6 @@ import {
   LetElementRenderer,
   PropertyBindingRenderer,
   RefBindingRenderer,
-  Renderer,
   SetPropertyRenderer,
   TemplateControllerRenderer
 } from './renderer';
@@ -25,6 +21,21 @@ import {
   ToViewBindingBehavior,
   TwoWayBindingBehavior
 } from './resources/binding-behaviors/binding-mode';
+import {
+  AtPrefixedTriggerAttributePattern,
+  ColonPrefixedBindAttributePattern,
+  DotSeparatedAttributePattern,
+  RefAttributePattern
+} from './attribute-patterns';
+import {
+  CallBindingCommand,
+  DefaultBindingCommand,
+  ForBindingCommand,
+  FromViewBindingCommand,
+  OneTimeBindingCommand,
+  ToViewBindingCommand,
+  TwoWayBindingCommand
+} from './binding-commands';
 import { DebounceBindingBehavior } from './resources/binding-behaviors/debounce';
 import { SignalBindingBehavior } from './resources/binding-behaviors/signals';
 import { ThrottleBindingBehavior } from './resources/binding-behaviors/throttle';
@@ -34,34 +45,72 @@ import { Repeat } from './resources/custom-attributes/repeat';
 import { With } from './resources/custom-attributes/with';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { ViewValueConverter } from './resources/value-converters/view';
-import { ViewLocator } from './templating/view';
 import { Now } from '@aurelia/scheduler';
-import { AuSlot, ProjectionProvider } from './resources/custom-elements/au-slot';
+import { AuSlot } from './resources/custom-elements/au-slot';
+import { Switch, Case, DefaultCase } from './resources/custom-attributes/switch';
 
-export const IObserverLocatorRegistration = ObserverLocator as IRegistry;
-export const ILifecycleRegistration = Lifecycle as IRegistry;
-export const IRendererRegistration = Renderer as IRegistry;
-export const IStartTaskManagerRegistration = StartTaskManager as IRegistry;
-export const IViewLocatorRegistration = ViewLocator as IRegistry;
+export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern as unknown as IRegistry;
+export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern as unknown as IRegistry;
+export const RefAttributePatternRegistration = RefAttributePattern as unknown as IRegistry;
+export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern as unknown as IRegistry;
+
+/**
+ * Default binding syntax for the following attribute name patterns:
+ * - `ref`
+ * - `target.command` (dot-separated)
+ */
+export const DefaultBindingSyntax = [
+  RefAttributePatternRegistration,
+  DotSeparatedAttributePatternRegistration
+];
+
+/**
+ * Binding syntax for short-hand attribute name patterns:
+ * - `@target` (short-hand for `target.trigger`)
+ * - `:target` (short-hand for `target.bind`)
+ */
+export const ShortHandBindingSyntax = [
+  AtPrefixedTriggerAttributePatternRegistration,
+  ColonPrefixedBindAttributePatternRegistration
+];
+
+export const CallBindingCommandRegistration = CallBindingCommand as unknown as IRegistry;
+export const DefaultBindingCommandRegistration = DefaultBindingCommand as unknown as IRegistry;
+export const ForBindingCommandRegistration = ForBindingCommand as unknown as IRegistry;
+export const FromViewBindingCommandRegistration = FromViewBindingCommand as unknown as IRegistry;
+export const OneTimeBindingCommandRegistration = OneTimeBindingCommand as unknown as IRegistry;
+export const ToViewBindingCommandRegistration = ToViewBindingCommand as unknown as IRegistry;
+export const TwoWayBindingCommandRegistration = TwoWayBindingCommand as unknown as IRegistry;
+
+/**
+ * Default runtime/environment-agnostic binding commands:
+ * - Property observation: `.bind`, `.one-time`, `.from-view`, `.to-view`, `.two-way`
+ * - Function call: `.call`
+ * - Collection observation: `.for`
+ */
+export const DefaultBindingLanguage = [
+  DefaultBindingCommandRegistration,
+  OneTimeBindingCommandRegistration,
+  FromViewBindingCommandRegistration,
+  ToViewBindingCommandRegistration,
+  TwoWayBindingCommandRegistration,
+  CallBindingCommandRegistration,
+  ForBindingCommandRegistration
+];
 
 /**
  * Default implementations for the following interfaces:
+ * - `IExpressionParserRegistration`
  * - `IObserverLocator`
  * - `ILifecycle`
  * - `IRenderer`
- * - `IStartTaskManager`
+ * - `IAppTaskManager`
  * - `IViewLocator`
  * - `IClockRegistration`
  * - `ISchedulerRegistration`
  */
 export const DefaultComponents = [
-  IObserverLocatorRegistration,
-  ILifecycleRegistration,
-  IRendererRegistration,
-  IStartTaskManagerRegistration,
-  IViewLocatorRegistration,
   Now,
-  ProjectionProvider,
 ];
 
 export const FrequentMutationsRegistration = FrequentMutations as unknown as IRegistry;
@@ -71,6 +120,9 @@ export const IfRegistration = If as unknown as IRegistry;
 export const ElseRegistration = Else as unknown as IRegistry;
 export const RepeatRegistration = Repeat as unknown as IRegistry;
 export const WithRegistration = With as unknown as IRegistry;
+export const SwitchRegistration = Switch as unknown as IRegistry;
+export const CaseRegistration = Case as unknown as IRegistry;
+export const DefaultCaseRegistration = DefaultCase as unknown as IRegistry;
 export const SanitizeValueConverterRegistration = SanitizeValueConverter as unknown as IRegistry;
 export const ViewValueConverterRegistration = ViewValueConverter as unknown as IRegistry;
 export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
@@ -96,7 +148,12 @@ export const DefaultResources = [
   ElseRegistration,
   RepeatRegistration,
   WithRegistration,
+  SwitchRegistration,
+  CaseRegistration,
+  DefaultCaseRegistration,
+
   SanitizeValueConverterRegistration,
+
   ViewValueConverterRegistration,
   DebounceBindingBehaviorRegistration,
   OneTimeBindingBehaviorRegistration,
@@ -159,7 +216,9 @@ export const RuntimeConfiguration = {
     return container.register(
       ...DefaultComponents,
       ...DefaultResources,
-      ...DefaultRenderers
+      ...DefaultRenderers,
+      ...DefaultBindingSyntax,
+      ...DefaultBindingLanguage,
     );
   },
   /**

@@ -11,7 +11,6 @@ import {
   ShadowDOMProjector
 } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
-import { ResourceModel } from '@aurelia/jit';
 
 describe('Styles', function () {
   async function startApp(configure: (au: Aurelia) => void) {
@@ -22,7 +21,7 @@ describe('Styles', function () {
     class App { }
     const component = CustomElement.define({ name: 'app', template: ' ' }, App);
     au.app({ host, component });
-    await au.start().wait();
+    await au.start();
     return { au, ctx, host, container: au.container };
   }
 
@@ -102,7 +101,7 @@ describe('Styles', function () {
   describe('Shadow DOM', function () {
     it('registry provides root shadow dom styles', async function () {
       const rootStyles = '.my-class { color: red }';
-      const { container } = await startApp(au => {
+      const { container, au } = await startApp(au => {
         au.register(StyleConfiguration.shadowDOM({
           sharedStyles: [rootStyles]
         }));
@@ -113,11 +112,14 @@ describe('Styles', function () {
 
       assert.instanceOf(s, Object);
       assert.equal(typeof s.applyTo, 'function');
+
+      await au.stop();
+      au.dispose();
     });
 
     it('config passes root styles to container', async function () {
       const rootStyles = '.my-class { color: red }';
-      const { container, ctx } = await startApp(au => {
+      const { container, ctx, au } = await startApp(au => {
         au.register(StyleConfiguration.shadowDOM({
           sharedStyles: [rootStyles]
         }));
@@ -133,6 +135,9 @@ describe('Styles', function () {
         assert.instanceOf(s, StyleElementStyles);
         assert.equal(s['localStyles'].length, 1);
       }
+
+      await au.stop();
+      au.dispose();
     });
 
     it('element styles apply parent styles', function () {
@@ -200,10 +205,11 @@ describe('Styles', function () {
 
       const component = new FooBar();
       const controller = Controller.forCustomElement(
+        null,
+        ctx.container,
         component as ICustomElementViewModel<HTMLElement>,
         ctx.lifecycle,
         host,
-        ctx.container,
         void 0,
         null,
       );

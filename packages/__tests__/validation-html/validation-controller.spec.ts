@@ -1,5 +1,5 @@
 /* eslint-disable mocha/no-hooks, mocha/no-sibling-hooks */
-import { newInstanceForScope } from '@aurelia/kernel';
+import { IServiceLocator, newInstanceForScope } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IScheduler, customElement } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
@@ -89,13 +89,14 @@ describe('validation controller factory', function () {
         CustomStuff3
       )
       .app({ host, component: App })
-      .start()
-      .wait();
+      .start();
 
     await testFunction({ app: void 0, container, host, scheduler: container.get(IScheduler), ctx });
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
+
+    au.dispose();
   }
   const $it = createSpecFunction(runTest);
 
@@ -137,6 +138,7 @@ describe('validation-controller', function () {
     public person2rules: PropertyRule[];
 
     public constructor(
+      @IServiceLocator public locator: IServiceLocator,
       @newInstanceForScope(IValidationController) public controller: ValidationController,
       @IValidationRules public readonly validationRules: IValidationRules,
     ) {
@@ -211,14 +213,15 @@ describe('validation-controller', function () {
         host,
         component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
       })
-      .start()
-      .wait();
+      .start();
 
-    const app = au.root.viewModel as App;
+    const app = au.root.controller.viewModel as App;
     await testFunction({ app, container, host, scheduler: container.get(IScheduler), ctx });
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
+
+    au.dispose();
   }
   const $it = createSpecFunction(runTest);
 
@@ -274,7 +277,7 @@ describe('validation-controller', function () {
       text: '{ object, propertyName, rules }',
       getValidationInstruction: (app: App) => {
         const { validationRules, messageProvider, property, $rules: [[required,]] } = app.person2rules[1];
-        const rule = new PropertyRule(validationRules, messageProvider, property, [[required]]);
+        const rule = new PropertyRule(app.locator, validationRules, messageProvider, property, [[required]]);
         return new ValidateInstruction(app.person2, void 0, [rule]);
       },
       assertResult: (result: ControllerValidateResult, instruction: ValidateInstruction<Person>) => {

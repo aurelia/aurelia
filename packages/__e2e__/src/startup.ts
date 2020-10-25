@@ -1,6 +1,6 @@
 import { DebugConfiguration } from '@aurelia/debug';
 import { I18nConfiguration, I18nInitOptions } from '@aurelia/i18n';
-import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
+import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
 import { Aurelia } from '@aurelia/runtime';
 import Fetch from 'i18next-fetch-backend';
 import * as intervalPlural from 'i18next-intervalplural-postprocessor';
@@ -24,7 +24,7 @@ Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
 
   const au = new Aurelia()
     .register(
-      JitHtmlBrowserConfiguration,
+      RuntimeHtmlBrowserConfiguration,
       DebugConfiguration,
       I18nConfiguration.customize((options) => {
         options.translationAttributeAliases = ['t', 'i18n'];
@@ -47,5 +47,5 @@ Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
     );
   au.app({ host, component });
 
-  await au.start().wait();
+  await au.start();
 })().catch(console.error);

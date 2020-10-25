@@ -1,4 +1,3 @@
-import { Reporter } from '@aurelia/kernel';
 import {
   DirtyCheckSettings,
   IDirtyChecker,
@@ -238,6 +237,7 @@ describe('DirtyChecker', function () {
                             observer1.unsubscribe(subscriber2);
                             observer2.unsubscribe(subscriber3);
                             observer2.unsubscribe(subscriber4);
+
                             done();
                           });
                         });
@@ -286,6 +286,7 @@ describe('DirtyChecker', function () {
             taskQueue.queueTask(() => {
               assert.strictEqual(callCount, 0, `callCount`);
               observer.unsubscribe(subscriber);
+
               done();
             });
           });
@@ -305,40 +306,6 @@ describe('DirtyChecker', function () {
     } catch (e) {
       err = e;
     }
-    assert.match(err.message, /800/, `err.message`);
-  });
-
-  // For some reason the spy doesn't work?
-  it.skip('warns by default', function () {
-    let warnCalled = false;
-    const writeBackup = Reporter.write;
-    Reporter.write = function (code) {
-      if (code === 801) {
-        warnCalled = true;
-      }
-    };
-    const { dirtyChecker } = createFixture();
-
-    const obj = { foo: '0' };
-    dirtyChecker.createProperty(obj, 'foo');
-    assert.strictEqual(warnCalled, true, `warnCalled`);
-    Reporter.write = writeBackup;
-  });
-
-  it('does not warn if warn is off', function () {
-    let warnCalled = false;
-    DirtyCheckSettings.warn = false;
-    const writeBackup = Reporter.write;
-    Reporter.write = function (code) {
-      if (code === 801) {
-        warnCalled = true;
-      }
-    };
-    const { dirtyChecker } = createFixture();
-
-    const obj = { foo: '0' };
-    dirtyChecker.createProperty(obj, 'foo');
-    assert.strictEqual(warnCalled, false, `warnCalled`);
-    Reporter.write = writeBackup;
+    assert.match(err.message, /Property 'foo' is being dirty-checked/, `err.message`);
   });
 });

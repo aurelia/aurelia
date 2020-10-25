@@ -87,7 +87,7 @@ export async function createFixture<T extends Constructable>(
 
   hia.setPhase('start');
 
-  await au.start().wait();
+  await au.start();
 
   return {
     ctx,
@@ -106,16 +106,11 @@ export async function createFixture<T extends Constructable>(
       logConfig.level = level;
     },
     async tearDown() {
-
-      router.stop();
-
-      assert.isSchedulerEmpty();
-
       hia.setPhase('stop');
 
-      await au.stop().wait();
+      await au.stop();
 
-      assert.isSchedulerEmpty();
+      au.dispose();
     },
   };
 }

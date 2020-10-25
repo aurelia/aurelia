@@ -43,12 +43,13 @@ describe('Nav', function () {
 
     container.register(Foo, Bar, Baz, Qux);
 
-    await au.start().wait();
+    await au.start();
 
     async function tearDown() {
-      router.stop();
-      await au.stop().wait();
+      await au.stop();
       ctx.doc.body.removeChild(host);
+
+      au.dispose();
     }
 
     const scheduler = ctx.scheduler;

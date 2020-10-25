@@ -24,6 +24,7 @@ module.exports = {
     SharedArrayBuffer: 'readonly'
   },
   plugins: [
+    '@typescript-eslint',
     'compat',
     'import',
     'jsdoc',
@@ -32,7 +33,6 @@ module.exports = {
   reportUnusedDisableDirectives: true,
   rules: {
     // Opinionated overrides of the default recommended rules:
-    '@typescript-eslint/ban-ts-ignore': 'warn',
     '@typescript-eslint/indent': 'off', // Disabled until typescript-eslint properly fixes indentation (see https://github.com/typescript-eslint/typescript-eslint/issues/1232) - there are recurring issues and breaking changes, and this rule usually isn't violated due to autoformatting anyway.
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
@@ -47,12 +47,13 @@ module.exports = {
     'no-dupe-class-members': 'off',
 
     // Opinionated non default rules:
-    '@typescript-eslint/camelcase': 'error',
+    '@typescript-eslint/ban-ts-comment': 'warn',
     '@typescript-eslint/explicit-member-accessibility': 'error',
     '@typescript-eslint/await-thenable': 'error',
     '@typescript-eslint/adjacent-overload-signatures': 'error',
     '@typescript-eslint/array-type': 'error',
     '@typescript-eslint/ban-types': ['error', {
+      'extendDefaults': false,
       'types': {
         // '{}': 'Avoid using the `{}` type. Prefer a specific lookup type, like `Record<string, unknown>`, or use `object` (lowercase) when referring simply to non-primitives.',
         Function: 'Avoid using the `Function` type. Prefer a specific function type, like `() => void`, or use `Constructable` / `Class<TProto, TStatic>` when referring to a constructor function.',
@@ -64,7 +65,6 @@ module.exports = {
       }
     }],
     '@typescript-eslint/brace-style': ['error', '1tbs', { allowSingleLine: true }],
-    '@typescript-eslint/class-name-casing': 'error',
     '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'as', objectLiteralTypeAssertions: 'never' }],
     '@typescript-eslint/func-call-spacing': ['error', 'never'],
     '@typescript-eslint/member-delimiter-style': 'error',
@@ -196,6 +196,10 @@ module.exports = {
     }],
 
     // Things we maybe need to fix some day, so are marked as warnings for now:
+    '@typescript-eslint/no-unsafe-assignment': 'warn',
+    '@typescript-eslint/no-unsafe-member-access': 'warn',
+    '@typescript-eslint/no-unsafe-call': 'warn',
+    '@typescript-eslint/no-unsafe-return': 'warn',
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-this-alias': 'warn',
     '@typescript-eslint/no-unnecessary-condition': 'off', // Only false positives seen so far
@@ -204,7 +208,7 @@ module.exports = {
     '@typescript-eslint/no-unused-vars-experimental': 'off', // Off for now, crashes eslint
     '@typescript-eslint/prefer-nullish-coalescing': ['warn', { 'forceSuggestionFixer': true }],
     '@typescript-eslint/prefer-optional-chain': 'warn',
-    '@typescript-eslint/promise-function-async': 'warn',
+    '@typescript-eslint/promise-function-async': 'off',
     // '@typescript-eslint/quotes': ['warn', 'backtick', { avoidEscape: true }],
     '@typescript-eslint/require-array-sort-compare': 'warn',
     '@typescript-eslint/restrict-plus-operands': ['warn', { 'checkCompoundAssignments': true }],
@@ -264,16 +268,4 @@ module.exports = {
       '@typescript-eslint/require-await': 'off'
     }
   }],
-  settings: {
-    polyfills: [
-      'fetch',
-      'Reflect',
-      'Promise',
-      'Map',
-      'Set',
-      'Object.assign',
-      'WeakMap',
-      'WeakSet'
-    ]
-  }
 };

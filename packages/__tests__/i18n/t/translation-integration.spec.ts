@@ -36,7 +36,7 @@ describe('translation-integration', function () {
     }
 
     public get app(): TApp {
-      return this.au.root.viewModel as TApp;
+      return this.au.root.controller.viewModel as TApp;
     }
 
     public get scheduler(): IScheduler {
@@ -45,7 +45,7 @@ describe('translation-integration', function () {
 
     public async teardown() {
       if (this.error === null) {
-        await this.au.stop().wait();
+        await this.au.stop();
       }
     }
   }
@@ -54,7 +54,6 @@ describe('translation-integration', function () {
     testFunction: TestFunction<I18nIntegrationTestContext<TApp>>,
     { component, aliases, skipTranslationOnMissingKey = false }: TestSetupContext<TApp>,
   ) {
-    /* eslint-disable @typescript-eslint/camelcase */
     const translation = {
       simple: {
         text: 'simple text',
@@ -107,29 +106,28 @@ describe('translation-integration', function () {
 
       imgPath: 'bar.jpg'
     };
-    /* eslint-enable @typescript-eslint/camelcase */
     const ctx = TestContext.createHTMLTestContext();
     const host = DOM.createElement('app');
-    const au = new Aurelia(ctx.container);
+    const au = new Aurelia(ctx.container).register(
+      I18nConfiguration.customize((config) => {
+        config.initOptions = {
+          resources: { en: { translation }, de: { translation: deTranslation } },
+          skipTranslationOnMissingKey
+        };
+        config.translationAttributeAliases = aliases;
+      }));
+    const i18n = au.container.get(I18N);
     let error: Error | null = null;
     try {
-      await au.register(
-        I18nConfiguration.customize((config) => {
-          config.initOptions = {
-            resources: { en: { translation }, de: { translation: deTranslation } },
-            skipTranslationOnMissingKey
-          };
-          config.translationAttributeAliases = aliases;
-        }))
+      await au
         .register(CustomMessage, FooBar)
         .app({ host, component })
-        .start()
-        .wait();
+        .start();
+
+      await i18n.setLocale('en');
     } catch (e) {
       error = e;
     }
-    const i18n = au.container.get(I18N);
-    await i18n.setLocale('en');
 
     const testContext = new I18nIntegrationTestContext<TApp>(translation, deTranslation, ctx, au, i18n, host as HTMLElement, error);
     await testFunction(testContext);
@@ -1240,10 +1238,11 @@ describe('translation-integration', function () {
 
     it('updates formatted value if rt_signal', async function () {
       this.timeout(10000);
+      const offset = 2000; // reduce the amount of time the test takes to run
 
       @customElement({ name: 'app', template: `<span>\${ dt | rt }</span>` })
       class App {
-        public dt: Date = new Date();
+        public dt: Date = new Date(Date.now() - offset);
       }
 
       await runTest(
@@ -1251,8 +1250,8 @@ describe('translation-integration', function () {
           await scheduler.queueMacroTask(delta => {
             container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
             scheduler.getRenderTaskQueue().flush();
-            assertTextContent(host, 'span', `${Math.round(delta / 1000)} seconds ago`);
-          }, { delay: 3000 }).result;
+            assertTextContent(host, 'span', `${Math.round((delta + offset) / 1000)} seconds ago`);
+          }, { delay: 1000 }).result;
         },
         { component: App });
     });
@@ -1353,10 +1352,11 @@ describe('translation-integration', function () {
 
     it('updates formatted value if rt_signal', async function () {
       this.timeout(10000);
+      const offset = 2000; // reduce the amount of time the test takes to run
 
       @customElement({ name: 'app', template: `<span>\${ dt & rt }</span>` })
       class App {
-        public dt: Date = new Date();
+        public dt: Date = new Date(Date.now() - offset);
       }
 
       await runTest(
@@ -1364,8 +1364,8 @@ describe('translation-integration', function () {
           await scheduler.queueMacroTask(delta => {
             container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
             scheduler.getRenderTaskQueue().flush();
-            assertTextContent(host, 'span', `${Math.round(delta / 1000)} seconds ago`);
-          }, { delay: 3000 }).result;
+            assertTextContent(host, 'span', `${Math.round((delta + offset) / 1000)} seconds ago`);
+          }, { delay: 1000 }).result;
         },
         { component: App });
     });

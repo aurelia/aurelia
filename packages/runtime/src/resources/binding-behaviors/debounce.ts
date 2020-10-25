@@ -1,9 +1,9 @@
 import { LifecycleFlags } from '../../flags';
-import { IScope } from '../../observation';
 import { bindingBehavior, BindingInterceptor, IInterceptableBinding } from '../binding-behavior';
 import { ITask, IScheduler, ITaskQueue, QueueTaskOptions } from '@aurelia/scheduler';
-import { BindingBehaviorExpression } from '../../binding/ast';
-import { IsAssign } from '../../ast';
+import { BindingBehaviorExpression, IsAssign } from '../../binding/ast';
+
+import type { Scope } from '../../observation/binding-context';
 
 @bindingBehavior('debounce')
 export class DebounceBindingBehavior extends BindingInterceptor {
@@ -36,16 +36,25 @@ export class DebounceBindingBehavior extends BindingInterceptor {
     if (this.task !== null) {
       this.task.cancel();
     }
-    this.task = this.taskQueue.queueTask(callback, this.opts);
+    this.task = this.taskQueue.queueTask(() => {
+      this.task = null;
+      return callback();
+    }, this.opts);
   }
 
-  public $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void {
     if (this.firstArg !== null) {
-      const delay = Number(this.firstArg.evaluate(flags, scope, hostScope, this.locator));
+      const delay = Number(this.firstArg.evaluate(flags, scope, hostScope, this.locator, null));
       if (!isNaN(delay)) {
         this.opts.delay = delay;
       }
     }
     this.binding.$bind(flags, scope, hostScope);
+  }
+
+  public $unbind(flags: LifecycleFlags): void {
+    this.task?.cancel();
+    this.task = null;
+    this.binding.$unbind(flags);
   }
 }

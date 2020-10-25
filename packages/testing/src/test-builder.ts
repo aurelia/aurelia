@@ -7,15 +7,12 @@ import {
   IDirtyChecker,
 
   ILifecycle,
-  ILifecycleRegistration,
   IObserverLocator,
-  IObserverLocatorRegistration,
-  IScope,
+  Scope,
   ITargetAccessorLocator,
   ITargetObserverLocator,
   LifecycleFlags as LF,
   OverrideContext,
-  Scope,
   IScheduler,
 } from '@aurelia/runtime';
 // import {
@@ -317,7 +314,7 @@ import {
 //   private readonly Type: T;
 
 //   constructor(Type: T) {
-//     this.container = JitHtmlConfiguration.createContainer();
+//     this.container = RuntimeHtmlConfiguration.createContainer();
 //     this.container.register(Type as any);
 //     this.Type = Type;
 //   }
@@ -384,12 +381,12 @@ import {
 //   }
 
 //   public bind(flags?: LF): void {
-//     flags = arguments.length === 1 ? flags : LF.fromStartTask | LF.fromBind;
+//     flags = arguments.length === 1 ? flags : LF.fromAppTask | LF.fromBind;
 //     this.component.$bind(flags!);
 //   }
 
 //   public attach(flags?: LF): void {
-//     flags = arguments.length === 1 ? flags : LF.fromStartTask | LF.fromAttach;
+//     flags = arguments.length === 1 ? flags : LF.fromAppTask | LF.fromAttach;
 //     this.component.$attach(flags!);
 //   }
 
@@ -460,7 +457,6 @@ export function createObserverLocator(containerOrLifecycle?: IContainer | ILifec
   let container: IContainer;
   if (containerOrLifecycle === undefined || !('get' in containerOrLifecycle)) {
     container = DI.createContainer();
-    container.register(ILifecycleRegistration);
   } else {
     container = containerOrLifecycle;
   }
@@ -475,12 +471,11 @@ export function createObserverLocator(containerOrLifecycle?: IContainer | ILifec
   Registration.instance(IDirtyChecker, null).register(container);
   Registration.instance(ITargetObserverLocator, dummyLocator).register(container);
   Registration.instance(ITargetAccessorLocator, dummyLocator).register(container);
-  container.register(IObserverLocatorRegistration);
   Registration.instance(IScheduler, dummyScheduler).register(container);
   return container.get(IObserverLocator);
 }
 
-export function createScopeForTest(bindingContext: any = {}, parentBindingContext?: any): IScope {
+export function createScopeForTest(bindingContext: any = {}, parentBindingContext?: any): Scope {
   return parentBindingContext
     ? Scope.fromParent(LF.none, Scope.create(LF.none, parentBindingContext), bindingContext)
     : Scope.create(LF.none, bindingContext, OverrideContext.create(LF.none, bindingContext));

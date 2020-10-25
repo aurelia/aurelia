@@ -98,9 +98,6 @@ export {
   // hydrateCustomElement,
 } from './test-builder';
 export {
-  enableTracing,
-  disableTracing,
-  SymbolTraceWriter,
   Call,
   CallCollection,
   recordCalls,

@@ -5,11 +5,11 @@ import {
   Constructable,
   Transformer,
   Key,
+  IServiceLocator,
 } from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
   IExpressionParser,
-  IScope,
   LifecycleFlags,
   IScheduler,
   PropertyBinding,
@@ -26,6 +26,8 @@ import {
   IValidationRule,
   IValidateable
 } from '@aurelia/validation';
+
+import type { Scope } from '@aurelia/runtime';
 
 export type BindingWithBehavior = PropertyBinding & {
   sourceExpression: BindingBehaviorExpression;
@@ -96,16 +98,16 @@ export interface ValidationResultsSubscriber {
 export class BindingInfo {
   /**
    * @param {Element} target - The HTMLElement associated with the binding.
-   * @param {IScope} scope - The binding scope.
-   * @param {IScope | null} [hostScope] - The host scope.
+   * @param {Scope} scope - The binding scope.
+   * @param {Scope | null} [hostScope] - The host scope.
    * @param {PropertyRule[]} [rules] - Rules bound to the binding behavior.
    * @param {(PropertyInfo | undefined)} [propertyInfo=void 0] - Information describing the associated property for the binding.
    * @memberof BindingInfo
    */
   public constructor(
     public target: Element,
-    public scope: IScope,
-    public hostScope: IScope | null,
+    public scope: Scope,
+    public hostScope: Scope | null,
     public rules?: PropertyRule[],
     public propertyInfo: PropertyInfo | undefined = void 0,
   ) { }
@@ -145,7 +147,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
         if (toCachePropertyName) {
           toCachePropertyName = keyExpr.$kind === ExpressionKind.PrimitiveLiteral;
         }
-        memberName = `[${(keyExpr.evaluate(flags, scope, hostScope, locator) as any).toString()}]`;
+        memberName = `[${(keyExpr.evaluate(flags, scope, hostScope, locator, null) as any).toString()}]`;
         break;
       }
       default:
@@ -163,7 +165,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo,
     propertyName = expression.name;
     object = expression.accessHostScope ? hostScope?.bindingContext : scope.bindingContext;
   } else {
-    object = expression.evaluate(flags, scope, hostScope, locator);
+    object = expression.evaluate(flags, scope, hostScope, locator, null);
   }
   if (object === null || object === void 0) {
     return (void 0);
@@ -311,6 +313,7 @@ export class ValidationController implements IValidationController {
     @IValidator public readonly validator: IValidator,
     @IExpressionParser private readonly parser: IExpressionParser,
     @IScheduler private readonly scheduler: IScheduler,
+    @IServiceLocator private readonly locator: IServiceLocator,
   ) { }
 
   public addObject(object: IValidateable, rules?: PropertyRule[]): void {
@@ -478,7 +481,7 @@ export class ValidationController implements IValidationController {
             .map(([
               { validationRules, messageProvider, property },
               rules
-            ]) => new PropertyRule(validationRules, messageProvider, property, [rules]))
+            ]) => new PropertyRule(this.locator, validationRules, messageProvider, property, [rules]))
         ))
       );
     }
@@ -579,7 +582,8 @@ export class ValidationControllerFactory implements IFactory<Constructable<IVali
       : new ValidationController(
         container.get<IValidator>(IValidator),
         container.get(IExpressionParser),
-        container.get(IScheduler)
+        container.get(IScheduler),
+        container,
       );
   }
 }

@@ -6,7 +6,6 @@ import {
   ISubscriber,
   ISubscriberCollection,
   LifecycleFlags,
-  ObserversLookup,
   SetterObserver,
   subscriberCollection,
   IScheduler,
@@ -22,7 +21,7 @@ type RepeatableCollection = unknown[] | Set<unknown> | Map<unknown, unknown>;
 
 export interface IInputElement extends HTMLInputElement {
   model?: unknown;
-  $observers?: ObserversLookup & {
+  $observers?: {
     model?: SetterObserver;
     value?: ValueAttributeObserver;
   };

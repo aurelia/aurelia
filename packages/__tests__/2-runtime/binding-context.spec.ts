@@ -130,11 +130,11 @@ describe('Scope', function () {
 
   describe('fromOverride', function () {
     it('undefined', function () {
-      assert.throws(() => Scope.fromOverride(LF.none, undefined), 'Code 252', `() => Scope.fromOverride(LF.none, undefined)`);
+      assert.throws(() => Scope.fromOverride(LF.none, undefined), 'OverrideContext is undefined', `() => Scope.fromOverride(LF.none, undefined)`);
     });
 
     it('null', function () {
-      assert.throws(() => Scope.fromOverride(LF.none, null), 'Code 252', `() => Scope.fromOverride(LF.none, null)`);
+      assert.throws(() => Scope.fromOverride(LF.none, null), 'OverrideContext is null', `() => Scope.fromOverride(LF.none, null)`);
     });
 
     it('{}', function () {
@@ -159,11 +159,11 @@ describe('Scope', function () {
 
   describe('fromParent', function () {
     it('undefined', function () {
-      assert.throws(() => Scope.fromParent(LF.none, undefined, {}), 'Code 253', `() => Scope.fromParent(LF.none, undefined, {})`);
+      assert.throws(() => Scope.fromParent(LF.none, undefined, {}), 'ParentScope is undefined', `() => Scope.fromParent(LF.none, undefined, {})`);
     });
 
     it('null', function () {
-      assert.throws(() => Scope.fromParent(LF.none, null, {}), 'Code 253', `() => Scope.fromParent(LF.none, null, {})`);
+      assert.throws(() => Scope.fromParent(LF.none, null, {}), 'ParentScope is null', `() => Scope.fromParent(LF.none, null, {})`);
     });
 
     it('{}, undefined', function () {
@@ -210,11 +210,11 @@ describe('Scope', function () {
 describe('BindingContext', function () {
   describe('get', function () {
     it('undefined', function () {
-      assert.throws(() => BindingContext.get(undefined, undefined, undefined, LF.none), 'Code 250', `() => BindingContext.get(undefined, undefined, undefined, LF.none)`);
+      assert.throws(() => BindingContext.get(undefined, undefined, undefined, LF.none), 'Scope is undefined and HostScope is undefined', `() => BindingContext.get(undefined, undefined, undefined, LF.none)`);
     });
 
     it('null', function () {
-      assert.throws(() => BindingContext.get(null, undefined, undefined, LF.none), 'Code 250', `() => BindingContext.get(null, undefined, undefined, LF.none)`);
+      assert.throws(() => BindingContext.get(null, undefined, undefined, LF.none), 'Scope is null and HostScope is undefined', `() => BindingContext.get(null, undefined, undefined, LF.none)`);
     });
 
     it('{ bindingContext: undefined, overrideContext: undefined }', function () {

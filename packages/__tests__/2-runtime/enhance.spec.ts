@@ -47,13 +47,14 @@ describe('2-runtime/enhance.spec.ts', function () {
     const container = ctx.container;
     const au = new Aurelia(container);
     au.enhance({ host, component: getComponent() });
-    await au.start().wait();
+    await au.start();
 
-    const app = au.root.viewModel;
+    const app = au.root.controller.viewModel;
     await testFunction(new EnhanceTestExecutionContext(ctx, container, host, app, child));
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
+    au.dispose();
   }
 
   const $it = createSpecFunction(testEnhance);
@@ -112,8 +113,7 @@ describe('2-runtime/enhance.spec.ts', function () {
         private async enhance(host = this.r2) {
           await new Aurelia(TestContext.createHTMLTestContext().container)
             .enhance({ host: host.querySelector('div'), component: { message } })
-            .start()
-            .wait();
+            .start();
         }
       }
       const ctx = TestContext.createHTMLTestContext();
@@ -131,7 +131,7 @@ describe('2-runtime/enhance.spec.ts', function () {
         component = CustomElement.define('app', App2);
       }
       au[initialMethod]({ host, component });
-      await au.start().wait();
+      await au.start();
 
       const scheduler = container.get(IScheduler);
       assert.html.textContent('div', message, 'div', host);
@@ -141,8 +141,9 @@ describe('2-runtime/enhance.spec.ts', function () {
 
       assert.html.textContent('div:nth-of-type(2)', message, 'div:nth-of-type(2)', host);
 
-      await au.stop().wait();
+      await au.stop();
       ctx.doc.body.removeChild(host);
+      au.dispose();
     });
   }
 
@@ -186,8 +187,7 @@ describe('2-runtime/enhance.spec.ts', function () {
             try {
               await new Aurelia(container)
                 .enhance({ host: host.querySelector('div'), component: { message } })
-                .start()
-                .wait();
+                .start();
             } catch (e) {
               this.message = e.message;
             }
@@ -208,12 +208,13 @@ describe('2-runtime/enhance.spec.ts', function () {
           component = CustomElement.define('app', App2);
         }
         au[initialMethod]({ host, component });
-        await au.start().wait();
+        await au.start();
 
-        assert.equal((au.root.viewModel as App2).message, 'An instance of Aurelia is already registered with the container or an ancestor of it.');
+        assert.equal((au.root.controller.viewModel as App2).message, 'An instance of Aurelia is already registered with the container or an ancestor of it.');
 
-        await au.stop().wait();
+        await au.stop();
         ctx.doc.body.removeChild(host);
+        au.dispose();
       });
     }
   );
@@ -239,9 +240,9 @@ describe('2-runtime/enhance.spec.ts', function () {
     const container = ctx.container;
     const au = new Aurelia(container);
     au.enhance({ host, component });
-    await au.start().wait();
+    await au.start();
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
 
     assert.deepStrictEqual(component.eventLog, [
@@ -254,6 +255,7 @@ describe('2-runtime/enhance.spec.ts', function () {
       'afterAttach',
       'afterAttachChildren',
     ]);
+    au.dispose();
   });
 
   it(`enhance is idempotent`, async function () {
@@ -269,20 +271,21 @@ describe('2-runtime/enhance.spec.ts', function () {
     au.enhance({ host, component });
 
     // round #1
-    await au.start().wait();
+    await au.start();
     assert.html.textContent('span', 'Bar', 'span.text - 1', host);
-    await au.stop().wait();
+    await au.stop();
 
     // round #2
-    await au.start().wait();
+    await au.start();
     assert.html.textContent('span', 'Bar', 'span.text - 2', host);
-    await au.stop().wait();
+    await au.stop();
 
     // round #3
     component.foo = 'Fiz';
-    await au.start().wait();
+    await au.start();
     assert.html.textContent('span', 'Fiz', 'span.text - 3', host);
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
+    au.dispose();
   });
 });

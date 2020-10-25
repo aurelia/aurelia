@@ -79,15 +79,16 @@ describe('validation-container-custom-element', function () {
         host,
         component: CustomElement.define({ name: 'app', isStrictBinding: true, template }, App)
       })
-      .start()
-      .wait();
+      .start();
 
-    const app: App = au.root.viewModel as App;
+    const app: App = au.root.controller.viewModel as App;
     await testFunction({ app, host, container, scheduler: app.scheduler, ctx });
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
     assert.equal(app.controllerRemoveSubscriberSpy.calls.length, template.match(/validation-container/g).length / 2 + template.match(/validate/g).length);
+
+    au.dispose();
   }
 
   const $it = createSpecFunction(runTest);
@@ -103,7 +104,7 @@ describe('validation-container-custom-element', function () {
     handleValidationEventSpy.calls.splice(0);
     controllerValidateSpy.calls.splice(0);
     target.dispatchEvent(new ctx.Event(event));
-    await scheduler.yieldAll(10);
+    await scheduler.yieldAll();
     assert.equal(controllerValidateSpy.calls.length, 1, 'incorrect #calls for validate');
     assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
   }
@@ -296,10 +297,9 @@ describe('validation-container-custom-element', function () {
 
     await au
       .app({ host, component: App1 })
-      .start()
-      .wait();
+      .start();
 
-    const app: App1 = au.root.viewModel as App1;
+    const app: App1 = au.root.controller.viewModel as App1;
     const scheduler = container.get(IScheduler);
 
     const ceEl1 = host.querySelector('validation-container');
@@ -319,7 +319,9 @@ describe('validation-container-custom-element', function () {
 
     assert.deepStrictEqual(errors1, ['Name is required.']);
 
-    await au.stop().wait();
+    await au.stop();
     ctx.doc.body.removeChild(host);
+
+    au.dispose();
   });
 });

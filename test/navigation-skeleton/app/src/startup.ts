@@ -1,5 +1,5 @@
 import { DebugConfiguration } from '@aurelia/debug';
-import { JitHtmlBrowserConfiguration } from '@aurelia/jit-html-browser';
+import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
 import { RouterConfiguration } from '@aurelia/router';
 import { Aurelia } from '@aurelia/runtime';
 import { ChildRouter } from './child-router';
@@ -18,7 +18,7 @@ import { UpperValueConverter, Welcome } from './welcome';
       Users,
       ChildRouter,
       UpperValueConverter,
-      JitHtmlBrowserConfiguration,
+      RuntimeHtmlBrowserConfiguration,
       RouterConfiguration,
       DebugConfiguration,
     )
@@ -27,5 +27,5 @@ import { UpperValueConverter, Welcome } from './welcome';
       component: App,
     });
 
-  await au.start().wait();
+  await au.start();
 })().catch(console.error);

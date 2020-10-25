@@ -3,18 +3,12 @@ import {
   TestContext,
 } from '@aurelia/testing';
 import {
-  JitHtmlBrowserConfiguration
-} from '@aurelia/jit-html-browser';
-import {
-  Reporter,
-  LogLevel,
-} from '@aurelia/kernel';
-
-Reporter.level = LogLevel.error;
+  RuntimeHtmlBrowserConfiguration
+} from '@aurelia/runtime-html-browser';
 
 function createBrowserTestContext(): HTMLTestContext {
   return HTMLTestContext.create(
-    JitHtmlBrowserConfiguration,
+    RuntimeHtmlBrowserConfiguration,
     window,
     UIEvent,
     Event,

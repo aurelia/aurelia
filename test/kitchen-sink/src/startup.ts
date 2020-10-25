@@ -2,9 +2,6 @@ import * as faker from 'faker';
 import { TraceConfiguration, DebugConfiguration } from '@aurelia/debug';
 import {
   Aurelia,
-  IObserverLocatorRegistration,
-  ILifecycleRegistration,
-  IRendererRegistration,
   IfRegistration,
   ElseRegistration,
   RepeatRegistration,
@@ -17,6 +14,13 @@ import {
   SetPropertyRendererRegistration,
   TemplateControllerRendererRegistration,
   ValueConverter,
+  AtPrefixedTriggerAttributePatternRegistration,
+  ColonPrefixedBindAttributePatternRegistration,
+  DotSeparatedAttributePatternRegistration,
+  DefaultBindingCommandRegistration,
+  ForBindingCommandRegistration,
+  OneTimeBindingCommandRegistration,
+  TwoWayBindingCommandRegistration,
 } from '@aurelia/runtime';
 import {
   IProjectorLocatorRegistration,
@@ -25,26 +29,14 @@ import {
   ListenerBindingRendererRegistration,
   SetAttributeRendererRegistration,
   TextBindingRendererRegistration,
-  ITargetObserverLocatorRegistration
+  ITargetObserverLocatorRegistration,
+  ITemplateCompilerRegistration,
+  ITemplateElementFactoryRegistration,
+  TriggerBindingCommandRegistration,
 } from '@aurelia/runtime-html';
 import {
   IDOMInitializerRegistration
 } from '@aurelia/runtime-html-browser';
-import {
-  AtPrefixedTriggerAttributePatternRegistration,
-  ColonPrefixedBindAttributePatternRegistration,
-  DotSeparatedAttributePatternRegistration,
-  DefaultBindingCommandRegistration,
-  ForBindingCommandRegistration,
-  IExpressionParserRegistration,
-  OneTimeBindingCommandRegistration,
-  TwoWayBindingCommandRegistration
-} from '@aurelia/jit';
-import {
-  ITemplateCompilerRegistration,
-  ITemplateElementFactoryRegistration,
-  TriggerBindingCommandRegistration
-} from '@aurelia/jit-html';
 import {
   ViewportCustomElement,
   Router
@@ -71,11 +63,6 @@ Tracer.enableLiveLogging({
 // manually compose the app from individual registrations, leaving out some stuff that we're not going
 // to use (yet)
 const container = DI.createContainer().register(
-  // runtime components
-  IObserverLocatorRegistration,
-  ILifecycleRegistration,
-  IRendererRegistration,
-
   // runtime resources
   IfRegistration,
   ElseRegistration,
@@ -107,9 +94,6 @@ const container = DI.createContainer().register(
 
   // runtime-html-browser components
   IDOMInitializerRegistration,
-
-  // jit components
-  IExpressionParserRegistration,
 
   // jit attribute patterns
   DotSeparatedAttributePatternRegistration,

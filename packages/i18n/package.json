@@ -36,7 +36,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/jit": "0.7.0",
     "@aurelia/kernel": "0.7.0",
     "@aurelia/metadata": "0.7.0",
     "@aurelia/runtime-html": "0.7.0",
@@ -45,6 +44,6 @@
     "i18next": "^17.0.0"
   },
   "devDependencies": {
-    "typescript": "^3.9.3"
+    "typescript": "^4.0.3"
   }
 }

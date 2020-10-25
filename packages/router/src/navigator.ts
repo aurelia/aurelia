@@ -1,4 +1,3 @@
-import { Reporter } from '@aurelia/kernel';
 import { IRoute, IRouteableComponent } from './interfaces';
 import { Queue, QueueItem } from './queue';
 import { IRouter } from './router';
@@ -380,7 +379,6 @@ export class Navigator {
     const instruction: Navigation = new Navigation({ ...entry });
     instruction.navigation = navigationFlags;
     instruction.previous = previousEntry;
-    Reporter.write(10000, 'callback', instruction, instruction.previous, this.entries);
     if (this.options.callback) {
       this.options.callback(instruction);
     }

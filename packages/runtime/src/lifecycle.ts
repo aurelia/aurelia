@@ -9,6 +9,7 @@ import {
 } from '@aurelia/kernel';
 import {
   HooksDefinition,
+  IHydrateTemplateController,
 } from './definitions';
 import {
   INode,
@@ -21,7 +22,6 @@ import {
 import {
   IBatchable,
   IBindingTargetAccessor,
-  IScope,
 } from './observation';
 import {
   IElementProjector,
@@ -32,20 +32,20 @@ import {
   IRenderContext,
   ICompiledRenderContext,
 } from './templating/render-context';
-import {
-  Scope,
-} from './observation/binding-context';
 import { AuSlotContentType } from './resources/custom-elements/au-slot';
 import {
   CustomAttributeDefinition,
 } from './resources/custom-attribute';
 
-export interface IBinding extends IDisposable {
+import type { Scope } from './observation/binding-context';
+import type { ICompositionRoot } from './aurelia';
+
+export interface IBinding {
   interceptor: this;
   readonly locator: IServiceLocator;
-  readonly $scope?: IScope;
+  readonly $scope?: Scope;
   readonly isBound: boolean;
-  $bind(flags: LifecycleFlags, scope: IScope, hostScope: IScope | null): void;
+  $bind(flags: LifecycleFlags, scope: Scope, hostScope: Scope | null): void;
   $unbind(flags: LifecycleFlags): void;
 }
 
@@ -98,6 +98,7 @@ export interface IController<
   C extends IViewModel<T> = IViewModel<T>,
 > extends IDisposable {
   /** @internal */readonly id: number;
+  readonly root: ICompositionRoot<T> | null;
   readonly flags: LifecycleFlags;
   readonly lifecycle: ILifecycle;
   readonly hooks: HooksDefinition;
@@ -251,7 +252,7 @@ export interface ISyntheticView<
    * The `scope` may be set during `activate()` and unset during `deactivate()`, or it may be statically set during rendering with `lockScope()`.
    */
   readonly scope: Scope;
-  hostScope: IScope | null;
+  hostScope: Scope | null;
   /**
    * The compiled render context used for rendering this view. Compilation was done by the `IViewFactory` prior to creating this view.
    */
@@ -270,8 +271,8 @@ export interface ISyntheticView<
     initiator: IHydratedController<T>,
     parent: IHydratedComponentController<T>,
     flags: LifecycleFlags,
-    scope: IScope,
-    hostScope?: IScope | null,
+    scope: Scope,
+    hostScope?: Scope | null,
   ): void | Promise<void>;
   deactivate(
     initiator: IHydratedController<T>,
@@ -285,13 +286,13 @@ export interface ISyntheticView<
   ): void;
 
   /**
-   * Lock this view's scope to the provided `IScope`. The scope, which is normally set during `activate()`, will then not change anymore.
+   * Lock this view's scope to the provided `Scope`. The scope, which is normally set during `activate()`, will then not change anymore.
    *
    * This is used by `au-compose` to set the binding context of a view to a particular component instance.
    *
    * @param scope - The scope to lock this view to.
    */
-  lockScope(scope: IScope): void;
+  lockScope(scope: Scope): void;
   /**
    * Set the DOM node that this view will be mounted to, as well as the mounting mechanism that will be used.
    *
@@ -333,7 +334,7 @@ export interface ICustomAttributeController<
    * The scope's `bindingContext` will be the same instance as this controller's `bindingContext` property.
    */
   readonly scope: Scope;
-  hostScope: IScope | null;
+  hostScope: Scope | null;
   readonly children: undefined;
   readonly bindings: undefined;
 
@@ -341,8 +342,8 @@ export interface ICustomAttributeController<
     initiator: IHydratedController<T>,
     parent: IHydratedParentController<T>,
     flags: LifecycleFlags,
-    scope: IScope,
-    hostScope?: IScope | null,
+    scope: Scope,
+    hostScope?: Scope | null,
   ): void | Promise<void>;
   deactivate(
     initiator: IHydratedController<T>,
@@ -375,7 +376,7 @@ export interface IDryCustomElementController<
    * By default, the scope's `bindingContext` will be the same instance as this controller's `bindingContext` property.
    */
   scope: Scope;
-  hostScope: IScope | null;
+  hostScope: Scope | null;
   /**
    * The physical DOM node that this controller's `nodes` will be mounted to.
    */
@@ -446,8 +447,8 @@ export interface ICustomElementController<
     initiator: IHydratedController<T>,
     parent: IHydratedParentController<T> | null,
     flags: LifecycleFlags,
-    scope?: IScope,
-    hostScope?: IScope | null,
+    scope?: Scope,
+    hostScope?: Scope | null,
   ): void | Promise<void>;
   deactivate(
     initiator: IHydratedController<T>,
@@ -482,8 +483,8 @@ export interface IViewFactory<T extends INode = INode> extends IViewCache<T> {
   readonly name: string;
   readonly context: IRenderContext<T>;
   readonly contentType: AuSlotContentType | undefined;
-  readonly projectionScope: IScope | null;
-  create(flags?: LifecycleFlags): ISyntheticView<T>;
+  readonly projectionScope: Scope | null;
+  create(flags?: LifecycleFlags, parentController?: ISyntheticView<T> | ICustomElementController<T> | ICustomAttributeController<T> | undefined): ISyntheticView<T>;
 }
 
 export const IViewFactory = DI.createInterface<IViewFactory>('IViewFactory').noDefault();
@@ -576,6 +577,14 @@ export interface ICustomElementViewModel<T extends INode = INode> extends IViewM
 
 export interface ICustomAttributeViewModel<T extends INode = INode> extends IViewModel<T>, IActivationHooks<IHydratedParentController<T>, T> {
   readonly $controller?: ICustomAttributeController<T, this>;
+  link?(
+    flags: LifecycleFlags,
+    parentContext: ICompiledRenderContext,
+    controller: IRenderableController,
+    childController: ICustomAttributeController,
+    target: INode,
+    instruction: IHydrateTemplateController,
+  ): void;
 }
 
 export interface IHydratedCustomElementViewModel<T extends INode = INode> extends ICustomElementViewModel<T> {
@@ -586,11 +595,12 @@ export interface IHydratedCustomAttributeViewModel<T extends INode = INode> exte
   readonly $controller: ICustomAttributeController<T, this>;
 }
 
-export interface ILifecycle {
-  readonly batch: IAutoProcessingQueue<IBatchable>;
-}
-
+export interface ILifecycle extends Lifecycle {}
 export const ILifecycle = DI.createInterface<ILifecycle>('ILifecycle').withDefault(x => x.singleton(Lifecycle));
+
+export class Lifecycle  {
+  public readonly batch: IAutoProcessingQueue<IBatchable> = new BatchQueue(this);
+}
 
 export interface IProcessingQueue<T> {
   add(requestor: T): void;
@@ -651,13 +661,5 @@ export class BatchQueue implements IAutoProcessingQueue<IBatchable> {
         batch[i].flushBatch(flags);
       }
     }
-  }
-}
-
-export class Lifecycle implements ILifecycle {
-  public readonly batch: IAutoProcessingQueue<IBatchable> = new BatchQueue(this);
-
-  public static register(container: IContainer): IResolver<ILifecycle> {
-    return Registration.singleton(ILifecycle, this).register(container);
   }
 }

@@ -303,3 +303,61 @@ class PostOffice {
 ```
 
 There will be no log in the console.
+
+# How it works
+
+By default, a watcher will be created for a `@watch()` decorator. This watcher will start observing before `afterBind` lifecycle of components. How the observation works will depend on the first parameter given.
+
+- If a string, or a symbol is given, it will be used as an expression to observe, similar to how an expression in Aurelia templating works.
+- If a function is given, it will be used as a computed getter to observe dependencies and evaluate the value to pass into the specified method. There are two mechanisms that can be employed:
+  - For JavaScript environments with native proxy support: Proxy will be used to trap & observe property read. It will also observe collections (such as array, map and set) based on the method invoked. For example, calling `.map(item => item.value)` on an array should observe the mutation of that array, and the property `value` of each item inside the array.
+  - For environments without native proxy support: A 2nd parameter inside computed getter can be used to manually observe (or register) dependencies. This is the corresponding watcher created from a `@watch` decorator. It has the following interface:
+  ```typescript
+  interface IWatcher {
+    observe(obj: object, key: string | number | symbol): void;
+    observeCollection(collection: Array | Map | Set): void;
+    observeLength(collection: Array | Map | Set): void;
+  }
+  ```
+  An example is:
+  ```typescript
+  class Contact {
+    firstName = 'Chorris';
+    lastName = 'Nuck';
+
+    @watch((contact, watcher) => {
+      watcher.observe(contact, 'firstName');
+      watcher.observe(contact, 'lastName');
+      return `${contact.firstName} ${contact.lastName}`;
+    })
+    validateFullName(fullName) {
+      if (fullName === 'Chuck Norris') {
+        this.faint();
+      }
+    }
+  }
+  ```
+  `firstName` and `lastName` property of `contact` components is being observed manually. And everytime either `firstName`, or `lastName` change, the computed getter is run again and the dependencies will be observed again. Observers are cached and the same observer won't be added more than one, old observers from old computed getter will also be disposed, so you won't have to worry about stale dependencies or memory leak.
+
+# Best practices
+
+- It is best to avoid mutation on dependencies collected inside a computed getter. For example:
+  ```typescript
+  // don't do this
+  @watch(object => object.counter++)
+  someMethod() {}
+  ```
+- To ensure idenity equality with Proxy, always be careful with objects that are not accessed from the 1st parameter passed into the computed getter. Better get the raw underlying object before doing the strict comparison with `===`. For example:
+  ```typescript
+  const defaultOptions = {};
+
+  class MyClass {
+    options = defaultOptions;
+
+    @watch(myClass => myClass.options === defaultOptions ? null : myClass.options)
+    applyCustomOptions() {
+      // ...
+    }
+  }
+  ```
+  In this example, even if `options` on a `MyClass` instance has never been changed, the comparison of `myClass.options === defaultOptions` will still return false, as the actual value for `myClass.options` is a proxied object wrapping the real object, and thus is always different with `defaultOptions`.

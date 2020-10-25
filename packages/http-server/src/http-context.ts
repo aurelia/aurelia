@@ -38,7 +38,7 @@ export class HttpContext implements IHttpContext {
     this.rewrittenUrl = $url.parse(url);
   }
 
-  public get requestUrl() {
+  public get requestUrl(): $url.UrlWithStringQuery {
     return this.rewrittenUrl ?? this._requestUrl;
   }
 }

@@ -5,7 +5,7 @@ import { IRequestHandler } from '../interfaces';
 export class PushStateHandler implements IRequestHandler {
   public async handleRequest(context: IHttpContext): Promise<void> {
     const request = context.request;
-    const url = context.requestUrl;
+    const url = context.requestUrl.href;
 
     /**
      * Ignore the request if one of the following is condition holds:

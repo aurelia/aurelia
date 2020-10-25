@@ -1,5 +1,5 @@
 import { IncomingMessage, IncomingHttpHeaders } from 'http';
-import { Http2ServerRequest, IncomingHttpHeaders as IncomingHttp2Headers } from 'http2';
+import { Http2ServerRequest, IncomingHttpHeaders as IncomingHttp2Headers, constants } from 'http2';
 
 export const enum HTTPStatusCode {
   SwitchingProtocols = 101,
@@ -98,9 +98,16 @@ export function getContentEncoding(path: string): ContentEncoding {
 
 export type Headers = IncomingHttpHeaders | IncomingHttp2Headers;
 
+const wildcardHeaderValue = {
+  [constants.HTTP2_HEADER_ACCEPT_ENCODING]: '*',
+  [constants.HTTP2_HEADER_ACCEPT]: '*/*',
+  [constants.HTTP2_HEADER_ACCEPT_CHARSET]: '*',
+  [constants.HTTP2_HEADER_ACCEPT_LANGUAGE]: '*',
+};
+
 export class QualifiedHeaderValues {
 
-  public headerName: string;
+  public readonly headerName: string;
   public readonly mostPrioritized: { name: string; q: number } | undefined;
   private readonly parsedMap: Map<string, number>;
 
@@ -143,7 +150,7 @@ export class QualifiedHeaderValues {
     if (qValue !== void 0) {
       return qValue !== 0;
     }
-    return this.parsedMap.has('*'); // TODO handle this properly
+    return this.parsedMap.has(wildcardHeaderValue[this.headerName]);
   }
 
   public getQValueFor(value: string) {

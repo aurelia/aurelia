@@ -17,7 +17,7 @@ export class HttpContext implements IHttpContext {
   public state: HttpContextState = HttpContextState.head;
   private readonly parsedHeaders: Record<string, QualifiedHeaderValues> = Object.create(null);
   private readonly _requestUrl: $url.UrlWithStringQuery;
-  private rewrittenUrl: string | null = null;
+  private rewrittenUrl: $url.UrlWithStringQuery | null = null;
 
   public constructor(
     container: IContainer,

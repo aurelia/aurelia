@@ -36,11 +36,11 @@ Aurelia
 To start an Aurelia application, create a `new Aurelia()` object with a target `host` and a root `component` and call `start()`.
 
 ```typescript
-import Aurelia, { RuntimeHtmlConfiguration } from 'aurelia';
+import Aurelia, { StandardConfiguration } from 'aurelia';
 import { ShellComponent } from './shell';
 
 new Aurelia()
-  .register(RuntimeHtmlConfiguration)
+  .register(StandardConfiguration)
   .app({ host: document.querySelector('body'), component: ShellComponent })
   .start();
 ```

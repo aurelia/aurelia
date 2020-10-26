@@ -1,5 +1,5 @@
 import { DI, IContainer, Registration } from '@aurelia/kernel';
-import { RuntimeHtmlConfiguration, Aurelia as $Aurelia, IPlatform, IAppRoot, CustomElementType, ISinglePageApp, CustomElement } from '@aurelia/runtime-html';
+import { StandardConfiguration, Aurelia as $Aurelia, IPlatform, IAppRoot, CustomElementType, ISinglePageApp, CustomElement } from '@aurelia/runtime-html';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 
 export const PLATFORM = new BrowserPlatform(window);
@@ -9,7 +9,7 @@ function createContainer(): IContainer {
   return DI.createContainer()
     .register(
       Registration.instance(IPlatform, PLATFORM),
-      RuntimeHtmlConfiguration,
+      StandardConfiguration,
     );
 }
 
@@ -880,7 +880,7 @@ export {
 
   // DefaultComposers,
 
-  // RuntimeHtmlConfiguration,
+  // StandardConfiguration,
 
   createElement,
   // CompositionPlan,
@@ -955,7 +955,7 @@ export {
 
   // DefaultBindingLanguage as JitHtmlDefaultBindingLanguage,
 
-  // RuntimeHtmlConfiguration,
+  // StandardConfiguration,
 
   // stringifyDOM,
   // stringifyInstructions,

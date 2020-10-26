@@ -1,4 +1,4 @@
-import { Aurelia, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
 import { RouterConfiguration } from '@aurelia/router';
 
 import { App } from './app';
@@ -44,7 +44,7 @@ import { State } from './state';
       LoginSpecial,
       Main,
 
-      RuntimeHtmlConfiguration,
+      StandardConfiguration,
       RouterConfiguration.customize({ useHref: true }),
     )
     .app({

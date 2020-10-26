@@ -23,7 +23,7 @@ import {
   IObserverLocator,
   IComposableController,
   LifecycleFlags,
-  RuntimeHtmlConfiguration,
+  StandardConfiguration,
   AttributePattern,
   AttributePatternDefinition,
   AttrSyntax,
@@ -122,7 +122,7 @@ describe('TranslationBindingCommand', function () {
 describe('TranslationBindingComposer', function () {
 
   function createFixture() {
-    return createContainer(RuntimeHtmlConfiguration, I18nConfiguration);
+    return createContainer(StandardConfiguration, I18nConfiguration);
   }
 
   it('instantiated with instruction type', function () {
@@ -266,7 +266,7 @@ describe('TranslationBindBindingComposer', function () {
 
   function createFixture() {
     const container = createContainer();
-    container.register(RuntimeHtmlConfiguration, I18nConfiguration);
+    container.register(StandardConfiguration, I18nConfiguration);
     return container;
   }
 

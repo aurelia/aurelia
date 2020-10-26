@@ -271,7 +271,7 @@ export const DefaultComposers = [
  * - `DefaultResources`
  * - `DefaultComposers`
  */
-export const RuntimeHtmlConfiguration = {
+export const StandardConfiguration = {
   /**
    * Apply this configuration to the provided container.
    */

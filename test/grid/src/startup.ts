@@ -1,12 +1,12 @@
 import * as faker from 'faker';
-import { Aurelia, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
 import { App } from './app';
 import { DI } from '@aurelia/kernel';
 
 window['faker'] = faker;
 
 const container = DI.createContainer().register(
-  RuntimeHtmlConfiguration,
+  StandardConfiguration,
 );
 
 const au = window['au'] = new Aurelia(container);

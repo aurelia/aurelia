@@ -314,7 +314,7 @@ import { createContainer } from './test-context';
 //   private readonly Type: T;
 
 //   constructor(Type: T) {
-//     this.container = RuntimeHtmlConfiguration.createContainer();
+//     this.container = StandardConfiguration.createContainer();
 //     this.container.register(Type as any);
 //     this.Type = Type;
 //   }

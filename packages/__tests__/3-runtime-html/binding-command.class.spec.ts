@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { Aurelia, IEventDelegator, RuntimeHtmlConfiguration, BindingMode, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { Aurelia, IEventDelegator, StandardConfiguration, BindingMode, CustomElement, IPlatform } from '@aurelia/runtime-html';
 import { TestContext, eachCartesianJoin, eachCartesianJoinAsync, assert } from '@aurelia/testing';
 import { ClassAttributePattern } from './attribute-pattern';
 
@@ -134,7 +134,7 @@ describe('template-compiler.binding-commands.class', function () {
             public value: unknown = true;
           },
           ClassAttributePattern,
-          RuntimeHtmlConfiguration,
+          StandardConfiguration,
           CustomElement.define(
             {
               name: 'child',

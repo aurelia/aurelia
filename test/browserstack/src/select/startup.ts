@@ -1,8 +1,8 @@
-import { Aurelia, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
 import { App } from './app';
 
 window['au'] = new Aurelia()
-  .register(RuntimeHtmlConfiguration)
+  .register(StandardConfiguration)
   .app({ host: document.querySelector('app'), component: new App() })
   .start();
 

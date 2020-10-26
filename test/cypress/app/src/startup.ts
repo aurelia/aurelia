@@ -1,11 +1,11 @@
 import { NavCustomElement, ViewportCustomElement } from '@aurelia/router';
-import { Aurelia, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
 import { registerComponent } from './utils';
 import { App } from './app';
 import { RouterHome } from './components/router/home';
 import { RouterWithNav } from './components/router/with-nav';
 
-const container = RuntimeHtmlConfiguration.createContainer();
+const container = StandardConfiguration.createContainer();
 
 container.register(
   ViewportCustomElement as any,

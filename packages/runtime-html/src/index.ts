@@ -523,7 +523,7 @@ export {
 
   DefaultComposers,
 
-  RuntimeHtmlConfiguration
+  StandardConfiguration
 } from './configuration';
 export {
   HooksDefinition,

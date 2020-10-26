@@ -1,5 +1,5 @@
 import { I18nConfiguration, I18nInitOptions } from '@aurelia/i18n';
-import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { StandardConfiguration } from '@aurelia/runtime-html';
 import { Aurelia } from '@aurelia/runtime';
 import Fetch from 'i18next-fetch-backend';
 import * as intervalPlural from 'i18next-intervalplural-postprocessor';
@@ -23,7 +23,7 @@ Intl['RelativeTimeFormat'] = Intl['RelativeTimeFormat'] || RelativeTimeFormat;
 
   const au = new Aurelia()
     .register(
-      RuntimeHtmlConfiguration,
+      StandardConfiguration,
       I18nConfiguration.customize((options) => {
         options.translationAttributeAliases = ['t', 'i18n'];
         const plugins = [intervalPlural.default];

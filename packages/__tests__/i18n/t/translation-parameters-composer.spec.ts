@@ -7,7 +7,7 @@ import {
   IInstructionComposer,
   IObserverLocator,
   LifecycleFlags,
-  RuntimeHtmlConfiguration,
+  StandardConfiguration,
   ICompiledCompositionContext,
   IComposableController,
   IBinding,
@@ -73,7 +73,7 @@ describe('TranslationParametersBindingComposer', function () {
 
   function createFixture() {
     const { container } = TestContext.create();
-    container.register(RuntimeHtmlConfiguration, I18nConfiguration);
+    container.register(StandardConfiguration, I18nConfiguration);
     return container;
   }
 

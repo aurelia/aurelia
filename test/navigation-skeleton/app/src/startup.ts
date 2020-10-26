@@ -1,4 +1,4 @@
-import { Aurelia, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
 import { RouterConfiguration } from '@aurelia/router';
 import { ChildRouter } from './child-router';
 
@@ -16,7 +16,7 @@ import { UpperValueConverter, Welcome } from './welcome';
       Users,
       ChildRouter,
       UpperValueConverter,
-      RuntimeHtmlConfiguration,
+      StandardConfiguration,
       RouterConfiguration,
     )
     .app({

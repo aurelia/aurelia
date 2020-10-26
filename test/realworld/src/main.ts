@@ -1,6 +1,6 @@
 import { HttpClient } from '@aurelia/fetch-client';
 import { RouterConfiguration } from '@aurelia/router';
-import { Aurelia, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
 
 import 'promise-polyfill/lib/polyfill'; // eslint-disable-line import/no-unassigned-import
 
@@ -26,7 +26,7 @@ const globalResources = [
 
 new Aurelia()
   .register(
-    RuntimeHtmlConfiguration,
+    StandardConfiguration,
     RouterConfiguration.customize({ useUrlFragmentHash: false, statefulHistoryLength: 3 }),
     ...globalResources,
   )

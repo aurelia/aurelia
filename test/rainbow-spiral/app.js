@@ -1,4 +1,4 @@
-import { Aurelia, CustomElementResource, SVGAnalyzerRegistration, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, CustomElementResource, SVGAnalyzerRegistration, StandardConfiguration } from '@aurelia/runtime-html';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { Cursor } from './cursor';
 
@@ -11,7 +11,7 @@ const LOOPS = 6;
 try {
   new Aurelia()
     .register(
-      RuntimeHtmlConfiguration,
+      StandardConfiguration,
       SVGAnalyzerRegistration,
     )
     .app({

@@ -7,7 +7,7 @@ import {
   IComposer,
   ITemplateCompiler,
   IPlatform,
-  RuntimeHtmlConfiguration,
+  StandardConfiguration,
 } from '@aurelia/runtime-html';
 
 export class TestContext {
@@ -32,7 +32,7 @@ export class TestContext {
   public get container(): IContainer {
     if (this._container === void 0) {
       this._container = DI.createContainer();
-      RuntimeHtmlConfiguration.register(this._container);
+      StandardConfiguration.register(this._container);
       this._container.register(
         Registration.instance(TestContext, this),
       );

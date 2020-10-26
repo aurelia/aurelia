@@ -1,4 +1,4 @@
-import { Aurelia, CustomElementResource, ValueConverterResource, ILifecycle, Priority, LifecycleFlags, SVGAnalyzerRegistration, StandardConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, SVGAnalyzerRegistration, StandardConfiguration } from '@aurelia/runtime-html';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { interpolateViridis } from 'd3-scale-chromatic';
 

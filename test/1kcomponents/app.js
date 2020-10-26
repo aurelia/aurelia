@@ -245,11 +245,6 @@ const App = CustomElement.define(
         for (let i = 0; i < count; ++i) {
           points[i].update(i, count);
         }
-        let point;
-        for (let i = count; i < length; ++i) {
-          point = points[i];
-          // this.scheduler.dequeueRAF(point.flushRAF, point);
-        }
         points.splice(count, length - count);
       }
     }

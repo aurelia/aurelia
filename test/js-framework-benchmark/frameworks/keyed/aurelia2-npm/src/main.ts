@@ -1,13 +1,10 @@
 import {
-  RepeatRegistration,
-  OneTimeBindingBehaviorRegistration,
-} from '@aurelia/runtime';
-import {
   ITemplateCompilerRegistration,
-  IProjectorLocatorRegistration,
   ITargetAccessorLocatorRegistration,
   ITargetObserverLocatorRegistration,
 
+  RepeatRegistration,
+  OneTimeBindingBehaviorRegistration,
   DotSeparatedAttributePatternRegistration,
 
   DefaultBindingCommandRegistration,
@@ -31,7 +28,6 @@ import { App } from './app';
 global['Aurelia'] = new Aurelia()
   .register(
     ITemplateCompilerRegistration,
-    IProjectorLocatorRegistration,
     ITargetAccessorLocatorRegistration,
     ITargetObserverLocatorRegistration,
 

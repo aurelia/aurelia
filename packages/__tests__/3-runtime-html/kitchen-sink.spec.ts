@@ -85,7 +85,7 @@ describe('dependency injection', function () {
 
     au.app({ host, component });
 
-    au.start();
+    void au.start();
 
     assert.strictEqual(host.textContent, 'bar', `host.textContent`);
   });

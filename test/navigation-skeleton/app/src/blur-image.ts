@@ -1,4 +1,4 @@
-import { INode } from '@aurelia/runtime';
+import { INode } from '@aurelia/runtime-html';
 
 export class BlurImageCustomAttribute {
   public constructor(

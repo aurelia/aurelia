@@ -10,8 +10,8 @@ function startAndStop(component: CustomElementType) {
 
   au.app({ host, component });
 
-  au.start();
-  au.stop();
+  void au.start();
+  void au.stop();
 
   au.dispose();
 }

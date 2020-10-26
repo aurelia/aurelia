@@ -819,7 +819,7 @@ const areTaskQueuesEmpty = (function () {
   return function $areTaskQueuesEmpty(clearBeforeThrow?: any) {
     const platform = BrowserPlatform.getOrCreate(globalThis)!;
 
-    const domWriteQueue = platform.domWriteQueue
+    const domWriteQueue = platform.domWriteQueue;
     const macroTaskQueue = platform.macroTaskQueue;
     const domReadQueue = platform.domReadQueue;
 

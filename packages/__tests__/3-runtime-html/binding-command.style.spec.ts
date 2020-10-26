@@ -159,7 +159,7 @@ describe('template-compiler.binding-commands.style', function () {
           )
         );
         au.app({ host, component });
-        au.start();
+        await au.start();
         try {
           const els: ArrayLike<HTMLElement> = typeof testCase.selector === 'string'
             ? host.querySelectorAll(testCase.selector)

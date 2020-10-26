@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { IRouter, lifecycleLogger } from '@aurelia/router';
-import { bindable, BindingMode } from '@aurelia/runtime';
+import { bindable, BindingMode } from '@aurelia/runtime-html';
 
 import { Article } from 'shared/models/article';
 import { ArticleService } from 'shared/services/article-service';

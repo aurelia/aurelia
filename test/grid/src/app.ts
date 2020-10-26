@@ -1,6 +1,6 @@
 import * as faker from 'faker';
 import './app.scss'; // eslint-disable-line import/no-unassigned-import
-import { customElement, IController } from '@aurelia/runtime';
+import { customElement, IController } from '@aurelia/runtime-html';
 import template from './app.html';
 
 function createItem() {

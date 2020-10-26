@@ -1,3 +1,4 @@
+/* eslint-disable import/no-mutable-exports */
 import { DI, IContainer, IRegistration, IRegistry, Registration } from '@aurelia/kernel';
 import {
   ILifecycle,
@@ -12,8 +13,8 @@ import {
 export class TestContext {
   public static readonly ambient: TestContext;
 
-  public get wnd(): Window & typeof globalThis { return this.platform.globalThis as Window & typeof globalThis; };
-  public get doc(): Document { return this.platform.document; };
+  public get wnd(): Window & typeof globalThis { return this.platform.globalThis as Window & typeof globalThis; }
+  public get doc(): Document { return this.platform.document; }
   public get userAgent(): string { return this.platform.navigator.userAgent; }
 
   public get UIEvent() { return this.platform.globalThis.UIEvent; }

@@ -1,5 +1,4 @@
-import { SVGAnalyzerRegistration, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
-import { Aurelia, CustomElementResource } from '@aurelia/runtime';
+import { Aurelia, CustomElementResource, SVGAnalyzerRegistration, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { Cursor } from './cursor';
 

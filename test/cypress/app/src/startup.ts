@@ -1,6 +1,5 @@
 import { NavCustomElement, ViewportCustomElement } from '@aurelia/router';
-import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
-import { Aurelia } from '@aurelia/runtime';
+import { Aurelia, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { registerComponent } from './utils';
 import { App } from './app';
 import { RouterHome } from './components/router/home';

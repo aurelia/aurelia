@@ -20,9 +20,6 @@ import {
   ForBindingCommandRegistration,
   OneTimeBindingCommandRegistration,
   TwoWayBindingCommandRegistration,
-} from '@aurelia/runtime';
-import {
-  IProjectorLocatorRegistration,
   ITargetAccessorLocatorRegistration,
   ComposeRegistration,
   ListenerBindingComposerRegistration,
@@ -30,32 +27,16 @@ import {
   TextBindingComposerRegistration,
   ITargetObserverLocatorRegistration,
   ITemplateCompilerRegistration,
-  ITemplateElementFactoryRegistration,
   TriggerBindingCommandRegistration,
-} from '@aurelia/runtime-html';
-import {
-  IDOMInitializerRegistration
 } from '@aurelia/runtime-html';
 import {
   ViewportCustomElement,
   Router
 } from '@aurelia/router';
 import { App } from './app';
-import { DI, Tracer, camelCase } from '@aurelia/kernel';
+import { DI, camelCase } from '@aurelia/kernel';
 
 window['faker'] = faker;
-
-Tracer.enabled = true;
-Tracer.enableLiveLogging({
-  di: false,
-  jit: false,
-  rendering: false,
-  lifecycle: true,
-  binding: true,
-  attaching: true,
-  mounting: true,
-  observation: true
-});
 
 // manually compose the app from individual registrations, leaving out some stuff that we're not going
 // to use (yet)
@@ -77,7 +58,6 @@ const container = DI.createContainer().register(
   TemplateControllerComposerRegistration,
 
   // runtime-html components
-  IProjectorLocatorRegistration,
   ITargetObserverLocatorRegistration,
   ITargetAccessorLocatorRegistration,
 
@@ -88,9 +68,6 @@ const container = DI.createContainer().register(
   ListenerBindingComposerRegistration,
   SetAttributeComposerRegistration,
   TextBindingComposerRegistration,
-
-  // runtime-html-browser components
-  IDOMInitializerRegistration,
 
   // jit attribute patterns
   DotSeparatedAttributePatternRegistration,
@@ -105,7 +82,6 @@ const container = DI.createContainer().register(
 
   // jit-html components
   ITemplateCompilerRegistration,
-  ITemplateElementFactoryRegistration,
 
   // jit-html binding commands
   TriggerBindingCommandRegistration,

@@ -1,6 +1,5 @@
 import * as faker from 'faker';
-import { Aurelia } from '@aurelia/runtime';
-import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { App } from './app';
 import { DI } from '@aurelia/kernel';
 

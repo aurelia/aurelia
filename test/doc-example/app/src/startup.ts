@@ -1,6 +1,5 @@
-import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 import { RouterConfiguration } from '@aurelia/router';
-import { Aurelia } from '@aurelia/runtime';
 
 import { App } from './app';
 

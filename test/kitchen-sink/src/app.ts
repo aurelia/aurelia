@@ -1,7 +1,6 @@
 import {startFPSMonitor, startMemMonitor} from 'perf-monitor';
 import * as faker from 'faker';
-import { customElement, IDOM, IteratorBindingInstruction, HydrateTemplateController, bindable, BindingStrategy, IController } from '@aurelia/runtime';
-import { Subject, createElement, TextBindingInstruction } from '@aurelia/runtime-html';
+import { customElement, IteratorBindingInstruction, ICustomElementController, HydrateTemplateController, bindable, BindingStrategy, IPlatform, Subject, createElement, TextBindingInstruction } from '@aurelia/runtime-html';
 import './app.scss'; // eslint-disable-line import/no-unassigned-import
 import template from './app.html';
 
@@ -24,7 +23,7 @@ export class App {
   @bindable public keyedStrategy: boolean;
   @bindable public proxyStrategy: boolean;
 
-  public $controller: IController;
+  public $controller: ICustomElementController;
 
   public constructor() {
     this.rows = [];
@@ -51,16 +50,16 @@ export class App {
     if (this.proxyStrategy) {
       strategy |= BindingStrategy.proxies;
     }
-    const dom = this.$controller.context.get<IDOM>(IDOM);
+    const p = this.$controller.context.get(IPlatform);
     this.subject = createElement(
-      dom,
+      p,
       'table',
       {
         class: 'table is-fullwidth',
       },
       [
-        createElement(dom, 'thead', {}, [
-          createElement(dom, 'tr', {
+        createElement(p, 'thead', {}, [
+          createElement(p, 'tr', {
             $1: new HydrateTemplateController({
               name: '',
               template: '<th><au-m class="au"></au-m> </th>',
@@ -72,7 +71,7 @@ export class App {
             )
           })
         ]),
-        createElement(dom, 'tbody', {
+        createElement(p, 'tbody', {
           $1: new HydrateTemplateController({
             name: '',
             template: '<tr><au-m class="au"></au-m></tr>',

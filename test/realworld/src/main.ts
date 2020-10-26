@@ -1,7 +1,6 @@
-import { Aurelia } from '@aurelia/runtime';
 import { HttpClient } from '@aurelia/fetch-client';
 import { RouterConfiguration } from '@aurelia/router';
-import { RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, RuntimeHtmlConfiguration } from '@aurelia/runtime-html';
 
 import 'promise-polyfill/lib/polyfill'; // eslint-disable-line import/no-unassigned-import
 

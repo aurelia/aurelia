@@ -3,7 +3,6 @@ import {
   IDepCollectionFn,
   bindable,
   ComputedWatcher,
-  IWatcherCallback,
 } from '@aurelia/runtime';
 import {
   customElement,

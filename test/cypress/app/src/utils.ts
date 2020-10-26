@@ -1,5 +1,5 @@
 import { Registration } from '@aurelia/kernel';
-import { CustomElement } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime-html';
 
 export function registerComponent(container, ...components) {
   for (const component of components) {

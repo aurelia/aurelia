@@ -9,7 +9,7 @@ import {
   SyntaxKind,
 } from 'typescript';
 import {
-  PLATFORM,
+  emptyArray,
   ILogger,
 } from '@aurelia/kernel';
 import {
@@ -109,10 +109,6 @@ import {
 import {
   $List,
 } from '../types/list';
-
-const {
-  emptyArray,
-} = PLATFORM;
 
 export type $$Function = (
   $FunctionDeclaration |

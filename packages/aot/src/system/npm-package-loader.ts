@@ -1,6 +1,6 @@
 import {
   ILogger,
-  PLATFORM,
+  emptyArray,
   IContainer,
 } from '@aurelia/kernel';
 import {
@@ -173,7 +173,7 @@ export class NPMPackageLoader {
   public async loadEntryPackage(
     projectDir: string,
   ): Promise<NPMPackage> {
-    const start = PLATFORM.now();
+    const start = Date.now();
 
     this.logger.info(`load()`);
 
@@ -184,7 +184,7 @@ export class NPMPackageLoader {
 
     this.pkgPromiseCache.clear();
 
-    const end = PLATFORM.now();
+    const end = Date.now();
 
     const packages = Array.from(this.pkgCache.values());
     const pkgCount = packages.length;
@@ -360,7 +360,7 @@ export class NPMPackage {
     if (pkgJson.dependencies instanceof Object) {
       this.deps = Object.keys(pkgJson.dependencies).map(name => new NPMPackageDependency(this, name));
     } else {
-      this.deps = PLATFORM.emptyArray;
+      this.deps = emptyArray;
     }
   }
 

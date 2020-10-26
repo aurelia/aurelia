@@ -30,7 +30,7 @@ import {
   ValidationDisplayNameAccessor,
   IRuleProperty,
   IPropertyRule,
-  IValidationHydrator,
+  IValidationExpressionHydrator,
   IValidationRule,
 } from './rule-interfaces';
 
@@ -469,7 +469,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
     @IServiceLocator private readonly locator: IServiceLocator,
     @IExpressionParser private readonly parser: IExpressionParser,
     @IValidationMessageProvider private readonly messageProvider: IValidationMessageProvider,
-    @IValidationHydrator private readonly deserializer: IValidationHydrator,
+    @IValidationExpressionHydrator private readonly deserializer: IValidationExpressionHydrator,
   ) { }
 
   public ensure<TValue>(property: keyof TObject | string | PropertyAccessor): PropertyRule {

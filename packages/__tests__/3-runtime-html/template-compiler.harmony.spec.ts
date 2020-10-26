@@ -1,16 +1,13 @@
 import {
-  PLATFORM
-} from '@aurelia/kernel';
-import {
-  Aurelia,
   CustomAttribute,
   CustomElement,
   CustomElementHost,
-  INode
-} from '@aurelia/runtime';
+  INode,
+  Aurelia,
+} from '@aurelia/runtime-html';
 import {
   assert,
-  HTMLTestContext,
+  PLATFORM,
   TestContext,
 } from '@aurelia/testing';
 
@@ -20,7 +17,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
     template: string | HTMLElement;
     resources?: any[];
     browserOnly?: boolean;
-    assertFn(ctx: HTMLTestContext, host: HTMLElement, comp: any): void | Promise<void>;
+    assertFn(ctx: TestContext, host: HTMLElement, comp: any): void | Promise<void>;
   }
 
   const testCases: IHarmoniousCompilationTestCase[] = [
@@ -70,7 +67,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         assert.equal(comp.blur, 1);
 
         comp.hasFocus = true;
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(ctx.doc.activeElement, host);
         assert.equal(comp.focus, 2);
         const div = host.querySelector('div');
@@ -180,7 +177,7 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         assert.equal(comp.focusCount, undefined);
         assert.equal(comp.blurCount, undefined);
         host.querySelector('input').focus();
-        // await ctx.scheduler.yieldRenderTask();
+        // await ctx.platform.yieldRenderTask();
         assert.equal(comp.hasFocus, true, 'focusing input should have changed "hasFocus"');
         assert.equal(comp.focusCount, 1);
         assert.equal(comp.blurCount, undefined);
@@ -311,13 +308,13 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
 
   testCases.forEach((testCase, idx) => {
     const { title, template, resources = [], browserOnly, assertFn } = testCase;
-    if (!PLATFORM.isBrowserLike && browserOnly) {
+    if (PLATFORM.navigator.userAgent.includes('jsdom') && browserOnly) {
       return;
     }
     it(`\n\t(${idx + 1}). ${title}\n\t`, async function () {
       let host: HTMLElement;
       let body: HTMLElement;
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       try {
         const comp = new (CustomElement.define(
           {
@@ -341,8 +338,8 @@ describe('template-compiler.harmony.spec.ts \n\tharmoninous combination', functi
         au.dispose();
       } finally {
         host?.remove();
-        await new Promise(r => ctx.dom.window.requestAnimationFrame(r));
-        await new Promise(r => ctx.dom.window.requestAnimationFrame(r));
+        await new Promise(r => ctx.platform.requestAnimationFrame(r));
+        await new Promise(r => ctx.platform.requestAnimationFrame(r));
         body?.focus();
       }
     });

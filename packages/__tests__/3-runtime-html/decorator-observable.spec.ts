@@ -1,6 +1,6 @@
-import { observable, SetterObserver, IObservable, ValueConverter } from '@aurelia/runtime';
+import { observable, SetterObserver, IObservable, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
-import { PLATFORM } from '@aurelia/kernel';
+import { noop } from '@aurelia/kernel';
 
 describe('3-runtime-html/decorator-observable.spec.ts', function () {
   const oldValue = 'old';
@@ -93,7 +93,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
     instance.value = newValue;
     assert.strictEqual(callCount, 2);
 
-    instance.customHandler = PLATFORM.noop;
+    instance.customHandler = noop;
     instance.value = oldValue;
     // change handler is resolved once
     assert.strictEqual(callCount, 3);
@@ -110,13 +110,13 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
           $div = div;
         }
       }
-      const { component, scheduler, testHost, tearDown, startPromise } = createFixture(`<div ref="div"></div>\${div.tagName}`, App);
+      const { component, platform, testHost, tearDown, startPromise } = createFixture(`<div ref="div"></div>\${div.tagName}`, App);
       await startPromise;
 
       assert.strictEqual(testHost.textContent, 'DIV');
       component.div = { tagName: 'hello' };
 
-      scheduler.getRenderTaskQueue().flush();
+      platform.domWriteQueue.flush();
       assert.strictEqual(testHost.textContent, 'hello');
 
       await tearDown();
@@ -131,7 +131,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
           changeCount++;
         }
       }
-      const { ctx, component, scheduler, testHost, tearDown, startPromise }
+      const { ctx, component, platform, testHost, tearDown, startPromise }
         = createFixture('<input value.bind="v">', App);
       await startPromise;
 
@@ -140,7 +140,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       component.v = 'v';
       assert.strictEqual(changeCount, 1);
       assert.strictEqual(input.value, '');
-      scheduler.getRenderTaskQueue().flush();
+      platform.domWriteQueue.flush();
       assert.strictEqual(changeCount, 1);
       assert.strictEqual(input.value, 'v');
 
@@ -167,7 +167,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
           changeCount++;
         }
       }
-      const { ctx, component, scheduler, testHost, tearDown, startPromise }
+      const { ctx, component, platform, testHost, tearDown, startPromise }
         = createFixture('<input value.bind="v">', App);
       await startPromise;
 
@@ -177,7 +177,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0);
       assert.strictEqual(changeCount, 1);
       assert.strictEqual(input.value, '');
-      scheduler.getRenderTaskQueue().flush();
+      platform.domWriteQueue.flush();
       assert.strictEqual(changeCount, 1);
       assert.strictEqual(input.value, '0');
 
@@ -186,7 +186,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0);
       assert.strictEqual(changeCount, 1);
       assert.strictEqual(input.value, 'vv');
-      scheduler.getRenderTaskQueue().flush();
+      platform.domWriteQueue.flush();
       // for this assignment, the component.v still 0
       // so there was no change, and it's not propagated back to the input
       assert.strictEqual(input.value, 'vv');
@@ -196,7 +196,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0);
       assert.strictEqual(changeCount, 1);
       assert.strictEqual(input.value, 'vv');
-      scheduler.getRenderTaskQueue().flush();
+      platform.domWriteQueue.flush();
       assert.strictEqual(input.value, 'vv');
       assert.strictEqual(component.v, 0);
 
@@ -205,7 +205,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       input.dispatchEvent(new ctx.CustomEvent('input'));
       assert.strictEqual(component.v, 1);
       assert.strictEqual(changeCount, 2);
-      scheduler.getRenderTaskQueue().flush();
+      platform.domWriteQueue.flush();
       assert.strictEqual(input.value, '1');
 
       await tearDown();
@@ -225,7 +225,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       const {
         ctx,
         component,
-        scheduler,
+        platform,
         testHost,
         tearDown,
         startPromise
@@ -251,7 +251,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0);
       assert.strictEqual(changeCount, 1);
       assert.strictEqual(input.value, '');
-      scheduler.getRenderTaskQueue().flush();
+      platform.domWriteQueue.flush();
       assert.strictEqual(changeCount, 1);
       assert.strictEqual(input.value, '0');
 
@@ -260,7 +260,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0);
       assert.strictEqual(changeCount, 1);
       assert.strictEqual(input.value, 'vv');
-      scheduler.getRenderTaskQueue().flush();
+      platform.domWriteQueue.flush();
       // for this assignment, the component.v still 0
       // so there was no change, and it's not propagated back to the input
       assert.strictEqual(input.value, 'vv');
@@ -270,7 +270,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0);
       assert.strictEqual(changeCount, 1);
       assert.strictEqual(input.value, 'vv');
-      scheduler.getRenderTaskQueue().flush();
+      platform.domWriteQueue.flush();
       assert.strictEqual(input.value, 'vv');
       assert.strictEqual(component.v, 0);
 
@@ -279,7 +279,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       input.dispatchEvent(new ctx.CustomEvent('input'));
       assert.strictEqual(component.v, 1);
       assert.strictEqual(changeCount, 2);
-      scheduler.getRenderTaskQueue().flush();
+      platform.domWriteQueue.flush();
       assert.strictEqual(input.value, '1');
 
       await tearDown();

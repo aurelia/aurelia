@@ -1,4 +1,4 @@
-import { computed, customElement, bindable } from '@aurelia/runtime';
+import { computed, customElement, bindable } from '@aurelia/runtime-html';
 import template from './user-preference.html';
 import { trace } from '@aurelia/testing';
 import { callCollection } from '../../debug';

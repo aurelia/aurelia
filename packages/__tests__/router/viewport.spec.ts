@@ -1,12 +1,11 @@
 import { Viewport, RouterConfiguration, IRouter } from '@aurelia/router';
-import { CustomElement, Aurelia } from '@aurelia/runtime';
+import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
-import { DebugConfiguration } from '@aurelia/debug';
 
 describe('Viewport', function () {
   async function createFixture(config?, App?) {
-    const ctx = TestContext.createHTMLTestContext();
-    const { container, scheduler, doc, wnd } = ctx;
+    const ctx = TestContext.create();
+    const { container, platform, doc, wnd } = ctx;
 
     let path = wnd.location.href;
     const hash = path.indexOf('#');
@@ -21,7 +20,6 @@ describe('Viewport', function () {
     }
     const au = new Aurelia(container)
       .register(
-        DebugConfiguration,
         config !== void 0 ? RouterConfiguration : RouterConfiguration.customize(config),
         App)
       .app({ host: host, component: App });
@@ -37,7 +35,7 @@ describe('Viewport', function () {
       au.dispose();
     }
 
-    return { au, container, scheduler, host, router, tearDown };
+    return { au, container, platform, host, router, tearDown };
   }
 
   it('can be created', function () {

@@ -18,7 +18,7 @@ import {
   JsxAttributeLike,
 } from 'typescript';
 import {
-  PLATFORM,
+  emptyArray,
   ILogger,
 } from '@aurelia/kernel';
 import {
@@ -50,10 +50,6 @@ import {
 import {
   $StringLiteral,
 } from './literals';
-
-const {
-  emptyArray,
-} = PLATFORM;
 
 export type $$JsxParent = (
   $JsxElement |

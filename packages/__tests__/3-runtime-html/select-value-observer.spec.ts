@@ -1,14 +1,13 @@
-import { LifecycleFlags as LF } from '@aurelia/runtime';
-import { SelectValueObserver } from '@aurelia/runtime-html';
-import { h, HTMLTestContext, TestContext, verifyEqual, assert, createSpy } from '@aurelia/testing';
+import { LifecycleFlags as LF, SelectValueObserver } from '@aurelia/runtime-html';
+import { h, TestContext, verifyEqual, assert, createSpy } from '@aurelia/testing';
 
 type Anything = any;
 
 // TODO: need many more tests here, this is just preliminary
 describe('SelectValueObserver', function () {
   function createFixture(initialValue: Anything = '', options = [], multiple = false) {
-    const ctx = TestContext.createHTMLTestContext();
-    const { dom, lifecycle, observerLocator, scheduler } = ctx;
+    const ctx = TestContext.create();
+    const { platform, lifecycle, observerLocator } = ctx;
 
     const optionElements = options.map(o => `<option value="${o}">${o}</option>`).join('\n');
     const markup = `<select ${multiple ? 'multiple' : ''}>\n${optionElements}\n</select>`;
@@ -16,7 +15,7 @@ describe('SelectValueObserver', function () {
     const sut = observerLocator.getObserver(LF.none, el, 'value') as SelectValueObserver;
     sut.setValue(initialValue, LF.fromBind);
 
-    return { ctx, lifecycle, el, sut, dom, scheduler };
+    return { ctx, lifecycle, el, sut, platform };
   }
 
   describe('setValue()', function () {
@@ -27,7 +26,7 @@ describe('SelectValueObserver', function () {
       for (const initial of initialArr) {
         for (const next of nextArr) {
           it(`sets 'value' from "${initial}" to "${next}"`, function () {
-            const { lifecycle, el, sut, scheduler } = createFixture(initial, values);
+            const { el, sut, platform } = createFixture(initial, values);
 
             assert.strictEqual(el.value, initial, `el.value`);
 
@@ -35,7 +34,7 @@ describe('SelectValueObserver', function () {
 
             el.options.item(values.indexOf(next)).selected = true;
 
-            scheduler.getRenderTaskQueue().flush();
+            platform.domWriteQueue.flush();
             assert.strictEqual(el.value, next, `el.value`);
 
             sut.unbind(LF.none);
@@ -46,27 +45,24 @@ describe('SelectValueObserver', function () {
   });
 
   describe('bind()', function () {
+    // TODO: fix the spy thing
+    it.skip('uses private method handleNodeChange as callback', async function () {
+      for (const isMultiple of [true, false]) {
+        const { ctx, el, sut } = createFixture([], [], isMultiple);
 
-    if (typeof MutationObserver !== 'undefined') {
-      // TODO: fix the spy thing
-      it.skip('uses private method handleNodeChange as callback', async function () {
-        for (const isMultiple of [true, false]) {
-          const { ctx, el, sut } = createFixture([], [], isMultiple);
+        const callbackSpy = createSpy(sut, 'handleNodeChange', true);
 
-          const callbackSpy = createSpy(sut, 'handleNodeChange', true);
+        sut.bind(LF.none);
 
-          sut.bind(LF.none);
+        el.appendChild(ctx.createElement('option'));
 
-          el.appendChild(ctx.createElement('option'));
+        await Promise.resolve();
 
-          await Promise.resolve();
+        assert.strictEqual(callbackSpy.calls.length, 1, 'callbackSpy.calls.length');
 
-          assert.strictEqual(callbackSpy.calls.length, 1, 'callbackSpy.calls.length');
-
-          sut.unbind(LF.none);
-        }
-      });
-    }
+        sut.unbind(LF.none);
+      }
+    });
   });
 
   describe('unbind()', function () {
@@ -299,8 +295,8 @@ describe('SelectValueObserver', function () {
 
       type SelectValidChild = HTMLOptionElement | HTMLOptGroupElement;
 
-      function createMutiSelectSut(initialValue: Anything[], optionFactories: ((ctx: HTMLTestContext) => SelectValidChild)[]) {
-        const ctx = TestContext.createHTMLTestContext();
+      function createMutiSelectSut(initialValue: Anything[], optionFactories: ((ctx: TestContext) => SelectValidChild)[]) {
+        const ctx = TestContext.create();
         const { observerLocator } = ctx;
 
         const el = select(...optionFactories.map(create => create(ctx)))(ctx);
@@ -310,8 +306,8 @@ describe('SelectValueObserver', function () {
         return { ctx, el, sut };
       }
 
-      function select(...options: SelectValidChild[]): (ctx: HTMLTestContext) => HTMLSelectElement {
-        return function (ctx: HTMLTestContext) {
+      function select(...options: SelectValidChild[]): (ctx: TestContext) => HTMLSelectElement {
+        return function (ctx: TestContext) {
           return h(
             'select',
             { multiple: true },
@@ -323,13 +319,13 @@ describe('SelectValueObserver', function () {
   });
 
   function option(attributes: Record<string, any>) {
-    return function (ctx: HTMLTestContext) {
+    return function (ctx: TestContext) {
       return h('option', attributes);
     };
   }
 
-  function optgroup(attributes: Record<string, any>, ...optionFactories: ((ctx: HTMLTestContext) => HTMLOptionElement)[]) {
-    return function (ctx: HTMLTestContext) {
+  function optgroup(attributes: Record<string, any>, ...optionFactories: ((ctx: TestContext) => HTMLOptionElement)[]) {
+    return function (ctx: TestContext) {
       return h('optgroup', attributes, ...optionFactories.map(create => create(ctx)));
     };
   }

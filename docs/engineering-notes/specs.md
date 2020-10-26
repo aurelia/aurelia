@@ -50,7 +50,7 @@ Aurelia
 To start an Aurelia application, create a `new Aurelia()` object with a target `host`, a root `component`, and an optional list of `plugins`, and call `start()`.
 
 ```ts
-import Aurelia, { RuntimeHtmlBrowserConfiguration } from 'aurelia';
+import Aurelia, { StandardConfiguration } from 'aurelia';
 import { ThirdPartyPlugin } from 'third-party-plugin';
 
 // Object API.
@@ -58,7 +58,7 @@ const app = new Aurelia({
   host: 'my-host-element',
   component: MyRootComponent
   plugins: [
-    RuntimeHtmlBrowserConfiguration,
+    StandardConfiguration,
     ThirdPartyPlugin
   ]
 }).start();
@@ -68,7 +68,7 @@ const app = new Aurelia()
   .host('my-host-element')
   .component(MyRootComponent)
   .plugins([
-    RuntimeHtmlBrowserConfiguration,
+    StandardConfiguration,
     ThirdPartyPlugin
   ])
   .start();

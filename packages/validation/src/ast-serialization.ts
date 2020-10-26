@@ -1,4 +1,4 @@
-import { IHydrator } from '@aurelia/runtime';
+import { IExpressionHydrator } from '@aurelia/runtime';
 import * as AST from '@aurelia/runtime';
 
 enum ASTExpressionTypes {
@@ -27,7 +27,7 @@ enum ASTExpressionTypes {
   Interpolation = 'Interpolation'
 }
 
-export class Deserializer implements IHydrator {
+export class Deserializer implements IExpressionHydrator {
   public static deserialize(serializedExpr: string): AST.IsExpressionOrStatement {
     const deserializer = new Deserializer();
     const raw = JSON.parse(serializedExpr);

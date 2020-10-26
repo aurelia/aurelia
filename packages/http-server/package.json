@@ -37,7 +37,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/debug": "0.7.0",
+    "@aurelia/metadata": "0.7.0",
+    "@aurelia/platform": "0.7.0",
     "@aurelia/kernel": "0.7.0",
     "@aurelia/runtime": "0.7.0"
   },

@@ -2,19 +2,18 @@ import {
   CollectionKind,
   IAccessor,
   ICollectionObserver,
-  IDOM,
   IndexMap,
   IObserverLocator,
   ISubscriber,
   ISubscriberCollection,
   LifecycleFlags,
   subscriberCollection,
-  IScheduler,
   ITask,
   AccessorType,
 } from '@aurelia/runtime';
-import { IEventSubscriber } from './event-manager';
+import { EventSubscriber } from './event-delegator';
 import { bound } from '@aurelia/kernel';
+import { IPlatform } from '../platform';
 
 const childObserverOptions = {
   childList: true,
@@ -54,11 +53,10 @@ export class SelectValueObserver implements IAccessor {
   public nodeObserver?: MutationObserver = void 0;
 
   public constructor(
-    public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
     public readonly observerLocator: IObserverLocator,
-    public readonly dom: IDOM,
-    public readonly handler: IEventSubscriber,
+    public readonly platform: IPlatform,
+    public readonly handler: EventSubscriber,
     public readonly obj: ISelectElement,
   ) {
     this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
@@ -108,7 +106,7 @@ export class SelectValueObserver implements IAccessor {
       this.hasChanges = true;
     }
     if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
+      this.task = this.platform.domWriteQueue.queueTask(() => {
         this.flushChanges(flags);
         this.task = null;
       });
@@ -123,7 +121,7 @@ export class SelectValueObserver implements IAccessor {
       this.hasChanges = true;
     }
     if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-      this.task = this.scheduler.queueRenderTask(() => {
+      this.task = this.platform.domWriteQueue.queueTask(() => {
         this.flushChanges(flags);
         this.task = null;
       });
@@ -259,7 +257,7 @@ export class SelectValueObserver implements IAccessor {
   }
 
   public bind(flags: LifecycleFlags): void {
-    this.nodeObserver = this.dom.createNodeObserver!(this.obj, this.handleNodeChange, childObserverOptions) as MutationObserver;
+    (this.nodeObserver = new this.platform.MutationObserver(this.handleNodeChange)).observe(this.obj, childObserverOptions);
   }
 
   public unbind(flags: LifecycleFlags): void {

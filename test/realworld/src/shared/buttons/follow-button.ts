@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { IRouter } from '@aurelia/router';
-import { bindable } from '@aurelia/runtime';
+import { bindable } from '@aurelia/runtime-html';
 
 import { ProfileService } from 'shared/services/profile-service';
 import { SharedState } from 'shared/state/shared-state';

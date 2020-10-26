@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElement, IController, ICustomElementViewModel } from '@aurelia/runtime';
+import { CustomElement, IController, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, RouteableComponentType, IViewportInstruction, NavigationInstruction, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { Viewport } from './viewport';

@@ -99,13 +99,13 @@ async function createFixture<T extends Constructable>(
     },
     async tearDown() {
       // scheduler.getRenderTaskQueue().flush();
-      // assert.isSchedulerEmpty();
+      // assert.areTaskQueuesEmpty();
 
       await au.stop();
       ctx.doc.body.removeChild(host);
 
       // scheduler.getRenderTaskQueue().flush();
-      // assert.isSchedulerEmpty();
+      // assert.areTaskQueuesEmpty();
     }
   };
 }

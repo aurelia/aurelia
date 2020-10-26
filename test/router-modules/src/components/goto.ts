@@ -1,5 +1,5 @@
 import { Router, Viewport } from '@aurelia/router';
-import { bindable, customElement } from '@aurelia/runtime';
+import { bindable, customElement } from '@aurelia/runtime-html';
 import * as template from './goto.html';
 
 @customElement({ name: 'goto', template })

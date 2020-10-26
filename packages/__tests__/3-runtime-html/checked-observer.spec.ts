@@ -1,26 +1,23 @@
 import {
+  Constructable
+} from '@aurelia/kernel';
+import {
   enableArrayObservation,
   IBindingTargetObserver,
   LifecycleFlags as LF,
   CustomElement,
-  Aurelia,
   BindingStrategy,
   ProxyObserver,
-} from '@aurelia/runtime';
-import {
-  Constructable
-} from '@aurelia/kernel';
-import {
+  Aurelia,
   CheckedObserver,
   IInputElement,
 } from '@aurelia/runtime-html';
 import {
   _,
-  TestContext,
   assert,
   createSpy,
   eachCartesianJoin,
-  HTMLTestContext,
+  TestContext,
 } from '@aurelia/testing';
 
 describe('checked-observer.spec.ts', function () {
@@ -39,18 +36,18 @@ describe('checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox NOT checked');
 
         component.selected.push(0);
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls[0].checked, true, 'after push(0), 1st checkbox should be checked');
 
         simulateStateChange(ctx, inputEls[0], false);
         assert.strictEqual(component.selected.length, 0, 'after unticking 1st checkbox, selected length should be 0');
 
         component.selected.push(10);
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'After push(10), no checkbox should be checked');
 
         component.selected = Array.from({ length: 10 }, (_, i) => i);
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'after assigning new array, all checkboxes should be checked');
       }
     },
@@ -67,18 +64,18 @@ describe('checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox NOT checked');
 
         component.selected.add(0);
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
 
         simulateStateChange(ctx, inputEls[0], false);
         assert.strictEqual(component.selected.size, 0);
 
         component.selected.add(10);
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = new Set(Array.from({ length: 10 }, (_, i) => i));
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'new Set(), all checked');
       }
     },
@@ -95,18 +92,18 @@ describe('checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox NOT checked');
 
         component.selected.set(0, true);
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
 
         simulateStateChange(ctx, inputEls[0], false);
         assert.strictEqual(component.selected.size, 1);
 
         component.selected.set(10, true);
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = new Map(Array.from({ length: 10 }, (_, i) => [i, true]));
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'new Set(), all checked');
       }
     },
@@ -128,18 +125,18 @@ describe('checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox NOT checked');
 
         component.selected.push({ name: 'item 0', value: 0 });
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
 
         simulateStateChange(ctx, inputEls[0], false);
         assert.strictEqual(component.selected.length, 0);
 
         component.selected.push({ name: 'item 10', value: 10 });
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = createItems(10);
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'new [], all checked');
       }
     },
@@ -161,18 +158,18 @@ describe('checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox NOT checked');
 
         component.selected.add({ name: 'item 0', value: 0 });
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
 
         simulateStateChange(ctx, inputEls[0], false);
         assert.strictEqual(component.selected.size, 0);
 
         component.selected.add({ name: 'item 10', value: 10 });
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = new Set(createItems(10));
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'new Set, all checked');
       }
     },
@@ -195,7 +192,7 @@ describe('checked-observer.spec.ts', function () {
 
         const firstItemValue = { name: 'item 0', value: 0 };
         component.selected.set(firstItemValue, true);
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
 
         simulateStateChange(ctx, inputEls[0], false);
@@ -203,11 +200,11 @@ describe('checked-observer.spec.ts', function () {
         assert.strictEqual(component.selected.get(firstItemValue), false);
 
         component.selected.set({ name: 'item 10', value: 10 }, true);
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = new Map(Array.from(createItems(10), item => [item, true]));
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'new Map, all checked');
       }
     },
@@ -229,26 +226,26 @@ describe('checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all radio NOT checked');
 
         component.selected = createItems(1)[0];
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls[0].checked, true);
 
         simulateStateChange(ctx, inputEls[1], true);
         assert.deepEqual(component.selected, createItems(2)[1]);
 
         component.selected = { name: 'item 10', value: 10 };
-        ctx.scheduler.getRenderTaskQueue().flush();
+        ctx.platform.domWriteQueue.flush();
         assert.strictEqual(inputEls.every(el => !el.checked), true);
 
         for (let i = 0; 10 > i; ++i) {
           component.selected = { name: `item ${i}`, value: i };
-          ctx.scheduler.getRenderTaskQueue().flush();
+          ctx.platform.domWriteQueue.flush();
           assert.strictEqual(inputEls[i].checked, true);
         }
       }
     },
   ];
 
-  function simulateStateChange(ctx: HTMLTestContext, input: HTMLInputElement, checked: boolean): void {
+  function simulateStateChange(ctx: TestContext, input: HTMLInputElement, checked: boolean): void {
     input.checked = checked;
     input.dispatchEvent(new ctx.CustomEvent('change', { bubbles: true }));
   }
@@ -290,7 +287,7 @@ describe('checked-observer.spec.ts', function () {
 
   interface AssertionFn<T extends IApp = IApp> {
     // eslint-disable-next-line @typescript-eslint/prefer-function-type
-    (ctx: HTMLTestContext, testHost: HTMLElement, component: T): void | Promise<void>;
+    (ctx: TestContext, testHost: HTMLElement, component: T): void | Promise<void>;
   }
 
   interface IApp {
@@ -312,7 +309,7 @@ describe('checked-observer.spec.ts', function () {
   }
 
   async function createFixture<T>(template: string | Node, $class: Constructable | null, bindingStrategy: BindingStrategy, ...registrations: any[]) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container, lifecycle, observerLocator } = ctx;
     registrations = Array.from(new Set([...registrations]));
     container.register(...registrations);
@@ -361,8 +358,8 @@ describe.skip('CheckedObserver', function () {
 
   describe('setValue() - primitive - type="checkbox"', function () {
     function createFixture(hasSubscriber: boolean) {
-      const ctx = TestContext.createHTMLTestContext();
-      const { container, lifecycle, observerLocator, scheduler } = ctx;
+      const ctx = TestContext.create();
+      const { container, lifecycle, observerLocator, platform } = ctx;
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
       ctx.doc.body.appendChild(el);
 
@@ -374,7 +371,7 @@ describe.skip('CheckedObserver', function () {
         sut.subscribe(subscriber);
       }
 
-      return { ctx, container, lifecycle, observerLocator, el, sut, subscriber, scheduler };
+      return { ctx, container, lifecycle, observerLocator, el, sut, subscriber, platform };
     }
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
@@ -399,11 +396,11 @@ describe.skip('CheckedObserver', function () {
                 const changeCountBefore = expectedPropValue !== null ? 1 : 0;
                 const changeCountAfter = expectedPropValue !== expectedNewValue ? 1 : 0;
 
-                const { ctx, sut, lifecycle, el, subscriber, scheduler } = createFixture(hasSubscriber);
+                const { ctx, sut, lifecycle, el, subscriber, platform } = createFixture(hasSubscriber);
 
                 sut.setValue(propValue, LF.none);
                 // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
-                scheduler.getRenderTaskQueue().flush();
+                platform.domWriteQueue.flush();
                 assert.strictEqual(el.checked, checkedBefore, 'el.checked 1');
                 assert.strictEqual(sut.getValue(), expectedPropValue, 'sut.getValue() 1');
 
@@ -411,7 +408,7 @@ describe.skip('CheckedObserver', function () {
                 assert.strictEqual(el.checked, checkedBefore, 'el.checked 2');
                 assert.strictEqual(sut.getValue(), expectedNewValue, 'sut.getValue() 2');
                 // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
-                scheduler.getRenderTaskQueue().flush();
+                platform.domWriteQueue.flush();
 
                 assert.strictEqual(el.checked, checkedAfter, 'el.checked 3');
                 assert.deepStrictEqual(
@@ -431,8 +428,8 @@ describe.skip('CheckedObserver', function () {
 
   describe('handleEvent() - primitive - type="checkbox"', function () {
     function createFixture() {
-      const ctx = TestContext.createHTMLTestContext();
-      const { container, lifecycle, observerLocator, scheduler } = ctx;
+      const ctx = TestContext.create();
+      const { container, lifecycle, observerLocator, platform } = ctx;
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as IInputElement;
       ctx.doc.body.appendChild(el);
 
@@ -441,7 +438,7 @@ describe.skip('CheckedObserver', function () {
       const subscriber = { handleChange: createSpy() };
       sut.subscribe(subscriber);
 
-      return { ctx, container, lifecycle, observerLocator, el, sut, subscriber, scheduler };
+      return { ctx, container, lifecycle, observerLocator, el, sut, subscriber, platform };
     }
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
@@ -454,7 +451,7 @@ describe.skip('CheckedObserver', function () {
         for (const event of ['change', 'input']) {
           it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
 
-            const { ctx, sut, el, subscriber, scheduler } = createFixture();
+            const { ctx, sut, el, subscriber, platform } = createFixture();
 
             el.checked = checkedBefore;
             el.dispatchEvent(new ctx.Event(event, eventDefaults));
@@ -499,8 +496,8 @@ describe.skip('CheckedObserver', function () {
 
   describe('setValue() - primitive - type="radio"', function () {
     function createFixture(hasSubscriber: boolean) {
-      const ctx = TestContext.createHTMLTestContext();
-      const { container, lifecycle, observerLocator, scheduler } = ctx;
+      const ctx = TestContext.create();
+      const { container, lifecycle, observerLocator, platform } = ctx;
 
       const elA = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
       const elB = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="B"/>`) as ObservedInputElement;
@@ -524,7 +521,7 @@ describe.skip('CheckedObserver', function () {
         sutC.subscribe(subscriberC);
       }
 
-      return { ctx, container, lifecycle, observerLocator, scheduler, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
+      return { ctx, container, lifecycle, observerLocator, platform, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
     }
 
     function tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC }: Partial<ReturnType<typeof createFixture>>) {
@@ -548,13 +545,13 @@ describe.skip('CheckedObserver', function () {
             const changeCountBefore = expectedPropValue != null ? 3 : 0;
             const changeCountAfter = expectedPropValue !== expectedNewValue ? 3 : 0;
 
-            const { ctx, sutA, sutB, sutC, elA, elB, elC, lifecycle, scheduler, subscriberA, subscriberB, subscriberC } = createFixture(hasSubscriber);
+            const { ctx, sutA, sutB, sutC, elA, elB, elC, lifecycle, platform, subscriberA, subscriberB, subscriberC } = createFixture(hasSubscriber);
 
             sutA.setValue(checkedBefore, LF.none);
             sutB.setValue(checkedBefore, LF.none);
             sutC.setValue(checkedBefore, LF.none);
             // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
-            scheduler.getRenderTaskQueue().flush();
+            platform.domWriteQueue.flush();
             assert.strictEqual(elA.checked, checkedBefore === 'A', 'elA.checked 1');
             assert.strictEqual(elB.checked, checkedBefore === 'B', 'elB.checked 1');
             assert.strictEqual(elC.checked, checkedBefore === 'C', 'elC.checked 1');
@@ -572,7 +569,7 @@ describe.skip('CheckedObserver', function () {
             assert.strictEqual(sutB.getValue(), expectedNewValue, 'sutB.getValue() 2');
             assert.strictEqual(sutC.getValue(), expectedNewValue, 'sutC.getValue() 2');
             // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
-            scheduler.getRenderTaskQueue().flush();
+            platform.domWriteQueue.flush();
 
             assert.strictEqual(elA.checked, checkedAfter === 'A', 'elA.checked 3');
             assert.strictEqual(elB.checked, checkedAfter === 'B', 'elB.checked 3');
@@ -603,8 +600,8 @@ describe.skip('CheckedObserver', function () {
 
   describe('handleEvent() - primitive - type="radio"', function () {
     function createFixture() {
-      const ctx = TestContext.createHTMLTestContext();
-      const { container, lifecycle, observerLocator, scheduler } = ctx;
+      const ctx = TestContext.create();
+      const { container, lifecycle, observerLocator, platform } = ctx;
 
       const elA = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="A"/>`) as ObservedInputElement;
       const elB = ctx.createElementFromMarkup(`<input name="foo" type="radio" value="B"/>`) as ObservedInputElement;
@@ -622,7 +619,7 @@ describe.skip('CheckedObserver', function () {
       sutB.subscribe(subscriberB);
       sutC.subscribe(subscriberC);
 
-      return { ctx, container, lifecycle, observerLocator, scheduler, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
+      return { ctx, container, lifecycle, observerLocator, platform, elA, elB, elC, sutA, sutB, sutC, subscriberA, subscriberB, subscriberC };
     }
 
     function tearDown({ ctx, sutA, sutB, sutC, elA, elB, elC }: Partial<ReturnType<typeof createFixture>>) {
@@ -640,7 +637,7 @@ describe.skip('CheckedObserver', function () {
 
           it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
 
-            const { ctx, scheduler, sutA, sutB, sutC, elA, elB, elC } = createFixture();
+            const { ctx, platform, sutA, sutB, sutC, elA, elB, elC } = createFixture();
 
             elA.checked = checkedBefore === 'A';
             elB.checked = checkedBefore === 'B';
@@ -677,8 +674,8 @@ describe.skip('CheckedObserver', function () {
 
   describe('setValue() - array - type="checkbox"', function () {
     function createFixture(hasSubscriber: boolean, value: any, prop: string) {
-      const ctx = TestContext.createHTMLTestContext();
-      const { container, lifecycle, observerLocator, scheduler } = ctx;
+      const ctx = TestContext.create();
+      const { container, lifecycle, observerLocator, platform } = ctx;
 
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
       el[prop] = value;
@@ -692,7 +689,7 @@ describe.skip('CheckedObserver', function () {
         sut.subscribe(subscriber);
       }
 
-      return { ctx, value, container, lifecycle, observerLocator, scheduler, el, sut, subscriber };
+      return { ctx, value, container, lifecycle, observerLocator, platform, el, sut, subscriber };
     }
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
@@ -719,11 +716,11 @@ describe.skip('CheckedObserver', function () {
                     const changeCountBefore = 1;
                     const changeCountAfter = checkedBefore !== checkedAfter ? 1 : 0;
 
-                    const { ctx, sut, lifecycle, el, subscriber, scheduler } = createFixture(hasSubscriber, value, prop);
+                    const { ctx, sut, lifecycle, el, subscriber, platform } = createFixture(hasSubscriber, value, prop);
 
                     sut.setValue(propValue, LF.none);
                     // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
-                    scheduler.getRenderTaskQueue().flush();
+                    platform.domWriteQueue.flush();
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 1');
                     assert.strictEqual(sut.getValue(), propValue, 'sut.getValue() 1');
 
@@ -731,7 +728,7 @@ describe.skip('CheckedObserver', function () {
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 2');
                     assert.strictEqual(sut.getValue(), newValue, 'sut.getValue() 2');
                     // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
-                    scheduler.getRenderTaskQueue().flush();
+                    platform.domWriteQueue.flush();
 
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 3');
                     assert.deepStrictEqual(
@@ -753,8 +750,8 @@ describe.skip('CheckedObserver', function () {
 
   describe('mutate collection - array - type="checkbox"', function () {
     function createFixture(hasSubscriber: boolean, value: any, prop: string) {
-      const ctx = TestContext.createHTMLTestContext();
-      const { container, lifecycle, observerLocator, scheduler } = ctx;
+      const ctx = TestContext.create();
+      const { container, lifecycle, observerLocator, platform } = ctx;
 
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
       el[prop] = value;
@@ -768,7 +765,7 @@ describe.skip('CheckedObserver', function () {
         sut.subscribe(subscriber);
       }
 
-      return { ctx, value, container, lifecycle, observerLocator, scheduler, el, sut, subscriber };
+      return { ctx, value, container, lifecycle, observerLocator, platform, el, sut, subscriber };
     }
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
@@ -786,24 +783,24 @@ describe.skip('CheckedObserver', function () {
 
             const array = [];
 
-            const { ctx, sut, lifecycle, el, subscriber, scheduler } = createFixture(hasSubscriber, value, prop);
+            const { ctx, sut, lifecycle, el, subscriber, platform } = createFixture(hasSubscriber, value, prop);
 
             sut.setValue(array, LF.none);
             // assert.strictEqual(lifecycle.flushCount, 1, 'lifecycle.flushCount 1');
-            scheduler.getRenderTaskQueue().flush();
+            platform.domWriteQueue.flush();
             assert.strictEqual(el.checked, false, 'el.checked 1');
             assert.strictEqual(sut.getValue(), array, 'sut.getValue() 1');
 
             array.push(value);
             assert.strictEqual(el.checked, false, 'el.checked 2');
             // assert.strictEqual(lifecycle.flushCount, 1, 'lifecycle.flushCount 2');
-            scheduler.getRenderTaskQueue().flush();
+            platform.domWriteQueue.flush();
             assert.strictEqual(el.checked, valueCanBeChecked, 'el.checked 3');
 
             array.pop();
             assert.strictEqual(el.checked, valueCanBeChecked, 'el.checked 4');
             // assert.strictEqual(lifecycle.flushCount, 1, 'lifecycle.flushCount 3');
-            scheduler.getRenderTaskQueue().flush();
+            platform.domWriteQueue.flush();
             assert.strictEqual(el.checked, false, 'el.checked 5');
             assert.deepStrictEqual(
               subscriber.handleChange,
@@ -820,8 +817,8 @@ describe.skip('CheckedObserver', function () {
 
   describe('handleEvent() - array - type="checkbox"', function () {
     function createFixture(value: any, prop: string) {
-      const ctx = TestContext.createHTMLTestContext();
-      const { container, observerLocator, scheduler } = ctx;
+      const ctx = TestContext.create();
+      const { container, observerLocator, platform } = ctx;
 
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
       el[prop] = value;
@@ -832,7 +829,7 @@ describe.skip('CheckedObserver', function () {
       const subscriber = { handleChange: createSpy() };
       sut.subscribe(subscriber);
 
-      return { ctx, value, container, observerLocator, el, sut, subscriber, scheduler };
+      return { ctx, value, container, observerLocator, el, sut, subscriber, platform };
     }
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
@@ -849,7 +846,7 @@ describe.skip('CheckedObserver', function () {
 
               it(_`${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
 
-                const { ctx, sut, el, subscriber, scheduler } = createFixture(value, prop);
+                const { ctx, sut, el, subscriber, platform } = createFixture(value, prop);
 
                 const array = [];
                 sut.setValue(array, LF.none);
@@ -887,8 +884,8 @@ describe.skip('CheckedObserver', function () {
 
   describe('SelectValueObserver.setValue() - array - type="checkbox"', function () {
     function createFixture(hasSubscriber: boolean, value: any, prop: string) {
-      const ctx = TestContext.createHTMLTestContext();
-      const { container, lifecycle, observerLocator, scheduler } = ctx;
+      const ctx = TestContext.create();
+      const { container, lifecycle, observerLocator, platform } = ctx;
 
       const el = ctx.createElementFromMarkup(`<input type="checkbox"/>`) as ObservedInputElement;
       ctx.doc.body.appendChild(el);
@@ -901,7 +898,7 @@ describe.skip('CheckedObserver', function () {
         sut.subscribe(subscriber);
       }
 
-      return { ctx, value, container, observerLocator, scheduler, el, sut, subscriber, valueOrModelObserver, lifecycle };
+      return { ctx, value, container, observerLocator, platform, el, sut, subscriber, valueOrModelObserver, lifecycle };
     }
 
     function tearDown({ ctx, sut, el }: Partial<ReturnType<typeof createFixture>>) {
@@ -925,25 +922,25 @@ describe.skip('CheckedObserver', function () {
 
                   it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
 
-                    const { ctx, sut, el, subscriber, valueOrModelObserver, lifecycle, scheduler } = createFixture(hasSubscriber, value, prop);
+                    const { ctx, sut, el, subscriber, valueOrModelObserver, lifecycle, platform } = createFixture(hasSubscriber, value, prop);
 
                     sut.setValue(propValue, LF.none);
-                    scheduler.getRenderTaskQueue().flush();
+                    platform.domWriteQueue.flush();
                     assert.strictEqual(sut.getValue(), propValue, 'sut.getValue() 1');
 
                     assert.strictEqual(el.checked, prop === 'model' && value === undefined && propValue === checkedValue, 'el.checked 1');
                     valueOrModelObserver.setValue(value, LF.none);
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 2');
-                    scheduler.getRenderTaskQueue().flush();
+                    platform.domWriteQueue.flush();
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedBefore, 'el.checked 3');
 
                     sut.setValue(newValue, LF.none);
-                    scheduler.getRenderTaskQueue().flush();
+                    platform.domWriteQueue.flush();
                     assert.strictEqual(sut.getValue(), newValue, 'sut.getValue() 2');
 
                     valueOrModelObserver.setValue(value, LF.none);
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 4');
-                    scheduler.getRenderTaskQueue().flush();
+                    platform.domWriteQueue.flush();
                     assert.strictEqual(el.checked, valueCanBeChecked && checkedAfter, 'el.checked 5');
                     assert.deepStrictEqual(
                       subscriber.handleChange,

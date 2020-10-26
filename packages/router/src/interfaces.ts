@@ -1,6 +1,5 @@
-import { Constructable, DI } from '@aurelia/kernel';
-import { CustomElementType, INode, ICustomElementViewModel } from '@aurelia/runtime';
-import { HTMLDOM } from '@aurelia/runtime-html';
+import { Constructable } from '@aurelia/kernel';
+import { CustomElementType, INode, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { Viewport } from './viewport';
 import { ViewportInstruction } from './viewport-instruction';
 import { Navigation } from './navigation';
@@ -26,7 +25,7 @@ export type RouteableComponentType<C extends Constructable = Constructable> = Cu
 };
 export type TitleFunction = (viewModel: IRouteableComponent, instruction: NavigationInstruction) => string;
 
-export interface IRouteableComponent<T extends INode = INode> extends ICustomElementViewModel<T> {
+export interface IRouteableComponent extends ICustomElementViewModel {
   reentryBehavior?: ReentryBehavior;
   canLoad?(parameters: Record<string, unknown>, nextInstruction: Navigation, instruction: Navigation): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
   load?(parameters: Record<string, unknown>, nextInstruction: Navigation, instruction: Navigation): void | Promise<void>;

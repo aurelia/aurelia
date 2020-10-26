@@ -3,7 +3,7 @@ import { Queue, QueueItem } from './queue';
 import { IRouter } from './router';
 import { ViewportInstruction } from './viewport-instruction';
 import { Scope } from './scope';
-import { ICustomElementViewModel } from '@aurelia/runtime';
+import { ICustomElementViewModel } from '@aurelia/runtime-html';
 import { Navigation, IStoredNavigation } from './navigation';
 import { Runner } from './runner';
 

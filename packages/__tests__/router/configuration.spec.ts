@@ -1,6 +1,5 @@
-import { DebugConfiguration } from '@aurelia/debug';
 import { IRouter, RouterConfiguration } from '@aurelia/router';
-import { Aurelia, CustomElement } from '@aurelia/runtime';
+import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('Configuration', function () {
@@ -14,7 +13,7 @@ describe('Configuration', function () {
   }
 
   async function createFixture(config?) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container, lifecycle } = ctx;
 
     const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
@@ -23,7 +22,6 @@ describe('Configuration', function () {
 
     const au = new Aurelia(container)
       .register(
-        DebugConfiguration,
         !config ? RouterConfiguration : RouterConfiguration.customize(config),
         App)
       .app({ host: host, component: App });
@@ -79,7 +77,7 @@ describe('Configuration', function () {
   it('is awaitable at start up', async function () {
     this.timeout(5000);
 
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const { container } = ctx;
 
     const App = CustomElement.define({ name: 'app', template: '<au-viewport default="foo"></au-viewport>' });
@@ -96,7 +94,6 @@ describe('Configuration', function () {
 
     const au = new Aurelia(container)
       .register(
-        DebugConfiguration,
         RouterConfiguration,
         App,
         Foo)

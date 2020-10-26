@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { I18N, I18nConfiguration, Signals } from '@aurelia/i18n';
 import { Class, IContainer } from '@aurelia/kernel';
-import { Aurelia, bindable, customElement, DOM, INode, IScheduler, ISignaler } from '@aurelia/runtime';
-import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
+import { Aurelia, bindable, customElement, INode, IPlatform, ISignaler } from '@aurelia/runtime-html';
+import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../../util';
 
 describe('translation-integration', function () {
@@ -26,7 +26,7 @@ describe('translation-integration', function () {
     public constructor(
       public readonly en: Record<string, any>,
       public readonly de: Record<string, any>,
-      public readonly ctx: HTMLTestContext,
+      public readonly ctx: TestContext,
       public readonly au: Aurelia,
       public readonly i18n: I18N,
       public readonly host: HTMLElement,
@@ -39,8 +39,8 @@ describe('translation-integration', function () {
       return this.au.root.controller.viewModel as TApp;
     }
 
-    public get scheduler(): IScheduler {
-      return this.container.get(IScheduler);
+    public get platform(): IPlatform {
+      return this.container.get(IPlatform);
     }
 
     public async teardown() {
@@ -106,8 +106,8 @@ describe('translation-integration', function () {
 
       imgPath: 'bar.jpg'
     };
-    const ctx = TestContext.createHTMLTestContext();
-    const host = DOM.createElement('app');
+    const ctx = TestContext.create();
+    const host = PLATFORM.document.createElement('app');
     const au = new Aurelia(ctx.container).register(
       I18nConfiguration.customize((config) => {
         config.initOptions = {
@@ -632,11 +632,11 @@ describe('translation-integration', function () {
       class App {
         public keyExpr: string = '[prepend]preHtml;[append]postHtml';
       }
-      $it('works correctly for html with the change of both [prepend], and [append] - textContent', function ({ host, app, scheduler }: I18nIntegrationTestContext<App>) {
+      $it('works correctly for html with the change of both [prepend], and [append] - textContent', function ({ host, app, platform }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
         app.keyExpr = '[prepend]pre;[append]post';
 
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
       }, { component: App });
@@ -649,11 +649,11 @@ describe('translation-integration', function () {
       class App {
         public keyExpr: string = '[prepend]pre;[append]post';
       }
-      $it('works correctly with the change of both [prepend], and [append] - textContent', function ({ host, app, scheduler }: I18nIntegrationTestContext<App>) {
+      $it('works correctly with the change of both [prepend], and [append] - textContent', function ({ host, app, platform }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
         app.keyExpr = '[prepend]preHtml;[append]postHtml';
 
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       }, { component: App });
@@ -666,11 +666,11 @@ describe('translation-integration', function () {
         public keyExpr: string = '[prepend]preHtml;[append]postHtml';
       }
 
-      $it('works correctly with the removal of [append]', function ({ host, app, scheduler }: I18nIntegrationTestContext<App>) {
+      $it('works correctly with the removal of [append]', function ({ host, app, platform }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
         app.keyExpr = '[prepend]preHtml';
 
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac');
       }, { component: App });
@@ -682,11 +682,11 @@ describe('translation-integration', function () {
       class App {
         public keyExpr: string = '[prepend]preHtml;[append]postHtml';
       }
-      $it('works correctly with the removal of [prepend]', function ({ host, app, scheduler }: I18nIntegrationTestContext<App>) {
+      $it('works correctly with the removal of [prepend]', function ({ host, app, platform }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
         app.keyExpr = '[append]postHtml';
 
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         assert.equal((host as Element).querySelector('span').innerHTML, 'tac <b>toe</b><span>bar</span>');
       }, { component: App });
@@ -699,11 +699,11 @@ describe('translation-integration', function () {
         public keyExpr: string = '[prepend]preHtml;[append]postHtml';
       }
 
-      $it('works correctly with the removal of both [prepend] and [append]', function ({ host, app, scheduler }: I18nIntegrationTestContext<App>) {
+      $it('works correctly with the removal of both [prepend] and [append]', function ({ host, app, platform }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
         app.keyExpr = '[html]midHtml';
 
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i>');
       }, { component: App });
@@ -801,9 +801,9 @@ describe('translation-integration', function () {
         name: 'app', template: `<custom-message t="[message]simple.text"></custom-message>`
       })
       class App { }
-      $it('should support locale changes', async function ({ host, de, i18n, scheduler }: I18nIntegrationTestContext<App>) {
+      $it('should support locale changes', async function ({ host, de, i18n, platform }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         assertTextContent(host, 'custom-message div', de.simple.text);
       }, { component: App });
@@ -850,9 +850,9 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${'simple.text' | t}</span>` })
       class App { }
 
-      $it('change of locale', async function ({ host, de, scheduler, i18n }: I18nIntegrationTestContext<App>) {
+      $it('change of locale', async function ({ host, de, platform, i18n }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
         assertTextContent(host, 'span', de.simple.text);
       }, { component: App });
     }
@@ -898,9 +898,9 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${'simple.text' & t}</span>` })
       class App { }
 
-      $it('change of locale', async function ({ host, de, scheduler, i18n }: I18nIntegrationTestContext<App>) {
+      $it('change of locale', async function ({ host, de, platform, i18n }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         assertTextContent(host, 'span', de.simple.text);
       }, { component: App });
@@ -944,15 +944,15 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | df }</span>` })
       class App { public dt: Date = new Date(2019, 7, 20); }
 
-      $it('works for change of locale', async function ({ host, i18n, scheduler }: I18nIntegrationTestContext<App>) {
+      $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
         assertTextContent(host, 'span', '20.8.2019');
       }, { component: App });
 
-      $it('works for change of source value', function ({ host, scheduler, app }: I18nIntegrationTestContext<App>) {
+      $it('works for change of source value', function ({ host, platform, app }: I18nIntegrationTestContext<App>) {
         app.dt = new Date(2019, 7, 21);
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
         assertTextContent(host, 'span', '8/21/2019');
       }, { component: App });
     }
@@ -995,9 +995,9 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & df }</span>` })
       class App { private readonly dt: Date = new Date(2019, 7, 20); }
 
-      $it('works for change of locale', async function ({ host, i18n, scheduler }: I18nIntegrationTestContext<App>) {
+      $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
         assertTextContent(host, 'span', '20.8.2019');
       }, { component: App });
     }
@@ -1005,9 +1005,9 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & df }</span>` })
       class App { public dt: Date = new Date(2019, 7, 20); }
 
-      $it('works for change of source value', function ({ host, scheduler, app }: I18nIntegrationTestContext<App>) {
+      $it('works for change of source value', function ({ host, platform, app }: I18nIntegrationTestContext<App>) {
         app.dt = new Date(2019, 7, 21);
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
         assertTextContent(host, 'span', '8/21/2019');
       }, { component: App });
     }
@@ -1038,16 +1038,16 @@ describe('translation-integration', function () {
         assertTextContent(host, 'span', '123,456,789.12');
       }, { component: App });
 
-      $it('works for change of locale', async function ({ host, i18n, scheduler }: I18nIntegrationTestContext<App>) {
+      $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         assertTextContent(host, 'span', '123.456.789,12');
       }, { component: App });
 
-      $it('works for change of source value', function ({ host, scheduler, app }: I18nIntegrationTestContext<App>) {
+      $it('works for change of source value', function ({ host, platform, app }: I18nIntegrationTestContext<App>) {
         app.num = 123456789.21;
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         assertTextContent(host, 'span', '123,456,789.21');
       }, { component: App });
@@ -1124,9 +1124,9 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ num & nf }</span>` })
       class App { private readonly num: number = 123456789.12; }
 
-      $it('works for change of locale', async function ({ host, i18n, scheduler }: I18nIntegrationTestContext<App>) {
+      $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
         assertTextContent(host, 'span', '123.456.789,12');
       }, { component: App });
     }
@@ -1134,9 +1134,9 @@ describe('translation-integration', function () {
       @customElement({ name: 'app', template: `<span>\${ num & nf }</span>` })
       class App { public num: number = 123456789.12; }
 
-      $it('works for change of source value', function ({ host, app, scheduler }: I18nIntegrationTestContext<App>) {
+      $it('works for change of source value', function ({ host, app, platform }: I18nIntegrationTestContext<App>) {
         app.num = 123456789.21;
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         assertTextContent(host, 'span', '123,456,789.21');
       }, { component: App });
@@ -1210,9 +1210,9 @@ describe('translation-integration', function () {
         }
       }
 
-      $it('works for change of locale', async function ({ host, i18n, scheduler }: I18nIntegrationTestContext<App>) {
+      $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         assertTextContent(host, 'span', 'vor 2 Stunden');
       }, { component: App });
@@ -1227,10 +1227,10 @@ describe('translation-integration', function () {
         }
       }
 
-      $it('works for change of source value', function ({ host, scheduler, app }: I18nIntegrationTestContext<App>) {
+      $it('works for change of source value', function ({ host, platform, app }: I18nIntegrationTestContext<App>) {
         app.dt = new Date(app.dt.setHours(app.dt.getHours() - 3));
 
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         assertTextContent(host, 'span', '5 hours ago');
       }, { component: App });
@@ -1246,10 +1246,10 @@ describe('translation-integration', function () {
       }
 
       await runTest(
-        async function ({ scheduler, host, container }) {
-          await scheduler.queueMacroTask(delta => {
+        async function ({ platform, host, container }) {
+          await platform.macroTaskQueue.queueTask(delta => {
             container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
-            scheduler.getRenderTaskQueue().flush();
+            platform.domWriteQueue.flush();
             assertTextContent(host, 'span', `${Math.round((delta + offset) / 1000)} seconds ago`);
           }, { delay: 1000 }).result;
         },
@@ -1324,9 +1324,9 @@ describe('translation-integration', function () {
         }
       }
 
-      $it('works for change of locale', async function ({ host, i18n, scheduler }: I18nIntegrationTestContext<App>) {
+      $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         assertTextContent(host, 'span', 'vor 2 Stunden');
       }, { component: App });
@@ -1341,10 +1341,10 @@ describe('translation-integration', function () {
         }
       }
 
-      $it('works for change of source value', function ({ host, scheduler, app }: I18nIntegrationTestContext<App>) {
+      $it('works for change of source value', function ({ host, platform, app }: I18nIntegrationTestContext<App>) {
         app.dt = new Date(app.dt.setHours(app.dt.getHours() - 3));
 
-        scheduler.getRenderTaskQueue().flush();
+        platform.domWriteQueue.flush();
 
         assertTextContent(host, 'span', '5 hours ago');
       }, { component: App });
@@ -1360,10 +1360,10 @@ describe('translation-integration', function () {
       }
 
       await runTest(
-        async function ({ host, scheduler, container }: I18nIntegrationTestContext<App>) {
-          await scheduler.queueMacroTask(delta => {
+        async function ({ host, platform, container }: I18nIntegrationTestContext<App>) {
+          await platform.macroTaskQueue.queueTask(delta => {
             container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
-            scheduler.getRenderTaskQueue().flush();
+            platform.domWriteQueue.flush();
             assertTextContent(host, 'span', `${Math.round((delta + offset) / 1000)} seconds ago`);
           }, { delay: 1000 }).result;
         },

@@ -1,8 +1,6 @@
-import { Unparser } from '@aurelia/debug';
 import { I18N, I18nConfiguration, I18nConfigurationOptions } from '@aurelia/i18n';
 import { IContainer, Registration } from '@aurelia/kernel';
-import { Aurelia, CustomElement, IBinding, INode, IScheduler } from '@aurelia/runtime';
-import { assert, HTMLTestContext, TestContext } from '@aurelia/testing';
+import { assert, TestContext } from '@aurelia/testing';
 import {
   IValidationMessageProvider,
   IValidationRules,
@@ -10,6 +8,7 @@ import {
   StandardValidator,
   ValidationMessageProvider,
 } from '@aurelia/validation';
+import { CustomElement, IBinding, INode, Aurelia, IPlatform } from '@aurelia/runtime-html';
 import {
   BindingWithBehavior,
   IValidationController,
@@ -88,9 +87,9 @@ describe('validation-i18n', function () {
     testFunction: TestFunction<TestExecutionContext<App>>,
     { template = '', toCustomize = false, defaultNS, defaultKeyPrefix }: Partial<TestSetupContext> = {}
   ) {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
-    const host = ctx.dom.createElement('app');
+    const host = ctx.doc.createElement('app');
     ctx.doc.body.appendChild(host);
     let app: App;
     const au = new Aurelia(container);
@@ -164,7 +163,7 @@ describe('validation-i18n', function () {
       })
       .start();
 
-    await testFunction({ app, container, host, scheduler: container.get(IScheduler), ctx });
+    await testFunction({ app, container, host, platform: container.get(IPlatform), ctx });
 
     await au.stop();
     ctx.doc.body.removeChild(host);
@@ -181,21 +180,21 @@ describe('validation-i18n', function () {
 
     const binding = bindings[0];
     assert.equal(binding.target, target);
-    assert.equal(Unparser.unparse(binding.sourceExpression.expression), rawExpression);
+    assert.equal(binding.sourceExpression.expression.toString(), rawExpression);
   }
 
-  async function assertEventHandler(target: HTMLElement, event: 'change' | 'focusout', callCount: number, scheduler: IScheduler, controllerSpy: Spy, ctx: HTMLTestContext) {
+  async function assertEventHandler(target: HTMLElement, event: 'change' | 'focusout', callCount: number, platform: IPlatform, controllerSpy: Spy, ctx: TestContext) {
     controllerSpy.clearCallRecords();
     target.dispatchEvent(new ctx.Event(event));
-    await scheduler.yieldAll();
+    await platform.domReadQueue.yield();
     controllerSpy.methodCalledTimes('validateBinding', callCount);
     controllerSpy.methodCalledTimes('validate', callCount);
   }
 
-  async function changeLocale(container: IContainer, scheduler: IScheduler, controllerSpy: Spy) {
+  async function changeLocale(container: IContainer, platform: IPlatform, controllerSpy: Spy) {
     const i18n = container.get(I18N);
     await i18n.setLocale('de');
-    await scheduler.yieldAll();
+    await platform.domReadQueue.yield();
     controllerSpy.methodCalledTimes('validate', 1);
   }
 
@@ -213,7 +212,7 @@ describe('validation-i18n', function () {
   }, { toCustomize: true });
 
   $it('provides localized validation failure messages - controller#validate',
-    async function ({ app, container, scheduler }) {
+    async function ({ app, container, platform }) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
       const person1 = app.person1;
@@ -225,7 +224,7 @@ describe('validation-i18n', function () {
         ['Name is mandatory', 'Enter a value for Age.']
       );
 
-      await changeLocale(container, scheduler, controllerSpy);
+      await changeLocale(container, platform, controllerSpy);
 
       ({ results } = await controller.validate());
       assert.deepStrictEqual(
@@ -237,20 +236,20 @@ describe('validation-i18n', function () {
     });
 
   $it('provides localized validation failure messages',
-    async function ({ app, container, host, scheduler, ctx }) {
+    async function ({ app, container, host, platform, ctx }) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
       const target = host.querySelector('input');
       assertControllerBinding(controller as ValidationController, 'person1.age', target, controllerSpy);
 
-      await assertEventHandler(target, 'focusout', 1, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, platform, controllerSpy, ctx);
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
         ['Enter a value for Age.']
       );
 
-      await changeLocale(container, scheduler, controllerSpy);
+      await changeLocale(container, platform, controllerSpy);
 
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
@@ -263,20 +262,20 @@ describe('validation-i18n', function () {
   );
 
   $it('provides localized validation failure messages for specific keys',
-    async function ({ app, container, host, scheduler, ctx }) {
+    async function ({ app, container, host, platform, ctx }) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
       const target = host.querySelector('input');
       assertControllerBinding(controller as ValidationController, 'person1.name', target, controllerSpy);
 
-      await assertEventHandler(target, 'focusout', 1, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, platform, controllerSpy, ctx);
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
         ['Name is mandatory']
       );
 
-      await changeLocale(container, scheduler, controllerSpy);
+      await changeLocale(container, platform, controllerSpy);
 
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
@@ -289,20 +288,20 @@ describe('validation-i18n', function () {
   );
 
   $it('can provides localized validation failure messages from different namespace',
-    async function ({ app, container, host, scheduler, ctx }) {
+    async function ({ app, container, host, platform, ctx }) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
       const target = host.querySelector('input');
       assertControllerBinding(controller as ValidationController, 'person2.name', target, controllerSpy);
 
-      await assertEventHandler(target, 'focusout', 1, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, platform, controllerSpy, ctx);
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
         ['The value of the Name is required.']
       );
 
-      await changeLocale(container, scheduler, controllerSpy);
+      await changeLocale(container, platform, controllerSpy);
 
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
@@ -315,20 +314,20 @@ describe('validation-i18n', function () {
   );
 
   $it('supports registration of default namespace',
-    async function ({ app, container, host, scheduler, ctx }) {
+    async function ({ app, container, host, platform, ctx }) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
       const target = host.querySelector('input');
       assertControllerBinding(controller as ValidationController, 'person1.age', target, controllerSpy);
 
-      await assertEventHandler(target, 'focusout', 1, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, platform, controllerSpy, ctx);
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
         ['The value of the age is required.']
       );
 
-      await changeLocale(container, scheduler, controllerSpy);
+      await changeLocale(container, platform, controllerSpy);
 
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
@@ -342,20 +341,20 @@ describe('validation-i18n', function () {
   );
 
   $it('supports registration of default prefix',
-    async function ({ app, container, host, scheduler, ctx }) {
+    async function ({ app, container, host, platform, ctx }) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
       const target = host.querySelector('input');
       assertControllerBinding(controller as ValidationController, 'person1.age', target, controllerSpy);
 
-      await assertEventHandler(target, 'focusout', 1, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, platform, controllerSpy, ctx);
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
         ['The value is required']
       );
 
-      await changeLocale(container, scheduler, controllerSpy);
+      await changeLocale(container, platform, controllerSpy);
 
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
@@ -369,20 +368,20 @@ describe('validation-i18n', function () {
   );
 
   $it('supports registration of default namespace and prefix',
-    async function ({ app, container, host, scheduler, ctx }) {
+    async function ({ app, container, host, platform, ctx }) {
       const controller = app.controller;
       const controllerSpy = app.controllerSpy;
 
       const target = host.querySelector('input');
       assertControllerBinding(controller as ValidationController, 'person1.age', target, controllerSpy);
 
-      await assertEventHandler(target, 'focusout', 1, scheduler, controllerSpy, ctx);
+      await assertEventHandler(target, 'focusout', 1, platform, controllerSpy, ctx);
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),
         ['The value of Age Foo is required in foo']
       );
 
-      await changeLocale(container, scheduler, controllerSpy);
+      await changeLocale(container, platform, controllerSpy);
 
       assert.deepStrictEqual(
         controller.results.filter(r => !r.valid).map((r) => r.toString()),

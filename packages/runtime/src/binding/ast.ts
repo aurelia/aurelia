@@ -3,16 +3,13 @@
 import {
   IIndexable,
   IServiceLocator,
-  PLATFORM,
-  StrictPrimitive,
+  emptyArray,
   isNumberOrBigInt,
   isStringOrDate,
+  ResourceDefinition,
 } from '@aurelia/kernel';
 import {
-  ExpressionKind,
   LifecycleFlags as LF,
-} from '../flags';
-import {
   Collection,
   IBindingContext,
   IObservable,
@@ -26,13 +23,53 @@ import { ProxyObserver } from '../observation/proxy-observer';
 import { ISignaler } from '../observation/signaler';
 import {
   BindingBehavior, BindingBehaviorInstance, BindingBehaviorFactory,
-} from '../resources/binding-behavior';
+} from '../binding-behavior';
 import {
   ValueConverter, ValueConverterInstance,
-} from '../resources/value-converter';
+} from '../value-converter';
 import { IConnectableBinding } from './connectable';
-import { CustomElementDefinition } from '../resources/custom-element';
 import type { Scope } from '../observation/binding-context';
+
+export const enum ExpressionKind {
+  Connects             = 0b000000000001_00000, // The expression's connect() function calls observeProperty and/or calls connect() on another expression that it wraps (all expressions except for AccessThis, PrimitiveLiteral, CallMember/Function and Assign)
+  Observes             = 0b000000000010_00000, // The expression's connect() function calls observeProperty (only AccessScope, AccessMember and AccessKeyed do this)
+  CallsFunction        = 0b000000000100_00000, // Calls a function (CallFunction, CallScope, CallMember, TaggedTemplate) -> needs a valid function object returning from its lefthandside's evaluate()
+  HasAncestor          = 0b000000001000_00000, // Has an "ancestor" property, meaning the expression could climb up the context (only AccessThis, AccessScope and CallScope)
+  IsPrimary            = 0b000000010000_00000, // Is a primary expression according to ES parsing rules
+  IsLeftHandSide       = 0b000000100000_00000, // Is a left-hand side expression according to ES parsing rules, includes IsPrimary
+  HasBind              = 0b000001000000_00000, // Has a bind() method (currently only BindingBehavior)
+  HasUnbind            = 0b000010000000_00000, // Has an unbind() method (currentl only BindingBehavior and ValueConverter)
+  IsAssignable         = 0b000100000000_00000, // Is an assignable expression according to ES parsing rules (only AccessScope, AccessMember, AccessKeyed ans Assign)
+  IsLiteral            = 0b001000000000_00000, // Is an Aurelia resource (ValueConverter or BindingBehavior)
+  IsResource           = 0b010000000000_00000, // Is literal expression (Primitive, Array, Object or Template)
+  IsForDeclaration     = 0b100000000000_00000, // Is a For declaration (for..of, for..in -> currently only ForOfStatement)
+  Type                 = 0b000000000000_11111, // Type mask to uniquely identify each AST class (concrete types start below)
+  // ---------------------------------------------------------------------------------------------------------------------------
+  AccessThis           = 0b000000111000_00001, //               HasAncestor
+  AccessScope          = 0b000100111011_00010, // IsAssignable  HasAncestor       Observes  Connects
+  ArrayLiteral         = 0b001000110001_00011, //                                           Connects
+  ObjectLiteral        = 0b001000110001_00100, //                                           Connects
+  PrimitiveLiteral     = 0b001000110000_00101, //
+  Template             = 0b001000110001_00110, //                                           Connects
+  Unary                = 0b000000000001_00111, //                                           Connects
+  CallScope            = 0b000000101101_01000, //               HasAncestor  CallsFunction  Connects
+  CallMember           = 0b000000100100_01001, //                            CallsFunction
+  CallFunction         = 0b000000100100_01010, //                            CallsFunction
+  AccessMember         = 0b000100100011_01011, // IsAssignable                    Observes  Connects
+  AccessKeyed          = 0b000100100011_01100, // IsAssignable                    Observes  Connects
+  TaggedTemplate       = 0b000000100101_01101, //                            CallsFunction  Connects
+  Binary               = 0b000000000001_01110, //                                           Connects
+  Conditional          = 0b000000000001_11111, //                                           Connects
+  Assign               = 0b000100000000_10000, // IsAssignable
+  ValueConverter       = 0b010010000001_10001, //                                           Connects
+  BindingBehavior      = 0b010011000001_10010, //                                           Connects
+  HtmlLiteral          = 0b000000000001_10011, //                                           Connects
+  ArrayBindingPattern  = 0b100000000000_10100, //
+  ObjectBindingPattern = 0b100000000000_10101, //
+  BindingIdentifier    = 0b100000000000_10110, //
+  ForOfStatement       = 0b000011000001_10111, //                                           Connects
+  Interpolation        = 0b000000000000_11000  //
+}
 
 export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
 
@@ -53,7 +90,7 @@ export type BindingIdentifierOrPattern = BindingIdentifier | ArrayBindingPattern
 export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern | HtmlLiteralExpression;
 export type AnyBindingExpression = Interpolation | ForOfStatement | IsBindingBehavior;
 
-export interface IHydrator {
+export interface IExpressionHydrator {
   hydrate(jsonExpr: any): any;
 }
 export interface IVisitor<T = unknown> {
@@ -81,6 +118,256 @@ export interface IVisitor<T = unknown> {
   visitTemplate(expr: TemplateExpression): T;
   visitUnary(expr: UnaryExpression): T;
   visitValueConverter(expr: ValueConverterExpression): T;
+}
+
+export class Unparser implements IVisitor<void> {
+  public text: string = '';
+
+  public static unparse(expr: IsExpressionOrStatement): string {
+    const visitor = new Unparser();
+    expr.accept(visitor);
+    return visitor.text;
+  }
+
+  public visitAccessMember(expr: AccessMemberExpression): void {
+    expr.object.accept(this);
+    this.text += `.${expr.name}`;
+  }
+
+  public visitAccessKeyed(expr: AccessKeyedExpression): void {
+    expr.object.accept(this);
+    this.text += '[';
+    expr.key.accept(this);
+    this.text += ']';
+  }
+
+  public visitAccessThis(expr: AccessThisExpression): void {
+    if (expr.ancestor === 0) {
+      this.text += '$this';
+      return;
+    }
+    this.text += '$parent';
+    let i = expr.ancestor - 1;
+    while (i--) {
+      this.text += '.$parent';
+    }
+  }
+
+  public visitAccessScope(expr: AccessScopeExpression): void {
+    let i = expr.ancestor;
+    while (i--) {
+      this.text += '$parent.';
+    }
+    this.text += expr.name;
+  }
+
+  public visitArrayLiteral(expr: ArrayLiteralExpression): void {
+    const elements = expr.elements;
+    this.text += '[';
+    for (let i = 0, length = elements.length; i < length; ++i) {
+      if (i !== 0) {
+        this.text += ',';
+      }
+      elements[i].accept(this);
+    }
+    this.text += ']';
+  }
+
+  public visitObjectLiteral(expr: ObjectLiteralExpression): void {
+    const keys = expr.keys;
+    const values = expr.values;
+    this.text += '{';
+    for (let i = 0, length = keys.length; i < length; ++i) {
+      if (i !== 0) {
+        this.text += ',';
+      }
+      this.text += `'${keys[i]}':`;
+      values[i].accept(this);
+    }
+    this.text += '}';
+  }
+
+  public visitPrimitiveLiteral(expr: PrimitiveLiteralExpression): void {
+    this.text += '(';
+    if (typeof expr.value === 'string') {
+      const escaped = expr.value.replace(/'/g, '\\\'');
+      this.text += `'${escaped}'`;
+    } else {
+      this.text += `${expr.value}`;
+    }
+    this.text += ')';
+  }
+
+  public visitCallFunction(expr: CallFunctionExpression): void {
+    this.text += '(';
+    expr.func.accept(this);
+    this.writeArgs(expr.args);
+    this.text += ')';
+  }
+
+  public visitCallMember(expr: CallMemberExpression): void {
+    this.text += '(';
+    expr.object.accept(this);
+    this.text += `.${expr.name}`;
+    this.writeArgs(expr.args);
+    this.text += ')';
+  }
+
+  public visitCallScope(expr: CallScopeExpression): void {
+    this.text += '(';
+    let i = expr.ancestor;
+    while (i--) {
+      this.text += '$parent.';
+    }
+    this.text += expr.name;
+    this.writeArgs(expr.args);
+    this.text += ')';
+  }
+
+  public visitTemplate(expr: TemplateExpression): void {
+    const { cooked, expressions } = expr;
+    const length = expressions.length;
+    this.text += '`';
+    this.text += cooked[0];
+    for (let i = 0; i < length; i++) {
+      expressions[i].accept(this);
+      this.text += cooked[i + 1];
+    }
+    this.text += '`';
+  }
+
+  public visitTaggedTemplate(expr: TaggedTemplateExpression): void {
+    const { cooked, expressions } = expr;
+    const length = expressions.length;
+    expr.func.accept(this);
+    this.text += '`';
+    this.text += cooked[0];
+    for (let i = 0; i < length; i++) {
+      expressions[i].accept(this);
+      this.text += cooked[i + 1];
+    }
+    this.text += '`';
+  }
+
+  public visitUnary(expr: UnaryExpression): void {
+    this.text += `(${expr.operation}`;
+    if (expr.operation.charCodeAt(0) >= /* a */97) {
+      this.text += ' ';
+    }
+    expr.expression.accept(this);
+    this.text += ')';
+  }
+
+  public visitBinary(expr: BinaryExpression): void {
+    this.text += '(';
+    expr.left.accept(this);
+    if (expr.operation.charCodeAt(0) === /* i */105) {
+      this.text += ` ${expr.operation} `;
+    } else {
+      this.text += expr.operation;
+    }
+    expr.right.accept(this);
+    this.text += ')';
+  }
+
+  public visitConditional(expr: ConditionalExpression): void {
+    this.text += '(';
+    expr.condition.accept(this);
+    this.text += '?';
+    expr.yes.accept(this);
+    this.text += ':';
+    expr.no.accept(this);
+    this.text += ')';
+  }
+
+  public visitAssign(expr: AssignExpression): void {
+    this.text += '(';
+    expr.target.accept(this);
+    this.text += '=';
+    expr.value.accept(this);
+    this.text += ')';
+  }
+
+  public visitValueConverter(expr: ValueConverterExpression): void {
+    const args = expr.args;
+    expr.expression.accept(this);
+    this.text += `|${expr.name}`;
+    for (let i = 0, length = args.length; i < length; ++i) {
+      this.text += ':';
+      args[i].accept(this);
+    }
+  }
+
+  public visitBindingBehavior(expr: BindingBehaviorExpression): void {
+    const args = expr.args;
+    expr.expression.accept(this);
+    this.text += `&${expr.name}`;
+    for (let i = 0, length = args.length; i < length; ++i) {
+      this.text += ':';
+      args[i].accept(this);
+    }
+  }
+
+  public visitArrayBindingPattern(expr: ArrayBindingPattern): void {
+    const elements = expr.elements;
+    this.text += '[';
+    for (let i = 0, length = elements.length; i < length; ++i) {
+      if (i !== 0) {
+        this.text += ',';
+      }
+      elements[i].accept(this);
+    }
+    this.text += ']';
+  }
+
+  public visitObjectBindingPattern(expr: ObjectBindingPattern): void {
+    const keys = expr.keys;
+    const values = expr.values;
+    this.text += '{';
+    for (let i = 0, length = keys.length; i < length; ++i) {
+      if (i !== 0) {
+        this.text += ',';
+      }
+      this.text += `'${keys[i]}':`;
+      values[i].accept(this);
+    }
+    this.text += '}';
+  }
+
+  public visitBindingIdentifier(expr: BindingIdentifier): void {
+    this.text += expr.name;
+  }
+
+  public visitHtmlLiteral(expr: HtmlLiteralExpression): void { throw new Error('visitHtmlLiteral'); }
+
+  public visitForOfStatement(expr: ForOfStatement): void {
+    expr.declaration.accept(this);
+    this.text += ' of ';
+    expr.iterable.accept(this);
+  }
+
+  public visitInterpolation(expr: Interpolation): void {
+    const { parts, expressions } = expr;
+    const length = expressions.length;
+    this.text += '${';
+    this.text += parts[0];
+    for (let i = 0; i < length; i++) {
+      expressions[i].accept(this);
+      this.text += parts[i + 1];
+    }
+    this.text += '}';
+  }
+
+  private writeArgs(args: readonly IsBindingBehavior[]): void {
+    this.text += '(';
+    for (let i = 0, length = args.length; i < length; ++i) {
+      if (i !== 0) {
+        this.text += ',';
+      }
+      args[i].accept(this);
+    }
+    this.text += ')';
+  }
 }
 
 function chooseScope(accessHostScope: boolean, s: Scope, hs: Scope | null){
@@ -164,6 +451,10 @@ export class BindingBehaviorExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBindingBehavior(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class ValueConverterExpression {
@@ -246,6 +537,10 @@ export class ValueConverterExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitValueConverter(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class AssignExpression {
@@ -273,6 +568,10 @@ export class AssignExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAssign(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -307,6 +606,10 @@ export class ConditionalExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitConditional(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -347,6 +650,10 @@ export class AccessThisExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessThis(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -393,6 +700,10 @@ export class AccessScopeExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessScope(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -450,6 +761,10 @@ export class AccessMemberExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessMember(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class AccessKeyedExpression {
@@ -496,6 +811,10 @@ export class AccessKeyedExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitAccessKeyed(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class CallScopeExpression {
@@ -537,6 +856,10 @@ export class CallScopeExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitCallScope(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -581,6 +904,10 @@ export class CallMemberExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitCallMember(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class CallFunctionExpression {
@@ -620,6 +947,10 @@ export class CallFunctionExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitCallFunction(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -722,6 +1053,10 @@ export class BinaryExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBinary(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class UnaryExpression {
@@ -762,8 +1097,12 @@ export class UnaryExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitUnary(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
-export class PrimitiveLiteralExpression<TValue extends StrictPrimitive = StrictPrimitive> {
+export class PrimitiveLiteralExpression<TValue extends null | undefined | number | boolean | string = null | undefined | number | boolean | string> {
   public static readonly $undefined: PrimitiveLiteralExpression<undefined> = new PrimitiveLiteralExpression<undefined>(void 0);
   public static readonly $null: PrimitiveLiteralExpression<null> = new PrimitiveLiteralExpression<null>(null);
   public static readonly $true: PrimitiveLiteralExpression<true> = new PrimitiveLiteralExpression<true>(true);
@@ -792,6 +1131,10 @@ export class PrimitiveLiteralExpression<TValue extends StrictPrimitive = StrictP
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitPrimitiveLiteral(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class HtmlLiteralExpression {
@@ -815,7 +1158,7 @@ export class HtmlLiteralExpression {
     return result;
   }
 
-  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown, _projection?: CustomElementDefinition): unknown {
+  public assign(_f: LF, _s: Scope, _hs: Scope | null, _l: IServiceLocator, _obj: unknown, _projection?: ResourceDefinition): unknown {
     return void 0;
   }
 
@@ -828,10 +1171,14 @@ export class HtmlLiteralExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitHtmlLiteral(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class ArrayLiteralExpression {
-  public static readonly $empty: ArrayLiteralExpression = new ArrayLiteralExpression(PLATFORM.emptyArray);
+  public static readonly $empty: ArrayLiteralExpression = new ArrayLiteralExpression(emptyArray);
   public get $kind(): ExpressionKind.ArrayLiteral { return ExpressionKind.ArrayLiteral; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
@@ -857,10 +1204,14 @@ export class ArrayLiteralExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitArrayLiteral(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class ObjectLiteralExpression {
-  public static readonly $empty: ObjectLiteralExpression = new ObjectLiteralExpression(PLATFORM.emptyArray, PLATFORM.emptyArray);
+  public static readonly $empty: ObjectLiteralExpression = new ObjectLiteralExpression(emptyArray, emptyArray);
   public get $kind(): ExpressionKind.ObjectLiteral { return ExpressionKind.ObjectLiteral; }
   public get hasBind(): false { return false; }
   public get hasUnbind(): false { return false; }
@@ -891,6 +1242,10 @@ export class ObjectLiteralExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitObjectLiteral(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class TemplateExpression {
@@ -901,7 +1256,7 @@ export class TemplateExpression {
 
   public constructor(
     public readonly cooked: readonly string[],
-    public readonly expressions: readonly IsAssign[] = PLATFORM.emptyArray,
+    public readonly expressions: readonly IsAssign[] = emptyArray,
   ) {}
 
   public evaluate(f: LF, s: Scope, hs: Scope | null, l: IServiceLocator, c: IConnectable | null): string {
@@ -927,6 +1282,10 @@ export class TemplateExpression {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitTemplate(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class TaggedTemplateExpression {
@@ -938,7 +1297,7 @@ export class TaggedTemplateExpression {
     public readonly cooked: readonly string[] & { raw?: readonly string[] },
     raw: readonly string[],
     public readonly func: IsLeftHandSide,
-    public readonly expressions: readonly IsAssign[] = PLATFORM.emptyArray,
+    public readonly expressions: readonly IsAssign[] = emptyArray,
   ) {
     cooked.raw = raw;
   }
@@ -965,6 +1324,10 @@ export class TaggedTemplateExpression {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitTaggedTemplate(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -994,6 +1357,10 @@ export class ArrayBindingPattern {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitArrayBindingPattern(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -1025,6 +1392,10 @@ export class ObjectBindingPattern {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitObjectBindingPattern(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 export class BindingIdentifier {
@@ -1045,6 +1416,10 @@ export class BindingIdentifier {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitBindingIdentifier(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 
@@ -1116,6 +1491,10 @@ export class ForOfStatement {
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitForOfStatement(this);
   }
+
+  public toString(): string {
+    return Unparser.unparse(this);
+  }
 }
 
 /*
@@ -1132,7 +1511,7 @@ export class Interpolation {
 
   public constructor(
     public readonly parts: readonly string[],
-    public readonly expressions: readonly IsBindingBehavior[] = PLATFORM.emptyArray,
+    public readonly expressions: readonly IsBindingBehavior[] = emptyArray,
   ) {
     this.isMulti = expressions.length > 1;
     this.firstExpression = expressions[0];
@@ -1161,6 +1540,10 @@ export class Interpolation {
 
   public accept<T>(visitor: IVisitor<T>): T {
     return visitor.visitInterpolation(this);
+  }
+
+  public toString(): string {
+    return Unparser.unparse(this);
   }
 }
 

@@ -1,4 +1,4 @@
-import { CustomElement, Aurelia, customElement } from '@aurelia/runtime';
+import { CustomElement, customElement, Aurelia } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 
 describe('CustomElement.createInjectable', function () {
@@ -84,7 +84,7 @@ describe('CustomElement.createInjectable', function () {
       }
     }
 
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const host = ctx.createElement('div');
     const component = new Root();
     const au = new Aurelia(ctx.container).register(Parent, Child).app({ host, component });

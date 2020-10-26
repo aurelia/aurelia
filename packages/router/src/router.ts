@@ -2,12 +2,12 @@
 /* eslint-disable prefer-template */
 /* eslint-disable max-lines-per-function */
 import { DI, IContainer, Registration, IIndexable, Key, Metadata } from '@aurelia/kernel';
-import { CustomElementType, CustomElement, INode, DOM, ICustomElementController, ICustomElementViewModel, ICompositionRoot, isRenderContext } from '@aurelia/runtime';
+import { CustomElementType, CustomElement, INode, ICustomElementController, ICustomElementViewModel, IAppRoot, isCompositionContext, getEffectiveParentNode } from '@aurelia/runtime-html';
 import { InstructionResolver } from './instruction-resolver';
 import { IRouteableComponent, NavigationInstruction, IRoute, ComponentAppellation, ViewportHandle, ComponentParameters } from './interfaces';
 import { AnchorEventInfo, LinkHandler } from './link-handler';
 import { INavRoute, Nav } from './nav';
-import { INavigatorOptions, INavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator';
+import { INavigatorViewerEvent, IStoredNavigatorEntry, Navigator } from './navigator';
 import { QueueItem } from './queue';
 import { INavClasses } from './resources/nav';
 import { NavigationInstructionResolver, IViewportInstructionsOptions } from './type-resolvers';
@@ -20,8 +20,8 @@ import { Scope, IScopeOwner } from './scope';
 import { IViewportScopeOptions, ViewportScope } from './viewport-scope';
 import { BrowserViewerStore } from './browser-viewer-store';
 import { Navigation } from './navigation';
-import { IRoutingController, IConnectedCustomElement } from './resources/viewport';
-import { NavigationCoordinator, NavigationCoordinatorOptions, NavigationState } from './navigation-coordinator';
+import { IConnectedCustomElement } from './resources/viewport';
+import { NavigationCoordinator } from './navigation-coordinator';
 import { IRouterActivateOptions, RouterOptions } from './router-options';
 import { OpenPromise } from './open-promise';
 
@@ -1114,7 +1114,7 @@ export class Router implements IRouter {
 
   private ensureRootScope(): ViewportScope {
     if (!this.rootScope) {
-      const root = this.container.get(ICompositionRoot);
+      const root = this.container.get(IAppRoot);
       // root.config.component shouldn't be used in the end. Metadata will probably eliminate it
       this.rootScope = new ViewportScope('rootScope', this, root.controller.viewModel as IConnectedCustomElement, null, true, root.config.component as CustomElementType);
     }
@@ -1287,7 +1287,7 @@ export class Router implements IRouter {
     if ('$controller' in viewModelOrElement) {
       return viewModelOrElement.$controller!.context;
     }
-    const controller = this.CustomElementFor(viewModelOrElement);
+    const controller = this.CustomElementFor(viewModelOrElement as Node);
 
     if (controller === void 0) {
       return null;
@@ -1301,7 +1301,7 @@ export class Router implements IRouter {
       return viewModelOrContainer;
     }
 
-    if (isRenderContext(viewModelOrContainer)) {
+    if (isCompositionContext(viewModelOrContainer)) {
       return viewModelOrContainer.get(IContainer);
     }
 
@@ -1324,7 +1324,7 @@ export class Router implements IRouter {
       if (controller !== void 0) {
         return controller;
       }
-      cur = DOM.getEffectiveParentNode(cur);
+      cur = getEffectiveParentNode(cur);
     }
     return (void 0);
   }

@@ -1,11 +1,11 @@
-import { PLATFORM } from '@aurelia/kernel';
-import { LifecycleFlags } from '../flags';
+import { emptyArray } from '@aurelia/kernel';
 import {
   IPropertyObserver,
   IProxy,
   IProxyObserver,
   IProxySubscriber,
   ISubscriber,
+  LifecycleFlags,
   PropertyObserver
 } from '../observation';
 import { proxySubscriberCollection, subscriberCollection } from './subscriber-collection';
@@ -155,7 +155,7 @@ export class ProxyObserver<TObj extends object = object> implements ProxyObserve
     return false;
   }
 
-  public apply(target: TObj, thisArg: unknown, argArray: ArrayLike<unknown> = PLATFORM.emptyArray): unknown {
+  public apply(target: TObj, thisArg: unknown, argArray: ArrayLike<unknown> = emptyArray): unknown {
     // eslint-disable-next-line @typescript-eslint/ban-types
     return Reflect.apply(target as Function, target, argArray); // Reflect API dictates this
   }

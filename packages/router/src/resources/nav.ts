@@ -1,4 +1,4 @@
-import { bindable, customElement } from '@aurelia/runtime';
+import { bindable, customElement } from '@aurelia/runtime-html';
 import { NavRoute } from '../nav-route';
 import { IRouter } from '../router';
 

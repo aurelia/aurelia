@@ -1,6 +1,6 @@
-import { PartialCustomElementDefinition, TargetedInstructionType } from '@aurelia/runtime';
-import { HTMLTargetedInstruction, HTMLTargetedInstructionType } from './definitions';
 import { NodeType } from './dom';
+import { Instruction, InstructionType } from './instructions';
+import { PartialCustomElementDefinition } from './resources/custom-element';
 
 export function stringifyDOM(node: Node, depth: number): string {
   const indent = ' '.repeat(depth);
@@ -39,63 +39,63 @@ export function stringifyDOM(node: Node, depth: number): string {
   return output;
 }
 
-export function stringifyInstructions(instruction: HTMLTargetedInstruction, depth: number): string {
+export function stringifyInstructions(instruction: Instruction, depth: number): string {
   const indent = ' '.repeat(depth);
   let output = indent;
   switch (instruction.type) {
-    case HTMLTargetedInstructionType.textBinding:
+    case InstructionType.textBinding:
       output += 'textBinding\n';
       break;
-    case TargetedInstructionType.callBinding:
+    case InstructionType.callBinding:
       output += 'callBinding\n';
       break;
-    case TargetedInstructionType.iteratorBinding:
+    case InstructionType.iteratorBinding:
       output += 'iteratorBinding\n';
       break;
-    case HTMLTargetedInstructionType.listenerBinding:
+    case InstructionType.listenerBinding:
       output += 'listenerBinding\n';
       break;
-    case TargetedInstructionType.propertyBinding:
+    case InstructionType.propertyBinding:
       output += 'propertyBinding\n';
       break;
-    case TargetedInstructionType.refBinding:
+    case InstructionType.refBinding:
       output += 'refBinding\n';
       break;
-    case HTMLTargetedInstructionType.stylePropertyBinding:
+    case InstructionType.stylePropertyBinding:
       output += 'stylePropertyBinding\n';
       break;
-    case TargetedInstructionType.setProperty:
+    case InstructionType.setProperty:
       output += 'setProperty\n';
       break;
-    case HTMLTargetedInstructionType.setAttribute:
+    case InstructionType.setAttribute:
       output += 'setAttribute\n';
       break;
-    case TargetedInstructionType.interpolation:
+    case InstructionType.interpolation:
       output += 'interpolation\n';
       break;
-    case TargetedInstructionType.hydrateLetElement:
-      output += 'hydrateLetElement\n';
+    case InstructionType.composeLetElement:
+      output += 'composeLetElement\n';
       instruction.instructions.forEach(i => {
         output += stringifyInstructions(i, depth + 1);
       });
       break;
-    case TargetedInstructionType.hydrateAttribute:
-      output += `hydrateAttribute: ${instruction.res}\n`;
+    case InstructionType.composeAttribute:
+      output += `composeAttribute: ${instruction.res}\n`;
       instruction.instructions.forEach(i => {
-        output += stringifyInstructions(i as HTMLTargetedInstruction, depth + 1);
+        output += stringifyInstructions(i as Instruction, depth + 1);
       });
       break;
-    case TargetedInstructionType.hydrateElement:
-      output += `hydrateElement: ${instruction.res}\n`;
+    case InstructionType.composeElement:
+      output += `composeElement: ${instruction.res}\n`;
       instruction.instructions.forEach(i => {
-        output += stringifyInstructions(i as HTMLTargetedInstruction, depth + 1);
+        output += stringifyInstructions(i as Instruction, depth + 1);
       });
       break;
-    case TargetedInstructionType.hydrateTemplateController:
-      output += `hydrateTemplateController: ${instruction.res}\n`;
+    case InstructionType.composeTemplateController:
+      output += `composeTemplateController: ${instruction.res}\n`;
       output += stringifyTemplateDefinition(instruction.def, depth + 1);
       instruction.instructions.forEach(i => {
-        output += stringifyInstructions(i as HTMLTargetedInstruction, depth + 1);
+        output += stringifyInstructions(i as Instruction, depth + 1);
       });
   }
   return output;
@@ -111,7 +111,7 @@ export function stringifyTemplateDefinition(def: PartialCustomElementDefinition,
   def.instructions!.forEach(row => {
     output += `${indent}  Row:\n`;
     row.forEach(i => {
-      output += stringifyInstructions(i as HTMLTargetedInstruction, depth + 3);
+      output += stringifyInstructions(i as Instruction, depth + 3);
     });
   });
 

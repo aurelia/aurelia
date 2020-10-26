@@ -1,10 +1,10 @@
 /* eslint-disable quotes, @typescript-eslint/explicit-member-accessibility */
-import { Aurelia, CustomElement } from "@aurelia/runtime";
+import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { TestContext, assert } from "@aurelia/testing";
 
 describe("generated.template-compiler.repeat", function () {
   function createFixture() {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const au = new Aurelia(ctx.container);
     const host = ctx.createElement("div");
     return { au, host };

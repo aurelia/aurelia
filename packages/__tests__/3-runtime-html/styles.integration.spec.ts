@@ -1,10 +1,9 @@
-import { Aurelia, CustomElement } from '@aurelia/runtime';
-import { cssModules } from '@aurelia/runtime-html';
+import { CustomElement, Aurelia, cssModules } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('styles', function () {
   function createFixture() {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const au = new Aurelia(ctx.container);
     const host = ctx.createElement('div');
 

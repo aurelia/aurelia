@@ -1,4 +1,4 @@
-import { PLATFORM } from './platform';
+import { emptyArray } from './platform';
 import { Constructable, Overwrite } from './interfaces';
 
 const isNumericLookup: Record<string, boolean> = {};
@@ -291,8 +291,6 @@ export function compareNumber(a: number, b: number): number {
   return a - b;
 }
 
-const emptyArray = PLATFORM.emptyArray;
-
 /**
  * Efficiently merge and deduplicate the (primitive) values in two arrays.
  *
@@ -300,7 +298,7 @@ const emptyArray = PLATFORM.emptyArray;
  *
  * Guards against null or undefined arrays.
  *
- * Returns `PLATFORM.emptyArray` if both arrays are either `null`, `undefined` or `PLATFORM.emptyArray`
+ * Returns `emptyArray` if both arrays are either `null`, `undefined` or `emptyArray`
  *
  * @param slice - If `true`, always returns a new array copy (unless neither array is/has a value)
  */

@@ -1,5 +1,5 @@
 import { TestContext, assert } from '@aurelia/testing';
-import { Aurelia, customElement, bindable, BindingMode } from '@aurelia/runtime';
+import { customElement, bindable, BindingMode, Aurelia } from '@aurelia/runtime-html';
 
 async function wait(ms: number): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, ms));
@@ -8,7 +8,7 @@ async function wait(ms: number): Promise<void> {
 // TemplateCompiler - Binding Resources integration
 describe('binding-resources', function () {
   function createFixture() {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const au = new Aurelia(ctx.container);
       const host = ctx.createElement('div');
       return {
@@ -165,7 +165,7 @@ describe('binding-resources', function () {
       assert.strictEqual(component.value, '3', `component keeps change 3`);
       assert.strictEqual(receiver.value, '2', `change 3 not yet propagated to receiver`);
 
-      await ctx.scheduler.yieldAll();
+      await ctx.platform.macroTaskQueue.yield();
 
       assert.strictEqual(receiver.value, '3', `change 3 propagated`);
 
@@ -220,7 +220,7 @@ describe('binding-resources', function () {
 
         assert.strictEqual(component.events.length, 0, `event 3 not yet propagated`);
 
-        await ctx.scheduler.yieldAll();
+        await ctx.platform.macroTaskQueue.yield();
 
         assert.strictEqual(component.events.length, 1, `event 3 propagated`);
         assert.strictEqual(component.events[0], event3, `event 3 is the specific event that propagated`);

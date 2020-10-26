@@ -4,10 +4,8 @@ applyMetadataPolyfill(Reflect);
 
 import { isArrayIndex, isNativeFunction } from './functions';
 import { Class, Constructable, IDisposable } from './interfaces';
-import { PLATFORM } from './platform';
+import { emptyArray } from './platform';
 import { Protocol } from './resource';
-
-const { emptyArray } = PLATFORM;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -949,7 +947,7 @@ export class Container implements IContainer {
 
   public register(...params: any[]): IContainer {
     if (++this.registerDepth === 100) {
-      throw new Error('Unable to autoregister dependency');
+      throw new Error(`Unable to autoregister dependency: [${params.map(String)}]`);
       // TODO: change to reporter.error and add various possible causes in description.
       // Most likely cause is trying to register a plain object that does not have a
       // register method and is not a class constructor

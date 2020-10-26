@@ -1,5 +1,5 @@
 // @ts-check
-import { CustomElement } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime-html';
 import { State } from './state';
 
 const MAX_LEVEL = 10;

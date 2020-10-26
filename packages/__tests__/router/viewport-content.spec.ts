@@ -1,5 +1,5 @@
-import { IRouter, ViewportContent, ViewportInstruction } from '@aurelia/router';
-import { CustomElement } from '@aurelia/runtime';
+import { IRouter, ViewportContent } from '@aurelia/router';
+import { CustomElement } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 const define = (CustomElement as any).define;
@@ -13,7 +13,7 @@ describe('ViewportContent', function () {
     this.timeout(5000);
 
     function $setup(dependencies: any[] = []) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const container = ctx.container;
       const router = container.get(IRouter);
       return { container, router };

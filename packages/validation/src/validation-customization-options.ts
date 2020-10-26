@@ -1,5 +1,5 @@
 import { Class } from '@aurelia/kernel';
-import { IValidationHydrator } from './rule-interfaces';
+import { IValidationExpressionHydrator } from './rule-interfaces';
 import { ICustomMessage } from './rule-provider';
 import { IValidationMessageProvider } from './rules';
 import { IValidator } from './validator';
@@ -11,5 +11,5 @@ export interface ValidationCustomizationOptions {
   ValidatorType: Class<IValidator>;
   MessageProviderType: Class<IValidationMessageProvider>;
   CustomMessages: ICustomMessage[];
-  HydratorType: Class<IValidationHydrator>;
+  HydratorType: Class<IValidationExpressionHydrator>;
 }

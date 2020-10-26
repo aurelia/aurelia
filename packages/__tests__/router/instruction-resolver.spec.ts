@@ -1,11 +1,10 @@
-import { DebugConfiguration } from '@aurelia/debug';
 import { IRouter, RouterConfiguration, ViewportInstruction, InstructionResolver } from '@aurelia/router';
-import { Aurelia, CustomElement } from '@aurelia/runtime';
+import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('InstructionResolver', function () {
   async function createFixture() {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
 
     const App = CustomElement.define({ name: 'app', template: '<template><au-viewport name="left"></au-viewport><au-viewport name="right"></au-viewport></template>' });
@@ -14,7 +13,7 @@ describe('InstructionResolver', function () {
     ctx.doc.body.appendChild(host);
 
     const au = ctx.wnd['au'] = new Aurelia(container)
-      .register(DebugConfiguration, RouterConfiguration)
+      .register(RouterConfiguration)
       .app({ host: host, component: App });
 
     const instructionResolver = container.get(InstructionResolver);
@@ -74,7 +73,7 @@ describe('InstructionResolver', function () {
       viewportInstruction: ViewportInstruction;
     }
 
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const container = ctx.container;
     const router = container.get(IRouter);
 

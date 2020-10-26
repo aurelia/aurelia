@@ -2,7 +2,8 @@ import { DI } from '@aurelia/kernel';
 import {
   createScopeForTest,
   createObserverLocator,
-  assert
+  assert,
+  createContainer,
 } from '@aurelia/testing';
 import {
   AccessScopeExpression,
@@ -12,12 +13,13 @@ import {
   LifecycleFlags,
   LetBinding,
 } from '@aurelia/runtime';
+import { IPlatform } from '@aurelia/runtime-html';
 
 describe('2-runtime/ast.integration.spec.ts', function () {
   describe('[[AccessScope]]', function () {
     describe('PropertyBinding', function () {
       it('auto connects when evaluates', function () {
-        const container = DI.createContainer();
+        const container = createContainer();
         const observerLocator = createObserverLocator(container);
         const accessScopeExpr = new AccessScopeExpression('name', 0);
         // disable connect to verifies evaluate works
@@ -25,7 +27,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
         const source = { name: 'hello' };
         const target = { name: '' };
-        const binding = new PropertyBinding(accessScopeExpr, target, 'name', BindingMode.toView, observerLocator, container);
+        const binding = new PropertyBinding(accessScopeExpr, target, 'name', BindingMode.toView, observerLocator, container, {} as any);
 
         binding.$bind(LifecycleFlags.none, createScopeForTest(source), null);
 
@@ -38,7 +40,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
       });
 
       it('auto connects with ternary', function () {
-        const container = DI.createContainer();
+        const container = createContainer();
         const observerLocator = createObserverLocator(container);
         const conditionalExpr = new ConditionalExpression(
           new AccessScopeExpression('checked'),
@@ -52,7 +54,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         const source = { checked: false, yesMessage: 'yes', noMessage: 'no' };
         const target = { value: '' };
         const scope = createScopeForTest(target, source);
-        const binding = new PropertyBinding(conditionalExpr, target, 'value', BindingMode.toView, observerLocator, container);
+        const binding = new PropertyBinding(conditionalExpr, target, 'value', BindingMode.toView, observerLocator, container, container.get(IPlatform).domWriteQueue);
 
         let handleChangeCallCount = 0;
         binding.handleChange = (handleChange => {
@@ -99,7 +101,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
     describe('LetBinding', function () {
       it('auto connects when evaluates', function () {
-        const container = DI.createContainer();
+        const container = createContainer();
         const observerLocator = createObserverLocator(container);
         const accessScopeExpr = new AccessScopeExpression('name', 0);
 
@@ -122,7 +124,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
       });
 
       it('auto connects with ternary', function () {
-        const container = DI.createContainer();
+        const container = createContainer();
         const observerLocator = createObserverLocator(container);
         const conditionalExpr = new ConditionalExpression(
           new AccessScopeExpression('checked'),

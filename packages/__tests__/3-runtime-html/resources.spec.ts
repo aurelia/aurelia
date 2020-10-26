@@ -1,17 +1,17 @@
-import { Aurelia, CustomElement, CustomAttribute, ValueConverter, BindingBehavior, CustomElementType, customElement, customAttribute, alias, CustomAttributeDefinition, BindingMode } from "@aurelia/runtime";
+import { Aurelia, CustomElementType, customElement, customAttribute, alias, CustomAttributeDefinition } from '@aurelia/runtime-html';
 import { TestContext, assert } from "@aurelia/testing";
 import { Metadata } from '@aurelia/kernel';
 
 function startAndStop(component: CustomElementType) {
-  const ctx = TestContext.createHTMLTestContext();
+  const ctx = TestContext.create();
   const container = ctx.container;
   const au = new Aurelia(container);
   const host = ctx.createElement('div');
 
   au.app({ host, component });
 
-  au.start();
-  au.stop();
+  void au.start();
+  void au.stop();
 
   au.dispose();
 }

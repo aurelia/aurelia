@@ -1,6 +1,8 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
-import { bindable, customAttribute, INode } from '@aurelia/runtime';
+import { bindable } from '@aurelia/runtime';
+import { INode } from '../dom';
 import { getClassesToAdd } from '../observation/class-attribute-accessor';
+import { customAttribute } from '../resources/custom-attribute';
 
 export function cssModules(...cssModules: (Record<string, string>)[]) {
   return new CSSModulesProcessorRegistry(cssModules);

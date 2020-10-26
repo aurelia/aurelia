@@ -11,7 +11,6 @@ import {
   BindingBehaviorExpression,
   IExpressionParser,
   LifecycleFlags,
-  IScheduler,
   PropertyBinding,
   ExpressionKind,
   IsBindingBehavior
@@ -28,6 +27,7 @@ import {
 } from '@aurelia/validation';
 
 import type { Scope } from '@aurelia/runtime';
+import { IPlatform } from '@aurelia/runtime-html';
 
 export type BindingWithBehavior = PropertyBinding & {
   sourceExpression: BindingBehaviorExpression;
@@ -312,7 +312,7 @@ export class ValidationController implements IValidationController {
   public constructor(
     @IValidator public readonly validator: IValidator,
     @IExpressionParser private readonly parser: IExpressionParser,
-    @IScheduler private readonly scheduler: IScheduler,
+    @IPlatform private readonly platform: IPlatform,
     @IServiceLocator private readonly locator: IServiceLocator,
   ) { }
 
@@ -396,7 +396,7 @@ export class ValidationController implements IValidationController {
     }
 
     this.validating = true;
-    const task = this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
+    const task = this.platform.domReadQueue.queueTask(async () => {
       try {
         const results = await Promise.all(instructions.map(
           // eslint-disable-next-line @typescript-eslint/require-await
@@ -582,7 +582,7 @@ export class ValidationControllerFactory implements IFactory<Constructable<IVali
       : new ValidationController(
         container.get<IValidator>(IValidator),
         container.get(IExpressionParser),
-        container.get(IScheduler),
+        container.get(IPlatform),
         container,
       );
   }

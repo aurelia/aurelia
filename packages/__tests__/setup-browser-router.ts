@@ -1,37 +1,10 @@
-import {
-  HTMLTestContext,
-  TestContext,
-} from '@aurelia/testing';
-import {
-  RuntimeHtmlBrowserConfiguration
-} from '@aurelia/runtime-html-browser';
+import { BrowserPlatform } from '@aurelia/platform-browser';
+import { $setup } from './setup-shared';
 
-function createBrowserTestContext(): HTMLTestContext {
-  return HTMLTestContext.create(
-    RuntimeHtmlBrowserConfiguration,
-    window,
-    UIEvent,
-    Event,
-    CustomEvent,
-    Node,
-    Element,
-    HTMLElement,
-    HTMLDivElement,
-    Text,
-    Comment,
-    DOMParser,
-    CSSStyleSheet,
-    ShadowRoot
-  );
-}
+const platform = new BrowserPlatform(window);
+$setup(platform);
 
-function initializeBrowserTestContext(): void {
-  TestContext.createHTMLTestContext = createBrowserTestContext;
-  // Just trigger the HTMLDOM to be resolved once so it sets the DOM globals
-  TestContext.createHTMLTestContext().dom.createElement('div');
-}
-
-initializeBrowserTestContext();
+console.log(`Browser router test context initialized`);
 
 const testContext = require.context('.', true, /router\/[^_][^_].*?\.spec\.js$/i);
 testContext.keys().forEach(testContext);

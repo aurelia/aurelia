@@ -1,27 +1,18 @@
-import { Scheduler, TaskQueue, IScheduler } from '@aurelia/scheduler';
-import { PLATFORM } from '@aurelia/kernel';
+import { IPlatform, BrowserPlatform, ITask } from '@aurelia/runtime-html';
 
-export function ensureSchedulerEmpty(scheduler?: IScheduler): void {
-  if (!scheduler) {
-    scheduler = Scheduler.get(PLATFORM.global) as IScheduler;
+export function ensureTaskQueuesEmpty(platform?: IPlatform): void {
+  if (!platform) {
+    platform = BrowserPlatform.getOrCreate(globalThis);
   }
-  const $scheduler = scheduler as Scheduler;
 
   // canceling pending heading to remove the sticky tasks
 
-  const microQueue = $scheduler['microtask'] as TaskQueue;
-  microQueue.flush();
-  microQueue['pendingHead']?.cancel();
+  platform.macroTaskQueue.flush();
+  platform.macroTaskQueue['pending'].forEach((x: ITask) => x.cancel());
 
-  const renderQueue = $scheduler['render'] as TaskQueue;
-  renderQueue.flush();
-  renderQueue['pendingHead']?.cancel();
+  platform.domWriteQueue.flush();
+  platform.domWriteQueue['pending'].forEach((x: ITask) => x.cancel());
 
-  const macroQueue = $scheduler['macroTask'] as TaskQueue;
-  macroQueue.flush();
-  macroQueue['pendingHead']?.cancel();
-
-  const postRenderQueue = $scheduler['postRender'] as TaskQueue;
-  postRenderQueue.flush();
-  postRenderQueue['pendingHead']?.cancel();
+  platform.domReadQueue.flush();
+  platform.domReadQueue['pending'].forEach((x: ITask) => x.cancel());
 }

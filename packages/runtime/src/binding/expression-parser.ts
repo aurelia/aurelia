@@ -2,9 +2,6 @@ import {
   DI,
 } from '@aurelia/kernel';
 import {
-  ExpressionKind,
-} from '../flags';
-import {
   AccessKeyedExpression,
   AccessMemberExpression,
   AccessScopeExpression,
@@ -43,6 +40,7 @@ import {
   IsUnary,
   IsValueConverter,
   UnaryOperator,
+  ExpressionKind,
 } from './ast';
 
 export interface IExpressionParser extends ExpressionParser {}

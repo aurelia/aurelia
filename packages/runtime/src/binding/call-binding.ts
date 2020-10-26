@@ -2,10 +2,7 @@ import {
   IServiceLocator,
 } from '@aurelia/kernel';
 import {
-  LifecycleFlags,
-} from '../flags';
-import {
-  IAccessor,
+  IAccessor, LifecycleFlags,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import {

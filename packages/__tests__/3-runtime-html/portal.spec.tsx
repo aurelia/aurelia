@@ -1,16 +1,17 @@
+/* eslint-disable no-template-curly-in-string */
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 import { Constructable, IRegistry } from '@aurelia/kernel';
-import { Aurelia, CustomElement } from '@aurelia/runtime';
+import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import {
   assert,
   eachCartesianJoin,
   hJsx, // deepscan-disable-line UNUSED_IMPORT
-  HTMLTestContext,
-  TestContext
+  TestContext,
 } from '@aurelia/testing';
 
 describe('portal.spec.tsx 🚪-🔁-🚪', function () {
 
-  describe('basic', function() {
+  describe('basic', function () {
 
     const basicTestCases: IPortalTestCase<IPortalTestRootVm>[] = [
       {
@@ -131,7 +132,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
             public items = Array.from({ length: 5 }, (_, idx) => ({ idx }));
           }
         ),
-        assertionFn: async (ctx, host) => {
+        assertionFn: (ctx, host) => {
           assert.equal(host.childElementCount, 0, 'It should have been empty.');
           assert.equal(
             childrenQuerySelectorAll(ctx.doc.body, '.divdiv').length,
@@ -154,7 +155,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
           },
           class App { public items: any[]; }
         ),
-        assertionFn: async (ctx, host) => {
+        assertionFn: (ctx, host) => {
           assert.equal(host.childElementCount, 0, 'It should have been empty.');
           assert.notEqual(
             childrenQuerySelector(ctx.doc.body, '.divdiv'),
@@ -162,7 +163,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
             'There shoulda been 1 <div.divdiv>'
           );
         },
-        postTeardownAssertionFn: async (ctx, host) => {
+        postTeardownAssertionFn: (ctx, host) => {
           assert.equal(
             childrenQuerySelector(ctx.doc.body, '.divdiv'),
             null,
@@ -221,7 +222,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
             childrenQuerySelectorAll(ctx.doc.body, '.divdiv').length,
             0,
             'all .divdiv should have been removed'
-          )
+          );
         }
       },
       {
@@ -389,7 +390,7 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
         } = testCase;
 
         async function testFn() {
-          const { ctx, component, host, dispose } = setup({ root: rootVm });
+          const { ctx, component, host, dispose } = $setup({ root: rootVm });
 
           await assertionFn(ctx, host, component);
 
@@ -412,8 +413,8 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
     title: string | (() => string);
     rootVm: Constructable<K>;
     deps?: any[];
-    assertionFn(ctx: HTMLTestContext, host: HTMLElement, component: K): void | Promise<void>;
-    postTeardownAssertionFn?(ctx: HTMLTestContext, host: HTMLElement, component: K): void | Promise<void>;
+    assertionFn(ctx: TestContext, host: HTMLElement, component: K): void | Promise<void>;
+    postTeardownAssertionFn?(ctx: TestContext, host: HTMLElement, component: K): void | Promise<void>;
   }
 
   interface IPortalTestRootVm {
@@ -422,9 +423,9 @@ describe('portal.spec.tsx 🚪-🔁-🚪', function () {
     renderContext?: HTMLElement;
   }
 
-  function setup<T>(options: { root: Constructable<T>; resources?: IRegistry[] }) {
+  function $setup<T>(options: { root: Constructable<T>; resources?: IRegistry[] }) {
     const { root: Root, resources = []} = options;
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     ctx.container.register(...resources);
 
     const au = new Aurelia(ctx.container);

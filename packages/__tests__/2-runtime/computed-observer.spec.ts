@@ -1,4 +1,4 @@
-import { IIndexable, Registration } from '@aurelia/kernel';
+import { DI, IIndexable, Registration } from '@aurelia/kernel';
 import {
   DirtyCheckProperty,
   IDirtyChecker,
@@ -7,10 +7,9 @@ import {
   ITargetAccessorLocator,
   ITargetObserverLocator,
   LifecycleFlags as LF,
-  RuntimeConfiguration,
   ComputedOverrides,
   createComputedObserver,
-  IScheduler
+  IPlatform
 } from '@aurelia/runtime';
 import {
   eachCartesianJoin,
@@ -21,7 +20,7 @@ declare let document;
 
 describe.skip('ComputedObserver', function () {
   function createFixture() {
-    const container = RuntimeConfiguration.createContainer();
+    const container = DI.createContainer(); // Note: used to be RuntimeConfiguration.createContainer, needs deps
     const innerLocator = {
       handles() { return false; }
     };
@@ -30,9 +29,9 @@ describe.skip('ComputedObserver', function () {
     const locator = container.get(IObserverLocator);
     const dirtyChecker = container.get(IDirtyChecker);
     const lifecycle = container.get(ILifecycle);
-    const scheduler = container.get(IScheduler);
+    const platform = container.get(IPlatform);
 
-    return { container, locator, dirtyChecker, lifecycle, scheduler };
+    return { container, locator, dirtyChecker, lifecycle, platform };
   }
 
   interface Spec {
@@ -261,7 +260,7 @@ describe.skip('ComputedObserver', function () {
   if (typeof document !== 'undefined') {
     it(`complex nested dependencies`, function () {
       this.timeout(30000);
-      const { locator, dirtyChecker, lifecycle, scheduler } = createFixture();
+      const { locator, dirtyChecker, lifecycle, platform } = createFixture();
 
       class Foo {
         public array1: unknown[];
@@ -377,17 +376,17 @@ describe.skip('ComputedObserver', function () {
       let i = 0;
       for (const foo of [child1, child2, parent]) {
         foo.array1.push(i);
-        scheduler.getRenderTaskQueue().flush();
+        platform.macroTaskQueue.flush();
         verifyCalled(1, ++i);
       }
       for (const foo of [child1, child2, parent]) {
         foo.map1.set(i, i);
-        scheduler.getRenderTaskQueue().flush();
+        platform.macroTaskQueue.flush();
         verifyCalled(1, ++i);
       }
       for (const foo of [child1, child2, parent]) {
         foo.set1.add(i);
-        scheduler.getRenderTaskQueue().flush();
+        platform.macroTaskQueue.flush();
         verifyCalled(1, ++i);
       }
       for (const foo of [child1, child2, parent]) {
@@ -397,17 +396,17 @@ describe.skip('ComputedObserver', function () {
 
       for (const foo of [child1, child2, parent]) {
         foo.array2.push(i);
-        scheduler.getRenderTaskQueue().flush();
+        platform.macroTaskQueue.flush();
         verifyCalled(0, ++i);
       }
       for (const foo of [child1, child2, parent]) {
         foo.map2.set(i, i);
-        scheduler.getRenderTaskQueue().flush();
+        platform.macroTaskQueue.flush();
         verifyCalled(0, ++i);
       }
       for (const foo of [child1, child2, parent]) {
         foo.set2.add(i);
-        scheduler.getRenderTaskQueue().flush();
+        platform.macroTaskQueue.flush();
         verifyCalled(0, ++i);
       }
       for (const foo of [child1, child2, parent]) {

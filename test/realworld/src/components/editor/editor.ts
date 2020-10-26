@@ -1,6 +1,6 @@
 import { inject } from '@aurelia/kernel';
 import { IRouter, lifecycleLogger } from '@aurelia/router';
-import { bindable, BindingMode } from '@aurelia/runtime';
+import { bindable, BindingMode } from '@aurelia/runtime-html';
 
 import { Article } from 'shared/models/article';
 import { ArticleService } from 'shared/services/article-service';
@@ -17,10 +17,10 @@ export class Editor {
     private readonly router: IRouter,
   ) {}
 
-  public create() { return; }
-  public beforeCompile() { return; }
-  public afterCompile() { return; }
-  public afterCompileChildren() { return; }
+  public define() { return; }
+  public beforeCompose() { return; }
+  public beforeComposeChildren() { return; }
+  public afterCompose() { return; }
 
   public beforeBind() { return; }
   public afterBind() { return; }

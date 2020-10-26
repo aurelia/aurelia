@@ -1,25 +1,25 @@
 import {
   CustomElement,
-  IDOM,
-} from '@aurelia/runtime';
+  SVGAnalyzerRegistration,
+} from '@aurelia/runtime-html';
 import {
   assert,
   createFixture,
+  PLATFORM,
   TestContext
 } from '@aurelia/testing';
-import { Registration, PLATFORM } from '@aurelia/kernel';
-import { register } from '@aurelia/plugin-svg';
+import { Registration } from '@aurelia/kernel';
 
 describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
   it('renders fractal tree', async function () {
-    if (!PLATFORM.isBrowserLike) {
+    if (PLATFORM.navigator.userAgent.includes('jsdom')) {
       return;
     }
 
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     const state = new State();
     Registration.instance(State, state).register(ctx.container);
-    ctx.container.register({ register }, createPythagorasElement(ctx.dom));
+    ctx.container.register(SVGAnalyzerRegistration, createPythagorasElement());
 
     const { startPromise, appHost, component, tearDown } = createFixture(
       `<div style='height: 50px;' css='max-width: \${width}px;'>
@@ -64,7 +64,7 @@ describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
     });
 
     component.onMouseMove({ clientX: 50, clientY: 50 });
-    ctx.scheduler.getRenderTaskQueue().flush();
+    ctx.platform.domWriteQueue.flush();
 
     gNodes = appHost.querySelectorAll('svg g');
     assert.strictEqual(gNodes.length, 2047, 'should have rendered 2047 <g/>');
@@ -111,7 +111,7 @@ describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
     }
   }
 
-  function createPythagorasElement(dom: IDOM) {
+  function createPythagorasElement() {
     const TEMPLATE =
     `<template>
       <svg remove>
@@ -152,7 +152,7 @@ describe('5-jit-html/template-compiler.test-apps.spec.ts', function () {
       {
         name: 'pythagoras',
         template: (() => {
-          const parser = dom.createElement('div') as HTMLDivElement;
+          const parser = PLATFORM.document.createElement('div');
           parser.innerHTML = TEMPLATE;
           const template = parser.firstElementChild as HTMLTemplateElement;
           const svg = template.content.firstElementChild;

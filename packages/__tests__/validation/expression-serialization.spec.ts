@@ -28,7 +28,7 @@ import { Deserializer, Serializer } from '@aurelia/validation';
 
 describe('expression-de/serialization', function () {
   function setup() {
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     return ctx.container.get(IExpressionParser);
   }
   const list = [

@@ -1,14 +1,12 @@
 import {
   IAttrSyntaxTransformer,
-  TemplateBinder
-} from '@aurelia/runtime-html';
-import {
+  TemplateBinder,
+  IAttributeParser,
+  ResourceModel,
   Aurelia,
   CustomElement,
   IExpressionParser,
-  IAttributeParser,
-  ResourceModel,
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 // TemplateCompiler - integration with various different parts
@@ -41,13 +39,13 @@ describe('xml node compiler tests', function () {
   for (const markup of markups) {
     const escaped = markup.replace(/\b/g, '\\b').replace(/\t/g, '\\t').replace(/\n/g, '\\n').replace(/\v/g, '\\v').replace(/\f/g, '\\f').replace(/\r/g, '\\r');
     it.skip(escaped, function () {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
       const parser = new ctx.DOMParser();
       const doc = parser.parseFromString(markup, 'application/xml');
       const fakeSurrogate = { firstChild: doc, attributes: [] };
 
       const binder = new TemplateBinder(
-        ctx.dom,
+        ctx.platform,
         new ResourceModel(ctx.container),
         ctx.container.get(IAttributeParser),
         ctx.container.get(IExpressionParser),
@@ -78,7 +76,7 @@ describe('dependency injection', function () {
       null
     );
 
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
     ctx.container.register(Foo);
     const au = new Aurelia(ctx.container);
 
@@ -87,7 +85,7 @@ describe('dependency injection', function () {
 
     au.app({ host, component });
 
-    au.start();
+    void au.start();
 
     assert.strictEqual(host.textContent, 'bar', `host.textContent`);
   });
@@ -99,7 +97,7 @@ describe('dependency injection', function () {
 //   it.skip('$1', function () {
 //     enableTracing();
 //     Tracer.enableLiveLogging(SymbolTraceWriter);
-//     const container = RuntimeHtmlBrowserConfiguration.createContainer();
+//     const container = StandardConfiguration.createContainer();
 //     const dom = new HTMLDOM(document);
 //     Registration.instance(IDOM, dom).register(container, IDOM);
 //     const host = document.createElement('div');
@@ -117,7 +115,7 @@ describe('dependency injection', function () {
 //     );
 //     const component = new App();
 
-//     const scheduler = container.get(ILifecycle);
+//     const platform = container.get(ILifecycle);
 //     const re = container.get(IRenderingEngine);
 //     const pl = container.get(IProjectorLocator);
 
@@ -143,7 +141,7 @@ describe('dependency injection', function () {
 //     const container = AuDOMConfiguration.createContainer();
 //     const dom = container.get<AuDOM>(IDOM);
 //     const observerLocator = container.get(IObserverLocator);
-//     const scheduler = container.get(ILifecycle);
+//     const platform = container.get(ILifecycle);
 
 //     const location = AuNode.createRenderLocation();
 //     const host = AuNode.createHost().appendChild(location.$start).appendChild(location);
@@ -153,51 +151,51 @@ describe('dependency injection', function () {
 //     const ifText = 'foo';
 //     const elseText = 'bar';
 
-//     const ifTemplate: ITemplate<AuNode> = {
-//       renderContext: null as any,
+//     const ifTemplate: ITemplate = {
+//       compositionContext: null as any,
 //       dom: null as any,
-//       render(renderable) {
+//       compose(composable) {
 //         const text = AuNode.createText();
 //         const wrapper = AuNode.createTemplate().appendChild(text);
 
 //         const nodes = new AuNodeSequence(dom, wrapper);
 //         const binding = new Binding(new AccessScope(ifPropName), text, 'textContent', BindingMode.toView, observerLocator, container);
 
-//         (renderable as Writable<typeof renderable>).$nodes = nodes;
-//         addBinding(renderable, binding);
+//         (composable as Writable<typeof composable>).$nodes = nodes;
+//         addBinding(composable, binding);
 //       }
 //     };
 
-//     const elseTemplate: ITemplate<AuNode> = {
-//       renderContext: null as any,
+//     const elseTemplate: ITemplate = {
+//       compositionContext: null as any,
 //       dom: null as any,
-//       render(renderable) {
+//       compose(composable) {
 //         const text = AuNode.createText();
 //         const wrapper = AuNode.createTemplate().appendChild(text);
 
 //         const nodes = new AuNodeSequence(dom, wrapper);
 //         const binding = new Binding(new AccessScope(elsePropName), text, 'textContent', BindingMode.toView, observerLocator, container);
 
-//         (renderable as Writable<typeof renderable>).$nodes = nodes;
-//         addBinding(renderable, binding);
+//         (composable as Writable<typeof composable>).$nodes = nodes;
+//         addBinding(composable, binding);
 //       }
 //     };
 
-//     const ifFactory = new ViewFactory<AuNode>('if-view', ifTemplate, scheduler);
-//     const elseFactory = new ViewFactory<AuNode>('else-view', elseTemplate, scheduler);
+//     const ifFactory = new ViewFactory('if-view', ifTemplate, platform);
+//     const elseFactory = new ViewFactory('else-view', elseTemplate, platform);
 
-//     const sut = new If<AuNode>(ifFactory, location, new CompositionCoordinator(scheduler));
-//     const elseSut = new Else<AuNode>(elseFactory);
+//     const sut = new If(ifFactory, location, new CompositionCoordinator(platform));
+//     const elseSut = new Else(elseFactory);
 //     elseSut.link(sut);
 
 //     (sut as Writable<If>).$scope = null;
 //     (elseSut as Writable<Else>).$scope = null;
 
 //     const ifBehavior = RuntimeBehavior.create(If);
-//     ifBehavior.applyTo(sut, scheduler);
+//     ifBehavior.applyTo(sut, platform);
 
 //     const elseBehavior = RuntimeBehavior.create(Else);
-//     elseBehavior.applyTo(elseSut, scheduler);
+//     elseBehavior.applyTo(elseSut, platform);
 
 //     let firstBindInitialNodesText: string;
 //     let firstBindFinalNodesText: string;

@@ -84,8 +84,8 @@ export interface IValidationVisitor {
   visitPropertyRule(propertyRule: IPropertyRule): string;
 }
 
-export const IValidationHydrator = DI.createInterface<IValidationHydrator>('IValidationHydrator').noDefault();
-export interface IValidationHydrator {
+export const IValidationExpressionHydrator = DI.createInterface<IValidationExpressionHydrator>('IValidationExpressionHydrator').noDefault();
+export interface IValidationExpressionHydrator {
   readonly astDeserializer: Deserializer;
   readonly parser: IExpressionParser;
   readonly messageProvider: IValidationMessageProvider;

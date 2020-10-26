@@ -5,7 +5,7 @@ import { assert } from '@aurelia/testing';
 describe('preprocess', function () {
   it('transforms html file', function () {
     const html = '<template></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
@@ -25,7 +25,7 @@ export function register(container) {
 
   it('transforms html file with paired css file', function () {
     const html = '<template></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import { Registration } from '@aurelia/kernel';
 import d0 from "./foo-bar.css";
 export const name = "foo-bar";
@@ -56,7 +56,7 @@ export function register(container) {
 
   it('transforms html file with shadowOptions', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
-    const expected = `import { CustomElement } from '@aurelia/runtime';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import { shadowCSS } from '@aurelia/runtime-html';
 import * as d0 from "./hello-world.html";
 import * as d1 from "foo";
@@ -111,7 +111,7 @@ export function register(container) {
   it('injects customElement decorator', function () {
     const js = `export class FooBar {}\n`;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
-import { customElement } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime-html';
 @customElement(__au2ViewDef)
 export class FooBar {}
 `;
@@ -131,7 +131,7 @@ export class FooBar {}
   it('injects view decorator', function () {
     const js = `export class FooBar {}\n`;
     const expected = `import * as __au2ViewDef from './foo-bar-view.html';
-import { view } from '@aurelia/runtime';
+import { view } from '@aurelia/runtime-html';
 @view(__au2ViewDef)
 export class FooBar {}
 `;
@@ -150,7 +150,7 @@ export class FooBar {}
 
   it('injects various decorators when there is implicit custom element', function () {
     const js = `import {Foo} from './foo';
-import { valueConverter, other } from '@aurelia/runtime';
+import { valueConverter, other } from '@aurelia/runtime-html';
 
 export class LeaveMeAlone {}
 
@@ -183,7 +183,7 @@ export class AbcBindingCommand {
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
 import {Foo} from './foo';
-import { valueConverter, other, customElement, customAttribute, bindingBehavior, bindingCommand } from '@aurelia/runtime';
+import { valueConverter, other, customElement, customAttribute, bindingBehavior, bindingCommand } from '@aurelia/runtime-html';
 
 export class LeaveMeAlone {}
 
@@ -235,7 +235,7 @@ export class FooBar {}
 
   it('injects various decorators when there is implicit custom element, for alternative template', function () {
     const js = `import {Foo} from './foo';
-import { valueConverter, other } from '@aurelia/runtime';
+import { valueConverter, other } from '@aurelia/runtime-html';
 
 export class LeaveMeAlone {}
 
@@ -268,7 +268,7 @@ export class AbcBindingCommand {
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.haml';
 import {Foo} from './foo';
-import { valueConverter, other, customElement, customAttribute, bindingBehavior, bindingCommand } from '@aurelia/runtime';
+import { valueConverter, other, customElement, customAttribute, bindingBehavior, bindingCommand } from '@aurelia/runtime-html';
 
 export class LeaveMeAlone {}
 

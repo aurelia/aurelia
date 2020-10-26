@@ -206,7 +206,7 @@ Aurelia
 {% hint style="info" %}
 **Aurelia Architecture**
 
-Did you notice how the default Aurelia startup code involves importing and registering `RuntimeHtmlBrowserConfiguration`? The `RuntimeHtmlBrowserConfiguration` export is a type of `registry,` just like the one we described above. Since all of Aurelia's internals are pluggable and extensible, we provide this convenience registry to setup the standard options you would want in a typical application.
+Did you notice how the default Aurelia startup code involves importing and registering `StandardConfiguration`? The `StandardConfiguration` export is a type of `registry,` just like the one we described above. Since all of Aurelia's internals are pluggable and extensible, we provide this convenience registry to setup the standard options you would want in a typical application.
 {% endhint %}
 
 ### Working without Conventions

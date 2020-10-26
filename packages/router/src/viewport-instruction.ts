@@ -1,5 +1,5 @@
 import { IContainer, Key } from '@aurelia/kernel';
-import { CustomElement } from '@aurelia/runtime';
+import { CustomElement } from '@aurelia/runtime-html';
 import { ComponentAppellation, ComponentParameters, IRouteableComponent, RouteableComponentType, ViewportHandle } from './interfaces';
 import { IRouter } from './router';
 import { ComponentAppellationResolver } from './type-resolvers';

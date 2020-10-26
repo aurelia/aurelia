@@ -1,7 +1,4 @@
-// @ts-check
-import { RuntimeHtmlBrowserConfiguration } from '@aurelia/runtime-html-browser';
-import { Aurelia, CustomElement, ValueConverter, ILifecycle, IScheduler } from '@aurelia/runtime';
-import { register } from '@aurelia/plugin-svg';
+import { Aurelia, CustomElementResource, ValueConverterResource, ILifecycle, Priority, LifecycleFlags, SVGAnalyzerRegistration, StandardConfiguration } from '@aurelia/runtime-html';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { interpolateViridis } from 'd3-scale-chromatic';
 
@@ -265,9 +262,8 @@ const App = CustomElement.define(
   }
 );
 
-new Aurelia()
-  .register(RuntimeHtmlBrowserConfiguration, { register })
-  .app({
+new Aurelia().register(StandardConfiguration, SVGAnalyzerRegistration).app(
+  {
     host: document.getElementById('app'),
     component: App,
   })

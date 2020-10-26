@@ -1,11 +1,11 @@
 import { LoggerConfiguration, LogLevel } from '@aurelia/kernel';
-import { Aurelia, customElement, ISignaler, valueConverter } from '@aurelia/runtime';
+import { customElement, ISignaler, valueConverter, Aurelia } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('signaler.integration', function () {
   it('1 non-observed input and 2 observed inputs - toView', async function () {
-    const ctx = TestContext.createHTMLTestContext();
-    const tq = ctx.scheduler.getRenderTaskQueue();
+    const ctx = TestContext.create();
+    const tq = ctx.platform.domWriteQueue;
 
     ctx.container.register(LoggerConfiguration.create({ $console: console, level: LogLevel.warn }));
     const au = new Aurelia(ctx.container);
@@ -44,7 +44,7 @@ describe('signaler.integration', function () {
     await au.start();
 
     assert.visibleTextEqual(au.root, '1', 'assert #1');
-    assert.isSchedulerEmpty();
+    assert.areTaskQueuesEmpty();
 
     component.increment();
     assert.visibleTextEqual(au.root, '1', 'assert #2');
@@ -81,8 +81,8 @@ describe('signaler.integration', function () {
       `& signal:'updateItem' & oneTime`,
     ]) {
       it(expr, async function () {
-        const ctx = TestContext.createHTMLTestContext();
-        const tq = ctx.scheduler.getRenderTaskQueue();
+        const ctx = TestContext.create();
+        const tq = ctx.platform.domWriteQueue;
 
         ctx.container.register(LoggerConfiguration.create({ $console: console, level: LogLevel.warn }));
         const au = new Aurelia(ctx.container);
@@ -112,10 +112,10 @@ describe('signaler.integration', function () {
         await au.start();
 
         assert.visibleTextEqual(au.root, '012', 'assert #1');
-        assert.isSchedulerEmpty();
+        assert.areTaskQueuesEmpty();
 
         items[0] = 2;
-        assert.isSchedulerEmpty();
+        assert.areTaskQueuesEmpty();
         component.updateItem();
         assert.visibleTextEqual(au.root, '012', 'assert #2');
         tq.flush();
@@ -124,7 +124,7 @@ describe('signaler.integration', function () {
         items[0] = 3;
         items[1] = 4;
         items[2] = 5;
-        assert.isSchedulerEmpty();
+        assert.areTaskQueuesEmpty();
         component.updateItem();
         assert.visibleTextEqual(au.root, '212', 'assert #3');
         tq.flush();
@@ -145,7 +145,7 @@ describe('signaler.integration', function () {
         }
 
         items[1] = 6;
-        assert.isSchedulerEmpty();
+        assert.areTaskQueuesEmpty();
         component.updateItem();
         assert.visibleTextEqual(au.root, '543', 'assert #10');
         tq.flush();

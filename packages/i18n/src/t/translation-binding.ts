@@ -4,10 +4,7 @@ import {
   connectable,
   CustomElement,
   CustomExpression,
-  DOM,
-  ensureExpression,
   IBindingTargetAccessor,
-  ICallBindingInstruction,
   IConnectableBinding,
   IExpressionParser,
   Interpolation,
@@ -16,21 +13,24 @@ import {
   IsExpression,
   LifecycleFlags,
   INode,
-  IRenderableController,
-} from '@aurelia/runtime';
+  IComposableController,
+  IsBindingBehavior,
+  IPlatform,
+} from '@aurelia/runtime-html';
 import i18next from 'i18next';
 import { I18N } from '../i18n';
 import { Signals } from '../utils';
 
 import type { Scope } from '@aurelia/runtime';
+import type { CallBindingInstruction } from '@aurelia/runtime-html';
 
 interface TranslationBindingCreationContext {
   parser: IExpressionParser;
   observerLocator: IObserverLocator;
   context: IContainer;
-  controller: IRenderableController;
+  controller: IComposableController;
   target: HTMLElement;
-  instruction: ICallBindingInstruction;
+  instruction: CallBindingInstruction;
   isParameterContext?: boolean;
 }
 const contentAttributes = ['textContent', 'innerHTML', 'prepend', 'append'] as const;
@@ -65,6 +65,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   private readonly targetObservers: Set<IBindingTargetAccessor>;
 
   public target: HTMLElement;
+  private readonly platform: IPlatform;
 
   public constructor(
     target: INode,
@@ -73,6 +74,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   ) {
     this.target = target as HTMLElement;
     this.i18n = this.locator.get(I18N);
+    this.platform = this.locator.get(IPlatform);
     const ea: IEventAggregator = this.locator.get(IEventAggregator);
     ea.subscribe(Signals.I18N_EA_CHANNEL, this.handleLocaleChange.bind(this));
     this.targetObservers = new Set<IBindingTargetAccessor>();
@@ -88,7 +90,9 @@ export class TranslationBinding implements IPartialConnectableBinding {
     isParameterContext,
   }: TranslationBindingCreationContext) {
     const binding = this.getBinding({ observerLocator, context, controller, target });
-    const expr = ensureExpression(parser, instruction.from, BindingType.BindCommand);
+    const expr = typeof instruction.from === 'string'
+      ? parser.parse(instruction.from, BindingType.BindCommand)
+      : instruction.from as IsBindingBehavior;
     if (!isParameterContext) {
       const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value, BindingType.Interpolation) : undefined;
       binding.expr = interpolation || expr;
@@ -242,7 +246,7 @@ export class TranslationBinding implements IPartialConnectableBinding {
   }
 
   private prepareTemplate(content: ContentValue, marker: string, fallBackContents: ChildNode[]) {
-    const template = DOM.createTemplate() as HTMLTemplateElement;
+    const template = this.platform.document.createElement('template');
 
     this.addContentToTemplate(template, content.prepend, marker);
 
@@ -259,8 +263,9 @@ export class TranslationBinding implements IPartialConnectableBinding {
 
   private addContentToTemplate(template: HTMLTemplateElement, content: string | undefined, marker: string) {
     if (content !== void 0 && content !== null) {
-      const addendum = DOM.createDocumentFragment(content) as Node;
-      for (const child of toArray(addendum.childNodes)) {
+      const parser = this.platform.document.createElement('div');
+      parser.innerHTML = content;
+      for (const child of toArray(parser.childNodes)) {
         Reflect.set(child, marker, true);
         template.content.append(child);
       }

@@ -5,7 +5,6 @@ import {
   Registration,
   IContainer,
   ILogger,
-  PLATFORM,
   format,
   IDisposable,
   Writable,
@@ -326,7 +325,7 @@ class TestRunner {
     const assertFile = harnessFiles.find(x => x.name === 'assert.js');
     const prerequisites = [staFile, assertFile];
 
-    const now = PLATFORM.now();
+    const now = Date.now();
 
     const files: IFile[] = [
       // ...(await fs.getFiles(join(languageDir, 'eval-code', 'indirect'), true)).filter(x => x.shortName.endsWith('realm'))
@@ -342,7 +341,7 @@ class TestRunner {
       files.push(...(await fs.getFiles(dir, true)).filter(x => !x.shortName.endsWith('FIXTURE')));
     }
 
-    logger.info(`Discovered ${files.length} test files in ${Math.round(PLATFORM.now() - now)}ms`);
+    logger.info(`Discovered ${files.length} test files in ${Math.round(Date.now() - now)}ms`);
 
     const reporter = new TestReporter(logger);
 

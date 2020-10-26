@@ -1,13 +1,13 @@
 import { IContainer } from '@aurelia/kernel';
-import { IScheduler, valueConverter } from '@aurelia/runtime';
-import { HTMLTestContext } from '@aurelia/testing';
+import { IPlatform, valueConverter } from '@aurelia/runtime-html';
+import { TestContext } from '@aurelia/testing';
 
 export interface TestExecutionContext<TApp extends any> {
-  ctx: HTMLTestContext;
+  ctx: TestContext;
   container: IContainer;
   host: HTMLElement;
   app: TApp;
-  scheduler: IScheduler;
+  platform: IPlatform;
 }
 
 export type $TestSetupContext = Record<string, any> & { timeout?: number };

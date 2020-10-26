@@ -35,7 +35,7 @@ import {
   YieldExpression,
 } from 'typescript';
 import {
-  PLATFORM,
+  emptyArray,
   ILogger,
 } from '@aurelia/kernel';
 import {
@@ -152,10 +152,6 @@ import {
 import {
   $FunctionExpression,
 } from './functions';
-
-const {
-  emptyArray,
-} = PLATFORM;
 
 export class $Decorator implements I$Node {
   public get $kind(): SyntaxKind.Decorator { return SyntaxKind.Decorator; }

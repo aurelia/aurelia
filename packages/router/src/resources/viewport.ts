@@ -11,16 +11,16 @@ import {
   IHydratedController,
   IHydratedParentController,
   ISyntheticView,
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 import { IRouter } from '../router';
 import { Viewport, IViewportOptions } from '../viewport';
 import { ViewportScopeCustomElement } from './viewport-scope';
 import { Runner } from '../runner';
 
-export interface IRoutingController extends ICustomElementController<Element> {
+export interface IRoutingController extends ICustomElementController {
   routingContainer?: IContainer;
 }
-export interface IConnectedCustomElement extends ICustomElementViewModel<Element> {
+export interface IConnectedCustomElement extends ICustomElementViewModel {
   element: Element;
   container: IContainer;
   controller: IRoutingController;
@@ -32,7 +32,7 @@ export const ParentViewport = CustomElement.createInjectable();
   name: 'au-viewport',
   injectable: ParentViewport
 })
-export class ViewportCustomElement implements ICustomElementViewModel<Element> {
+export class ViewportCustomElement implements ICustomElementViewModel {
   @bindable public name: string = 'default';
   @bindable public usedBy: string = '';
   @bindable public default: string = '';
@@ -45,7 +45,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
 
   public viewport: Viewport | null = null;
 
-  public readonly $controller!: ICustomElementController<Element, this>;
+  public readonly $controller!: ICustomElementController<this>;
 
   public controller!: IRoutingController;
   public readonly element: Element;
@@ -61,8 +61,8 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
     this.element = element as Element;
   }
 
-  public afterCompile(controller: ICompiledCustomElementController) {
-    // console.log('afterCompile', this.name, this.router.isActive);
+  public beforeComposeChildren(controller: ICompiledCustomElementController) {
+    // console.log('beforeComposeChildren', this.name, this.router.isActive);
     this.controller = controller as IRoutingController;
     this.container = controller.context.get(IContainer);
 
@@ -77,7 +77,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
     );
   }
 
-  public beforeBind(initiator: IHydratedController<Element>, parent: IHydratedParentController<Element> | null, flags: LifecycleFlags): void | Promise<void> {
+  public beforeBind(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
     this.isBound = true;
     return Runner.run(
       () => this.waitForRouterStart(),
@@ -89,7 +89,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
     );
   }
 
-  public afterAttach(initiator: IHydratedController<Element>, parent: IHydratedParentController<Element> | null, flags: LifecycleFlags): void | Promise<void> {
+  public afterAttach(initiator: IHydratedController, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
     if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
       // console.log('afterAttach', this.viewport?.toString());
       this.viewport.enabled = true;
@@ -98,7 +98,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
     }
   }
 
-  public beforeUnbind(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): void | Promise<void> {
+  public beforeUnbind(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController | null, flags: LifecycleFlags): void | Promise<void> {
     if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
       // console.log('beforeUnbind', this.viewport?.toString());
       // TODO: Save to cache, something like
@@ -136,7 +136,7 @@ export class ViewportCustomElement implements ICustomElementViewModel<Element> {
     }
   }
 
-  // public beforeDetach(initiator: IHydratedController<Element>, parent: ISyntheticView<Element> | ICustomElementController<Element, ICustomElementViewModel<Element>> | null, flags: LifecycleFlags): void | Promise<void> {
+  // public beforeDetach(initiator: IHydratedController, parent: ISyntheticView | ICustomElementController<ICustomElementViewModel> | null, flags: LifecycleFlags): void | Promise<void> {
   //   if (this.viewport !== null && (this.viewport.nextContent ?? null) === null) {
   //     console.log('beforeDetach', this.viewport?.toString());
   //   }

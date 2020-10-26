@@ -1,4 +1,4 @@
-import { bindable } from '@aurelia/runtime';
+import { bindable } from '@aurelia/runtime-html';
 
 import { Article } from 'shared/models/article';
 

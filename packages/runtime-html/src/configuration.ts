@@ -1,61 +1,124 @@
 import { DI, IContainer, IRegistry } from '@aurelia/kernel';
-import { RuntimeConfiguration } from '@aurelia/runtime';
 import {
+  DebounceBindingBehaviorRegistration,
+  OneTimeBindingBehaviorRegistration,
+  ToViewBindingBehaviorRegistration,
+  FromViewBindingBehaviorRegistration,
+  SignalBindingBehaviorRegistration,
+  ThrottleBindingBehaviorRegistration,
+  TwoWayBindingBehaviorRegistration,
+} from '@aurelia/runtime';
+import {
+  AtPrefixedTriggerAttributePattern,
+  ColonPrefixedBindAttributePattern,
+  DotSeparatedAttributePattern,
+  RefAttributePattern
+} from './attribute-patterns';
+import {
+  CallBindingCommand,
+  DefaultBindingCommand,
+  ForBindingCommand,
+  FromViewBindingCommand,
+  OneTimeBindingCommand,
+  ToViewBindingCommand,
+  TwoWayBindingCommand,
   AttrBindingCommand,
   CaptureBindingCommand,
   ClassBindingCommand,
   DelegateBindingCommand,
   RefBindingCommand,
   StyleBindingCommand,
-  TriggerBindingCommand
+  TriggerBindingCommand,
 } from './binding-commands';
-import { HtmlAttrSyntaxTransformer } from './html-attribute-syntax-transformer';
 import { TemplateCompiler } from './template-compiler';
-import { HTMLTemplateElementFactory } from './template-element-factory';
 import {
-  AttributeBindingRenderer,
-  ListenerBindingRenderer,
-  SetAttributeRenderer,
-  StylePropertyBindingRenderer,
-  TextBindingRenderer,
-  SetClassAttributeRenderer,
-  SetStyleAttributeRenderer
-} from './html-renderer';
+  CallBindingComposer,
+  CustomAttributeComposer,
+  CustomElementComposer,
+  InterpolationBindingComposer,
+  IteratorBindingComposer,
+  LetElementComposer,
+  PropertyBindingComposer,
+  RefBindingComposer,
+  SetPropertyComposer,
+  TemplateControllerComposer,
+  AttributeBindingComposer,
+  ListenerBindingComposer,
+  SetAttributeComposer,
+  StylePropertyBindingComposer,
+  TextBindingComposer,
+  SetClassAttributeComposer,
+  SetStyleAttributeComposer,
+} from './composer';
 import { TargetAccessorLocator, TargetObserverLocator } from './observation/observer-locator';
-import { HTMLProjectorLocator } from './projectors';
+import { SVGAnalyzer } from './observation/svg-analyzer';
 import { AttrBindingBehavior } from './resources/binding-behaviors/attr';
 import { SelfBindingBehavior } from './resources/binding-behaviors/self';
 import { UpdateTriggerBindingBehavior } from './resources/binding-behaviors/update-trigger';
 import { Blur } from './resources/custom-attributes/blur';
 import { Focus } from './resources/custom-attributes/focus';
 import { Portal } from './resources/custom-attributes/portal';
+import { FrequentMutations, InfrequentMutations, ObserveShallow } from './resources/custom-attributes/flags';
+import { Else, If } from './resources/custom-attributes/if';
+import { Repeat } from './resources/custom-attributes/repeat';
+import { With } from './resources/custom-attributes/with';
+import { Switch, Case, DefaultCase } from './resources/custom-attributes/switch';
 import { Compose } from './resources/custom-elements/compose';
+import { AuSlot } from './resources/custom-elements/au-slot';
+import { SanitizeValueConverter } from './resources/value-converters/sanitize';
+import { ViewValueConverter } from './resources/value-converters/view';
 
 export const ITemplateCompilerRegistration = TemplateCompiler as IRegistry;
-export const ITemplateElementFactoryRegistration = HTMLTemplateElementFactory as IRegistry;
-export const IAttrSyntaxTransformerRegistation = HtmlAttrSyntaxTransformer as IRegistry;
-export const IProjectorLocatorRegistration = HTMLProjectorLocator as IRegistry;
 export const ITargetAccessorLocatorRegistration = TargetAccessorLocator as IRegistry;
 export const ITargetObserverLocatorRegistration = TargetObserverLocator as IRegistry;
 
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
  * - `ITemplateCompiler`
- * - `ITemplateElementFactory`
- * - `IProjectorLocator`
+ * - `IComposer`
  * - `ITargetAccessorLocator`
  * - `ITargetObserverLocator`
- * - `ITemplateFactory`
  */
 export const DefaultComponents = [
   ITemplateCompilerRegistration,
-  ITemplateElementFactoryRegistration,
-  IAttrSyntaxTransformerRegistation,
-  IProjectorLocatorRegistration,
   ITargetAccessorLocatorRegistration,
   ITargetObserverLocatorRegistration,
 ];
 
+export const SVGAnalyzerRegistration = SVGAnalyzer as IRegistry;
+
+export const AtPrefixedTriggerAttributePatternRegistration = AtPrefixedTriggerAttributePattern as unknown as IRegistry;
+export const ColonPrefixedBindAttributePatternRegistration = ColonPrefixedBindAttributePattern as unknown as IRegistry;
+export const RefAttributePatternRegistration = RefAttributePattern as unknown as IRegistry;
+export const DotSeparatedAttributePatternRegistration = DotSeparatedAttributePattern as unknown as IRegistry;
+
+/**
+ * Default binding syntax for the following attribute name patterns:
+ * - `ref`
+ * - `target.command` (dot-separated)
+ */
+export const DefaultBindingSyntax = [
+  RefAttributePatternRegistration,
+  DotSeparatedAttributePatternRegistration
+];
+
+/**
+ * Binding syntax for short-hand attribute name patterns:
+ * - `@target` (short-hand for `target.trigger`)
+ * - `:target` (short-hand for `target.bind`)
+ */
+export const ShortHandBindingSyntax = [
+  AtPrefixedTriggerAttributePatternRegistration,
+  ColonPrefixedBindAttributePatternRegistration
+];
+
+export const CallBindingCommandRegistration = CallBindingCommand as unknown as IRegistry;
+export const DefaultBindingCommandRegistration = DefaultBindingCommand as unknown as IRegistry;
+export const ForBindingCommandRegistration = ForBindingCommand as unknown as IRegistry;
+export const FromViewBindingCommandRegistration = FromViewBindingCommand as unknown as IRegistry;
+export const OneTimeBindingCommandRegistration = OneTimeBindingCommand as unknown as IRegistry;
+export const ToViewBindingCommandRegistration = ToViewBindingCommand as unknown as IRegistry;
+export const TwoWayBindingCommandRegistration = TwoWayBindingCommand as unknown as IRegistry;
 export const RefBindingCommandRegistration = RefBindingCommand as unknown as IRegistry;
 export const TriggerBindingCommandRegistration = TriggerBindingCommand as unknown as IRegistry;
 export const DelegateBindingCommandRegistration = DelegateBindingCommand as unknown as IRegistry;
@@ -66,18 +129,40 @@ export const StyleBindingCommandRegistration = StyleBindingCommand as unknown as
 
 /**
  * Default HTML-specific (but environment-agnostic) binding commands:
+ * - Property observation: `.bind`, `.one-time`, `.from-view`, `.to-view`, `.two-way`
+ * - Function call: `.call`
+ * - Collection observation: `.for`
  * - Event listeners: `.trigger`, `.delegate`, `.capture`
  */
 export const DefaultBindingLanguage = [
+  DefaultBindingCommandRegistration,
+  OneTimeBindingCommandRegistration,
+  FromViewBindingCommandRegistration,
+  ToViewBindingCommandRegistration,
+  TwoWayBindingCommandRegistration,
+  CallBindingCommandRegistration,
+  ForBindingCommandRegistration,
   RefBindingCommandRegistration,
   TriggerBindingCommandRegistration,
   DelegateBindingCommandRegistration,
   CaptureBindingCommandRegistration,
   ClassBindingCommandRegistration,
   StyleBindingCommandRegistration,
-  AttrBindingCommandRegistration
+  AttrBindingCommandRegistration,
 ];
 
+export const SanitizeValueConverterRegistration = SanitizeValueConverter as unknown as IRegistry;
+export const ViewValueConverterRegistration = ViewValueConverter as unknown as IRegistry;
+export const FrequentMutationsRegistration = FrequentMutations as unknown as IRegistry;
+export const InfrequentMutationsRegistration = InfrequentMutations as unknown as IRegistry;
+export const ObserveShallowRegistration = ObserveShallow as unknown as IRegistry;
+export const IfRegistration = If as unknown as IRegistry;
+export const ElseRegistration = Else as unknown as IRegistry;
+export const RepeatRegistration = Repeat as unknown as IRegistry;
+export const WithRegistration = With as unknown as IRegistry;
+export const SwitchRegistration = Switch as unknown as IRegistry;
+export const CaseRegistration = Case as unknown as IRegistry;
+export const DefaultCaseRegistration = DefaultCase as unknown as IRegistry;
 export const AttrBindingBehaviorRegistration = AttrBindingBehavior as unknown as IRegistry;
 export const SelfBindingBehaviorRegistration = SelfBindingBehavior as unknown as IRegistry;
 export const UpdateTriggerBindingBehaviorRegistration = UpdateTriggerBindingBehavior as unknown as IRegistry;
@@ -88,43 +173,95 @@ export const BlurRegistration = Blur as unknown as IRegistry;
 
 /**
  * Default HTML-specific (but environment-agnostic) resources:
- * - Binding Behaviors: `attr`, `self`, `updateTrigger`
- * - Custom Elements: `au-compose`
+ * - Binding Behaviors: `oneTime`, `toView`, `fromView`, `twoWay`, `signal`, `debounce`, `throttle`, `attr`, `self`, `updateTrigger`
+ * - Custom Elements: `au-compose`, `au-slot`
  * - Custom Attributes: `blur`, `focus`, `portal`
+ * - Template controllers: `if`/`else`, `repeat`, `with`
+ * - Value Converters: `sanitize`
  */
 export const DefaultResources = [
+  DebounceBindingBehaviorRegistration,
+  OneTimeBindingBehaviorRegistration,
+  ToViewBindingBehaviorRegistration,
+  FromViewBindingBehaviorRegistration,
+  SignalBindingBehaviorRegistration,
+  ThrottleBindingBehaviorRegistration,
+  TwoWayBindingBehaviorRegistration,
+  SanitizeValueConverterRegistration,
+  ViewValueConverterRegistration,
+  FrequentMutationsRegistration,
+  InfrequentMutationsRegistration,
+  ObserveShallowRegistration,
+  IfRegistration,
+  ElseRegistration,
+  RepeatRegistration,
+  WithRegistration,
+  SwitchRegistration,
+  CaseRegistration,
+  DefaultCaseRegistration,
   AttrBindingBehaviorRegistration,
   SelfBindingBehaviorRegistration,
   UpdateTriggerBindingBehaviorRegistration,
   ComposeRegistration,
   PortalRegistration,
   FocusRegistration,
-  BlurRegistration
+  BlurRegistration,
+  AuSlot,
 ];
 
-export const ListenerBindingRendererRegistration = ListenerBindingRenderer as unknown as IRegistry;
-export const AttributeBindingRendererRegistration = AttributeBindingRenderer as unknown as IRegistry;
-export const SetAttributeRendererRegistration = SetAttributeRenderer as unknown as IRegistry;
-export const SetClassAttributeRendererRegistration = SetClassAttributeRenderer as unknown as IRegistry;
-export const SetStyleAttributeRendererRegistration = SetStyleAttributeRenderer as unknown as IRegistry;
-export const StylePropertyBindingRendererRegistration = StylePropertyBindingRenderer as unknown as IRegistry;
-export const TextBindingRendererRegistration = TextBindingRenderer as unknown as IRegistry;
+export const CallBindingComposerRegistration = CallBindingComposer as unknown as IRegistry;
+export const CustomAttributeComposerRegistration = CustomAttributeComposer as unknown as IRegistry;
+export const CustomElementComposerRegistration = CustomElementComposer as unknown as IRegistry;
+export const InterpolationBindingComposerRegistration = InterpolationBindingComposer as unknown as IRegistry;
+export const IteratorBindingComposerRegistration = IteratorBindingComposer as unknown as IRegistry;
+export const LetElementComposerRegistration = LetElementComposer as unknown as IRegistry;
+export const PropertyBindingComposerRegistration = PropertyBindingComposer as unknown as IRegistry;
+export const RefBindingComposerRegistration = RefBindingComposer as unknown as IRegistry;
+export const SetPropertyComposerRegistration = SetPropertyComposer as unknown as IRegistry;
+export const TemplateControllerComposerRegistration = TemplateControllerComposer as unknown as IRegistry;
+export const ListenerBindingComposerRegistration = ListenerBindingComposer as unknown as IRegistry;
+export const AttributeBindingComposerRegistration = AttributeBindingComposer as unknown as IRegistry;
+export const SetAttributeComposerRegistration = SetAttributeComposer as unknown as IRegistry;
+export const SetClassAttributeComposerRegistration = SetClassAttributeComposer as unknown as IRegistry;
+export const SetStyleAttributeComposerRegistration = SetStyleAttributeComposer as unknown as IRegistry;
+export const StylePropertyBindingComposerRegistration = StylePropertyBindingComposer as unknown as IRegistry;
+export const TextBindingComposerRegistration = TextBindingComposer as unknown as IRegistry;
 
 /**
- * Default HTML-specfic (but environment-agnostic) renderers for:
+ * Default composers for:
+ * - PropertyBinding: `bind`, `one-time`, `to-view`, `from-view`, `two-way`
+ * - IteratorBinding: `for`
+ * - CallBinding: `call`
+ * - RefBinding: `ref`
+ * - InterpolationBinding: `${}`
+ * - SetProperty
+ * - `customElement` hydration
+ * - `customAttribute` hydration
+ * - `templateController` hydration
+ * - `let` element hydration
  * - Listener Bindings: `trigger`, `capture`, `delegate`
  * - SetAttribute
  * - StyleProperty: `style`, `css`
  * - TextBinding: `${}`
  */
-export const DefaultRenderers = [
-  ListenerBindingRendererRegistration,
-  AttributeBindingRendererRegistration,
-  SetAttributeRendererRegistration,
-  SetClassAttributeRendererRegistration,
-  SetStyleAttributeRendererRegistration,
-  StylePropertyBindingRendererRegistration,
-  TextBindingRendererRegistration
+export const DefaultComposers = [
+  PropertyBindingComposerRegistration,
+  IteratorBindingComposerRegistration,
+  CallBindingComposerRegistration,
+  RefBindingComposerRegistration,
+  InterpolationBindingComposerRegistration,
+  SetPropertyComposerRegistration,
+  CustomElementComposerRegistration,
+  CustomAttributeComposerRegistration,
+  TemplateControllerComposerRegistration,
+  LetElementComposerRegistration,
+  ListenerBindingComposerRegistration,
+  AttributeBindingComposerRegistration,
+  SetAttributeComposerRegistration,
+  SetClassAttributeComposerRegistration,
+  SetStyleAttributeComposerRegistration,
+  StylePropertyBindingComposerRegistration,
+  TextBindingComposerRegistration,
 ];
 
 /**
@@ -132,21 +269,20 @@ export const DefaultRenderers = [
  * - `RuntimeConfiguration` from `@aurelia/runtime`
  * - `DefaultComponents`
  * - `DefaultResources`
- * - `DefaultRenderers`
+ * - `DefaultComposers`
  */
-export const RuntimeHtmlConfiguration = {
+export const StandardConfiguration = {
   /**
    * Apply this configuration to the provided container.
    */
   register(container: IContainer): IContainer {
-    return RuntimeConfiguration
-      .register(container)
-      .register(
-        ...DefaultComponents,
-        ...DefaultResources,
-        ...DefaultBindingLanguage,
-        ...DefaultRenderers,
-      );
+    return container.register(
+      ...DefaultComponents,
+      ...DefaultResources,
+      ...DefaultBindingSyntax,
+      ...DefaultBindingLanguage,
+      ...DefaultComposers,
+    );
   },
   /**
    * Create a new container with this configuration applied to it.

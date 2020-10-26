@@ -1,7 +1,7 @@
 import { Constructable, LogLevel, Registration, ILogConfig, LoggerConfiguration } from '@aurelia/kernel';
-import { Aurelia } from '@aurelia/runtime';
-import { RouterOptions, RouterConfiguration, IRouter, IRouterActivateOptions, NavigationState } from '@aurelia/router';
-import { TestContext, assert } from '@aurelia/testing';
+import { Aurelia } from '@aurelia/runtime-html';
+import { RouterConfiguration, IRouter, IRouterActivateOptions, NavigationState } from '@aurelia/router';
+import { TestContext } from '@aurelia/testing';
 
 import { IHIAConfig, IHookInvocationAggregator } from './hook-invocation-tracker';
 import { TestRouterConfiguration } from './configuration';
@@ -63,8 +63,8 @@ export async function createFixture<T extends Constructable>(
 ) {
   const hiaConfig = createHIAConfig();
   const routerOptions = createRouterOptions();
-  const ctx = TestContext.createHTMLTestContext();
-  const { container, scheduler } = ctx;
+  const ctx = TestContext.create();
+  const { container, platform } = ctx;
 
   container.register(Registration.instance(IHIAConfig, hiaConfig));
   container.register(TestRouterConfiguration.for(ctx, level));
@@ -96,7 +96,7 @@ export async function createFixture<T extends Constructable>(
     host,
     hia,
     component,
-    scheduler,
+    platform,
     router,
     // activityTracker,
     startTracing() {

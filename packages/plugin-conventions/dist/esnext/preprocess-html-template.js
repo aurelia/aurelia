@@ -64,7 +64,7 @@ export function preprocessHtmlTemplate(unit, options) {
         }
     });
     const m = modifyCode('', unit.path);
-    m.append(`import { CustomElement } from '@aurelia/runtime';\n`);
+    m.append(`import { CustomElement } from '@aurelia/runtime-html';\n`);
     if (cssDeps.length > 0) {
         if (shadowMode !== null) {
             m.append(`import { shadowCSS } from '@aurelia/runtime-html';\n`);

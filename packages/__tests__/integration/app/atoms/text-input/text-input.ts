@@ -1,4 +1,4 @@
-import { bindable, customElement } from '@aurelia/runtime';
+import { bindable, customElement } from '@aurelia/runtime-html';
 import template from './text-input.html';
 
 /**

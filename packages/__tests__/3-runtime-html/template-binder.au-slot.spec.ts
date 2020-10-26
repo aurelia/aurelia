@@ -1,12 +1,8 @@
 /* eslint-disable mocha/no-hooks, mocha/no-sibling-hooks */
-import { IAttrSyntaxTransformer, ITemplateElementFactory, TemplateBinder } from '@aurelia/runtime-html';
 import {
-  AuSlot,
-  CustomElement,
-  CustomElementType,
-  IDOM,
-  IExpressionParser,
-  INode,
+  IAttrSyntaxTransformer,
+  ITemplateElementFactory,
+  TemplateBinder,
   CustomElementSymbol,
   IAttributeParser,
   PlainElementSymbol,
@@ -14,14 +10,19 @@ import {
   ResourceModel,
   SymbolFlags,
   TemplateControllerSymbol,
-} from '@aurelia/runtime';
+  AuSlot,
+  CustomElement,
+  CustomElementType,
+  IExpressionParser,
+  IPlatform,
+} from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 
 describe('template-binder.au-slot', function () {
   class TestData {
     public constructor(
       public readonly markup: string,
-      public readonly verify: (manifestRoot: PlainElementSymbol, dom: IDOM, factory: ITemplateElementFactory, resources: ResourceModel) => void,
+      public readonly verify: (manifestRoot: PlainElementSymbol, platform: IPlatform, factory: ITemplateElementFactory, resources: ResourceModel) => void,
       public readonly customElements: CustomElementType[] = [],
     ) { }
   }
@@ -29,7 +30,7 @@ describe('template-binder.au-slot', function () {
     public constructor(
       public readonly binder: TemplateBinder,
       public readonly factory: ITemplateElementFactory,
-      public readonly dom: IDOM,
+      public readonly platform: IPlatform,
       public readonly resources: ResourceModel,
     ) { }
   }
@@ -42,8 +43,8 @@ describe('template-binder.au-slot', function () {
     assert.strictEqual(ce.slotName, expectedSlotName);
   }
   function setup(customElements: CustomElementType[] = []) {
-    const ctx = TestContext.createHTMLTestContext();
-    const { dom, container } = ctx;
+    const ctx = TestContext.create();
+    const { platform, container } = ctx;
 
     container.register(AuSlot, ...customElements);
 
@@ -54,9 +55,9 @@ describe('template-binder.au-slot', function () {
     const transformer = container.get(IAttrSyntaxTransformer);
 
     return new AuSlotTestContext(
-      new TemplateBinder(dom, resources, attrParser, exprParser, transformer),
+      new TemplateBinder(platform, resources, attrParser, exprParser, transformer),
       container.get(ITemplateElementFactory),
-      dom,
+      platform,
       resources,
     );
   }
@@ -180,7 +181,7 @@ describe('template-binder.au-slot', function () {
         verifyAuSlot(node, "s1");
         // comparing DOM directly fails in node and FF
         assert.deepStrictEqual(
-          node.projections.map((p) => [p.name, (p.template.physicalNode as HTMLElement).outerHTML]),
+          node.projections.map((p) => [p.name, p.template.physicalNode.outerHTML]),
           [["default", '<div></div>']]);
       }
     );
@@ -194,7 +195,7 @@ describe('template-binder.au-slot', function () {
         assert.instanceOf(ce, CustomElementSymbol);
         assert.includes(ce.res, 'my-element');
         assert.deepStrictEqual(
-          ce.projections.map((p) => [p.name, (p.template.physicalNode as HTMLElement).outerHTML]),
+          ce.projections.map((p) => [p.name, p.template.physicalNode.outerHTML]),
           [["default", '<div></div>']]);
       },
       [createElement('')]
@@ -206,21 +207,21 @@ describe('template-binder.au-slot', function () {
         assert.instanceOf(ce, CustomElementSymbol);
         assert.includes(ce.res, 'my-element');
         assert.deepStrictEqual(
-          ce.projections.map((p) => [p.name, (p.template.physicalNode as HTMLElement).outerHTML]),
+          ce.projections.map((p) => [p.name, p.template.physicalNode.outerHTML]),
           [["s1", '<div></div>'], ["s2", '<div></div>']]);
       },
       [createElement('')]
     );
     yield new TestData(
       '<my-element1><div au-slot="s1"><my-element2><div au-slot="s1"></div></my-element2></div></my-element1>',
-      (mfr, dom, factory, resources) => {
+      (mfr, platform, factory, resources) => {
         const ce = (mfr.childNodes[0] as CustomElementSymbol);
         assert.instanceOf(ce, CustomElementSymbol);
         assert.includes(ce.res, 'my-element1');
 
-        const mel2 = new CustomElementSymbol(dom, (factory.createTemplate('<my-element2 class="au"></my-element2>') as HTMLTemplateElement).content.firstChild as INode, resources.getElementInfo('my-element2'));
-        mel2.projections.push(new ProjectionSymbol("s1", new PlainElementSymbol(dom, (factory.createTemplate('<div></div>') as HTMLTemplateElement).content.firstChild as INode)));
-        const mel1 = new PlainElementSymbol(dom, (factory.createTemplate('<div><my-element2><div></div></my-element2></div>') as HTMLTemplateElement).content.firstChild as INode);
+        const mel2 = new CustomElementSymbol(platform, factory.createTemplate('<my-element2 class="au"></my-element2>').content.firstChild as HTMLElement, resources.getElementInfo('my-element2'));
+        mel2.projections.push(new ProjectionSymbol("s1", new PlainElementSymbol(factory.createTemplate('<div></div>').content.firstChild as HTMLElement)));
+        const mel1 = new PlainElementSymbol(factory.createTemplate('<div><my-element2><div></div></my-element2></div>').content.firstChild as HTMLElement);
         mel1.childNodes.push(mel2);
         const expected = [
           new ProjectionSymbol(
@@ -242,13 +243,13 @@ describe('template-binder.au-slot', function () {
         assert.instanceOf(ce1, CustomElementSymbol);
         assert.includes(ce1.res, 'my-element1');
         assert.deepStrictEqual(
-          ce1.projections.map((p) => [p.name, (p.template.physicalNode as HTMLElement).outerHTML]),
+          ce1.projections.map((p) => [p.name, p.template.physicalNode.outerHTML]),
           [["s1", '<div></div>']]);
         const ce2 = (mfr.childNodes[1] as CustomElementSymbol);
         assert.instanceOf(ce2, CustomElementSymbol);
         assert.includes(ce2.res, 'my-element2');
         assert.deepStrictEqual(
-          ce2.projections.map((p) => [p.name, (p.template.physicalNode as HTMLElement).outerHTML]),
+          ce2.projections.map((p) => [p.name, p.template.physicalNode.outerHTML]),
           [["s1", '<div></div>']]);
       },
       [
@@ -262,9 +263,9 @@ describe('template-binder.au-slot', function () {
     it(markup, function () {
       const ctx = setup(customElements);
       const factory = ctx.factory;
-      const template = factory.createTemplate(markup) as HTMLTemplateElement;
+      const template = factory.createTemplate(markup);
 
-      verify(ctx.binder.bind(template), ctx.dom, factory, ctx.resources);
+      verify(ctx.binder.bind(template), ctx.platform, factory, ctx.resources);
     });
   }
 
@@ -299,7 +300,7 @@ describe('template-binder.au-slot', function () {
     it(`throws binding ${markup}`, function () {
       const ctx = setup([createElement('')]);
       const factory = ctx.factory;
-      const template = factory.createTemplate(markup) as HTMLTemplateElement;
+      const template = factory.createTemplate(markup);
 
       assert.throws(() => { ctx.binder.bind(template); }, errorRe);
     });

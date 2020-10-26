@@ -23,15 +23,7 @@
  * IN THE SOFTWARE.
  */
 
-import {
-  IIndexable, PLATFORM,
-} from '@aurelia/kernel';
-import {
-  Scheduler,
-} from '@aurelia/scheduler';
-import {
-  ICompositionRoot, CustomElement, CustomAttribute, IScheduler, ITaskQueue, TaskQueue, TaskQueuePriority, ITask,
-} from '@aurelia/runtime';
+import { IIndexable, Task, TaskQueue } from '@aurelia/kernel';
 import {
   isDeepEqual,
   isDeepStrictEqual,
@@ -55,8 +47,15 @@ import {
   Object_is,
   Object_keys,
 } from './util';
-import { DOM } from '@aurelia/runtime-html';
-import { ensureSchedulerEmpty } from './scheduler';
+import {
+  IAppRoot,
+  CustomElement,
+  CustomAttribute,
+  TaskQueuePriority,
+  BrowserPlatform,
+} from '@aurelia/runtime-html';
+import { ensureTaskQueuesEmpty } from './scheduler';
+import { PLATFORM } from './test-context';
 
 /* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-explicit-any */
 
@@ -383,7 +382,7 @@ export function fail(message: string | Error = 'Failed'): never {
   throw err;
 }
 
-export function visibleTextEqual(root: ICompositionRoot, expectedText: string, message?: string): void {
+export function visibleTextEqual(root: IAppRoot, expectedText: string, message?: string): void {
   const actualText = getVisibleText(root.controller!, root.host as Node);
   if (actualText !== expectedText) {
     innerFail({
@@ -676,7 +675,7 @@ export function isCustomAttributeType(actual: any, message?: string): void {
   }
 }
 
-function getNode(elementOrSelector: string | Node, root: Node = DOM.document) {
+function getNode(elementOrSelector: string | Node, root: Node = PLATFORM.document) {
   return typeof elementOrSelector === "string"
     ? (root as Element).querySelector(elementOrSelector)
     : elementOrSelector;
@@ -730,7 +729,7 @@ function isInnerHtmlEqual(elementOrSelector: string | Node, expected: string, me
 
 type styleMatch = { isMatch: true } | { isMatch: false; property: string; actual: string; expected: string };
 function matchStyle(element: Node, expectedStyles: Record<string, string>): styleMatch {
-  const styles = DOM.window.getComputedStyle(element as Element);
+  const styles = PLATFORM.window.getComputedStyle(element as Element);
   for (const [property, expected] of Object.entries(expectedStyles)) {
     const actual: string = styles[property as any];
     if (actual !== expected) {
@@ -766,11 +765,9 @@ function notComputedStyle(element: Node, expectedStyles: Record<string, string>,
   }
 }
 
-const isSchedulerEmpty = (function () {
+const areTaskQueuesEmpty = (function () {
   function priorityToString(priority: TaskQueuePriority) {
     switch (priority) {
-      case TaskQueuePriority.microTask:
-        return 'microTask';
       case TaskQueuePriority.render:
         return 'render';
       case TaskQueuePriority.macroTask:
@@ -786,88 +783,71 @@ const isSchedulerEmpty = (function () {
     return ((num * 10 + .5) | 0) / 10;
   }
 
-  function reportTask(task: any) {
+  function reportTask(task: Task) {
     const id = task.id;
     const created = round(task.createdTime);
     const queue = round(task.queueTime);
     const preempt = task.preempt;
     const reusable = task.reusable;
     const persistent = task.persistent;
-    const status = task._status;
+    const status = task['_status'];
 
     return `    task id=${id} createdTime=${created} queueTime=${queue} preempt=${preempt} reusable=${reusable} persistent=${persistent} status=${status}\n`
       + `    task callback="${task.callback?.toString()}"`;
   }
 
-  function toArray(task: any) {
-    const arr = [task];
-    while (task = task.next) {
-      arr.push(task);
-    }
-    return arr;
-  }
+  function reportTaskQueue(name: string, taskQueue: TaskQueue) {
+    const processing = taskQueue['processing'];
+    const pending = taskQueue['pending'];
+    const delayed = taskQueue['delayed'];
+    const flushReq = taskQueue['flushRequested'];
 
-  function reportTaskQueue(taskQueue: any) {
-    const processing = taskQueue.processingSize;
-    const pending = taskQueue.pendingSize;
-    const delayed = taskQueue.delayedSize;
-    const flushReq = taskQueue.flushRequested;
-    const prio = taskQueue.priority;
-
-    let info = `${priorityToString(prio)}TaskQueue has processing=${processing} pending=${pending} delayed=${delayed} flushRequested=${flushReq}\n\n`;
+    let info = `${name} has processing=${processing.length} pending=${pending.length} delayed=${delayed.length} flushRequested=${flushReq}\n\n`;
     if (processing > 0) {
-      info += `  Tasks in processing:\n${toArray(taskQueue.processingHead).map(reportTask).join('')}`;
+      info += `  Tasks in processing:\n${processing.map(reportTask).join('')}`;
     }
     if (pending > 0) {
-      info += `  Tasks in pending:\n${toArray(taskQueue.pendingHead).map(reportTask).join('')}`;
+      info += `  Tasks in pending:\n${pending.map(reportTask).join('')}`;
     }
     if (delayed > 0) {
-      info += `  Tasks in delayed:\n${toArray(taskQueue.delayedHead).map(reportTask).join('')}`;
+      info += `  Tasks in delayed:\n${delayed.map(reportTask).join('')}`;
     }
 
     return info;
   }
 
-  return function $isSchedulerEmpty(clearBeforeThrow?: any) {
-    // Please don't do this anywhere else. We need to get rid of this / improve this at some point, not make it worse.
-    // Also for this to work, a HTMLTestContext needs to have been created somewhere, so we can't just call this e.g. in kernel and certain runtime tests that don't use
-    // the full test context.
-    const scheduler = Scheduler.get(PLATFORM.global)!;
+  return function $areTaskQueuesEmpty(clearBeforeThrow?: any) {
+    const platform = BrowserPlatform.getOrCreate(globalThis)!;
 
-    const microTaskQueue = scheduler.getMicroTaskQueue() as any;
-    const renderTaskQueue = scheduler.getRenderTaskQueue() as any;
-    const macroTaskQueue = scheduler.getMacroTaskQueue() as any;
-    const postRenderTaskQueue = scheduler.getPostRenderTaskQueue() as any;
+    const domWriteQueue = platform.domWriteQueue;
+    const macroTaskQueue = platform.macroTaskQueue;
+    const domReadQueue = platform.domReadQueue;
 
     let isEmpty = true;
     let message = '';
-    if (!microTaskQueue.isEmpty) {
-      message += `\n${reportTaskQueue(microTaskQueue)}\n\n`;
-      isEmpty = false;
-    }
-    if (!renderTaskQueue.isEmpty) {
-      message += `\n${reportTaskQueue(renderTaskQueue)}\n\n`;
+    if (!domWriteQueue.isEmpty) {
+      message += `\n${reportTaskQueue('domWriteQueue', domWriteQueue)}\n\n`;
       isEmpty = false;
     }
     if (!macroTaskQueue.isEmpty) {
-      message += `\n${reportTaskQueue(macroTaskQueue)}\n\n`;
+      message += `\n${reportTaskQueue('macroTaskQueue', macroTaskQueue)}\n\n`;
       isEmpty = false;
     }
-    if (!postRenderTaskQueue.isEmpty) {
-      message += `\n${reportTaskQueue(postRenderTaskQueue)}\n\n`;
+    if (!domReadQueue.isEmpty) {
+      message += `\n${reportTaskQueue('domReadQueue', domReadQueue)}\n\n`;
       isEmpty = false;
     }
 
     if (!isEmpty) {
       if (clearBeforeThrow === true) {
-        ensureSchedulerEmpty(scheduler);
+        ensureTaskQueuesEmpty(platform);
       }
       innerFail({
         actual: void 0,
         expected: void 0,
         message,
         operator: '' as any,
-        stackStartFn: $isSchedulerEmpty
+        stackStartFn: $areTaskQueuesEmpty
       });
     }
   };
@@ -902,7 +882,7 @@ const assert = Object_freeze({
   match,
   notMatch,
   visibleTextEqual,
-  isSchedulerEmpty,
+  areTaskQueuesEmpty,
   isCustomElementType,
   isCustomAttributeType,
   strict: {

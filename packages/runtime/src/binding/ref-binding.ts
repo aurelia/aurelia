@@ -3,15 +3,12 @@ import {
   IServiceLocator,
 } from '@aurelia/kernel';
 import {
-  LifecycleFlags,
-} from '../flags';
-import { IBinding } from '../lifecycle';
-import {
   IsBindingBehavior,
 } from './ast';
 import { IConnectableBinding } from './connectable';
 
 import type { Scope } from '../observation/binding-context';
+import { IBinding, LifecycleFlags } from '..';
 
 export interface RefBinding extends IConnectableBinding {}
 export class RefBinding implements IBinding {

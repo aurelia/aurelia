@@ -553,7 +553,7 @@ describe('ValidationMessageProvider', function () {
     }
   }
   function setup(customMessages?: ICustomMessage[]) {
-    const container = TestContext.createHTMLTestContext().container;
+    const container = TestContext.create().container;
     const eventLog = new EventLog();
 
     const configuration = customMessages !== (void 0)
@@ -833,7 +833,7 @@ describe('ValidationMessageProvider', function () {
 describe('parsePropertyName', function () {
 
   function setup() {
-    const container = TestContext.createHTMLTestContext().container;
+    const container = TestContext.create().container;
     container.register(ValidationConfiguration);
     return {
       parser: container.get(IExpressionParser),
@@ -979,7 +979,7 @@ describe('parsePropertyName', function () {
 describe('PropertyRule', function () {
 
   function setup() {
-    const container = TestContext.createHTMLTestContext().container;
+    const container = TestContext.create().container;
     container.register(ValidationConfiguration);
     return { validationRules: container.get(IValidationRules), container };
   }

@@ -4,15 +4,10 @@ import {
 } from '@aurelia/kernel';
 import {
   ITask,
-} from '@aurelia/scheduler';
-import {
-  LifecycleFlags,
-} from '../flags';
+} from '@aurelia/platform';
 import {
   ILifecycle,
-} from '../lifecycle';
-import {
-  IObservable,
+  IObservable, LifecycleFlags,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
 import { IsExpression } from './ast';

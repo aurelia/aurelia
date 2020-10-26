@@ -1,18 +1,8 @@
 import {
-  stringifyLifecycleFlags,
-} from '@aurelia/debug';
-import {
-  CustomAttributeSymbol,
-  NodeSymbol,
-  PlainAttributeSymbol,
-  AnySymbol,
-  AttrSyntax,
-} from '@aurelia/runtime';
-import {
   Class,
   IContainer,
   Registration,
-  PLATFORM,
+  emptyArray,
 } from '@aurelia/kernel';
 import { getOwnPropertyDescriptors, Reflect_apply } from './util';
 
@@ -101,14 +91,14 @@ export function recordCalls<TProto extends object>(
       let newGet, newSet;
       if (get) {
         newGet = function (this: any) {
-          calls.addCall(this, `get ${key}`, PLATFORM.emptyArray);
-          return Reflect_apply(get, this, PLATFORM.emptyArray);
+          calls.addCall(this, `get ${key}`, emptyArray);
+          return Reflect_apply(get, this, emptyArray);
         };
         Reflect.defineProperty(newGet, 'original', { value: get });
       }
       if (set) {
         newSet = function (this: any, valueToSet: any) {
-          calls.addCall(this, `get ${key}`, PLATFORM.emptyArray);
+          calls.addCall(this, `get ${key}`, emptyArray);
           Reflect_apply(set, this, [valueToSet]);
         };
         Reflect.defineProperty(newSet, 'original', { value: set });

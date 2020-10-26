@@ -1,40 +1,42 @@
 export {
-  AttrSyntax,
-  IAttributeParser,
-} from './attribute-parser';
+  IPlatform,
+} from '@aurelia/kernel';
 export {
-  attributePattern,
-  AttributePatternDefinition,
-  IAttributePattern,
-  AttributePattern,
-  Interpretation,
-  ISyntaxInterpreter,
-} from './attribute-pattern';
+  Platform,
+  TaskQueue,
+  Task,
+  TaskAbortError,
+  TaskQueuePriority,
+  TaskStatus,
+  QueueTaskOptions,
+  ITask,
+} from '@aurelia/platform';
+
+import { IRegistry } from '@aurelia/kernel';
+import {
+  FromViewBindingBehavior,
+  OneTimeBindingBehavior,
+  ToViewBindingBehavior,
+  TwoWayBindingBehavior
+} from './binding-behaviors/binding-mode';
+import { DebounceBindingBehavior } from './binding-behaviors/debounce';
+import { SignalBindingBehavior } from './binding-behaviors/signals';
+import { ThrottleBindingBehavior } from './binding-behaviors/throttle';
+
+export const DebounceBindingBehaviorRegistration = DebounceBindingBehavior as unknown as IRegistry;
+export const OneTimeBindingBehaviorRegistration = OneTimeBindingBehavior as unknown as IRegistry;
+export const ToViewBindingBehaviorRegistration = ToViewBindingBehavior as unknown as IRegistry;
+export const FromViewBindingBehaviorRegistration = FromViewBindingBehavior as unknown as IRegistry;
+export const SignalBindingBehaviorRegistration = SignalBindingBehavior as unknown as IRegistry;
+export const ThrottleBindingBehaviorRegistration = ThrottleBindingBehavior as unknown as IRegistry;
+export const TwoWayBindingBehaviorRegistration = TwoWayBindingBehavior as unknown as IRegistry;
+
 export {
-  AtPrefixedTriggerAttributePattern,
-  ColonPrefixedBindAttributePattern,
-  DotSeparatedAttributePattern,
-  RefAttributePattern,
-} from './attribute-patterns';
+  alias,
+  registerAliases,
+} from './alias';
 export {
-  bindingCommand,
-  BindingCommand ,
-  BindingCommandInstance,
-  BindingCommandDefinition,
-  BindingCommandKind,
-  BindingCommandType,
-  getTarget,
-} from './binding-command';
-export {
-  CallBindingCommand,
-  DefaultBindingCommand,
-  ForBindingCommand,
-  FromViewBindingCommand,
-  OneTimeBindingCommand,
-  ToViewBindingCommand,
-  TwoWayBindingCommand
-} from './binding-commands';
-export {
+  ExpressionKind,
   CallFunctionExpression,
   CustomExpression,
   BindingBehaviorExpression,
@@ -77,7 +79,7 @@ export {
   BinaryOperator,
   BindingIdentifierOrPattern,
   UnaryOperator,
-  IHydrator,
+  IExpressionHydrator,
 } from './binding/ast';
 export {
   PropertyBinding
@@ -209,80 +211,26 @@ export {
   BindingBehaviorInstance,
   BindingBehaviorType,
   BindingInterceptor,
-  IInterceptableBinding
-} from './resources/binding-behavior';
+  BindingBehaviorFactory,
+  BindingBehaviorStrategy,
+  IInterceptableBinding,
+} from './binding-behavior';
 export {
   BindingModeBehavior,
   OneTimeBindingBehavior,
   ToViewBindingBehavior,
   FromViewBindingBehavior,
   TwoWayBindingBehavior
-} from './resources/binding-behaviors/binding-mode';
+} from './binding-behaviors/binding-mode';
 export {
   DebounceBindingBehavior
-} from './resources/binding-behaviors/debounce';
+} from './binding-behaviors/debounce';
 export {
   SignalBindingBehavior
-} from './resources/binding-behaviors/signals';
+} from './binding-behaviors/signals';
 export {
   ThrottleBindingBehavior
-} from './resources/binding-behaviors/throttle';
-
-export {
-  customAttribute,
-  CustomAttributeDecorator,
-  CustomAttribute,
-  CustomAttributeDefinition,
-  CustomAttributeKind,
-  CustomAttributeType,
-  PartialCustomAttributeDefinition,
-  templateController,
-} from './resources/custom-attribute';
-export {
-  FrequentMutations,
-  InfrequentMutations,
-  ObserveShallow,
-} from './resources/custom-attributes/flags';
-export {
-  If,
-  Else
-} from './resources/custom-attributes/if';
-export {
-  Repeat
-} from './resources/custom-attributes/repeat';
-export {
-  With
-} from './resources/custom-attributes/with';
-export {
-  Switch,
-  Case,
-  DefaultCase,
-} from './resources/custom-attributes/switch';
-
-export {
-  AuSlot,
-  IProjections,
-  SlotInfo,
-  AuSlotContentType,
-  RegisteredProjections,
-  IProjectionProvider,
-  ProjectionContext,
-} from './resources/custom-elements/au-slot';
-
-export {
-  containerless,
-  customElement,
-  CustomElementHost,
-  CustomElement,
-  CustomElementDecorator,
-  CustomElementKind,
-  CustomElementType,
-  CustomElementDefinition,
-  PartialCustomElementDefinition,
-  IElementProjector,
-  IProjectorLocator,
-  useShadowDOM
-} from './resources/custom-element';
+} from './binding-behaviors/throttle';
 
 export {
   ValueConverter,
@@ -293,58 +241,14 @@ export {
   ValueConverterInstance,
   ValueConverterType,
   valueConverter,
-} from './resources/value-converter';
-export {
-  ISanitizer,
-  SanitizeValueConverter
-} from './resources/value-converters/sanitize';
-export {
-  ViewValueConverter
-} from './resources/value-converters/view';
-
-export {
-  Now,
-  IScheduler,
-  ITask,
-  ITaskQueue,
-  QueueTaskOptions,
-  Task,
-  TaskAbortError,
-  TaskCallback,
-  TaskQueue,
-  TaskQueuePriority,
-  TaskStatus,
-  QueueTaskTargetOptions,
-} from '@aurelia/scheduler';
+} from './value-converter';
 
 export {
   bindable,
   PartialBindableDefinition,
   BindableDefinition,
   Bindable,
-} from './templating/bindable';
-
-export {
-  PartialChildrenDefinition,
-  ChildrenDefinition,
-  Children,
-  children,
-  ChildrenObserver,
-} from './templating/children';
-
-// These exports are temporary until we have a proper way to unit test them
-export {
-  Controller,
-  isCustomElementController,
-  isCustomElementViewModel,
-} from './templating/controller';
-export {
-  ViewFactory,
-  IViewLocator,
-  ViewLocator,
-  view,
-  Views,
-} from './templating/view';
+} from './bindable';
 
 export {
   watch,
@@ -355,158 +259,12 @@ export {
 } from './templating/watch';
 
 export {
-  Aurelia,
-  IAurelia,
-  IDOMInitializer,
-  ISinglePageApp,
-  CompositionRoot,
-  ICompositionRoot,
-} from './aurelia';
-export {
-  RefAttributePatternRegistration,
-  DotSeparatedAttributePatternRegistration,
-
-  DefaultBindingSyntax,
-
-  AtPrefixedTriggerAttributePatternRegistration,
-  ColonPrefixedBindAttributePatternRegistration,
-
-  ShortHandBindingSyntax,
-
-  CallBindingCommandRegistration,
-  DefaultBindingCommandRegistration,
-  ForBindingCommandRegistration,
-  FromViewBindingCommandRegistration,
-  OneTimeBindingCommandRegistration,
-  ToViewBindingCommandRegistration,
-  TwoWayBindingCommandRegistration,
-
-  DefaultBindingLanguage,
-
-  IfRegistration,
-  ElseRegistration,
-  RepeatRegistration,
-  WithRegistration,
-
-  SanitizeValueConverterRegistration,
-
-  DebounceBindingBehaviorRegistration,
-  OneTimeBindingBehaviorRegistration,
-  ToViewBindingBehaviorRegistration,
-  FromViewBindingBehaviorRegistration,
-  SignalBindingBehaviorRegistration,
-  ThrottleBindingBehaviorRegistration,
-  TwoWayBindingBehaviorRegistration,
-
-  RefBindingRendererRegistration,
-  CallBindingRendererRegistration,
-  CustomAttributeRendererRegistration,
-  CustomElementRendererRegistration,
-  InterpolationBindingRendererRegistration,
-  IteratorBindingRendererRegistration,
-  LetElementRendererRegistration,
-  PropertyBindingRendererRegistration,
-  SetPropertyRendererRegistration,
-  TemplateControllerRendererRegistration,
-
-  DefaultResources,
-  RuntimeConfiguration
-} from './configuration';
-export {
-  AttributeInstruction,
-  HooksDefinition,
-  ICallBindingInstruction,
-  IHydrateAttributeInstruction,
-  IHydrateElementInstruction,
-  IHydrateLetElementInstruction,
-  IHydrateTemplateController,
-  IInterpolationInstruction,
-  IIteratorBindingInstruction,
-  ILetBindingInstruction,
-  InstructionRow,
-  InstructionTypeName,
-  IPropertyBindingInstruction,
-  IRefBindingInstruction,
-  ISetPropertyInstruction,
-  isTargetedInstruction,
-  ITargetedInstruction,
-  NodeInstruction,
-  TargetedInstruction,
-  TargetedInstructionType,
-  alias,
-  registerAliases,
-} from './definitions';
-export {
-  DOM,
-  INode,
-  IRenderLocation,
-  IDOM,
-  NodeSequence,
-  INodeSequence,
-  INodeSequenceFactory
-} from './dom';
-export {
   BindingMode,
   BindingStrategy,
-  ExpressionKind,
   LifecycleFlags,
-} from './flags';
-export {
-  CallBindingInstruction,
-  FromViewBindingInstruction,
-  HydrateAttributeInstruction,
-  HydrateElementInstruction,
-  HydrateTemplateController,
-  InterpolationInstruction,
-  IteratorBindingInstruction,
-  LetBindingInstruction,
-  LetElementInstruction,
-  OneTimeBindingInstruction,
-  RefBindingInstruction,
-  SetPropertyInstruction,
-  ToViewBindingInstruction,
-  TwoWayBindingInstruction
-} from './instructions';
-export {
-  ViewModelKind,
-  ControllerVisitor,
+  AccessorOrObserver,
   IBinding,
   ILifecycle,
-  IViewModel,
-  IController,
-  IComponentController,
-  IContextualCustomElementController,
-  IRenderableController,
-  IDryCustomElementController,
-  ICustomAttributeController,
-  IHydratedController,
-  IHydratedComponentController,
-  IHydratedParentController,
-  ICompiledCustomElementController,
-  ICustomElementController,
-  IViewCache,
-  IViewFactory,
-  MountStrategy,
-  ICustomElementViewModel,
-  ICustomAttributeViewModel,
-  IHydratedCustomElementViewModel,
-  IHydratedCustomAttributeViewModel,
-  ISyntheticView,
-} from './lifecycle';
-export {
-  getRenderContext,
-  isRenderContext,
-  IRenderContext,
-  ICompiledRenderContext,
-  IComponentFactory,
-} from './templating/render-context';
-export {
-  TaskSlot,
-  AppTask,
-  IAppTask,
-} from './app-task';
-export {
-  AccessorOrObserver,
   AccessorType,
   Collection,
   CollectionKind,
@@ -521,6 +279,7 @@ export {
   ICollectionIndexObserver,
   ICollectionSubscriber,
   IndexMap,
+  IBatchable,
   IObservable,
   IObservedArray,
   IObservedMap,
@@ -546,38 +305,3 @@ export {
   cloneIndexMap,
   createIndexMap,
 } from './observation';
-export {
-  applyBindingBehavior,
-  IInstructionRenderer,
-  IInstructionTypeClassifier,
-  IRenderer,
-  ITemplateCompiler,
-  instructionRenderer,
-  ensureExpression,
-} from './renderer';
-export {
-  ResourceModel,
-  BindableInfo,
-  ElementInfo,
-  AttrInfo
-} from './resource-model';
-export {
-  AnySymbol,
-  BindingSymbol,
-  CustomAttributeSymbol,
-  CustomElementSymbol,
-  ElementSymbol,
-  LetElementSymbol,
-  NodeSymbol,
-  ParentNodeSymbol,
-  PlainAttributeSymbol,
-  PlainElementSymbol,
-  ResourceAttributeSymbol,
-  SymbolFlags,
-  SymbolWithBindings,
-  SymbolWithMarker,
-  SymbolWithTemplate,
-  TemplateControllerSymbol,
-  TextSymbol,
-  ProjectionSymbol,
-} from './semantic-model';

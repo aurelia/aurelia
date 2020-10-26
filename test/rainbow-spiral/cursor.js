@@ -1,4 +1,4 @@
-import { CustomElementResource } from '@aurelia/runtime';
+import { CustomElementResource } from '@aurelia/runtime-html';
 
 const TEMPLATE =
 `<template

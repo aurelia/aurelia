@@ -1,24 +1,21 @@
 import {
   Class,
-  IServiceLocator
+  IServiceLocator,
+  ResourceDefinition
 } from '@aurelia/kernel';
-import { LifecycleFlags } from '../flags';
-import { IBinding } from '../lifecycle';
 import {
   IConnectable,
   IBindingTargetObserver,
   IProxySubscribable,
   ISubscribable,
   ISubscriber,
+  IBinding,
+  LifecycleFlags,
 } from '../observation';
 import { IObserverLocator } from '../observation/observer-locator';
-import { BindingBehaviorInstance } from '../resources/binding-behavior';
-import { CustomElementDefinition } from '../resources/custom-element';
 import type { Scope } from '../observation/binding-context';
 
 // TODO: add connect-queue (or something similar) back in when everything else is working, to improve startup time
-
-const slice = Array.prototype.slice;
 
 const slotNames: string[] = [];
 const versionSlotNames: string[] = [];
@@ -172,7 +169,7 @@ export class BindingMediator<K extends string> implements IConnectableBinding {
   ) {
     connectable.assignIdTo(this);
   }
-  public $bind(flags: LifecycleFlags, scope: Scope, hostScope?: Scope | null, projection?: CustomElementDefinition): void {
+  public $bind(flags: LifecycleFlags, scope: Scope, hostScope?: Scope | null, projection?: ResourceDefinition): void {
     throw new Error('Method not implemented.');
   }
   public $unbind(flags: LifecycleFlags): void {

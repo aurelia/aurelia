@@ -8,13 +8,12 @@ import {
   LifecycleFlags,
   SetterObserver,
   subscriberCollection,
-  IScheduler,
   ITask,
   getCollectionObserver,
   ILifecycle,
   AccessorType,
 } from '@aurelia/runtime';
-import { IEventSubscriber } from './event-manager';
+import { EventSubscriber } from './event-delegator';
 import { ValueAttributeObserver } from './value-attribute-observer';
 
 type RepeatableCollection = unknown[] | Set<unknown> | Map<unknown, unknown>;
@@ -54,10 +53,9 @@ export class CheckedObserver implements IAccessor {
   public valueObserver?: ValueAttributeObserver | SetterObserver = void 0;
 
   public constructor(
-    public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
     public lifecycle: ILifecycle,
-    public readonly handler: IEventSubscriber,
+    public readonly handler: EventSubscriber,
     public readonly obj: IInputElement,
   ) {
     this.persistentFlags = flags & LifecycleFlags.targetObserverFlags;
@@ -117,28 +115,10 @@ export class CheckedObserver implements IAccessor {
     const oldValue = this.oldValue;
     this.oldValue = currentValue;
     this.synchronizeElement();
-    // if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-    // } else {
-    //   this.hasChanges = true;
-    // }
-    // if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-    //   this.task = this.scheduler.queueRenderTask(() => {
-    //     this.flushChanges(flags);
-    //     this.task = null;
-    //   });
-    // }
     this.callSubscribers(currentValue, oldValue, flags);
   }
 
   public handleChange(newValue: unknown, previousValue: unknown, flags: LifecycleFlags): void {
-    // if ((flags & LifecycleFlags.fromBind) > 0 || this.persistentFlags === LifecycleFlags.noTargetObserverQueue) {
-    //   this.synchronizeElement();
-    // } else {
-    //   this.hasChanges = true;
-    // }
-    // if (this.persistentFlags !== LifecycleFlags.persistentTargetObserverQueue && this.task === null) {
-    //   this.task = this.scheduler.queueRenderTask(() => this.flushChanges(flags));
-    // }
     this.synchronizeElement();
     this.callSubscribers(newValue, previousValue, flags);
     this.flushChanges(flags);

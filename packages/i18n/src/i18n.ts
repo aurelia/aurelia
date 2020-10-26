@@ -1,4 +1,4 @@
-import { DI, IEventAggregator, PLATFORM } from '@aurelia/kernel';
+import { DI, IEventAggregator } from '@aurelia/kernel';
 import { ISignaler } from '@aurelia/runtime';
 import i18nextCore from 'i18next';
 import { I18nInitOptions } from './i18n-configuration-options';
@@ -104,12 +104,15 @@ export class I18nService implements I18N {
    */
   public readonly initPromise: Promise<void>;
   private options!: I18nInitOptions;
-  private readonly intl: typeof Intl;
 
-  public constructor(@I18nWrapper i18nextWrapper: I18nextWrapper, @I18nInitOptions options: I18nInitOptions, @IEventAggregator private readonly ea: IEventAggregator, @ISignaler private readonly signaler: ISignaler) {
+  public constructor(
+    @I18nWrapper i18nextWrapper: I18nextWrapper,
+    @I18nInitOptions options: I18nInitOptions,
+    @IEventAggregator private readonly ea: IEventAggregator,
+    @ISignaler private readonly signaler: ISignaler,
+  ) {
     this.i18next = i18nextWrapper.i18next;
     this.initPromise = this.initializeI18next(options);
-    this.intl = PLATFORM.global.Intl;
   }
 
   public evaluate(keyExpr: string, options?: i18nextCore.TOptions): I18nKeyEvaluationResult[] {
@@ -145,7 +148,7 @@ export class I18nService implements I18N {
   }
 
   public createNumberFormat(options?: Intl.NumberFormatOptions, locales?: string | string[]): Intl.NumberFormat {
-    return this.intl.NumberFormat(locales || this.getLocale(), options);
+    return Intl.NumberFormat(locales || this.getLocale(), options);
   }
 
   public nf(input: number, options?: Intl.NumberFormatOptions, locales?: string | string[]): string {
@@ -153,7 +156,7 @@ export class I18nService implements I18N {
   }
 
   public createDateTimeFormat(options?: Intl.DateTimeFormatOptions, locales?: string | string[]): Intl.DateTimeFormat {
-    return this.intl.DateTimeFormat(locales || this.getLocale(), options);
+    return Intl.DateTimeFormat(locales || this.getLocale(), options);
   }
 
   public df(input: number | Date, options?: Intl.DateTimeFormatOptions, locales?: string | string[]): string {
@@ -184,7 +187,7 @@ export class I18nService implements I18N {
   }
 
   public createRelativeTimeFormat(options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): Intl.RelativeTimeFormat {
-    return new this.intl.RelativeTimeFormat(locales || this.getLocale(), options);
+    return new Intl.RelativeTimeFormat(locales || this.getLocale(), options);
   }
 
   public rt(input: Date, options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): string {

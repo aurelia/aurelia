@@ -1,50 +1,50 @@
 import { Writable } from '@aurelia/kernel';
-import { ICustomElementController, IHydratedController, IHydratedParentController, LifecycleFlags } from '@aurelia/runtime';
+import { ICustomElementController, IHydratedController, IHydratedParentController, LifecycleFlags } from '@aurelia/runtime-html';
 import { Params, IRouteableComponent, NavigationInstruction, Navigation } from '@aurelia/router';
 import { IHookInvocationAggregator } from './hook-invocation-tracker';
 import { IHookSpec, hookSpecsMap } from './hook-spec';
 
-export interface ITestRouteViewModel extends IRouteableComponent<HTMLElement> {
-  readonly $controller: ICustomElementController<HTMLElement, this>;
+export interface ITestRouteViewModel extends IRouteableComponent {
+  readonly $controller: ICustomElementController<this>;
   readonly name: string;
 
   beforeBind(
-    initiator: IHydratedController<HTMLElement>,
-    parent: IHydratedParentController<HTMLElement>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
   afterBind(
-    initiator: IHydratedController<HTMLElement>,
-    parent: IHydratedParentController<HTMLElement>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
   afterAttach(
-    initiator: IHydratedController<HTMLElement>,
-    parent: IHydratedParentController<HTMLElement>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
   afterAttachChildren(
-    initiator: IHydratedController<HTMLElement>,
+    initiator: IHydratedController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
 
   beforeDetach(
-    initiator: IHydratedController<HTMLElement>,
-    parent: IHydratedParentController<HTMLElement>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
   beforeUnbind(
-    initiator: IHydratedController<HTMLElement>,
-    parent: IHydratedParentController<HTMLElement>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
   afterUnbind(
-    initiator: IHydratedController<HTMLElement>,
-    parent: IHydratedParentController<HTMLElement>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
   afterUnbindChildren(
-    initiator: IHydratedController<HTMLElement>,
+    initiator: IHydratedController,
     flags: LifecycleFlags,
   ): void | Promise<void>;
 
@@ -167,7 +167,7 @@ const hookNames = [
 ] as const;
 
 export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
-  public readonly $controller!: ICustomElementController<HTMLElement, this>;
+  public readonly $controller!: ICustomElementController<this>;
   public get name(): string {
     return this.$controller.context.definition.name;
   }
@@ -179,8 +179,8 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   ) {}
 
   public beforeBind(
-    initiator: IHydratedController<HTMLElement>,
-    parent: IHydratedParentController<HTMLElement>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     this.hia.beforeBind.notify(this.name);
@@ -194,8 +194,8 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   public afterBind(
-    initiator: IHydratedController<HTMLElement>,
-    parent: IHydratedParentController<HTMLElement>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     this.hia.afterBind.notify(this.name);
@@ -209,8 +209,8 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   public afterAttach(
-    initiator: IHydratedController<HTMLElement>,
-    parent: IHydratedParentController<HTMLElement>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     this.hia.afterAttach.notify(this.name);
@@ -224,7 +224,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   public afterAttachChildren(
-    initiator: IHydratedController<HTMLElement>,
+    initiator: IHydratedController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     this.hia.afterAttachChildren.notify(this.name);
@@ -238,8 +238,8 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   public beforeDetach(
-    initiator: IHydratedController<HTMLElement>,
-    parent: IHydratedParentController<HTMLElement>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     this.hia.beforeDetach.notify(this.name);
@@ -253,8 +253,8 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   public beforeUnbind(
-    initiator: IHydratedController<HTMLElement>,
-    parent: IHydratedParentController<HTMLElement>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     // console.log(`beforeUnbind ${this.name} ${this.$controller.host.outerHTML}`);
@@ -269,8 +269,8 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   public afterUnbind(
-    initiator: IHydratedController<HTMLElement>,
-    parent: IHydratedParentController<HTMLElement>,
+    initiator: IHydratedController,
+    parent: IHydratedParentController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     this.hia.afterUnbind.notify(this.name);
@@ -284,7 +284,7 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   public afterUnbindChildren(
-    initiator: IHydratedController<HTMLElement>,
+    initiator: IHydratedController,
     flags: LifecycleFlags,
   ): void | Promise<void> {
     this.hia.afterUnbindChildren.notify(this.name);
@@ -371,62 +371,62 @@ export abstract class TestRouteViewModelBase implements ITestRouteViewModel {
   }
 
   protected $beforeBind(
-    _initiator: IHydratedController<HTMLElement>,
-    _parent: IHydratedParentController<HTMLElement>,
+    _initiator: IHydratedController,
+    _parent: IHydratedParentController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing
   }
 
   protected $afterBind(
-    _initiator: IHydratedController<HTMLElement>,
-    _parent: IHydratedParentController<HTMLElement>,
+    _initiator: IHydratedController,
+    _parent: IHydratedParentController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing
   }
 
   protected $afterAttach(
-    _initiator: IHydratedController<HTMLElement>,
-    _parent: IHydratedParentController<HTMLElement>,
+    _initiator: IHydratedController,
+    _parent: IHydratedParentController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing
   }
 
   protected $afterAttachChildren(
-    _initiator: IHydratedController<HTMLElement>,
+    _initiator: IHydratedController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing
   }
 
   protected $beforeDetach(
-    _initiator: IHydratedController<HTMLElement>,
-    _parent: IHydratedParentController<HTMLElement>,
+    _initiator: IHydratedController,
+    _parent: IHydratedParentController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing
   }
 
   protected $beforeUnbind(
-    _initiator: IHydratedController<HTMLElement>,
-    _parent: IHydratedParentController<HTMLElement>,
+    _initiator: IHydratedController,
+    _parent: IHydratedParentController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing
   }
 
   protected $afterUnbind(
-    _initiator: IHydratedController<HTMLElement>,
-    _parent: IHydratedParentController<HTMLElement>,
+    _initiator: IHydratedController,
+    _parent: IHydratedParentController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing
   }
 
   protected $afterUnbindChildren(
-    _initiator: IHydratedController<HTMLElement>,
+    _initiator: IHydratedController,
     _flags: LifecycleFlags,
   ): void | Promise<void> {
     // do nothing

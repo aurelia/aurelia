@@ -1,5 +1,5 @@
 import { inject } from '@aurelia/kernel';
-import { customElement } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime-html';
 import { Router } from '@aurelia/router';
 import template from './app.html';
 

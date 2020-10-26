@@ -1,4 +1,4 @@
-import { customElement, ILifecycle } from '@aurelia/runtime';
+import { customElement, ILifecycle } from '@aurelia/runtime-html';
 import template from './app.html';
 import { Store } from './source';
 

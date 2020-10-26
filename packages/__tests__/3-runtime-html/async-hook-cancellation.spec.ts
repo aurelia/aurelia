@@ -14,17 +14,16 @@ import {
   pascalCase,
 } from '@aurelia/kernel';
 import {
-  Aurelia,
   customElement,
   bindable,
   Controller,
   LifecycleFlags,
-} from '@aurelia/runtime';
+  Aurelia,
+} from '@aurelia/runtime-html';
 
 import {
   TestContext,
   assert,
-  HTMLTestContext,
 } from '@aurelia/testing';
 
 function createAuFixture<T extends Constructable>(
@@ -32,7 +31,7 @@ function createAuFixture<T extends Constructable>(
   createConfig: () => Config,
 ) {
   const config = createConfig();
-  const ctx = TestContext.createHTMLTestContext();
+  const ctx = TestContext.create();
   const { container } = ctx;
 
   container.register(Registration.instance(Config, config));
@@ -53,7 +52,7 @@ function createControllerFixture<T extends Constructable>(
   createConfig: () => Config,
 ) {
   const config = createConfig();
-  const ctx = TestContext.createHTMLTestContext();
+  const ctx = TestContext.create();
   const { container } = ctx;
 
   container.register(Registration.instance(Config, config));
@@ -67,10 +66,10 @@ function createControllerFixture<T extends Constructable>(
 }
 
 function createController<T extends Constructable>(
-  ctx: HTMLTestContext,
+  ctx: TestContext,
   Component: T,
 ) {
-  const { container, lifecycle } = ctx;
+  const { container } = ctx;
   const component = container.get(Component);
 
   const host = ctx.createElement('div');
@@ -78,7 +77,6 @@ function createController<T extends Constructable>(
     null,
     container,
     component,
-    lifecycle,
     host,
     void 0,
   );

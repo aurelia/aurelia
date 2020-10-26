@@ -1,15 +1,15 @@
 import { IContainer } from '@aurelia/kernel';
 import {
-  Aurelia,
   CustomElement,
-  IDOM,
   ILifecycle,
   IObserverLocator,
   view,
   customElement,
-  getRenderContext,
-} from '@aurelia/runtime';
-import { RenderPlan } from '@aurelia/runtime-html';
+  getCompositionContext,
+  Aurelia,
+  CompositionPlan,
+  IPlatform,
+} from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
   TestContext,
@@ -21,17 +21,17 @@ const spec = 'compose';
 
 describe(spec, function () {
   function createFixture(): SpecContext {
-    const ctx = TestContext.createHTMLTestContext();
-    const { container, dom, lifecycle, observerLocator } = ctx;
+    const ctx = TestContext.create();
+    const { container, platform, lifecycle, observerLocator } = ctx;
     const au = new Aurelia(container);
-    const host = dom.createElement('div');
+    const host = platform.document.createElement('div');
 
-    return { container, dom, au, host, lifecycle, observerLocator };
+    return { container, platform, au, host, lifecycle, observerLocator };
   }
 
   interface SpecContext {
     container: IContainer;
-    dom: IDOM;
+    platform: IPlatform;
     au: Aurelia;
     host: HTMLElement;
     lifecycle: ILifecycle;
@@ -70,17 +70,17 @@ describe(spec, function () {
     },
     {
       t: '4',
-      createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory(),
+      createSubject: ctx => getCompositionContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory(),
       expectedText: 'Hello!'
     },
     // {
     //   t: '5',
-    //   createSubject: ctx => getRenderContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory().create(),
+    //   createSubject: ctx => getCompositionContext({ name: 'cmp', template: `<template>Hello!</template>` }, ctx.container).getViewFactory().create(),
     //   expectedText: 'Hello!'
     // },
     {
       t: '6',
-      createSubject: ctx => new RenderPlan(ctx.dom, `<div>Hello!</div>`, [], []),
+      createSubject: ctx => new CompositionPlan(`<div>Hello!</div>` as any, [], []),
       expectedText: 'Hello!'
     }
   ];
@@ -150,7 +150,7 @@ describe(spec, function () {
   });
 
   describe('With the ViewLocator value converter', function () {
-    it('can render a vanilla JS class instance', async function () {
+    it('can compose a vanilla JS class instance', async function () {
       const { au, host } = createFixture();
 
       @view({ name: 'default-view', template: `\${message}` })

@@ -1,12 +1,6 @@
-import {
-  IAccessor,
-  LifecycleFlags,
-  IScheduler,
-  ITask,
-  INode,
-  AccessorType,
-} from '@aurelia/runtime';
-import { PLATFORM } from '@aurelia/kernel';
+import { IAccessor, LifecycleFlags, ITask, AccessorType } from '@aurelia/runtime';
+import { emptyArray } from '@aurelia/kernel';
+import { INode } from '../dom';
 
 export class ClassAttributeAccessor implements IAccessor {
   public readonly obj: HTMLElement;
@@ -25,7 +19,6 @@ export class ClassAttributeAccessor implements IAccessor {
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
   public constructor(
-    public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
     obj: INode,
   ) {
@@ -103,7 +96,7 @@ export function getClassesToAdd(object: Record<string, unknown> | [] | string): 
   function splitClassString(classString: string): string[] {
     const matches = classString.match(/\S+/g);
     if (matches === null) {
-      return PLATFORM.emptyArray;
+      return emptyArray;
     }
     return matches;
   }
@@ -121,7 +114,7 @@ export function getClassesToAdd(object: Record<string, unknown> | [] | string): 
       }
       return classes;
     } else {
-      return PLATFORM.emptyArray;
+      return emptyArray;
     }
   } else if (object instanceof Object) {
     const classes: string[] = [];
@@ -139,5 +132,5 @@ export function getClassesToAdd(object: Record<string, unknown> | [] | string): 
     }
     return classes;
   }
-  return PLATFORM.emptyArray;
+  return emptyArray;
 }

@@ -1,4 +1,4 @@
-import { customElement } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime-html';
 
 import * as routes from './routes/index';
 import * as template from './my-app.html';

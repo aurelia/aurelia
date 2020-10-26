@@ -4,15 +4,14 @@ import {
   BindingInterceptor,
   BindingMediator,
   IsAssign,
-  IScheduler,
   LifecycleFlags,
   CustomElementHost,
-  DOM,
   PropertyBinding,
   IBinding,
   BindingBehaviorExpression,
   ITask,
-} from '@aurelia/runtime';
+  IPlatform,
+} from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingWithBehavior, IValidationController, ValidationController, BindingInfo, ValidationResultsSubscriber, ValidationEvent } from './validation-controller';
 
@@ -67,7 +66,6 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   private readonly scopedController?: IValidationController;
   private controller!: IValidationController;
   private isChangeTrigger: boolean = false;
-  private readonly scheduler: IScheduler;
   private readonly defaultTrigger: ValidationTrigger;
   private readonly connectedExpressions: IsAssign[] = [];
   private scope!: Scope;
@@ -79,6 +77,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   private validatedOnce: boolean = false;
   private triggerEvent: 'blur' | 'focusout' | null = null;
   private bindingInfo!: BindingInfo;
+  private readonly platform: IPlatform;
 
   public constructor(
     public readonly binding: BindingWithBehavior,
@@ -86,8 +85,9 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   ) {
     super(binding, expr);
     const locator = this.locator;
-    this.scheduler = locator.get(IScheduler);
+    this.platform = locator.get(IPlatform);
     this.defaultTrigger = locator.get(IDefaultTrigger);
+    this.platform = locator.get(IPlatform);
     if (locator.has(IValidationController, true)) {
       this.scopedController = locator.get(IValidationController);
     }
@@ -206,7 +206,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
   private task: ITask | null = null;
   private validateBinding() {
     this.task?.cancel();
-    this.task = this.scheduler.getPostRenderTaskQueue().queueTask(async () => {
+    this.task = this.platform.domReadQueue.queueTask(async () => {
       await this.controller.validateBinding(this.propertyBinding);
     });
   }
@@ -280,7 +280,7 @@ export class ValidateBindingBehavior extends BindingInterceptor implements Valid
 
   private setTarget() {
     const target = this.propertyBinding.target;
-    if (DOM.isNodeInstance(target)) {
+    if (target instanceof this.platform.Node) {
       this.target = target as HTMLElement;
     } else {
       const controller = (target as CustomElementHost)?.$controller;

@@ -1,5 +1,5 @@
 import { IRouter } from '@aurelia/router';
-import { customElement, INode } from '@aurelia/runtime';
+import { customElement, INode } from '@aurelia/runtime-html';
 import { AuthorsRepository } from '../../repositories/authors';
 import { State } from '../../state';
 import { Information } from './information';
@@ -42,20 +42,20 @@ export class Author {
     private readonly state: State,
   ) {}
 
-  public create() {
-    console.log('### create', this);
+  public define() {
+    console.log('### define', this);
   }
 
-  public beforeCompile() {
-    console.log('### beforeCompile', this);
+  public beforeCompose() {
+    console.log('### beforeCompose', this);
   }
 
-  public afterCompile() {
-    console.log('### afterCompile', this);
+  public beforeComposeChildren() {
+    console.log('### beforeComposeChildren', this);
   }
 
-  public afterCompileChildren() {
-    console.log('### afterCompileChildren', this);
+  public afterCompose() {
+    console.log('### afterCompose', this);
   }
 
   // KEEP THIS!

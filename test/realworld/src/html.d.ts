@@ -1,6 +1,6 @@
 declare module '*.html' {
   import { IContainer } from '@aurelia/kernel';
-  import { BindableDefinition } from '@aurelia/runtime';
+  import { BindableDefinition } from '@aurelia/runtime-html';
 
   export const name: string;
   export const template: string;

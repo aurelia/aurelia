@@ -1,11 +1,5 @@
-import {
-  IAccessor,
-  LifecycleFlags,
-  IScheduler,
-  ITask,
-  INode,
-  AccessorType,
-} from '@aurelia/runtime';
+import { IAccessor, LifecycleFlags, ITask, AccessorType } from '@aurelia/runtime';
+import { INode } from '../dom';
 
 /**
  * Attribute accessor in a XML document/element that can be accessed via a namespace.
@@ -25,7 +19,6 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
   public type: AccessorType = AccessorType.Node | AccessorType.Layout;
 
   public constructor(
-    public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
     obj: INode,
     public readonly propertyKey: string,

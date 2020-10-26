@@ -1,7 +1,6 @@
-import { LifecycleFlags } from '../flags';
-import { ISubscriberCollection, AccessorType } from '../observation';
+import { ISubscriberCollection, AccessorType, LifecycleFlags } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
-import { ITask } from '@aurelia/scheduler';
+import { ITask } from '@aurelia/kernel';
 
 export interface CollectionLengthObserver extends ISubscriberCollection {}
 

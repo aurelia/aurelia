@@ -21,7 +21,11 @@ module.exports = {
   },
   globals: {
     MutationObserver: 'readonly',
-    SharedArrayBuffer: 'readonly'
+    SharedArrayBuffer: 'readonly',
+    Atomics: 'readonly',
+    BigInt: 'readonly',
+    BigInt64Array: 'readonly',
+    BigUint64Array: 'readonly',
   },
   plugins: [
     '@typescript-eslint',

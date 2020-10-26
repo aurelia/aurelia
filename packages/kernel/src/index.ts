@@ -1,3 +1,20 @@
+import { Platform } from '@aurelia/platform';
+import { DI } from './di';
+
+export interface IPlatform extends Platform {}
+export const IPlatform = DI.createInterface<IPlatform>('IPlatform').noDefault();
+
+export {
+  Platform,
+  TaskQueue,
+  Task,
+  TaskAbortError,
+  TaskQueuePriority,
+  TaskStatus,
+  QueueTaskOptions,
+  ITask,
+} from '@aurelia/platform';
+
 export {
   all,
   DI,
@@ -29,20 +46,15 @@ export {
   DefaultResolver,
   IContainerConfiguration,
 } from './di';
+
 export {
   Class,
   Constructable,
   ConstructableClass,
   IDisposable,
   IIndexable,
-  IPerformance,
-  ITimerHandler,
-  IWindowOrWorkerGlobalScope,
-  Omit,
   Overwrite,
   Primitive,
-  StrictPrimitive,
-  Unwrap,
   Writable,
 } from './interfaces';
 export {
@@ -70,10 +82,11 @@ export {
   format,
   sink,
 } from './logger';
-export { PLATFORM } from './platform';
 export {
-  Profiler
-} from './profiler';
+  noop,
+  emptyArray,
+  emptyObject,
+} from './platform';
 export {
   IResourceKind,
   PartialResourceDefinition,

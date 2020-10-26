@@ -1,21 +1,16 @@
-import {
-  bindable,
-  BindingMode,
-  customAttribute,
-  IDOM,
-  INode,
-  ICustomAttributeController,
-  ICustomAttributeViewModel
-} from '@aurelia/runtime';
-import { HTMLDOM } from '../../dom';
+import { bindable, BindingMode } from '@aurelia/runtime';
+import { INode } from '../../dom';
+import { ICustomAttributeController, ICustomAttributeViewModel } from '../../lifecycle';
+import { IPlatform } from '../../platform';
+import { customAttribute } from '../custom-attribute';
 
 /**
  * Focus attribute for element focus binding
  */
 @customAttribute('focus')
-export class Focus implements ICustomAttributeViewModel<HTMLElement> {
+export class Focus implements ICustomAttributeViewModel {
 
-  public readonly $controller!: ICustomAttributeController<HTMLElement, this>;
+  public readonly $controller!: ICustomAttributeController<this>;
 
   @bindable({ mode: BindingMode.twoWay })
   public value: unknown;
@@ -27,7 +22,7 @@ export class Focus implements ICustomAttributeViewModel<HTMLElement> {
 
   private readonly element: HTMLElement;
 
-  public constructor(@INode element: INode, @IDOM private readonly dom: HTMLDOM) {
+  public constructor(@INode element: INode, @IPlatform private readonly p: IPlatform) {
     this.element = element as HTMLElement;
   }
 
@@ -114,6 +109,6 @@ export class Focus implements ICustomAttributeViewModel<HTMLElement> {
   }
 
   private get isElFocused(): boolean {
-    return this.element === this.dom.document.activeElement;
+    return this.element === this.p.document.activeElement;
   }
 }

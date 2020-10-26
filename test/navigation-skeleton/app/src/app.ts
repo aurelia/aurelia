@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unassigned-import */
 import { IRouter, HookTypes } from '@aurelia/router';
-import { customElement, IObserverLocator, LifecycleFlags, CustomElement } from '@aurelia/runtime';
-import * as html from './app.html';
+import { customElement, IObserverLocator, LifecycleFlags } from '@aurelia/runtime-html';
+import html from './app.html';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'font-awesome/css/font-awesome.min.css';

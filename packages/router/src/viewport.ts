@@ -1,4 +1,4 @@
-import { LifecycleFlags, ICompiledRenderContext, ICustomElementController, CustomElement, ICustomElementViewModel, IHydratedController, IHydratedParentController } from '@aurelia/runtime';
+import { LifecycleFlags, ICompiledCompositionContext, ICustomElementController, CustomElement, ICustomElementViewModel, IHydratedController, IHydratedParentController } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, ReentryBehavior, IRoute, RouteableComponentType, NavigationInstruction } from './interfaces';
 import { IRouter } from './router';
 import { arrayRemove } from './utils';
@@ -485,7 +485,7 @@ export class Viewport implements IScopeOwner {
       // () => recurse ? this.connectedScope.load(recurse) : true,
     );
     // return this.nextContent?.load(this.content.instruction);
-    // await this.nextContent.activateComponent(null, this.connectedCE!.$controller as ICustomElementController<Element, ICustomElementViewModel<Element>>, LifecycleFlags.none, this.connectedCE!);
+    // await this.nextContent.activateComponent(null, this.connectedCE!.$controller as ICustomElementController<ICustomElementViewModel>, LifecycleFlags.none, this.connectedCE!);
     // return true;
   }
 
@@ -517,7 +517,7 @@ export class Viewport implements IScopeOwner {
     );
   }
 
-  public activate(initiator: IHydratedController<Element> | null, parent: IHydratedParentController<Element> | null, flags: LifecycleFlags, fromParent: boolean): void | Promise<void> {
+  public activate(initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags, fromParent: boolean): void | Promise<void> {
     // console.log('activate' /* , { ...this } */);
     if (this.activeContent.componentInstance !== null) {
       this.connectedScope.reenableReplacedChildren();
@@ -533,7 +533,7 @@ export class Viewport implements IScopeOwner {
     }
   }
 
-  public deactivate(initiator: IHydratedController<Element> | null, parent: IHydratedParentController<Element> | null, flags: LifecycleFlags): void | Promise<void> {
+  public deactivate(initiator: IHydratedController | null, parent: IHydratedParentController | null, flags: LifecycleFlags): void | Promise<void> {
     if (this.content.componentInstance &&
       !this.content.reentry &&
       this.content.componentInstance !== this.nextContent?.componentInstance) {
@@ -720,7 +720,7 @@ export class Viewport implements IScopeOwner {
     if (componentType === null) {
       const controller = CustomElement.for(this.connectedCE!.element);
       componentType = (controller!.context as
-        ICompiledRenderContext<Element> & { componentType: RouteableComponentType })
+        ICompiledCompositionContext & { componentType: RouteableComponentType })
         .componentType;
     }
     return componentType ?? null;

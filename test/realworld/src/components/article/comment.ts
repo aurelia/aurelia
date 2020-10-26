@@ -1,5 +1,5 @@
 import { inject } from '@aurelia/kernel';
-import { bindable } from '@aurelia/runtime';
+import { bindable } from '@aurelia/runtime-html';
 
 import { SharedState } from 'shared/state/shared-state';
 

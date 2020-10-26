@@ -13,7 +13,6 @@ import {
   sink,
 } from '@aurelia/kernel';
 import {
-  Aurelia,
   AuSlot,
   bindingBehavior,
   BindingBehaviorInstance,
@@ -23,17 +22,17 @@ import {
   CustomElement,
   IBinding,
   IObserverLocator,
-  IScheduler,
   Scope,
   LifecycleFlags,
   Repeat,
   Switch,
   valueConverter,
-} from '@aurelia/runtime';
+  Aurelia,
+  IPlatform,
+} from '@aurelia/runtime-html';
 import {
   assert,
   createSpy,
-  HTMLTestContext,
   TestContext,
 } from '@aurelia/testing';
 import {
@@ -184,11 +183,11 @@ describe('switch', function () {
     verifyStopCallsAsSet: boolean;
   }
   class SwitchTestExecutionContext implements TestExecutionContext<any> {
-    private _scheduler: IScheduler;
+    private _scheduler: IPlatform;
     private readonly _log: DebugLog;
     private changeId: number = 0;
     public constructor(
-      public ctx: HTMLTestContext,
+      public ctx: TestContext,
       public container: IContainer,
       public host: HTMLElement,
       public app: App | null,
@@ -197,7 +196,7 @@ describe('switch', function () {
     ) {
       this._log = (container.get(ILogger)['debugSinks'] as ISink[]).find((s) => s instanceof DebugLog) as DebugLog;
     }
-    public get scheduler(): IScheduler { return this._scheduler ?? (this._scheduler = this.container.get(IScheduler)); }
+    public get platform(): IPlatform { return this._scheduler ?? (this._scheduler = this.container.get(IPlatform)); }
     public get log() {
       return this._log.log;
     }
@@ -261,9 +260,9 @@ describe('switch', function () {
     }: Partial<TestSetupContext> = {}
   ) {
     nameIdMap = new Map<string, number>();
-    const ctx = TestContext.createHTMLTestContext();
+    const ctx = TestContext.create();
 
-    const host = ctx.dom.createElement('div');
+    const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
 
     const container = ctx.container;
@@ -896,7 +895,7 @@ describe('switch', function () {
         [],
         async (ctx) => {
           ctx.app.status = Status.delivered;
-          await ctx.scheduler.yieldAll();
+          await ctx.platform.domWriteQueue.yield();
           assert.html.innerEqual(ctx.host, '<div> the curious case of delivered </div>', 'change innerHTML1');
         }
       );

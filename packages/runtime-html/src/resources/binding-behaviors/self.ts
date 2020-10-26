@@ -1,12 +1,11 @@
 import { LifecycleFlags, bindingBehavior } from '@aurelia/runtime';
 import { Listener } from '../../binding/listener';
-import { findOriginalEventTarget } from '../../observation/event-manager';
 
 import type { Scope } from '@aurelia/runtime';
 
 /** @internal */
 export function handleSelfEvent(this: SelfableBinding, event: Event): ReturnType<Listener['callSource']> {
-  const target = findOriginalEventTarget(event) as unknown as Node;
+  const target = event.composedPath()[0];
 
   if (this.target !== target) {
     return;

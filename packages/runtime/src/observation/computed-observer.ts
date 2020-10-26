@@ -2,18 +2,18 @@
 import {
   Constructable,
   IIndexable,
-  PLATFORM,
+  emptyArray,
   isArrayIndex
 } from '@aurelia/kernel';
-import { LifecycleFlags } from '../flags';
-import { ILifecycle } from '../lifecycle';
 import {
   IBindingContext,
   IBindingTargetObserver,
   ICollectionSubscribable,
+  ILifecycle,
   IObservable,
   ISubscribable,
-  ISubscriber
+  ISubscriber,
+  LifecycleFlags
 } from '../observation';
 import { IDirtyChecker } from './dirty-checker';
 import { IObserverLocator } from './observer-locator';
@@ -175,10 +175,10 @@ export class GetterObserver implements GetterObserver {
   public getValue(): unknown {
     if (this.subscriberCount > 0 || this.isCollecting) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.currentValue = Reflect.apply(this.descriptor.get!, this.proxy, PLATFORM.emptyArray); // Non-null is implied because descriptors without getters won't end up here
+      this.currentValue = Reflect.apply(this.descriptor.get!, this.proxy, emptyArray); // Non-null is implied because descriptors without getters won't end up here
     } else {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.currentValue = Reflect.apply(this.descriptor.get!, this.obj, PLATFORM.emptyArray); // Non-null is implied because descriptors without getters won't end up here
+      this.currentValue = Reflect.apply(this.descriptor.get!, this.obj, emptyArray); // Non-null is implied because descriptors without getters won't end up here
     }
     return this.currentValue;
   }

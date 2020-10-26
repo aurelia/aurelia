@@ -7,7 +7,7 @@ import {
   TypeAliasDeclaration,
 } from 'typescript';
 import {
-  PLATFORM,
+  emptyArray,
   ILogger,
 } from '@aurelia/kernel';
 import {
@@ -43,10 +43,6 @@ import {
 import {
   $HeritageClause,
 } from './classes';
-
-const {
-  emptyArray,
-} = PLATFORM;
 
 export class $InterfaceDeclaration implements I$Node {
   public get $kind(): SyntaxKind.InterfaceDeclaration { return SyntaxKind.InterfaceDeclaration; }

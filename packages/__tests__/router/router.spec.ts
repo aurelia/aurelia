@@ -1,7 +1,5 @@
-import { DebugConfiguration } from '@aurelia/debug';
-import { PLATFORM, inject, IContainer } from '@aurelia/kernel';
-import { IRouter, RouterConfiguration, IConfigurableRoute, IRoute, IRouterTitle, ViewportInstruction } from '@aurelia/router';
-import { Aurelia, CustomElement, customElement, IScheduler } from '@aurelia/runtime';
+import { IRouter, RouterConfiguration, IRoute, IRouterTitle, ViewportInstruction } from '@aurelia/router';
+import { CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('Router', function () {
@@ -39,8 +37,8 @@ describe('Router', function () {
   }
 
   async function createFixture(config?, App?, stateSpy?) {
-    const ctx = TestContext.createHTMLTestContext();
-    const { container, scheduler } = ctx;
+    const ctx = TestContext.create();
+    const { container, platform } = ctx;
 
     if (App === void 0) {
       App = CustomElement.define({ name: 'app', template: '<template>left<au-viewport name="left"></au-viewport>right<au-viewport name="right"></au-viewport></template>' });
@@ -137,7 +135,6 @@ describe('Router', function () {
 
     const au = ctx.wnd['au'] = new Aurelia(container)
       .register(
-        DebugConfiguration,
         !config ? RouterConfiguration : RouterConfiguration.customize(config),
         App)
       .app({ host: host, component: App });
@@ -155,7 +152,7 @@ describe('Router', function () {
       ctx.doc.body.removeChild(host);
     }
 
-    return { au, container, scheduler, host, router, ctx, tearDown };
+    return { au, container, platform, host, router, ctx, tearDown };
   }
 
   it('can be created', async function () {
@@ -169,7 +166,7 @@ describe('Router', function () {
   it('loads viewports left and right', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
     assert.includes(host.textContent, 'left', `host.textContent`);
     assert.includes(host.textContent, 'right', `host.textContent`);
@@ -180,9 +177,9 @@ describe('Router', function () {
   it('navigates to foo in left', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('foo@left', router, scheduler);
+    await $goto('foo@left', router, platform);
     assert.includes(host.textContent, 'foo', `host.textContent`);
 
     await tearDown();
@@ -191,7 +188,7 @@ describe('Router', function () {
   it('queues navigations', async function () {
     this.timeout(40000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
     router.load('uier@left').catch((error) => { throw error; });
     const last = router.load('bar@left');
@@ -206,11 +203,11 @@ describe('Router', function () {
   it('clears viewport', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('foo@left', router, scheduler);
+    await $goto('foo@left', router, platform);
     assert.includes(host.textContent, 'foo', `host.textContent`);
-    await $goto('-@left', router, scheduler);
+    await $goto('-@left', router, platform);
     assert.notIncludes(host.textContent, 'foo', `host.textContent`);
 
     await tearDown();
@@ -219,13 +216,13 @@ describe('Router', function () {
   it('clears all viewports', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('foo@left', router, scheduler);
+    await $goto('foo@left', router, platform);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
-    await $goto('bar@right', router, scheduler);
+    await $goto('bar@right', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
-    await $goto('-', router, scheduler);
+    await $goto('-', router, platform);
     assert.notIncludes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
 
@@ -235,10 +232,10 @@ describe('Router', function () {
   it('replaces foo in left', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
     const historyLength = router.navigation.history.length;
-    await $goto('foo@left', router, scheduler);
+    await $goto('foo@left', router, platform);
     assert.includes(host.textContent, 'foo', `host.textContent`);
     assert.strictEqual(router.navigation.history.length, historyLength + 1, `router.navigation.history.length`);
 
@@ -253,9 +250,9 @@ describe('Router', function () {
   it('navigates to bar in right', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('bar@right', router, scheduler);
+    await $goto('bar@right', router, platform);
     assert.includes(host.textContent, 'bar', `host.textContent`);
 
     await tearDown();
@@ -264,13 +261,13 @@ describe('Router', function () {
   it('navigates to foo in left then bar in right', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('foo@left', router, scheduler);
+    await $goto('foo@left', router, platform);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
 
-    await $goto('bar@right', router, scheduler);
+    await $goto('bar@right', router, platform);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
 
@@ -280,13 +277,13 @@ describe('Router', function () {
   it('reloads state when refresh method is called', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('foo@left', router, scheduler);
+    await $goto('foo@left', router, platform);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
 
-    await $goto('bar@right', router, scheduler);
+    await $goto('bar@right', router, platform);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
 
@@ -300,13 +297,13 @@ describe('Router', function () {
   it('navigates back and forward with one viewport', async function () {
     this.timeout(40000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('foo@left', router, scheduler);
+    await $goto('foo@left', router, platform);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
 
-    await $goto('bar@left', router, scheduler);
+    await $goto('bar@left', router, platform);
     assert.notIncludes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
 
@@ -326,13 +323,13 @@ describe('Router', function () {
   it('navigates back and forward with two viewports', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('foo@left', router, scheduler);
+    await $goto('foo@left', router, platform);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: bar', `host.textContent`);
 
-    await $goto('bar@right', router, scheduler);
+    await $goto('bar@right', router, platform);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
 
@@ -352,9 +349,9 @@ describe('Router', function () {
   it('navigates to foo/bar in left/right', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('foo@left+bar@right', router, scheduler);
+    await $goto('foo@left+bar@right', router, platform);
     assert.includes(host.textContent, 'foo', `host.textContent`);
     assert.includes(host.textContent, 'bar', `host.textContent`);
 
@@ -364,15 +361,15 @@ describe('Router', function () {
   it('cancels if not canUnload', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
     quxCantUnload = 1;
 
-    await $goto('baz@left+qux@right', router, scheduler);
+    await $goto('baz@left+qux@right', router, platform);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
 
-    await $goto('foo@left+bar@right', router, scheduler);
+    await $goto('foo@left+bar@right', router, platform);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: foo', `host.textContent`);
@@ -384,16 +381,16 @@ describe('Router', function () {
   it('cancels if not child canUnload', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
     quxCantUnload = 1;
 
-    await $goto('foo@left/qux@foo+uier@right', router, scheduler);
+    await $goto('foo@left/qux@foo+uier@right', router, platform);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: uier', `host.textContent`);
 
-    await $goto('bar@left+baz@right', router, scheduler);
+    await $goto('bar@left+baz@right', router, platform);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: qux', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: uier', `host.textContent`);
@@ -406,10 +403,10 @@ describe('Router', function () {
   it('navigates to foo/bar in left/right containing baz/qux respectively', async function () {
     this.timeout(15000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    // await $goto('foo@left+bar@right+baz@foo+qux@bar', router, scheduler);
-    await $goto('foo@left/baz@foo+bar@right/qux@bar', router, scheduler);
+    // await $goto('foo@left+bar@right+baz@foo+qux@bar', router, platform);
+    await $goto('foo@left/baz@foo+bar@right/qux@bar', router, platform);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
@@ -421,14 +418,14 @@ describe('Router', function () {
   it('handles anchor click', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture({ useHref: true });
+    const { platform, host, router, tearDown } = await createFixture({ useHref: true });
 
-    await $goto('foo@left', router, scheduler);
+    await $goto('foo@left', router, platform);
     assert.includes(host.textContent, 'foo', `host.textContent`);
 
     (host.getElementsByTagName('SPAN')[0] as HTMLElement).parentElement.click();
 
-    await scheduler.yieldAll();
+    await platform.domWriteQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
 
@@ -466,7 +463,7 @@ describe('Router', function () {
       public constructor() { this['IdName'] = IdName; }
     }
 
-    const { host, router, container, tearDown, scheduler } = await createFixture({ useHref: false }, App);
+    const { host, router, container, tearDown, platform } = await createFixture({ useHref: false }, App);
 
     container.register(IdName);
 
@@ -475,7 +472,7 @@ describe('Router', function () {
 
       (host.getElementsByTagName('A')[i] as HTMLElement).click();
 
-      await scheduler.yieldAll();
+      await platform.domWriteQueue.yield();
 
       assert.includes(host.textContent, '|id-name|', `host.textContent`);
       assert.includes(host.textContent, `Parameter id: [${test.result}]`, `host.textContent`);
@@ -490,12 +487,12 @@ describe('Router', function () {
   it('understands used-by', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('corge@left', router, scheduler);
+    await $goto('corge@left', router, platform);
     assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
 
-    await $goto('corge@left/baz', router, scheduler);
+    await $goto('corge@left/baz', router, platform);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
 
     await tearDown();
@@ -504,11 +501,11 @@ describe('Router', function () {
   it('does not update fullStatePath on wrong history entry', async function () {
     this.timeout(40000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('foo@left', router, scheduler);
-    await $goto('bar@left', router, scheduler);
-    await $goto('baz@left', router, scheduler);
+    await $goto('foo@left', router, platform);
+    await $goto('bar@left', router, platform);
+    await $goto('baz@left', router, platform);
 
     await tearDown();
   });
@@ -516,13 +513,13 @@ describe('Router', function () {
   it('parses parameters after component', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('bar(123)@left', router, scheduler);
+    await $goto('bar(123)@left', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
 
-    await $goto('bar(456)@left', router, scheduler);
+    await $goto('bar(456)@left', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
 
@@ -532,13 +529,13 @@ describe('Router', function () {
   it('parses named parameters after component', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('bar(id=123)@left', router, scheduler);
+    await $goto('bar(id=123)@left', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
 
-    await $goto('bar(id=456)@left', router, scheduler);
+    await $goto('bar(id=456)@left', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
 
@@ -548,13 +545,13 @@ describe('Router', function () {
   it('parses parameters after component individually', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('bar(123)@left', router, scheduler);
+    await $goto('bar(123)@left', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
 
-    await $goto('bar(456)@right', router, scheduler);
+    await $goto('bar(456)@right', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
@@ -565,9 +562,9 @@ describe('Router', function () {
   it('parses parameters without viewport', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('corge@left/baz(123)', router, scheduler);
+    await $goto('corge@left/baz(123)', router, platform);
     assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
@@ -578,9 +575,9 @@ describe('Router', function () {
   it('parses named parameters without viewport', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('corge@left/baz(id=123)', router, scheduler);
+    await $goto('corge@left/baz(id=123)', router, platform);
 
     assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
@@ -592,14 +589,14 @@ describe('Router', function () {
   it('parses multiple parameters after component', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('bar(123,OneTwoThree)@left', router, scheduler);
+    await $goto('bar(123,OneTwoThree)@left', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [OneTwoThree]', `host.textContent`);
 
-    await $goto('bar(456,FourFiveSix)@left', router, scheduler);
+    await $goto('bar(456,FourFiveSix)@left', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
@@ -610,14 +607,14 @@ describe('Router', function () {
   it('parses multiple name parameters after component', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('bar(id=123,name=OneTwoThree)@left', router, scheduler);
+    await $goto('bar(id=123,name=OneTwoThree)@left', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [OneTwoThree]', `host.textContent`);
 
-    await $goto('bar(name=FourFiveSix,id=456)@left', router, scheduler);
+    await $goto('bar(name=FourFiveSix,id=456)@left', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
@@ -628,13 +625,13 @@ describe('Router', function () {
   it('parses querystring', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('bar@left?id=123', router, scheduler);
+    await $goto('bar@left?id=123', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [123]', `host.textContent`);
 
-    await $goto('bar@left?id=456&name=FourFiveSix', router, scheduler);
+    await $goto('bar@left?id=456&name=FourFiveSix', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
@@ -645,18 +642,18 @@ describe('Router', function () {
   it('overrides querystring with parameter', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('bar(456)@left?id=123', router, scheduler);
+    await $goto('bar(456)@left?id=123', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
 
-    await $goto('bar(456,FourFiveSix)@left?id=123&name=OneTwoThree', router, scheduler);
+    await $goto('bar(456,FourFiveSix)@left?id=123&name=OneTwoThree', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [456]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [FourFiveSix]', `host.textContent`);
 
-    await $goto('bar(name=SevenEightNine,id=789)@left?id=123&name=OneTwoThree', router, scheduler);
+    await $goto('bar(name=SevenEightNine,id=789)@left?id=123&name=OneTwoThree', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.includes(host.textContent, 'Parameter id: [789]', `host.textContent`);
     assert.includes(host.textContent, 'Parameter name: [SevenEightNine]', `host.textContent`);
@@ -667,21 +664,21 @@ describe('Router', function () {
   it('uses default reentry behavior', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('plugh(123)@left', router, scheduler);
+    await $goto('plugh(123)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
-    await $goto('plugh(123)@left', router, scheduler);
+    await $goto('plugh(123)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
-    await $goto('plugh(456)@left', router, scheduler);
+    await $goto('plugh(456)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
-    await $goto('plugh(456)@left', router, scheduler);
+    await $goto('plugh(456)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
@@ -691,43 +688,43 @@ describe('Router', function () {
   it('uses overriding reentry behavior', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
     plughReentryBehavior = 'default';
     // This should default
-    await $goto('plugh(123)@left', router, scheduler);
+    await $goto('plugh(123)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
     let component = router.allViewports()[0].content.content.componentInstance;
     component.reentryBehavior = 'load';
     // This should load
-    await $goto('plugh(123)@left', router, scheduler);
+    await $goto('plugh(123)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
 
     component.reentryBehavior = 'refresh';
     // This should refresh
-    await $goto('plugh(456)@left', router, scheduler);
+    await $goto('plugh(456)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
     component = router.allViewports()[0].content.content.componentInstance;
 
     component.reentryBehavior = 'default';
     // This should default
-    await $goto('plugh(456)@left', router, scheduler);
+    await $goto('plugh(456)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 456', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 1', `host.textContent`);
 
     component.reentryBehavior = 'load';
     // This should load
-    await $goto('plugh(123)@left', router, scheduler);
+    await $goto('plugh(123)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
 
     component.reentryBehavior = 'disallow';
     // This should disallow
-    await $goto('plugh(456)@left', router, scheduler);
+    await $goto('plugh(456)@left', router, platform);
     assert.includes(host.textContent, 'Parameter: 123', `host.textContent`);
     assert.includes(host.textContent, 'Entry: 2', `host.textContent`);
 
@@ -737,30 +734,30 @@ describe('Router', function () {
   it('loads default when added by if condition becoming true', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('grault@left', router, scheduler);
+    await $goto('grault@left', router, platform);
     assert.includes(host.textContent, 'toggle', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.notIncludes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await scheduler.yieldAll();
+    await platform.domWriteQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await scheduler.yieldAll();
+    await platform.domWriteQueue.yield();
 
     assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.notIncludes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await scheduler.yieldAll();
+    await platform.domWriteQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
@@ -768,51 +765,51 @@ describe('Router', function () {
     await tearDown();
   });
 
-  if (PLATFORM.isBrowserLike) {
-    // TODO: figure out why this works in nodejs locally but not in CI and fix it
-    it.skip('keeps input when stateful', async function () {
-      this.timeout(15000);
+  // if (PLATFORM.isBrowserLike) {
+  // TODO: figure out why this works in nodejs locally but not in CI and fix it
+  it.skip('keeps input when stateful', async function () {
+    this.timeout(15000);
 
-      const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-      await $goto('grault@left', router, scheduler);
-      assert.includes(host.textContent, 'toggle', `host.textContent`);
-      assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
-      assert.notIncludes(host.textContent, 'garply', `host.textContent`);
+    await $goto('grault@left', router, platform);
+    assert.includes(host.textContent, 'toggle', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
+    assert.notIncludes(host.textContent, 'garply', `host.textContent`);
 
-      (host as any).getElementsByTagName('INPUT')[0].click();
+    (host as any).getElementsByTagName('INPUT')[0].click();
 
-      await scheduler.yieldAll();
+    await platform.domWriteQueue.yield();
 
-      assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
-      assert.includes(host.textContent, 'garply', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
+    assert.includes(host.textContent, 'garply', `host.textContent`);
 
-      (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
+    (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
 
-      await scheduler.yieldAll();
+    await platform.domWriteQueue.yield();
 
-      // NOT going to work since it loads non-stateful parent grault
-      await $goto('grault@left/corge@grault', router, scheduler);
+    // NOT going to work since it loads non-stateful parent grault
+    await $goto('grault@left/corge@grault', router, platform);
 
-      assert.notIncludes(host.textContent, 'garply', `host.textContent`);
-      assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
+    assert.notIncludes(host.textContent, 'garply', `host.textContent`);
+    assert.includes(host.textContent, 'Viewport: corge', `host.textContent`);
 
-      await $goto('grault@left/garply@grault', router, scheduler);
+    await $goto('grault@left/garply@grault', router, platform);
 
-      assert.notIncludes(host.textContent, 'Viewport: corge', `host.textContent`);
-      assert.includes(host.textContent, 'garply', `host.textContent`);
+    assert.notIncludes(host.textContent, 'Viewport: corge', `host.textContent`);
+    assert.includes(host.textContent, 'garply', `host.textContent`);
 
-      assert.strictEqual((host as any).getElementsByTagName('INPUT')[1].value, 'asdf', `(host as any).getElementsByTagName('INPUT')[1].value`);
+    assert.strictEqual((host as any).getElementsByTagName('INPUT')[1].value, 'asdf', `(host as any).getElementsByTagName('INPUT')[1].value`);
 
-      await tearDown();
-    });
-  }
+    await tearDown();
+  });
+  // }
   it.skip('keeps input when grandparent stateful', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('waldo@left', router, scheduler);
+    await $goto('waldo@left', router, platform);
     assert.includes(host.textContent, 'Viewport: waldo', `host.textContent`);
     assert.includes(host.textContent, 'toggle', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
@@ -820,19 +817,19 @@ describe('Router', function () {
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await scheduler.yieldAll();
+    await platform.domWriteQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
 
-    await $goto('waldo@left/foo@waldo', router, scheduler);
+    await $goto('waldo@left/foo@waldo', router, platform);
 
     assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
 
-    await $goto('waldo@left/grault@waldo', router, scheduler);
+    await $goto('waldo@left/grault@waldo', router, platform);
 
     assert.notIncludes(host.textContent, 'Viewport: corge', `host.textContent`);
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
@@ -846,7 +843,7 @@ describe('Router', function () {
   it.skip('keeps children\'s custom element\'s input when navigation history stateful', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown, container } = await createFixture({ statefulHistoryLength: 2 });
+    const { platform, host, router, tearDown, container } = await createFixture({ statefulHistoryLength: 2 });
 
     const GrandGrandChild = CustomElement.define({ name: 'grandgrandchild', template: '|grandgrandchild|<input>' }, null);
     const GrandChild = CustomElement.define({ name: 'grandchild', template: '|grandchild|<input> <grandgrandchild></grandgrandchild>', dependencies: [GrandGrandChild] }, null);
@@ -857,7 +854,7 @@ describe('Router', function () {
 
     const values = ['parent', 'child', false, 'child-hidden', 'grandchild', 'grandgrandchild'];
 
-    await $goto('parent@left/child@parent/grandchild@child', router, scheduler);
+    await $goto('parent@left/child@parent/grandchild@child', router, platform);
 
     assert.includes(host.textContent, '|parent|', `host.textContent`);
     assert.includes(host.textContent, '|child|', `host.textContent`);
@@ -876,7 +873,7 @@ describe('Router', function () {
       }
     }
 
-    await $goto('parent@left/sibling@parent', router, scheduler);
+    await $goto('parent@left/sibling@parent', router, platform);
 
     assert.includes(host.textContent, '|parent|', `host.textContent`);
     assert.includes(host.textContent, '|sibling|', `host.textContent`);
@@ -906,24 +903,24 @@ describe('Router', function () {
   it.skip('loads scoped viewport', async function () {
     this.timeout(5000);
 
-    const { scheduler, host, router, tearDown } = await createFixture();
+    const { platform, host, router, tearDown } = await createFixture();
 
-    await $goto('quux@left', router, scheduler);
+    await $goto('quux@left', router, platform);
     assert.includes(host.textContent, 'Viewport: quux', `host.textContent`);
 
-    await $goto('quux@quux!', router, scheduler);
+    await $goto('quux@quux!', router, platform);
     assert.includes(host.textContent, 'Viewport: quux', `host.textContent`);
 
-    await $goto('quux@left/foo@quux!', router, scheduler);
+    await $goto('quux@left/foo@quux!', router, platform);
     assert.includes(host.textContent, 'Viewport: foo', `host.textContent`);
 
     (host.getElementsByTagName('SPAN')[0] as HTMLElement).click();
 
-    await scheduler.yieldAll();
+    await platform.domWriteQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
 
-    await $goto('bar@left', router, scheduler);
+    await $goto('bar@left', router, platform);
     assert.includes(host.textContent, 'Viewport: bar', `host.textContent`);
     assert.notIncludes(host.textContent, 'Viewport: quux', `host.textContent`);
 
@@ -934,9 +931,9 @@ describe('Router', function () {
     this.timeout(5000);
 
     async function $setup(dependencies: any[] = [], stateSpy?) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
 
-      const { container, scheduler } = ctx;
+      const { container, platform } = ctx;
 
       const App = CustomElement.define({ name: 'app', template: '<au-viewport></au-viewport>', dependencies }, null);
 
@@ -945,7 +942,7 @@ describe('Router', function () {
       const component = new App();
 
       const au = ctx.wnd['au'] = new Aurelia(container)
-        .register(DebugConfiguration, RouterConfiguration)
+        .register(RouterConfiguration)
         .app({ host: host, component: App });
 
       const router = container.get(IRouter);
@@ -963,17 +960,17 @@ describe('Router', function () {
         au.dispose();
       }
 
-      return { ctx, container, scheduler, host, component, au, router, $teardown };
+      return { ctx, container, platform, host, component, au, router, $teardown };
     }
 
     it('verify that the test isn\'t broken', async function () {
       const Local = CustomElement.define({ name: 'local', template: 'local' }, null);
       const Global = CustomElement.define({ name: 'global', template: 'global' }, null);
-      const { scheduler, container, host, router, $teardown } = await $setup([Local]);
+      const { platform, container, host, router, $teardown } = await $setup([Local]);
 
       container.register(Global);
 
-      await $goto('global', router, scheduler);
+      await $goto('global', router, platform);
 
       assert.match(host.textContent, /.*global.*/, `host.textContent`);
 
@@ -982,9 +979,9 @@ describe('Router', function () {
 
     it('navigates to locally registered dep', async function () {
       const Local = CustomElement.define({ name: 'local', template: 'local' }, null);
-      const { scheduler, host, router, $teardown } = await $setup([Local]);
+      const { platform, host, router, $teardown } = await $setup([Local]);
 
-      await $goto('local', router, scheduler);
+      await $goto('local', router, platform);
 
       assert.match(host.textContent, /.*local.*/, `host.textContent`);
 
@@ -994,9 +991,9 @@ describe('Router', function () {
     it('navigates to locally registered dep - nested', async function () {
       const Local2 = CustomElement.define({ name: 'local2', template: 'local2' }, class { });
       const Local1 = CustomElement.define({ name: 'local1', template: 'local1<au-viewport name="one"></au-viewport>', dependencies: [Local2] }, null);
-      const { scheduler, host, router, $teardown } = await $setup([Local1]);
+      const { platform, host, router, $teardown } = await $setup([Local1]);
 
-      await $goto('local1/local2', router, scheduler);
+      await $goto('local1/local2', router, platform);
 
       assert.match(host.textContent, /.*local1.*local2.*/, `host.textContent`);
 
@@ -1007,10 +1004,10 @@ describe('Router', function () {
       const Global3 = CustomElement.define({ name: 'global3', template: 'global3' }, null);
       const Local2 = CustomElement.define({ name: 'local2', template: 'local2<au-viewport name="two" used-by="global3"></au-viewport>' }, null);
       const Local1 = CustomElement.define({ name: 'local1', template: 'local1<au-viewport name="one" used-by="local2"></au-viewport>', dependencies: [Local2] }, null);
-      const { scheduler, host, router, container, $teardown } = await $setup([Local1]);
+      const { platform, host, router, container, $teardown } = await $setup([Local1]);
       container.register(Global3);
 
-      await $goto('local1/local2/global3', router, scheduler);
+      await $goto('local1/local2/global3', router, platform);
 
       assert.match(host.textContent, /.*local1.*local2.*global3.*/, `host.textContent`);
 
@@ -1021,10 +1018,10 @@ describe('Router', function () {
       const Local3 = CustomElement.define({ name: 'local3', template: 'local3' }, null);
       const Global2 = CustomElement.define({ name: 'global2', template: 'global2<au-viewport name="two" used-by="local3"></au-viewport>', dependencies: [Local3] }, null);
       const Local1 = CustomElement.define({ name: 'local1', template: 'local1<au-viewport name="one" used-by="global2"></au-viewport>' }, null);
-      const { scheduler, host, router, container, $teardown } = await $setup([Local1]);
+      const { platform, host, router, container, $teardown } = await $setup([Local1]);
       container.register(Global2);
 
-      await $goto('local1/global2/local3', router, scheduler);
+      await $goto('local1/global2/local3', router, platform);
 
       assert.match(host.textContent, /.*local1.*global2.*local3.*/, `host.textContent`);
 
@@ -1035,10 +1032,10 @@ describe('Router', function () {
       const Local3 = CustomElement.define({ name: 'local3', template: 'local3' }, null);
       const Local2 = CustomElement.define({ name: 'local2', template: 'local2<au-viewport name="two" used-by="local3"></au-viewport>', dependencies: [Local3] }, null);
       const Global1 = CustomElement.define({ name: 'global1', template: 'global1<au-viewport name="one" used-by="local2"></au-viewport>', dependencies: [Local2] }, null);
-      const { scheduler, host, router, container, $teardown } = await $setup();
+      const { platform, host, router, container, $teardown } = await $setup();
       container.register(Global1);
 
-      await $goto('global1/local2/local3', router, scheduler);
+      await $goto('global1/local2/local3', router, platform);
 
       assert.match(host.textContent, /.*global1.*local2.*local3.*/, `host.textContent`);
 
@@ -1049,9 +1046,9 @@ describe('Router', function () {
       const Local3 = CustomElement.define({ name: 'local3', template: 'local3' }, null);
       const Local2 = CustomElement.define({ name: 'local2', template: 'local2<au-viewport name="two" used-by="local3"></au-viewport>', dependencies: [Local3] }, null);
       const Local1 = CustomElement.define({ name: 'local1', template: 'local1<au-viewport name="one" used-by="local2"></au-viewport>', dependencies: [Local2] }, null);
-      const { scheduler, host, router, $teardown } = await $setup([Local1]);
+      const { platform, host, router, $teardown } = await $setup([Local1]);
 
-      await $goto('local1/local2/local3', router, scheduler);
+      await $goto('local1/local2/local3', router, platform);
 
       assert.match(host.textContent, /.*local1.*local2.*local3.*/, `host.textContent`);
 
@@ -1063,13 +1060,13 @@ describe('Router', function () {
       const Local1 = CustomElement.define({ name: 'local1', template: 'local1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
       const Conflict2 = CustomElement.define({ name: 'conflict', template: 'conflict2' }, null);
       const Local2 = CustomElement.define({ name: 'local2', template: 'local2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
-      const { scheduler, host, router, $teardown } = await $setup([Local1, Local2]);
+      const { platform, host, router, $teardown } = await $setup([Local1, Local2]);
 
-      await $goto('local1@default/conflict@one', router, scheduler);
+      await $goto('local1@default/conflict@one', router, platform);
 
       assert.match(host.textContent, /.*local1.*conflict1.*/, `host.textContent`);
 
-      await $goto('local2@default/conflict@two', router, scheduler);
+      await $goto('local2@default/conflict@two', router, platform);
 
       assert.match(host.textContent, /.*local2.*conflict2.*/, `host.textContent`);
 
@@ -1081,14 +1078,14 @@ describe('Router', function () {
       const Global1 = CustomElement.define({ name: 'global1', template: 'global1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
       const Conflict2 = CustomElement.define({ name: 'conflict', template: 'conflict2' }, null);
       const Global2 = CustomElement.define({ name: 'global2', template: 'global2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
-      const { scheduler, host, router, container, $teardown } = await $setup();
+      const { platform, host, router, container, $teardown } = await $setup();
       container.register(Global1, Global2);
 
-      await $goto('global1@default/conflict@one', router, scheduler);
+      await $goto('global1@default/conflict@one', router, platform);
 
       assert.match(host.textContent, /.*global1.*conflict1.*/, `host.textContent`);
 
-      await $goto('global2@default/conflict@two', router, scheduler);
+      await $goto('global2@default/conflict@two', router, platform);
 
       assert.match(host.textContent, /.*global2.*conflict2.*/, `host.textContent`);
 
@@ -1100,14 +1097,14 @@ describe('Router', function () {
       const Local1 = CustomElement.define({ name: 'local1', template: 'local1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
       const Conflict2 = CustomElement.define({ name: 'conflict', template: 'conflict2' }, null);
       const Global2 = CustomElement.define({ name: 'global2', template: 'global2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
-      const { scheduler, host, router, container, $teardown } = await $setup([Local1]);
+      const { platform, host, router, container, $teardown } = await $setup([Local1]);
       container.register(Global2);
 
-      await $goto('local1@default/conflict@one', router, scheduler);
+      await $goto('local1@default/conflict@one', router, platform);
 
       assert.match(host.textContent, /.*local1.*conflict1.*/, `host.textContent`);
 
-      await $goto('global2@default/conflict@two', router, scheduler);
+      await $goto('global2@default/conflict@two', router, platform);
 
       assert.match(host.textContent, /.*global2.*conflict2.*/, `host.textContent`);
 
@@ -1169,10 +1166,10 @@ describe('Router', function () {
           const Global1 = CustomElement.define({ name: 'global1', template: 'global1<au-viewport name="one"></au-viewport>', dependencies: [Conflict1] }, null);
           const Conflict2 = CustomElement.define({ name: 'conflict', template: 'conflict2<au-viewport></au-viewport>' }, null);
           const Local2 = CustomElement.define({ name: 'local2', template: 'local2<au-viewport name="two"></au-viewport>', dependencies: [Conflict2] }, null);
-          const { scheduler, host, router, container, $teardown } = await $setup([Local2]);
+          const { platform, host, router, container, $teardown } = await $setup([Local2]);
           container.register(Global1);
 
-          await $goto(path, router, scheduler);
+          await $goto(path, router, platform);
 
           assert.match(host.textContent, expectedText, `host.textContent`);
 
@@ -1186,16 +1183,15 @@ describe('Router', function () {
     this.timeout(30000);
 
     async function $setup(App, config?, stateSpy?) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
 
-      const { container, scheduler } = ctx;
+      const { container, platform } = ctx;
 
       const host = ctx.doc.createElement('div');
       ctx.doc.body.appendChild(host as any);
 
       const au = new Aurelia(container)
         .register(
-          DebugConfiguration,
           !config ? RouterConfiguration : RouterConfiguration.customize(config),
           App)
         .app({ host: host, component: App });
@@ -1213,7 +1209,7 @@ describe('Router', function () {
         au.dispose();
       }
 
-      return { ctx, container, scheduler, host, au, router, $teardown };
+      return { ctx, container, platform, host, au, router, $teardown };
     }
 
     const names = ['parent', 'child', 'grandchild'];
@@ -1252,10 +1248,10 @@ describe('Router', function () {
     for (const test of tests) {
       it(`to load route ${test.path} => ${test.url}`, async function () {
         let locationPath: string;
-        const { scheduler, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
+        const { platform, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
           locationPath = path;
         });
-        await $goto(test.path, router, scheduler);
+        await $goto(test.path, router, platform);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
         await $teardown();
@@ -1263,11 +1259,11 @@ describe('Router', function () {
     }
     it(`to load above routes in sequence`, async function () {
       let locationPath: string;
-      const { scheduler, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
+      const { platform, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
         locationPath = path;
       });
       for (const test of tests) {
-        await $goto(test.path, router, scheduler);
+        await $goto(test.path, router, platform);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
       }
@@ -1279,10 +1275,10 @@ describe('Router', function () {
       const url = test.url.replace(/@\w+/g, '');
       it(`to load route ${path} => ${url}`, async function () {
         let locationPath: string;
-        const { scheduler, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
+        const { platform, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
           locationPath = path;
         });
-        await $goto(path, router, scheduler);
+        await $goto(path, router, platform);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${url}`, 'location.path');
         await $teardown();
@@ -1290,13 +1286,13 @@ describe('Router', function () {
     }
     it(`to load above routes in sequence`, async function () {
       let locationPath: string;
-      const { scheduler, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
+      const { platform, container, host, router, $teardown } = await $setup(App, void 0, (type, data, title, path) => {
         locationPath = path;
       });
       for (const test of tests) {
         const path = test.path.replace(/@\w+/g, '');
         const url = test.url.replace(/@\w+/g, '');
-        await $goto(path, router, scheduler);
+        await $goto(path, router, platform);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${url}`, 'location.path');
       }
@@ -1308,9 +1304,9 @@ describe('Router', function () {
     this.timeout(30000);
 
     async function $setup(config?, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
 
-      const { container, scheduler } = ctx;
+      const { container, platform } = ctx;
 
       const App = CustomElement.define({
         name: 'app',
@@ -1325,7 +1321,6 @@ describe('Router', function () {
 
       const au = new Aurelia(container)
         .register(
-          DebugConfiguration,
           !config ? RouterConfiguration : RouterConfiguration.customize(config),
           App)
         .app({ host: host, component: App });
@@ -1343,7 +1338,7 @@ describe('Router', function () {
         au.dispose();
       }
 
-      return { ctx, container, scheduler, host, au, router, $teardown, App };
+      return { ctx, container, platform, host, au, router, $teardown, App };
     }
 
     function $removeViewport(instructions) {
@@ -1455,9 +1450,9 @@ describe('Router', function () {
     };
     for (const test of tests) {
       it(`to load route ${test.path} => ${test.url}`, async function () {
-        const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+        const { platform, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
 
-        await $goto(test.path, router, scheduler);
+        await $goto(test.path, router, platform);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
         assert.strictEqual(browserTitle, test.title, 'browser.title');
@@ -1466,10 +1461,10 @@ describe('Router', function () {
       });
     }
     it(`to load above routes in sequence`, async function () {
-      const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+      const { platform, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
 
       for (const test of tests) {
-        await $goto(test.path, router, scheduler);
+        await $goto(test.path, router, platform);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
         assert.strictEqual(browserTitle, test.title, 'browser.title');
@@ -1482,9 +1477,9 @@ describe('Router', function () {
       const url = test.url.replace(/@\w+/g, '');
       const title = test.title.replace(/@Parent/g, '');
       it(`to load route ${path} => ${url}`, async function () {
-        const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+        const { platform, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
 
-        await $goto(path, router, scheduler);
+        await $goto(path, router, platform);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${url}`, 'location.path');
         assert.strictEqual(browserTitle, title, 'browser.title');
@@ -1493,13 +1488,13 @@ describe('Router', function () {
       });
     }
     it(`to load above routes in sequence`, async function () {
-      const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+      const { platform, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
 
       for (const test of tests) {
         const path = test.path.replace(/@\w+/g, '');
         const url = test.url.replace(/@\w+/g, '');
         const title = test.title.replace(/@Parent/g, '');
-        await $goto(path, router, scheduler);
+        await $goto(path, router, platform);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${url}`, 'location.path');
         assert.strictEqual(browserTitle, title, 'browser.title');
@@ -1510,7 +1505,7 @@ describe('Router', function () {
     let removedViewports = false;
     for (const test of tests) {
       it(`to load route (without viewports) ${test.path} => ${test.url}`, async function () {
-        const { scheduler, host, router, $teardown, App } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+        const { platform, host, router, $teardown, App } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
 
         if (!removedViewports) {
           removedViewports = true;
@@ -1521,7 +1516,7 @@ describe('Router', function () {
           }
         }
 
-        await $goto(test.path, router, scheduler);
+        await $goto(test.path, router, platform);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
         assert.strictEqual(browserTitle, test.title, 'browser.title');
@@ -1530,10 +1525,10 @@ describe('Router', function () {
       });
     }
     it(`to load above routes (without viewports) in sequence`, async function () {
-      const { scheduler, host, router, $teardown, App } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+      const { platform, host, router, $teardown, App } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
 
       for (const test of tests) {
-        await $goto(test.path, router, scheduler);
+        await $goto(test.path, router, platform);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
         assert.strictEqual(browserTitle, test.title, 'browser.title');
@@ -1546,9 +1541,9 @@ describe('Router', function () {
       const url = test.url.replace(/@\w+/g, '');
       const title = test.title.replace(/@Parent/g, '');
       it(`to load route (without viewports) ${path} => ${url}`, async function () {
-        const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+        const { platform, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
 
-        await $goto(path, router, scheduler);
+        await $goto(path, router, platform);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${url}`, 'location.path');
         assert.strictEqual(browserTitle, title, 'browser.title');
@@ -1557,13 +1552,13 @@ describe('Router', function () {
       });
     }
     it(`to load above routes (without viewports) in sequence`, async function () {
-      const { scheduler, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+      const { platform, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
 
       for (const test of tests) {
         const path = test.path.replace(/@\w+/g, '');
         const url = test.url.replace(/@\w+/g, '');
         const title = test.title.replace(/@Parent/g, '');
-        await $goto(path, router, scheduler);
+        await $goto(path, router, platform);
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         assert.strictEqual(locationPath, `#/${url}`, 'location.path');
         assert.strictEqual(browserTitle, title, 'browser.title');
@@ -1576,9 +1571,9 @@ describe('Router', function () {
     this.timeout(30000);
 
     async function $setup(config?, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
 
-      const { container, scheduler } = ctx;
+      const { container, platform } = ctx;
 
       const App = CustomElement.define({
         name: 'app',
@@ -1593,7 +1588,6 @@ describe('Router', function () {
 
       const au = new Aurelia(container)
         .register(
-          DebugConfiguration,
           !config ? RouterConfiguration : RouterConfiguration.customize(config),
           App)
         .app({ host: host, component: App });
@@ -1611,7 +1605,7 @@ describe('Router', function () {
         au.dispose();
       }
 
-      return { ctx, container, scheduler, host, au, router, $teardown, App };
+      return { ctx, container, platform, host, au, router, $teardown, App };
     }
 
     function $removeViewport(instructions) {
@@ -1780,9 +1774,9 @@ describe('Router', function () {
       for (let j = 0; j < tests.length; j++) {
         const test = tests[j];
         it(`to load route ${test.path} => ${test.url}`, async function () {
-          const { scheduler, host, router, $teardown } = await $setup({ title: config }, appDependencies, appRoutes, locationCallback);
+          const { platform, host, router, $teardown } = await $setup({ title: config }, appDependencies, appRoutes, locationCallback);
 
-          await $goto(test.path, router, scheduler);
+          await $goto(test.path, router, platform);
           assert.strictEqual(host.textContent, test.result, `host.textContent`);
           assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
           assert.strictEqual(browserTitle, titles[i][j], 'browser.title');
@@ -1797,9 +1791,9 @@ describe('Router', function () {
     this.timeout(30000);
 
     async function $setup(config?, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
-      const ctx = TestContext.createHTMLTestContext();
+      const ctx = TestContext.create();
 
-      const { container, scheduler } = ctx;
+      const { container, platform } = ctx;
 
       const App = CustomElement.define({
         name: 'app',
@@ -1814,7 +1808,6 @@ describe('Router', function () {
 
       const au = new Aurelia(container)
         .register(
-          DebugConfiguration,
           !config ? RouterConfiguration : RouterConfiguration.customize(config),
           App)
         .app({ host: host, component: App });
@@ -1832,7 +1825,7 @@ describe('Router', function () {
         au.dispose();
       }
 
-      return { ctx, container, scheduler, host, au, router, $teardown, App };
+      return { ctx, container, platform, host, au, router, $teardown, App };
     }
 
     function $removeViewport(instructions) {
@@ -1871,13 +1864,13 @@ describe('Router', function () {
     for (let j = 0; j < tests.length; j++) {
       const test = tests[j];
       it.skip(`to load sibling routes ${test.name}`, async function () {
-        const { scheduler, host, router, $teardown } = await $setup({}, appDependencies, [], locationCallback);
+        const { platform, host, router, $teardown } = await $setup({}, appDependencies, [], locationCallback);
 
-        await $goto('/my-siblings', router, scheduler);
-        await scheduler.yieldAll();
+        await $goto('/my-siblings', router, platform);
+        await platform.domWriteQueue.yield();
 
         (host.getElementsByTagName('A')[test.anchor] as HTMLElement).click();
-        await scheduler.yieldAll();
+        await platform.domWriteQueue.yield();
 
         assert.strictEqual(host.textContent, test.result, `host.textContent`);
         // // assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
@@ -1892,9 +1885,9 @@ describe('Router', function () {
 let quxCantUnload = 0;
 let plughReentryBehavior = 'default';
 
-const $goto = async (path: string, router: IRouter, scheduler: IScheduler) => {
+const $goto = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);
-  scheduler.getRenderTaskQueue().flush();
+  platform.domWriteQueue.flush();
 };
 
 const wait = async (time = 500) => {

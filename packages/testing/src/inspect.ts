@@ -32,9 +32,6 @@ import {
   Primitive,
 } from '@aurelia/kernel';
 import {
-  DOM,
-} from '@aurelia/runtime-html';
-import {
   Boolean_valueOf,
   colors,
   Date_getTime,
@@ -104,6 +101,7 @@ import {
   TypedArray,
   TypedArrayConstructor,
 } from './util';
+import { PLATFORM } from './test-context';
 
 /* eslint-disable max-lines-per-function, @typescript-eslint/no-explicit-any, @typescript-eslint/ban-types, @typescript-eslint/no-non-null-assertion */
 
@@ -1670,7 +1668,7 @@ export function formatRaw(
   try {
     output = formatter(ctx, value, recurseTimes, keys, braces);
     let $key: PropertyKey;
-    const isNotNode = !(value instanceof DOM.Node);
+    const isNotNode = !(value instanceof PLATFORM.Node);
     for (i = 0; i < keys.length; i++) {
       $key = keys[i];
       if (

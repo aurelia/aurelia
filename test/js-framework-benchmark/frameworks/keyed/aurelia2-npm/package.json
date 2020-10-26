@@ -13,11 +13,10 @@
   "dependencies": {
     "@aurelia/kernel": "dev",
     "@aurelia/metadata": "dev",
-    "@aurelia/runtime-html-browser": "dev",
+    "@aurelia/platform": "dev",
+    "@aurelia/platform-browser": "dev",
     "@aurelia/runtime-html": "dev",
-    "@aurelia/runtime": "dev",
-    "@aurelia/scheduler-dom": "dev",
-    "@aurelia/scheduler": "dev"
+    "@aurelia/runtime": "dev"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^5.1.1",

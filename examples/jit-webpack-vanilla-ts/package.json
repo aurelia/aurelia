@@ -13,17 +13,13 @@
     "serve": "au-http-server au.conf.js"
   },
   "dependencies": {
-    "@aurelia/debug": "dev",
     "@aurelia/fetch-client": "dev",
     "@aurelia/kernel": "dev",
     "@aurelia/metadata": "dev",
     "@aurelia/route-recognizer": "dev",
     "@aurelia/router": "dev",
-    "@aurelia/runtime-html-browser": "dev",
     "@aurelia/runtime-html": "dev",
     "@aurelia/runtime": "dev",
-    "@aurelia/scheduler-dom": "dev",
-    "@aurelia/scheduler": "dev",
     "aurelia": "dev"
   },
   "devDependencies": {

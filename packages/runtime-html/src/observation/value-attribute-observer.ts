@@ -1,15 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
-import {
-  IAccessor,
-  ISubscriber,
-  ISubscriberCollection,
-  LifecycleFlags,
-  subscriberCollection,
-  IScheduler,
-  ITask,
-  AccessorType,
-} from '@aurelia/runtime';
-import { IEventSubscriber } from './event-manager';
+import { IAccessor, ISubscriber, ISubscriberCollection, LifecycleFlags, subscriberCollection, ITask, AccessorType } from '@aurelia/runtime';
+import { EventSubscriber } from './event-delegator';
 
 export interface ValueAttributeObserver
   extends ISubscriberCollection {}
@@ -33,9 +24,8 @@ export class ValueAttributeObserver implements IAccessor {
   public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
 
   public constructor(
-    public readonly scheduler: IScheduler,
     flags: LifecycleFlags,
-    public readonly handler: IEventSubscriber,
+    public readonly handler: EventSubscriber,
     public readonly obj: Node & IIndexable,
     public readonly propertyKey: string,
   ) {

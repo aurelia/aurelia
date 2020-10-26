@@ -1,8 +1,6 @@
 import {
   DI,
   IContainer,
-  ILogger,
-  LoggerConfiguration,
   Registration,
 } from '@aurelia/kernel';
 import {
@@ -12,7 +10,7 @@ import {
   OneTimeBindingBehavior,
   ToViewBindingBehavior,
   TwoWayBindingBehavior,
-  IScheduler,
+  IPlatform,
 } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
@@ -28,7 +26,7 @@ describe('2-runtime/binding-mode-behavior.spec.ts', function () {
   let sut: OneTimeBindingBehavior;
   let binding: PropertyBinding;
 
-  Registration.instance(IScheduler, {}).register(container);
+  Registration.instance(IPlatform, {}).register(container);
 
   for (const { Behavior, mode } of tests) {
     const initModeArr = [BindingMode.oneTime, BindingMode.toView, BindingMode.fromView, BindingMode.twoWay, BindingMode.default];
@@ -38,7 +36,7 @@ describe('2-runtime/binding-mode-behavior.spec.ts', function () {
         // eslint-disable-next-line mocha/no-hooks
         beforeEach(function () {
           sut = new Behavior();
-          binding = new PropertyBinding(undefined, undefined, undefined, initMode, undefined, container as any);
+          binding = new PropertyBinding(undefined, undefined, undefined, initMode, undefined, container as any, {} as any);
           sut.bind(undefined, undefined, undefined, binding);
         });
 

@@ -50,7 +50,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   let customElementName: IPos | undefined; // for @customName('custom-name')
 
   // When there are multiple exported classes (e.g. local value converters),
-  // they might be deps for rendering the main implicit custom element.
+  // they might be deps for composing the main implicit custom element.
   const localDeps: string[] = [];
   const conventionalDecorators: [number, string][] = [];
 

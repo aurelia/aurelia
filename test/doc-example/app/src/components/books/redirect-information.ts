@@ -1,4 +1,4 @@
-import { customElement } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime-html';
 
 @customElement({
   name: 'redirect-information',

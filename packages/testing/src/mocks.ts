@@ -3,7 +3,7 @@ import {
   IDisposable,
   IIndexable,
   IServiceLocator,
-  PLATFORM
+  emptyArray,
 } from '@aurelia/kernel';
 import {
   ExpressionKind,
@@ -14,9 +14,9 @@ import {
   ISignaler,
   ISubscribable,
   LifecycleFlags,
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 
-import type { Scope } from '@aurelia/runtime';
+import type { Scope } from '@aurelia/runtime-html';
 
 export class MockBinding implements IConnectableBinding {
   public interceptor: this = this;
@@ -435,19 +435,19 @@ export class CollectionChangeSet implements IDisposable {
 export class SpySubscriber implements IDisposable {
   public get changes(): ChangeSet[] {
     if (this._changes === void 0) {
-      return PLATFORM.emptyArray;
+      return emptyArray;
     }
     return this._changes;
   }
   public get proxyChanges(): ProxyChangeSet[] {
     if (this._proxyChanges === void 0) {
-      return PLATFORM.emptyArray;
+      return emptyArray;
     }
     return this._proxyChanges;
   }
   public get collectionChanges(): CollectionChangeSet[] {
     if (this._collectionChanges === void 0) {
-      return PLATFORM.emptyArray;
+      return emptyArray;
     }
     return this._collectionChanges;
   }

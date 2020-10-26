@@ -1,5 +1,5 @@
-import { customElement } from '@aurelia/runtime';
-import * as template from './calendar.html';
+import { customElement } from '@aurelia/runtime-html';
+import template from './calendar.html';
 import { ILogger } from 'aurelia';
 
 @customElement({ name: 'calendar', template })

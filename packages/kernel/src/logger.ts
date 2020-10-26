@@ -670,9 +670,9 @@ export class DefaultLogger {
  *
  * container.register(LoggerConfiguration.create({
  *  $console: {
- *     debug: PLATFORM.noop,
- *     info: PLATFORM.noop,
- *     warn: PLATFORM.noop,
+ *     debug: noop,
+ *     info: noop,
+ *     warn: noop,
  *     error: msg => {
  *       throw new Error(msg);
  *     }

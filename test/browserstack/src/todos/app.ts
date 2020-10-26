@@ -1,4 +1,4 @@
-import { ArrayObserver, customElement } from '@aurelia/runtime';
+import { ArrayObserver, customElement } from '@aurelia/runtime-html';
 
 let id = 0;
 class Todo {

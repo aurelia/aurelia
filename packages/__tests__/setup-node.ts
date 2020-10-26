@@ -1,59 +1,25 @@
-import {
-  assert,
-  ensureSchedulerEmpty,
-  HTMLTestContext,
-  TestContext,
-} from '@aurelia/testing';
-import {
-  RuntimeHtmlJsdomConfiguration
-} from '@aurelia/runtime-html-jsdom';
+import { noop } from '@aurelia/kernel';
+import { BrowserPlatform } from '@aurelia/platform-browser';
 import { JSDOM } from 'jsdom';
+import { $setup } from './setup-shared';
 
-function createJSDOMTestContext(): HTMLTestContext {
-  const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, { pretendToBeVisual: true });
+const jsdom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`, { pretendToBeVisual: true });
 
-  return HTMLTestContext.create(
-    RuntimeHtmlJsdomConfiguration,
-    jsdom.window as unknown as Window,
-    jsdom.window.UIEvent,
-    jsdom.window.Event,
-    jsdom.window.CustomEvent,
-    jsdom.window.Node,
-    jsdom.window.Element,
-    jsdom.window.HTMLElement,
-    jsdom.window.HTMLDivElement,
-    jsdom.window.Text,
-    jsdom.window.Comment,
-    jsdom.window.DOMParser,
-    jsdom.window.CSSStyleSheet,
-    (jsdom.window as unknown as { ShadowRoot: typeof ShadowRoot }).ShadowRoot
-  );
-}
-
-function initializeJSDOMTestContext(): void {
-  TestContext.createHTMLTestContext = createJSDOMTestContext;
-  // Just trigger the HTMLDOM to be resolved once so it sets the DOM globals
-  const ctx = TestContext.createHTMLTestContext();
-  ctx.dom.createElement('div');
-  ctx.scheduler.getRenderTaskQueue();
-
-  // eslint-disable-next-line
-  beforeEach(function() {
-    const title = this.currentTest?.fullTitle();
-    if (title.length > 1000) {
-      console.log(`Super long title! "${title.slice(0, 1000)}...(+${title.length - 1000})"`);
-    }
-  });
-
-  // eslint-disable-next-line
-  afterEach(function() {
-    try {
-      assert.isSchedulerEmpty();
-    } catch (ex) {
-      ensureSchedulerEmpty();
-      throw ex;
-    }
+const p = Promise.resolve();
+function $queueMicrotask(cb: () => void): void {
+  p.then(cb).catch(function (err) {
+    throw err;
   });
 }
+const w = jsdom.window as unknown as Window & typeof globalThis;
+const platform = new BrowserPlatform(w, {
+  queueMicrotask: typeof w.queueMicrotask === 'function'
+    ? w.queueMicrotask.bind(w)
+    : $queueMicrotask,
+  fetch: typeof w.fetch === 'function'
+    ? w.fetch.bind(w)
+    : noop as any,
+});
+$setup(platform);
 
-initializeJSDOMTestContext();
+console.log(`Node JSDOM test context initialized`);

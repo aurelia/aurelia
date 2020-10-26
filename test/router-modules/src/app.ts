@@ -1,5 +1,5 @@
 import { Router } from '@aurelia/router';
-import { customElement } from '@aurelia/runtime';
+import { customElement } from '@aurelia/runtime-html';
 import { AppState } from './app-state';
 import * as template from './app.html';
 import { AbcComponent } from './components/abc-component';

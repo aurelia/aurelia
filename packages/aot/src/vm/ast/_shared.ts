@@ -86,7 +86,7 @@ import {
   Statement,
 } from 'typescript';
 import {
-  PLATFORM,
+  emptyArray,
   Writable,
 } from '@aurelia/kernel';
 import {
@@ -247,10 +247,6 @@ import {
 import {
   $Error,
 } from '../types/error';
-
-const {
-  emptyArray,
-} = PLATFORM;
 
 // #region TS AST unions
 

@@ -4,20 +4,6 @@ export {
 } from './assert';
 
 export {
-  AuNode,
-  AuDOM,
-  AuDOMConfiguration,
-  AuDOMInitializer,
-  AuDOMTest,
-  AuNodeSequence,
-  AuNodeSequenceFactory,
-  AuObserverLocator,
-  AuProjector,
-  AuProjectorLocator,
-  AuTextInstruction,
-  AuTextRenderer,
-} from './au-dom';
-export {
   globalAttributeNames,
   CSS_PROPERTIES,
   PSEUDO_ELEMENTS,
@@ -36,9 +22,12 @@ export {
   createFixture
 } from './startup';
 export {
-  HTMLTestContext,
   TestContext,
-} from './html-test-context';
+  PLATFORM,
+  PLATFORMRegistration,
+  setPlatform,
+  createContainer,
+} from './test-context';
 export {
   inspect,
 } from './inspect';
@@ -58,22 +47,19 @@ export {
   SpySubscriber,
 } from './mocks';
 export {
-  writeProfilerReport,
-} from './profiler';
-export {
   SortValueConverter,
   JsonValueConverter,
   TestConfiguration,
 } from './resources';
 export {
-  ensureSchedulerEmpty,
+  ensureTaskQueuesEmpty,
 } from './scheduler';
 export {
   // verifyASTEqual,
   verifyBindingInstructionsEqual,
   verifyEqual,
   getVisibleText,
-  targetedInstructionTypeName,
+  instructionTypeName,
 } from './specialized-assertions';
 export {
   _,
